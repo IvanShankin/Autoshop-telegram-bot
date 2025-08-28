@@ -3,16 +3,17 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, T
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from srс.database.base import Base
+from src.database.database import Base
 
 
 class Settings(Base):
     __tablename__ = "settings"
 
     settings_id = Column(Integer, primary_key=True, autoincrement=True)
-    hash_token_accountant_bot = Column(Text, nullable=True)
+    hash_token_accountant_bot = Column(Text, nullable=True) # токен для бота бугалтера
     channel_for_logging_id = Column(String(200), nullable=True)   # ID канала для логирования
     channel_for_subscription_id = Column(String(200), nullable=True)   # ID канала для подписки пользователя
+    FAQ = Column(Text, nullable=True)
 
 class Users(Base):
     __tablename__ = "users"
@@ -23,12 +24,11 @@ class Users(Base):
         Index('ix_users_balance_created', 'balance', 'created_at')
     )
 
-    user_id = Column(Integer, primary_key=True, autoincrement=True)
-    telegram_id = Column(BigInteger, unique=True, nullable=True, index=True)
-    username = Column(String(150), nullable=False)
+    user_id = Column(BigInteger, primary_key=True, index=True) # одновременно telegram_id
+    username = Column(String(150), nullable=True)
     language = Column(Enum("rus", "eng", name="user_language"), nullable=False, server_default="rus")  # язык пользователя
     unique_referral_code = Column(String(150), unique=True, nullable=False)
-    balance = Column(Integer, default=0, nullable=False) # указанно в рублях
+    balance = Column(Integer, nullable=False, default=0) # указанно в рублях
     total_sum_replenishment = Column(Integer, nullable=False, default=0)
     total_sum_from_referrals = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -49,18 +49,18 @@ class Users(Base):
     # Доход, который кто-то получил с ЭТОГО пользователя (реферала)
     income_as_referral = relationship("IncomeFromReferrals", foreign_keys="IncomeFromReferrals.referral_id", back_populates="referral")
 
-    replenishments = relationship("Replenishment", back_populates="user")
+    replenishments = relationship("Replenishments", back_populates="user")
     banned_accounts = relationship("BannedAccounts", foreign_keys="BannedAccounts.user_id", back_populates="user")
-    promo_code_activated_account = relationship("ActivatedPromoCode", foreign_keys="ActivatedPromoCode.user_id", back_populates="user")
+    promo_code_activated_account = relationship("ActivatedPromoCodes", foreign_keys="ActivatedPromoCodes.user_id", back_populates="user")
     purchases = relationship("PurchasesAccounts", back_populates="user")
-    sold_account = relationship("SoldAccount", back_populates="user")
+    sold_account = relationship("SoldAccounts", back_populates="user")
     vouchers = relationship("Vouchers", back_populates="user")
     voucher_activations = relationship("VoucherActivations", back_populates="user")
 
-    transfer_from = relationship("TransferMoney", foreign_keys="TransferMoney.user_from_id", back_populates="user_from")
-    transfer_where = relationship("TransferMoney", foreign_keys="TransferMoney.user_where_id", back_populates="user_where")
+    transfer_from = relationship("TransferMoneys", foreign_keys="TransferMoneys.user_from_id", back_populates="user_from")
+    transfer_where = relationship("TransferMoneys", foreign_keys="TransferMoneys.user_where_id", back_populates="user_where")
 
-    audit_logs = relationship("UserAuditLog",back_populates="user")
+    audit_logs = relationship("UserAuditLogs",back_populates="user")
     admin_actions = relationship("AdminActions",back_populates="user")
     wallet_transactions = relationship("WalletTransaction",back_populates="user")
 
@@ -89,18 +89,6 @@ class BannedAccounts(Base):
 
     user = relationship("Users", back_populates="banned_accounts")
 
-# Эту таблицу в боте нельзя менять. Тут по умолчанию должно быть поле с "телеграм" и "другой".
-# В дальнейших обновлениях будут расширятся сервисы с которыми работаем
-class TypeAccountServices(Base):
-    __tablename__ = "type_account_services"
-
-    type_account_service_id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(100), nullable=False)
-
-    account_service = relationship("AccountService", back_populates="type_account_service")
-    product_accounts = relationship("Accounts", back_populates="type_account_service")
-    sold_accounts = relationship("SoldAccount", back_populates="type_account_service")
-
 class TypePayments(Base):
     __tablename__ = "type_payments"
 
@@ -112,14 +100,14 @@ class TypePayments(Base):
     commission = Column(Integer, default=0)  # Комиссия в процентах
     extra_data = Column(JSON, nullable=True)  # Дополнительные параметры метода
 
-    replenishments = relationship("Replenishment", back_populates="type_payment")
+    replenishments = relationship("Replenishments", back_populates="type_payment")
 
 class Replenishments(Base):
     __tablename__ = "replenishments"
 
     replenishment_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
-    type_payment_id = Column(Integer, ForeignKey("type_payment.type_payment_id"), nullable=False)
+    type_payment_id = Column(Integer, ForeignKey("type_payments.type_payment_id"), nullable=False)
     origin_amount = Column(Integer, nullable=False)  # Сумма в рублях (без учёта комиссии)
     amount = Column(Integer, nullable=False)  # Сумма в рублях (с учётом комиссии)
     status = Column(Enum('pending', 'completed', 'cancelled', 'failed', name='replenishment_status'), server_default='pending')
@@ -133,7 +121,8 @@ class Replenishments(Base):
     payment_data = Column(JSON, nullable=True)  # Дополнительные данные платежа
 
     user = relationship("Users", back_populates="replenishments")
-    type_payment = relationship("TypePayment", back_populates="replenishments")
+    type_payment = relationship("TypePayments", back_populates="replenishments")
+    income_from_referral = relationship("IncomeFromReferrals", back_populates="replenishment")
 
 class TransferMoneys(Base):
     __tablename__ = "transfer_moneys"

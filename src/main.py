@@ -4,7 +4,9 @@ import os
 from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv
 
-from srс.handlers import router
+from src.database.filling_database import create_database
+
+# from src.handlers import router
 
 load_dotenv()
 TOKEN_BOT = os.getenv('TOKEN_BOT')
@@ -13,8 +15,9 @@ bot = Bot(token=TOKEN_BOT)
 dp = Dispatcher() # диспетчер выполняющий работу роутера
 
 async def main():
-    dp.include_router(router)
-    await dp.start_polling(bot)
+    await create_database()
+    # dp.include_router(router)
+    # await dp.start_polling(bot)
 
 if __name__ == '__main__':
     try:

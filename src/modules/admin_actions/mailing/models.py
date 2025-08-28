@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, T
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from srс.database.base import Base
+from src.database.database import Base
 
 class MessageForSending(Base):
     __tablename__ = "message_for_sending"

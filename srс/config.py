@@ -1,2 +1,0 @@
-OWNER=1028495731
-CHANNEL_NAME='@test_auto_shop'

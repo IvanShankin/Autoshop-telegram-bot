@@ -2,55 +2,71 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, T
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from srс.database.base import Base
+from src.database.database import Base
+
+
+class TypeAccountServices(Base):
+    """
+    Эту таблицу в боте нельзя менять. Тут по умолчанию должно быть поле с "телеграм" и "другой".
+    В дальнейших обновлениях будут расширятся сервисы с которыми работаем
+    Это сделано потому что для разных аккаунтов необходимо использовать разный подход для входа в него
+    """
+    __tablename__ = "type_account_services"
+
+    type_account_service_id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(100), nullable=False)
+
+    account_service = relationship("AccountServices", back_populates="type_account_service")
+    product_accounts = relationship("ProductAccounts", back_populates="type_account_service")
+    sold_accounts = relationship("SoldAccounts", back_populates="type_account_service")
 
 class AccountServices(Base):
     __tablename__ = "account_services"
 
     account_service_id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(300), nullable=False)
-    type_account_service_id = Column(Integer, ForeignKey("type_account_service.type_account_service_id"), nullable=False) # помечать будем в боте
+    type_account_service_id = Column(Integer, ForeignKey("type_account_services.type_account_service_id"), nullable=False) # помечать будем в боте
 
     account_categories = relationship("AccountCategories", back_populates="account_service")
-    type_account_service = relationship("TypeAccountService", back_populates="account_service")
+    type_account_service = relationship("TypeAccountServices", back_populates="account_service")
 
 # у каждой категории может быть подкатегория
 class AccountCategories(Base):
     __tablename__ = "account_categories"
 
-    account_categorie_id = Column(Integer, primary_key=True, autoincrement=True)
+    account_category_id = Column(Integer, primary_key=True, autoincrement=True)
     account_service_id = Column(Integer, ForeignKey("account_services.account_service_id"), nullable=False)
     name = Column(String(300), nullable=False) # будет отображать на кнопке и в самом товаре
     description = Column(Text, nullable=False)
-    parent_id = Column(Integer, ForeignKey("account_categories.account_categories_id"), nullable=True)
+    parent_id = Column(Integer, ForeignKey("account_categories.account_category_id"), nullable=True)
     is_accounts_storage = Column(Boolean, nullable=False, server_default=text('false')) # если это хранилище аккаунтов
 
     # только для тех категорий которые хранят аккаунты
     price_one_account = Column(Integer, nullable=True) # цена продажи
     cost_price_one_account = Column(Integer, nullable=True) # себестоимость
 
-    account_service = relationship("AccountService", back_populates="account_categories")
+    account_service = relationship("AccountServices", back_populates="account_categories")
     next_account_categories = relationship("AccountCategories",back_populates="parent",foreign_keys=[parent_id])
-    parent = relationship("AccountCategories",back_populates="next_account_categories",remote_side=lambda: [AccountCategories.account_categories_id])
-    product_accounts = relationship("Accounts", back_populates="account_category")
+    parent = relationship("AccountCategories",back_populates="next_account_categories",remote_side=lambda: [AccountCategories.account_category_id])
+    product_accounts = relationship("ProductAccounts", back_populates="account_category")
 
 class ProductAccounts(Base):
     __tablename__ = "product_accounts"
     __table_args__ = (
         Index('ix_accounts_type_service', 'type_account_service_id'),
-        Index('ix_accounts_category', 'account_categories_id'),
+        Index('ix_accounts_category', 'account_category_id'),
     )
 
     account_id = Column(Integer, primary_key=True, autoincrement=True)
-    type_account_service_id = Column(Integer, ForeignKey("type_account_service.type_account_service_id"), nullable=False)
-    account_categories_id = Column(Integer, ForeignKey("account_categories.account_categories_id"), nullable=False)
+    type_account_service_id = Column(Integer, ForeignKey("type_account_services.type_account_service_id"), nullable=False)
+    account_category_id = Column(Integer, ForeignKey("account_categories.account_category_id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Специфичные поля (могут быть NULL)
     hash_login = Column(Text, nullable=True)
     hash_password = Column(Text, nullable=True)
 
-    type_account_service = relationship("TypeAccountService", back_populates="product_accounts")
+    type_account_service = relationship("TypeAccountServices", back_populates="product_accounts")
     account_category = relationship("AccountCategories", back_populates="product_accounts")
 
 # хранит проданные аккаунты
@@ -63,10 +79,10 @@ class SoldAccounts(Base):
 
     sold_account_id = Column(Integer, primary_key=True, autoincrement=True)
     owner_id = Column(Integer, ForeignKey("users.user_id"), nullable=True)
-    type_account_service_id = Column(Integer, ForeignKey("type_account_service.type_account_service_id"), nullable=False)
+    type_account_service_id = Column(Integer, ForeignKey("type_account_services.type_account_service_id"), nullable=False)
 
     category_name = Column(String(300), nullable=False) # берётся с AccountCategories
-    service_name = Column(String(300), nullable=False) # берётся с AccountService
+    service_name = Column(String(300), nullable=False) # берётся с AccountServices
     type_name = Column(String(100), nullable=False)
 
     is_valid = Column(Boolean, nullable=False, server_default=text('true'))
@@ -77,7 +93,7 @@ class SoldAccounts(Base):
     hash_password = Column(Text, nullable=True)
 
     user = relationship("Users", back_populates="sold_account")
-    type_account_service = relationship("TypeAccountService", back_populates="sold_accounts")
+    type_account_service = relationship("TypeAccountServices", back_populates="sold_accounts")
     purchase = relationship("PurchasesAccounts", back_populates="sold_account", uselist=False)
 
 # если запись есть, то это покупка совершённая
@@ -100,7 +116,7 @@ class PurchasesAccounts(Base):
     purchase_date = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("Users", back_populates="purchases")
-    sold_account = relationship("SoldAccount", back_populates="purchase")  # Связь с SoldAccount
-    promo_code = relationship("PromoCode", back_populates="purchases_accounts")
+    sold_account = relationship("SoldAccounts", back_populates="purchase")  # Связь с SoldAccounts
+    promo_code = relationship("PromoCodes", back_populates="purchases_accounts")
 
 

@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from srс.database.base import Base
+from src.database.database import Base
 
 class Referrals(Base):
     __tablename__ = "referrals"
@@ -27,7 +27,7 @@ class IncomeFromReferrals(Base):
     __tablename__ = "income_from_referrals"
 
     income_from_referral_id = Column(Integer, primary_key=True, autoincrement=True)
-    replenishment_id = Column(Integer, ForeignKey("replenishment.replenishment_id"), nullable=False)
+    replenishment_id = Column(Integer, ForeignKey("replenishments.replenishment_id"), nullable=False)
 
     # ID пользователя-ВЛАДЕЛЬЦА (того, кто получил доход)
     owner_user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False, index=True)
@@ -38,5 +38,6 @@ class IncomeFromReferrals(Base):
     percentage_of_replenishment = Column(Integer, nullable=False) # процент от пополнения на момент операции
     date_created = Column(DateTime(timezone=True), server_default=func.now())
 
+    replenishment = relationship("Replenishments", back_populates="income_from_referral")
     owner = relationship("Users", foreign_keys=[owner_user_id], back_populates="income_as_owner") # владелец реферала
     referral = relationship("Users", foreign_keys=[referral_id], back_populates="income_as_referral") # реферал

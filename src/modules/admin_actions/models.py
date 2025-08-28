@@ -2,23 +2,17 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, JSON, Inde
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from srс.database.base import Base
+from src.database.database import Base
 
 
 class Admins(Base):
     __tablename__ = "admins"
-    __table_args__ = (
-        Index('ix_admins_user_id', 'user_id'),  # Добавляем индекс
-    )
 
     admin_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.user_id"))
+    user_id = Column(Integer, ForeignKey("users.user_id"), index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("Users", back_populates="admin")
-
-
-
 
 class AdminActions(Base):
     __tablename__ = "admin_actions"

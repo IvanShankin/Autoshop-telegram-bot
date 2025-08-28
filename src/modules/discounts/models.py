@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, C
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from srс.database.base import Base
+from src.database.database import Base
 
 # кэшируется в redis на время действия
 class PromoCodes(Base):
@@ -26,7 +26,7 @@ class PromoCodes(Base):
     expire_at = Column(DateTime(timezone=True), nullable=True)
     is_valid = Column(Boolean, nullable=False, server_default=text('true'))
 
-    promo_code_activated_account = relationship("ActivatedPromoCode", back_populates="promo_code")
+    promo_code_activated_account = relationship("ActivatedPromoCodes", back_populates="promo_code")
     purchases_accounts = relationship("PurchasesAccounts", back_populates="promo_code")
 
 class ActivatedPromoCodes(Base):
@@ -37,7 +37,7 @@ class ActivatedPromoCodes(Base):
     user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    promo_code = relationship("PromoCode", back_populates="promo_code_activated_account")
+    promo_code = relationship("PromoCodes", back_populates="promo_code_activated_account")
     user = relationship("Users", back_populates="promo_code_activated_account")
 
 class Vouchers(Base):

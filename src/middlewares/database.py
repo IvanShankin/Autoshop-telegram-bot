@@ -1,17 +1,25 @@
 from aiogram import BaseMiddleware
-from aiogram.types import TelegramObject
 from typing import Callable, Dict, Any, Awaitable
 
-from src.database.database import get_db
+from src.database.database import session_local
 
-class DatabaseMiddleware(BaseMiddleware):
+
+class DataBaseSessionMiddleware(BaseMiddleware):
     async def __call__(
         self,
-        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
-        event: TelegramObject,
+        handler: Callable[[Dict[str, Any]], Awaitable[Any]],
+        event: Any,
         data: Dict[str, Any]
     ) -> Any:
-        # Получаем сессию БД
-        async for db in get_db():
-            data["db"] = db
+        async with session_local() as session:
+            data["db"] = session   # db будет доступен в хендлерах
             return await handler(event, data)
+
+
+# пример как взять использовать в роутере
+# from aiogram import Router
+# from src.middlewares.database import DataBaseSessionMiddleware
+# router = Router()
+# router.message.middleware(DataBaseSessionMiddleware())
+# @router.message()
+# async def test_handler(message: types.Message, db: AsyncSession):

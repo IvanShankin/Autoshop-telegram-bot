@@ -5,14 +5,14 @@ from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv
 
 from src.database.filling_database import create_database
-
-# from src.handlers import router
+from src.middlewares.database import DataBaseSessionMiddleware
 
 load_dotenv()
 TOKEN_BOT = os.getenv('TOKEN_BOT')
 
 bot = Bot(token=TOKEN_BOT)
 dp = Dispatcher() # диспетчер выполняющий работу роутера
+dp.message.middleware(DataBaseSessionMiddleware())
 
 async def main():
     await create_database()

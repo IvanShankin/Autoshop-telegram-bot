@@ -79,7 +79,7 @@ class NotificationSettings(Base):
 
     user = relationship("Users", back_populates="notification_settings")
 
-# кэшируем в redis бессрочно.
+# кэшируем в redis_dependencies бессрочно.
 class BannedAccounts(Base):
     __tablename__ = "banned_accounts"
 

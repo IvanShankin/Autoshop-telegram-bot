@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Text, JSON, Enum, CheckConstraint, Index, \
-    BigInteger, text
+    BigInteger, text, inspect
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -27,7 +27,7 @@ class Users(Base):
     user_id = Column(BigInteger, primary_key=True, index=True) # одновременно telegram_id
     username = Column(String(150), nullable=True)
     language = Column(Enum("rus", "eng", name="user_language"), nullable=False, server_default="rus")  # язык пользователя
-    unique_referral_code = Column(String(150), unique=True, nullable=False)
+    unique_referral_code = Column(String(50), unique=True, nullable=False)
     balance = Column(Integer, nullable=False, default=0) # указанно в рублях
     total_sum_replenishment = Column(Integer, nullable=False, default=0)
     total_sum_from_referrals = Column(Integer, nullable=False, default=0)
@@ -64,6 +64,10 @@ class Users(Base):
     admin_actions = relationship("AdminActions",back_populates="user")
     wallet_transactions = relationship("WalletTransaction",back_populates="user")
 
+    def to_dict(self):
+        """преобразует в словарь все колонки у выбранного объекта"""
+        return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
+
 class NotificationSettings(Base):
     __tablename__ = "notification_settings"
 
@@ -94,8 +98,8 @@ class TypePayments(Base):
 
     type_payment_id = Column(Integer, primary_key=True, autoincrement=True)
     # у админа будет собственное название (только для него в панели администратора)
-    name_for_user = Column(String(300), nullable=False)  # Название метода (CryptoBot, ЮMoney и т.д.)
-    name_for_admin = Column(String(300), nullable=False)
+    name_for_user = Column(String(400), nullable=False)  # Название метода (CryptoBot, ЮMoney и т.д.)
+    name_for_admin = Column(String(400), nullable=False)
     is_active = Column(Boolean, server_default=text('true'))  # Активен ли метод
     commission = Column(Integer, default=0)  # Комиссия в процентах
     extra_data = Column(JSON, nullable=True)  # Дополнительные параметры метода
@@ -141,7 +145,7 @@ class UserAuditLogs(Base):
 
     user_audit_log_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)  # Кто совершил действие
-    action_type = Column(String(100), nullable=False)  # Тип действия (может быть любое)
+    action_type = Column(String(200), nullable=False)  # Тип действия (может быть любое)
     details = Column(JSON, nullable=True)  # Гибкое поле для любых деталей
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -160,7 +164,7 @@ class WalletTransaction(Base):
 
     wallet_transaction_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
-    type = Column(Enum('replenish','purchase','refund','transfer','promo', name='wallet_tx_type'), nullable=False)
+    type = Column(Enum('replenish','purchase','refund','transfer','promo', 'other', name='wallet_tx_type'), nullable=False)
     amount = Column(Integer, nullable=False)
     balance_before = Column(Integer, nullable=False)
     balance_after = Column(Integer, nullable=False)

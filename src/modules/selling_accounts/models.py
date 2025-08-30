@@ -14,34 +14,44 @@ class TypeAccountServices(Base):
     __tablename__ = "type_account_services"
 
     type_account_service_id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(100), nullable=False)
+    name = Column(String(100), nullable=False, index=True)
 
     account_service = relationship("AccountServices", back_populates="type_account_service")
     product_accounts = relationship("ProductAccounts", back_populates="type_account_service")
     sold_accounts = relationship("SoldAccounts", back_populates="type_account_service")
 
 class AccountServices(Base):
+    """
+    Хранит сервисы у продаваемых аккаунтов, такие как: telegram, vk, instagram ...
+    Их задаёт пользователь. Один тип сервиса (TypeAccountServices) - один привязанный к нему сервис (AccountServices)
+    """
     __tablename__ = "account_services"
 
     account_service_id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(300), nullable=False)
-    type_account_service_id = Column(Integer, ForeignKey("type_account_services.type_account_service_id"), nullable=False) # помечать будем в боте
+    type_account_service_id = Column(Integer, ForeignKey("type_account_services.type_account_service_id"), nullable=False, unique=True) # помечать будем в боте
 
     account_categories = relationship("AccountCategories", back_populates="account_service")
     type_account_service = relationship("TypeAccountServices", back_populates="account_service")
 
-# у каждой категории может быть подкатегория
+
 class AccountCategories(Base):
+    """
+    Категории у аккаунтов, к каждой категории может быть подкатегория (подкатегория это тоже запись в БД)
+    Если есть флаг is_main, то у данной категории нет родителя.
+    Если есть флаг is_accounts_storage, то данная категория хранит аккаунты и задействована для продажи
+    """
     __tablename__ = "account_categories"
 
     account_category_id = Column(Integer, primary_key=True, autoincrement=True)
     account_service_id = Column(Integer, ForeignKey("account_services.account_service_id"), nullable=False)
+    parent_id = Column(Integer, ForeignKey("account_categories.account_category_id"), nullable=True)
     name = Column(String(300), nullable=False) # будет отображать на кнопке и в самом товаре
     description = Column(Text, nullable=False)
-    parent_id = Column(Integer, ForeignKey("account_categories.account_category_id"), nullable=True)
+    is_main = Column(Boolean, nullable=False, server_default=text('false'))
     is_accounts_storage = Column(Boolean, nullable=False, server_default=text('false')) # если это хранилище аккаунтов
 
-    # только для тех категорий которые хранят аккаунты
+    # только для тех категорий которые хранят аккаунты (is_accounts_storage == True)
     price_one_account = Column(Integer, nullable=True) # цена продажи
     cost_price_one_account = Column(Integer, nullable=True) # себестоимость
 

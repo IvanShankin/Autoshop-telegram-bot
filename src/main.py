@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 
 from src.database.filling_database import create_database
 from src.middlewares.database import DataBaseSessionMiddleware
+from src.redis_dependencies.filling_redis import filling_all_redis
 
 load_dotenv()
 TOKEN_BOT = os.getenv('TOKEN_BOT')
@@ -16,6 +17,7 @@ dp.message.middleware(DataBaseSessionMiddleware())
 
 async def main():
     await create_database()
+    await filling_all_redis()
     # dp.include_router(router)
     # await dp.start_polling(bot)
 

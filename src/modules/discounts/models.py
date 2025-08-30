@@ -19,9 +19,10 @@ class PromoCodes(Base):
 
     # будет на определённую сумму или процент
     amount = Column(Integer, nullable=True) # сумма скидки
+    activated_counter = Column(Integer, nullable=False, server_default=text('0')) # количество активаций
     discount_percentage = Column(Integer, nullable=True,) # процент скидки (может быть Null)
 
-    number_of_activations = Column(Integer, nullable=True) # количество активаций (если нет, то может быть бесконечным)
+    number_of_activations = Column(Integer, nullable=True) # разрешённое количество активаций (если нет, то бесконечное)
     start_at = Column(DateTime(timezone=True), server_default=func.now())
     expire_at = Column(DateTime(timezone=True), nullable=True)
     is_valid = Column(Boolean, nullable=False, server_default=text('true'))
@@ -52,7 +53,8 @@ class Vouchers(Base):
 
     activation_code = Column(String(150), nullable=False) # НЕ уникальный, фильтровать необходимо по is_valid
     amount = Column(Integer, nullable=False)
-    number_of_activations = Column(Integer, nullable=True) # количество активаций (если нет, то может быть бесконечным)
+    activated_counter = Column(Integer, nullable=False, server_default=text('0')) # количество активаций
+    number_of_activations = Column(Integer, nullable=True) # разрешённое количество активаций (если нет, то бесконечное)
 
     start_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     expire_at = Column(DateTime(timezone=True), nullable=True)

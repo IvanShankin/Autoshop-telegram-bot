@@ -129,4 +129,17 @@ class PurchasesAccounts(Base):
     sold_account = relationship("SoldAccounts", back_populates="purchase")  # Связь с SoldAccounts
     promo_code = relationship("PromoCodes", back_populates="purchases_accounts")
 
+class DeletedAccounts(Base):
+    """
+    Логирование аккаунтов которые удалены самим ботов по причине их не валидности.
+    Аккаунты удалённые пользователем сюда не попадают!
+    """
+    __tablename__ = "deleted_accounts"
+
+    deleted_account_id = Column(Integer, primary_key=True, autoincrement=True)
+    type_account_service_id = Column(Integer, ForeignKey("type_account_services.type_account_service_id"), nullable=False)
+    account_category = Column(String(300), nullable=False)
+    description = Column(Text, nullable=False)
+
+    create_at = Column(DateTime(timezone=True), server_default=func.now())
 

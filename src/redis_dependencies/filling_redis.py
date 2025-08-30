@@ -1,8 +1,10 @@
 import orjson
 
-from datetime import datetime, UTC
 
-from asyncpg.pgproto.pgproto import timedelta
+from typing import Type, Any, Optional, Callable
+
+from datetime import datetime, timedelta, UTC
+
 from sqlalchemy import select
 from src.database import Users, BannedAccounts
 from src.modules.admin_actions.models import Admins
@@ -10,7 +12,7 @@ from src.modules.discounts.models import PromoCodes, Vouchers
 from src.modules.selling_accounts.models import TypeAccountServices, AccountServices, AccountCategories, \
     ProductAccounts, SoldAccounts
 from src.redis_dependencies.core_redis import get_redis
-from src.database.database import get_db
+from src.database.database import get_db, Base
 from src.redis_dependencies.time_storage import TIME_USER, TIME_SOLD_ACCOUNTS_BY_OWNER, TIME_SOLD_ACCOUNTS_BY_ACCOUNT
 
 
@@ -31,227 +33,206 @@ async def filling_all_redis():
     await filling_vouchers()
 
 
+async def _fill_redis_single_objects(
+        model: Type,
+        key_prefix: str,
+        key_extractor: Callable[[Any], str],
+        value_extractor: Callable[[Any], Any] = lambda x: orjson.dumps(x.to_dict()),
+        field_condition: Optional[Any] = None,
+        ttl: Optional[Callable[[Any], timedelta]] = None
+):
+    """
+
+    Заполняет Redis одиночными объектами
+    :param model: модель БД
+    :param key_prefix: префикс у ключа redis ("key_prefix:other_data")
+    :param field_condition: условие отбора. Пример: (User.user_id == 1)
+    :param key_extractor: lambda функция для вызова второй части ключа. Пример: lambda user: user.user_id
+    :param value_extractor: lambda функция для метода преобразования в json строку исходное значение. Пример:  lambda x: orjson.dumps(x.to_dict())
+    :param key_extractor:
+    :param value_extractor:
+    :param ttl:
+    """
+    async with get_db() as session_db:
+        if field_condition:
+            result_db = await session_db.execute(select(model).where(field_condition))
+        else:
+            result_db = await session_db.execute(select(model))
+
+        result = result_db.scalars().all()
+
+        if result:
+            async with get_redis() as session_redis:
+                async with session_redis.pipeline(transaction=False) as pipe:
+                    for obj in result:
+                        key = f"{key_prefix}:{key_extractor(obj)}" # формируется ключ
+                        value = value_extractor(obj)
+
+                        if ttl:
+                            ttl_in_seconds = int(ttl(obj).total_seconds())
+                            if ttl_in_seconds > 1:
+                                await pipe.setex(key, ttl_in_seconds, value)
+                        else:
+                            await pipe.set(key, value)
+                    await pipe.execute()
+
+async def _fill_redis_grouped_objects(
+        model: Type,
+        group_by_field_models: str,
+        group_by_model: Type,
+        group_by_field_for_group_model: str,
+        key_prefix: str,
+        filter_condition: Optional[Any] = None,
+        ttl: Optional[int] = None
+):
+    """
+    Заполняет Redis сгруппированными объектами.
+    :param model: Модель БД которая заполнит redis.
+    :param group_by_model: Модель по которой будет происходить группировка.
+    :param group_by_field_for_group_model: Столбец по которому будет отбираться group_by_model.
+    :param group_by_field_models: Столбец по которому будет отбираться model.
+    :param key_prefix: Префикс у ключа redis
+    :param filter_condition: Фильтрация model. Пример: (User.user_id == 1)
+    :param ttl:
+    :return:
+    """
+    async with get_db() as session_db:
+        # Получаем все ID для группировки
+        result_db = await session_db.execute(select(getattr(group_by_model, group_by_field_for_group_model)))
+        group_ids = result_db.scalars().all()
+
+        for group_id in group_ids:
+            # Строим запрос с условием
+            query = select(model).where(getattr(model, group_by_field_models) == group_id)
+            if filter_condition:
+                query = query.where(filter_condition)
+
+            result_db = await session_db.execute(query)
+            grouped_objects = result_db.scalars().all()
+
+            if grouped_objects:
+                async with get_redis() as session_redis:
+                    list_for_redis = [obj.to_dict() for obj in grouped_objects]
+                    key = f"{key_prefix}:{group_id}"
+                    value = orjson.dumps(list_for_redis)
+
+                    if ttl:
+                        await session_redis.setex(key, ttl, value)
+                    else:
+                        await session_redis.set(key, value)
 
 
 async def filling_users():
-    async with get_db() as session_db:
-        result_db = await session_db.execute(select(Users))
-        result = result_db.scalars().all()
+    await _fill_redis_single_objects(
+        model=Users,
+        key_prefix='user',
+        key_extractor=lambda user: user.user_id,
+        ttl=lambda user: TIME_USER
+    )
 
-        if result:
-            async with get_redis() as session_redis:
-                async with session_redis.pipeline(transaction=False) as pipe:
-                    for user in result:
-                        await pipe.setex(f"user:{user.user_id}", TIME_USER, orjson.dumps(user.to_dict()))
-                    await pipe.execute() # выполняем пачкой
 
 async def filling_admins():
-    async with get_db() as session_db:
-        result_db = await session_db.execute(select(Admins))
-        result = result_db.scalars().all()
-
-        if result:
-            async with get_redis() as session_redis:
-                async with session_redis.pipeline(transaction=False) as pipe:
-                    for admin in result:
-                        await pipe.set(f"admin:{admin.user_id}", '_')
-                    await pipe.execute()
+    await _fill_redis_single_objects(
+        model=Admins,
+        key_prefix='admin',
+        key_extractor=lambda admin: admin.user_id,
+        value_extractor=lambda x: '_'
+    )
 
 async def filling_banned_accounts():
-    async with get_db() as session_db:
-        result_db = await session_db.execute(select(BannedAccounts))
-        result = result_db.scalars().all()
-
-        if result:
-            async with get_redis() as session_redis:
-                async with session_redis.pipeline(transaction=False) as pipe:
-                    for banned_accounts in result:
-                        await pipe.set(f"banned_account:{banned_accounts.user_id}", '_')
-                    await pipe.execute()
+    await _fill_redis_single_objects(
+        model=BannedAccounts,
+        key_prefix='banned_account',
+        key_extractor=lambda banned_accounts: banned_accounts.user_id,
+        value_extractor=lambda x: '_'
+    )
 
 async def filling_type_account_services():
-    async with get_db() as session_db:
-        result_db = await session_db.execute(select(TypeAccountServices))
-        result = result_db.scalars().all()
-
-        if result:
-            async with get_redis() as session_redis:
-                async with session_redis.pipeline(transaction=False) as pipe:
-                    for type_account_service in result:
-                        await pipe.set(
-                            f"type_account_service:{type_account_service.name}",
-                            orjson.dumps(type_account_service.to_dict())
-                        )
-                    await pipe.execute()
+    await _fill_redis_single_objects(
+        model=TypeAccountServices,
+        key_prefix='type_account_service',
+        key_extractor=lambda type_account_service: type_account_service.name,
+    )
 
 async def filling_account_services():
-    async with get_db() as session_db:
-        result_db = await session_db.execute(select(AccountServices))
-        result = result_db.scalars().all()
-
-        if result:
-            async with get_redis() as session_redis:
-                async with session_redis.pipeline(transaction=False) as pipe:
-                    for account_service in result:
-                        await pipe.set(
-                            f"account_service:{account_service.type_account_service_id}",
-                            orjson.dumps(account_service.to_dict())
-                        )
-                    await pipe.execute()
+    await _fill_redis_single_objects(
+        model=AccountServices,
+        key_prefix='account_service',
+        key_extractor=lambda account_service: account_service.type_account_service_id,
+    )
 
 async def filling_account_categories_by_service_id():
-    async with get_db() as session_db:
-        result_db = await session_db.execute(select(AccountServices.account_service_id))
-        result_account_service_ids = result_db.scalars().all()
-
-        for account_service_id in result_account_service_ids:
-            result_db = await session_db.execute(
-                select(AccountCategories)
-                .where(AccountCategories.account_service_id == account_service_id)
-            )
-            result_account_categories = result_db.scalars().all()
-
-            if result_account_categories:
-                async with get_redis() as session_redis:
-                    list_for_redis = []
-                    for account_category in result_account_categories:
-                        list_for_redis.append(account_category.to_dict())
-
-                    await session_redis.set(
-                        f"account_categories_by_service_id:{account_service_id}",
-                        orjson.dumps(list_for_redis)
-                    )
+    await _fill_redis_grouped_objects(
+        model=AccountCategories,
+        group_by_field_models="account_service_id",
+        group_by_model=AccountServices,
+        group_by_field_for_group_model="account_service_id",
+        key_prefix="account_categories_by_service_id"
+    )
 
 async def filling_account_categories_by_category_id():
-    async with get_db() as session_db:
-        result_db = await session_db.execute(select(AccountCategories))
-        result = result_db.scalars().all()
-
-        if result:
-            async with get_redis() as session_redis:
-                async with session_redis.pipeline(transaction=False) as pipe:
-                    for account_category in result:
-                        await pipe.set(
-                            f"account_categories_by_category_id:{account_category.account_category_id}",
-                            orjson.dumps(account_category.to_dict())
-                        )
-                    await pipe.execute()
+    await _fill_redis_single_objects(
+        model=AccountCategories,
+        key_prefix='account_categories_by_category_id',
+        key_extractor=lambda account_category: account_category.account_category_id,
+    )
 
 
 async def filling_product_accounts_by_category_id():
-    async with get_db() as session_db:
-        result_db = await session_db.execute(select(AccountCategories.account_category_id))
-        result_account_category_ids = result_db.scalars().all()
-
-        for account_category_id in result_account_category_ids:
-            result_db = await session_db.execute(
-                select(ProductAccounts)
-                .where(ProductAccounts.account_category_id == account_category_id)
-            )
-            result_product_account = result_db.scalars().all()
-
-            if result_product_account:
-                async with get_redis() as session_redis:
-                    list_for_redis = []
-                    for product_account in result_product_account:
-                        list_for_redis.append(product_account.to_dict())
-
-                    await session_redis.set(
-                        f"product_accounts_by_category_id:{account_category_id}",
-                        orjson.dumps(list_for_redis)
-                    )
+    await _fill_redis_grouped_objects(
+        model=ProductAccounts,
+        group_by_field_models="account_category_id",
+        group_by_model=AccountCategories,
+        group_by_field_for_group_model="account_category_id",
+        key_prefix="product_accounts_by_category_id"
+    )
 
 async def filling_product_accounts_by_account_id():
-    async with get_db() as session_db:
-        result_db = await session_db.execute(select(ProductAccounts))
-        result = result_db.scalars().all()
-
-        if result:
-            async with get_redis() as session_redis:
-                async with session_redis.pipeline(transaction=False) as pipe:
-                    for product_account in result:
-                        await pipe.set(
-                            f"product_accounts_by_account_id:{product_account.account_id}",
-                            orjson.dumps(product_account.to_dict())
-                        )
-                    await pipe.execute()
+    await _fill_redis_single_objects(
+        model=ProductAccounts,
+        key_prefix='product_accounts_by_account_id',
+        key_extractor=lambda product_accounts_by_account_id: product_accounts_by_account_id.account_id,
+    )
 
 
 async def filling_sold_accounts_by_owner_id():
-    async with get_db() as session_db:
-        result_db = await session_db.execute(select(Users.user_id))
-        result_users_ids = result_db.scalars().all()
-
-        for user_id in result_users_ids:
-            result_db = await session_db.execute(
-                select(SoldAccounts)
-                .where((SoldAccounts.owner_id == user_id) & (SoldAccounts.is_deleted == False))
-            )
-            result_sold_accounts = result_db.scalars().all()
-
-            if result_sold_accounts:
-                async with get_redis() as session_redis:
-                    list_for_redis = []
-                    for sold_account in result_sold_accounts:
-                        list_for_redis.append(sold_account.to_dict())
-
-                    await session_redis.setex(
-                        f"sold_accounts_by_owner_id:{user_id}",
-                        TIME_SOLD_ACCOUNTS_BY_OWNER,
-                        orjson.dumps(list_for_redis)
-                    )
+    await _fill_redis_grouped_objects(
+        model=SoldAccounts,
+        group_by_field_models='owner_id',
+        group_by_model=Users,
+        group_by_field_for_group_model="user_id",
+        key_prefix="sold_accounts_by_owner_id",
+        filter_condition=(SoldAccounts.is_deleted == False),
+        ttl=TIME_SOLD_ACCOUNTS_BY_OWNER
+    )
 
 
 async def filling_sold_accounts_by_accounts_id():
-    async with get_db() as session_db:
-        result_db = await session_db.execute(select(SoldAccounts).where(SoldAccounts.is_deleted == False))
-        result = result_db.scalars().all()
-
-        if result:
-            async with get_redis() as session_redis:
-                async with session_redis.pipeline(transaction=False) as pipe:
-                    for sold_account in result:
-                        await pipe.setex(
-                            f"sold_accounts_by_accounts_id:{sold_account.account_id}",
-                            TIME_SOLD_ACCOUNTS_BY_ACCOUNT,
-                            orjson.dumps(sold_account.to_dict())
-                        )
-                    await pipe.execute()
+    await _fill_redis_single_objects(
+        model=SoldAccounts,
+        key_prefix='sold_accounts_by_accounts_id',
+        key_extractor=lambda sold_account: sold_account.account_id,
+        field_condition=(SoldAccounts.is_deleted == False),
+        ttl=lambda x: TIME_SOLD_ACCOUNTS_BY_ACCOUNT
+    )
 
 
 async def filling_promo_code():
-    async with get_db() as session_db:
-        result_db = await session_db.execute(select(PromoCodes).where(PromoCodes.is_valid == True))
-        result = result_db.scalars().all()
-
-        if result:
-            async with get_redis() as session_redis:
-                async with session_redis.pipeline(transaction=False) as pipe:
-                    for promo_code in result:
-                        time_life: timedelta = promo_code.expire_at - datetime.now(UTC)
-
-                        await pipe.setex(
-                            f"promo_code:{promo_code.activation_code}",
-                            time_life, # на время жизни
-                            orjson.dumps(promo_code.to_dict())
-                        )
-                    await pipe.execute()
+    await _fill_redis_single_objects(
+        model=PromoCodes,
+        key_prefix='promo_code',
+        key_extractor=lambda promo_code: promo_code.activation_code,
+        field_condition=(PromoCodes.is_valid == True),
+        ttl=lambda promo_code: promo_code.expire_at - datetime.now(UTC)
+    )
 
 
 async def filling_vouchers():
-    async with get_db() as session_db:
-        result_db = await session_db.execute(select(Vouchers).where(Vouchers.is_valid == True))
-        result = result_db.scalars().all()
+    await _fill_redis_single_objects(
+        model=Vouchers,
+        key_prefix='vouchers',
+        key_extractor=lambda vouchers: vouchers.activation_code,
+        field_condition=(Vouchers.is_valid == True),
+        ttl=lambda vouchers: vouchers.expire_at - datetime.now(UTC)
+    )
 
-        if result:
-            async with get_redis() as session_redis:
-                async with session_redis.pipeline(transaction=False) as pipe:
-                    for vouchers in result:
-                        time_life: timedelta = vouchers.expire_at - datetime.now(UTC)
-
-                        await pipe.setex(
-                            f"vouchers:{vouchers.activation_code}",
-                            time_life, # на время жизни
-                            orjson.dumps(vouchers.to_dict())
-                        )
-                    await pipe.execute()

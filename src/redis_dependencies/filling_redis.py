@@ -69,9 +69,13 @@ async def _fill_redis_single_objects(
                         value = value_extractor(obj)
 
                         if ttl:
-                            ttl_in_seconds = int(ttl(obj).total_seconds())
-                            if ttl_in_seconds > 1:
-                                await pipe.setex(key, ttl_in_seconds, value)
+                            if ttl(obj): # если дата есть
+                                ttl_in_seconds = int(ttl(obj).total_seconds())
+                                if ttl_in_seconds > 1:
+                                    await pipe.setex(key, ttl_in_seconds, value)
+                            else: # если даты нет, то бессрочно
+                                await pipe.set(key, value)
+
                         else:
                             await pipe.set(key, value)
                     await pipe.execute()
@@ -104,7 +108,7 @@ async def _fill_redis_grouped_objects(
         for group_id in group_ids:
             # Строим запрос с условием
             query = select(model).where(getattr(model, group_by_field_models) == group_id)
-            if filter_condition:
+            if filter_condition is not None:
                 query = query.where(filter_condition)
 
             result_db = await session_db.execute(query)
@@ -211,7 +215,7 @@ async def filling_sold_accounts_by_accounts_id():
     await _fill_redis_single_objects(
         model=SoldAccounts,
         key_prefix='sold_accounts_by_accounts_id',
-        key_extractor=lambda sold_account: sold_account.account_id,
+        key_extractor=lambda sold_account: sold_account.sold_account_id,
         field_condition=(SoldAccounts.is_deleted == False),
         ttl=lambda x: TIME_SOLD_ACCOUNTS_BY_ACCOUNT
     )
@@ -223,7 +227,7 @@ async def filling_promo_code():
         key_prefix='promo_code',
         key_extractor=lambda promo_code: promo_code.activation_code,
         field_condition=(PromoCodes.is_valid == True),
-        ttl=lambda promo_code: promo_code.expire_at - datetime.now(UTC)
+        ttl=lambda promo_code: promo_code.expire_at - datetime.now(UTC) if promo_code.expire_at else None
     )
 
 
@@ -233,6 +237,6 @@ async def filling_vouchers():
         key_prefix='vouchers',
         key_extractor=lambda vouchers: vouchers.activation_code,
         field_condition=(Vouchers.is_valid == True),
-        ttl=lambda vouchers: vouchers.expire_at - datetime.now(UTC)
+        ttl=lambda vouchers: vouchers.expire_at - datetime.now(UTC) if vouchers.expire_at else None
     )
 

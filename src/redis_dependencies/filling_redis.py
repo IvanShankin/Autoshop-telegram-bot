@@ -6,7 +6,7 @@ from typing import Type, Any, Optional, Callable
 from datetime import datetime, timedelta, UTC
 
 from sqlalchemy import select
-from src.database import Users, BannedAccounts
+from src.database.core_models import Users, BannedAccounts
 from src.modules.admin_actions.models import Admins
 from src.modules.discounts.models import PromoCodes, Vouchers
 from src.modules.selling_accounts.models import TypeAccountServices, AccountServices, AccountCategories, \

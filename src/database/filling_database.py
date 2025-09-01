@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
 
 from src.config import MAIN_ADMIN, TYPE_PAYMENTS, TYPE_ACCOUNT_SERVICES
-from src.database import Settings
+from src.database.core_models import Settings
 
 from src.database.database import Base
 from src.database.database import get_db, SQL_DB_URL, DB_NAME, POSTGRES_SERVER_URL

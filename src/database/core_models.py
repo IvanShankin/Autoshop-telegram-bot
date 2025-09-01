@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Text, JSON, Enum, CheckConstraint, Index, \
-    BigInteger, text, inspect
+    BigInteger, text, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -64,9 +64,6 @@ class Users(Base):
     admin_actions = relationship("AdminActions",back_populates="user")
     wallet_transactions = relationship("WalletTransaction",back_populates="user")
 
-    def to_dict(self):
-        """преобразует в словарь все колонки у выбранного объекта"""
-        return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
 
 class NotificationSettings(Base):
     __tablename__ = "notification_settings"
@@ -101,7 +98,7 @@ class TypePayments(Base):
     name_for_user = Column(String(400), nullable=False)  # Название метода (CryptoBot, ЮMoney и т.д.)
     name_for_admin = Column(String(400), nullable=False)
     is_active = Column(Boolean, server_default=text('true'))  # Активен ли метод
-    commission = Column(Integer, default=0)  # Комиссия в процентах
+    commission = Column(Float, default=0)  # Комиссия в процентах
     extra_data = Column(JSON, nullable=True)  # Дополнительные параметры метода
 
     replenishments = relationship("Replenishments", back_populates="type_payment")

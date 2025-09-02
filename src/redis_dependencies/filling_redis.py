@@ -9,6 +9,7 @@ from sqlalchemy import select
 from src.database.core_models import Users, BannedAccounts
 from src.modules.admin_actions.models import Admins
 from src.modules.discounts.models import PromoCodes, Vouchers
+from src.modules.referrals.models import ReferralLevels
 from src.modules.selling_accounts.models import TypeAccountServices, AccountServices, AccountCategories, \
     ProductAccounts, SoldAccounts
 from src.redis_dependencies.core_redis import get_redis
@@ -18,6 +19,7 @@ from src.redis_dependencies.time_storage import TIME_USER, TIME_SOLD_ACCOUNTS_BY
 
 async def filling_all_redis():
     """Заполняет redis необходимыми данными. Использовать только после заполнения БД"""
+    await filling_referral_levels()
     await filling_users()
     await filling_admins()
     await filling_banned_accounts()
@@ -125,6 +127,16 @@ async def _fill_redis_grouped_objects(
                     else:
                         await session_redis.set(key, value)
 
+
+async def filling_referral_levels():
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(ReferralLevels))
+        referral_levels = result_db.scalars().all()
+
+        if referral_levels:
+            async with get_redis() as session_redis:
+                list_for_redis = [referral.to_dict() for referral in referral_levels]
+                await session_redis.set("referral_levels", orjson.dumps(list_for_redis))
 
 async def filling_users():
     await _fill_redis_single_objects(

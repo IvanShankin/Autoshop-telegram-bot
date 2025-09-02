@@ -35,7 +35,7 @@ class TestFillRedisSingleObjects:
     @pytest.mark.asyncio
     async def test_filling_user(self):
         new_user = Users(username="test", language="rus", unique_referral_code="abc", balance=100, total_sum_replenishment=50,
-              total_sum_from_referrals=10)
+              total_profit_from_referrals=10)
         new_user = await added_and_refresh_in_db(new_user)
 
         await filling.filling_users()

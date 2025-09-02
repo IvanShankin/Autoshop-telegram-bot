@@ -15,7 +15,7 @@ async def create_new_user()->dict:
         unique_referral_code: str,
         balance: int,
         total_sum_replenishment: int,
-        total_sum_from_referrals: int,
+        total_profit_from_referrals: int,
         created_at: DateTime(timezone=True)
     }
     """

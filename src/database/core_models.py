@@ -30,7 +30,7 @@ class Users(Base):
     unique_referral_code = Column(String(50), unique=True, nullable=False)
     balance = Column(Integer, nullable=False, default=0) # указанно в рублях
     total_sum_replenishment = Column(Integer, nullable=False, default=0)
-    total_sum_from_referrals = Column(Integer, nullable=False, default=0)
+    total_profit_from_referrals = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # связи

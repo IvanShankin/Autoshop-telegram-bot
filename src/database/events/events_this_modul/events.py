@@ -18,6 +18,7 @@ def event_update_replenishments(mapper, connection, target: Replenishments):
         push_deferred_event(
             session,
             NewReplenishment(
+                replenishment_id=target.replenishment_id,
                 user_id=target.user_id,
                 amount=target.amount,
                 create_at=target.created_at,

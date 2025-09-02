@@ -2,7 +2,7 @@ import asyncio
 
 from sqlalchemy import event
 from sqlalchemy.orm import Session
-from typing import Awaitable, Callable, List
+from typing import Awaitable, Callable, List, Tuple
 from src.utils.core_logger import logger
 
 # глобальная очередь для хранения событий
@@ -12,7 +12,7 @@ event_queue: asyncio.Queue = asyncio.Queue()
 _SESSION_EVENTS_KEY = "_deferred_events"
 
 Subscriber = Callable[[object], Awaitable[None]]
-_subscribers: List[Subscriber] = []
+_subscribers: List[Tuple[int, Subscriber]] = [] # список событий и их приоритетов
 
 def push_deferred_event(session, evt):
     """Хранит события в отложенном списке событий (session.info)."""
@@ -26,7 +26,7 @@ def pop_deferred_events(session):
 
 @event.listens_for(Session, "after_commit")
 def session_after_commit(session: Session):
-    """after_commit срабатывает только после успешного commit() транзакции"""
+    """После успешного commit() отправляем события в очередь."""
     events = pop_deferred_events(session) # удаляем вся события
     if not events:
         return
@@ -38,9 +38,14 @@ def session_after_commit(session: Session):
 
 
 
-def subscribe(handler: Subscriber) -> None:
-    """Принимает функцию, которая добавит её для вызова в дальнейшем при совершении события"""
-    _subscribers.append(handler)
+def subscribe(handler: Subscriber, priority: int = 0) -> None:
+    """
+    Принимает функцию, которая добавит её для вызова в дальнейшем при совершении события.
+    priority это приоритет события (чем меньше число, тем раньше вызов).
+    Событие с одинаковым приоритетом вызывается одновременно.
+    """
+    _subscribers.append((priority, handler))
+    _subscribers.sort(key=lambda x: x[0]) # поддерживаем сортировку один раз при добавлении
 
 async def run_dispatcher() -> None:
     """Прослушивает очередь из событий и запускает все функции из _subscribers передавая туда событие."""
@@ -51,12 +56,31 @@ async def run_dispatcher() -> None:
             if event is None:
                 return
 
-            coros = [h(event) for h in _subscribers] # формирует вызов функций из _subscribers
-            results = await asyncio.gather(*coros, return_exceptions=True) # вызывает все функции с coros, ждя их завершения
-            # если произошла ошибка, которую не обработали, то она возникнет тут
+            # группируем подписчиков по приоритету
+            current_priority = None
+            coros = []
+            for priority, handler in _subscribers:
+                if current_priority is None:
+                    current_priority = priority
 
-            for r in results:
-                if isinstance(r, Exception):
-                    logger.error(f"В обработчике произошла ошибка: {str(r)}")
+                # если приоритет сменился — запускаем предыдущую группу
+                if priority != current_priority:
+                    results = await asyncio.gather(*coros, return_exceptions=True)
+                    for r in results:
+                        if isinstance(r, Exception):
+                            logger.error(f"Ошибка в обработчике: {r}")
+
+                    # начинаем новую группу
+                    coros = []
+                    current_priority = priority
+
+                coros.append(handler(event))
+
+            # добиваем последнюю группу
+            if coros:
+                results = await asyncio.gather(*coros, return_exceptions=True)
+                for r in results:
+                    if isinstance(r, Exception):
+                        logger.error(f"Ошибка в обработчике: {r}")
         finally:
             event_queue.task_done()

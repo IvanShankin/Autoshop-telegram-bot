@@ -1,11 +1,10 @@
 import os
+from contextlib import asynccontextmanager
 
+from dotenv import load_dotenv
 from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
-from dotenv import load_dotenv
-from contextlib import asynccontextmanager
-
 
 load_dotenv()  # Загружает переменные из .env
 DB_HOST = os.getenv('DB_HOST')

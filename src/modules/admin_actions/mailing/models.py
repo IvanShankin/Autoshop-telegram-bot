@@ -1,9 +1,9 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Text, JSON, Enum, CheckConstraint, Index, \
-    BigInteger, text
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from src.database.database import Base
+
 
 class MessageForSending(Base):
     __tablename__ = "message_for_sending"

@@ -1,5 +1,6 @@
-from aiogram import BaseMiddleware
 from typing import Callable, Dict, Any, Awaitable
+
+from aiogram import BaseMiddleware
 
 from src.database.database import session_local
 

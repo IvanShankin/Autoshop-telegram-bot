@@ -4,8 +4,6 @@ import os
 from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv
 
-from src.database.core_models import Replenishments
-from src.database.database import get_db
 from src.database.events.core_event import event_queue
 from src.database.events.triggers_processing import run_triggers_processing
 from src.database.filling_database import create_database

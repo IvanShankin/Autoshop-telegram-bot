@@ -1,7 +1,7 @@
 import orjson
+from dateutil.parser import parse
 from sqlalchemy import select, update
 
-from dateutil.parser import parse
 from src.database.core_models import Users
 from src.database.database import get_db
 from src.redis_dependencies.core_redis import get_redis

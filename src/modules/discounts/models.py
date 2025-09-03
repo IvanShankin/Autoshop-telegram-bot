@@ -4,6 +4,7 @@ from sqlalchemy.sql import func
 
 from src.database.database import Base
 
+
 # кэшируется в redis_dependencies на время действия
 class PromoCodes(Base):
     __tablename__ = "promo_codes"

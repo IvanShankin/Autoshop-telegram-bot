@@ -1,11 +1,11 @@
 from sqlalchemy import update
 
+from src.database.action_core_models import get_user, update_user
 from src.database.core_models import UserAuditLogs, WalletTransaction
 from src.database.database import get_db
+from src.modules.referrals.database.actions_ref import get_referral_lvl
 from src.modules.referrals.database.events.schemas import NewIncomeFromRef
 from src.modules.referrals.database.models import Referrals, IncomeFromReferrals
-from src.database.action_core_models import get_user, update_user
-from src.modules.referrals.database.actions_ref import get_referral_lvl
 
 
 async def referral_event_handler(event):

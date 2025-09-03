@@ -1,8 +1,8 @@
 import os
-
 from contextlib import asynccontextmanager
-from redis.asyncio import Redis  # Асинхронный клиент
+
 from dotenv import load_dotenv
+from redis.asyncio import Redis  # Асинхронный клиент
 
 load_dotenv()
 REDIS_HOST = os.getenv('REDIS_HOST')

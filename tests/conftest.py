@@ -1,17 +1,13 @@
 import asyncio
-import contextlib
+import os
 import sys
 from contextlib import asynccontextmanager
 
-import os
-from dotenv import load_dotenv
-
 import fakeredis.aioredis
-from sqlalchemy import delete
+from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from src.database.events import core_event
-from src.database.events.triggers_processing import run_triggers_processing
 from src.redis_dependencies.core_redis import get_redis
 from src.redis_dependencies.filling_redis import filling_all_redis
 
@@ -20,7 +16,6 @@ MODE = os.getenv('MODE')
 
 import pytest_asyncio
 from src.database.filling_database import create_database
-import src.database
 
 # для monkeypatch
 from src.database import database

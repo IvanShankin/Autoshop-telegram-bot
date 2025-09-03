@@ -1,22 +1,22 @@
 import asyncio
 import contextlib
 from datetime import datetime
-from dateutil.parser import parse
 
 import orjson
 import pytest
 import pytest_asyncio
+from dateutil.parser import parse
 from sqlalchemy import select
 
 from src.database.core_models import Replenishments, Users, WalletTransaction, UserAuditLogs
 from src.database.database import get_db
-from src.database.events import core_event
 from src.database.events.core_event import event_queue
 from src.database.events.triggers_processing import run_triggers_processing
 from src.modules.referrals.database.events.schemas import NewIncomeFromRef
 from src.modules.referrals.database.models import IncomeFromReferrals, Referrals
 from src.redis_dependencies.core_redis import get_redis
 from tests.fixtures.halper_fixture import create_new_user, create_type_payment, create_referral, create_replenishment
+
 
 @pytest_asyncio.fixture
 async def start_event_handler():

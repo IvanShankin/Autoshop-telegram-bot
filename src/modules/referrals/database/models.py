@@ -4,6 +4,7 @@ from sqlalchemy.sql import func
 
 from src.database.database import Base
 
+
 class Referrals(Base):
     __tablename__ = "referrals"
 

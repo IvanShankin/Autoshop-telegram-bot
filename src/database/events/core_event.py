@@ -1,8 +1,9 @@
 import asyncio
+from typing import Awaitable, Callable, List, Tuple
 
 from sqlalchemy import event
 from sqlalchemy.orm import Session
-from typing import Awaitable, Callable, List, Tuple
+
 from src.utils.core_logger import logger
 
 # глобальная очередь для хранения событий

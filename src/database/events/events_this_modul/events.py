@@ -1,9 +1,9 @@
 from sqlalchemy import event
 from sqlalchemy.orm import object_session
+
 from src.database.core_models import Replenishments
 from src.database.events.core_event import push_deferred_event
 from src.database.events.events_this_modul.schemas import NewReplenishment
-
 
 
 @event.listens_for(Replenishments, "after_update")

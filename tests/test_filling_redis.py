@@ -1,16 +1,17 @@
+from datetime import datetime
 from typing import Type
 
-import pytest
 import orjson
-from datetime import datetime
+import pytest
 from dateutil.parser import parse
 
+import src.redis_dependencies.filling_redis as filling
 from src.database.core_models import Users, BannedAccounts
+from src.database.database import get_db
 from src.modules.admin_actions.models import Admins
 from src.modules.discounts.models import PromoCodes, Vouchers
-from src.modules.selling_accounts.models import TypeAccountServices, AccountServices, AccountCategories,ProductAccounts, SoldAccounts
-import src.redis_dependencies.filling_redis as filling
-from src.database.database import get_db
+from src.modules.selling_accounts.models import TypeAccountServices, AccountServices, AccountCategories, \
+    ProductAccounts, SoldAccounts
 from src.redis_dependencies.core_redis import get_redis
 
 

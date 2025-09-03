@@ -2,6 +2,7 @@ import orjson
 from sqlalchemy import update, select
 from sqlalchemy.orm import object_session
 
+from src.database.action_core_models import update_user, get_user
 from src.database.core_models import Users, WalletTransaction, UserAuditLogs
 from src.database.database import get_db
 from src.database.events.core_event import push_deferred_event
@@ -21,33 +22,12 @@ async def user_event_handler(event):
 
 async def handler_new_replenishment(new_replenishment: NewReplenishment):
     """Обрабатывает создание нового пополнения у пользователя"""
+    user = await get_user(new_replenishment.user_id)
+    user.balance = user.balance + new_replenishment.amount
+    user.total_sum_replenishment = user.total_sum_replenishment + new_replenishment.amount
+    updated_user = await update_user(user)
+
     async with get_db() as session_db:
-
-        result_db = await session_db.execute(
-            update(Users)
-            .where(Users.user_id == new_replenishment.user_id)
-            .values(
-                balance=Users.balance + new_replenishment.amount,
-                total_sum_replenishment=Users.total_sum_replenishment + new_replenishment.amount
-            )
-            .returning(
-                Users.user_id,
-                Users.username,
-                Users.language,
-                Users.unique_referral_code,
-                Users.balance,
-                Users.total_sum_replenishment,
-                Users.total_profit_from_referrals,
-                Users.created_at
-            )
-        )
-
-        row_with_user = result_db.one()
-        # создаём объект ORM через merge, чтобы он был привязан к сессии
-        updated_user = await session_db.merge(
-            Users(**dict(row_with_user._mapping))
-        )
-
         # обновление связанных таблиц
         new_wallet_transaction = WalletTransaction(
             user_id = new_replenishment.user_id,

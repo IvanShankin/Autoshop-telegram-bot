@@ -1,6 +1,6 @@
 from src.database.events.core_event import subscribe, run_dispatcher
 from src.database.events.events_this_modul.event_handlers import user_event_handler
-from src.modules.referrals.events.event_handlers_referral import referral_event_handler
+from src.modules.referrals.database.events.event_handlers_referral import referral_event_handler
 
 async def run_triggers_processing():
     """Запускает все обработчики событий в БД"""

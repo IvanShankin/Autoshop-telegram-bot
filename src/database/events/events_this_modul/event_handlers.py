@@ -6,8 +6,8 @@ from src.database.core_models import Users, WalletTransaction, UserAuditLogs
 from src.database.database import get_db
 from src.database.events.core_event import push_deferred_event
 from src.database.events.events_this_modul.schemas import NewReplenishment
-from src.modules.referrals.events.schemas import NewIncomeFromRef
-from src.modules.referrals.models import Referrals
+from src.modules.referrals.database.events.schemas import NewIncomeFromRef
+from src.modules.referrals.database.models import Referrals
 from src.redis_dependencies.core_redis import get_redis
 from src.redis_dependencies.time_storage import TIME_USER
 
@@ -86,7 +86,7 @@ async def handler_new_replenishment(new_replenishment: NewReplenishment):
                         referral_id=updated_user.user_id,
                         replenishment_id=new_replenishment.replenishment_id,
                         owner_id=referral.owner_user_id,
-                        balance_before_repl=updated_user.balance - new_replenishment.amount,
                         amount=new_replenishment.amount,
+                        total_sum_replenishment=updated_user.total_sum_replenishment
                     )
                 )

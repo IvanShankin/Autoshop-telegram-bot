@@ -1,10 +1,13 @@
 import pytest_asyncio
-from src.database.core_models import Users, TypePayments
+from sqlalchemy import select
+
+from src.database.core_models import Users, TypePayments, Replenishments
 from src.database.database import get_db
+from src.modules.referrals.database.models import Referrals
 
 
 @pytest_asyncio.fixture
-async def create_new_user()->dict:
+async def create_new_user()->Users:
     """
     Создаст нового пользователя в БД
     :return:
@@ -28,8 +31,68 @@ async def create_new_user()->dict:
         await session_db.commit()
         await session_db.refresh(new_user)
 
-    return new_user.to_dict()
+    return new_user
 
+
+@pytest_asyncio.fixture
+async def create_referral(create_new_user)->Referrals:
+    """Создаёт тестовый реферала (у нового пользователя появляется владелец)"""
+    async with get_db() as session_db:
+        # создаём владельца
+        owner = Users(
+            username="owner_user",
+            language="rus",
+            unique_referral_code="owner_code_123",
+            balance=0,
+            total_sum_replenishment=0,
+            total_profit_from_referrals=0,
+        )
+        session_db.add(owner)
+        await session_db.commit()
+        await session_db.refresh(owner)
+
+        # связываем реферала и владельца
+        referral = Referrals(
+            referral_id=create_new_user.user_id,
+            owner_user_id=owner.user_id,
+            level=0,
+        )
+        session_db.add(referral)
+        await session_db.commit()
+        await session_db.refresh(referral)
+
+    return referral
+
+
+@pytest_asyncio.fixture
+async def create_replenishment(create_new_user)-> Replenishments:
+    """Создаёт пополнение для пользователя"""
+    async with get_db() as session_db:
+        # создаём тип платежа (если ещё нет)
+        result = await session_db.execute(select(TypePayments))
+        type_payment = result.scalars().first()
+        if not type_payment:
+            type_payment = TypePayments(
+                name_for_user="TestPay",
+                name_for_admin="TestPayAdmin",
+                commission=0.0,
+            )
+            session_db.add(type_payment)
+            await session_db.commit()
+            await session_db.refresh(type_payment)
+
+        repl = Replenishments(
+            user_id=create_new_user.user_id,
+            type_payment_id=type_payment.type_payment_id,
+            origin_amount=100,
+            amount=110, # сумма пополнения
+            status="completed",
+        )
+        session_db.add(repl)
+        await session_db.commit()
+        await session_db.refresh(repl)
+
+    return repl
 
 
 @pytest_asyncio.fixture
@@ -59,4 +122,6 @@ async def create_type_payment() -> dict:
         await session_db.refresh(new_type_payment)
 
     return new_type_payment.to_dict()
+
+
 

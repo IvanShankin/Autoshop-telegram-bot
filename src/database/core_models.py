@@ -109,7 +109,7 @@ class Replenishments(Base):
     replenishment_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
     type_payment_id = Column(Integer, ForeignKey("type_payments.type_payment_id"), nullable=False)
-    origin_amount = Column(Integer, nullable=False)  # Сумма в рублях (без учёта комиссии)
+    origin_amount = Column(Integer, nullable=False)  # Сумма в рублях которая начислилась пользователю (без учёта комиссии)
     amount = Column(Integer, nullable=False)  # Сумма в рублях (с учётом комиссии)
     status = Column(Enum('pending', 'completed', 'cancelled', 'failed', name='replenishment_status'), server_default='pending')
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -161,7 +161,7 @@ class WalletTransaction(Base):
 
     wallet_transaction_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
-    type = Column(Enum('replenish','purchase','refund','transfer','promo', 'other', name='wallet_tx_type'), nullable=False)
+    type = Column(Enum('replenish', 'referral', 'purchase','refund','transfer','promo', 'other', name='wallet_tx_type'), nullable=False)
     amount = Column(Integer, nullable=False)
     balance_before = Column(Integer, nullable=False)
     balance_after = Column(Integer, nullable=False)

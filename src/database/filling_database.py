@@ -1,8 +1,7 @@
 import logging
 
 from sqlalchemy import select, text
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-
+from sqlalchemy.ext.asyncio import create_async_engine
 
 from src.config import MAIN_ADMIN, TYPE_PAYMENTS, TYPE_ACCOUNT_SERVICES
 from src.database.core_models import Settings
@@ -13,6 +12,7 @@ from src.dependencies.utils import create_unique_referral_code
 from src.modules.admin_actions.mailing.models import MessageForSending
 from src.modules.admin_actions.models import Admins
 from src.database.core_models import Users, NotificationSettings, TypePayments
+from src.modules.referrals.database.models import ReferralLevels
 from src.modules.selling_accounts.models import TypeAccountServices
 
 async def create_database():
@@ -44,6 +44,7 @@ async def create_database():
 
     # заполнение таблиц
     await filling_settings()
+    await filling_referral_lvl()
     await filling_admins(MAIN_ADMIN)
     for type_payment in TYPE_PAYMENTS:
         await filling_type_payment(type_payment)
@@ -72,6 +73,20 @@ async def filling_settings():
         if not result_settings:
             new_settings = Settings()
             session_db.add(new_settings)
+            await session_db.commit()
+
+async def filling_referral_lvl():
+    async with get_db() as session_db:
+        result = await session_db.execute(select(ReferralLevels))
+        result_lvl = result.scalar()
+
+        if not result_lvl:
+            first_lvl = ReferralLevels(level=1, amount_of_achievement=0, percent=3)
+            second_lvl = ReferralLevels(level=2, amount_of_achievement=2000, percent=4)
+
+            session_db.add(first_lvl)
+            session_db.add(second_lvl)
+
             await session_db.commit()
 
 async def filling_admins(admin_id: int):

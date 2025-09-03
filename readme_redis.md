@@ -17,7 +17,23 @@
     "created_at": datetime,
 }
 ```
-**TTL:** 1 день
+**TTL:** 6 часов
+
+### 1.1 Уровни рефералов (ReferralLevels)
+**Ключ:** `referral_levels`  
+**Значение:**  
+```json
+[
+    {
+        "referral_level_id": int, 
+        "level": int, 
+        "amount_of_achievement": int, 
+        "percent": int
+    }
+    .....
+]
+```
+**TTL:** Навсегда
 
 ### 2. Админы (Admins)
 **Ключ:** `admin:{user_id}` <br>

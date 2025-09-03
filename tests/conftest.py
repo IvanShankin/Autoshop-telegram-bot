@@ -1,19 +1,26 @@
 import asyncio
+import contextlib
+import sys
 from contextlib import asynccontextmanager
 
-import pytest
 import os
 from dotenv import load_dotenv
 
 import fakeredis.aioredis
+from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import create_async_engine
+
+from src.database.events import core_event
+from src.database.events.triggers_processing import run_triggers_processing
+from src.redis_dependencies.core_redis import get_redis
+from src.redis_dependencies.filling_redis import filling_all_redis
 
 load_dotenv()  # Загружает переменные из .env
 MODE = os.getenv('MODE')
 
 import pytest_asyncio
 from src.database.filling_database import create_database
-from src.database.database import get_db, Base, SQL_DB_URL
+import src.database
 
 # для monkeypatch
 from src.database import database
@@ -49,10 +56,11 @@ async def clean_db(monkeypatch):
     await test_engine.dispose()
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
-async def clean_redis():
-    redis = await fakeredis.aioredis.FakeRedis().client()
-    await redis.flushdb()
-    await redis.close()
+async def clean_redis(replacement_redis):
+    async with get_redis() as session_redis:
+        await session_redis.flushdb()
+
+    await filling_all_redis()
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def replacement_redis(monkeypatch):
@@ -65,3 +73,18 @@ async def replacement_redis(monkeypatch):
             await redis.close()
 
     monkeypatch.setattr(core_redis, "get_redis", get_fakeredis) # замена функции get_redis на собственную
+
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def reset_event_queue():
+    """Пересоздаём event_queue перед каждым тестом, чтобы в нём не оставались старые события"""
+    new_q = asyncio.Queue()
+    core_event.event_queue = new_q
+
+    # пробегаем по всем загруженным модулям и заменяем, если где-то был импорт event_queue
+    for mod in list(sys.modules.values()):
+        if not mod:
+            continue
+        if hasattr(mod, "event_queue"):
+            setattr(mod, "event_queue", new_q)
+
+    yield

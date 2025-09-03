@@ -46,12 +46,6 @@ async def handler_new_replenishment(new_replenishment: NewReplenishment):
         session_db.add(new_log)
         await session_db.commit()
 
-    # кэшируем в redis
-    async with get_redis() as session_redis:
-        await session_redis.setex(f'user:{updated_user.user_id}', TIME_USER, orjson.dumps(updated_user.to_dict()))
-
-
-    async with get_db() as session_db:
         result_db = await session_db.execute(select(Referrals).where(Referrals.referral_id == updated_user.user_id))
         referral = result_db.scalar_one_or_none()
 

@@ -41,7 +41,7 @@ async def create_referral(create_new_user)->Referrals:
         # создаём владельца
         owner = Users(
             username="owner_user",
-            language="rus",
+            language="ru",
             unique_referral_code="owner_code_123",
             balance=0,
             total_sum_replenishment=0,

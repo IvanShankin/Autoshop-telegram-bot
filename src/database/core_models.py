@@ -26,7 +26,7 @@ class Users(Base):
 
     user_id = Column(BigInteger, primary_key=True, index=True) # одновременно telegram_id
     username = Column(String(150), nullable=True)
-    language = Column(Enum("rus", "eng", name="user_language"), nullable=False, server_default="rus")  # язык пользователя
+    language = Column(Enum("ru", "en", name="user_language"), nullable=False, server_default="ru")  # язык пользователя
     unique_referral_code = Column(String(50), unique=True, nullable=False)
     balance = Column(Integer, nullable=False, default=0) # указанно в рублях
     total_sum_replenishment = Column(Integer, nullable=False, default=0)

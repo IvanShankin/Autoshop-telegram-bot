@@ -70,7 +70,7 @@
 **TTL:** Навсегда
 
 ### 6. Категории аккаунтов по id сервиса (AccountCategories)
-**Ключ:** `account_categories_by_service_id:{account_service_id}` <br>
+**Ключ:** `account_categories_by_service_id:{account_service_id}:{language}` <br>
 **Значение:** 
 ``` json
 [
@@ -93,7 +93,7 @@
 **TTL:** Навсегда
 
 ### 7. Категории аккаунтов по id категории(AccountCategories)
-**Ключ:** `account_categories_by_category_id:{account_category_id}` <br>
+**Ключ:** `account_categories_by_category_id:{account_category_id}:{language}` <br>
 **Значение:** 
 ``` json
 {
@@ -148,7 +148,7 @@
 
 ### 10. Проданные аккаунты по id владельца (SoldAccounts)
 **Важно:** хранит только НЕ удалённые аккаунты (is_deleted == False) <br>
-**Ключ:** `sold_accounts_by_owner_id:{owner_id}` <br>
+**Ключ:** `sold_accounts_by_owner_id:{owner_id}:{language}` <br>
 **Значение:** 
 ``` json
 [
@@ -159,7 +159,8 @@
         
         "category_name": str,
         "service_name": str,
-        "type_name": str,
+        "name": str,
+        "description": str,
         
         "is_valid": bool,
         "is_deleted": bool,
@@ -176,7 +177,7 @@
 
 ### 11. Проданные аккаунты по id аккаунта (SoldAccounts)
 **Важно:** хранит только НЕ удалённые аккаунты (is_deleted == False) <br>
-**Ключ:** `sold_accounts_by_accounts_id:{sold_account_id}` <br>
+**Ключ:** `sold_accounts_by_accounts_id:{sold_account_id}:{language}` <br>
 **Значение:** 
 ``` json
 {

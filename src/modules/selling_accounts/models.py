@@ -1,4 +1,7 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Text, Index, text
+from typing import Callable, Any
+
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Text, Index, text, UniqueConstraint, \
+    inspect
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -24,6 +27,7 @@ class AccountServices(Base):
     """
     Хранит сервисы у продаваемых аккаунтов, такие как: telegram, vk, instagram ...
     Их задаёт пользователь. Один тип сервиса (TypeAccountServices) - один привязанный к нему сервис (AccountServices)
+    Сервисы локализировать не будут, т.к. они имеют свою уникальное название.
     """
     __tablename__ = "account_services"
 
@@ -46,8 +50,6 @@ class AccountCategories(Base):
     account_category_id = Column(Integer, primary_key=True, autoincrement=True)
     account_service_id = Column(Integer, ForeignKey("account_services.account_service_id"), nullable=False)
     parent_id = Column(Integer, ForeignKey("account_categories.account_category_id"), nullable=True)
-    name = Column(String(300), nullable=False) # будет отображать на кнопке и в самом товаре
-    description = Column(Text, nullable=False)
     is_main = Column(Boolean, nullable=False, server_default=text('false'))
     is_accounts_storage = Column(Boolean, nullable=False, server_default=text('false')) # если это хранилище аккаунтов
 
@@ -59,6 +61,51 @@ class AccountCategories(Base):
     next_account_categories = relationship("AccountCategories",back_populates="parent",foreign_keys=[parent_id])
     parent = relationship("AccountCategories",back_populates="next_account_categories",remote_side=lambda: [AccountCategories.account_category_id])
     product_accounts = relationship("ProductAccounts", back_populates="account_category")
+    translations = relationship("AccountCategoryTranslation", back_populates="account_category", cascade="all, delete-orphan")
+
+    def _get_field_with_translation(self,field: Callable[[Any], Any], lang: str, fallback: str = None)->str | None:
+        """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
+        for t in self.translations:
+            if t.lang == lang:
+                return field(t)
+        if fallback:
+            for t in self.translations:
+                if t.lang == fallback:
+                    return field(t)
+        # вернём первый попавшийся
+        if field(self.translations[0]):
+            return field(self.translations[0])
+        else:
+            return None
+
+    def get_name(self, lang: str, fallback: str | None = None)->str:
+        """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
+        return self._get_field_with_translation(lambda translations: translations.name, lang, fallback)
+
+    def get_description(self, lang: str, fallback: str = None)->str:
+        """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
+        return self._get_field_with_translation(lambda translations: translations.description, lang, fallback)
+
+    def to_localized_dict(self, language: str = None)->dict:
+        new_dict = {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
+        new_dict.update({'name': self.get_name(language)})
+        new_dict.update({'description': self.get_description(language)})
+        return new_dict
+
+
+class AccountCategoryTranslation(Base):
+    __tablename__ = "account_category_translations"
+    __table_args__ = (
+        UniqueConstraint("account_category_id", "lang", name="uq_category_lang"),
+    )
+
+    account_category_translations_id = Column(Integer, primary_key=True, autoincrement=True)
+    account_category_id = Column(Integer, ForeignKey("account_categories.account_category_id", ondelete="CASCADE"),nullable=False)
+    lang = Column(String(8), nullable=False)  # 'ru', 'en'
+    name = Column(String(300), nullable=False)
+    description = Column(Text, nullable=True)
+
+    account_category = relationship("AccountCategories", back_populates="translations")
 
 class ProductAccounts(Base):
     __tablename__ = "product_accounts"
@@ -91,10 +138,6 @@ class SoldAccounts(Base):
     owner_id = Column(Integer, ForeignKey("users.user_id"), nullable=True)
     type_account_service_id = Column(Integer, ForeignKey("type_account_services.type_account_service_id"), nullable=False)
 
-    category_name = Column(String(300), nullable=False) # берётся с AccountCategories
-    service_name = Column(String(300), nullable=False) # берётся с AccountServices
-    type_name = Column(String(100), nullable=False)
-
     is_valid = Column(Boolean, nullable=False, server_default=text('true'))
     is_deleted = Column(Boolean, nullable=False, server_default=text('false'))
 
@@ -105,9 +148,66 @@ class SoldAccounts(Base):
     user = relationship("Users", back_populates="sold_account")
     type_account_service = relationship("TypeAccountServices", back_populates="sold_accounts")
     purchase = relationship("PurchasesAccounts", back_populates="sold_account", uselist=False)
+    translations = relationship("SoldAccountsTranslation", back_populates="sold_account", cascade="all, delete-orphan")
 
-# если запись есть, то это покупка совершённая
+    def _get_field_with_translation(self,field: Callable[[Any], Any], lang: str, fallback: str = None)->str | None:
+        """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
+        for t in self.translations:
+            if t.lang == lang:
+                return field(t)
+        if fallback:
+            for t in self.translations:
+                if t.lang == fallback:
+                    return field(t)
+        # вернём первый попавшийся
+        if field(self.translations[0]):
+            return field(self.translations[0])
+        else:
+            return None
+
+    def get_category_name(self, lang: str, fallback: str = None)->str:
+        """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
+        return self._get_field_with_translation(lambda translations: translations.category_name, lang, fallback)
+
+    def get_service_name(self, lang: str, fallback: str = None)->str:
+        """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
+        return self._get_field_with_translation(lambda translations: translations.service_name, lang, fallback)
+
+    def get_name(self, lang: str, fallback: str = None)->str:
+        """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
+        return self._get_field_with_translation(lambda translations: translations.name, lang, fallback)
+
+    def get_description(self, lang: str, fallback: str = None)->str:
+        """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
+        return self._get_field_with_translation(lambda translations: translations.description, lang, fallback)
+
+    def to_localized_dict(self, language: str = None)->dict:
+        new_dict = {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
+        new_dict.update({'category_name': self.get_category_name(language)})
+        new_dict.update({'service_name': self.get_service_name(language)})
+        new_dict.update({'name': self.get_name(language)})
+        new_dict.update({'description': self.get_description(language)})
+        return new_dict
+
+class SoldAccountsTranslation(Base):
+    __tablename__ = "sold_account_translations"
+    __table_args__ = (
+        UniqueConstraint("sold_account_id", "lang", name="uq_sold_accounts_lang"),
+    )
+
+    sold_account_translations_id = Column(Integer, primary_key=True, autoincrement=True)
+    sold_account_id = Column(Integer, ForeignKey("sold_accounts.sold_account_id", ondelete="CASCADE"),nullable=False)
+    lang = Column(String(8), nullable=False)  # 'ru', 'en'
+
+    category_name = Column(String(300), nullable=False)  # берётся с AccountCategories
+    service_name = Column(String(300), nullable=False)  # берётся с AccountServices
+    name = Column(Text, nullable=False) # берётся с AccountCategories
+    description = Column(Text, nullable=False) # берётся с AccountCategories
+
+    sold_account = relationship("SoldAccounts", back_populates="translations")
+
 class PurchasesAccounts(Base):
+    """если запись есть, то это покупка совершённая"""
     __tablename__ = "purchases_accounts"
     __table_args__ = (
         Index('ix_purchase_date', 'user_id', 'purchase_date'),
@@ -131,7 +231,7 @@ class PurchasesAccounts(Base):
 
 class DeletedAccounts(Base):
     """
-    Логирование аккаунтов которые удалены самим ботов по причине их не валидности.
+    Логирование аккаунтов которые удалены самим ботом по причине их не валидности.
     Аккаунты удалённые пользователем сюда не попадают!
     """
     __tablename__ = "deleted_accounts"

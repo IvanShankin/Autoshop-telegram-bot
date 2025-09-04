@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Type
+from typing import Type, Any, Dict, List
 
 import orjson
 import pytest
@@ -10,50 +10,315 @@ from src.database.core_models import Users, BannedAccounts
 from src.database.database import get_db
 from src.modules.admin_actions.models import Admins
 from src.modules.discounts.models import PromoCodes, Vouchers
-from src.modules.selling_accounts.models import TypeAccountServices, AccountServices, AccountCategories, \
-    ProductAccounts, SoldAccounts
+from src.modules.selling_accounts.models import (
+    TypeAccountServices, AccountServices, AccountCategories,
+    ProductAccounts, SoldAccounts, AccountCategoryTranslation, SoldAccountsTranslation
+)
 from src.redis_dependencies.core_redis import get_redis
 
 
-def comparison_dicts(model: Type, json_str: orjson):
-    data_from_redis = orjson.loads(json_str)
-    model_in_dict: dict = model.to_dict()
+class TestBase:
+    """Базовый класс для тестов с общими методами"""
 
-    for key in model_in_dict.keys():
-        if isinstance(model_in_dict[key], datetime):  # если встретили дата
-            assert model_in_dict[key] == parse(data_from_redis[key])
-        else:
-            assert model_in_dict[key] == data_from_redis[key]
+    @staticmethod
+    async def add_and_refresh(object_model: Any) -> Any:
+        """Добавляет объект в БД и обновляет его"""
+        async with get_db() as session_db:
+            session_db.add(object_model)
+            await session_db.commit()
+            await session_db.refresh(object_model)
+            return object_model
 
-async def added_and_refresh_in_db(object_model):
-    async with get_db() as session_db:
-        session_db.add(object_model)
-        await session_db.commit()
-        await session_db.refresh(object_model)
-        return object_model
+    @staticmethod
+    def compare_dicts(model: Type, json_str: bytes) -> None:
+        """Сравнивает словарь модели с данными из Redis"""
+        data_from_redis = orjson.loads(json_str)
+        model_dict = model.to_dict()
 
-class TestFillRedisSingleObjects:
+        for key in model_dict.keys():
+            if isinstance(model_dict[key], datetime):
+                assert model_dict[key] == parse(data_from_redis[key])
+            else:
+                assert model_dict[key] == data_from_redis[key]
+
+    async def create_basic_user(self, username: str, referral_code: str) -> Users:
+        """Создает базового пользователя"""
+        return await self.add_and_refresh(
+            Users(
+                username=username,
+                language="ru",
+                unique_referral_code=referral_code,
+                balance=0
+            )
+        )
+
+    async def create_type_service(self, name: str) -> TypeAccountServices:
+        """Создает тип сервиса"""
+        return await self.add_and_refresh(TypeAccountServices(name=name))
+
+    async def create_account_service(self, type_service: TypeAccountServices, name: str) -> AccountServices:
+        """Создает сервис аккаунта"""
+        return await self.add_and_refresh(
+            AccountServices(
+                name=name,
+                type_account_service_id=type_service.type_account_service_id
+            )
+        )
+
+    async def create_account_category(self, account_service: AccountServices,
+                                      is_main: bool = True,
+                                      is_storage: bool = False) -> AccountCategories:
+        """Создает категорию аккаунта"""
+        return await self.add_and_refresh(
+            AccountCategories(
+                account_service_id=account_service.account_service_id,
+                is_main=is_main,
+                is_accounts_storage=is_storage
+            )
+        )
+
+
+class TestFillRedisSingleObjectsMultilang(TestBase):
+    """Тесты для заполнения Redis одиночными объектами с мультиязычностью"""
+
+    @pytest.mark.asyncio
+    async def test_filling_account_categories_by_category_id(self):
+        # Setup
+        type_service = await self.create_type_service("test_type")
+        account_service = await self.create_account_service(type_service, "Test Service")
+        category = await self.create_account_category(account_service)
+
+        translations = []
+        for lang, name, description in [
+            ('ru', "Тестовая категория", "Тестовое описание"),
+            ('en', "Test Category", "Test description")
+        ]:
+            translation = await self.add_and_refresh(
+                AccountCategoryTranslation(
+                    account_category_id=category.account_category_id,
+                    lang=lang,
+                    name=name,
+                    description=description
+                )
+            )
+            translations.append(translation)
+
+        # Execute
+        await filling.filling_account_categories_by_category_id()
+
+        # Assert
+        for translate in translations:
+            async with get_redis() as session_redis:
+                val = await session_redis.get(
+                    f"account_categories_by_category_id:{category.account_category_id}:{translate.lang}"
+                )
+
+            data = orjson.loads(val)
+            expected_data = {
+                "account_category_id": translate.account_category_id,
+                "account_service_id": category.account_service_id,
+                "name": translate.name,
+                "description": translate.description,
+                "is_main": category.is_main,
+                "is_accounts_storage": category.is_accounts_storage
+            }
+
+            for key, expected_value in expected_data.items():
+                assert data[key] == expected_value
+
+    @pytest.mark.asyncio
+    async def test_filling_sold_accounts_by_accounts_id(self):
+        # Setup
+        user = await self.create_basic_user("seller", "seller_ref")
+        type_service = await self.create_type_service("sold_type")
+
+        sold_account = await self.add_and_refresh(
+            SoldAccounts(
+                owner_id=user.user_id,
+                type_account_service_id=type_service.type_account_service_id,
+                is_deleted=False
+            )
+        )
+
+        translations = []
+        for lang, category_name, service_name, name, description in [
+            ('ru', "Категория RU", "Сервис RU", "Имя RU", "Описание RU"),
+            ('en', "Category EN", "Service EN", "Name EN", "Description EN")
+        ]:
+            translation = await self.add_and_refresh(
+                SoldAccountsTranslation(
+                    sold_account_id=sold_account.sold_account_id,
+                    lang=lang,
+                    category_name=category_name,
+                    service_name=service_name,
+                    name=name,
+                    description=description
+                )
+            )
+            translations.append(translation)
+
+        # Execute
+        await filling.filling_sold_accounts_by_accounts_id()
+
+        # Assert
+        for tr in translations:
+            async with get_redis() as session_redis:
+                key = f"sold_accounts_by_accounts_id:{sold_account.sold_account_id}:{tr.lang}"
+                val = await session_redis.get(key)
+
+            assert val is not None, f"missing redis key {key}"
+            data = orjson.loads(val)
+
+            expected_fields = {
+                "sold_account_id": sold_account.sold_account_id,
+                "owner_id": sold_account.owner_id,
+                "category_name": tr.category_name,
+                "service_name": tr.service_name,
+                "name": tr.name,
+                "description": tr.description
+            }
+
+            for field, expected_value in expected_fields.items():
+                assert data[field] == expected_value
+
+
+class TestFillRedisGroupedObjectsMultilang(TestBase):
+    """Тесты для заполнения Redis сгруппированными объектами с мультиязычностью"""
+
+    @pytest.mark.asyncio
+    async def test_filling_account_categories_by_service_id(self):
+        # Setup
+        type_service = await self.create_type_service("grouped_test_type")
+        account_service = await self.create_account_service(type_service, "Grouped Test Service")
+
+        # Create categories with translations
+        categories_data = [
+            # category 1: only RU
+            (True, False, [('ru', "Кат 1 RU", "Описание 1 RU")]),
+            # category 2: both RU and EN
+            (False, True, [
+                ('ru', "Кат 2 RU", "Описание 2 RU"),
+                ('en', "Cat 2 EN", "Desc 2 EN")
+            ])
+        ]
+
+        for is_main, is_storage, translations_data in categories_data:
+            category = await self.create_account_category(account_service, is_main, is_storage)
+
+            for lang, name, description in translations_data:
+                await self.add_and_refresh(
+                    AccountCategoryTranslation(
+                        account_category_id=category.account_category_id,
+                        lang=lang,
+                        name=name,
+                        description=description
+                    )
+                )
+
+        # Execute
+        await filling.filling_account_categories_by_service_id()
+
+        # Assert
+        test_cases = [
+            ('ru', 2),  # Both categories have RU translations
+            ('en', 1)  # Only second category has EN translation
+        ]
+
+        for lang, expected_count in test_cases:
+            async with get_redis() as session_redis:
+                key = f"account_categories_by_service_id:{account_service.account_service_id}:{lang}"
+                val = await session_redis.get(key)
+
+            assert val is not None, f"missing redis key {key}"
+            categories_list = orjson.loads(val)
+            assert len(categories_list) == expected_count
+
+    @pytest.mark.asyncio
+    async def test_filling_sold_accounts_by_owner_id(self):
+        # Setup
+        user = await self.create_basic_user("grouped_seller", "grouped_seller_ref")
+        type_service = await self.create_type_service("grouped_sold_type")
+
+        # Create sold accounts with translations
+        accounts_data = [
+            (False, "Категория A", "Сервис A", "Имя А", "Описание A"),
+            (False, "Категория B", "Сервис B", "Имя B", "Описание B")
+        ]
+
+        sold_accounts = []
+        for is_deleted, category_name, service_name, name, description in accounts_data:
+            sold_account = await self.add_and_refresh(
+                SoldAccounts(
+                    owner_id=user.user_id,
+                    type_account_service_id=type_service.type_account_service_id,
+                    is_deleted=is_deleted
+                )
+            )
+            sold_accounts.append(sold_account)
+
+            await self.add_and_refresh(
+                SoldAccountsTranslation(
+                    sold_account_id=sold_account.sold_account_id,
+                    lang="ru",
+                    category_name=category_name,
+                    service_name=service_name,
+                    name=name,
+                    description=description
+                )
+            )
+
+        # Execute
+        await filling.filling_sold_accounts_by_owner_id()
+
+        # Assert
+        async with get_redis() as session_redis:
+            key = f"sold_accounts_by_owner_id:{user.user_id}:ru"
+            val = await session_redis.get(key)
+
+        assert val is not None, f"missing redis key {key}"
+        items = orjson.loads(val)
+
+        # Should only include non-deleted accounts
+        expected_count = sum(1 for acc in sold_accounts if not acc.is_deleted)
+        assert len(items) == expected_count
+
+        actual_ids = {item["sold_account_id"] for item in items}
+        expected_ids = {acc.sold_account_id for acc in sold_accounts if not acc.is_deleted}
+        assert actual_ids == expected_ids
+
+    @pytest.mark.asyncio
+    async def test_filling_sold_accounts_by_owner_id_with_filter(self):
+        """Тест фильтрации удаленных аккаунтов"""
+        await self.test_filling_sold_accounts_by_owner_id()  # Используем общий тест
+
+
+class TestFillRedisSingleObjects(TestBase):
+    """Тесты для заполнения Redis одиночными объектами"""
+
     @pytest.mark.asyncio
     async def test_filling_user(self):
-        new_user = Users(username="test", language="rus", unique_referral_code="abc", balance=100, total_sum_replenishment=50,
-              total_profit_from_referrals=10)
-        new_user = await added_and_refresh_in_db(new_user)
+        user = await self.add_and_refresh(
+            Users(
+                username="test",
+                language="ru",
+                unique_referral_code="abc",
+                balance=100,
+                total_sum_replenishment=50,
+                total_profit_from_referrals=10
+            )
+        )
 
         await filling.filling_users()
 
         async with get_redis() as session_redis:
-            val = await session_redis.get(f"user:{new_user.user_id}")
+            val = await session_redis.get(f"user:{user.user_id}")
 
-        comparison_dicts(new_user, val)
+        self.compare_dicts(user, val)
 
     @pytest.mark.asyncio
     async def test_filling_admins(self):
-        # Сначала создаём пользователя
-        user = Users(username="admin_user", language="rus", unique_referral_code="admin_ref", balance=0)
-        user = await added_and_refresh_in_db(user)
-
-        # Теперь создаём админа
-        admin = await added_and_refresh_in_db(Admins(user_id=user.user_id))
+        user = await self.create_basic_user("admin_user", "admin_ref")
+        admin = await self.add_and_refresh(Admins(user_id=user.user_id))
 
         await filling.filling_admins()
 
@@ -64,13 +329,10 @@ class TestFillRedisSingleObjects:
 
     @pytest.mark.asyncio
     async def test_filling_banned_accounts(self):
-        # Сначала создаём пользователя
-        user = Users(username="banned_user", language="rus", unique_referral_code="banned_ref", balance=0)
-        user = await added_and_refresh_in_db(user)
-
-        # Теперь создаём бан
-        banned = BannedAccounts(user_id=user.user_id, reason="test ban")
-        banned = await added_and_refresh_in_db(banned)
+        user = await self.create_basic_user("banned_user", "banned_ref")
+        banned = await self.add_and_refresh(
+            BannedAccounts(user_id=user.user_id, reason="test ban")
+        )
 
         await filling.filling_banned_accounts()
 
@@ -81,384 +343,118 @@ class TestFillRedisSingleObjects:
 
     @pytest.mark.asyncio
     async def test_filling_type_account_services(self):
-        type_service = TypeAccountServices(name="telegram")
-        type_service = await added_and_refresh_in_db(type_service)
+        type_service = await self.create_type_service("telegram")
 
         await filling.filling_type_account_services()
 
         async with get_redis() as session_redis:
             val = await session_redis.get(f"type_account_service:{type_service.name}")
 
-        comparison_dicts(type_service, val)
+        self.compare_dicts(type_service, val)
 
     @pytest.mark.asyncio
     async def test_filling_account_services(self):
-        # Сначала создаём тип сервиса
-        type_service = TypeAccountServices(name="social_media")
-        type_service = await added_and_refresh_in_db(type_service)
-
-        # Теперь создаём сервис
-        account_service = AccountServices(name="Telegram", type_account_service_id=type_service.type_account_service_id)
-        account_service = await added_and_refresh_in_db(account_service)
+        type_service = await self.create_type_service("social_media")
+        account_service = await self.create_account_service(type_service, "Telegram")
 
         await filling.filling_account_services()
 
         async with get_redis() as session_redis:
             val = await session_redis.get(f"account_service:{account_service.type_account_service_id}")
 
-        comparison_dicts(account_service, val)
-
-    @pytest.mark.asyncio
-    async def test_filling_account_categories_by_category_id(self):
-        # Сначала создаём тип сервиса
-        type_service = TypeAccountServices(name="test_type")
-        type_service = await added_and_refresh_in_db(type_service)
-
-        # Создаём сервис
-        account_service = AccountServices(name="Test Service",
-                                          type_account_service_id=type_service.type_account_service_id)
-        account_service = await added_and_refresh_in_db(account_service)
-
-        # Теперь создаём категорию
-        category = AccountCategories(
-            account_service_id=account_service.account_service_id,
-            name="Test Category",
-            description="Test description",
-            is_main=True,
-            is_accounts_storage=False
-        )
-        category = await added_and_refresh_in_db(category)
-
-        await filling.filling_account_categories_by_category_id()
-
-        async with get_redis() as session_redis:
-            val = await session_redis.get(f"account_categories_by_category_id:{category.account_category_id}")
-
-        comparison_dicts(category, val)
+        self.compare_dicts(account_service, val)
 
     @pytest.mark.asyncio
     async def test_filling_product_accounts_by_account_id(self):
-        # Создаём всю цепочку зависимостей
-        type_service = TypeAccountServices(name="product_type")
-        type_service = await added_and_refresh_in_db(type_service)
+        type_service = await self.create_type_service("product_type")
+        account_service = await self.create_account_service(type_service, "Product Service")
+        category = await self.create_account_category(account_service, is_storage=True)
 
-        account_service = AccountServices(name="Product Service",
-                                          type_account_service_id=type_service.type_account_service_id)
-        account_service = await added_and_refresh_in_db(account_service)
-
-        category = AccountCategories(
-            account_service_id=account_service.account_service_id,
-            name="Product Category",
-            description="Product description",
-            is_main=True,
-            is_accounts_storage=True
+        product = await self.add_and_refresh(
+            ProductAccounts(
+                type_account_service_id=type_service.type_account_service_id,
+                account_category_id=category.account_category_id
+            )
         )
-        category = await added_and_refresh_in_db(category)
-
-        # Теперь создаём продукт
-        product = ProductAccounts(
-            type_account_service_id=type_service.type_account_service_id,
-            account_category_id=category.account_category_id
-        )
-        product = await added_and_refresh_in_db(product)
 
         await filling.filling_product_accounts_by_account_id()
 
         async with get_redis() as session_redis:
             val = await session_redis.get(f"product_accounts_by_account_id:{product.account_id}")
 
-        comparison_dicts(product, val)
-
-    @pytest.mark.asyncio
-    async def test_filling_sold_accounts_by_accounts_id(self):
-        # Создаём пользователя и тип сервиса
-        user = Users(username="seller", language="rus", unique_referral_code="seller_ref", balance=0)
-        user = await added_and_refresh_in_db(user)
-
-        type_service = TypeAccountServices(name="sold_type")
-        type_service = await added_and_refresh_in_db(type_service)
-
-        # Создаём проданный аккаунт
-        sold_account = SoldAccounts(
-            owner_id=user.user_id,
-            type_account_service_id=type_service.type_account_service_id,
-            category_name="Test Category",
-            service_name="Test Service",
-            type_name="Test Type"
-        )
-        sold_account = await added_and_refresh_in_db(sold_account)
-
-        await filling.filling_sold_accounts_by_accounts_id()
-
-        async with get_redis() as session_redis:
-            val = await session_redis.get(f"sold_accounts_by_accounts_id:{sold_account.sold_account_id}")
-
-        comparison_dicts(sold_account, val)
+        self.compare_dicts(product, val)
 
     @pytest.mark.asyncio
     async def test_filling_promo_code(self):
-        promo = PromoCodes(
-            activation_code="TEST123",
-            min_order_amount=100,
-            amount=10,
-            is_valid=True
+        promo = await self.add_and_refresh(
+            PromoCodes(
+                activation_code="TEST123",
+                min_order_amount=100,
+                amount=10,
+                is_valid=True
+            )
         )
-        promo = await added_and_refresh_in_db(promo)
 
         await filling.filling_promo_code()
 
         async with get_redis() as session_redis:
             val = await session_redis.get(f"promo_code:{promo.activation_code}")
 
-        comparison_dicts(promo, val)
+        self.compare_dicts(promo, val)
 
     @pytest.mark.asyncio
     async def test_filling_vouchers(self):
-        # Сначала создаём пользователя
-        user = Users(username="voucher_creator", language="rus", unique_referral_code="voucher_ref", balance=0)
-        user = await added_and_refresh_in_db(user)
+        user = await self.create_basic_user("voucher_creator", "voucher_ref")
 
-        # Теперь создаём ваучер
-        voucher = Vouchers(
-            activation_code="VOUCHER123",
-            amount=100,
-            is_valid=True,
-            is_created_admin=False,
-            creator_id=user.user_id
+        voucher = await self.add_and_refresh(
+            Vouchers(
+                activation_code="VOUCHER123",
+                amount=100,
+                is_valid=True,
+                is_created_admin=False,
+                creator_id=user.user_id
+            )
         )
-        voucher = await added_and_refresh_in_db(voucher)
 
         await filling.filling_vouchers()
 
         async with get_redis() as session_redis:
             val = await session_redis.get(f"vouchers:{voucher.activation_code}")
 
-        comparison_dicts(voucher, val)
+        self.compare_dicts(voucher, val)
 
 
-class TestFillRedisGroupedObjects:
-    @pytest.mark.asyncio
-    async def test_filling_account_categories_by_service_id(self):
-        # Создаём тип сервиса
-        type_service = TypeAccountServices(name="grouped_test_type")
-        type_service = await added_and_refresh_in_db(type_service)
-
-        # Создаём сервис
-        account_service = AccountServices(name="Grouped Test Service",
-                                          type_account_service_id=type_service.type_account_service_id)
-        account_service = await added_and_refresh_in_db(account_service)
-
-        # Создаём несколько категорий для одного сервиса
-        category1 = AccountCategories(
-            account_service_id=account_service.account_service_id,
-            name="Category 1",
-            description="Test category 1",
-            is_main=True,
-            is_accounts_storage=False
-        )
-        category1 = await added_and_refresh_in_db(category1)
-
-        category2 = AccountCategories(
-            account_service_id=account_service.account_service_id,
-            name="Category 2",
-            description="Test category 2",
-            is_main=False,
-            is_accounts_storage=True
-        )
-        category2 = await added_and_refresh_in_db(category2)
-
-        await filling.filling_account_categories_by_service_id()
-
-        async with get_redis() as session_redis:
-            val = await session_redis.get(f"account_categories_by_service_id:{account_service.account_service_id}")
-
-        data_from_redis = orjson.loads(val)
-        assert len(data_from_redis) == 2
-
-        # Проверяем, что обе категории присутствуют
-        category_ids = [cat['account_category_id'] for cat in data_from_redis]
-        assert category1.account_category_id in category_ids
-        assert category2.account_category_id in category_ids
+class TestFillRedisGroupedObjects(TestBase):
+    """Тесты для заполнения Redis сгруппированными объектами"""
 
     @pytest.mark.asyncio
     async def test_filling_product_accounts_by_category_id(self):
-        # Создаём всю цепочку зависимостей
-        type_service = TypeAccountServices(name="product_grouped_type")
-        type_service = await added_and_refresh_in_db(type_service)
+        # Setup
+        type_service = await self.create_type_service("product_grouped_type")
+        account_service = await self.create_account_service(type_service, "Product Grouped Service")
+        category = await self.create_account_category(account_service, is_storage=True)
 
-        account_service = AccountServices(name="Product Grouped Service",
-                                          type_account_service_id=type_service.type_account_service_id)
-        account_service = await added_and_refresh_in_db(account_service)
+        # Create multiple products for the same category
+        products = []
+        for _ in range(2):
+            product = await self.add_and_refresh(
+                ProductAccounts(
+                    type_account_service_id=type_service.type_account_service_id,
+                    account_category_id=category.account_category_id
+                )
+            )
+            products.append(product)
 
-        category = AccountCategories(
-            account_service_id=account_service.account_service_id,
-            name="Product Grouped Category",
-            description="Product grouped description",
-            is_main=True,
-            is_accounts_storage=True
-        )
-        category = await added_and_refresh_in_db(category)
-
-        # Создаём несколько продуктов для одной категории
-        product1 = ProductAccounts(
-            type_account_service_id=type_service.type_account_service_id,
-            account_category_id=category.account_category_id
-        )
-        product1 = await added_and_refresh_in_db(product1)
-
-        product2 = ProductAccounts(
-            type_account_service_id=type_service.type_account_service_id,
-            account_category_id=category.account_category_id
-        )
-        product2 = await added_and_refresh_in_db(product2)
-
+        # Execute
         await filling.filling_product_accounts_by_category_id()
 
+        # Assert
         async with get_redis() as session_redis:
             val = await session_redis.get(f"product_accounts_by_category_id:{category.account_category_id}")
 
-        data_from_redis = orjson.loads(val)
-        assert len(data_from_redis) == 2
+        data = orjson.loads(val)
+        assert len(data) == len(products)
 
-        # Проверяем, что оба продукта присутствуют
-        product_ids = [prod['account_id'] for prod in data_from_redis]
-        assert product1.account_id in product_ids
-        assert product2.account_id in product_ids
-
-    @pytest.mark.asyncio
-    async def test_filling_sold_accounts_by_owner_id(self):
-        # Создаём пользователя и тип сервиса
-        user = Users(username="grouped_seller", language="rus", unique_referral_code="grouped_seller_ref", balance=0)
-        user = await added_and_refresh_in_db(user)
-
-        type_service = TypeAccountServices(name="grouped_sold_type")
-        type_service = await added_and_refresh_in_db(type_service)
-
-        # Создаём несколько проданных аккаунтов для одного владельца
-        sold_account1 = SoldAccounts(
-            owner_id=user.user_id,
-            type_account_service_id=type_service.type_account_service_id,
-            category_name="Test Category 1",
-            service_name="Test Service 1",
-            type_name="Test Type 1",
-            is_deleted=False
-        )
-        sold_account1 = await added_and_refresh_in_db(sold_account1)
-
-        sold_account2 = SoldAccounts(
-            owner_id=user.user_id,
-            type_account_service_id=type_service.type_account_service_id,
-            category_name="Test Category 2",
-            service_name="Test Service 2",
-            type_name="Test Type 2",
-            is_deleted=False
-        )
-        sold_account2 = await added_and_refresh_in_db(sold_account2)
-
-        await filling.filling_sold_accounts_by_owner_id()
-
-        async with get_redis() as session_redis:
-            val = await session_redis.get(f"sold_accounts_by_owner_id:{user.user_id}")
-
-        data_from_redis = orjson.loads(val)
-        assert len(data_from_redis) == 2
-
-        # Проверяем, что оба проданных аккаунта присутствуют
-        sold_account_ids = [acc['sold_account_id'] for acc in data_from_redis]
-        assert sold_account1.sold_account_id in sold_account_ids
-        assert sold_account2.sold_account_id in sold_account_ids
-
-    @pytest.mark.asyncio
-    async def test_filling_sold_accounts_by_owner_id_with_filter(self):
-        # Создаём пользователя и тип сервиса
-        user = Users(username="filtered_seller", language="rus", unique_referral_code="filtered_seller_ref", balance=0)
-        user = await added_and_refresh_in_db(user)
-
-        type_service = TypeAccountServices(name="filtered_sold_type")
-        type_service = await added_and_refresh_in_db(type_service)
-
-        # Создаём несколько проданных аккаунтов для одного владельца
-        sold_account1 = SoldAccounts(
-            owner_id=user.user_id,
-            type_account_service_id=type_service.type_account_service_id,
-            category_name="Test Category 1",
-            service_name="Test Service 1",
-            type_name="Test Type 1",
-            is_deleted=False
-        )
-        sold_account1 = await added_and_refresh_in_db(sold_account1)
-
-        sold_account2 = SoldAccounts(
-            owner_id=user.user_id,
-            type_account_service_id=type_service.type_account_service_id,
-            category_name="Test Category 2",
-            service_name="Test Service 2",
-            type_name="Test Type 2",
-            is_deleted=True  # Этот не должен пройти фильтрацию
-        )
-        sold_account2 = await added_and_refresh_in_db(sold_account2)
-
-        await filling.filling_sold_accounts_by_owner_id()
-
-        async with get_redis() as session_redis:
-            val = await session_redis.get(f"sold_accounts_by_owner_id:{user.user_id}")
-
-        data_from_redis = orjson.loads(val)
-        assert len(data_from_redis) == 1  # Только один аккаунт должен пройти фильтр
-
-        # Проверяем, что только не удалённый аккаунт присутствует
-        sold_account_ids = [acc['sold_account_id'] for acc in data_from_redis]
-        assert sold_account1.sold_account_id in sold_account_ids
-        assert sold_account2.sold_account_id not in sold_account_ids
-
-    @pytest.mark.asyncio
-    async def test_filling_multiple_services_categories(self):
-        # Создаём несколько типов сервисов
-        type_service1 = TypeAccountServices(name="service_type_1")
-        type_service1 = await added_and_refresh_in_db(type_service1)
-
-        type_service2 = TypeAccountServices(name="service_type_2")
-        type_service2 = await added_and_refresh_in_db(type_service2)
-
-        # Создаём сервисы для каждого типа
-        account_service1 = AccountServices(name="Service 1",
-                                           type_account_service_id=type_service1.type_account_service_id)
-        account_service1 = await added_and_refresh_in_db(account_service1)
-
-        account_service2 = AccountServices(name="Service 2",
-                                           type_account_service_id=type_service2.type_account_service_id)
-        account_service2 = await added_and_refresh_in_db(account_service2)
-
-        # Создаём категории для каждого сервиса
-        category1 = AccountCategories(
-            account_service_id=account_service1.account_service_id,
-            name="Category for Service 1",
-            description="Test category",
-            is_main=True,
-            is_accounts_storage=False
-        )
-        category1 = await added_and_refresh_in_db(category1)
-
-        category2 = AccountCategories(
-            account_service_id=account_service2.account_service_id,
-            name="Category for Service 2",
-            description="Test category",
-            is_main=True,
-            is_accounts_storage=False
-        )
-        category2 = await added_and_refresh_in_db(category2)
-
-        await filling.filling_account_categories_by_service_id()
-
-        # Проверяем, что категории сгруппированы по своим сервисам
-        async with get_redis() as session_redis:
-            val1 = await session_redis.get(f"account_categories_by_service_id:{account_service1.account_service_id}")
-            val2 = await session_redis.get(f"account_categories_by_service_id:{account_service2.account_service_id}")
-
-        data_from_redis1 = orjson.loads(val1)
-        data_from_redis2 = orjson.loads(val2)
-
-        assert len(data_from_redis1) == 1
-        assert len(data_from_redis2) == 1
-        assert data_from_redis1[0]['account_category_id'] == category1.account_category_id
-        assert data_from_redis2[0]['account_category_id'] == category2.account_category_id
+        product_ids = {prod['account_id'] for prod in data}
+        expected_ids = {product.account_id for product in products}
+        assert product_ids == expected_ids

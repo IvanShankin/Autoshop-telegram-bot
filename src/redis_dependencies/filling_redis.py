@@ -1,9 +1,11 @@
 from datetime import datetime, timedelta, UTC
-from typing import Type, Any, Optional, Callable
+from typing import Type, Any, Optional, Callable, Iterable, Union, List
 
 import orjson
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload, selectinload
 
+from src.config import ALLOWED_LANGS
 from src.database.core_models import Users, BannedAccounts
 from src.database.database import get_db
 from src.modules.admin_actions.models import Admins
@@ -32,6 +34,153 @@ async def filling_all_redis():
     await filling_promo_code()
     await filling_vouchers()
 
+async def _fill_redis_single_objects_multilang(
+    model: Type,
+    key_prefix: str,
+    key_extractor: Callable[[Any], str],
+    *,
+    field_condition: Optional[Any] = None,
+    ttl_seconds: Optional[int] = None,
+    joinedload_rels: Optional[Iterable[str]] = ("translations",),
+):
+    """
+    Для каждой записи model кладём в redis по ключу:
+      {key_prefix}:{key_extractor(obj)}:{lang}
+    Только для тех lang, которые реально есть в obj.translations и которые входят в ALLOWED_LANGS.
+
+    :param ttl_seconds: если None — бессрочно, иначе int секунд для всех ключей.
+    :param joinedload_rels: имена отношений, которые следует предварительно загрузить (обычно "translations").
+    """
+    async with get_db() as session_db:
+        query = select(model)
+        if field_condition is not None:
+            query = query.where(field_condition)
+        # joinedload для избежания N+1
+        if joinedload_rels:
+            for rel in joinedload_rels:
+                query = query.options(selectinload(getattr(model, rel)))
+        result = (await session_db.execute(query)).scalars().all()
+
+        if not result:
+            return
+
+        async with get_redis() as r:
+            async with r.pipeline(transaction=False) as pipe:
+                for obj in result:
+                    obj_id = key_extractor(obj)
+
+                    # получаем все языки которые имеются у данного объекта (obj)
+                    langs = []
+                    for t in getattr(obj, "translations", []) or []: # получение у объекта model, его translations
+                        lang = getattr(t, "lang", None)
+                        if not lang:
+                            continue
+                        if lang not in ALLOWED_LANGS:
+                            continue
+                        if lang not in langs:
+                            langs.append(lang)
+
+                    if not langs:
+                        # у объекта нет переводов — пропускаем
+                        continue
+
+                    for lang in langs:
+                        try:
+                            value_obj = obj.to_localized_dict(lang)
+                        except Exception: # если по какой-то причине to_localized_dict упадёт — пропускаем этот язык
+                            continue
+                        if not value_obj:
+                            continue
+
+                        value_bytes = orjson.dumps(value_obj)
+                        key = f"{key_prefix}:{obj_id}:{lang}"
+                        if ttl_seconds and ttl_seconds > 1:
+                            await pipe.setex(key, int(ttl_seconds), value_bytes)
+                        elif ttl_seconds and ttl_seconds < 1:
+                            continue
+                        else:
+                            await pipe.set(key, value_bytes)
+                await pipe.execute()
+
+
+async def _fill_redis_grouped_objects_multilang(
+    model: Type,
+    group_by_field_models: str,
+    group_by_model: Type,
+    group_by_field_for_group_model: str,
+    key_prefix: str,
+    *,
+    filter_condition: Optional[Any] = None,
+    ttl_seconds: Optional[int] = None,
+    joinedload_rels: Optional[Iterable[str]] = ("translations",),
+):
+    """
+    Для каждой группы (берём id из group_by_model.group_by_field_for_group_model) формируем
+    ключи {key_prefix}:{group_id}:{lang} содержащие список локализованных dict'ов
+    (каждый элемент получается через obj.to_localized_dict(lang)).
+    Записываем только те lang, у которых есть хотя бы один объект с переводом.
+    """
+    async with get_db() as session_db:
+        group_ids = (await session_db.execute(select(getattr(group_by_model, group_by_field_for_group_model)))).scalars().all()
+
+        if not group_ids:
+            return
+
+        async with get_redis() as r:
+            for group_id in group_ids:
+                # получаем объекты группы
+                q = select(model).where(getattr(model, group_by_field_models) == group_id)
+                if filter_condition is not None:
+                    q = q.where(filter_condition)
+                if joinedload_rels:
+                    for rel in joinedload_rels:
+                        q = q.options(selectinload(getattr(model, rel)))
+                objs = (await session_db.execute(q)).scalars().all()
+                if not objs:
+                    continue
+
+                # union языков, которые реально есть среди объектов (и допустимы)
+                langs_set = set()
+                for obj in objs:
+                    for t in getattr(obj, "translations", []) or []:
+                        lang = getattr(t, "lang", None)
+                        if lang and lang in ALLOWED_LANGS:
+                            langs_set.add(lang)
+
+                if not langs_set:
+                    continue
+
+                async with r.pipeline(transaction=False) as pipe:
+                    for lang in langs_set:
+                        list_for_redis = []
+                        for obj in objs:
+                            # если у объекта нет перевода для lang — пропускаем его
+                            has_lang = False
+                            for t in getattr(obj, "translations", []) or []:
+                                if getattr(t, "lang", None) == lang:
+                                    has_lang = True
+                                    break
+                            if not has_lang:
+                                continue
+
+                            try:
+                                value_obj = obj.to_localized_dict(lang)
+                            except Exception:
+                                continue
+                            if not value_obj:
+                                continue
+                            list_for_redis.append(value_obj)
+
+                        if not list_for_redis:
+                            continue
+
+                        key = f"{key_prefix}:{group_id}:{lang}"
+                        value_bytes = orjson.dumps(list_for_redis)
+                        if ttl_seconds and ttl_seconds > 1:
+                            await pipe.setex(key, int(ttl_seconds), value_bytes)
+                        else:
+                            await pipe.set(key, value_bytes)
+                    await pipe.execute()
 
 async def _fill_redis_single_objects(
         model: Type,
@@ -42,7 +191,6 @@ async def _fill_redis_single_objects(
         ttl: Optional[Callable[[Any], timedelta]] = None
 ):
     """
-
     Заполняет Redis одиночными объектами
     :param model: модель БД
     :param key_prefix: префикс у ключа redis ("key_prefix:other_data")
@@ -176,19 +324,21 @@ async def filling_account_services():
     )
 
 async def filling_account_categories_by_service_id():
-    await _fill_redis_grouped_objects(
+    await _fill_redis_grouped_objects_multilang(
         model=AccountCategories,
         group_by_field_models="account_service_id",
         group_by_model=AccountServices,
         group_by_field_for_group_model="account_service_id",
-        key_prefix="account_categories_by_service_id"
+        key_prefix="account_categories_by_service_id",
+        joinedload_rels=("translations",),
     )
 
 async def filling_account_categories_by_category_id():
-    await _fill_redis_single_objects(
+    await _fill_redis_single_objects_multilang(
         model=AccountCategories,
-        key_prefix='account_categories_by_category_id',
-        key_extractor=lambda account_category: account_category.account_category_id,
+        key_prefix="account_categories_by_category_id",
+        key_extractor= lambda account_category: account_category.account_category_id,
+        joinedload_rels=("translations",)
     )
 
 
@@ -210,24 +360,26 @@ async def filling_product_accounts_by_account_id():
 
 
 async def filling_sold_accounts_by_owner_id():
-    await _fill_redis_grouped_objects(
+    await _fill_redis_grouped_objects_multilang(
         model=SoldAccounts,
-        group_by_field_models='owner_id',
+        group_by_field_models="owner_id",
         group_by_model=Users,
         group_by_field_for_group_model="user_id",
         key_prefix="sold_accounts_by_owner_id",
         filter_condition=(SoldAccounts.is_deleted == False),
-        ttl=TIME_SOLD_ACCOUNTS_BY_OWNER
+        ttl_seconds=TIME_SOLD_ACCOUNTS_BY_OWNER.total_seconds(),
+        joinedload_rels=("translations",),
     )
 
 
 async def filling_sold_accounts_by_accounts_id():
-    await _fill_redis_single_objects(
+    await _fill_redis_single_objects_multilang(
         model=SoldAccounts,
-        key_prefix='sold_accounts_by_accounts_id',
-        key_extractor=lambda sold_account: sold_account.sold_account_id,
+        key_prefix="sold_accounts_by_accounts_id",
+        key_extractor=lambda s: s.sold_account_id,
         field_condition=(SoldAccounts.is_deleted == False),
-        ttl=lambda x: TIME_SOLD_ACCOUNTS_BY_ACCOUNT
+        joinedload_rels=("translations",),
+        ttl_seconds=TIME_SOLD_ACCOUNTS_BY_ACCOUNT.total_seconds(),  # или время в секундах
     )
 
 

@@ -1,9 +1,7 @@
 import asyncio
 import os
 import sys
-from contextlib import asynccontextmanager
 
-import fakeredis.aioredis
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine
 
@@ -19,7 +17,7 @@ from src.database.filling_database import create_database
 
 # для monkeypatch
 from src.database import database
-from src.redis_dependencies import core_redis
+from tests.fixtures.monkeypatch_data import replacement_redis
 
 # ---------- фикстуры ----------
 
@@ -28,7 +26,7 @@ async def create_database_fixture():
     if MODE != "TEST":
         raise Exception("Используется основная БД!")
 
-    # Создаем таблицы
+    # Создаем БД
     await create_database()
 
 
@@ -57,17 +55,6 @@ async def clean_redis(replacement_redis):
 
     await filling_all_redis()
 
-@pytest_asyncio.fixture(scope="function", autouse=True)
-async def replacement_redis(monkeypatch):
-    @asynccontextmanager
-    async def get_fakeredis():
-        redis = await fakeredis.aioredis.FakeRedis().client()
-        try:
-            yield redis
-        finally:
-            await redis.close()
-
-    monkeypatch.setattr(core_redis, "get_redis", get_fakeredis) # замена функции get_redis на собственную
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def reset_event_queue():

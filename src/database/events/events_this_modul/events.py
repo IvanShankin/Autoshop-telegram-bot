@@ -9,7 +9,7 @@ from src.database.events.events_this_modul.schemas import NewReplenishment
 @event.listens_for(Replenishments, "after_update")
 def event_update_replenishments(mapper, connection, target: Replenishments):
     """Создаёт event при изменении Replenishments"""
-    if target.status != "completed":
+    if target.status != "processing":
         return
 
     session = object_session(target) # Определяет объект сессии которая в данный момент управляет target

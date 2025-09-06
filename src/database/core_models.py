@@ -10,10 +10,11 @@ class Settings(Base):
     __tablename__ = "settings"
 
     settings_id = Column(Integer, primary_key=True, autoincrement=True)
+    support_username = Column(String(200), nullable=True)
     hash_token_accountant_bot = Column(Text, nullable=True) # токен для бота бугалтера
     channel_for_logging_id = Column(String(200), nullable=True)   # ID канала для логирования
     channel_for_subscription_id = Column(String(200), nullable=True)   # ID канала для подписки пользователя
-    FAQ = Column(Text, nullable=True)
+    FAQ = Column(Text, nullable=True) # ссылка
 
 class Users(Base):
     __tablename__ = "users"
@@ -111,7 +112,7 @@ class Replenishments(Base):
     type_payment_id = Column(Integer, ForeignKey("type_payments.type_payment_id"), nullable=False)
     origin_amount = Column(Integer, nullable=False)  # Сумма в рублях которая начислилась пользователю (без учёта комиссии)
     amount = Column(Integer, nullable=False)  # Сумма в рублях (с учётом комиссии)
-    status = Column(Enum('pending', 'completed', 'cancelled', 'failed', name='replenishment_status'), server_default='pending')
+    status = Column(Enum('pending', 'processing', 'completed', 'error', 'cancelled', name='replenishment_status'), server_default='pending')
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 

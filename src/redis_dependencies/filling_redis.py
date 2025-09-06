@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload, selectinload
 
 from src.config import ALLOWED_LANGS
-from src.database.core_models import Users, BannedAccounts
+from src.database.core_models import Users, BannedAccounts, Settings
 from src.database.database import get_db
 from src.modules.admin_actions.models import Admins
 from src.modules.discounts.models import PromoCodes, Vouchers
@@ -273,6 +273,15 @@ async def _fill_redis_grouped_objects(
                     else:
                         await session_redis.set(key, value)
 
+
+async def filling_settings():
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(Settings))
+        settings = result_db.scalars().first()
+
+        if settings:
+            async with get_redis() as session_redis:
+                await session_redis.set("settings", orjson.dumps(settings.to_dict()))
 
 async def filling_referral_levels():
     async with get_db() as session_db:

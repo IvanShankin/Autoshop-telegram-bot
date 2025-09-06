@@ -11,15 +11,18 @@ from sqlalchemy import select
 from src.database.core_models import Replenishments, Users, WalletTransaction, UserAuditLogs
 from src.database.database import get_db
 from src.database.events.core_event import event_queue
-from src.database.events.triggers_processing import run_triggers_processing
 from src.modules.referrals.database.events.schemas import NewIncomeFromRef
 from src.modules.referrals.database.models import IncomeFromReferrals, Referrals
 from src.redis_dependencies.core_redis import get_redis
-from tests.fixtures.halper_fixture import create_new_user, create_type_payment, create_referral, create_replenishment
-
+from tests.fixtures.helper_fixture import create_new_user, create_type_payment, create_referral, create_replenishment
+from tests.fixtures.monkeypatch_data import replacement_fake_bot, replacement_fake_keyboard
+from tests.fixtures.helper_functions import comparison_models
 
 @pytest_asyncio.fixture
 async def start_event_handler():
+    # данный импорт обязательно тут, ибо aiogram запустит свой even_loop который не даст работать тесту в режиме отладки
+    from src.database.events.triggers_processing import run_triggers_processing
+
     task = asyncio.create_task(run_triggers_processing())
     try:
         yield
@@ -32,7 +35,13 @@ async def start_event_handler():
             await task
 
 @pytest.mark.asyncio
-async def test_handler_new_replenishment(create_new_user, create_type_payment, start_event_handler):
+async def test_handler_new_replenishment(
+        replacement_fake_bot,
+        replacement_fake_keyboard,
+        create_new_user,
+        create_type_payment,
+        start_event_handler,
+):
     # Исходные данные пользователя
     initial_balance = create_new_user.balance
     initial_total_sum = create_new_user.total_sum_replenishment
@@ -50,15 +59,15 @@ async def test_handler_new_replenishment(create_new_user, create_type_payment, s
         await session_db.commit()
         await session_db.refresh(new_replenishment)
 
-        # Меняем статус на completed (это должно запустить обработчик)
+        # Меняем статус на processing (это должно запустить обработчик)
         result_db = await session_db.execute(select(Replenishments).where(Replenishments.replenishment_id == new_replenishment.replenishment_id))
         replenishment = result_db.scalar_one_or_none()
-        replenishment.status='completed'
+        replenishment.status='processing'
 
         await session_db.commit()
 
     q = event_queue
-    await asyncio.sleep(0) # для передачи управления в event_loop
+    await asyncio.sleep(0) # для передачи управления
     await q.join() # дождёмся пока очередь событий выполнится
 
     async with get_db() as session_db:
@@ -94,15 +103,10 @@ async def test_handler_new_replenishment(create_new_user, create_type_payment, s
         assert user_log.details['amount'] == 105, "Неверная сумма в деталях лога"
         assert user_log.details['new_balance'] == initial_balance + 105, "Неверный новый баланс в деталях лога"
 
-        async with get_redis() as session_redis:
-            result_redis = orjson.loads(await session_redis.get(f'user:{updated_user.user_id}'))
+    async with get_redis() as session_redis:
+        result_redis = orjson.loads(await session_redis.get(f'user:{updated_user.user_id}'))
 
-        user_dict = updated_user.to_dict()
-        for key in user_dict:
-            if isinstance(user_dict[key], datetime):# если встретили дата
-                assert user_dict[key] == parse(result_redis[key])
-            else:
-                assert user_dict[key] == result_redis[key]
+    await comparison_models(updated_user, result_redis)
 
 
 @pytest.mark.asyncio
@@ -112,6 +116,8 @@ async def test_handler_new_income_referral(
     create_replenishment,
     start_event_handler,
     clean_db,
+    replacement_fake_bot,
+    replacement_fake_keyboard
 ):
     """Проверяем корректную работу handler_new_income_referral"""
     owner = create_new_user
@@ -183,9 +189,5 @@ async def test_handler_new_income_referral(
     async with get_redis() as session_redis:
         redis_data = orjson.loads(await session_redis.get(f"user:{owner.user_id}"))
 
-    user_dict = updated_user.to_dict()
-    for key in user_dict:
-        if isinstance(user_dict[key], datetime):
-            assert user_dict[key] == parse(redis_data[key])
-        else:
-            assert user_dict[key] == redis_data[key]
+    await comparison_models(updated_user, redis_data)
+

@@ -1,7 +1,7 @@
 import pytest_asyncio
 from sqlalchemy import select
 
-from src.database.core_models import Users, TypePayments, Replenishments
+from src.database.core_models import Users, TypePayments, Replenishments, Settings
 from src.database.database import get_db
 from src.modules.referrals.database.models import Referrals
 
@@ -10,17 +10,7 @@ from src.modules.referrals.database.models import Referrals
 async def create_new_user()->Users:
     """
     Создаст нового пользователя в БД
-    :return:
-    dict{
-        user_id: int,
-        username: str,
-        language: str,
-        unique_referral_code: str,
-        balance: int,
-        total_sum_replenishment: int,
-        total_profit_from_referrals: int,
-        created_at: DateTime(timezone=True)
-    }
+    :return: Users
     """
     new_user = Users(
         username="test_username",
@@ -124,4 +114,18 @@ async def create_type_payment() -> dict:
     return new_type_payment.to_dict()
 
 
+@pytest_asyncio.fixture
+async def create_settings() -> Settings:
+    settings = Settings(
+        support_username='support_username',
+        hash_token_accountant_bot='hash_token_accountant_bot',
+        channel_for_logging_id='channel_for_logging_id',
+        channel_for_subscription_id='channel_for_subscription_id',
+        FAQ='FAQ'
+    )
+    async with get_db() as session_db:
+        session_db.add(settings)
+        await session_db.commit()
+        await session_db.refresh(settings)
 
+    return settings

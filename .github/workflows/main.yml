@@ -41,26 +41,25 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.13'
+          python-version: '3.12'
 
       - name: Install requirements
         run: |
           pip install -r requirements.txt
-          pip install psycopg2-binary redis kafka-python
 
       - name: Run tests
         env:
           # JWT и токены
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          SECRET_KEY: "fake-token"
           TOKEN_BOT: ${{ secrets.TOKEN_BOT }}
-          MAIN_ADMIN: ${{ secrets.MAIN_ADMIN }}
+          MAIN_ADMIN: "123456789"
 
           # Redis
-          REDIS_HOST: ${{ secrets.REDIS_HOST }}
-          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
 
           # PostgreSQL
-          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_HOST: localhost
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_NAME: ${{ secrets.DB_NAME }}

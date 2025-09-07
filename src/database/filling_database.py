@@ -80,7 +80,9 @@ async def filling_referral_lvl():
         result = await session_db.execute(select(ReferralLevels))
         result_lvl = result.scalar()
 
-        if not result_lvl:
+        print(f'\n\nresult_lvl: {result_lvl}\n\n')
+
+        if result_lvl is None:
             first_lvl = ReferralLevels(level=1, amount_of_achievement=0, percent=3)
             second_lvl = ReferralLevels(level=2, amount_of_achievement=2000, percent=4)
 

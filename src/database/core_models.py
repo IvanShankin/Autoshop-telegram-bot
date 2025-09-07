@@ -12,8 +12,8 @@ class Settings(Base):
     settings_id = Column(Integer, primary_key=True, autoincrement=True)
     support_username = Column(String(200), nullable=True)
     hash_token_accountant_bot = Column(Text, nullable=True) # токен для бота бугалтера
-    channel_for_logging_id = Column(Integer, nullable=True)   # ID канала для логирования
-    channel_for_subscription_id = Column(String(200), nullable=True)   # ID канала для подписки пользователя
+    channel_for_logging_id = Column(BigInteger, nullable=True)   # ID канала для логирования
+    channel_for_subscription_id = Column(BigInteger, nullable=True)   # ID канала для подписки пользователя
     FAQ = Column(Text, nullable=True) # ссылка
 
 class Users(Base):

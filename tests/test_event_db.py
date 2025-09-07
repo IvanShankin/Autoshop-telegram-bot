@@ -5,7 +5,7 @@ from datetime import datetime
 import orjson
 import pytest
 import pytest_asyncio
-from sqlalchemy import select, delete, Table, MetaData
+from sqlalchemy import select, Table, MetaData
 
 from src.config import DT_FORMAT_FOR_LOGS
 from src.database.core_models import Replenishments, Users, WalletTransaction, UserAuditLogs
@@ -20,7 +20,7 @@ from tests.fixtures.monkeypatch_data import replacement_fake_bot, replacement_fa
 from tests.fixtures.helper_functions import comparison_models
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture()
 async def start_event_handler():
     # данный импорт обязательно тут, ибо aiogram запустит свой even_loop который не даст работать тесту в режиме отладки
     from src.database.events.triggers_processing import run_triggers_processing
@@ -29,12 +29,11 @@ async def start_event_handler():
     try:
         yield
     finally:
-        # ждём пока все тестовые события обработаны
-        await event_queue.join()
-        # закрываем dispatcher через sentinel
-        event_queue.put_nowait(None)
+        await event_queue.join() # ждём пока все тестовые события обработаны
+        event_queue.put_nowait(None) # закрываем dispatcher через sentinel
         with contextlib.suppress(asyncio.CancelledError):
             await task
+
 class TestHandlerNewReplenishment:
     async def create_and_update_replenishment(self, user_id: int, type_payment_id: int)->Replenishments:
         """
@@ -69,7 +68,7 @@ class TestHandlerNewReplenishment:
             replacement_fake_keyboard,
             create_new_user,
             create_type_payment,
-            start_event_handler,
+            start_event_handler
         ):
         # Исходные данные пользователя
         initial_balance = create_new_user.balance
@@ -133,6 +132,9 @@ class TestHandlerNewReplenishment:
         Обработает ошибку пополнения, путём удаления записи в БД об этом пополнении.
         Пользователю в итоге должны начислиться деньги, но в должны отправить лог админу и саппорту о том что произошла ошибка
         """
+
+        print("\n\nНачали проверять test_fail\n\n")
+
         # необходимо тут иначе в режиме отладки не будет работать
         from src.database.action_core_models import get_settings, update_settings
         from src.database.database import engine
@@ -175,15 +177,17 @@ class TestHandlerNewReplenishment:
 
 @pytest.mark.asyncio
 async def test_handler_new_income_referral(
-    create_new_user,
-    create_referral,
-    create_replenishment,
-    start_event_handler,
-    clean_db,
-    replacement_fake_bot,
-    replacement_fake_keyboard
-):
+        replacement_fake_bot,
+        replacement_fake_keyboard,
+        create_new_user,
+        create_referral,
+        create_replenishment,
+        start_event_handler,
+        clean_db
+    ):
     """Проверяем корректную работу handler_new_income_referral"""
+
+    print("\n\nНачали проверять test_handler_new_income_referral\n\n")
     owner = create_new_user
     referral = create_referral
     replenishment = create_replenishment

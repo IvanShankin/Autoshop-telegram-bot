@@ -41,10 +41,16 @@ def session_after_commit(session: Session):
 
 def subscribe(handler: Subscriber, priority: int = 0) -> None:
     """
+    Добавляет обработчик, но не добавляет дубликаты (по объекту handler + priority).
     :param handler: Функция, которая добавит её для вызова в дальнейшем при совершении события.
     :param priority: Приоритет события (чем меньше число, тем раньше вызов).
     Событие с одинаковым приоритетом вызывается одновременно.
     """
+    # не добавляем, если уже присутствует обработчик с тем же приоритетом
+    for p, h in _subscribers:
+        if h is handler and p == priority:
+            return
+
     _subscribers.append((priority, handler))
     _subscribers.sort(key=lambda x: x[0]) # поддерживаем сортировку один раз при добавлении
 
@@ -61,6 +67,8 @@ async def run_dispatcher() -> None:
             current_priority = None
             coros = []
             for priority, handler in _subscribers:
+
+                print(f"\nсписок событий: {coros}\n")
                 if current_priority is None:
                     current_priority = priority
 
@@ -69,7 +77,7 @@ async def run_dispatcher() -> None:
                     results = await asyncio.gather(*coros, return_exceptions=True)
                     for r in results:
                         if isinstance(r, Exception):
-                            logger.error(f"Ошибка в обработчике: {r}")
+                            logger.error(f"Ошибка в обработчике '{handler}': {r}")
 
                     # начинаем новую группу
                     coros = []
@@ -82,6 +90,8 @@ async def run_dispatcher() -> None:
                 results = await asyncio.gather(*coros, return_exceptions=True)
                 for r in results:
                     if isinstance(r, Exception):
-                        logger.error(f"Ошибка в обработчике: {r}")
+                        logger.error(f"Ошибка в обработчике '{coros[0]}': {r}")
+
+            print(f"\nсписок событий в конце: {coros}\n")
         finally:
             event_queue.task_done()

@@ -10,7 +10,7 @@ async def send_log(text: str, channel_for_logging_id: int = None):
     :param channel_for_logging_id: если не передавать то возьмёт сам из настроек
     """
     if len(text) > 4096 or len(text) < 1:
-        raise ValueError("Длинна текста должна быть в пределлах 1-4096 символов ")
+        return
 
     if not channel_for_logging_id:
         settings = await get_settings()

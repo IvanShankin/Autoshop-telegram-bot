@@ -45,7 +45,7 @@ async def replacement_redis(monkeypatch):
             monkeypatch.setattr(module, "get_redis", get_fakeredis, raising=False)
 
     yield redis
-    await redis.close()
+    await redis.aclose()
 
 @pytest_asyncio.fixture(scope="function")
 async def replacement_fake_bot(monkeypatch) -> FakeBot:

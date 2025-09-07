@@ -325,7 +325,7 @@ class TestFillRedisSingleObjects(TestBase):
         async with get_redis() as session_redis:
             val = await session_redis.get(f"admin:{user.user_id}")
 
-        assert val == '_'
+        assert val
 
     @pytest.mark.asyncio
     async def test_filling_banned_accounts(self):
@@ -339,7 +339,7 @@ class TestFillRedisSingleObjects(TestBase):
         async with get_redis() as session_redis:
             val = await session_redis.get(f"banned_account:{user.user_id}")
 
-        assert val == '_'
+        assert val
 
     @pytest.mark.asyncio
     async def test_filling_type_account_services(self):

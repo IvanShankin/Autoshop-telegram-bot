@@ -119,8 +119,8 @@ async def create_settings() -> Settings:
     settings = Settings(
         support_username='support_username',
         hash_token_accountant_bot='hash_token_accountant_bot',
-        channel_for_logging_id='channel_for_logging_id',
-        channel_for_subscription_id='channel_for_subscription_id',
+        channel_for_logging_id=123456789,
+        channel_for_subscription_id=987654321,
         FAQ='FAQ'
     )
     async with get_db() as session_db:

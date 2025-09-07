@@ -116,7 +116,7 @@ async def handler_new_replenishment(new_replenishment: NewReplenishment):
             ).format(sum=5)
             await bot.send_message(new_replenishment.user_id, message_for_user)
 
-            message_log = i18n._(
+            message_log = i18n.gettext(
                 "#Replenishment_error \n\n"
                 "User @{username} Paid money, balance updated, but an error occurred inside the server. \n"
                 "Replenishment ID: {replenishment_id}."
@@ -124,13 +124,13 @@ async def handler_new_replenishment(new_replenishment: NewReplenishment):
 
             new_status_replenishment = "completed"
         else:
-            message_for_user = i18n._(
+            message_for_user = i18n.gettext(
                 "An error occurred while replenishing!\nReplenishment ID: {replenishment_id} "
                 "\n\nWe apologize for the inconvenience. \nPlease contact support."
             ).format(replenishment_id=new_replenishment.replenishment_id)
             await bot.send_message(new_replenishment.user_id, message_for_user, reply_markup=await support_kb(language))
 
-            message_log = i18n._(
+            message_log = i18n.gettext(
                 '#Replenishment_error \n\n'
                 'User @{username} Paid money, but the balance was not updated. \n'
                 'Replenishment ID: {replenishment_id}.'

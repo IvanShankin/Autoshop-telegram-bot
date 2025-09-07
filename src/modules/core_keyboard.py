@@ -11,7 +11,7 @@ async def support_kb(language: str, support_username: str = None):
         support_username = settings.support_username
 
     i18n = get_i18n(language, 'keyboard_dom')
-    support_name = i18n._('Support')
+    support_name = i18n.gettext('Support')
 
     keyboard = InlineKeyboardBuilder()
     keyboard.add(InlineKeyboardButton(text=support_name, url=f"https://t.me/{support_username.lstrip()}"))

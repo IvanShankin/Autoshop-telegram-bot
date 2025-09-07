@@ -1,11 +1,12 @@
+from aiogram import Bot, Dispatcher
+
+from src.middlewares.database import DataBaseSessionMiddleware
 from src.config import TOKEN_BOT
 
-bot = None
-dp = None
+bot: Bot = None
+dp: Dispatcher = None
 
 async def run_bot():
-    from aiogram import Bot, Dispatcher
-    from src.middlewares.database import DataBaseSessionMiddleware
 
     bot = Bot(token=TOKEN_BOT)
     dp = Dispatcher()

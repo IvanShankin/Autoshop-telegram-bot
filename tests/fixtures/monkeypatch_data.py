@@ -19,6 +19,14 @@ class FakeBot:
         """Проверяет наличие сообщения с данными параметрами"""
         return any(c == chat_id and t == text for c, t, _ in self.sent)
 
+    def check_str_in_messages(self, text: str):
+        """Проверит наличие переданной строки во всех сообщения."""
+        for  c, t, _ in self.sent:
+            if text in t:
+                return True
+        return False
+
+fake_bot = FakeBot()
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def replacement_redis(monkeypatch):
@@ -41,8 +49,6 @@ async def replacement_redis(monkeypatch):
 
 @pytest_asyncio.fixture(scope="function")
 async def replacement_fake_bot(monkeypatch) -> FakeBot:
-    fake_bot = FakeBot()
-
     sys.modules.pop("src.bot_instance", None) # удаление модуля
     fake_module = types.ModuleType("src.bot_instance") # создаём поддельный модуль
     fake_module.bot = fake_bot

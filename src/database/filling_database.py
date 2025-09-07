@@ -68,7 +68,7 @@ async def create_table():
 async def filling_settings():
     async with get_db() as session_db:
         result = await session_db.execute(select(Settings))
-        result_settings = result.scalar_one_or_none()
+        result_settings = result.scalars().first()
 
         if not result_settings:
             new_settings = Settings()

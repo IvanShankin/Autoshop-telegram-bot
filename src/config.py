@@ -15,4 +15,5 @@ ALLOWED_LANGS = ["ru", "en"]
 LOCALES_DIR = '../locales'
 DEFAULT_LANG = "ru"
 
+DT_FORMAT_FOR_LOGS = "%Y-%m-%d %H:%M:%S"
 

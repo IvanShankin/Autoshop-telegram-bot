@@ -11,7 +11,7 @@ settings
 {
     "support_username": int, 
     "hash_token_accountant_bot": str,
-    "channel_for_logging_id": str,
+    "channel_for_logging_id": int,
     "channel_for_subscription_id": str,
     "FAQ": str,
 }

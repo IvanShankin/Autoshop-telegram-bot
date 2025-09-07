@@ -5,6 +5,10 @@ from src.utils.core_logger import logger
 
 
 async def send_log(text: str, channel_for_logging_id: int = None):
+    """
+    :param text: Длинна должна быть в пределах 1 - 4096 символов
+    :param channel_for_logging_id: если не передавать то возьмёт сам из настроек
+    """
     if len(text) > 4096 or len(text) < 1:
         raise ValueError("Длинна текста должна быть в пределлах 1-4096 символов ")
 
@@ -20,9 +24,20 @@ async def send_log(text: str, channel_for_logging_id: int = None):
         logger.error(message_error)
 
         try:
-            await bot.send_message(settings.support_username,message_error)
-            await bot.send_message(MAIN_ADMIN,message_error)
+            if settings.support_username:
+                await bot.send_message(
+                    settings.support_username,
+                    f'Не удалось отправить лог в канал!\nID используемого канала: {channel_for_logging_id} '
+                    f'\n\nСообщение:\n{message_error}'
+                )
         except Exception as e:
-            logger.error(f"Ошибка отправки сообщения admin или support. Ошибка: {str(e)}")
+            logger.error(f"Ошибка отправки сообщения support. Ошибка: {str(e)}")
 
-
+        try:
+            await bot.send_message(
+                MAIN_ADMIN,
+                f'Не удалось отправить лог в канал!\nID используемого канала: {channel_for_logging_id} '
+                f'\n\nСообщение:\n{message_error}'
+            )
+        except Exception as e:
+            logger.error(f"Ошибка отправки сообщения MAIN_ADMIN. Ошибка: {str(e)}")

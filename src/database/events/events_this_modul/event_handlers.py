@@ -1,6 +1,9 @@
+from datetime import datetime
+
 from sqlalchemy import select, update
 from sqlalchemy.orm import object_session
 
+from src.config import DT_FORMAT_FOR_LOGS
 from src.database.action_core_models import update_user, get_user
 from src.database.core_models import WalletTransaction, UserAuditLogs, Replenishments
 from src.database.database import get_db
@@ -89,38 +92,42 @@ async def handler_new_replenishment(new_replenishment: NewReplenishment):
                 "Balance successfully replenished by {sum} ruble.\nThank you for choosing us!",
                 "Balance successfully replenished by {sum} rubles.\nThank you for choosing us!",
                 new_replenishment.amount
-            ).format(sum=5)
+            ).format(sum=new_replenishment.amount)
             await bot.send_message(updated_user.user_id, message_success)
 
             message_log = i18n.ngettext(
                 "#Replenishment \n\nUser @{username} successfully topped up the balance by {sum} ruble. \nReplenishment ID: {replenishment_id}",
                 "#Replenishment \n\nUser @{username} successfully topped up the balance by {sum} rubles. \nReplenishment ID: {replenishment_id}",
                 new_replenishment.amount
-            ).format(username=user.username, sum=5, replenishment_id=new_replenishment.replenishment_id)
+            ).format(username=user.username, sum=new_replenishment.amount, replenishment_id=new_replenishment.replenishment_id)
 
             await send_log(message_log)
     except Exception as e:
         new_status_replenishment = 'error'
         logger.error(
-            f"#Replenishment_error Произошла ошибка при пополнении. "
-            f"Флаг обновления баланса: {money_credited}. "
+            f"#Ошибка_пополнения Произошла ошибка при пополнении. "
+            f"Флаг обновлённого баланса: {money_credited}. "
             f"ID пополнения: {new_replenishment.replenishment_id}. "
             f"Ошибка: {str(e)}"
         )
 
         if money_credited: # если сумма поступила
-            message_for_user = i18n.trans(
+            message_for_user = i18n.ngettext(
                 "Balance successfully replenished by {sum} ruble.\nThank you for choosing us!",
                 "Balance successfully replenished by {sum} rubles.\nThank you for choosing us!",
                 new_replenishment.amount
-            ).format(sum=5)
+            ).format(sum=new_replenishment.amount)
             await bot.send_message(new_replenishment.user_id, message_for_user)
 
             message_log = i18n.gettext(
-                "#Replenishment_error \n\n"
-                "User @{username} Paid money, balance updated, but an error occurred inside the server. \n"
-                "Replenishment ID: {replenishment_id}."
-            ).format(username=username, replenishment_id=new_replenishment.replenishment_id)
+                "#Replenishment_error \n\nUser @{username} Paid money, balance updated, but an error occurred inside the server. \n"
+                "Replenishment ID: {replenishment_id}.\nError: {error} \n\nTime: {time}"
+            ).format(
+                username=username,
+                replenishment_id=new_replenishment.replenishment_id,
+                error=str(e),
+                time=datetime.now().strftime(DT_FORMAT_FOR_LOGS)
+            )
 
             new_status_replenishment = "completed"
         else:
@@ -131,19 +138,27 @@ async def handler_new_replenishment(new_replenishment: NewReplenishment):
             await bot.send_message(new_replenishment.user_id, message_for_user, reply_markup=await support_kb(language))
 
             message_log = i18n.gettext(
-                '#Replenishment_error \n\n'
-                'User @{username} Paid money, but the balance was not updated. \n'
-                'Replenishment ID: {replenishment_id}.'
-            ).format(username=username, replenishment_id=new_replenishment.replenishment_id)
+                "#Replenishment_error \n\nUser @{username} Paid money, but the balance was not updated. \n"
+                "Replenishment ID: {replenishment_id}. \nError: {error} \n\nTime: {time}"
+            ).format(
+                username=username,
+                replenishment_id=new_replenishment.replenishment_id,
+                error=str(e),
+                time=datetime.now().strftime(DT_FORMAT_FOR_LOGS)
+            )
 
             new_status_replenishment = "error"
 
         # обновляем БД
-        async with get_db() as session_db:
-            await session_db.execute(
-                update(Replenishments)
-                .where(Replenishments.replenishment_id == new_replenishment.replenishment_id)
-                .values(status=new_status_replenishment)
-            )
+        try:
+            async with get_db() as session_db:
+                await session_db.execute(
+                    update(Replenishments)
+                    .where(Replenishments.replenishment_id == new_replenishment.replenishment_id)
+                    .values(status=new_status_replenishment)
+                )
+        except Exception as e:
+            logger.error(f"Не удалось обновить данные о новом пополнении. Ошибка: {str(e)}")
+            await send_log(f"Не удалось обновить данные о новом пополнении. \nОшибка: {str(e)}")
 
         await send_log(message_log)

@@ -8,12 +8,12 @@ import pytest_asyncio
 from sqlalchemy import select, Table, MetaData
 
 from src.config import DT_FORMAT_FOR_LOGS
-from src.database.core_models import Replenishments, Users, WalletTransaction, UserAuditLogs
+from src.database.models_main import Replenishments, Users, WalletTransaction, UserAuditLogs
 from src.database.database import get_db
 from src.database.events.core_event import event_queue
 from src.i18n import get_i18n
-from src.modules.referrals.database.events.schemas import NewIncomeFromRef
-from src.modules.referrals.database.models import IncomeFromReferrals, Referrals
+from src.modules.referrals.database.events.schemas_ref import NewIncomeFromRef
+from src.modules.referrals.database.models_ref import IncomeFromReferrals, Referrals
 from src.redis_dependencies.core_redis import get_redis
 from tests.fixtures.helper_fixture import create_new_user, create_type_payment, create_referral, create_replenishment
 from tests.fixtures.monkeypatch_data import replacement_fake_bot, replacement_fake_keyboard, fake_bot

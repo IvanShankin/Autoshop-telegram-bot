@@ -1,20 +1,20 @@
 from datetime import datetime
 
+from aiogram.exceptions import TelegramForbiddenError
 from sqlalchemy import select, update
 from sqlalchemy.orm import object_session
 
 from src.config import DT_FORMAT_FOR_LOGS
 from src.database.action_core_models import update_user, get_user
-from src.database.core_models import WalletTransaction, UserAuditLogs, Replenishments
+from src.database.models_main import WalletTransaction, UserAuditLogs, Replenishments
 from src.database.database import get_db
 from src.database.events.core_event import push_deferred_event
-from src.database.events.events_this_modul.schemas import NewReplenishment
+from src.database.events.events_this_modul.schemas_main import NewReplenishment
 from src.i18n import get_i18n
 from src.bot_instance import bot
-from src.modules.core_keyboard import support_kb
-from src.modules.referrals.database.events.schemas import NewIncomeFromRef
-from src.modules.referrals.database.models import Referrals
-from src.redis_dependencies.core_redis import get_redis
+from src.modules.keyboard_main import support_kb
+from src.modules.referrals.database.events.schemas_ref import NewIncomeFromRef
+from src.modules.referrals.database.models_ref import Referrals
 from src.utils.core_logger import logger
 from src.utils.send_messages import send_log
 
@@ -93,7 +93,11 @@ async def handler_new_replenishment(new_replenishment: NewReplenishment):
                 "Balance successfully replenished by {sum} rubles.\nThank you for choosing us!",
                 new_replenishment.amount
             ).format(sum=new_replenishment.amount)
-            await bot.send_message(updated_user.user_id, message_success)
+
+            try:
+                await bot.send_message(updated_user.user_id, message_success)
+            except TelegramForbiddenError: # если бот заблокирован
+                pass
 
             message_log = i18n.ngettext(
                 "#Replenishment \n\nUser @{username} successfully topped up the balance by {sum} ruble. \nReplenishment ID: {replenishment_id}",

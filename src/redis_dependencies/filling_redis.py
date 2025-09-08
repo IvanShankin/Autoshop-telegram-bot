@@ -6,11 +6,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload, selectinload
 
 from src.config import ALLOWED_LANGS
-from src.database.core_models import Users, BannedAccounts, Settings
+from src.database.models_main import Users, BannedAccounts, Settings
 from src.database.database import get_db
 from src.modules.admin_actions.models import Admins
 from src.modules.discounts.models import PromoCodes, Vouchers
-from src.modules.referrals.database.models import ReferralLevels
+from src.modules.referrals.database.models_ref import ReferralLevels
 from src.modules.selling_accounts.models import TypeAccountServices, AccountServices, AccountCategories, \
     ProductAccounts, SoldAccounts
 from src.redis_dependencies.core_redis import get_redis

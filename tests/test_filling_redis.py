@@ -6,7 +6,7 @@ import pytest
 from dateutil.parser import parse
 
 import src.redis_dependencies.filling_redis as filling
-from src.database.core_models import Users, BannedAccounts
+from src.database.models_main import Users, BannedAccounts
 from src.database.database import get_db
 from src.modules.admin_actions.models import Admins
 from src.modules.discounts.models import PromoCodes, Vouchers

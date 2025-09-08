@@ -3,10 +3,10 @@ from orjson import orjson
 from sqlalchemy import delete, select
 
 from src.database.action_core_models import get_user, update_user, get_settings, update_settings
-from src.database.core_models import Users, Settings
+from src.database.models_main import Users, Settings
 from src.database.database import get_db
 from src.modules.referrals.database.actions_ref import get_referral_lvl
-from src.modules.referrals.database.models import ReferralLevels
+from src.modules.referrals.database.models_ref import ReferralLevels
 from src.redis_dependencies.core_redis import get_redis
 from tests.fixtures.helper_fixture import create_new_user, create_settings
 from tests.fixtures.helper_functions import comparison_models

@@ -64,8 +64,8 @@ async def replacement_fake_keyboard(monkeypatch):
     def support_kb():
         return True
 
-    fake_module = types.ModuleType("src.modules.core_keyboard")# создаём поддельный модуль
+    fake_module = types.ModuleType("src.modules.keyboard_main")# создаём поддельный модуль
     fake_module.support_kb = support_kb
-    monkeypatch.setitem(sys.modules, "src.modules.core_keyboard", fake_module)# подменяем во всех местах, где импортируется
+    monkeypatch.setitem(sys.modules, "src.modules.keyboard_main", fake_module)# подменяем во всех местах, где импортируется
 
 

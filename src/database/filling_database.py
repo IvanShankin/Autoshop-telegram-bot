@@ -4,14 +4,14 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from src.config import MAIN_ADMIN, TYPE_PAYMENTS, TYPE_ACCOUNT_SERVICES
-from src.database.core_models import Settings
-from src.database.core_models import Users, NotificationSettings, TypePayments
+from src.database.models_main import Settings
+from src.database.models_main import Users, NotificationSettings, TypePayments
 from src.database.database import Base
 from src.database.database import get_db, SQL_DB_URL, DB_NAME, POSTGRES_SERVER_URL
 from src.dependencies.utils import create_unique_referral_code
 from src.modules.admin_actions.mailing.models import MessageForSending
 from src.modules.admin_actions.models import Admins
-from src.modules.referrals.database.models import ReferralLevels
+from src.modules.referrals.database.models_ref import ReferralLevels
 from src.modules.selling_accounts.models import TypeAccountServices
 
 

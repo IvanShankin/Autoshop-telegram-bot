@@ -5,7 +5,7 @@ from sqlalchemy import select
 
 from src.database.database import get_db
 from src.database.filling_database import filling_referral_lvl
-from src.modules.referrals.database.models import ReferralLevels
+from src.modules.referrals.database.models_ref import ReferralLevels
 from src.redis_dependencies.core_redis import get_redis
 
 

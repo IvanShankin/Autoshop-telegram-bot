@@ -1,22 +1,22 @@
 import asyncio
-import contextlib
 from datetime import datetime
 
 import orjson
 import pytest
 import pytest_asyncio
-from sqlalchemy import select, Table, MetaData
+from sqlalchemy import select
 
 from src.config import DT_FORMAT_FOR_LOGS
+from src.database.action_main_models import get_user
 from src.database.models_main import Replenishments, Users, WalletTransaction, UserAuditLogs
 from src.database.database import get_db
 from src.database.events.core_event import event_queue
 from src.i18n import get_i18n
-from src.modules.referrals.database.events.schemas_ref import NewIncomeFromRef
 from src.modules.referrals.database.models_ref import IncomeFromReferrals, Referrals
 from src.redis_dependencies.core_redis import get_redis
+from src.services.replenishments.schemas import ReplenishmentFailed, ReplenishmentCompleted
 from tests.fixtures.helper_fixture import create_new_user, create_type_payment, create_referral, create_replenishment
-from tests.fixtures.monkeypatch_data import replacement_fake_bot, replacement_fake_keyboard, fake_bot
+from tests.fixtures.monkeypatch_data import replacement_fake_bot, replacement_fake_keyboard, fake_bot, replacement_exception_aiogram
 from tests.fixtures.helper_functions import comparison_models
 
 
@@ -29,10 +29,9 @@ async def start_event_handler():
     try:
         yield
     finally:
-        await event_queue.join() # ждём пока все тестовые события обработаны
-        event_queue.put_nowait(None) # закрываем dispatcher через sentinel
-        with contextlib.suppress(asyncio.CancelledError):
-            await task
+        await event_queue.join()  # дождались всех событий
+        event_queue.put_nowait(None)  # закрываем dispatcher
+        await task
 
 class TestHandlerNewReplenishment:
     async def create_and_update_replenishment(self, user_id: int, type_payment_id: int)->Replenishments:
@@ -66,16 +65,18 @@ class TestHandlerNewReplenishment:
             self,
             replacement_fake_bot,
             replacement_fake_keyboard,
+            replacement_exception_aiogram,
             create_new_user,
             create_type_payment,
             start_event_handler
         ):
+        """Интеграционный тест"""
         # Исходные данные пользователя
         initial_balance = create_new_user.balance
         initial_total_sum = create_new_user.total_sum_replenishment
         user_id = create_new_user.user_id
 
-        await self.create_and_update_replenishment(user_id, create_type_payment['type_payment_id'])
+        replenishment =  await self.create_and_update_replenishment(user_id, create_type_payment['type_payment_id'])
 
         q = event_queue
         await asyncio.sleep(0) # для передачи управления
@@ -119,66 +120,208 @@ class TestHandlerNewReplenishment:
 
         await comparison_models(updated_user, result_redis)
 
+        # проверяем, что ReplenishmentFailed отработал
+        i18n = get_i18n(create_new_user.language, "replenishment_dom")
+
+        # сообщение пользователю
+        message_for_user = i18n.ngettext(
+            "Balance successfully replenished by {sum} ruble.\nThank you for choosing us!",
+            "Balance successfully replenished by {sum} rubles.\nThank you for choosing us!",
+            replenishment.amount
+        ).format(sum=replenishment.amount)
+
+        assert fake_bot.get_message(create_new_user.user_id, message_for_user)
+
     @pytest.mark.asyncio
     async def test_fail(
             self,
             replacement_fake_bot,
             replacement_fake_keyboard,
+            replacement_exception_aiogram,
             create_new_user,
             create_type_payment,
             start_event_handler,
-        ):
+    ):
         """
-        Обработает ошибку пополнения, путём удаления записи в БД об этом пополнении.
-        Пользователю в итоге должны начислиться деньги, но в должны отправить лог админу и саппорту о том что произошла ошибка
+        Интеграционный тест:
+        - При ошибке в handler_new_replenishment генерируется событие ReplenishmentFailed
+        - Пользователь получает сообщение об ошибке
+        - В лог уходит сообщение об ошибке
         """
 
-        print("\n\nНачали проверять test_fail\n\n")
-
-        # необходимо тут иначе в режиме отладки не будет работать
-        from src.database.action_core_models import get_settings, update_settings
+        from src.database.action_main_models import get_settings, update_settings
         from src.database.database import engine
+        from src.database.models_main import WalletTransaction
+        from sqlalchemy import MetaData, Table
+
         user = create_new_user
 
+        # Ломаем таблицу WalletTransaction, чтобы handler_new_replenishment упал
         async with engine.begin() as conn:
-            # Удаляем таблицу для получения ошибки
-            await conn.run_sync(lambda sync_conn: Table(WalletTransaction.__table__, MetaData()).drop(sync_conn))
+            await conn.run_sync(
+                lambda sync_conn: Table(WalletTransaction.__table__, MetaData()).drop(sync_conn)
+            )
 
-        new_replenishment = await self.create_and_update_replenishment(user.user_id, create_type_payment['type_payment_id'])
+        # создаём пополнение → переводим в processing → триггерим handler_new_replenishment
+        new_replenishment = await self.create_and_update_replenishment(
+            user.user_id, create_type_payment["type_payment_id"]
+        )
 
+        # перенастроим канал логов (иначе send_log ничего не отправит)
         settings = await get_settings()
         settings.channel_for_logging_id = 123456789
         await update_settings(settings)
 
+        # ждём обработки события
         q = event_queue
-        await asyncio.sleep(0)  # для передачи управления
-        await q.join()  # дождёмся пока очередь событий выполнится
+        await asyncio.sleep(0)  # передать управление
+        await q.join()
 
-        i18n = get_i18n(user.language, 'replenishment_dom')
+        # проверяем, что ReplenishmentFailed отработал
+        i18n = get_i18n(user.language, "replenishment_dom")
+
+        # сообщение пользователю
         message_for_user = i18n.ngettext(
             "Balance successfully replenished by {sum} ruble.\nThank you for choosing us!",
             "Balance successfully replenished by {sum} rubles.\nThank you for choosing us!",
             new_replenishment.amount
-        ).format(
-            sum=new_replenishment.amount
-        )
+        ).format(sum=new_replenishment.amount)
+
+        assert fake_bot.get_message(user.user_id, message_for_user)
+
+        # лог
         message_log = i18n.gettext(
             "#Replenishment_error \n\nUser @{username} Paid money, balance updated, but an error occurred inside the server. \n"
             "Replenishment ID: {replenishment_id}.\nError: {error} \n\nTime: {time}"
         ).format(
             username=user.username,
             replenishment_id=new_replenishment.replenishment_id,
-            error='ошибка',
+            error="",
+            time=datetime.now().strftime(DT_FORMAT_FOR_LOGS),
+        )
+
+        assert fake_bot.check_str_in_messages(message_log[:100])
+
+    @pytest.mark.asyncio
+    async def test_on_replenishment_completed(
+            self,
+            replacement_fake_bot,
+            replacement_fake_keyboard,
+            replacement_exception_aiogram,
+            create_new_user,
+            create_type_payment,
+            start_event_handler
+    ):
+        """
+        Проверяет корректную работу on_replenishment_completed:
+        - Пользователь получает сообщение об успешном пополнении
+        - В лог уходит корректная запись
+        """
+
+        user = create_new_user
+        amount = 150
+        replenishment_id = 9999
+
+        event = ReplenishmentCompleted(
+            user_id=user.user_id,
+            replenishment_id=replenishment_id,
+            amount=amount,
+            total_sum_replenishment=user.total_sum_replenishment + amount,
+            error=False,
+            error_str=None,
+            language=user.language,
+            username=user.username
+        )
+
+        from src.services.replenishments.event_handlers_replenishments  import on_replenishment_completed
+        await on_replenishment_completed(event)
+
+        i18n = get_i18n(user.language, "replenishment_dom")
+
+        # сообщение пользователю
+        message_success = i18n.ngettext(
+            "Balance successfully replenished by {sum} ruble.\nThank you for choosing us!",
+            "Balance successfully replenished by {sum} rubles.\nThank you for choosing us!",
+            amount
+        ).format(sum=amount)
+        assert fake_bot.get_message(user.user_id, message_success)
+
+        # лог
+        message_log = i18n.ngettext(
+            "#Replenishment \n\nUser @{username} successfully topped up the balance by {sum} ruble. \n"
+            "Replenishment ID: {replenishment_id} \n\n"
+            "Time: {time}",
+            "#Replenishment \n\nUser @{username} successfully topped up the balance by {sum} rubles. \n"
+            "Replenishment ID: {replenishment_id}  \n\n"
+            "Time: {time}",
+            amount
+        ).format(
+            username=user.username,
+            sum=amount,
+            replenishment_id=replenishment_id,
             time=datetime.now().strftime(DT_FORMAT_FOR_LOGS)
         )
 
+        assert fake_bot.check_str_in_messages(message_log[:100])
+
+    @pytest.mark.asyncio
+    async def test_on_replenishment_failed(
+            self,
+            replacement_fake_bot,
+            replacement_fake_keyboard,
+            replacement_exception_aiogram,
+            create_new_user,
+            create_type_payment,
+            start_event_handler
+    ):
+        """
+        Проверяет корректную работу on_replenishment_failed:
+        - Пользователь получает сообщение об ошибке
+        - В лог уходит корректная запись
+        """
+
+        user = create_new_user
+        replenishment_id = 8888
+        error_text = "test_error"
+
+        event = ReplenishmentFailed(
+            user_id=user.user_id,
+            replenishment_id=replenishment_id,
+            error_str=error_text,
+            language=user.language,
+            username=user.username
+        )
+
+        from src.services.replenishments.event_handlers_replenishments import on_replenishment_failed
+        await on_replenishment_failed(event)
+
+        i18n = get_i18n(user.language, "replenishment_dom")
+
+        # сообщение пользователю
+        message_for_user = i18n.gettext(
+            "An error occurred while replenishing!\nReplenishment ID: {replenishment_id} "
+            "\n\nWe apologize for the inconvenience. \nPlease contact support."
+        ).format(replenishment_id=replenishment_id)
         assert fake_bot.get_message(user.user_id, message_for_user)
+
+        # лог
+        message_log = i18n.gettext(
+            "#Replenishment_error \n\nUser @{username} Paid money, but the balance was not updated. \n"
+            "Replenishment ID: {replenishment_id}. \nError: {error} \n\nTime: {time}"
+        ).format(
+            username=user.username,
+            replenishment_id=replenishment_id,
+            error=error_text,
+            time=datetime.now().strftime(DT_FORMAT_FOR_LOGS)
+        )
+
         assert fake_bot.check_str_in_messages(message_log[:100])
 
 @pytest.mark.asyncio
 async def test_handler_new_income_referral(
         replacement_fake_bot,
         replacement_fake_keyboard,
+        replacement_exception_aiogram,
         create_new_user,
         create_referral,
         create_replenishment,
@@ -186,22 +329,21 @@ async def test_handler_new_income_referral(
         clean_db
     ):
     """Проверяем корректную работу handler_new_income_referral"""
-
-    print("\n\nНачали проверять test_handler_new_income_referral\n\n")
-    owner = create_new_user
-    referral = create_referral
-    replenishment = create_replenishment
+    owner, referral = create_referral
 
     initial_balance = owner.balance
     initial_total_profit = owner.total_profit_from_referrals
 
     # --- создаём событие ---
-    event = NewIncomeFromRef(
-        replenishment_id=replenishment.replenishment_id,
-        owner_id=owner.user_id,
-        referral_id=referral.referral_id,
-        amount=replenishment.origin_amount,
-        total_sum_replenishment=replenishment.origin_amount,
+    event = ReplenishmentCompleted(
+        user_id = referral.user_id,
+        replenishment_id = create_replenishment.replenishment_id,
+        amount = create_replenishment.amount,
+        total_sum_replenishment = referral.total_sum_replenishment,
+        error = False,
+        error_str = '',
+        language = 'ru',
+        username = referral.username
     )
 
     q = event_queue  # зафиксировали ссылку один раз
@@ -223,7 +365,7 @@ async def test_handler_new_income_referral(
 
         # проверка уровня в Referrals
         referral_result = await session_db.execute(
-            select(Referrals).where(Referrals.referral_id == referral.referral_id)
+            select(Referrals).where(Referrals.referral_id == referral.user_id)
         )
         updated_ref = referral_result.scalar_one()
         assert updated_ref.level >= 0, "Уровень реферала не обновился"

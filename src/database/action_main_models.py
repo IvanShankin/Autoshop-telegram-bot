@@ -2,7 +2,6 @@ import orjson
 from dateutil.parser import parse
 from sqlalchemy import select, update
 
-from src.bot_instance import bot
 from src.database.models_main import Users, Settings
 from src.database.database import get_db
 from src.database.filling_database import filling_settings

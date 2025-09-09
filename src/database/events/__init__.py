@@ -1,1 +1,1 @@
-from src.database.events.events_this_modul import events_main
+from src.database.events import *

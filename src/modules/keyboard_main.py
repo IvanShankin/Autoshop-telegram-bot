@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.database.action_core_models import get_settings
+from src.database.action_main_models import get_settings
 from src.i18n import get_i18n
 
 

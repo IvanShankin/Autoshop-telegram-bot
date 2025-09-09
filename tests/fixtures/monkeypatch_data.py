@@ -7,7 +7,6 @@ import pytest_asyncio
 
 from src.redis_dependencies import core_redis
 
-
 class FakeBot:
     def __init__(self):
         self.sent = []
@@ -61,11 +60,17 @@ async def replacement_fake_bot(monkeypatch) -> FakeBot:
 
 @pytest_asyncio.fixture(scope="function")
 async def replacement_fake_keyboard(monkeypatch):
-    def support_kb():
+    async def support_kb(language: str, support_username: str = None):
         return True
 
     fake_module = types.ModuleType("src.modules.keyboard_main")# создаём поддельный модуль
     fake_module.support_kb = support_kb
     monkeypatch.setitem(sys.modules, "src.modules.keyboard_main", fake_module)# подменяем во всех местах, где импортируется
 
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def replacement_exception_aiogram(monkeypatch):
+
+    fake_module = types.ModuleType("aiogram.exceptions")# создаём поддельный модуль
+    fake_module.TelegramForbiddenError = Exception
+    monkeypatch.setitem(sys.modules, "aiogram.exceptions", fake_module)# подменяем во всех местах, где импортируется
 

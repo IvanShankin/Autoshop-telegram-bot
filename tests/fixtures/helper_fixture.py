@@ -1,7 +1,7 @@
 import pytest_asyncio
 from sqlalchemy import select
 
-from src.database.models_main import Users, TypePayments, Replenishments, Settings
+from src.database.models_main import Users, TypePayments, Replenishments, Settings, NotificationSettings
 from src.database.database import get_db
 from src.modules.referrals.database.models_ref import Referrals
 
@@ -21,12 +21,21 @@ async def create_new_user()->Users:
         await session_db.commit()
         await session_db.refresh(new_user)
 
+        new_notifications = NotificationSettings(
+            user_id=new_user.user_id
+        )
+        session_db.add(new_notifications)
+        await session_db.commit()
+
     return new_user
 
 
 @pytest_asyncio.fixture
-async def create_referral(create_new_user)->Referrals:
-    """Создаёт тестовый реферала (у нового пользователя появляется владелец)"""
+async def create_referral(create_new_user)->(Referrals, Users, Users):
+    """
+    Создаёт тестовый реферала (у нового пользователя появляется владелец)
+    :return Владельца и Реферала
+    """
     async with get_db() as session_db:
         # создаём владельца
         owner = Users(
@@ -51,7 +60,7 @@ async def create_referral(create_new_user)->Referrals:
         await session_db.commit()
         await session_db.refresh(referral)
 
-    return referral
+    return owner, create_new_user
 
 
 @pytest_asyncio.fixture

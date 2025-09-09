@@ -2,8 +2,8 @@ import pytest
 from orjson import orjson
 from sqlalchemy import delete, select
 
-from src.database.action_core_models import get_user, update_user, get_settings, update_settings
-from src.database.models_main import Users, Settings
+from src.database.action_main_models import get_user, update_user, get_settings, update_settings
+from src.database.models_main import Users, Settings, NotificationSettings
 from src.database.database import get_db
 from src.modules.referrals.database.actions_ref import get_referral_lvl
 from src.modules.referrals.database.models_ref import ReferralLevels
@@ -76,6 +76,7 @@ async def test_get_user(use_redis, create_new_user):
                 orjson.dumps(create_new_user.to_dict())
             )
         async with get_db() as session_db:
+            await session_db.execute(delete(NotificationSettings).where(NotificationSettings.user_id == create_new_user.user_id))
             await session_db.execute(delete(Users).where(Users.user_id == create_new_user.user_id))
     else:
         async with get_redis() as session_redis:

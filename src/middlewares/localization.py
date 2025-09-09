@@ -1,6 +1,6 @@
 from aiogram import BaseMiddleware
 
-from src.database.action_core_models import get_user
+from src.database.action_main_models import get_user
 from src.i18n import make_gettext
 
 class LocalizationMiddleware(BaseMiddleware):

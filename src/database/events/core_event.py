@@ -68,7 +68,6 @@ async def run_dispatcher() -> None:
             coros = []
             for priority, handler in _subscribers:
 
-                print(f"\nсписок событий: {coros}\n")
                 if current_priority is None:
                     current_priority = priority
 
@@ -92,6 +91,5 @@ async def run_dispatcher() -> None:
                     if isinstance(r, Exception):
                         logger.error(f"Ошибка в обработчике '{coros[0]}': {r}")
 
-            print(f"\nсписок событий в конце: {coros}\n")
         finally:
             event_queue.task_done()

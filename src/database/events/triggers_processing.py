@@ -1,5 +1,5 @@
 from src.database.events.core_event import subscribe, run_dispatcher
-from src.database.events.events_this_modul.event_handlers_main import user_event_handler
+from src.services.replenishments.event_handlers_replenishments import user_event_handler
 from src.modules.referrals.database.events.event_handlers_ref import referral_event_handler
 
 async def run_triggers_processing():

@@ -5,9 +5,12 @@ import orjson
 import pytest
 import pytest_asyncio
 from sqlalchemy import select
+from src.database.action_main_models import get_settings, update_settings
+from src.database.database import engine
+from src.database.models_main import WalletTransaction
+from sqlalchemy import MetaData, Table
 
 from src.config import DT_FORMAT_FOR_LOGS
-from src.database.action_main_models import get_user
 from src.database.models_main import Replenishments, Users, WalletTransaction, UserAuditLogs
 from src.database.database import get_db
 from src.database.events.core_event import event_queue
@@ -149,12 +152,6 @@ class TestHandlerNewReplenishment:
         - Пользователь получает сообщение об ошибке
         - В лог уходит сообщение об ошибке
         """
-
-        from src.database.action_main_models import get_settings, update_settings
-        from src.database.database import engine
-        from src.database.models_main import WalletTransaction
-        from sqlalchemy import MetaData, Table
-
         user = create_new_user
 
         # Ломаем таблицу WalletTransaction, чтобы handler_new_replenishment упал

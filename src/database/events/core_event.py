@@ -15,29 +15,33 @@ _SESSION_EVENTS_KEY = "_deferred_events"
 Subscriber = Callable[[object], Awaitable[None]]
 _subscribers: List[Tuple[int, Subscriber]] = [] # список событий и их приоритетов
 
-def push_deferred_event(session, evt):
+def push_deferred_event(session: Session, event: object) -> None:
     """Хранит события в отложенном списке событий (session.info)."""
     # если в отложенном списке нет значений, то создаст пустой словарь по ключу _SESSION_EVENTS_KEY,
-    session.info.setdefault(_SESSION_EVENTS_KEY, []).append(evt)
+    session.info.setdefault(_SESSION_EVENTS_KEY, []).append(event)
 
-def pop_deferred_events(session):
+def pop_deferred_events(session: Session) -> List[object]:
     """Достаёт (и удаляет) список отложенных событий из session.info"""
     # Удаление (pop) гарантирует, что события не будут отправлены повторно при следующем after_commit для той же сессии
     return session.info.pop(_SESSION_EVENTS_KEY, [])
 
 @event.listens_for(Session, "after_commit")
-def session_after_commit(session: Session):
-    """После успешного commit() отправляем события в очередь."""
-    events = pop_deferred_events(session) # удаляем вся события
+def session_after_commit(session: Session) -> None:
+    """После успешного commit() отправляем события в очередь (event_queue)."""
+    loop = asyncio.get_running_loop()  # получаем текущий
+
+    events = pop_deferred_events(session) # удаляем все события
     if not events:
         return
 
-    loop = asyncio.get_running_loop() # получаем текущий
     for e in events:
         # кладёт событие в асинхронную очередь -> запускается обработка событий
         loop.call_soon_threadsafe(event_queue.put_nowait, e)
 
-
+def push_event_queue(event: object):
+    """Кладёт моментально событие в очередь не дожидаясь commit()"""
+    loop = asyncio.get_running_loop()  # получаем текущий
+    loop.call_soon_threadsafe(event_queue.put_nowait, event)
 
 def subscribe(handler: Subscriber, priority: int = 0) -> None:
     """

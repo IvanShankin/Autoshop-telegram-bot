@@ -1,5 +1,7 @@
 from datetime import datetime
+from unittest.mock import AsyncMock, patch
 
+import pytest
 from aiogram.exceptions import TelegramForbiddenError
 from sqlalchemy import update
 
@@ -180,7 +182,11 @@ async def on_replenishment_failed(event: ReplenishmentFailed):
         "An error occurred while replenishing!\nReplenishment ID: {replenishment_id} "
         "\n\nWe apologize for the inconvenience. \nPlease contact support."
     ).format(replenishment_id=event.replenishment_id)
-    await bot.send_message(event.user_id, message_for_user, reply_markup=await support_kb(event.language))
+
+    try:
+        await bot.send_message(event.user_id, message_for_user, reply_markup=await support_kb(event.language))
+    except TelegramForbiddenError:  # если бот заблокирован у пользователя
+        pass
 
     message_log = i18n.gettext(
         "#Replenishment_error \n\nUser @{username} Paid money, but the balance was not updated. \n"
@@ -193,7 +199,3 @@ async def on_replenishment_failed(event: ReplenishmentFailed):
     )
 
     await send_log(message_log)
-
-
-
-

@@ -1,13 +1,20 @@
+from datetime import datetime
+
+from aiogram.exceptions import TelegramForbiddenError
 from sqlalchemy import update, select
 from twisted.internet.defer import execute
 
+from src.bot_instance import bot
+from src.config import DT_FORMAT_FOR_LOGS
 from src.database.action_main_models import get_user, update_user
 from src.database.models_main import UserAuditLogs, WalletTransaction, NotificationSettings
 from src.database.database import get_db
+from src.i18n import get_i18n
 from src.modules.referrals.database.actions_ref import get_referral_lvl
 from src.modules.referrals.database.models_ref import Referrals, IncomeFromReferrals
 from src.services.replenishments.schemas import ReplenishmentCompleted
 from src.utils.core_logger import logger
+from src.utils.send_messages import send_log
 
 
 async def referral_event_handler(event):
@@ -16,31 +23,34 @@ async def referral_event_handler(event):
 
 async def handler_new_income_referral(new_replenishment: ReplenishmentCompleted):
     money_credited = False
-    new_level = 0 # тут додумать
+    last_lvl = 0
+    current_lvl = 0
+    percent_current_lvl = 0
+
     try:
         async with get_db() as session_db:
             result = await session_db.execute(select(Referrals).where(Referrals.referral_id == new_replenishment.user_id))
             test_owner = result.scalar_one_or_none()
             if not test_owner:
                 return
+            else:
+                last_lvl = test_owner.level
 
-        new_level = 0
-        percent_current_lvl = 0
         owner = await get_user(test_owner.owner_user_id)
 
         referral_levels = await get_referral_lvl() # список отсортирован по возрастанию уровня
         for lvl in referral_levels:
             if new_replenishment.total_sum_replenishment >= lvl.amount_of_achievement: # если сумма пополнения больше или
-                new_level = lvl.level
+                current_lvl = lvl.level
                 percent_current_lvl = lvl.percent
 
         # обновление уровня
-        if new_level:
+        if current_lvl:
             async with get_db() as session_db:
                 await session_db.execute(
                     update(Referrals)
                     .where(Referrals.referral_id == new_replenishment.user_id)
-                    .values(level=new_level)
+                    .values(level=current_lvl)
                 )
                 await session_db.commit()
 
@@ -88,20 +98,65 @@ async def handler_new_income_referral(new_replenishment: ReplenishmentCompleted)
             )
             notifications = result_db.scalar_one_or_none()
             if notifications and notifications.referral_replenishment:
-                await on_referral_income_completed()
-
+                await on_referral_income_completed(
+                    owner.user_id,
+                    owner.language,
+                    new_replenishment.amount,
+                    last_lvl,
+                    current_lvl,
+                    percent_current_lvl
+                )
 
     except Exception as e:
-        logger.error("#")
-        await on_referral_income_failed()
+        logger.error(f"#Ошибка_пополнения. Произошла ошибка при начислении денег владельцу реферала. "
+                     f"Флаг обновлённого баланса: {money_credited}. Ошибка: {str(e)}.")
+        await on_referral_income_failed(str(e))
 
 
-async def on_referral_income_completed():
-    pass
-    # передать сюда всё что необходимо для пользовтателя
-    # только отправляем только успешные сообщения пользователю
+async def on_referral_income_completed(user_id: int, language: str,  amount: int, last_lvl: int, current_lvl: int, percent: int):
+    """Отсылает сообщение пользователю. Сообщение меняется в зависимости от изменения уровня реферала"""
+    try:
+        i18n = get_i18n(language, "replenishment_dom")
+        if last_lvl == current_lvl:  # если уровень у реферала не обновился
+            message = i18n.gettext(
+                "💸 Your referral has replenished the balance. \n💡 Referral level: {level} \n💵 You have earned {amount}₽ ({percent}%)\n\n"
+                "• Funds have been credited to your balance in your personal account."
+            ).format(level=current_lvl, amount=amount, percent=percent)
+        else:
+            message = i18n.gettext(
+                "💸 Your referral has replenished their balance and increased the level of the referral system.\n"
+                "🌠 Referral level: {last_lvl} ➡️ {current_lvl}\n"
+                "💰 You have earned: {amount}₽ ({percent}%)\n\n"
+                "• Funds have been credited to your balance in your personal account."
+            ).format(last_lvl=last_lvl, current_lvl=current_lvl, amount=amount, percent=percent)
 
-async def on_referral_income_failed():
-    pass
-    # только отправляем только лог если не удалось и возникла ошибка
+        try:
+            await bot.send_message(user_id, message)
+        except TelegramForbiddenError:  # если бот заблокирован у пользователя
+            pass
+    except Exception as e:
+        logger.error(
+            f"#Ошибка_пополнения. Произошла ошибка при отсылке сообщения о пополнении денег владельцу реферала. Ошибка: {str(e)}."
+        )
+
+        i18n = get_i18n('ru', "replenishment_dom")
+        message_log = i18n.gettext(
+            "#Replenishment_error \n\n"
+            "An error occurred while sending a message about replenishing funds to the referral owner. \n"
+            "Error: {error}. \n\n"
+            "Time: {time}"
+        ).format(error=str(e), time=datetime.now().strftime(DT_FORMAT_FOR_LOGS))
+        await send_log(message_log)
+
+async def on_referral_income_failed(error: str):
+    """Отсылает лог ошибки при пополнении баланса"""
+    i18n = get_i18n('ru', "replenishment_dom")
+    message_log = i18n.gettext(
+        "#Replenishment_error \n\n"
+        "An error occurred while sending a message about replenishing funds to the referral owner. \n"
+        "Error: {error}. \n\n"
+        "Time: {time}"
+    ).format(error=error, time=datetime.now().strftime(DT_FORMAT_FOR_LOGS))
+
+    await send_log(message_log)
 

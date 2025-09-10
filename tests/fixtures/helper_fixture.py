@@ -50,6 +50,12 @@ async def create_referral(create_new_user)->(Referrals, Users, Users):
         await session_db.commit()
         await session_db.refresh(owner)
 
+        new_notifications = NotificationSettings(
+            user_id=owner.user_id
+        )
+        session_db.add(new_notifications)
+        await session_db.commit()
+
         # связываем реферала и владельца
         referral = Referrals(
             referral_id=create_new_user.user_id,

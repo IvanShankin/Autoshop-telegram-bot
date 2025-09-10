@@ -26,6 +26,8 @@ msgstr[1] "#Пополнение \n\nПользователь @{username} усп
 msgstr[2] "#Пополнение \n\nПользователь @{username} успешно пополнил баланс на {sum} рублей. \nID пополнения: {replenishment_id} \n\n"
 "Время: {time}"
 
+
+
 msgid "An error occurred while replenishing!\nReplenishment ID: {replenishment_id} \n\nWe apologize for the inconvenience. \nPlease contact support."
 msgstr "Произошла ошибка при пополнении!\nID пополнения: {replenishment_id} \n\nПриносим свои извинения за предоставленные неудобства. \nПожалуйста обратитесь в поддержу."
 
@@ -43,6 +45,41 @@ msgstr "#Ошибка_пополнения \n\n"
 "Пользователь @{username} Заплатил деньги, но баланс не обновился.\n"
 "ID пополнения: {replenishment_id}.\n"
 "Ошибка: {error}\n\n"
+"Время: {time}"
+
+
+
+msgid "💸 Your referral has replenished the balance. \n💡 Referral level: {level} \n💵 You have earned {amount}₽ ({percent}%)\n\n"
+"• Funds have been credited to your balance in your personal account."
+msgstr "💸 Ваш реферал пополнил баланс. \n💡 Уровень реферала: {level} \n💵 Вы заработали {amount}₽ ({percent}%)\n\n"
+"• Средства зачислены на Ваш баланс в личном кабинете."
+
+msgid "💸 Your referral has replenished their balance and increased the level of the referral system.\n"
+"🌠 Referral level: {last_lvl} ➡️ {current_lvl}\n"
+"💰 You have earned: {amount}₽ ({percent}%)\n\n"
+"• Funds have been credited to your balance in your personal account."
+msgstr "💸 Ваш реферал пополнил свой баланс и повысил уровень реферальной системы.\n"
+"🌠 Уровень реферала: {last_lvl} ➡️ {current_lvl}\n"
+"💰 Вы заработали: {amount}₽ ({percent}%)\n\n"
+"• Средства зачислены на Ваш баланс в личном кабинете."
+
+
+msgid "#Replenishment_error \n\n"
+"An error occurred while sending a message about replenishing funds to the referral owner. \n"
+"Error: {error}. \n\n"
+"Time: {time}"
+msgstr "#Ошибка_пополнения \n\n"
+"Произошла ошибка при отсылке сообщения о пополнении денег владельцу реферала. \n"
+"Ошибка: {error}. \n\n"
+"Время: {time}"
+
+msgid "#Replenishment_error \n\n"
+"An error occurred while crediting money to the referral owner. \n"
+"Error: {error}. \n\n"
+"Time: {time}"
+msgstr "#Ошибка_пополнения \n\n"
+"Произошла ошибка при начислении денег владельцу реферала. \n"
+"Ошибка: {error}. \n\n"
 "Время: {time}"
 
 

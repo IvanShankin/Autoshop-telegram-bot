@@ -12,7 +12,8 @@ from src.database.models_main import Replenishments, Users, WalletTransaction, U
 from src.database.database import get_db
 from src.database.events.core_event import event_queue
 from src.i18n import get_i18n
-from src.modules.referrals.database.models_ref import IncomeFromReferrals, Referrals
+from src.modules.referrals.database.actions_ref import get_referral_lvl
+from src.modules.referrals.database.models_ref import IncomeFromReferrals, Referrals, ReferralLevels
 from src.redis_dependencies.core_redis import get_redis
 from src.services.replenishments.schemas import ReplenishmentFailed, ReplenishmentCompleted
 from tests.fixtures.helper_fixture import create_new_user, create_type_payment, create_referral, create_replenishment
@@ -317,87 +318,188 @@ class TestHandlerNewReplenishment:
 
         assert fake_bot.check_str_in_messages(message_log[:100])
 
-@pytest.mark.asyncio
-async def test_handler_new_income_referral(
-        replacement_fake_bot,
-        replacement_fake_keyboard,
-        replacement_exception_aiogram,
-        create_new_user,
-        create_referral,
-        create_replenishment,
-        start_event_handler,
-        clean_db
+class TestHandlerNewIncomeRef:
+    @pytest.mark.asyncio
+    async def test_handler_new_income_referral(
+            self,
+            replacement_fake_bot,
+            replacement_fake_keyboard,
+            replacement_exception_aiogram,
+            create_new_user,
+            create_referral,
+            create_replenishment,
+            start_event_handler,
+            clean_db
+        ):
+        """Проверяем корректную работу handler_new_income_referral"""
+        owner, referral = create_referral
+
+        initial_balance = owner.balance
+        initial_total_profit = owner.total_profit_from_referrals
+
+        # --- создаём событие ---
+        event = ReplenishmentCompleted(
+            user_id = referral.user_id,
+            replenishment_id = create_replenishment.replenishment_id,
+            amount = create_replenishment.amount,
+            total_sum_replenishment = referral.total_sum_replenishment,
+            error = False,
+            error_str = '',
+            language = 'ru',
+            username = referral.username
+        )
+
+        q = event_queue  # зафиксировали ссылку один раз
+        q.put_nowait(event)
+
+        # ждём пока событие обработается
+        await asyncio.sleep(0)
+        await q.join()
+
+        async with get_db() as session_db:
+            # проверка пользователя (владельца реферала)
+            user_result = await session_db.execute(
+                select(Users).where(Users.user_id == owner.user_id)
+            )
+            updated_user = user_result.scalar_one()
+
+            assert updated_user.balance > initial_balance, "Баланс не увеличился"
+            assert updated_user.total_profit_from_referrals > initial_total_profit, "Суммарная прибыль от рефералов не обновилась"
+
+            # проверка уровня в Referrals
+            referral_result = await session_db.execute(
+                select(Referrals).where(Referrals.referral_id == referral.user_id)
+            )
+            updated_ref = referral_result.scalar_one()
+            assert updated_ref.level >= 0, "Уровень реферала не обновился"
+
+            # проверка IncomeFromReferrals
+            income_result = await session_db.execute(
+                select(IncomeFromReferrals)
+                .where(IncomeFromReferrals.owner_user_id == owner.user_id)
+            )
+            income = income_result.scalars().first()
+            assert income.amount > 0, "Запись о доходе от рефералов не создана"
+            assert income.percentage_of_replenishment > 0, "Процент не сохранился"
+
+            # проверка WalletTransaction
+            wallet_result = await session_db.execute(
+                select(WalletTransaction).where(WalletTransaction.user_id == owner.user_id)
+            )
+            wallet_trans = wallet_result.scalars().first()
+            assert wallet_trans.type == "referral", "Неверный тип транзакции"
+            assert wallet_trans.amount == income.amount, "Сумма транзакции не совпадает"
+            assert wallet_trans.balance_after == updated_user.balance, "Баланс после транзакции некорректен"
+
+            # проверка UserAuditLogs
+            log_result = await session_db.execute(
+                select(UserAuditLogs).where(UserAuditLogs.user_id == owner.user_id)
+            )
+            log = log_result.scalars().first()
+            assert log.action_type == "profit from referral", "Неверный action_type в логах"
+
+        # проверка Redis
+        async with get_redis() as session_redis:
+            redis_data = orjson.loads(await session_redis.get(f"user:{owner.user_id}"))
+
+        await comparison_models(updated_user, redis_data)
+
+        # --- проверяем, что пользователю ушло сообщение ---
+        percent = None
+        ref_lvl = await get_referral_lvl()
+        for lvl in ref_lvl:
+            if updated_ref.level == lvl.level:
+                percent = lvl.percent
+
+        i18n = get_i18n(owner.language, "replenishment_dom")
+
+        expected_message = i18n.gettext(
+            "💸 Your referral has replenished their balance and increased the level of the referral system.\n"
+            "🌠 Referral level: {last_lvl} ➡️ {current_lvl}\n"
+            "💰 You have earned: {amount}₽ ({percent}%)\n\n"
+            "• Funds have been credited to your balance in your personal account."
+        ).format(last_lvl=0, current_lvl=updated_ref.level,  amount=create_replenishment.amount, percent=percent)
+
+        assert fake_bot.get_message(owner.user_id, expected_message), "Сообщение о доходе от реферала не отправлено"
+
+    @pytest.mark.asyncio
+    async def test_on_referral_income_completed_no_level_up(
+            self,
+            replacement_fake_bot,
+            replacement_fake_keyboard,
+            replacement_exception_aiogram,
+            clean_db
     ):
-    """Проверяем корректную работу handler_new_income_referral"""
-    owner, referral = create_referral
+        """Проверяет сообщение без повышения уровня (last_lvl == current_lvl)"""
+        from src.modules.referrals.database.events.event_handlers_ref import on_referral_income_completed
+        user_id = 101
+        language = "ru"
+        amount = 50
+        last_lvl = 2
+        current_lvl = 2
+        percent = 10
 
-    initial_balance = owner.balance
-    initial_total_profit = owner.total_profit_from_referrals
+        await on_referral_income_completed(user_id, language, amount, last_lvl, current_lvl, percent)
 
-    # --- создаём событие ---
-    event = ReplenishmentCompleted(
-        user_id = referral.user_id,
-        replenishment_id = create_replenishment.replenishment_id,
-        amount = create_replenishment.amount,
-        total_sum_replenishment = referral.total_sum_replenishment,
-        error = False,
-        error_str = '',
-        language = 'ru',
-        username = referral.username
-    )
+        i18n = get_i18n(language, "replenishment_dom")
+        message = i18n.gettext(
+            "💸 Your referral has replenished the balance. \n💡 Referral level: {level} \n💵 You have earned {amount}₽ ({percent}%)\n\n"
+            "• Funds have been credited to your balance in your personal account."
+        ).format(level=current_lvl, amount=amount, percent=percent)
 
-    q = event_queue  # зафиксировали ссылку один раз
-    q.put_nowait(event)
+        assert fake_bot.check_str_in_messages(message[:100]), "Сообщение о пополнении без повышения уровня не отправлено"
 
-    # ждём пока событие обработается
-    await asyncio.sleep(0)
-    await q.join()
 
-    async with get_db() as session_db:
-        # проверка пользователя (владельца реферала)
-        user_result = await session_db.execute(
-            select(Users).where(Users.user_id == owner.user_id)
-        )
-        updated_user = user_result.scalar_one()
+    @pytest.mark.asyncio
+    async def test_on_referral_income_completed_with_level_up(
+            self,
+            replacement_fake_bot,
+            replacement_fake_keyboard,
+            replacement_exception_aiogram,
+            clean_db
+    ):
+        """Проверяет сообщение с повышением уровня (last_lvl != current_lvl)"""
+        from src.modules.referrals.database.events.event_handlers_ref import on_referral_income_completed, \
+        on_referral_income_failed
+        user_id = 202
+        language = "ru"
+        amount = 100
+        last_lvl = 1
+        current_lvl = 2
+        percent = 15
 
-        assert updated_user.balance > initial_balance, "Баланс не увеличился"
-        assert updated_user.total_profit_from_referrals > initial_total_profit, "Суммарная прибыль от рефералов не обновилась"
+        await on_referral_income_completed(user_id, language, amount, last_lvl, current_lvl, percent)
 
-        # проверка уровня в Referrals
-        referral_result = await session_db.execute(
-            select(Referrals).where(Referrals.referral_id == referral.user_id)
-        )
-        updated_ref = referral_result.scalar_one()
-        assert updated_ref.level >= 0, "Уровень реферала не обновился"
+        i18n = get_i18n(language, "replenishment_dom")
+        message = i18n.gettext(
+            "💸 Your referral has replenished their balance and increased the level of the referral system.\n"
+            "🌠 Referral level: {last_lvl} ➡️ {current_lvl}\n"
+            "💰 You have earned: {amount}₽ ({percent}%)\n\n"
+            "• Funds have been credited to your balance in your personal account."
+        ).format(last_lvl=last_lvl, current_lvl=current_lvl, amount=amount, percent=percent)
 
-        # проверка IncomeFromReferrals
-        income_result = await session_db.execute(
-            select(IncomeFromReferrals)
-            .where(IncomeFromReferrals.owner_user_id == owner.user_id)
-        )
-        income = income_result.scalars().first()
-        assert income.amount > 0, "Запись о доходе от рефералов не создана"
-        assert income.percentage_of_replenishment > 0, "Процент не сохранился"
+        assert fake_bot.check_str_in_messages(message[:100]), "Сообщение о пополнении с повышением уровня не отправлено"
 
-        # проверка WalletTransaction
-        wallet_result = await session_db.execute(
-            select(WalletTransaction).where(WalletTransaction.user_id == owner.user_id)
-        )
-        wallet_trans = wallet_result.scalars().first()
-        assert wallet_trans.type == "referral", "Неверный тип транзакции"
-        assert wallet_trans.amount == income.amount, "Сумма транзакции не совпадает"
-        assert wallet_trans.balance_after == updated_user.balance, "Баланс после транзакции некорректен"
 
-        # проверка UserAuditLogs
-        log_result = await session_db.execute(
-            select(UserAuditLogs).where(UserAuditLogs.user_id == owner.user_id)
-        )
-        log = log_result.scalars().first()
-        assert log.action_type == "profit from referral", "Неверный action_type в логах"
+    @pytest.mark.asyncio
+    async def test_on_referral_income_failed(
+            self,
+            replacement_fake_bot,
+            replacement_fake_keyboard,
+            replacement_exception_aiogram,
+            clean_db
+    ):
+        """Проверяет, что on_referral_income_failed пишет лог об ошибке"""
+        from src.modules.referrals.database.events.event_handlers_ref import on_referral_income_failed
+        error_text = "Some referral error"
+        await on_referral_income_failed(error_text)
 
-    # проверка Redis
-    async with get_redis() as session_redis:
-        redis_data = orjson.loads(await session_redis.get(f"user:{owner.user_id}"))
+        i18n = get_i18n("ru", "replenishment_dom")
+        message_log = i18n.gettext(
+            "#Replenishment_error \n\n"
+            "An error occurred while sending a message about replenishing funds to the referral owner. \n"
+            "Error: {error}. \n\n"
+            "Time: {time}"
+        ).format(error=error_text, time=datetime.now().strftime(DT_FORMAT_FOR_LOGS))
 
-    await comparison_models(updated_user, redis_data)
-
+        assert fake_bot.check_str_in_messages(message_log[:100]), "Лог об ошибке рефералки не был отправлен"

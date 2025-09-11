@@ -2,23 +2,21 @@ import asyncio
 from datetime import datetime
 
 import orjson
-import pytest
 import pytest_asyncio
+import pytest
+
 from sqlalchemy import select
-from src.database.action_main_models import get_settings, update_settings
-from src.database.database import engine
-from src.database.models_main import WalletTransaction
 from sqlalchemy import MetaData, Table
 
 from src.config import DT_FORMAT_FOR_LOGS
-from src.database.models_main import Replenishments, Users, WalletTransaction, UserAuditLogs
-from src.database.database import get_db
-from src.database.events.core_event import event_queue
+from src.services.system.actions import get_settings, update_settings
+from src.services.users.models import Replenishments, Users, WalletTransaction, UserAuditLogs
+from src.services.database.database import get_db
+from src.services.database.events.core_event import event_queue
 from src.i18n import get_i18n
-from src.modules.referrals.database.actions_ref import get_referral_lvl
-from src.modules.referrals.database.models_ref import IncomeFromReferrals, Referrals, ReferralLevels
 from src.redis_dependencies.core_redis import get_redis
-from src.services.replenishments.schemas import ReplenishmentFailed, ReplenishmentCompleted
+from src.services.replenishments_event.schemas import ReplenishmentFailed, ReplenishmentCompleted
+
 from tests.fixtures.helper_fixture import create_new_user, create_type_payment, create_referral, create_replenishment
 from tests.fixtures.monkeypatch_data import replacement_fake_bot, replacement_fake_keyboard, fake_bot, replacement_exception_aiogram
 from tests.fixtures.helper_functions import comparison_models
@@ -27,7 +25,7 @@ from tests.fixtures.helper_functions import comparison_models
 @pytest_asyncio.fixture()
 async def start_event_handler():
     # данный импорт обязательно тут, ибо aiogram запустит свой even_loop который не даст работать тесту в режиме отладки
-    from src.database.events.triggers_processing import run_triggers_processing
+    from src.services.database.events.triggers_processing import run_triggers_processing
 
     task = asyncio.create_task(run_triggers_processing())
     try:
@@ -142,6 +140,7 @@ class TestHandlerNewReplenishment:
             replacement_fake_bot,
             replacement_fake_keyboard,
             replacement_exception_aiogram,
+            get_engine,
             create_new_user,
             create_type_payment,
             start_event_handler,
@@ -152,10 +151,12 @@ class TestHandlerNewReplenishment:
         - Пользователь получает сообщение об ошибке
         - В лог уходит сообщение об ошибке
         """
+
+
         user = create_new_user
 
         # Ломаем таблицу WalletTransaction, чтобы handler_new_replenishment упал
-        async with engine.begin() as conn:
+        async with get_engine.begin() as conn:
             await conn.run_sync(
                 lambda sync_conn: Table(WalletTransaction.__table__, MetaData()).drop(sync_conn)
             )
@@ -231,7 +232,7 @@ class TestHandlerNewReplenishment:
             username=user.username
         )
 
-        from src.services.replenishments.event_handlers_replenishments  import on_replenishment_completed
+        from src.services.replenishments_event.event_handlers_replenishments  import on_replenishment_completed
         await on_replenishment_completed(event)
 
         i18n = get_i18n(user.language, "replenishment_dom")
@@ -290,7 +291,7 @@ class TestHandlerNewReplenishment:
             username=user.username
         )
 
-        from src.services.replenishments.event_handlers_replenishments import on_replenishment_failed
+        from src.services.replenishments_event.event_handlers_replenishments  import on_replenishment_failed
         await on_replenishment_failed(event)
 
         i18n = get_i18n(user.language, "replenishment_dom")
@@ -329,6 +330,9 @@ class TestHandlerNewIncomeRef:
             clean_db
         ):
         """Проверяем корректную работу handler_new_income_referral"""
+        from src.services.referrals.actions import get_referral_lvl
+        from src.services.referrals.models import IncomeFromReferrals, Referrals
+
         owner, referral = create_referral
 
         initial_balance = owner.balance
@@ -428,7 +432,7 @@ class TestHandlerNewIncomeRef:
             clean_db
     ):
         """Проверяет сообщение без повышения уровня (last_lvl == current_lvl)"""
-        from src.modules.referrals.database.events.event_handlers_ref import on_referral_income_completed
+        from src.services.referrals.events import on_referral_income_completed
         user_id = 101
         language = "ru"
         amount = 50
@@ -456,8 +460,7 @@ class TestHandlerNewIncomeRef:
             clean_db
     ):
         """Проверяет сообщение с повышением уровня (last_lvl != current_lvl)"""
-        from src.modules.referrals.database.events.event_handlers_ref import on_referral_income_completed, \
-        on_referral_income_failed
+        from src.services.referrals.events import on_referral_income_completed
         user_id = 202
         language = "ru"
         amount = 100
@@ -487,7 +490,7 @@ class TestHandlerNewIncomeRef:
             clean_db
     ):
         """Проверяет, что on_referral_income_failed пишет лог об ошибке"""
-        from src.modules.referrals.database.events.event_handlers_ref import on_referral_income_failed
+        from src.services.referrals.events import on_referral_income_failed
         error_text = "Some referral error"
         await on_referral_income_failed(error_text)
 

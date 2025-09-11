@@ -1,6 +1,6 @@
 from src.bot_instance import bot
 from src.config import MAIN_ADMIN
-from src.database.action_main_models import get_settings
+from src.services.system.actions import get_settings
 from src.utils.core_logger import logger
 
 

@@ -2,7 +2,7 @@ from typing import Callable, Dict, Any, Awaitable
 
 from aiogram import BaseMiddleware
 
-from src.database.database import session_local
+from src.services.database.database import session_local
 
 
 class DataBaseSessionMiddleware(BaseMiddleware):

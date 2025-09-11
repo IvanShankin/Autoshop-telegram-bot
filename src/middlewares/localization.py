@@ -1,7 +1,10 @@
+# додумать файл
+
+
 from aiogram import BaseMiddleware
 
-from src.database.action_main_models import get_user
-from src.i18n import make_gettext
+from src.services.users.actions import get_user
+# from src.i18n import make_gettext
 
 class LocalizationMiddleware(BaseMiddleware):
     async def on_pre_process_update(self, update, data: dict):
@@ -19,4 +22,4 @@ class LocalizationMiddleware(BaseMiddleware):
 
         # кладём в data функцию перевода и код языка
         data["lang"] = lang
-        data["_"] = make_gettext(lang)
+        # data["_"] = make_gettext(lang)

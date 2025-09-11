@@ -5,7 +5,9 @@ import sys
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from src.database.events import core_event
+from src.services.database.database import SQL_DB_URL
+from src.services.database import database
+from src.services.database.events import core_event
 from src.redis_dependencies.core_redis import get_redis
 from src.redis_dependencies.filling_redis import filling_all_redis
 
@@ -13,10 +15,9 @@ load_dotenv()  # Загружает переменные из .env
 MODE = os.getenv('MODE')
 
 import pytest_asyncio
-from src.database.filling_database import create_database
+from src.services.database.filling_database import create_database
 
 # для monkeypatch
-from src.database import database
 from tests.fixtures.monkeypatch_data import replacement_redis
 
 # ---------- фикстуры ----------
@@ -70,3 +71,10 @@ async def reset_event_queue():
             setattr(mod, "event_queue", new_q)
 
     yield
+
+
+@pytest_asyncio.fixture
+async def get_engine():
+    engine = create_async_engine(SQL_DB_URL)
+    yield engine
+    await engine.dispose()

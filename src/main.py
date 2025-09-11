@@ -1,8 +1,8 @@
 import asyncio
 
-from src.database.events.core_event import event_queue
-from src.database.events.triggers_processing import run_triggers_processing
-from src.database.filling_database import create_database
+from src.services.database.events.core_event import event_queue
+from src.services.database.events.triggers_processing import run_triggers_processing
+from src.services.database.filling_database import create_database
 from src.redis_dependencies.filling_redis import filling_all_redis
 
 

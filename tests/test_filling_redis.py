@@ -1,16 +1,16 @@
 from datetime import datetime
-from typing import Type, Any, Dict, List
+from typing import Type, Any
 
 import orjson
 import pytest
 from dateutil.parser import parse
 
 import src.redis_dependencies.filling_redis as filling
-from src.database.models_main import Users, BannedAccounts
-from src.database.database import get_db
-from src.modules.admin_actions.models import Admins
-from src.modules.discounts.models import PromoCodes, Vouchers
-from src.modules.selling_accounts.models import (
+from src.services.users.models import Users, BannedAccounts
+from src.services.database.database import get_db
+from src.services.admin_actions.models import Admins
+from src.services.discounts.models import PromoCodes, Vouchers
+from src.services.selling_accounts.models import (
     TypeAccountServices, AccountServices, AccountCategories,
     ProductAccounts, SoldAccounts, AccountCategoryTranslation, SoldAccountsTranslation
 )

@@ -2,11 +2,13 @@ import pytest
 from orjson import orjson
 from sqlalchemy import delete, select
 
-from src.database.action_main_models import get_user, update_user, get_settings, update_settings
-from src.database.models_main import Users, Settings, NotificationSettings
-from src.database.database import get_db
-from src.modules.referrals.database.actions_ref import get_referral_lvl
-from src.modules.referrals.database.models_ref import ReferralLevels
+from src.services.users.actions import get_user, update_user
+from src.services.users.models import Users, NotificationSettings
+from src.services.system.models import Settings
+from src.services.system.actions import get_settings, update_settings
+from src.services.database.database import get_db
+from src.services.referrals.models import ReferralLevels
+from src.services.referrals.actions import get_referral_lvl
 from src.redis_dependencies.core_redis import get_redis
 from tests.fixtures.helper_fixture import create_new_user, create_settings
 from tests.fixtures.helper_functions import comparison_models

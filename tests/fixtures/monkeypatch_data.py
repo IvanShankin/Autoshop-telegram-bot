@@ -46,7 +46,7 @@ async def replacement_redis(monkeypatch):
     yield redis
     await redis.aclose()
 
-@pytest_asyncio.fixture(scope="function")
+@pytest_asyncio.fixture(scope="function", autouse=True)
 async def replacement_fake_bot(monkeypatch) -> FakeBot:
     sys.modules.pop("src.bot_instance", None) # удаление модуля
     fake_module = types.ModuleType("src.bot_instance") # создаём поддельный модуль
@@ -58,7 +58,7 @@ async def replacement_fake_bot(monkeypatch) -> FakeBot:
 
     return fake_bot
 
-@pytest_asyncio.fixture(scope="function")
+@pytest_asyncio.fixture(scope="function", autouse=True)
 async def replacement_fake_keyboard(monkeypatch):
     async def support_kb(language: str, support_username: str = None):
         return True

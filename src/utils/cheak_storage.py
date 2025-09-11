@@ -3,7 +3,7 @@ from typing import Type, Callable, Optional, Any, Tuple
 import orjson
 from sqlalchemy import select
 
-from src.database.database import get_db
+from src.services.database.database import get_db
 from src.redis_dependencies.core_redis import get_redis
 
 

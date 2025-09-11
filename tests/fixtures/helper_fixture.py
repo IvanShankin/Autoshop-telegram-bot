@@ -1,9 +1,10 @@
 import pytest_asyncio
 from sqlalchemy import select
 
-from src.database.models_main import Users, TypePayments, Replenishments, Settings, NotificationSettings
-from src.database.database import get_db
-from src.modules.referrals.database.models_ref import Referrals
+from src.services.users.models import Users, Replenishments, NotificationSettings
+from src.services.system.models import TypePayments, Settings
+from src.services.database.database import get_db
+from src.services.referrals.models import Referrals
 
 
 @pytest_asyncio.fixture

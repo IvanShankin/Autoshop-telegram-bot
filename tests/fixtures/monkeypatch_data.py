@@ -47,14 +47,19 @@ async def replacement_redis(monkeypatch):
     await redis.aclose()
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
-async def replacement_fake_bot(monkeypatch) -> FakeBot:
-    sys.modules.pop("src.bot_instance", None) # удаление модуля
-    fake_module = types.ModuleType("src.bot_instance") # создаём поддельный модуль
-    fake_module.bot = fake_bot
-    fake_module.create_bot = lambda: (fake_bot, None)  # если где-то вызывают create_bot
+async def replacement_fake_bot(monkeypatch):
+    sys.modules.pop("src.utils.bot_instance", None)
 
-    # подменяем во всех местах, где импортируется src.bot_instance
-    monkeypatch.setitem(sys.modules, "src.bot_instance", fake_module)
+    # Создаём поддельный модуль
+    fake_module = types.ModuleType("src.utils.bot_instance")
+    fake_module.get_bot = lambda: fake_bot
+    fake_module.get_dispatcher = lambda: None
+    fake_module.run_bot = lambda: (fake_bot, None)
+    fake_module._bot = fake_bot
+    fake_module._dp = None
+
+    # Подменяем модуль в sys.modules
+    monkeypatch.setitem(sys.modules, "src.utils.bot_instance", fake_module)
 
     return fake_bot
 

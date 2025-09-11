@@ -8,8 +8,8 @@ from src.services.users.models import WalletTransaction, UserAuditLogs, Replenis
 from src.services.database.database import get_db
 from src.services.database.events.core_event import push_deferred_event
 from src.services.replenishments_event.schemas import NewReplenishment
-from src.i18n import get_i18n
-from src.bot_instance import bot
+from src.utils.i18n import get_i18n
+from src.utils.bot_instance import get_bot
 from src.modules.keyboard_main import support_kb
 from src.services.replenishments_event.schemas import ReplenishmentCompleted, ReplenishmentFailed
 from src.utils.core_logger import logger
@@ -139,6 +139,7 @@ async def on_replenishment_completed(event: ReplenishmentCompleted):
     ).format(sum=event.amount)
 
     try:
+        bot = get_bot()
         await bot.send_message(event.user_id, message_success)
     except TelegramForbiddenError:  # если бот заблокирован у пользователя
         pass
@@ -181,6 +182,7 @@ async def on_replenishment_failed(event: ReplenishmentFailed):
     ).format(replenishment_id=event.replenishment_id)
 
     try:
+        bot = get_bot()
         await bot.send_message(event.user_id, message_for_user, reply_markup=await support_kb(event.language))
     except TelegramForbiddenError:  # если бот заблокирован у пользователя
         pass

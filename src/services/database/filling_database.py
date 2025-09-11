@@ -8,7 +8,7 @@ from src.services.users.models import Users, NotificationSettings
 from src.services.system.models import Settings, TypePayments
 from src.services.database.database import Base
 from src.services.database.database import get_db, SQL_DB_URL, DB_NAME, POSTGRES_SERVER_URL
-from src.dependencies.utils import create_unique_referral_code
+from src.utils.codes import create_unique_referral_code
 from src.services.admin_actions.models import MessageForSending
 from src.services.admin_actions.models import Admins
 from src.services.referrals.models import ReferralLevels

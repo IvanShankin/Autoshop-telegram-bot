@@ -13,7 +13,7 @@ from src.services.system.actions import get_settings, update_settings
 from src.services.users.models import Replenishments, Users, WalletTransaction, UserAuditLogs
 from src.services.database.database import get_db
 from src.services.database.events.core_event import event_queue
-from src.i18n import get_i18n
+from src.utils.i18n import get_i18n
 from src.redis_dependencies.core_redis import get_redis
 from src.services.replenishments_event.schemas import ReplenishmentFailed, ReplenishmentCompleted
 

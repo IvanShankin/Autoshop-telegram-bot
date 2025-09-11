@@ -1,0 +1,26 @@
+2025-09-11 23:03:42,460 - root - INFO - Database auto_shop_test already exists
+2025-09-11 23:03:42,548 - root - INFO - Creating database tables...
+2025-09-11 23:03:42,574 - root - INFO - Database tables created successfully
+2025-09-11 23:06:17,976 - root - INFO - Database auto_shop_test already exists
+2025-09-11 23:06:18,057 - root - INFO - Creating database tables...
+2025-09-11 23:06:18,079 - root - INFO - Database tables created successfully
+2025-09-11 23:08:40,809 - root - INFO - Database auto_shop_test already exists
+2025-09-11 23:08:41,014 - root - INFO - Creating database tables...
+2025-09-11 23:08:41,037 - root - INFO - Database tables created successfully
+2025-09-11 23:35:13,734 - root - INFO - Database auto_shop_test already exists
+2025-09-11 23:35:13,815 - root - INFO - Creating database tables...
+2025-09-11 23:35:13,837 - root - INFO - Database tables created successfully
+2025-09-11 23:46:32,709 - root - INFO - Database auto_shop_test already exists
+2025-09-11 23:46:32,794 - root - INFO - Creating database tables...
+2025-09-11 23:46:32,817 - root - INFO - Database tables created successfully
+2025-09-11 23:46:38,429 - src.utils.core_logger - ERROR - #Ошибка_пополнения Произошла ошибка при пополнении 'handler_new_replenishment'. Флаг обновлённого баланса: True. ID пополнения: 1. Ошибка: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedTableError'>: отношение "wallet_transactions" не существует
+[SQL: INSERT INTO wallet_transactions (user_id, type, amount, balance_before, balance_after) VALUES ($1::INTEGER, $2::wallet_tx_type, $3::INTEGER, $4::INTEGER, $5::INTEGER) RETURNING wallet_transactions.wallet_transaction_id, wallet_transactions.created_at]
+[parameters: (1, 'replenish', 105, 0, 105)]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-11 23:47:35,078 - root - INFO - Database auto_shop_test already exists
+2025-09-11 23:47:35,162 - root - INFO - Creating database tables...
+2025-09-11 23:47:35,183 - root - INFO - Database tables created successfully
+2025-09-11 23:47:40,907 - src.utils.core_logger - ERROR - #Ошибка_пополнения Произошла ошибка при пополнении 'handler_new_replenishment'. Флаг обновлённого баланса: True. ID пополнения: 1. Ошибка: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedTableError'>: отношение "wallet_transactions" не существует
+[SQL: INSERT INTO wallet_transactions (user_id, type, amount, balance_before, balance_after) VALUES ($1::INTEGER, $2::wallet_tx_type, $3::INTEGER, $4::INTEGER, $5::INTEGER) RETURNING wallet_transactions.wallet_transaction_id, wallet_transactions.created_at]
+[parameters: (1, 'replenish', 105, 0, 105)]
+(Background on this error at: https://sqlalche.me/e/20/f405)

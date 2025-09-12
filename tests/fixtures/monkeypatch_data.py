@@ -52,11 +52,28 @@ async def replacement_fake_bot(monkeypatch):
 
     # Создаём поддельный модуль
     fake_module = types.ModuleType("src.utils.bot_instance")
-    fake_module.get_bot = lambda: fake_bot
-    fake_module.get_dispatcher = lambda: None
-    fake_module.run_bot = lambda: (fake_bot, None)
+
+    async def fake_get_bot():
+        return fake_bot
+
+    async def get_dispatcher():
+        return None
+
+    async def run_bot():
+        return fake_bot, None
+
+    fake_module.get_bot = fake_get_bot
+    fake_module.get_dispatcher = get_dispatcher
+    fake_module.run_bot = run_bot
     fake_module._bot = fake_bot
     fake_module._dp = None
+
+    fake_module.get_bot_logger = fake_get_bot
+    fake_module.get_dispatcher_logger = get_dispatcher
+    fake_module.run_bot_logger = run_bot
+    fake_module._bot_logger = fake_bot
+    fake_module._dp_logger = None
+
 
     # Подменяем модуль в sys.modules
     monkeypatch.setitem(sys.modules, "src.utils.bot_instance", fake_module)

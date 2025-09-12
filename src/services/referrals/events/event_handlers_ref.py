@@ -3,7 +3,7 @@ from datetime import datetime
 from aiogram.exceptions import TelegramForbiddenError
 from sqlalchemy import update, select
 
-from src.utils.bot_instance import get_bot
+from src.utils.bot_instance import get_bot_logger
 from src.config import DT_FORMAT_FOR_LOGS
 from src.services.users.actions import get_user, update_user
 from src.services.users.models import UserAuditLogs, WalletTransaction, NotificationSettings
@@ -114,7 +114,7 @@ async def handler_new_income_referral(new_replenishment: ReplenishmentCompleted)
 
 async def on_referral_income_completed(user_id: int, language: str,  amount: int, last_lvl: int, current_lvl: int, percent: int):
     """Отсылает сообщение пользователю. Сообщение меняется в зависимости от изменения уровня реферала"""
-    bot = get_bot()
+    bot = await get_bot_logger()
 
     try:
         i18n = get_i18n(language, "replenishment_dom")

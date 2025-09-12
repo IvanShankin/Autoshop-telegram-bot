@@ -10,7 +10,7 @@ settings
 ```json
 {
     "support_username": int, 
-    "hash_token_accountant_bot": str,
+    "hash_token_logger_bot": str,
     "channel_for_logging_id": int,
     "channel_for_subscription_id": int,
     "FAQ": str,

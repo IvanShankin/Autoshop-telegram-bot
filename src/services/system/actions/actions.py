@@ -13,7 +13,7 @@ async def get_settings() -> Settings:
             data = orjson.loads(redis_data)
             settings = Settings(
                 support_username=data['support_username'],
-                hash_token_accountant_bot=data['hash_token_accountant_bot'],
+                hash_token_logger_bot=data['hash_token_logger_bot'],
                 channel_for_logging_id=data['channel_for_logging_id'],
                 channel_for_subscription_id=data['channel_for_subscription_id'],
                 FAQ=data['FAQ']
@@ -43,7 +43,7 @@ async def update_settings(settings: Settings) -> Settings:
             update(Settings)
             .values(
                 support_username=settings.support_username,
-                hash_token_accountant_bot=settings.hash_token_accountant_bot,
+                hash_token_logger_bot=settings.hash_token_logger_bot,
                 channel_for_logging_id=settings.channel_for_logging_id,
                 channel_for_subscription_id=settings.channel_for_subscription_id,
                 FAQ=settings.FAQ,

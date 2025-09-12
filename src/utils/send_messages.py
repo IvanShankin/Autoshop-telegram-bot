@@ -1,4 +1,4 @@
-from src.utils.bot_instance import get_bot
+from src.utils.bot_instance import get_bot_logger
 from src.config import MAIN_ADMIN
 from src.services.system.actions import get_settings
 from src.utils.core_logger import logger
@@ -16,7 +16,7 @@ async def send_log(text: str, channel_for_logging_id: int = None):
         settings = await get_settings()
         channel_for_logging_id = settings.channel_for_logging_id
 
-    bot = get_bot()
+    bot = await get_bot_logger()
 
     try:
         await bot.send_message(channel_for_logging_id, text)

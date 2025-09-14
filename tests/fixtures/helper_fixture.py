@@ -1,6 +1,11 @@
+from datetime import datetime, timezone, timedelta
+
+import orjson
 import pytest_asyncio
 from sqlalchemy import select
 
+from src.redis_dependencies.core_redis import get_redis
+from src.services.discounts.models import PromoCodes
 from src.services.users.models import Users, Replenishments, NotificationSettings
 from src.services.system.models import TypePayments, Settings
 from src.services.database.database import get_db
@@ -102,19 +107,8 @@ async def create_replenishment(create_new_user)-> Replenishments:
 
 
 @pytest_asyncio.fixture
-async def create_type_payment() -> dict:
-    """
-    Создаст новый тип оплаты в БД
-    :return:
-    dict{
-        type_payment_id: int,
-        name_for_user: str,
-        name_for_admin: str,
-        is_active: bool,
-        commission: float,
-        extra_data: Optional[dict]
-    }
-    """
+async def create_type_payment() -> TypePayments:
+    """Создаст новый тип оплаты в БД"""
     new_type_payment = TypePayments(
         name_for_user="Test Payment Method",
         name_for_admin="Test Payment Method (Admin)",
@@ -127,7 +121,7 @@ async def create_type_payment() -> dict:
         await session_db.commit()
         await session_db.refresh(new_type_payment)
 
-    return new_type_payment.to_dict()
+    return new_type_payment
 
 
 @pytest_asyncio.fixture
@@ -145,3 +139,28 @@ async def create_settings() -> Settings:
         await session_db.refresh(settings)
 
     return settings
+
+
+@pytest_asyncio.fixture
+async def create_promo_code() -> PromoCodes:
+    """Создаст новый промокод в БД и в redis."""
+    promo = PromoCodes(
+        activation_code="TESTCODE",
+        min_order_amount=100,
+        amount=100,
+        discount_percentage=None,
+        number_of_activations=5,
+        expire_at=datetime.now(timezone.utc) + timedelta(days=1),
+        is_valid=True,
+    )
+
+    async with get_db() as session_db:
+        session_db.add(promo)
+        await session_db.commit()
+        await session_db.refresh(promo)
+
+    async with get_redis() as session_redis:
+        promo_dict = promo.to_dict()
+        await session_redis.set(f'promo_code:{promo.activation_code}', orjson.dumps(promo_dict))
+
+    return promo

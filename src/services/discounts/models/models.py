@@ -5,7 +5,6 @@ from sqlalchemy.sql import func
 from src.services.database.database import Base
 
 
-# кэшируется в redis_dependencies на время действия
 class PromoCodes(Base):
     __tablename__ = "promo_codes"
     __table_args__ = (
@@ -19,8 +18,8 @@ class PromoCodes(Base):
     min_order_amount = Column(Integer, nullable=False) # минимальная сумма с которой можно применить
 
     # будет на определённую сумму или процент
-    amount = Column(Integer, nullable=True) # сумма скидки
     activated_counter = Column(Integer, nullable=False, server_default=text('0')) # количество активаций
+    amount = Column(Integer, nullable=True) # сумма скидки
     discount_percentage = Column(Integer, nullable=True,) # процент скидки (может быть Null)
 
     number_of_activations = Column(Integer, nullable=True) # разрешённое количество активаций (если нет, то бесконечное)

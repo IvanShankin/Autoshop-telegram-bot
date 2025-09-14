@@ -227,10 +227,10 @@ settings
     "activation_code": str,
     "min_order_amount": int,
     
-    "amount": int,
     "activated_counter": int, # количество активаций
-    "number_of_activations": int or None,# разрешённое количество активаций (если нет, то может быть бесконечным)
+    "amount": int,
     "discount_percentage": int or None, # процент скидки (может быть Null)
+    "number_of_activations": int or None,# разрешённое количество активаций (если нет, то может быть бесконечным)
     
     "start_at": datetime,
     "expire_at": datetime,

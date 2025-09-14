@@ -8,7 +8,7 @@ from src.services.users.models import Users, NotificationSettings
 from src.services.system.models import Settings, TypePayments
 from src.services.database.database import Base
 from src.services.database.database import get_db, SQL_DB_URL, DB_NAME, POSTGRES_SERVER_URL
-from src.utils.codes import create_unique_referral_code
+from src.services.referrals.utils import create_unique_referral_code
 from src.services.admin_actions.models import MessageForSending
 from src.services.admin_actions.models import Admins
 from src.services.referrals.models import ReferralLevels
@@ -100,7 +100,7 @@ async def filling_admins(admin_id: int):
             result_user = result.scalar_one_or_none()
 
         if not result_user: # если в БД нет такого пользователя
-            code = create_unique_referral_code()
+            code = await create_unique_referral_code()
             new_user = Users(user_id=admin_id, unique_referral_code=code)
             new_notification_settings = NotificationSettings(user_id=admin_id)
             new_message_for_sending = MessageForSending(user_id=admin_id)

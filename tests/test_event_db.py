@@ -5,10 +5,12 @@ import orjson
 import pytest_asyncio
 import pytest
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy import MetaData, Table
 
 from src.config import DT_FORMAT_FOR_LOGS
+from src.services.discounts.events.schemas import NewActivatePromoCode
+from src.services.discounts.models import PromoCodes, ActivatedPromoCodes
 from src.services.system.actions import get_settings, update_settings
 from src.services.users.models import Replenishments, Users, WalletTransaction, UserAuditLogs
 from src.services.database.database import get_db
@@ -17,7 +19,8 @@ from src.utils.i18n import get_i18n
 from src.redis_dependencies.core_redis import get_redis
 from src.services.replenishments_event.schemas import ReplenishmentFailed, ReplenishmentCompleted
 
-from tests.fixtures.helper_fixture import create_new_user, create_type_payment, create_referral, create_replenishment
+from tests.fixtures.helper_fixture import (create_new_user, create_type_payment, create_referral, create_replenishment,
+                                           create_promo_code, create_settings)
 from tests.fixtures.monkeypatch_data import replacement_fake_bot, replacement_fake_keyboard, fake_bot, replacement_exception_aiogram
 from tests.fixtures.helper_functions import comparison_models
 
@@ -78,7 +81,7 @@ class TestHandlerNewReplenishment:
         initial_total_sum = create_new_user.total_sum_replenishment
         user_id = create_new_user.user_id
 
-        replenishment =  await self.create_and_update_replenishment(user_id, create_type_payment['type_payment_id'])
+        replenishment =  await self.create_and_update_replenishment(user_id, create_type_payment.type_payment_id)
 
         q = event_queue
         await asyncio.sleep(0) # для передачи управления
@@ -163,7 +166,7 @@ class TestHandlerNewReplenishment:
 
         # создаём пополнение → переводим в processing → триггерим handler_new_replenishment
         new_replenishment = await self.create_and_update_replenishment(
-            user.user_id, create_type_payment["type_payment_id"]
+            user.user_id, create_type_payment.type_payment_id
         )
 
         # перенастроим канал логов (иначе send_log ничего не отправит)
@@ -503,3 +506,90 @@ class TestHandlerNewIncomeRef:
         ).format(error=error_text, time=datetime.now().strftime(DT_FORMAT_FOR_LOGS))
 
         assert fake_bot.check_str_in_messages(message_log[:100]), "Лог об ошибке рефералки не был отправлен"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('should_become_inactive',[True, False])
+async def test_handler_new_activate_promo_code(
+    should_become_inactive,
+    replacement_fake_bot,
+    replacement_fake_keyboard,
+    replacement_exception_aiogram,
+    start_event_handler,
+    clean_db,
+    create_promo_code,
+    create_new_user,
+    create_settings
+):
+    if should_become_inactive: # сделаем поромокод на одну активацию
+        async with get_db() as session_db:
+            await session_db.execute(
+                update(PromoCodes)
+                .where(PromoCodes.promo_code_id == create_promo_code.promo_code_id)
+                .values(number_of_activations=1)
+            )
+            await session_db.commit()
+            create_promo_code.number_of_activations = 1
+
+    old_promo = create_promo_code
+    user = create_new_user
+    settings = create_settings
+
+    event = NewActivatePromoCode(
+        promo_code_id = old_promo.promo_code_id,
+        user_id = user.user_id
+    )
+    q = event_queue  # зафиксировали ссылку один раз
+    q.put_nowait(event)
+
+    await asyncio.sleep(0)
+    await q.join() # ждём пока событие обработается
+
+    async with get_db() as session_db:
+        result = await session_db.execute(
+            select(ActivatedPromoCodes)
+            .where(
+                (ActivatedPromoCodes.promo_code_id == old_promo.promo_code_id) &
+                (ActivatedPromoCodes.user_id == user.user_id)
+            )
+        )
+        activate = result.scalar_one_or_none()
+        assert activate
+
+        result = await session_db.execute(select(PromoCodes).where(PromoCodes.promo_code_id == create_promo_code.promo_code_id))
+        promo = result.scalar_one_or_none()
+
+        assert promo.activated_counter == old_promo.activated_counter + 1
+        if should_become_inactive: # если промокод был на одну активацию, то должен стать невалидным
+            assert promo.is_valid == False
+        else:
+            assert promo.is_valid == True
+
+        async with get_redis() as session_redis:
+            redis_result = await session_redis.get(f"promo_code:{old_promo.activation_code}")
+
+            if should_become_inactive: # если промокод был на одну активацию, то должен удалиться с redis
+                assert not redis_result
+            else:
+                assert redis_result
+
+        i18n = get_i18n('ru', "discount_dom")
+        message = i18n.gettext(
+            "#Promocode_activation \nID promo_code '{promo_code_id}' \nCode '{code}' \nID user '{user_id}'"
+            "\n\nSuccessfully activated. \nActivations remaining: {number_of_activations}"
+        ).format(
+            promo_code_id=old_promo.promo_code_id,
+            code=old_promo.activation_code,
+            user_id=create_new_user.user_id,
+            number_of_activations=old_promo.number_of_activations - 1 # т.к. активировли один раз
+        )
+        assert fake_bot.get_message(settings.channel_for_logging_id, message)
+
+        if should_become_inactive:
+            message = i18n.gettext(
+                "#Promo_code_expired \nID '{id}' \nCode '{code}'"
+                "\n\nThe promo code has expired due to reaching the number of activations or time limit. It is no longer possible to activate it"
+            ).format(id=old_promo.promo_code_id,code=old_promo.activation_code,)
+            assert fake_bot.get_message(settings.channel_for_logging_id, message)
+
+

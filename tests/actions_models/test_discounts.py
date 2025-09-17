@@ -5,6 +5,7 @@ import pytest
 from orjson import orjson
 from sqlalchemy import delete, select, update
 
+from src.services.admin_actions.models import AdminActions
 from src.services.discounts.models import PromoCodes, Vouchers, VoucherActivations
 from src.services.database.database import get_db
 from src.redis_dependencies.core_redis import get_redis
@@ -48,12 +49,13 @@ async def test_get_valid_voucher(use_redis, create_voucher):
     await comparison_models(create_voucher, voucher)
 
 @pytest.mark.asyncio
-async def test_create_promo_code(create_promo_code):
+async def test_create_promo_code(create_promo_code, create_new_user):
     from src.services.discounts.actions import create_promo_code as create_promo_code_for_test
     new_promo_code = create_promo_code
     new_promo_code.activation_code = 'unique_code'
 
     promo_returned = await create_promo_code_for_test(
+        creator_id=create_new_user.user_id,
         code=new_promo_code.activation_code,
         min_order_amount=new_promo_code.min_order_amount,
         amount=new_promo_code.amount,
@@ -65,6 +67,12 @@ async def test_create_promo_code(create_promo_code):
     async with get_db() as session_db:
         result = await session_db.execute(select(PromoCodes).where(PromoCodes.promo_code_id == promo_returned.promo_code_id))
         promo_db = result.scalar_one_or_none()
+
+        admin_action_db = await session_db.execute(
+            select(AdminActions)
+            .where(AdminActions.admin_action_id == create_new_user.user_id)
+        )
+        assert admin_action_db.scalar_one()
 
     async with get_redis() as session_redis:
         promo_redis = orjson.loads(await session_redis.get(f'promo_code:{new_promo_code.activation_code}'))

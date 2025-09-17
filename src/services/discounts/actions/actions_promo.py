@@ -5,6 +5,7 @@ import orjson
 from sqlalchemy import select
 
 from src.redis_dependencies.core_redis import get_redis
+from src.services.admin_actions.models import AdminActions
 from src.services.database.database import get_db
 from src.services.discounts.models import PromoCodes
 from src.utils.codes import generate_code
@@ -44,6 +45,7 @@ async def get_valid_promo_code(
             return promo_code
 
 async def create_promo_code(
+        creator_id: int,
         code: Optional[str] = None,
         min_order_amount: int = 0,
         amount: int = None,
@@ -53,6 +55,7 @@ async def create_promo_code(
 ) -> PromoCodes:
     """
     Создаст промокод с уникальным activation_code
+    :param creator_id: id админа, который создал промокод
     :param code: если промокод с данным кодом не занят, то будет создан с ним
     :param min_order_amount: минимальная сумма для активации
     :param amount: сумма скидки (взаимоисключающая с discount_percentage)
@@ -93,6 +96,17 @@ async def create_promo_code(
         session_db.add(new_promo_code)
         await session_db.commit()
         await session_db.refresh(new_promo_code)
+
+        new_admin_actions = AdminActions(
+            user_id= creator_id,
+            action_type = 'create_promo_code',
+            details = {
+                "message": "Администрация создала новый промокод",
+                "promo_code_id": new_promo_code.promo_code_id
+            }
+        )
+        session_db.add(new_admin_actions)
+        await session_db.commit()
 
     if expire_at:
         storage_time = new_promo_code.expire_at - datetime.now(timezone.utc)

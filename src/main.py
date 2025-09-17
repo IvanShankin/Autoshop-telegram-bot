@@ -4,7 +4,7 @@ from src.services.database.events.core_event import event_queue
 from src.services.database.events.triggers_processing import run_triggers_processing
 from src.services.database.filling_database import create_database
 from src.redis_dependencies.filling_redis import filling_all_redis
-from src.services.discounts.actions import deactivate_expired_promo_codes_and_vouchers
+from src.services.discounts.utils import deactivate_expired_promo_codes_and_vouchers
 
 
 async def main():

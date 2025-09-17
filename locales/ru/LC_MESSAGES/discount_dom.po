@@ -28,11 +28,26 @@ msgstr "#Ваучер_закончился \nID '{id}' \nКод '{code}'"
 msgid "Voucher expired \n\nID '{id}' \nCode '{code}' \n\nVoucher expired due to time limit. It can no longer be activated"
 msgstr "У ваучера истёк срок действия \n\nID '{id}' \nКод '{code}' \n\nВаучер закончился  из-за ограничения по времени. Теперь его невозможно активировать"
 
+msgid "Voucher has reached its activation limit \n\nID '{id}' \nCode '{code}' "
+"\n\nThe voucher has expired due to the activation limit. It can no longer be activated"
+msgstr "У ваучера достигнут лимит активаций \n\nID '{id}' \nКод '{code}' "
+"\n\nВаучер закончился  из-за ограничения по количеству активаций. Теперь его невозможно активировать"
+
+msgid "Voucher with this code not found"
+msgstr "Ваучер с данным кодом не найден"
+
+msgid "You have already activated this voucher. It can only be activated once"
+msgstr "Вы уже активировали данный ваучер. Его можно активировать только один раз"
+
+msgid "Voucher successfully activated! \n\nVoucher amount: {amount} \nCurrent balance: {new_balance}"
+msgstr "Ваучер успешно активирован! \n\nСумма ваучера: {amount} \n Текущий баланс: {new_balance}"
+
 
 msgid "#Error_activating_promo_code. \n\nPromo code ID '{id}' \nError: {error}"
 msgstr "#Ошибка_при_активации_промокода. \n\nID промокода '{id}' \nОшибка: {error}"
 
-
+msgid "Error_while_activating_voucher. \n\nVoucher ID '{id}' \nError: {error}"
+msgstr "#Ошибка_при_активации_ваучера. \n\nID ваучера '{id}' \nОшибка: {error}"
 
 
 

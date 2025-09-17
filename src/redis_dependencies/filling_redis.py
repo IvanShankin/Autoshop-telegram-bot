@@ -406,7 +406,7 @@ async def filling_promo_code():
 async def filling_vouchers():
     await _fill_redis_single_objects(
         model=Vouchers,
-        key_prefix='vouchers',
+        key_prefix='voucher',
         key_extractor=lambda vouchers: vouchers.activation_code,
         field_condition=(Vouchers.is_valid == True),
         ttl=lambda vouchers: vouchers.expire_at - datetime.now(UTC) if vouchers.expire_at else None

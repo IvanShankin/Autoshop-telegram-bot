@@ -6,12 +6,13 @@ from src.redis_dependencies.core_redis import get_redis
 from src.services.discounts.events.schemas import NewActivatePromoCode
 from src.services.discounts.models import PromoCodes, ActivatedPromoCodes
 from src.services.database.database import get_db
+from src.services.users.models import UserAuditLogs
 from src.utils.core_logger import logger
 from src.utils.i18n import get_i18n
 from src.utils.send_messages import send_log
 
 
-async def discounts_event_handler(event):
+async def promo_code_event_handler(event):
     if isinstance(event, NewActivatePromoCode):
         await handler_new_activate_promo_code(event)
 
@@ -40,6 +41,7 @@ async def handler_new_activate_promo_code(new_activate: NewActivatePromoCode):
             )
             session_db.add(new_activate_promo)
             await session_db.commit()
+            await session_db.refresh(new_activate_promo)
 
             if (new_activated_counter >= promo_code.number_of_activations) or (datetime.now(timezone.utc) > promo_code.expire_at):
                 await session_db.execute(
@@ -63,6 +65,17 @@ async def handler_new_activate_promo_code(new_activate: NewActivatePromoCode):
 
             if promo_code_deactivated:
                 await send_promo_code_expired(promo_code.promo_code_id, promo_code.activation_code)
+
+            new_user_log= UserAuditLogs(
+                user_id=new_activate.user_id,
+                action_type="new_activate_promo_code",
+                details={
+                    "message": 'Пользователь активировал промокод',
+                    "promo_code_id": new_activate.promo_code_id,
+                },
+            )
+            session_db.add(new_user_log)
+            await session_db.commit()
 
     except Exception as e:
         logger.error(f"Произошла ошибка, записи об активации промокода. Ошибка: {str(e)}")

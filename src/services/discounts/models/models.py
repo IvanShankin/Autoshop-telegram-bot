@@ -54,7 +54,7 @@ class Vouchers(Base):
     activation_code = Column(String(150), nullable=False) # НЕ уникальный, фильтровать необходимо по is_valid
     amount = Column(Integer, nullable=False)
     activated_counter = Column(Integer, nullable=False, server_default=text('0')) # количество активаций
-    number_of_activations = Column(Integer, nullable=True) # разрешённое количество активаций (если нет, то бесконечное)
+    number_of_activations = Column(Integer, nullable=True) # разрешённое количество активаций (если нет, то бесконечное такое доступно только для админов)
 
     start_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     expire_at = Column(DateTime(timezone=True), nullable=True)

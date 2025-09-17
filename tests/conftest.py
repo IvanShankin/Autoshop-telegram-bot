@@ -8,8 +8,9 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from src.services.database.database import SQL_DB_URL
 from src.services.database import database
 from src.services.database.events import core_event
-from src.redis_dependencies.core_redis import get_redis
 from src.redis_dependencies.filling_redis import filling_all_redis
+
+from tests.fixtures.helper_fixture import *
 
 load_dotenv()  # Загружает переменные из .env
 MODE = os.getenv('MODE')

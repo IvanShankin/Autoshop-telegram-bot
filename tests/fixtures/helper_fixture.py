@@ -5,7 +5,7 @@ import pytest_asyncio
 from sqlalchemy import select
 
 from src.redis_dependencies.core_redis import get_redis
-from src.services.discounts.models import PromoCodes
+from src.services.discounts.models import PromoCodes, Vouchers
 from src.services.users.models import Users, Replenishments, NotificationSettings
 from src.services.system.models import TypePayments, Settings
 from src.services.database.database import get_db
@@ -124,7 +124,7 @@ async def create_type_payment() -> TypePayments:
     return new_type_payment
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(autouse=True)
 async def create_settings() -> Settings:
     settings = Settings(
         support_username='support_username',
@@ -164,3 +164,27 @@ async def create_promo_code() -> PromoCodes:
         await session_redis.set(f'promo_code:{promo.activation_code}', orjson.dumps(promo_dict))
 
     return promo
+
+@pytest_asyncio.fixture
+async def create_voucher(create_new_user) -> Vouchers:
+    """Создаст новый ваучер в БД и в redis."""
+    voucher = Vouchers(
+        creator_id=create_new_user.user_id,
+        activation_code="TESTCODE",
+        amount=100,
+        activated_counter=0,
+        number_of_activations=5,
+        expire_at=datetime.now(timezone.utc) + timedelta(days=1),
+        is_valid=True,
+    )
+
+    async with get_db() as session_db:
+        session_db.add(voucher)
+        await session_db.commit()
+        await session_db.refresh(voucher)
+
+    async with get_redis() as session_redis:
+        promo_dict = voucher.to_dict()
+        await session_redis.set(f'voucher:{voucher.activation_code}', orjson.dumps(promo_dict))
+
+    return voucher

@@ -419,7 +419,7 @@ class TestFillRedisSingleObjects(TestBase):
         await filling.filling_vouchers()
 
         async with get_redis() as session_redis:
-            val = await session_redis.get(f"vouchers:{voucher.activation_code}")
+            val = await session_redis.get(f"voucher:{voucher.activation_code}")
 
         self.compare_dicts(voucher, val)
 

@@ -9,8 +9,12 @@ async def send_log(text: str, channel_for_logging_id: int = None):
     :param text: Длинна должна быть в пределах 1 - 4096 символов
     :param channel_for_logging_id: если не передавать то возьмёт сам из настроек
     """
-    if len(text) > 4096 or len(text) < 1:
-        return
+
+    # формируем сообщения разбивая по максимальной длине (4096)
+    parts = []
+    for i in range(0, len(text), 4096):
+        parts.append(text[i:i + 4096])
+
 
     if not channel_for_logging_id:
         settings = await get_settings()
@@ -19,10 +23,11 @@ async def send_log(text: str, channel_for_logging_id: int = None):
     bot = await get_bot_logger()
 
     try:
-        await bot.send_message(channel_for_logging_id, text)
+        for message in parts:
+            await bot.send_message(channel_for_logging_id, message)
     except Exception as e:
         settings = await get_settings()
-        message_error = f"Не удалось отправить сообщение в канал с логами. Ошибка: {str(e)}"
+        message_error = f"Не удалось отправить сообщение в канал с логами. \n\nОшибка: {str(e)}"
         logger.error(message_error)
 
         try:
@@ -30,8 +35,10 @@ async def send_log(text: str, channel_for_logging_id: int = None):
                 await bot.send_message(
                     settings.support_username,
                     f'Не удалось отправить лог в канал!\nID используемого канала: {channel_for_logging_id} '
-                    f'\n\nСообщение:\n{message_error}'
+                    f'\n\nСообщение:'
                 )
+                for message in parts:
+                    await bot.send_message(settings.support_username,message)
         except Exception as e:
             logger.error(f"Ошибка отправки сообщения support. Ошибка: {str(e)}")
 
@@ -41,5 +48,7 @@ async def send_log(text: str, channel_for_logging_id: int = None):
                 f'Не удалось отправить лог в канал!\nID используемого канала: {channel_for_logging_id} '
                 f'\n\nСообщение:\n{message_error}'
             )
+            for message in parts:
+                await bot.send_message(MAIN_ADMIN, message)
         except Exception as e:
             logger.error(f"Ошибка отправки сообщения MAIN_ADMIN. Ошибка: {str(e)}")

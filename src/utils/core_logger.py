@@ -7,7 +7,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(LOG_DIR / "auth_service.log",encoding='utf-8'),
+        logging.FileHandler(LOG_DIR / "auto_shop_bot.log",encoding='utf-8'),
         logging.StreamHandler()
     ]
 )

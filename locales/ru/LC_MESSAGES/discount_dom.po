@@ -49,6 +49,7 @@ msgstr "#Ошибка_при_активации_промокода. \n\nID пр�
 msgid "Error_while_activating_voucher. \n\nVoucher ID '{id}' \nError: {error}"
 msgstr "#Ошибка_при_активации_ваучера. \n\nID ваучера '{id}' \nОшибка: {error}"
 
-
+msgid "#Error_refunding_money_from_voucher \n\nVoucher ID: {voucher_id} \nOwner ID: {owner_id} \nError: {error}"
+msgstr "#Ошибка при возврате денег с ваучера \n\nID ваучера: {voucher_id} \nID Владельца: {owner_id} \nОшибка: {error} "
 
 

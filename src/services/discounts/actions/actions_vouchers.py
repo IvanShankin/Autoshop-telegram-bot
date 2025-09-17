@@ -14,6 +14,7 @@ from src.services.users.actions import update_user, get_user
 from src.services.users.models import WalletTransaction, UserAuditLogs, Users
 from src.utils.codes import generate_code
 from src.utils.i18n import get_i18n
+from src.utils.send_messages import send_log
 
 
 async def get_valid_voucher(
@@ -132,72 +133,84 @@ async def create_voucher(
 
 async def deactivate_voucher(voucher_id: int) -> int:
     """
-    Сделает ваучер невалидным в БД (is_valid = False), вернёт деньги пользователю и удалит его с redis.
+    Сделает ваучер невалидным в БД (is_valid = False), вернёт деньги пользователю и удалит ваучер с redis.
     Сообщение пользователю НЕ будет отправлено!
     :return Возвращённая сумма пользователю
     """
+    returned_money = False
+    owner_id = None
+    try:
+        async with get_db() as session_db:
+            result_db = await session_db.execute(
+                update(Vouchers)
+                .where(Vouchers.voucher_id == voucher_id)
+                .values(is_valid=False)
+                .returning(Vouchers)
+            )
+            voucher: Vouchers = result_db.scalar_one_or_none()
+            owner_id = voucher.creator_id
+            await session_db.commit()
 
-    async with get_db() as session_db:
-        result_db = await session_db.execute(
-            update(Vouchers)
-            .where(Vouchers.voucher_id == voucher_id)
-            .values(is_valid=False)
-            .returning(Vouchers)
-        )
-        voucher = result_db.scalar_one_or_none()
-        await session_db.commit()
+            # удаление с redis
+            async with get_redis() as session_redis:
+                await session_redis.delete(f"voucher:{voucher.activation_code}")
 
-        # удаление с redis
-        async with get_redis() as session_redis:
-            await session_redis.delete(f"voucher:{voucher.activation_code}")
+            # сумма возврата = количество неактивированных ваучеров * сумму одного ваучера
+            refund_amount = (voucher.number_of_activations - voucher.activated_counter) * voucher.amount
 
-        # сумма возврата = количество неактивированных ваучеров * сумму одного ваучера
-        refund_amount = (voucher.number_of_activations - voucher.activated_counter) * voucher.amount
+            # если создатель ваучера админ или сумма для возврата <= нуля
+            if voucher.is_created_admin or refund_amount <= 0:
+                return 0
 
-        # если создатель ваучера админ или сумма для возврата <= нуля
-        if voucher.is_created_admin or refund_amount <= 0:
-            return 0
+            # обновление баланса у пользователя
+            user = await get_user(voucher.creator_id)
+            balance_before = user.balance
+            user.balance = user.balance + refund_amount
+            await update_user(user)
+            returned_money = True
 
-        user = await get_user(voucher.creator_id)
-        balance_before = user.balance
-        user.balance = user.balance + refund_amount
-        await update_user(user)
+            new_wallet_transaction = WalletTransaction(
+                user_id=user.user_id,
+                type='refund',
+                amount=refund_amount,
+                balance_before=balance_before,
+                balance_after=user.balance,
+            )
+            session_db.add(new_wallet_transaction)
+            await session_db.commit()
+            await session_db.refresh(new_wallet_transaction)
 
-        new_wallet_transaction = WalletTransaction(
-            user_id=user.user_id,
-            type='refund',
-            amount=refund_amount,
-            balance_before=balance_before,
-            balance_after=user.balance,
-        )
-        session_db.add(new_wallet_transaction)
-        await session_db.commit()
-        await session_db.refresh(new_wallet_transaction)
+            new_user_log_1 = UserAuditLogs(
+                user_id=user.user_id,
+                action_type="deactivate_voucher",
+                details={
+                    'message': "Ваучер деактивировался",
+                    'voucher_id': voucher_id,
+                },
+            )
+            new_user_log_2 = UserAuditLogs(
+                user_id=user.user_id,
+                action_type="return_money_from_vouchers",
+                details={
+                    "message": 'Пользователю вернулись деньги за ваучер который деактивировался',
+                    "amount": refund_amount,
+                    'voucher_id': voucher_id,
+                    "transaction_id": new_wallet_transaction.wallet_transaction_id
+                },
+            )
+            session_db.add(new_user_log_1)
+            session_db.add(new_user_log_2)
 
-        new_user_log_1 = UserAuditLogs(
-            user_id=user.user_id,
-            action_type="deactivate_voucher",
-            details={
-                'message': "Ваучер деактивировался",
-                'voucher_id': voucher_id,
-            },
-        )
-        new_user_log_2 = UserAuditLogs(
-            user_id=user.user_id,
-            action_type="return_money_from_vouchers",
-            details={
-                "message": 'Пользователю вернулись деньги за ваучер который деактивировался',
-                "amount": refund_amount,
-                'voucher_id': voucher_id,
-                "transaction_id": new_wallet_transaction.wallet_transaction_id
-            },
-        )
-        session_db.add(new_user_log_1)
-        session_db.add(new_user_log_2)
+            await session_db.commit()
 
-        await session_db.commit()
+            return refund_amount
+    except Exception as e:
+        i18n = get_i18n('ru', 'discount_dom')
+        log_message = i18n.gettext(
+            "#Error_refunding_money_from_voucher \n\nVoucher ID: {voucher_id} \nOwner ID: {owner_id} \nError: {error}"
+        ).format(voucher_id=voucher_id, owner_id=owner_id, error=str(e))
 
-        return refund_amount
+        await send_log(log_message)
 
 
 

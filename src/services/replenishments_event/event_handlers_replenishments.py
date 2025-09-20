@@ -35,6 +35,16 @@ async def handler_new_replenishment(new_replenishment: NewReplenishment):
     total_sum_replenishment = None
 
     try:
+        # защита от повторных обработок
+        async with get_db() as session_db:
+            replenishment_db = await session_db.execute(
+                select(Replenishments)
+                .where(Replenishments.replenishment_id == new_replenishment.replenishment_id)
+            )
+            replenishment: Replenishments = replenishment_db.scalar_one_or_none()
+            if not replenishment or replenishment.status != 'processing':
+                return
+
         user = await get_user(new_replenishment.user_id)
         user.balance = user.balance + new_replenishment.amount
         user.total_sum_replenishment = user.total_sum_replenishment + new_replenishment.amount

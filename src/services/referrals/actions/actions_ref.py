@@ -9,7 +9,7 @@ from src.services.referrals.models import ReferralLevels
 from src.redis_dependencies.core_redis import get_redis
 
 
-async def get_referral_lvl()->List[ReferralLevels] | None:
+async def get_referral_lvl()->List[ReferralLevels]:
     """Вернёт ReferralLevels отсортированный по возрастанию level"""
     async with get_redis() as session_redis:
         lvl_redis = await session_redis.get(f'referral_levels')

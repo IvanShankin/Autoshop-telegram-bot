@@ -9,7 +9,7 @@ from src.config import ALLOWED_LANGS
 from src.services.users.models import Users, BannedAccounts
 from src.services.system.models import Settings
 from src.services.database.database import get_db
-from src.services.admin_actions.models import Admins
+from src.services.admins.models import Admins
 from src.services.discounts.models.models import PromoCodes, Vouchers
 from src.services.referrals.models import ReferralLevels
 from src.services.selling_accounts.models.models import TypeAccountServices, AccountServices, AccountCategories, \

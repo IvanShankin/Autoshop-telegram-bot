@@ -5,7 +5,7 @@ import pytest
 from orjson import orjson
 from sqlalchemy import delete, select, update
 
-from src.services.admin_actions.models import AdminActions
+from src.services.admins.models import AdminActions
 from src.services.discounts.models import PromoCodes, Vouchers, VoucherActivations
 from src.services.database.database import get_db
 from src.redis_dependencies.core_redis import get_redis

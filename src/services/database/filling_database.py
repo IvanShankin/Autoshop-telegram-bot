@@ -9,8 +9,8 @@ from src.services.system.models import Settings, TypePayments
 from src.services.database.database import Base
 from src.services.database.database import get_db, SQL_DB_URL, DB_NAME, POSTGRES_SERVER_URL
 from src.services.referrals.utils import create_unique_referral_code
-from src.services.admin_actions.models import MessageForSending
-from src.services.admin_actions.models import Admins
+from src.services.admins.models import MessageForSending
+from src.services.admins.models import Admins
 from src.services.referrals.models import ReferralLevels
 from src.services.selling_accounts.models import TypeAccountServices
 
@@ -90,6 +90,7 @@ async def filling_referral_lvl():
             await session_db.commit()
 
 async def filling_admins(admin_id: int):
+    """Создаст нового админа """
     async with get_db() as session_db:
         result = await session_db.execute(select(Admins).where(Admins.user_id == admin_id))
         result_admin = result.scalar()

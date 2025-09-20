@@ -5,6 +5,7 @@ import pytest_asyncio
 from sqlalchemy import select
 
 from src.redis_dependencies.core_redis import get_redis
+from src.services.admins.models import Admins
 from src.services.discounts.models import PromoCodes, Vouchers
 from src.services.users.models import Users, Replenishments, NotificationSettings
 from src.services.system.models import TypePayments, Settings
@@ -35,6 +36,18 @@ async def create_new_user()->Users:
 
     return new_user
 
+@pytest_asyncio.fixture
+async def create_admin_fix(create_new_user):
+    async with get_db() as session_db:
+        new_admin = Admins(user_id = create_new_user.user_id)
+        session_db.add(new_admin)
+        await session_db.commit()
+        await session_db.refresh(new_admin)
+
+    async with get_redis() as session_redis:
+        await session_redis.set(f"admin:{new_admin.user_id}", '_')
+
+    return new_admin
 
 @pytest_asyncio.fixture
 async def create_referral(create_new_user)->(Referrals, Users, Users):

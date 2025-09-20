@@ -1,4 +1,4 @@
-from sqlalchemy import update
+from sqlalchemy import update, select
 
 from src.redis_dependencies.core_redis import get_redis
 from src.services.database.database import get_db
@@ -21,6 +21,15 @@ async def handler_new_activated_voucher(new_activation_voucher: NewActivationVou
     """Обрабатывает новую активацию ваучера"""
     try:
         async with get_db() as session_db:
+            # проверка на повторную активацию
+            result_db = await session_db.execute(
+                select(VoucherActivations)
+                .where(VoucherActivations.vouchers_id == new_activation_voucher.voucher_id)
+            )
+            activated_voucher= result_db.scalar_one_or_none()
+            if activated_voucher:  # если активировал ранее
+                return
+
             result_db = await session_db.execute(
                 update(Vouchers)
                 .where(Vouchers.voucher_id == new_activation_voucher.voucher_id)

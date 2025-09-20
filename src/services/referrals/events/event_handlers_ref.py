@@ -29,6 +29,16 @@ async def handler_new_income_referral(new_replenishment: ReplenishmentCompleted)
     percent_current_lvl = 0
 
     try:
+        # проверка на повторную активацию
+        async with get_db() as session_db:
+            result_db = await session_db.execute(
+                select(IncomeFromReferrals)
+                .where(IncomeFromReferrals.replenishment_id == new_replenishment.replenishment_id)
+            )
+            income_ref = result_db.scalar_one_or_none()
+            if income_ref:  # если обработали ранее, данное пополнение
+                return
+
         async with get_db() as session_db:
             result = await session_db.execute(select(Referrals).where(Referrals.referral_id == new_replenishment.user_id))
             test_owner = result.scalar_one_or_none()

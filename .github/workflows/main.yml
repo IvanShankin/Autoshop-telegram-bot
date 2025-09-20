@@ -37,7 +37,7 @@ jobs:
       rabbit_mq:
         image: rabbitmq:latest
         env:
-          RABBITMQ_URL: ${{ secret.RABBITMQ_URL }}
+          RABBITMQ_URL: ${{ secrets.RABBITMQ_URL }}
         ports:
           - 5672:5672
         options: >-

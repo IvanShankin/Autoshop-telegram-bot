@@ -74,7 +74,6 @@ async def replacement_fake_bot(monkeypatch):
     fake_module._bot_logger = fake_bot
     fake_module._dp_logger = None
 
-
     # Подменяем модуль в sys.modules
     monkeypatch.setitem(sys.modules, "src.utils.bot_instance", fake_module)
 

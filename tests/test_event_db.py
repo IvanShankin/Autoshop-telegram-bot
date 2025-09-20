@@ -1,5 +1,7 @@
 import asyncio
+import time
 from datetime import datetime
+from typing import AsyncGenerator
 
 import orjson
 import pytest_asyncio
@@ -8,39 +10,32 @@ import pytest
 from sqlalchemy import select, update
 from sqlalchemy import MetaData, Table
 
+from src.broker.producer import publish_event
 from src.config import DT_FORMAT_FOR_LOGS
 from src.services.discounts.models import VoucherActivations, Vouchers
 from src.services.system.actions import get_settings, update_settings
 from src.services.users.models import Replenishments, Users, WalletTransaction, UserAuditLogs
 from src.services.database.database import get_db
-from src.services.database.events.core_event import event_queue
 from src.utils.i18n import get_i18n
 from src.redis_dependencies.core_redis import get_redis
-from src.services.replenishments_event.schemas import ReplenishmentFailed, ReplenishmentCompleted
+from src.services.replenishments_event.schemas import ReplenishmentFailed, ReplenishmentCompleted, NewReplenishment
 
 from tests.fixtures.helper_fixture import (create_new_user, create_type_payment, create_referral, create_replenishment,
                                            create_promo_code, create_settings)
 from tests.fixtures.monkeypatch_data import replacement_fake_bot, replacement_fake_keyboard, fake_bot, replacement_exception_aiogram
+from tests.fixtures.monkeypatch_event_db import processed_promo_code, processed_voucher, processed_referrals, processed_replenishment
 from tests.fixtures.helper_functions import comparison_models
 
 
-@pytest_asyncio.fixture()
-async def start_event_handler():
-    # данный импорт обязательно тут, ибо aiogram запустит свой even_loop который не даст работать тесту в режиме отладки
-    from src.services.database.events.triggers_processing import run_triggers_processing
-
-    task = asyncio.create_task(run_triggers_processing())
-    try:
-        yield
-    finally:
-        await event_queue.join()  # дождались всех событий
-        event_queue.put_nowait(None)  # закрываем dispatcher
-        await task
 
 class TestHandlerNewReplenishment:
-    async def create_and_update_replenishment(self, user_id: int, type_payment_id: int)->Replenishments:
+    async def create_and_update_replenishment(
+            self, user_id: int,
+            type_payment_id: int,
+            processed_replenishment: AsyncGenerator
+    )->Replenishments:
         """
-        Создаст новый replenishment с переданными параметрами и обновит его статус на 'pending'.
+        Запустит событие на обработку нового пополнения и дождётся его выполнения
         :return возвращает созданный Replenishments
         """
 
@@ -50,18 +45,22 @@ class TestHandlerNewReplenishment:
                 type_payment_id = type_payment_id,
                 origin_amount = 100,
                 amount = 105,
-                status = 'pending'
+                status = 'processing'
             )
             session_db.add(new_replenishment)
             await session_db.commit()
             await session_db.refresh(new_replenishment)
 
-            # Меняем статус на processing (это должно запустить обработчик)
-            result_db = await session_db.execute(select(Replenishments).where(Replenishments.replenishment_id == new_replenishment.replenishment_id))
-            replenishment = result_db.scalar_one_or_none()
-            replenishment.status='processing'
+            event = NewReplenishment(
+                replenishment_id=new_replenishment.replenishment_id,
+                user_id=new_replenishment.user_id,
+                amount=new_replenishment.amount,
+                create_at=new_replenishment.created_at
+            )
 
-            await session_db.commit()
+            await publish_event(event.model_dump(), 'replenishment.new_replenishment')  # публикация события
+            await asyncio.wait_for(processed_replenishment.wait(), timeout=5.0)  # ожидание завершения события
+
         return new_replenishment
 
     @pytest.mark.asyncio
@@ -70,9 +69,10 @@ class TestHandlerNewReplenishment:
             replacement_fake_bot,
             replacement_fake_keyboard,
             replacement_exception_aiogram,
+            processed_replenishment,
             create_new_user,
             create_type_payment,
-            start_event_handler
+            clean_rabbit
         ):
         """Интеграционный тест"""
         # Исходные данные пользователя
@@ -80,11 +80,11 @@ class TestHandlerNewReplenishment:
         initial_total_sum = create_new_user.total_sum_replenishment
         user_id = create_new_user.user_id
 
-        replenishment =  await self.create_and_update_replenishment(user_id, create_type_payment.type_payment_id)
-
-        q = event_queue
-        await asyncio.sleep(0) # для передачи управления
-        await q.join() # дождёмся пока очередь событий выполнится
+        replenishment = await self.create_and_update_replenishment(
+            user_id,
+            create_type_payment.type_payment_id,
+            processed_replenishment
+        )
 
         async with get_db() as session_db:
             # Проверяем, что баланс пользователя обновился
@@ -142,10 +142,11 @@ class TestHandlerNewReplenishment:
             replacement_fake_bot,
             replacement_fake_keyboard,
             replacement_exception_aiogram,
+            processed_replenishment,
             get_engine,
             create_new_user,
             create_type_payment,
-            start_event_handler,
+            clean_rabbit
     ):
         """
         Интеграционный тест:
@@ -153,7 +154,6 @@ class TestHandlerNewReplenishment:
         - Пользователь получает сообщение об ошибке
         - В лог уходит сообщение об ошибке
         """
-
 
         user = create_new_user
 
@@ -163,20 +163,17 @@ class TestHandlerNewReplenishment:
                 lambda sync_conn: Table(WalletTransaction.__table__, MetaData()).drop(sync_conn)
             )
 
-        # создаём пополнение → переводим в processing → триггерим handler_new_replenishment
-        new_replenishment = await self.create_and_update_replenishment(
-            user.user_id, create_type_payment.type_payment_id
-        )
-
         # перенастроим канал логов (иначе send_log ничего не отправит)
         settings = await get_settings()
         settings.channel_for_logging_id = 123456789
         await update_settings(settings)
 
-        # ждём обработки события
-        q = event_queue
-        await asyncio.sleep(0)  # передать управление
-        await q.join()
+        # создаём пополнение → переводим в processing → триггерим handler_new_replenishment
+        new_replenishment = await self.create_and_update_replenishment(
+            user.user_id,
+            create_type_payment.type_payment_id,
+            processed_replenishment
+        )
 
         # проверяем, что ReplenishmentFailed отработал
         i18n = get_i18n(user.language, "replenishment_dom")
@@ -209,9 +206,10 @@ class TestHandlerNewReplenishment:
             replacement_fake_bot,
             replacement_fake_keyboard,
             replacement_exception_aiogram,
+            processed_replenishment,
             create_new_user,
             create_type_payment,
-            start_event_handler
+            clean_rabbit
     ):
         """
         Проверяет корректную работу on_replenishment_completed:
@@ -234,8 +232,8 @@ class TestHandlerNewReplenishment:
             username=user.username
         )
 
-        from src.services.replenishments_event.event_handlers_replenishments  import on_replenishment_completed
-        await on_replenishment_completed(event)
+        await publish_event(event.model_dump(), 'replenishment.completed')  # публикация события
+        await asyncio.wait_for(processed_replenishment.wait(), timeout=5.0)  # ожидание завершения события
 
         i18n = get_i18n(user.language, "replenishment_dom")
 
@@ -271,9 +269,10 @@ class TestHandlerNewReplenishment:
             replacement_fake_bot,
             replacement_fake_keyboard,
             replacement_exception_aiogram,
+            processed_replenishment,
             create_new_user,
             create_type_payment,
-            start_event_handler
+            clean_rabbit
     ):
         """
         Проверяет корректную работу on_replenishment_failed:
@@ -293,8 +292,8 @@ class TestHandlerNewReplenishment:
             username=user.username
         )
 
-        from src.services.replenishments_event.event_handlers_replenishments  import on_replenishment_failed
-        await on_replenishment_failed(event)
+        await publish_event(event.model_dump(), 'replenishment.failed')  # публикация события
+        await asyncio.wait_for(processed_replenishment.wait(), timeout=5.0)  # ожидание завершения события
 
         i18n = get_i18n(user.language, "replenishment_dom")
 
@@ -325,11 +324,12 @@ class TestHandlerNewIncomeRef:
             replacement_fake_bot,
             replacement_fake_keyboard,
             replacement_exception_aiogram,
+            processed_referrals,
             create_new_user,
             create_referral,
             create_replenishment,
-            start_event_handler,
-            clean_db
+            clean_db,
+            clean_rabbit
         ):
         """Проверяем корректную работу handler_new_income_referral"""
         from src.services.referrals.actions import get_referral_lvl
@@ -352,12 +352,8 @@ class TestHandlerNewIncomeRef:
             username = referral.username
         )
 
-        q = event_queue  # зафиксировали ссылку один раз
-        q.put_nowait(event)
-
-        # ждём пока событие обработается
-        await asyncio.sleep(0)
-        await q.join()
+        await publish_event(event.model_dump(), 'referral.new_referral')  # публикация события
+        await asyncio.wait_for(processed_referrals.wait(), timeout=5.0)  # ожидание завершения события
 
         async with get_db() as session_db:
             # проверка пользователя (владельца реферала)
@@ -511,14 +507,13 @@ class TestHandlerNewIncomeRef:
 @pytest.mark.parametrize('should_become_inactive',[True, False])
 async def test_handler_new_activate_promo_code(
     should_become_inactive,
-    replacement_fake_bot,
-    replacement_fake_keyboard,
-    replacement_exception_aiogram,
-    start_event_handler,
+    replacement_needed_modules,
+    processed_promo_code,
     clean_db,
     create_promo_code,
     create_new_user,
-    create_settings
+    create_settings,
+    clean_rabbit
 ):
     from src.services.discounts.events.schemas import NewActivatePromoCode
     from src.services.discounts.models import PromoCodes, ActivatedPromoCodes
@@ -541,11 +536,9 @@ async def test_handler_new_activate_promo_code(
         promo_code_id = old_promo.promo_code_id,
         user_id = user.user_id
     )
-    q = event_queue  # зафиксировали ссылку один раз
-    q.put_nowait(event)
 
-    await asyncio.sleep(0)
-    await q.join() # ждём пока событие обработается
+    await publish_event(event.model_dump(), 'promo_code.activated') # публикация события
+    await asyncio.wait_for(processed_promo_code.wait(), timeout=5.0) # ожидание завершения события
 
     async with get_db() as session_db:
         result = await session_db.execute(
@@ -618,13 +611,14 @@ class TestHandlerNewActivatedVoucher:
 
     @pytest.mark.asyncio
     async def test_successful_voucher_activation(
-            self,
-            replacement_fake_bot,
-            replacement_fake_keyboard,
-            replacement_exception_aiogram,
-            create_new_user,
-            create_voucher,
-            start_event_handler
+        self,
+        replacement_fake_bot,
+        replacement_fake_keyboard,
+        replacement_exception_aiogram,
+        processed_voucher,
+        create_new_user,
+        create_voucher,
+        clean_rabbit
     ):
         """Тест успешной активации ваучера"""
         user = create_new_user
@@ -637,10 +631,8 @@ class TestHandlerNewActivatedVoucher:
             user, voucher, initial_balance, expected_balance
         )
 
-        # Отправляем событие в очередь
-        event_queue.put_nowait(event)
-        await asyncio.sleep(0)
-        await event_queue.join()
+        await publish_event(event.model_dump(), 'voucher.activated')  # публикация события
+        await asyncio.wait_for(processed_voucher.wait(), timeout=5.0)  # ожидание завершения события
 
         async with get_db() as session_db:
             # Проверяем обновление ваучера
@@ -685,9 +677,10 @@ class TestHandlerNewActivatedVoucher:
             replacement_fake_bot,
             replacement_fake_keyboard,
             replacement_exception_aiogram,
+            processed_voucher,
             create_new_user,
             create_voucher,
-            start_event_handler
+            clean_rabbit
     ):
         """Тест активации ваучера с достижением лимита активаций"""
         user = create_new_user
@@ -710,9 +703,8 @@ class TestHandlerNewActivatedVoucher:
 
         event = await self.create_voucher_activation_event(user, voucher, initial_balance, expected_balance)
 
-        event_queue.put_nowait(event)
-        await asyncio.sleep(0)
-        await event_queue.join()
+        await publish_event(event.model_dump(), 'voucher.activated')  # публикация события
+        await asyncio.wait_for(processed_voucher.wait(), timeout=5.0)  # ожидание завершения события
 
         async with get_db() as session_db:
             # Проверяем, что ваучер стал невалидным
@@ -743,10 +735,11 @@ class TestHandlerNewActivatedVoucher:
             replacement_fake_bot,
             replacement_fake_keyboard,
             replacement_exception_aiogram,
+            processed_voucher,
             create_new_user,
             create_voucher,
-            start_event_handler,
-            get_engine
+            get_engine,
+            clean_rabbit
     ):
         """Тест обработки ошибки при активации ваучера"""
         user = create_new_user
@@ -771,9 +764,8 @@ class TestHandlerNewActivatedVoucher:
         settings.channel_for_logging_id = 123456789
         await update_settings(settings)
 
-        event_queue.put_nowait(event)
-        await asyncio.sleep(0)
-        await event_queue.join()
+        await publish_event(event.model_dump(), 'voucher.activated')  # публикация события
+        await asyncio.wait_for(processed_voucher.wait(), timeout=5.0)  # ожидание завершения события
 
         # Проверяем отправку лога об ошибке
         i18n = get_i18n('ru', "replenishment_dom")
@@ -793,7 +785,6 @@ class TestHandlerNewActivatedVoucher:
             replacement_exception_aiogram,
             create_new_user,
             create_voucher,
-            start_event_handler
     ):
         """Тест отправки сообщений при истечении ваучера"""
         from src.services.discounts.utils.set_not_valid import send_set_not_valid_voucher
@@ -843,7 +834,6 @@ class TestHandlerNewActivatedVoucher:
             replacement_fake_bot,
             replacement_fake_keyboard,
             replacement_exception_aiogram,
-            start_event_handler
     ):
         """Тест отправки сообщения об ошибке"""
         from src.services.discounts.events import send_failed

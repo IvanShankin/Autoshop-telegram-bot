@@ -11,9 +11,11 @@ from src.utils.send_messages import send_log
 
 
 async def voucher_event_handler(event):
-    """Обрабатывает events запуская определённую функцию"""
-    if isinstance(event, NewActivationVoucher):
-        await handler_new_activated_voucher(event)
+    payload = event["payload"]
+
+    if event["event"] == "voucher.activated":
+        obj = NewActivationVoucher.model_validate(payload)
+        await handler_new_activated_voucher(obj)
 
 async def handler_new_activated_voucher(new_activation_voucher: NewActivationVoucher):
     """Обрабатывает новую активацию ваучера"""

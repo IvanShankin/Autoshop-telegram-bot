@@ -1,12 +1,12 @@
 from datetime import datetime
 from aiogram.exceptions import TelegramForbiddenError
-from sqlalchemy import update
+from sqlalchemy import update, select
 
+from src.broker.producer import publish_event
 from src.config import DT_FORMAT_FOR_LOGS
 from src.services.users.actions import update_user, get_user
 from src.services.users.models import WalletTransaction, UserAuditLogs, Replenishments
 from src.services.database.database import get_db
-from src.services.database.events.core_event import push_deferred_event
 from src.services.replenishments_event.schemas import NewReplenishment
 from src.utils.i18n import get_i18n
 from src.utils.bot_instance import get_bot_logger
@@ -16,14 +16,18 @@ from src.utils.core_logger import logger
 from src.utils.send_messages import send_log
 
 
-async def user_event_handler(event):
-    """Обрабатывает events запуская определённую функцию"""
-    if isinstance(event, NewReplenishment):
-        await handler_new_replenishment(event)
-    elif isinstance(event, ReplenishmentCompleted):
-        await on_replenishment_completed(event)
-    elif isinstance(event, ReplenishmentFailed):
-        await on_replenishment_failed(event)
+async def replenishment_event_handler(event):
+    payload = event["payload"]
+
+    if event["event"] == "replenishment.new_replenishment":
+        obj = NewReplenishment.model_validate(payload)
+        await handler_new_replenishment(obj)
+    if event["event"] == "replenishment.completed":
+        obj = ReplenishmentCompleted.model_validate(payload)
+        await on_replenishment_completed(obj)
+    if event["event"] == "replenishment.failed":
+        obj = ReplenishmentFailed.model_validate(payload)
+        await on_replenishment_failed(obj)
 
 async def handler_new_replenishment(new_replenishment: NewReplenishment):
     """Обрабатывает создание нового пополнения у пользователя"""
@@ -107,35 +111,28 @@ async def handler_new_replenishment(new_replenishment: NewReplenishment):
             logger.error(f"Не удалось обновить данные о новом пополнении. Ошибка: {str(e)}")
             await send_log(f"Не удалось обновить данные о новом пополнении. \nОшибка: {str(e)}")
 
-    async with get_db() as session_db:
-        # откладываем событие
-        if money_credited:
-            push_deferred_event(
-                session_db,
-                ReplenishmentCompleted(
-                    user_id=new_replenishment.user_id,
-                    replenishment_id=new_replenishment.replenishment_id,
-                    amount=new_replenishment.amount,
-                    total_sum_replenishment=total_sum_replenishment,
-                    error=error,
-                    error_str=error_str,
-                    language=language,
-                    username=username
-                )
-            )
-        else:
-            push_deferred_event(
-                session_db,
-                ReplenishmentFailed(
-                    user_id=new_replenishment.user_id,
-                    replenishment_id=new_replenishment.replenishment_id,
-                    error_str=error_str,
-                    language=language,
-                    username=username
-                )
-            )
-
-        await session_db.commit() # для того что бы в очередь добавились события
+    # откладываем событие
+    if money_credited:
+        event = ReplenishmentCompleted(
+            user_id=new_replenishment.user_id,
+            replenishment_id=new_replenishment.replenishment_id,
+            amount=new_replenishment.amount,
+            total_sum_replenishment=total_sum_replenishment,
+            error=error,
+            error_str=error_str,
+            language=language,
+            username=username
+        )
+        await publish_event(event.model_dump(), 'replenishment.completed')  # публикация события
+    else:
+        event = ReplenishmentFailed(
+            user_id=new_replenishment.user_id,
+            replenishment_id=new_replenishment.replenishment_id,
+            error_str=error_str,
+            language=language,
+            username=username
+        )
+        await publish_event(event.model_dump(), 'replenishment.failed')  # публикация события
 
 async def on_replenishment_completed(event: ReplenishmentCompleted):
     """Обрабатывается когда пользователь получил деньги и не возникло ошибки"""

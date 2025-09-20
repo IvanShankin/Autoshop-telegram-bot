@@ -8,6 +8,7 @@ from pathlib import Path
 load_dotenv()
 TOKEN_BOT = os.getenv('TOKEN_BOT')
 MAIN_ADMIN = int(os.getenv('MAIN_ADMIN'))
+RABBITMQ_URL = os.getenv('RABBITMQ_URL')
 SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = "HS256"
 

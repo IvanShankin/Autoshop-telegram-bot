@@ -4,8 +4,7 @@ from src.services.discounts.events.event_handlers_promo_code  import (handler_ne
                                                                       on_new_activate_promo_code_failed,
                                                                       promo_code_event_handler)
 
-from src.services.discounts.events.event_handlers_voucher import (handler_new_activated_voucher,
-                                                                  send_failed,
+from src.services.discounts.events.event_handlers_voucher import ( handler_new_activated_voucher, send_failed,
                                                                   voucher_event_handler)
 
 from src.services.discounts.events.schemas import NewActivatePromoCode, NewActivationVoucher

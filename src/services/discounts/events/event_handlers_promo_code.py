@@ -13,8 +13,11 @@ from src.utils.send_messages import send_log
 
 
 async def promo_code_event_handler(event):
-    if isinstance(event, NewActivatePromoCode):
-        await handler_new_activate_promo_code(event)
+    payload = event["payload"]
+
+    if event["event"] == "promo_code.activated":
+        obj = NewActivatePromoCode.model_validate(payload)
+        await handler_new_activate_promo_code(obj)
 
 async def handler_new_activate_promo_code(new_activate: NewActivatePromoCode):
     """Необходимо вызывать когда совершена покупка."""

@@ -1,25 +1,27 @@
 import asyncio
 import os
 import sys
+from contextlib import suppress
 
+import aio_pika
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from src.services.database.database import SQL_DB_URL
 from src.services.database import database
-from src.services.database.events import core_event
 from src.redis_dependencies.filling_redis import filling_all_redis
 
 from tests.fixtures.helper_fixture import *
+from tests.fixtures.monkeypatch_data import replacement_redis, replacement_fake_bot, replacement_fake_keyboard, replacement_exception_aiogram
 
 load_dotenv()  # Загружает переменные из .env
 MODE = os.getenv('MODE')
+RABBITMQ_URL = os.getenv('RABBITMQ_URL')
 
 import pytest_asyncio
 from src.services.database.filling_database import create_database
 
-# для monkeypatch
-from tests.fixtures.monkeypatch_data import replacement_redis
+consumer_started = False
 
 # ---------- фикстуры ----------
 
@@ -57,22 +59,54 @@ async def clean_redis(replacement_redis):
 
     await filling_all_redis()
 
-
-@pytest_asyncio.fixture(scope="function", autouse=True)
-async def reset_event_queue():
-    """Пересоздаём event_queue перед каждым тестом, чтобы в нём не оставались старые события"""
-    new_q = asyncio.Queue()
-    core_event.event_queue = new_q
-
-    # пробегаем по всем загруженным модулям и заменяем, если где-то был импорт event_queue
-    for mod in list(sys.modules.values()):
-        if not mod:
-            continue
-        if hasattr(mod, "event_queue"):
-            setattr(mod, "event_queue", new_q)
-
+@pytest_asyncio.fixture(scope="function")
+async def replacement_needed_modules(
+        replacement_redis,
+        replacement_fake_bot,
+        replacement_fake_keyboard,
+        replacement_exception_aiogram,
+):
+    """Заменит все необходимые модули"""
     yield
 
+@pytest_asyncio.fixture(scope="function")
+async def start_consumer():
+    """ Запускает consumer и корректно его останавливает по завершению теста. """
+    from src.broker.consumer import consume_events
+
+    started_event = asyncio.Event()
+    stop_event = asyncio.Event()
+
+    task = asyncio.create_task(consume_events(started_event, stop_event))
+
+    # ждём сигнала, что consumer реально подписался на очередь
+    await asyncio.wait_for(started_event.wait(), timeout=7.0)
+
+    try:
+        yield
+    finally:
+        # даём время аккуратно завершить обработку текущего сообщения
+        stop_event.set()
+        try:
+            # ждем, но не вечно — чтобы тест не зависал
+            await asyncio.wait_for(task, timeout=5.0)
+        except asyncio.TimeoutError:
+            # если не завершился — принудительно отменяем
+            task.cancel()
+            with suppress(asyncio.CancelledError):
+                await task
+
+@pytest_asyncio.fixture(scope="function")
+async def clean_rabbit(start_consumer):
+    connection = await aio_pika.connect_robust(RABBITMQ_URL)
+    channel = await connection.channel()
+    queues_to_purge = ["events_db"]
+    for queue_name in queues_to_purge:
+        queue = await channel.declare_queue(queue_name, durable=True)
+        await queue.purge()
+    await channel.close()
+    await connection.close()
+    yield
 
 @pytest_asyncio.fixture
 async def get_engine():

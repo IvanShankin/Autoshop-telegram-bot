@@ -5,9 +5,9 @@ import orjson
 from dateutil.parser import parse
 from sqlalchemy import update, select
 
+from src.broker.producer import publish_event
 from src.redis_dependencies.core_redis import get_redis
 from src.services.database.database import get_db
-from src.services.database.events.core_event import push_event_queue
 from src.services.discounts.events import NewActivationVoucher
 from src.services.discounts.models import Vouchers, VoucherActivations
 from src.services.users.actions import update_user, get_user
@@ -266,7 +266,7 @@ async def activate_voucher(user: Users, code: str, language: str) -> str:
         balance_before = balance_before,
         balance_after = user.balance
     )
-    push_event_queue(new_event)
+    await publish_event(new_event.model_dump(), "voucher.activated")
 
     return i18n.gettext(
         "Voucher successfully activated! \n\nVoucher amount: {amount} \nCurrent balance: {new_balance}"

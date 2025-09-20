@@ -15,10 +15,12 @@ from src.services.replenishments_event.schemas import ReplenishmentCompleted
 from src.utils.core_logger import logger
 from src.utils.send_messages import send_log
 
-
 async def referral_event_handler(event):
-    if isinstance(event, ReplenishmentCompleted):
-        await handler_new_income_referral(event)
+    payload = event["payload"]
+
+    if event["event"] == "referral.new_referral":
+        obj = ReplenishmentCompleted.model_validate(payload)
+        await handler_new_income_referral(obj)
 
 async def handler_new_income_referral(new_replenishment: ReplenishmentCompleted):
     money_credited = False

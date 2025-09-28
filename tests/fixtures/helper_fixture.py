@@ -3,10 +3,19 @@ from datetime import datetime, timezone, timedelta
 import orjson
 import pytest_asyncio
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from src.redis_dependencies.core_redis import get_redis
+from src.redis_dependencies.filling_redis import filling_sold_accounts_by_owner_id, \
+    filling_sold_accounts_by_accounts_id, filling_account_categories_by_service_id, \
+    filling_account_categories_by_category_id, filling_all_account_services, filling_account_services, \
+    filling_product_accounts_by_account_id, filling_product_accounts_by_category_id
 from src.services.admins.models import Admins
 from src.services.discounts.models import PromoCodes, Vouchers
+from src.services.referrals.utils import create_unique_referral_code
+from src.services.selling_accounts.models import SoldAccounts, TypeAccountServices, SoldAccountsTranslation, \
+    AccountServices, AccountCategories, AccountCategoryTranslation, ProductAccounts
+from src.services.selling_accounts.models.models_with_tranlslate import SoldAccountsFull, AccountCategoryFull
 from src.services.users.models import Users, Replenishments, NotificationSettings
 from src.services.system.models import TypePayments, Settings
 from src.services.database.database import get_db
@@ -14,84 +23,90 @@ from src.services.referrals.models import Referrals
 
 
 @pytest_asyncio.fixture
-async def create_new_user()->Users:
-    """
-    Создаст нового пользователя в БД
-    :return: Users
-    """
-    new_user = Users(
-        username="test_username",
-        unique_referral_code="test_referral_code",
-    )
-    async with get_db() as session_db:
-        session_db.add(new_user)
-        await session_db.commit()
-        await session_db.refresh(new_user)
+async def create_new_user():
+    """ Создаст нового пользователя в БД"""
+    async def _fabric(user_name: str = "test_username", union_ref_code: str = None) -> Users:
+        if union_ref_code is None:
+            union_ref_code = await create_unique_referral_code()
 
-        new_notifications = NotificationSettings(
-            user_id=new_user.user_id
+        new_user = Users(
+            username=user_name,
+            unique_referral_code=union_ref_code,
         )
-        session_db.add(new_notifications)
-        await session_db.commit()
 
-    return new_user
+        async with get_db() as session_db:
+            session_db.add(new_user)
+            await session_db.commit()
+            await session_db.refresh(new_user)
+
+            new_notifications = NotificationSettings(
+               user_id=new_user.user_id
+            )
+            session_db.add(new_notifications)
+            await session_db.commit()
+
+        return new_user
+
+    return _fabric
 
 @pytest_asyncio.fixture
 async def create_admin_fix(create_new_user):
-    async with get_db() as session_db:
-        new_admin = Admins(user_id = create_new_user.user_id)
-        session_db.add(new_admin)
-        await session_db.commit()
-        await session_db.refresh(new_admin)
+    async def _fabric(filling_redis: bool = True, user_id: int = None) -> Admins:
+        if user_id is None:
+            user = await create_new_user()
+            user_id = user.user_id
 
-    async with get_redis() as session_redis:
-        await session_redis.set(f"admin:{new_admin.user_id}", '_')
+        async with get_db() as session_db:
+            new_admin = Admins(user_id = user_id)
+            session_db.add(new_admin)
+            await session_db.commit()
+            await session_db.refresh(new_admin)
 
-    return new_admin
+        if filling_redis:
+            async with get_redis() as session_redis:
+                await session_redis.set(f"admin:{new_admin.user_id}", '_')
+
+        return new_admin
+
+    return _fabric
 
 @pytest_asyncio.fixture
-async def create_referral(create_new_user)->(Referrals, Users, Users):
+async def create_referral(create_new_user):
     """
     Создаёт тестовый реферала (у нового пользователя появляется владелец)
     :return Владельца и Реферала
     """
-    async with get_db() as session_db:
-        # создаём владельца
-        owner = Users(
-            username="owner_user",
-            language="ru",
-            unique_referral_code="owner_code_123",
-            balance=0,
-            total_sum_replenishment=0,
-            total_profit_from_referrals=0,
-        )
-        session_db.add(owner)
-        await session_db.commit()
-        await session_db.refresh(owner)
+    async def _fabric(owner_id: int = None) -> (Referrals, Users, Users):
+        async with get_db() as session_db:
+            user = await create_new_user() # новый реферал
 
-        new_notifications = NotificationSettings(
-            user_id=owner.user_id
-        )
-        session_db.add(new_notifications)
-        await session_db.commit()
+            if owner_id is None: # создаём владельца
+                owner = await create_new_user(user_name='owner_user')
+                owner_id = owner.user_id
+            else:
+                result_db = await session_db.execute(select(Users).where(Users.user_id == owner_id))
+                owner = result_db.scalar()
 
-        # связываем реферала и владельца
-        referral = Referrals(
-            referral_id=create_new_user.user_id,
-            owner_user_id=owner.user_id,
-            level=0,
-        )
-        session_db.add(referral)
-        await session_db.commit()
-        await session_db.refresh(referral)
+            # связываем реферала и владельца
+            referral = Referrals(
+                referral_id=user.user_id,
+                owner_user_id=owner_id,
+                level=0,
+            )
+            session_db.add(referral)
+            await session_db.commit()
+            await session_db.refresh(referral)
 
-    return owner, create_new_user
+        return owner, user
+
+    return _fabric
 
 
 @pytest_asyncio.fixture
 async def create_replenishment(create_new_user)-> Replenishments:
     """Создаёт пополнение для пользователя"""
     async with get_db() as session_db:
+        user = await create_new_user()
         # создаём тип платежа (если ещё нет)
         result = await session_db.execute(select(TypePayments))
         type_payment = result.scalars().first()
@@ -106,7 +121,7 @@ async def create_replenishment(create_new_user)-> Replenishments:
             await session_db.refresh(type_payment)
 
         repl = Replenishments(
-            user_id=create_new_user.user_id,
+            user_id=user.user_id,
             type_payment_id=type_payment.type_payment_id,
             origin_amount=100,
             amount=110, # сумма пополнения
@@ -181,8 +196,9 @@ async def create_promo_code() -> PromoCodes:
 @pytest_asyncio.fixture
 async def create_voucher(create_new_user) -> Vouchers:
     """Создаст новый ваучер в БД и в redis."""
+    user = await create_new_user()
     voucher = Vouchers(
-        creator_id=create_new_user.user_id,
+        creator_id=user.user_id,
         activation_code="TESTCODE",
         amount=100,
         activated_counter=0,
@@ -201,3 +217,224 @@ async def create_voucher(create_new_user) -> Vouchers:
         await session_redis.set(f'voucher:{voucher.activation_code}', orjson.dumps(promo_dict))
 
     return voucher
+
+@pytest_asyncio.fixture
+async def create_type_account_service():
+    async def _factory(filling_redis: bool = True, name: str = "service_name") -> TypeAccountServices:
+        async with get_db() as session_db:
+            new_type = TypeAccountServices(name=name)
+            session_db.add(new_type)
+            await session_db.commit()
+            await session_db.refresh(new_type)
+
+        if filling_redis:
+            await filling_all_account_services()
+            await filling_account_services()
+
+        return new_type
+
+    return _factory
+
+@pytest_asyncio.fixture
+async def create_account_service(create_type_account_service):
+    async def _factory(
+            filling_redis: bool = True,
+            name: str = "service_name",
+            index: int = None,
+            type_account_service_id: int = None,
+            show: bool = True,
+    ) -> AccountServices:
+        async with get_db() as session_db:
+            if index is None:
+                result_db = await session_db.execute(select(AccountServices).order_by(AccountServices.index.asc()))
+                all_services: list[AccountServices] = result_db.scalars().all()  # тут уже отсортированный по index
+                index = max((service.index for service in all_services), default=-1) + 1
+            if type_account_service_id is None:
+                service = await create_type_account_service(filling_redis=filling_redis)
+                type_account_service_id = service.type_account_service_id
+
+            new_service = AccountServices(
+                name=name,
+                index=index,
+                show=show,
+                type_account_service_id=type_account_service_id,
+            )
+            session_db.add(new_service)
+            await session_db.commit()
+            await session_db.refresh(new_service)
+
+        if filling_redis:
+            await filling_all_account_services()
+            await filling_account_services()
+
+        return new_service
+
+    return _factory
+
+
+@pytest_asyncio.fixture
+async def create_account_category(create_account_service):
+    async def _factory(
+            filling_redis: bool = True,
+            account_service_id: int = None,
+            parent_id: int = None,
+            index: int = None,
+            show: bool = True,
+            is_main: bool = True,
+            is_accounts_storage: bool = False,
+            price_one_account: int = 150,
+            cost_price_one_account: int = 100,
+            language: str = "ru",
+            name: str = "name",
+            description: str = "description"
+    ) -> AccountCategoryFull:
+        async with get_db() as session_db:
+            if account_service_id is None:
+                service = await create_account_service(filling_redis=filling_redis)
+                account_service_id = service.account_service_id
+            if parent_id is not None:
+                is_main = False
+            if index is None:
+                result_db = await session_db.execute(
+                    select(AccountCategories)
+                    .where(AccountCategories.parent_id == parent_id)
+                    .order_by(AccountCategories.index.asc())
+                )
+                all_services: list[AccountCategories] = result_db.scalars().all()  # тут уже отсортированный по index
+                index = max((service.index for service in all_services), default=-1) + 1
+
+            new_category = AccountCategories(
+                account_service_id=account_service_id,
+                parent_id = parent_id,
+                index = index,
+                show = show,
+                is_main = is_main,
+                is_accounts_storage = is_accounts_storage,
+                price_one_account = price_one_account,
+                cost_price_one_account = cost_price_one_account
+            )
+            session_db.add(new_category)
+            await session_db.commit()
+            await session_db.refresh(new_category)
+
+            new_translate = AccountCategoryTranslation(
+                account_category_id=new_category.account_category_id,
+                lang=language,
+                name=name,
+                description=description
+            )
+            session_db.add(new_translate)
+            await session_db.commit()
+
+            # Перечитываем объект с подгруженными translations
+            result = await session_db.execute(
+                select(AccountCategories)
+                .options(selectinload(AccountCategories.translations))
+                .where(AccountCategories.account_category_id == new_category.account_category_id)
+            )
+            new_category = result.scalar_one()
+
+            full_category = AccountCategoryFull.from_orm_with_translation(new_category, language)
+            if filling_redis:
+                await filling_account_categories_by_service_id()
+                await filling_account_categories_by_category_id()
+
+        return full_category
+    return _factory
+
+@pytest_asyncio.fixture
+async def create_product_account(create_type_account_service, create_account_category):
+    async def _factory(
+            filling_redis: bool = True,
+            type_account_service_id: int = None,
+            account_category_id: int = None,
+            hash_login: str = 'hash_login',
+            hash_password: str = 'hash_password'
+    ) -> ProductAccounts:
+        async with get_db() as session_db:
+            if type_account_service_id is None:
+                service_type = await create_type_account_service(filling_redis=filling_redis)
+                type_account_service_id = service_type.type_account_service_id
+            if account_category_id is None:
+                category = await create_account_category(filling_redis=filling_redis)
+                account_category_id = category.account_category_id
+
+            new_account = ProductAccounts(
+                type_account_service_id = type_account_service_id,
+                account_category_id = account_category_id,
+                hash_login = hash_login,
+                hash_password = hash_password
+            )
+            session_db.add(new_account)
+            await session_db.commit()
+            await session_db.refresh(new_account)
+
+            if filling_redis:
+                await filling_product_accounts_by_category_id()
+                await filling_product_accounts_by_account_id()
+
+        return new_account
+
+    return _factory
+
+@pytest_asyncio.fixture
+async def create_sold_account(create_new_user, create_type_account_service):
+    async def _factory(
+            filling_redis: bool = True,
+            owner_id: int = None,
+            type_account_service_id: int = None,
+            is_valid: bool = True,
+            is_deleted: bool = False,
+            hash_login: str = 'hash_login',
+            hash_password: str = 'hash_password',
+            language: str = "ru",
+            name: str = "name",
+            description: str = "description"
+    ) -> SoldAccountsFull:
+        async with get_db() as session_db:
+            if owner_id is None:
+                user = await create_new_user()
+                owner_id = user.user_id
+            if type_account_service_id is None:
+                service = await create_type_account_service(filling_redis=filling_redis)
+                type_account_service_id = service.type_account_service_id
+
+            new_sold_account = SoldAccounts(
+                owner_id = owner_id,
+                type_account_service_id = type_account_service_id,
+                is_valid = is_valid,
+                is_deleted = is_deleted,
+                hash_login = hash_login,
+                hash_password = hash_password
+            )
+
+            session_db.add(new_sold_account)
+            await session_db.commit()
+            await session_db.refresh(new_sold_account)
+
+            new_translate = SoldAccountsTranslation(
+                sold_account_id = new_sold_account.sold_account_id,
+                lang = language,
+                name = name,
+                description = description
+            )
+            session_db.add(new_translate)
+            await session_db.commit()
+
+            # Перечитываем объект с подгруженными translations
+            result = await session_db.execute(
+                select(SoldAccounts)
+                .options(selectinload(SoldAccounts.translations))
+                .where(SoldAccounts.sold_account_id == new_sold_account.sold_account_id)
+            )
+            new_sold_account = result.scalar_one()
+
+            full_account = SoldAccountsFull.from_orm_with_translation(new_sold_account, language)
+
+        if filling_redis:
+            await filling_sold_accounts_by_owner_id()
+            await filling_sold_accounts_by_accounts_id()
+
+        return full_account
+    return _factory
+

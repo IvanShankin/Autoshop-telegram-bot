@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 from typing import Type, Any
 
@@ -6,6 +7,7 @@ import pytest
 from dateutil.parser import parse
 
 import src.redis_dependencies.filling_redis as filling
+from src.services.selling_accounts.models.models_with_tranlslate import SoldAccountsFull
 from src.services.users.models import Users, BannedAccounts
 from src.services.database.database import get_db
 from src.services.admins.models import Admins
@@ -15,7 +17,7 @@ from src.services.selling_accounts.models import (
     ProductAccounts, SoldAccounts, AccountCategoryTranslation, SoldAccountsTranslation
 )
 from src.redis_dependencies.core_redis import get_redis
-
+from tests.fixtures.helper_fixture import create_sold_account, create_new_user
 
 class TestBase:
     """Базовый класс для тестов с общими методами"""
@@ -66,12 +68,16 @@ class TestBase:
         )
 
     async def create_account_category(self, account_service: AccountServices,
+                                      index: int = 0,
+                                      show: bool = True,
                                       is_main: bool = True,
                                       is_storage: bool = False) -> AccountCategories:
         """Создает категорию аккаунта"""
         return await self.add_and_refresh(
             AccountCategories(
                 account_service_id=account_service.account_service_id,
+                index=index,
+                show=show,
                 is_main=is_main,
                 is_accounts_storage=is_storage
             )
@@ -141,16 +147,14 @@ class TestFillRedisSingleObjectsMultilang(TestBase):
         )
 
         translations = []
-        for lang, category_name, service_name, name, description in [
-            ('ru', "Категория RU", "Сервис RU", "Имя RU", "Описание RU"),
-            ('en', "Category EN", "Service EN", "Name EN", "Description EN")
+        for lang, name, description in [
+            ('ru', "Имя RU", "Описание RU"),
+            ('en', "Name EN", "Description EN")
         ]:
             translation = await self.add_and_refresh(
                 SoldAccountsTranslation(
                     sold_account_id=sold_account.sold_account_id,
                     lang=lang,
-                    category_name=category_name,
-                    service_name=service_name,
                     name=name,
                     description=description
                 )
@@ -172,8 +176,6 @@ class TestFillRedisSingleObjectsMultilang(TestBase):
             expected_fields = {
                 "sold_account_id": sold_account.sold_account_id,
                 "owner_id": sold_account.owner_id,
-                "category_name": tr.category_name,
-                "service_name": tr.service_name,
                 "name": tr.name,
                 "description": tr.description
             }
@@ -203,7 +205,7 @@ class TestFillRedisGroupedObjectsMultilang(TestBase):
         ]
 
         for is_main, is_storage, translations_data in categories_data:
-            category = await self.create_account_category(account_service, is_main, is_storage)
+            category = await self.create_account_category(account_service, is_main = is_main, is_storage = is_storage)
 
             for lang, name, description in translations_data:
                 await self.add_and_refresh(
@@ -241,12 +243,12 @@ class TestFillRedisGroupedObjectsMultilang(TestBase):
 
         # Create sold accounts with translations
         accounts_data = [
-            (False, "Категория A", "Сервис A", "Имя А", "Описание A"),
-            (False, "Категория B", "Сервис B", "Имя B", "Описание B")
+            (False, "Имя А", "Описание A"),
+            (False, "Имя B", "Описание B")
         ]
 
         sold_accounts = []
-        for is_deleted, category_name, service_name, name, description in accounts_data:
+        for is_deleted, name, description in accounts_data:
             sold_account = await self.add_and_refresh(
                 SoldAccounts(
                     owner_id=user.user_id,
@@ -260,8 +262,6 @@ class TestFillRedisGroupedObjectsMultilang(TestBase):
                 SoldAccountsTranslation(
                     sold_account_id=sold_account.sold_account_id,
                     lang="ru",
-                    category_name=category_name,
-                    service_name=service_name,
                     name=name,
                     description=description
                 )
@@ -348,7 +348,7 @@ class TestFillRedisSingleObjects(TestBase):
         await filling.filling_type_account_services()
 
         async with get_redis() as session_redis:
-            val = await session_redis.get(f"type_account_service:{type_service.name}")
+            val = await session_redis.get(f"type_account_service:{type_service.type_account_service_id}")
 
         self.compare_dicts(type_service, val)
 
@@ -458,3 +458,88 @@ class TestFillRedisGroupedObjects(TestBase):
         product_ids = {prod['account_id'] for prod in data}
         expected_ids = {product.account_id for product in products}
         assert product_ids == expected_ids
+
+
+@pytest.mark.asyncio
+async def test_filling_types_account_service(create_type_account_service):
+    service_1 = await create_type_account_service()
+    service_2 = await create_type_account_service()
+
+    await filling.filling_all_types_account_service()
+
+    async with get_redis() as session_redis:
+        val = await session_redis.get("types_account_service")
+        list_types = orjson.loads(val)
+
+    assert service_1.to_dict() in list_types
+    assert service_2.to_dict() in list_types
+
+
+@pytest.mark.asyncio
+async def test_filling_all_account_services():
+    creator = TestBase()
+
+    type_service = await creator.create_type_service("product_grouped_type")
+    account_service = await creator.create_account_service(type_service, "Product Grouped Service")
+    account_service = account_service.to_dict()
+
+    await filling.filling_all_account_services()
+
+    async with get_redis() as session_redis:
+        val = await session_redis.get(f"account_services")
+        list_account_service = orjson.loads(val)
+
+    assert account_service in list_account_service
+
+
+@pytest.mark.asyncio
+async def test_filling_sold_account_only_one_owner(create_new_user, create_sold_account):
+    user = await create_new_user()
+
+    account_1: SoldAccountsFull = await create_sold_account(
+        filling_redis=False,
+        owner_id=user.user_id,
+        name="account_1"
+    )
+    await asyncio.sleep(0.1)
+    account_2: SoldAccountsFull = await create_sold_account(
+        filling_redis=False,
+        owner_id=user.user_id,
+        name="account_2"
+    )
+    await asyncio.sleep(0.1)
+    account_3: SoldAccountsFull = await create_sold_account(
+        filling_redis=False,
+        owner_id=user.user_id,
+        name="account_3"
+    )
+
+    await create_sold_account(filling_redis=False) # аккаунт с другим пользователем
+
+    await filling.filling_sold_account_only_one_owner(user.user_id)
+
+    async with get_redis() as session_redis:
+        val = await session_redis.get(f'sold_accounts_by_owner_id:{account_1.owner_id}:ru')
+        list_account = orjson.loads(val)
+
+    # должен быть именно такой порядок (отсортировано по убыванию даты)
+    assert list_account[0] == account_3.model_dump()
+    assert list_account[1] == account_2.model_dump()
+    assert list_account[2] == account_1.model_dump()
+
+@pytest.mark.asyncio
+async def test_filling_sold_account_only_one(create_new_user, create_sold_account):
+    user = await create_new_user()
+
+    account: SoldAccountsFull = await create_sold_account(
+        filling_redis=False,
+        owner_id=user.user_id,
+        name="account"
+    )
+    await filling.filling_sold_account_only_one(account.sold_account_id, 'ru')
+
+    async with get_redis() as session_redis:
+        val = await session_redis.get(f'sold_accounts_by_accounts_id:{account.sold_account_id}:ru')
+        account_redis = orjson.loads(val)
+
+    assert account_redis == account.model_dump()

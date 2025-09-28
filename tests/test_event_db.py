@@ -75,10 +75,11 @@ class TestHandlerNewReplenishment:
             clean_rabbit
         ):
         """Интеграционный тест"""
+        user = await create_new_user()
         # Исходные данные пользователя
-        initial_balance = create_new_user.balance
-        initial_total_sum = create_new_user.total_sum_replenishment
-        user_id = create_new_user.user_id
+        initial_balance = user.balance
+        initial_total_sum = user.total_sum_replenishment
+        user_id = user.user_id
 
         replenishment = await self.create_and_update_replenishment(
             user_id,
@@ -125,7 +126,7 @@ class TestHandlerNewReplenishment:
         await comparison_models(updated_user, result_redis)
 
         # проверяем, что ReplenishmentFailed отработал
-        i18n = get_i18n(create_new_user.language, "replenishment_dom")
+        i18n = get_i18n(user.language, "replenishment_dom")
 
         # сообщение пользователю
         message_for_user = i18n.ngettext(
@@ -134,7 +135,7 @@ class TestHandlerNewReplenishment:
             replenishment.amount
         ).format(sum=replenishment.amount)
 
-        assert fake_bot.get_message(create_new_user.user_id, message_for_user)
+        assert fake_bot.get_message(user.user_id, message_for_user)
 
     @pytest.mark.asyncio
     async def test_fail(
@@ -155,7 +156,7 @@ class TestHandlerNewReplenishment:
         - В лог уходит сообщение об ошибке
         """
 
-        user = create_new_user
+        user = await create_new_user()
 
         # Ломаем таблицу WalletTransaction, чтобы handler_new_replenishment упал
         async with get_engine.begin() as conn:
@@ -217,7 +218,7 @@ class TestHandlerNewReplenishment:
         - В лог уходит корректная запись
         """
 
-        user = create_new_user
+        user = await create_new_user()
         amount = 150
         replenishment_id = 9999
 
@@ -280,7 +281,7 @@ class TestHandlerNewReplenishment:
         - В лог уходит корректная запись
         """
 
-        user = create_new_user
+        user = await create_new_user()
         replenishment_id = 8888
         error_text = "test_error"
 
@@ -325,7 +326,6 @@ class TestHandlerNewIncomeRef:
             replacement_fake_keyboard,
             replacement_exception_aiogram,
             processed_referrals,
-            create_new_user,
             create_referral,
             create_replenishment,
             clean_db,
@@ -335,7 +335,7 @@ class TestHandlerNewIncomeRef:
         from src.services.referrals.actions import get_referral_lvl
         from src.services.referrals.models import IncomeFromReferrals, Referrals
 
-        owner, referral = create_referral
+        owner, referral = await create_referral()
 
         initial_balance = owner.balance
         initial_total_profit = owner.total_profit_from_referrals
@@ -529,7 +529,7 @@ async def test_handler_new_activate_promo_code(
             create_promo_code.number_of_activations = 1
 
     old_promo = create_promo_code
-    user = create_new_user
+    user = await create_new_user()
     settings = create_settings
 
     event = NewActivatePromoCode(
@@ -575,7 +575,7 @@ async def test_handler_new_activate_promo_code(
         ).format(
             promo_code_id=old_promo.promo_code_id,
             code=old_promo.activation_code,
-            user_id=create_new_user.user_id,
+            user_id=user.user_id,
             number_of_activations=old_promo.number_of_activations - 1 # т.к. активировли один раз
         )
         assert fake_bot.get_message(settings.channel_for_logging_id, message)
@@ -621,7 +621,7 @@ class TestHandlerNewActivatedVoucher:
         clean_rabbit
     ):
         """Тест успешной активации ваучера"""
-        user = create_new_user
+        user = await create_new_user()
         voucher = create_voucher
         initial_balance = user.balance
         expected_balance = initial_balance + voucher.amount
@@ -683,7 +683,7 @@ class TestHandlerNewActivatedVoucher:
             clean_rabbit
     ):
         """Тест активации ваучера с достижением лимита активаций"""
-        user = create_new_user
+        user = await create_new_user()
         voucher = create_voucher
 
         # Устанавливаем лимит активаций в 1
@@ -742,7 +742,7 @@ class TestHandlerNewActivatedVoucher:
             clean_rabbit
     ):
         """Тест обработки ошибки при активации ваучера"""
-        user = create_new_user
+        user = await create_new_user()
         voucher = create_voucher
 
         # Ломаем таблицу VoucherActivations чтобы вызвать ошибку
@@ -789,7 +789,7 @@ class TestHandlerNewActivatedVoucher:
         """Тест отправки сообщений при истечении ваучера"""
         from src.services.discounts.utils.set_not_valid import send_set_not_valid_voucher
 
-        user = create_new_user
+        user = await create_new_user()
         voucher = create_voucher
 
         # Устанавливаем флаг is_created_admin

@@ -10,8 +10,10 @@ from src.services.database.database import Base
 
 class TypeAccountServices(Base):
     """
-    Эту таблицу в боте нельзя менять. Тут по умолчанию должно быть поле с "телеграм" и "другой".
-    В дальнейших обновлениях будут расширятся сервисы с которыми работаем
+    Эту таблицу в боте нельзя менять, она задаётся только через код.
+    Администрация будет выбирать из этого списка при создании нового AccountServices
+    Тут по умолчанию должно быть поле с "телеграм" и "другой".
+    В дальнейших обновлениях будут расширятся сервисы с которыми работаем.
     Это сделано потому что для разных аккаунтов необходимо использовать разный подход для входа в него
     """
     __tablename__ = "type_account_services"
@@ -26,13 +28,15 @@ class TypeAccountServices(Base):
 class AccountServices(Base):
     """
     Хранит сервисы у продаваемых аккаунтов, такие как: telegram, vk, instagram ...
-    Их задаёт пользователь. Один тип сервиса (TypeAccountServices) - один привязанный к нему сервис (AccountServices)
+    Их задаёт администрация. Один тип сервиса (TypeAccountServices) - один привязанный к нему сервис (AccountServices)
     Сервисы локализировать не будут, т.к. они имеют свою уникальное название.
     """
     __tablename__ = "account_services"
 
     account_service_id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(300), nullable=False)
+    index = Column(Integer)
+    show = Column(Boolean, nullable=False, server_default=text('true'))
     type_account_service_id = Column(Integer, ForeignKey("type_account_services.type_account_service_id"), nullable=False, unique=True) # помечать будем в боте
 
     account_categories = relationship("AccountCategories", back_populates="account_service")
@@ -42,14 +46,17 @@ class AccountServices(Base):
 class AccountCategories(Base):
     """
     Категории у аккаунтов, к каждой категории может быть подкатегория (подкатегория это тоже запись в БД)
-    Если есть флаг is_main, то у данной категории нет родителя.
-    Если есть флаг is_accounts_storage, то данная категория хранит аккаунты и задействована для продажи
+    Если установлен флаг show, то данная категория будет показываться пользователю (админу всегда показывается).
+    Если установлен флаг is_main, то у данной категории нет родителя.
+    Если установлен флаг is_accounts_storage, то данная категория хранит аккаунты и задействована для продажи
     """
     __tablename__ = "account_categories"
 
     account_category_id = Column(Integer, primary_key=True, autoincrement=True)
     account_service_id = Column(Integer, ForeignKey("account_services.account_service_id"), nullable=False)
     parent_id = Column(Integer, ForeignKey("account_categories.account_category_id"), nullable=True)
+    index = Column(Integer)
+    show = Column(Boolean, nullable=False, server_default=text('true'))
     is_main = Column(Boolean, nullable=False, server_default=text('false'))
     is_accounts_storage = Column(Boolean, nullable=False, server_default=text('false')) # если это хранилище аккаунтов
 
@@ -94,6 +101,7 @@ class AccountCategories(Base):
 
 
 class AccountCategoryTranslation(Base):
+    """Всегда должна находиться как минимум одна запись для каждого account_category_id"""
     __tablename__ = "account_category_translations"
     __table_args__ = (
         UniqueConstraint("account_category_id", "lang", name="uq_category_lang"),
@@ -126,7 +134,6 @@ class ProductAccounts(Base):
     type_account_service = relationship("TypeAccountServices", back_populates="product_accounts")
     account_category = relationship("AccountCategories", back_populates="product_accounts")
 
-# хранит проданные аккаунты
 class SoldAccounts(Base):
     __tablename__ = "sold_accounts"
     __table_args__ = (
@@ -144,6 +151,8 @@ class SoldAccounts(Base):
     # Специфичные поля (могут быть NULL)
     hash_login = Column(Text, nullable=True)
     hash_password = Column(Text, nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("Users", back_populates="sold_account")
     type_account_service = relationship("TypeAccountServices", back_populates="sold_accounts")
@@ -165,14 +174,6 @@ class SoldAccounts(Base):
         else:
             return None
 
-    def get_category_name(self, lang: str, fallback: str = None)->str:
-        """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
-        return self._get_field_with_translation(lambda translations: translations.category_name, lang, fallback)
-
-    def get_service_name(self, lang: str, fallback: str = None)->str:
-        """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
-        return self._get_field_with_translation(lambda translations: translations.service_name, lang, fallback)
-
     def get_name(self, lang: str, fallback: str = None)->str:
         """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
         return self._get_field_with_translation(lambda translations: translations.name, lang, fallback)
@@ -183,13 +184,12 @@ class SoldAccounts(Base):
 
     def to_localized_dict(self, language: str = None)->dict:
         new_dict = {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
-        new_dict.update({'category_name': self.get_category_name(language)})
-        new_dict.update({'service_name': self.get_service_name(language)})
         new_dict.update({'name': self.get_name(language)})
         new_dict.update({'description': self.get_description(language)})
         return new_dict
 
 class SoldAccountsTranslation(Base):
+    """Всегда должна находиться как минимум одна запись для каждого sold_account_id"""
     __tablename__ = "sold_account_translations"
     __table_args__ = (
         UniqueConstraint("sold_account_id", "lang", name="uq_sold_accounts_lang"),
@@ -199,8 +199,6 @@ class SoldAccountsTranslation(Base):
     sold_account_id = Column(Integer, ForeignKey("sold_accounts.sold_account_id", ondelete="CASCADE"),nullable=False)
     lang = Column(String(8), nullable=False)  # 'ru', 'en'
 
-    category_name = Column(String(300), nullable=False)  # берётся с AccountCategories
-    service_name = Column(String(300), nullable=False)  # берётся с AccountServices
     name = Column(Text, nullable=False) # берётся с AccountCategories
     description = Column(Text, nullable=False) # берётся с AccountCategories
 
@@ -238,7 +236,7 @@ class DeletedAccounts(Base):
 
     deleted_account_id = Column(Integer, primary_key=True, autoincrement=True)
     type_account_service_id = Column(Integer, ForeignKey("type_account_services.type_account_service_id"), nullable=False)
-    account_category = Column(String(300), nullable=False)
+    category_name = Column(Text, nullable=False)
     description = Column(Text, nullable=False)
 
     create_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -19,46 +19,46 @@ from tests.fixtures.helper_fixture import create_new_user
     ]
 )
 async def test_get_user(use_redis, create_new_user):
+    user = await create_new_user()
     if use_redis:
         async with get_redis() as session_redis:
             await session_redis.set(
-                f'user:{create_new_user.user_id}',
-                orjson.dumps(create_new_user.to_dict())
+                f'user:{user.user_id}',
+                orjson.dumps(user.to_dict())
             )
         async with get_db() as session_db:
-            await session_db.execute(delete(NotificationSettings).where(NotificationSettings.user_id == create_new_user.user_id))
-            await session_db.execute(delete(Users).where(Users.user_id == create_new_user.user_id))
+            await session_db.execute(delete(NotificationSettings).where(NotificationSettings.user_id == user.user_id))
+            await session_db.execute(delete(Users).where(Users.user_id == user.user_id))
     else:
         async with get_redis() as session_redis:
             await session_redis.flushdb()
 
 
-    selected_user = await get_user(create_new_user.user_id)
+    selected_user = await get_user(user.user_id)
 
     assert isinstance(selected_user, Users)
-    assert selected_user.user_id == create_new_user.user_id
-    assert selected_user.username == create_new_user.username
-    assert selected_user.unique_referral_code == create_new_user.unique_referral_code
-    assert selected_user.balance == create_new_user.balance
-    assert selected_user.total_sum_replenishment == create_new_user.total_sum_replenishment
-    assert selected_user.total_profit_from_referrals == create_new_user.total_profit_from_referrals
+    assert selected_user.user_id == user.user_id
+    assert selected_user.username == user.username
+    assert selected_user.unique_referral_code == user.unique_referral_code
+    assert selected_user.balance == user.balance
+    assert selected_user.total_sum_replenishment == user.total_sum_replenishment
+    assert selected_user.total_profit_from_referrals == user.total_profit_from_referrals
     # created_at проверяем с допуском
-    assert abs(
-        (selected_user.created_at - create_new_user.created_at).total_seconds()
-    ) < 2
+    assert abs((selected_user.created_at - user.created_at).total_seconds()) < 2
 
 @pytest.mark.asyncio
 async def test_update_user(create_new_user):
     """Проверяем, что update_user меняет данные в БД и Redis"""
     # изменяем данные пользователя
-    create_new_user.username = "updated_username"
-    create_new_user.balance = 500
-    create_new_user.total_profit_from_referrals = 50
+    user = await create_new_user()
+    user.username = "updated_username"
+    user.balance = 500
+    user.total_profit_from_referrals = 50
 
-    updated_user = await update_user(create_new_user)
+    updated_user = await update_user(user)
 
     async with get_db() as session_db:
-        db_user = await session_db.get(Users, create_new_user.user_id)
+        db_user = await session_db.get(Users, user.user_id)
 
     # проверка БД
     assert db_user.username == "updated_username"
@@ -73,7 +73,7 @@ async def test_update_user(create_new_user):
 
     # проверка Redis
     async with get_redis() as session_redis:
-        redis_data = await session_redis.get(f"user:{create_new_user.user_id}")
+        redis_data = await session_redis.get(f"user:{user.user_id}")
         assert redis_data is not None
         redis_user = Users(**parse_redis_user(redis_data))
         assert redis_user.username == "updated_username"

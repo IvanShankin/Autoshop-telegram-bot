@@ -53,9 +53,10 @@ async def test_create_promo_code(create_promo_code, create_new_user):
     from src.services.discounts.actions import create_promo_code as create_promo_code_for_test
     new_promo_code = create_promo_code
     new_promo_code.activation_code = 'unique_code'
+    user = await create_new_user()
 
     promo_returned = await create_promo_code_for_test(
-        creator_id=create_new_user.user_id,
+        creator_id=user.user_id,
         code=new_promo_code.activation_code,
         min_order_amount=new_promo_code.min_order_amount,
         amount=new_promo_code.amount,
@@ -70,7 +71,7 @@ async def test_create_promo_code(create_promo_code, create_new_user):
 
         admin_action_db = await session_db.execute(
             select(AdminActions)
-            .where(AdminActions.admin_action_id == create_new_user.user_id)
+            .where(AdminActions.admin_action_id == user.user_id)
         )
         assert admin_action_db.scalar_one()
 
@@ -121,7 +122,7 @@ class TestActivateVoucher:
         """Пользователь успешно активирует ваучер"""
         from src.services.discounts.actions import activate_voucher
 
-        user = create_new_user
+        user = await create_new_user()
         voucher = create_voucher
         i18n = get_i18n(user.language, "discount_dom")
 
@@ -137,7 +138,7 @@ class TestActivateVoucher:
         """Ваучера с таким кодом нет"""
         from src.services.discounts.actions import activate_voucher
 
-        user = create_new_user
+        user = await create_new_user()
         i18n = get_i18n(user.language, "discount_dom")
 
         result = await activate_voucher(user, "INVALIDCODE", user.language)
@@ -149,7 +150,7 @@ class TestActivateVoucher:
         """Пользователь не может активировать один и тот же ваучер дважды"""
         from src.services.discounts.actions import activate_voucher
 
-        user = create_new_user
+        user = await create_new_user()
         voucher = create_voucher
         i18n = get_i18n(user.language, "discount_dom")
 
@@ -170,12 +171,12 @@ class TestActivateVoucher:
     async def test_voucher_expired_by_time(self, create_new_user):
         """Ваучер просрочен по времени"""
         from src.services.discounts.actions import activate_voucher
-
-        i18n = get_i18n(create_new_user.language, "discount_dom")
+        user = await create_new_user()
+        i18n = get_i18n(user.language, "discount_dom")
 
         # создаём просроченный ваучер
         expired_voucher = Vouchers(
-            creator_id=create_new_user.user_id,
+            creator_id=user.user_id,
             activation_code="EXPIREDCODE",
             amount=100,
             activated_counter=0,
@@ -189,7 +190,7 @@ class TestActivateVoucher:
             await session.commit()
             await session.refresh(expired_voucher)
 
-        result = await activate_voucher(create_new_user, expired_voucher.activation_code, create_new_user.language)
+        result = await activate_voucher(user, expired_voucher.activation_code, user.language)
 
         expected = i18n.gettext(
             "Voucher expired \n\nID '{id}' \nCode '{code}' \n\nVoucher expired due to time limit. It can no longer be activated"

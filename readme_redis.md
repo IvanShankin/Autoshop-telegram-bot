@@ -6,7 +6,7 @@
 ### 1. Настройки (Settings)
 **Ключ:** `settings`  
 **Значение:**  
-```json
+``` json
 {
     "support_username": int, 
     "hash_token_logger_bot": str,
@@ -20,7 +20,7 @@
 ### 2. Пользователь (Users)
 **Ключ:** `user:{user_id}`  
 **Значение:**  
-```json
+``` json
 {
     "user_id": int, 
     "username": str,
@@ -37,7 +37,7 @@
 ### 3 Уровни рефералов (ReferralLevels)
 **Ключ:** `referral_levels`  
 **Значение:**  
-```json
+``` json
 [
     {
         "referral_level_id": int, 
@@ -60,8 +60,22 @@
 **Значение:** `_` выступает в роли метки <br>
 **TTL:** Навсегда
 
-### 6. Тип продоваемых аккаунтов (TypeAccountServices)
-**Ключ:** `type_account_service:{name}` <br>
+### 6. Тип продаваемых аккаунтов (TypeAccountServices)
+**Ключ:** `types_account_service` <br>
+**Значение:** 
+``` json
+[
+    {
+        "type_account_service_id": int ,
+        "name": str
+    }
+    .....
+]
+
+```
+
+### 7. Тип продаваемых аккаунтов (TypeAccountServices)
+**Ключ:** `type_account_service:{type_account_service_id}` <br>
 **Значение:** 
 ``` json
 {
@@ -71,20 +85,39 @@
 ```
 **TTL:** Навсегда
 
+### 8. Список всех сервисов у продаваемых аккаунтов (AccountServices)
+**Важно:** список отсортирован по возрастанию поля index <br>
+**Ключ:** `account_services` <br>
+**Значение:** 
+``` json
+[
+    {
+        "account_service_id": int ,
+        "name": str,
+        "index": int,
+        "show": bool,
+        "type_account_service_id": int
+    }
+    .....
+]
+```
+**TTL:** Навсегда
 
-### 7. Сервисы у продоваемых аккаунтов (AccountServices)
-**Ключ:** `account_service:{type_account_service_id}` <br>
+### 9. Сервисы у продаваемых аккаунтов (AccountServices)
+**Ключ:** `account_service:{account_service_id}` <br>
 **Значение:** 
 ``` json
 {
     "account_service_id": int ,
     "name": str,
+    "index": int,
+    "show": bool,
     "type_account_service_id": int
 }
 ```
 **TTL:** Навсегда
 
-### 8. Категории аккаунтов по id сервиса (AccountCategories)
+### 10. Категории аккаунтов по id сервиса (AccountCategories)
 **Ключ:** `account_categories_by_service_id:{account_service_id}:{language}` <br>
 **Значение:** 
 ``` json
@@ -95,6 +128,8 @@
         "parent_id": int ,
         "name": str,
         "description": str,
+        "index": int,
+        "show": bool,
         "is_main": bool, 
         "is_accounts_storage": bool, 
         
@@ -107,7 +142,7 @@
 ```
 **TTL:** Навсегда
 
-### 9. Категории аккаунтов по id категории(AccountCategories)
+### 11. Категории аккаунтов по id категории(AccountCategories)
 **Ключ:** `account_categories_by_category_id:{account_category_id}:{language}` <br>
 **Значение:** 
 ``` json
@@ -117,6 +152,8 @@
     "parent_id": int,
     "name": str,
     "description": str,
+    "index": int,
+    "show": bool,
     "is_main": bool, 
     "is_accounts_storage": bool, 
     "price_one_account": int,
@@ -126,7 +163,7 @@
 **TTL:** Навсегда
 
 
-### 10. Товары Аккаунты по id категории (ProductAccounts)
+### 12. Товары Аккаунты по id категории (ProductAccounts)
 **Ключ:** `product_accounts_by_category_id:{account_category_id}` <br>
 **Значение:** 
 ``` json
@@ -145,7 +182,7 @@
 ```
 **TTL:** Навсегда
 
-### 11. Товары Аккаунты по id аккаунта (ProductAccounts)
+### 13. Товары Аккаунты по id аккаунта (ProductAccounts)
 **Ключ:** `product_accounts_by_account_id:{account_id}` <br>
 **Значение:** 
 ``` json
@@ -161,7 +198,7 @@
 ```
 **TTL:** Навсегда
 
-### 12. Проданные аккаунты по id владельца (SoldAccounts)
+### 14. Проданные аккаунты по id владельца (SoldAccounts)
 **Важно:** хранит только НЕ удалённые аккаунты (is_deleted == False) <br>
 **Ключ:** `sold_accounts_by_owner_id:{owner_id}:{language}` <br>
 **Значение:** 
@@ -190,7 +227,7 @@
 ```
 **TTL:** 6 часов
 
-### 13. Проданные аккаунты по id аккаунта (SoldAccounts)
+### 15. Проданные аккаунты по id аккаунта (SoldAccounts)
 **Важно:** хранит только НЕ удалённые аккаунты (is_deleted == False) <br>
 **Ключ:** `sold_accounts_by_accounts_id:{sold_account_id}:{language}` <br>
 **Значение:** 
@@ -216,7 +253,7 @@
 **TTL:** 6 часов
 
 
-### 14. Промокоды (PromoCodes)
+### 16. Промокоды (PromoCodes)
 **Важно:** хранит только действительные (is_valid == True)<br>
 **Ключ:** `promo_code:{activation_code}` <br>
 **Значение:** 
@@ -239,7 +276,7 @@
 **TTL:** До окончания срока действия
 
 
-### 15. Ваучеры (Vouchers)
+### 17. Ваучеры (Vouchers)
 **Важно:** хранит только действительные (is_valid == True)<br>
 **Ключ:** `voucher:{activation_code}` <br>
 **Значение:** 
@@ -259,4 +296,4 @@
     "is_valid": bool,
 }
 ```
-**TTL:** Бесконечно
+**TTL:** Навсегда

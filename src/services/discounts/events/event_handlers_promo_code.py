@@ -32,7 +32,10 @@ async def handler_new_activate_promo_code(new_activate: NewActivatePromoCode):
             # проверка на повторную активацию
             result_db = await session_db.execute(
                 select(ActivatedPromoCodes)
-                .where(ActivatedPromoCodes.promo_code_id == new_activate.promo_code_id)
+                .where(
+                    (ActivatedPromoCodes.promo_code_id == new_activate.promo_code_id) &
+                    (ActivatedPromoCodes.user_id == new_activate.user_id)
+                )
             )
             activate_promo_code = result_db.scalar_one_or_none()
             if activate_promo_code: # если активировал ранее 

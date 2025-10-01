@@ -26,7 +26,7 @@ async def handler_new_activate_promo_code(new_activate: NewActivatePromoCode):
         async with get_db() as session_db:
             result_db = await session_db.execute(select(PromoCodes).where(PromoCodes.promo_code_id == new_activate.promo_code_id))
             promo_code = result_db.scalar_one_or_none()
-            if not promo_code:
+            if not promo_code: # если промокод не найден
                 return
 
             # проверка на повторную активацию

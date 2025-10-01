@@ -13,6 +13,7 @@ from sqlalchemy import MetaData, Table
 from src.broker.producer import publish_event
 from src.config import DT_FORMAT_FOR_LOGS
 from src.services.discounts.models import VoucherActivations, Vouchers
+from src.services.selling_accounts.events.schemas import NewPurchaseAccount, AccountsData
 from src.services.system.actions import get_settings, update_settings
 from src.services.users.models import Replenishments, Users, WalletTransaction, UserAuditLogs
 from src.services.database.database import get_db
@@ -856,5 +857,162 @@ class TestHandlerNewActivatedVoucher:
         assert fake_bot.check_str_in_messages(expected_error_message[:60])
 
 
+@pytest.mark.asyncio
+async def test_handler_new_purchase_creates_wallet_and_logs(
+    replacement_needed_modules,
+    create_new_user,
+    create_sold_account,
+    clean_db
+):
+    """
+    Прямой вызов handler_new_purchase:
+    - создаётся WalletTransaction
+    - создаются UserAuditLogs (по каждому account_movement)
+    - обновляется redis (sold_accounts_by_accounts_id и sold_accounts_by_owner_id)
+    - отправляются логи (проверяется fake_bot)
+    """
+
+    from src.services.selling_accounts.events.even_handlers_acc import handler_new_purchase
+    # подготовка данных
+    user = await create_new_user()
+    # создаём sold_account в БД и перевод для языка 'ru'
+    sold_full = await create_sold_account(filling_redis=False, owner_id=user.user_id, language='ru')
+
+    # параметры покупки (имитация того, что уже произошла основная транзакция и purchase_id = 777)
+    account_movement = [
+        AccountsData(
+            id_old_product_account=111,
+            id_new_sold_account=sold_full.sold_account_id,
+            id_purchase_account=777,
+            cost_price=10,
+            purchase_price=100,
+            net_profit=90
+        )
+    ]
+
+    new_purchase = NewPurchaseAccount(
+        user_id=user.user_id,
+        category_id=1,
+        quantity=1,
+        amount_purchase=100,
+        account_movement=account_movement,
+        languages=['ru'],
+        promo_code_id=None,
+        user_balance_before=1000,
+        user_balance_after=900,
+    )
+
+    # вызов тестируемой функции
+    await handler_new_purchase(new_purchase)
+
+    # ---- проверки в БД ----
+    async with get_db() as session_db:
+        # WalletTransaction
+        result = await session_db.execute(
+            select(WalletTransaction).where(WalletTransaction.user_id == user.user_id)
+        )
+        wt = result.scalar_one_or_none()
+        assert wt is not None, "WalletTransaction не создан"
+        assert wt.type == 'purchase'
+        assert wt.amount == new_purchase.amount_purchase
+        assert wt.balance_before == new_purchase.user_balance_before
+        assert wt.balance_after == new_purchase.user_balance_after
+
+        # UserAuditLogs (должна появиться запись для account_movement)
+        result = await session_db.execute(
+            select(UserAuditLogs).where(UserAuditLogs.user_id == user.user_id)
+        )
+        logs = result.scalars().all()
+        assert len(logs) >= 1, "UserAuditLogs не созданы"
+        # проверим одну запись на соответствие деталям
+        found = False
+        for l in logs:
+            if l.action_type == "purchase_account" and l.details.get("id_new_sold_account") == sold_full.sold_account_id:
+                found = True
+                assert l.details["id_old_product_account"] == 111
+                assert l.details["id_purchase_account"] == 777
+                assert l.details["profit"] == 90
+                break
+        assert found, "Лог покупки с нужными деталями не найден"
+
+    # ---- проверки Redis (filling_sold_account_only_one и filling_sold_account_only_one_owner) ----
+    async with get_redis() as r:
+        val_by_id = await r.get(f"sold_accounts_by_accounts_id:{sold_full.sold_account_id}:ru")
+        assert val_by_id is not None, "Redis: sold_accounts_by_accounts_id не заполнен"
+
+        val_by_owner = await r.get(f"sold_accounts_by_owner_id:{user.user_id}:ru")
+        assert val_by_owner is not None, "Redis: sold_accounts_by_owner_id не заполнен"
+
+    # ---- проверка отправленных логов (send_log должен был использовать fake bot) ----
+    # формируется текст в handler_new_purchase, проверим что хотя бы кусок текста попал в сообщения
+    expected_substring = f"Аккаунт на продаже с id = {account_movement[0].id_old_product_account} продан!"
+    assert fake_bot.check_str_in_messages(expected_substring) or fake_bot.check_str_in_messages(expected_substring[:30])
 
 
+@pytest.mark.asyncio
+async def test_account_purchase_event_handler_parses_and_calls_handler(
+    replacement_needed_modules,
+    create_new_user,
+    create_sold_account,
+    clean_db
+):
+    """
+    Проверяем, что account_purchase_event_handler корректно парсит dict-ивент
+    и вызывает handler_new_purchase (через этот wrapper вставится Pydantic->handler).
+    """
+    from src.services.selling_accounts.events.even_handlers_acc import account_purchase_event_handler
+    user = await create_new_user()
+    sold_full = await create_sold_account(filling_redis=False, owner_id=user.user_id, language='ru')
+
+    account_movement = [
+        {
+            "id_old_product_account": 222,
+            "id_new_sold_account": sold_full.sold_account_id,
+            "id_purchase_account": 888,
+            "cost_price": 5,
+            "purchase_price": 50,
+            "net_profit": 45
+        }
+    ]
+
+    payload = {
+        "user_id": user.user_id,
+        "category_id": 1,
+        "quantity": 1,
+        "amount_purchase": 50,
+        "account_movement": account_movement,
+        "languages": ["ru"],
+        "promo_code_id": None,
+        "user_balance_before": 500,
+        "user_balance_after": 450
+    }
+
+    event = {"event": "account.purchase", "payload": payload}
+
+    # вызываем через event handler (имитируем приход события из брокера)
+    await account_purchase_event_handler(event)
+
+    # даём немного времени на асинхронные операции (send_log / redis)
+    await asyncio.sleep(0.05)
+
+    # проверим, что появились WalletTransaction и UserAuditLogs
+    async with get_db() as session_db:
+        result = await session_db.execute(select(WalletTransaction).where(WalletTransaction.user_id == user.user_id))
+        wt = result.scalar_one_or_none()
+        assert wt is not None and wt.type == 'purchase'
+
+        result = await session_db.execute(select(UserAuditLogs).where(UserAuditLogs.user_id == user.user_id))
+        logs = result.scalars().all()
+        assert len(logs) >= 1
+
+    # Redis проверки
+    async with get_redis() as r:
+        by_id = await r.get(f"sold_accounts_by_accounts_id:{sold_full.sold_account_id}:ru")
+        assert by_id is not None
+
+        by_owner = await r.get(f"sold_accounts_by_owner_id:{user.user_id}:ru")
+        assert by_owner is not None
+
+    # проверка на отправленные логи
+    expected_substring = f"Аккаунт на продаже с id = {account_movement[0]['id_old_product_account']} продан!"
+    assert fake_bot.check_str_in_messages(expected_substring) or fake_bot.check_str_in_messages(expected_substring[:30])

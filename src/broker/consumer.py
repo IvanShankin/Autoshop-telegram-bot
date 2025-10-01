@@ -9,6 +9,7 @@ from src.config import RABBITMQ_URL
 from src.services.discounts.events import promo_code_event_handler, voucher_event_handler
 from src.services.referrals.events import referral_event_handler
 from src.services.replenishments_event.event_handlers_replenishments import replenishment_event_handler
+from src.services.selling_accounts.events.even_handlers_acc import account_purchase_event_handler
 from src.utils.core_logger import logger
 
 async def consume_events(started_event: asyncio.Event, stop_event: asyncio.Event):
@@ -22,6 +23,7 @@ async def consume_events(started_event: asyncio.Event, stop_event: asyncio.Event
         await queue.bind(exchange, routing_key="voucher.*")
         await queue.bind(exchange, routing_key="referral.*")
         await queue.bind(exchange, routing_key="replenishment.*")
+        await queue.bind(exchange, routing_key="account.*")
 
         started_event.set()
 
@@ -70,6 +72,8 @@ async def handle_event(event: dict):
             await referral_event_handler(event)
         elif event["event"].startswith("replenishment."):
             await replenishment_event_handler(event)
+        elif event["event"].startswith("account."):
+            await account_purchase_event_handler(event)
 
     except aiormq.exceptions.ChannelInvalidStateError as e:
         logger.error(f"Ошибка при обращении с каналом! {str(e)}")

@@ -273,6 +273,42 @@ async def create_account_service(create_type_account_service):
 
 
 @pytest_asyncio.fixture
+async def create_translate_account_category():
+    async def _factory(
+            category_id: int,
+            filling_redis: bool = True,
+            language: str = "ru",
+            name: str = "name",
+            description: str = "description"
+    ) -> AccountCategoryFull:
+        async with get_db() as session_db:
+            new_translate = AccountCategoryTranslation(
+                account_category_id=category_id,
+                lang=language,
+                name=name,
+                description=description
+            )
+            session_db.add(new_translate)
+            await session_db.commit()
+
+            result = await session_db.execute(
+                select(AccountCategories)
+                .options(selectinload(AccountCategories.translations))
+                .where(AccountCategories.account_category_id == category_id)
+            )
+            category = result.scalar_one()
+
+            full_category = AccountCategoryFull.from_orm_with_translation(category, language)
+
+        if filling_redis:
+            await filling_account_categories_by_service_id()
+            await filling_account_categories_by_category_id()
+
+        return full_category
+
+    return _factory
+
+@pytest_asyncio.fixture
 async def create_account_category(create_account_service):
     async def _factory(
             filling_redis: bool = True,

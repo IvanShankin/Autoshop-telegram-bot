@@ -38,6 +38,15 @@ async def filling_all_redis():
     await filling_promo_code()
     await filling_vouchers()
 
+async def _delete_keys_by_pattern(pattern: str):
+    """Удаляет все ключи, соответствующие шаблону. Пример: 'user:*'"""
+    count = 0
+    async with get_redis() as session_redis:
+        async for key in session_redis.scan_iter(match=pattern):
+            await session_redis.delete(key)
+            count += 1
+    return count
+
 async def _fill_redis_single_objects_multilang(
     model: Type,
     key_prefix: str,
@@ -56,6 +65,7 @@ async def _fill_redis_single_objects_multilang(
     :param ttl_seconds: если None — бессрочно, иначе int секунд для всех ключей.
     :param joinedload_rels: имена отношений, которые следует предварительно загрузить (обычно "translations").
     """
+    await _delete_keys_by_pattern(f'{key_prefix}:*')
     async with get_db() as session_db:
         query = select(model)
         if field_condition is not None:
@@ -127,6 +137,7 @@ async def _fill_redis_grouped_objects_multilang(
     Записываем только те lang, у которых есть хотя бы один объект с переводом.
     Если объекты в БД не будут найдены, то ничего не заполнит
     """
+    await _delete_keys_by_pattern(f'{key_prefix}:*')
     async with get_db() as session_db:
         group_ids = (await session_db.execute(select(getattr(group_by_model, group_by_field_for_group_model)))).scalars().all()
 
@@ -211,6 +222,7 @@ async def _fill_redis_single_objects(
     :param value_extractor:
     :param ttl:
     """
+    await _delete_keys_by_pattern(f'{key_prefix}:*')
     async with get_db() as session_db:
         if field_condition:
             result_db = await session_db.execute(select(model).where(field_condition))
@@ -248,7 +260,7 @@ async def _fill_redis_grouped_objects(
         ttl: Optional[int] = None
 ):
     """
-    Заполняет Redis сгруппированными объектами. Если объекты в БД не будут найдены, то ничего не заполнит
+    Заполняет Redis сгруппированными объектами. Если объекты в БД не будут найдены, то удалит по ключу
     :param model: Модель БД которая заполнит redis.
     :param group_by_model: Модель по которой будет происходить группировка.
     :param group_by_field_for_group_model: Столбец по которому будет отбираться group_by_model.
@@ -258,6 +270,7 @@ async def _fill_redis_grouped_objects(
     :param ttl:
     :return:
     """
+    await _delete_keys_by_pattern(f'{key_prefix}:*')
     async with get_db() as session_db:
         # Получаем все ID для группировки
         result_db = await session_db.execute(select(getattr(group_by_model, group_by_field_for_group_model)))

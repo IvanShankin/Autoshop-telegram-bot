@@ -77,6 +77,8 @@ class TestHandlerNewReplenishment:
         ):
         """Интеграционный тест"""
         user = await create_new_user()
+        type_payment = await create_type_payment()
+
         # Исходные данные пользователя
         initial_balance = user.balance
         initial_total_sum = user.total_sum_replenishment
@@ -84,7 +86,7 @@ class TestHandlerNewReplenishment:
 
         replenishment = await self.create_and_update_replenishment(
             user_id,
-            create_type_payment.type_payment_id,
+            type_payment.type_payment_id,
             processed_replenishment
         )
 
@@ -158,6 +160,7 @@ class TestHandlerNewReplenishment:
         """
 
         user = await create_new_user()
+        type_payment = await create_type_payment()
 
         # Ломаем таблицу WalletTransaction, чтобы handler_new_replenishment упал
         async with get_engine.begin() as conn:
@@ -173,7 +176,7 @@ class TestHandlerNewReplenishment:
         # создаём пополнение → переводим в processing → триггерим handler_new_replenishment
         new_replenishment = await self.create_and_update_replenishment(
             user.user_id,
-            create_type_payment.type_payment_id,
+            type_payment.type_payment_id,
             processed_replenishment
         )
 
@@ -218,7 +221,7 @@ class TestHandlerNewReplenishment:
         - Пользователь получает сообщение об успешном пополнении
         - В лог уходит корректная запись
         """
-
+        type_payment = await create_type_payment()
         user = await create_new_user()
         amount = 150
         replenishment_id = 9999
@@ -282,6 +285,7 @@ class TestHandlerNewReplenishment:
         - В лог уходит корректная запись
         """
 
+        type_payment = await create_type_payment()
         user = await create_new_user()
         replenishment_id = 8888
         error_text = "test_error"

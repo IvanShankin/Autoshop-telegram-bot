@@ -546,9 +546,9 @@ async def test_filling_sold_account_only_one(create_new_user, create_sold_accoun
 
 @pytest.mark.asyncio
 async def test_filling_sold_account_only_one(create_type_payment):
-    type_payment_1 = await create_type_payment(name_for_user="name_2", index=1)
-    type_payment_0 = await create_type_payment(name_for_user="name_1", index=0)
-    type_payment_2 = await create_type_payment(name_for_user="name_1", index=2)
+    type_payment_1 = await create_type_payment(filling_redis=False, name_for_user="name_2", index=1)
+    type_payment_0 = await create_type_payment(filling_redis=False, name_for_user="name_1", index=0)
+    type_payment_2 = await create_type_payment(filling_redis=False, name_for_user="name_1", index=2)
 
     await filling.filling_all_types_payments()
 

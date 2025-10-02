@@ -9,7 +9,8 @@ from src.redis_dependencies.core_redis import get_redis
 from src.redis_dependencies.filling_redis import filling_sold_accounts_by_owner_id, \
     filling_sold_accounts_by_accounts_id, filling_account_categories_by_service_id, \
     filling_account_categories_by_category_id, filling_all_account_services, filling_account_services, \
-    filling_product_accounts_by_account_id, filling_product_accounts_by_category_id
+    filling_product_accounts_by_account_id, filling_product_accounts_by_category_id, filling_all_types_payments, \
+    filling_types_payments_by_id
 from src.services.admins.models import Admins
 from src.services.discounts.models import PromoCodes, Vouchers
 from src.services.referrals.utils import create_unique_referral_code
@@ -114,6 +115,7 @@ async def create_replenishment(create_new_user)-> Replenishments:
             type_payment = TypePayments(
                 name_for_user="TestPay",
                 name_for_admin="TestPayAdmin",
+                index=1,
                 commission=0.0,
             )
             session_db.add(type_payment)
@@ -138,6 +140,7 @@ async def create_replenishment(create_new_user)-> Replenishments:
 async def create_type_payment():
     """Создаст новый тип оплаты в БД"""
     async def _factory(
+            filling_redis: bool = True,
             name_for_user: str = None,
             name_for_admin: str = None,
             is_active: bool = None,
@@ -163,6 +166,14 @@ async def create_type_payment():
             session_db.add(new_type_payment)
             await session_db.commit()
             await session_db.refresh(new_type_payment)
+
+            if filling_redis:
+                await filling_all_types_payments()
+
+                result = await session_db.execute(select(TypePayments))
+                all_types = result.scalars().all()
+                for type_payment in all_types:
+                    await filling_types_payments_by_id(type_payment.type_payment_id)
 
         return new_type_payment
 

@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, UTC
-from typing import Type, Any, Optional, Callable, Iterable
+from typing import Type, Any, Optional, Callable, Iterable, List
 
 import orjson
 from sqlalchemy import select
@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 from src.config import ALLOWED_LANGS
 from src.services.selling_accounts.models.models_with_tranlslate import SoldAccountsFull
 from src.services.users.models import Users, BannedAccounts
-from src.services.system.models import Settings
+from src.services.system.models import Settings, TypePayments
 from src.services.database.database import get_db
 from src.services.admins.models import Admins
 from src.services.discounts.models.models import PromoCodes, Vouchers
@@ -21,7 +21,14 @@ from src.redis_dependencies.time_storage import TIME_USER, TIME_SOLD_ACCOUNTS_BY
 
 async def filling_all_redis():
     """Заполняет redis необходимыми данными. Использовать только после заполнения БД"""
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(TypePayments.type_payment_id))
+        types_payments_ids: List[int] = result_db.scalars().all()
+        for type_id in types_payments_ids:
+            await filling_types_payments_by_id(type_id)
+
     await filling_referral_levels()
+    await filling_all_types_payments()
     await filling_users()
     await filling_admins()
     await filling_banned_accounts()
@@ -316,6 +323,27 @@ async def filling_referral_levels():
                 list_for_redis = [referral.to_dict() for referral in referral_levels]
                 await session_redis.set("referral_levels", orjson.dumps(list_for_redis))
 
+async def filling_all_types_payments():
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(TypePayments).order_by(TypePayments.index.asc()))
+        types_payments = result_db.scalars().all()
+
+        # сохраним даже пустой список
+        async with get_redis() as session_redis:
+            list_for_redis = [type_pay.to_dict() for type_pay in types_payments]
+            await session_redis.set("all_types_payments", orjson.dumps(list_for_redis))
+
+async def filling_types_payments_by_id(type_payment_id: int):
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(TypePayments).where(TypePayments.type_payment_id == type_payment_id))
+        type_payment = result_db.scalar_one_or_none()
+
+        async with get_redis() as session_redis:
+            if type_payment:
+                await session_redis.set(f'type_payments:{type_payment_id}', orjson.dumps(type_payment.to_dict()))
+            else:
+                await session_redis.delete(f'type_payments:{type_payment_id}')
+
 async def filling_users():
     await _fill_redis_single_objects(
         model=Users,
@@ -358,6 +386,7 @@ async def filling_type_account_services():
     )
 
 async def filling_all_account_services():
+    await _delete_keys_by_pattern(f'account_services')
     async with get_db() as session_db:
         result_db = await session_db.execute(select(AccountServices).order_by(AccountServices.index.asc()))
         services = result_db.scalars().all()
@@ -471,14 +500,18 @@ async def filling_sold_account_only_one(sold_account_id: int, language: str = 'r
             )
         )
         account = result_db.scalar_one_or_none()
-        if account:
-            account_full = SoldAccountsFull.from_orm_with_translation(account, lang=language)
-            async with get_redis() as session_redis:
+
+        async with get_redis() as session_redis:
+            if account:
+                account_full = SoldAccountsFull.from_orm_with_translation(account, lang=language)
+
                 await session_redis.setex(
                     f"sold_accounts_by_accounts_id:{sold_account_id}:{language}",
                     TIME_SOLD_ACCOUNTS_BY_ACCOUNT,
                     orjson.dumps(account_full.model_dump())
                 )
+            else:
+                await session_redis.delete(f'sold_accounts_by_accounts_id:{sold_account_id}:{language}')
 
 async def filling_promo_code():
     await _fill_redis_single_objects(

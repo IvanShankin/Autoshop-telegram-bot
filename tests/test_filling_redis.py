@@ -543,3 +543,34 @@ async def test_filling_sold_account_only_one(create_new_user, create_sold_accoun
         account_redis = orjson.loads(val)
 
     assert account_redis == account.model_dump()
+
+@pytest.mark.asyncio
+async def test_filling_sold_account_only_one(create_type_payment):
+    type_payment_1 = await create_type_payment(name_for_user="name_2", index=1)
+    type_payment_0 = await create_type_payment(name_for_user="name_1", index=0)
+    type_payment_2 = await create_type_payment(name_for_user="name_1", index=2)
+
+    await filling.filling_all_types_payments()
+
+    async with get_redis() as session_redis:
+        value = await session_redis.get("all_types_payments")
+        assert value
+        all_types = orjson.loads(value)
+
+    # проверяем правильность фильтрации по индексу
+    assert type_payment_0.to_dict() == all_types[0]
+    assert type_payment_1.to_dict() == all_types[1]
+    assert type_payment_2.to_dict() == all_types[2]
+
+@pytest.mark.asyncio
+async def test_filling_sold_account_only_one(create_type_payment):
+    type_payment_1 = await create_type_payment(name_for_user="name_1")
+
+    await filling.filling_types_payments_by_id(type_payment_1.type_payment_id)
+
+    async with get_redis() as session_redis:
+        value = await session_redis.get(f"type_payments:{type_payment_1.type_payment_id}")
+        assert value
+        type_payment = orjson.loads(value)
+
+    assert type_payment == type_payment_1.to_dict()

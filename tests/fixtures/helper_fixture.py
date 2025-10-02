@@ -135,21 +135,38 @@ async def create_replenishment(create_new_user)-> Replenishments:
 
 
 @pytest_asyncio.fixture
-async def create_type_payment() -> TypePayments:
+async def create_type_payment():
     """Создаст новый тип оплаты в БД"""
-    new_type_payment = TypePayments(
-        name_for_user="Test Payment Method",
-        name_for_admin="Test Payment Method (Admin)",
-        is_active=True,
-        commission=5,
-        extra_data={"api_key": "test_key", "wallet_id": "test_wallet"}
-    )
-    async with get_db() as session_db:
-        session_db.add(new_type_payment)
-        await session_db.commit()
-        await session_db.refresh(new_type_payment)
+    async def _factory(
+            name_for_user: str = None,
+            name_for_admin: str = None,
+            is_active: bool = None,
+            commission: float = None,
+            index: int = None,
+            extra_data: dict = None,
+    ) -> TypePayments:
+        async with get_db() as session_db:
+            if index is None:
+                result = await session_db.execute(select(TypePayments))
+                all_types = result.scalars().all()
+                index = max((service.index for service in all_types),default=-1) + 1  # вычисляем максимальный индекс
 
-    return new_type_payment
+            new_type_payment = TypePayments(
+                name_for_user= name_for_user if name_for_user else "Test Payment Method",
+                name_for_admin= name_for_admin if name_for_admin else "Test Payment Method (Admin)",
+                is_active= is_active if is_active else True,
+                commission= commission if commission else 5,
+                index= index,
+                extra_data= extra_data if extra_data else {"api_key": "test_key", "wallet_id": "test_wallet"}
+            )
+
+            session_db.add(new_type_payment)
+            await session_db.commit()
+            await session_db.refresh(new_type_payment)
+
+        return new_type_payment
+
+    return _factory
 
 
 @pytest_asyncio.fixture(autouse=True)

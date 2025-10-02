@@ -122,7 +122,11 @@ async def filling_type_payment(type_payments: str):
         result_payment = result.scalar()
 
         if not result_payment:
-            new_type_payment = TypePayments(name_for_user=type_payments, name_for_admin=type_payments)
+            result = await session_db.execute(select(TypePayments))
+            all_types = result.scalars().all()
+            new_index = max((service.index for service in all_types), default=-1) + 1  # вычисляем максимальный индекс
+
+            new_type_payment = TypePayments(name_for_user=type_payments, name_for_admin=type_payments, index=new_index)
             session_db.add(new_type_payment)
             await session_db.commit()
 

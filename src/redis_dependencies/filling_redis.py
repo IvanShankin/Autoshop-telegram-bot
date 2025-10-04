@@ -366,7 +366,7 @@ async def filling_banned_accounts():
         model=BannedAccounts,
         key_prefix='banned_account',
         key_extractor=lambda banned_accounts: banned_accounts.user_id,
-        value_extractor=lambda x: '_'
+        value_extractor=lambda x: x.reason
     )
 
 async def filling_all_types_account_service():

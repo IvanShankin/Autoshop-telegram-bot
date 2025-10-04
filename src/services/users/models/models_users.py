@@ -15,7 +15,7 @@ class Users(Base):
         Index('ix_users_balance_created', 'balance', 'created_at')
     )
 
-    user_id = Column(BigInteger, primary_key=True, index=True) # одновременно telegram_id
+    user_id = Column(BigInteger, primary_key=True, index=True, autoincrement=False) # одновременно telegram_id
     username = Column(String(150), nullable=True)
     language = Column(Enum("ru", "en", name="user_language"), nullable=False, server_default="ru")  # язык пользователя
     unique_referral_code = Column(String(50), unique=True, nullable=False)
@@ -78,6 +78,7 @@ class BannedAccounts(Base):
     banned_account_id = Column(Integer, primary_key=True, autoincrement=True,)
     user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False, index=True)
     reason = Column(Text, nullable=False) # причина
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("Users", back_populates="banned_accounts")
 

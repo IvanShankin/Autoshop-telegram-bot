@@ -17,3 +17,6 @@ class InvalidPromoCode(Exception):
 
 class PromoCodeAlreadyActivated(Exception):
     pass
+
+class UserNotFound(Exception):
+    pass

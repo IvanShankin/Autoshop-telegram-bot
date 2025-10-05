@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 
 import orjson
-from dateutil.parser import parse
 from sqlalchemy import select, update, delete
 
 from src.exceptions.service_exceptions import UserNotFound
@@ -20,7 +19,7 @@ async def add_new_user(user_id: int, username: str, language: str = 'ru'):
         user_id = user_id,
         username = username,
         language = language,
-        unique_referral_code = create_unique_referral_code(),
+        unique_referral_code = await create_unique_referral_code(),
         balance = 0,
         total_sum_replenishment = 0,
         total_profit_from_referrals = 0,
@@ -57,17 +56,18 @@ async def update_notification(
         referral_level_up: bool,
         referral_replenishment: bool
 ) -> NotificationSettings | None:
-    async with get_db() as session_db:
+    async with (get_db() as session_db):
         result_db = await session_db.execute(
             update(NotificationSettings)
             .where(NotificationSettings.user_id == user_id)
-            .value(
+            .values(
                 referral_invitation = referral_invitation,
                 referral_level_up = referral_level_up,
                 referral_replenishment = referral_replenishment
             )
             .returning(NotificationSettings)
         )
+        await session_db.commit()
         return result_db.scalar_one_or_none()
 
 async def get_banned_account(user_id: int) -> str | None:
@@ -123,14 +123,17 @@ async def delete_banned_account(admin_id: int, user_id: int):
 
     new_admin_log = AdminActions(
         user_id=admin_id,
-        action_type="added ban account",
-        details={'message': "Добавил аккаунт в забаненные", "user_id": user_id}
+        action_type="deleted ban account",
+        details={'message': "Удалил аккаунт из забаненных", "user_id": user_id}
     )
 
     async with get_db() as session_db:
         await session_db.execute(delete(BannedAccounts).where(BannedAccounts.user_id == user_id))
-        await session_db.add(new_admin_log)
+        session_db.add(new_admin_log)
         await session_db.commit()
+
+    async with get_redis() as session_redis:
+        await session_redis.delete(f"banned_account:{user_id}")
 
     await send_log(
         f"#Аккаунт_разбанен \n\n"

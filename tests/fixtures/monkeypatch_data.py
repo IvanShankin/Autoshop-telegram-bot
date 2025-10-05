@@ -1,3 +1,4 @@
+import importlib
 import sys
 import types
 from contextlib import asynccontextmanager
@@ -48,6 +49,7 @@ async def replacement_redis(monkeypatch):
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def replacement_fake_bot(monkeypatch):
+    # удаляем старый модуль полностью
     sys.modules.pop("src.utils.bot_instance", None)
 
     # Создаём поддельный модуль
@@ -76,6 +78,12 @@ async def replacement_fake_bot(monkeypatch):
 
     # Подменяем модуль в sys.modules
     monkeypatch.setitem(sys.modules, "src.utils.bot_instance", fake_module)
+
+    import src.utils.send_messages
+    importlib.reload(src.utils.send_messages)
+
+    # Очищаем сообщения перед каждым тестом
+    fake_bot.sent.clear()
 
     return fake_bot
 

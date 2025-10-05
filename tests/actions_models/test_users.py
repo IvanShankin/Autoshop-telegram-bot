@@ -3,7 +3,6 @@ from orjson import orjson
 from sqlalchemy import delete
 
 from tests.fixtures.helper_functions import parse_redis_user
-from src.services.users.actions import get_user, update_user
 from src.services.users.models import Users, NotificationSettings
 from src.services.database.database import get_db
 from src.redis_dependencies.core_redis import get_redis
@@ -19,6 +18,7 @@ from tests.fixtures.helper_fixture import create_new_user
     ]
 )
 async def test_get_user(use_redis, create_new_user):
+    from src.services.users.actions import get_user
     user = await create_new_user()
     if use_redis:
         async with get_redis() as session_redis:
@@ -49,6 +49,7 @@ async def test_get_user(use_redis, create_new_user):
 @pytest.mark.asyncio
 async def test_update_user(create_new_user):
     """Проверяем, что update_user меняет данные в БД и Redis"""
+    from src.services.users.actions import update_user
     # изменяем данные пользователя
     user = await create_new_user()
     user.username = "updated_username"

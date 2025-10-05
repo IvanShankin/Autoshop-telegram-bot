@@ -4,7 +4,7 @@ from sqlalchemy.orm import selectinload
 
 from src.redis_dependencies.core_redis import get_redis
 from src.redis_dependencies.filling_redis import filling_all_account_services, filling_account_categories_by_service_id, \
-    filling_account_categories_by_category_id, filling_account_services, filling_sold_accounts_by_owner_id
+    filling_account_categories_by_category_id, filling_account_services
 from src.redis_dependencies.time_storage import TIME_SOLD_ACCOUNTS_BY_OWNER, TIME_SOLD_ACCOUNTS_BY_ACCOUNT
 from src.services.database.database import get_db
 from src.services.selling_accounts.actions.actions_get import get_sold_accounts_by_owner_id
@@ -285,7 +285,7 @@ async def update_sold_account(
                     account_list = await get_sold_accounts_by_owner_id(account.owner_id, lang)
                     new_list = [acc.model_dump() for acc in account_list if acc.sold_account_id != sold_account_id]
                     await session_redis.setex(
-                        f"sold_accounts_by_owner_id:{sold_account_id}:{lang}",
+                        f"sold_accounts_by_owner_id:{account.owner_id}:{lang}",
                         TIME_SOLD_ACCOUNTS_BY_OWNER,
                         orjson.dumps(new_list)
                     )
@@ -309,7 +309,7 @@ async def update_sold_account(
                             new_list.append(account_full.model_dump()) # добавление изменённой модели
 
                     await session_redis.setex(
-                        f"sold_accounts_by_owner_id:{sold_account_id}:{lang}",
+                        f"sold_accounts_by_owner_id:{account.owner_id}:{lang}",
                         TIME_SOLD_ACCOUNTS_BY_OWNER,
                         orjson.dumps(new_list)
                     )

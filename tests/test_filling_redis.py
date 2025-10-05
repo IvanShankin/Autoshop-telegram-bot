@@ -133,9 +133,9 @@ class TestFillRedisSingleObjectsMultilang(TestBase):
                 assert data[key] == expected_value
 
     @pytest.mark.asyncio
-    async def test_filling_sold_accounts_by_accounts_id(self):
+    async def test_filling_sold_accounts_by_accounts_id(self, create_new_user):
         # Setup
-        user = await self.create_basic_user("seller", "seller_ref")
+        user = await create_new_user(user_name="seller", union_ref_code = "seller_ref")
         type_service = await self.create_type_service("sold_type")
 
         sold_account = await self.add_and_refresh(
@@ -236,9 +236,9 @@ class TestFillRedisGroupedObjectsMultilang(TestBase):
             assert len(categories_list) == expected_count
 
     @pytest.mark.asyncio
-    async def test_filling_sold_accounts_by_owner_id(self):
+    async def test_filling_sold_accounts_by_owner_id(self, create_new_user):
         # Setup
-        user = await self.create_basic_user("grouped_seller", "grouped_seller_ref")
+        user = await create_new_user(user_name="grouped_seller", union_ref_code = "grouped_seller_ref")
         type_service = await self.create_type_service("grouped_sold_type")
 
         # Create sold accounts with translations
@@ -287,26 +287,17 @@ class TestFillRedisGroupedObjectsMultilang(TestBase):
         assert actual_ids == expected_ids
 
     @pytest.mark.asyncio
-    async def test_filling_sold_accounts_by_owner_id_with_filter(self):
+    async def test_filling_sold_accounts_by_owner_id_with_filter(self, create_new_user):
         """Тест фильтрации удаленных аккаунтов"""
-        await self.test_filling_sold_accounts_by_owner_id()  # Используем общий тест
+        await self.test_filling_sold_accounts_by_owner_id(create_new_user)  # Используем общий тест
 
 
 class TestFillRedisSingleObjects(TestBase):
     """Тесты для заполнения Redis одиночными объектами"""
 
     @pytest.mark.asyncio
-    async def test_filling_user(self):
-        user = await self.add_and_refresh(
-            Users(
-                username="test",
-                language="ru",
-                unique_referral_code="abc",
-                balance=100,
-                total_sum_replenishment=50,
-                total_profit_from_referrals=10
-            )
-        )
+    async def test_filling_user(self, create_new_user):
+        user = await create_new_user()
 
         await filling.filling_users()
 
@@ -316,8 +307,8 @@ class TestFillRedisSingleObjects(TestBase):
         self.compare_dicts(user, val)
 
     @pytest.mark.asyncio
-    async def test_filling_admins(self):
-        user = await self.create_basic_user("admin_user", "admin_ref")
+    async def test_filling_admins(self, create_new_user):
+        user = await create_new_user(user_name="admin_user", union_ref_code = "admin_ref")
         admin = await self.add_and_refresh(Admins(user_id=user.user_id))
 
         await filling.filling_admins()
@@ -328,8 +319,8 @@ class TestFillRedisSingleObjects(TestBase):
         assert val
 
     @pytest.mark.asyncio
-    async def test_filling_banned_accounts(self):
-        user = await self.create_basic_user("banned_user", "banned_ref")
+    async def test_filling_banned_accounts(self, create_new_user):
+        user = await create_new_user(user_name="banned_user", union_ref_code = "banned_ref")
         banned = await self.add_and_refresh(
             BannedAccounts(user_id=user.user_id, reason="test ban")
         )
@@ -403,8 +394,8 @@ class TestFillRedisSingleObjects(TestBase):
         self.compare_dicts(promo, val)
 
     @pytest.mark.asyncio
-    async def test_filling_vouchers(self):
-        user = await self.create_basic_user("voucher_creator", "voucher_ref")
+    async def test_filling_vouchers(self, create_new_user):
+        user = await create_new_user(user_name="voucher_creator", union_ref_code = "voucher_ref")
 
         voucher = await self.add_and_refresh(
             Vouchers(

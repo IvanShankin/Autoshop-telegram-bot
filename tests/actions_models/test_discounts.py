@@ -71,7 +71,7 @@ async def test_create_promo_code(create_promo_code, create_new_user):
 
         admin_action_db = await session_db.execute(
             select(AdminActions)
-            .where(AdminActions.admin_action_id == user.user_id)
+            .where(AdminActions.user_id == user.user_id)
         )
         assert admin_action_db.scalar_one()
 

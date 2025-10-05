@@ -30,12 +30,19 @@ async def create_new_user():
         if union_ref_code is None:
             union_ref_code = await create_unique_referral_code()
 
-        new_user = Users(
-            username=user_name,
-            unique_referral_code=union_ref_code,
-        )
 
         async with get_db() as session_db:
+            result_db = await session_db.execute(select(Users.user_id))
+            max_id = result_db.scalars().all()
+
+            new_id = max(max_id, default=-1) + 1
+
+            new_user = Users(
+                user_id=new_id,
+                username=user_name,
+                unique_referral_code=union_ref_code,
+            )
+
             session_db.add(new_user)
             await session_db.commit()
             await session_db.refresh(new_user)

@@ -11,7 +11,7 @@ from src.services.users.models import Users, NotificationSettings, BannedAccount
 from src.services.database.database import get_db
 from src.redis_dependencies.core_redis import get_redis
 from src.redis_dependencies.time_storage import TIME_USER
-from src.utils.send_messages import send_log
+from src.bot_actions.send_messages import send_log
 
 async def add_new_user(user_id: int, username: str, language: str = 'ru'):
     """Создаст нового пользователя и прикрепит к нему настройки уведомлений"""

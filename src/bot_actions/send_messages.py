@@ -1,4 +1,4 @@
-from src.utils.bot_instance import get_bot_logger
+from src.bot_actions.bot_instance import get_bot_logger
 from src.config import MAIN_ADMIN
 from src.services.system.actions import get_settings
 from src.utils.core_logger import logger

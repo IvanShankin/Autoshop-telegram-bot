@@ -7,7 +7,7 @@ from src.services.discounts.events.schemas import NewActivationVoucher
 from src.services.discounts.models import Vouchers, VoucherActivations
 from src.services.users.models import UserAuditLogs, WalletTransaction
 from src.utils.i18n import get_i18n
-from src.utils.send_messages import send_log
+from src.bot_actions.send_messages import send_log
 
 
 async def voucher_event_handler(event):

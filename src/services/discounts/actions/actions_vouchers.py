@@ -14,7 +14,7 @@ from src.services.users.actions import update_user, get_user
 from src.services.users.models import WalletTransaction, UserAuditLogs, Users
 from src.utils.codes import generate_code
 from src.utils.i18n import get_i18n
-from src.utils.send_messages import send_log
+from src.bot_actions.send_messages import send_log
 
 
 async def get_valid_voucher(

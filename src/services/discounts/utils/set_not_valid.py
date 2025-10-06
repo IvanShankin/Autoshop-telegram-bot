@@ -10,7 +10,7 @@ from src.services.discounts.utils.sending import send_set_not_valid_voucher
 from src.services.users.actions import get_user
 from src.utils.core_logger import logger
 from src.utils.i18n import get_i18n
-from src.utils.send_messages import send_log
+from src.bot_actions.send_messages import send_log
 
 
 async def _set_not_valid_promo_code() -> None:

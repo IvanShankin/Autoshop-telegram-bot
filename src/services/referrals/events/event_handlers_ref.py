@@ -3,7 +3,7 @@ from datetime import datetime
 from aiogram.exceptions import TelegramForbiddenError
 from sqlalchemy import update, select
 
-from src.utils.bot_instance import get_bot_logger
+from src.bot_actions.bot_instance import get_bot_logger
 from src.config import DT_FORMAT_FOR_LOGS
 from src.services.users.actions import get_user, update_user
 from src.services.users.models import UserAuditLogs, WalletTransaction, NotificationSettings
@@ -13,7 +13,7 @@ from src.services.referrals.actions import get_referral_lvl
 from src.services.referrals.models.models_ref import Referrals, IncomeFromReferrals
 from src.services.replenishments_event.schemas import ReplenishmentCompleted
 from src.utils.core_logger import logger
-from src.utils.send_messages import send_log
+from src.bot_actions.send_messages import send_log
 
 async def referral_event_handler(event):
     payload = event["payload"]

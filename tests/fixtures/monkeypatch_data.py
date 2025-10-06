@@ -50,10 +50,10 @@ async def replacement_redis(monkeypatch):
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def replacement_fake_bot(monkeypatch):
     # удаляем старый модуль полностью
-    sys.modules.pop("src.utils.bot_instance", None)
+    sys.modules.pop("src.bot_actions.bot_instance", None)
 
     # Создаём поддельный модуль
-    fake_module = types.ModuleType("src.utils.bot_instance")
+    fake_module = types.ModuleType("src.bot_actions.bot_instance")
 
     async def fake_get_bot():
         return fake_bot
@@ -77,10 +77,10 @@ async def replacement_fake_bot(monkeypatch):
     fake_module._dp_logger = None
 
     # Подменяем модуль в sys.modules
-    monkeypatch.setitem(sys.modules, "src.utils.bot_instance", fake_module)
+    monkeypatch.setitem(sys.modules, "src.bot_actions.bot_instance", fake_module)
 
-    import src.utils.send_messages
-    importlib.reload(src.utils.send_messages)
+    import src.bot_actions.send_messages
+    importlib.reload(src.bot_actions.send_messages)
 
     # Очищаем сообщения перед каждым тестом
     fake_bot.sent.clear()

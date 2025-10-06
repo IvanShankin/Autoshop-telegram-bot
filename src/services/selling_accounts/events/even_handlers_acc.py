@@ -2,7 +2,7 @@ from src.redis_dependencies.filling_redis import filling_sold_account_only_one_o
 from src.services.database.database import get_db
 from src.services.selling_accounts.events.schemas import NewPurchaseAccount
 from src.services.users.models import UserAuditLogs, WalletTransaction
-from src.utils.send_messages import send_log
+from src.bot_actions.send_messages import send_log
 
 async def account_purchase_event_handler(event):
     payload = event["payload"]

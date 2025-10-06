@@ -47,6 +47,11 @@ async def get_user(user_id: int, username: str = None)->Users | None:
             return None
 
 
+async def get_user_by_ref_code(code: str) -> Users | None:
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(Users).where(Users.unique_referral_code == code))
+        return result_db.scalars().first()
+
 
 async def update_user(user: Users) -> Users:
     """

@@ -4,6 +4,7 @@ from sqlalchemy import delete, select
 
 from src.exceptions.service_exceptions import UserNotFound
 from src.services.admins.models import AdminActions
+from src.services.users.actions.action_user import get_user_by_ref_code
 from tests.fixtures.helper_functions import parse_redis_user
 from src.services.users.models import Users, NotificationSettings, BannedAccounts
 from src.services.database.database import get_db
@@ -47,6 +48,11 @@ async def test_get_user(use_redis, create_new_user):
     assert selected_user.total_profit_from_referrals == user.total_profit_from_referrals
     # created_at проверяем с допуском
     assert abs((selected_user.created_at - user.created_at).total_seconds()) < 2
+
+async def test_get_user_by_ref_code(create_new_user):
+    new_user = await create_new_user()
+    returned_user = await get_user_by_ref_code(new_user.unique_referral_code)
+    assert new_user.to_dict() == returned_user.to_dict()
 
 @pytest.mark.asyncio
 async def test_update_user(create_new_user):

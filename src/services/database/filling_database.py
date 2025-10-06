@@ -90,7 +90,7 @@ async def filling_referral_lvl():
             await session_db.commit()
 
 async def filling_admins(admin_id: int):
-    """Создаст нового админа """
+    """Создаст нового админа. Если в БД нет админа, то создаст его, если в БД нет, пользователя, то создаст его и уведомления для него"""
     async with get_db() as session_db:
         result = await session_db.execute(select(Admins).where(Admins.user_id == admin_id))
         result_admin = result.scalar()

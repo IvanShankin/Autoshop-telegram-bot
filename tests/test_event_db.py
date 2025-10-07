@@ -15,6 +15,7 @@ from src.config import DT_FORMAT_FOR_LOGS
 from src.services.discounts.models import VoucherActivations, Vouchers
 from src.services.selling_accounts.events.schemas import NewPurchaseAccount, AccountsData
 from src.services.system.actions import get_settings, update_settings
+from src.services.users.actions import get_user
 from src.services.users.models import Replenishments, Users, WalletTransaction, UserAuditLogs
 from src.services.database.database import get_db
 from src.utils.i18n import get_i18n
@@ -676,6 +677,15 @@ class TestHandlerNewActivatedVoucher:
             )
             assert log_result.scalar_one()
 
+
+        owner = await get_user(voucher.creator_id)
+        i18n = get_i18n(owner.language, "discount_dom")
+        message_for_user = i18n.gettext(
+            "Voucher with code '{code}' has been activated! \n\nRemaining number of voucher activations: {number_activations}"
+        ).format(code=updated_voucher.activation_code, number_activations=updated_voucher.number_of_activations - updated_voucher.activated_counter)
+
+        assert fake_bot.get_message(owner.user_id, message_for_user)
+
     @pytest.mark.asyncio
     async def test_voucher_activation_with_activation_limit(
             self,
@@ -773,7 +783,7 @@ class TestHandlerNewActivatedVoucher:
         await asyncio.wait_for(processed_voucher.wait(), timeout=5.0)  # ожидание завершения события
 
         # Проверяем отправку лога об ошибке
-        i18n = get_i18n('ru', "replenishment_dom")
+        i18n = get_i18n('ru', "discount_dom")
         expected_error_message = i18n.gettext(
             "Error_while_activating_voucher. \n\nVoucher ID '{id}' \nError: {error}"
         ).format(id=voucher.voucher_id, error="")
@@ -853,7 +863,7 @@ class TestHandlerNewActivatedVoucher:
 
         await send_failed(voucher_id, error_text)
 
-        i18n = get_i18n('ru', "replenishment_dom")
+        i18n = get_i18n('ru', "discount_dom")
         expected_error_message = i18n.gettext(
             "Error_while_activating_voucher. \n\nVoucher ID '{id}' \nError: {error}"
         ).format(id=voucher_id, error=error_text)

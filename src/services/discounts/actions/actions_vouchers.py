@@ -217,6 +217,13 @@ async def deactivate_voucher(voucher_id: int) -> int:
 async def activate_voucher(user: Users, code: str, language: str) -> str:
     """
     Проверит наличие ваучера с таким кодом, если он действителен и пользователь его ещё не активировал, то ваучер активируется.
+    Если user не является создателем ваучера, то он может его активировать.
+
+    Отошлёт сообщение создателю ваучера, что он активирован
+
+    :param user: Тот кто хочет активировать ваучер.
+    :param code: Код ваучера.
+    :param language: Язык на котором будет возвращено сообщение.
     :return str: Сообщение с результатом
     """
     i18n = get_i18n(language, "discount_dom")
@@ -225,6 +232,10 @@ async def activate_voucher(user: Users, code: str, language: str) -> str:
     voucher = await get_valid_voucher(code)
     if not voucher:
         return i18n.gettext("Voucher with this code not found")
+
+    # если кто пытается активировать ваучера является его создателем
+    if voucher.creator_id == user.user_id:
+        return i18n.gettext("You cannot activate the voucher. You are its creator")
 
     # если ваучер просрочен
     if voucher.expire_at < datetime.now(timezone.utc):

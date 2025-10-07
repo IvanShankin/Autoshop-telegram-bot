@@ -42,6 +42,11 @@ msgstr "Вы уже активировали данный ваучер. Его �
 msgid "Voucher successfully activated! \n\nVoucher amount: {amount} \nCurrent balance: {new_balance}"
 msgstr "Ваучер успешно активирован! \n\nСумма ваучера: {amount} \n Текущий баланс: {new_balance}"
 
+msgid "Voucher with code '{code}' has been activated! \n\nRemaining number of voucher activations: {number_activations}"
+msgstr "Ваучер с кодом '{code}' активирован! \n\nОставшееся количество активаций ваучера: {number_activations}"
+
+msgid "You cannot activate the voucher. You are its creator"
+msgstr "Вы не можете активировать ваучер. Вы его создатель"
 
 msgid "#Error_activating_promo_code. \n\nPromo code ID '{id}' \nError: {error}"
 msgstr "#Ошибка_при_активации_промокода. \n\nID промокода '{id}' \nОшибка: {error}"

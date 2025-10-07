@@ -9,6 +9,7 @@ from src.services.admins.models import AdminActions
 from src.services.discounts.models import PromoCodes, Vouchers, VoucherActivations
 from src.services.database.database import get_db
 from src.redis_dependencies.core_redis import get_redis
+from src.services.users.actions import get_user
 from src.services.users.models import Users, WalletTransaction, UserAuditLogs
 from src.utils.i18n import get_i18n
 from tests.fixtures.helper_fixture import create_promo_code, create_voucher
@@ -171,12 +172,13 @@ class TestActivateVoucher:
     async def test_voucher_expired_by_time(self, create_new_user):
         """Ваучер просрочен по времени"""
         from src.services.discounts.actions import activate_voucher
+        owner_voucher = await create_new_user()
         user = await create_new_user()
         i18n = get_i18n(user.language, "discount_dom")
 
         # создаём просроченный ваучер
         expired_voucher = Vouchers(
-            creator_id=user.user_id,
+            creator_id=owner_voucher.user_id,
             activation_code="EXPIREDCODE",
             amount=100,
             activated_counter=0,
@@ -196,6 +198,18 @@ class TestActivateVoucher:
             "Voucher expired \n\nID '{id}' \nCode '{code}' \n\nVoucher expired due to time limit. It can no longer be activated"
         ).format(id=expired_voucher.voucher_id, code=expired_voucher.activation_code)
 
+        assert result == expected
+
+    async def test_voucher_activate_owner(self, create_new_user, create_voucher):
+        """Пытаемся активировать ваучер когда тот кто пытается - его владелец"""
+        from src.services.discounts.actions import activate_voucher
+        voucher = create_voucher
+        user = await get_user(voucher.creator_id)
+        i18n = get_i18n(user.language, "discount_dom")
+
+        result = await activate_voucher(user, voucher.activation_code, user.language)
+
+        expected = i18n.gettext("You cannot activate the voucher. You are its creator")
         assert result == expected
 
 

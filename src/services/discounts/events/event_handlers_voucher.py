@@ -1,10 +1,12 @@
 from sqlalchemy import update, select
 
+from src.bot_actions.bot_instance import get_bot
 from src.redis_dependencies.core_redis import get_redis
 from src.services.database.database import get_db
 from src.services.discounts.utils.sending import send_set_not_valid_voucher
 from src.services.discounts.events.schemas import NewActivationVoucher
 from src.services.discounts.models import Vouchers, VoucherActivations
+from src.services.users.actions import get_user
 from src.services.users.models import UserAuditLogs, WalletTransaction
 from src.utils.i18n import get_i18n
 from src.bot_actions.send_messages import send_log
@@ -18,7 +20,7 @@ async def voucher_event_handler(event):
         await handler_new_activated_voucher(obj)
 
 async def handler_new_activated_voucher(new_activation_voucher: NewActivationVoucher):
-    """Обрабатывает новую активацию ваучера"""
+    """Залогирует все действия и отошлёт владельцу сообщение об активации"""
     try:
         async with get_db() as session_db:
             # проверка на повторную активацию
@@ -36,7 +38,7 @@ async def handler_new_activated_voucher(new_activation_voucher: NewActivationVou
                 .values(activated_counter = Vouchers.activated_counter + 1 )
                 .returning(Vouchers)
             )
-            voucher = result_db.scalar_one_or_none()
+            voucher: Vouchers = result_db.scalar_one_or_none()
             await session_db.commit()
 
             set_not_valid = False
@@ -86,12 +88,23 @@ async def handler_new_activated_voucher(new_activation_voucher: NewActivationVou
             session_db.add(new_user_log)
 
             await session_db.commit()
+
+            if not voucher.is_created_admin:
+                bot = await get_bot()
+                owner = await get_user(voucher.creator_id)
+                i18n = get_i18n(owner.language, "discount_dom")
+                message_for_user = i18n.gettext(
+                    "Voucher with code '{code}' has been activated! \n\nRemaining number of voucher activations: {number_activations}"
+                ).format(code=voucher.activation_code, number_activations=voucher.number_of_activations - voucher.activated_counter)
+
+                await bot.send_message(owner.user_id, message_for_user)
+
     except Exception as e:
         await send_failed(new_activation_voucher.voucher_id, str(e))
 
 
 async def send_failed(voucher_id: int, error: str):
-    i18n = get_i18n('ru', "replenishment_dom")
+    i18n = get_i18n('ru', "discount_dom")
     message_log = i18n.gettext(
         "Error_while_activating_voucher. \n\nVoucher ID '{id}' \nError: {error}"
     ).format(id=voucher_id, error=error)

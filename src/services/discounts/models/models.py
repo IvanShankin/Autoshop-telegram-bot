@@ -48,7 +48,7 @@ class Vouchers(Base):
     )
 
     voucher_id = Column(Integer, primary_key=True, autoincrement=True)
-    creator_id = Column(Integer, ForeignKey("users.user_id"), nullable=True)
+    creator_id = Column(Integer, ForeignKey("users.user_id"))
     is_created_admin = Column(Boolean, nullable=False, server_default=text('false'))
 
     activation_code = Column(String(150), nullable=False) # НЕ уникальный, фильтровать необходимо по is_valid

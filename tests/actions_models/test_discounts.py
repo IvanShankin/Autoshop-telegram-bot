@@ -127,13 +127,14 @@ class TestActivateVoucher:
         voucher = create_voucher
         i18n = get_i18n(user.language, "discount_dom")
 
-        result = await activate_voucher(user, voucher.activation_code, user.language)
+        result_message, success = await activate_voucher(user, voucher.activation_code, user.language)
 
         expected = i18n.gettext(
             "Voucher successfully activated! \n\nVoucher amount: {amount} \nCurrent balance: {new_balance}"
         ).format(amount=voucher.amount, new_balance=user.balance + voucher.amount)
 
-        assert result == expected
+        assert result_message == expected
+        assert success == True
 
     async def test_voucher_not_found(self, create_new_user):
         """Ваучера с таким кодом нет"""
@@ -142,10 +143,10 @@ class TestActivateVoucher:
         user = await create_new_user()
         i18n = get_i18n(user.language, "discount_dom")
 
-        result = await activate_voucher(user, "INVALIDCODE", user.language)
+        result_message, success = await activate_voucher(user, "INVALIDCODE", user.language)
 
         expected = i18n.gettext("Voucher with this code not found")
-        assert result == expected
+        assert result_message == expected
 
     async def test_voucher_already_activated(self, create_voucher, create_new_user):
         """Пользователь не может активировать один и тот же ваучер дважды"""
@@ -164,10 +165,11 @@ class TestActivateVoucher:
             await session_db.commit()
 
         # пробуем активировать ваучер который уже активирован ранее этим пользователем
-        result = await activate_voucher(user, voucher.activation_code, user.language)
+        result_message, success = await activate_voucher(user, voucher.activation_code, user.language)
 
         expected = i18n.gettext("You have already activated this voucher. It can only be activated once")
-        assert result == expected
+        assert result_message == expected
+        assert success == False
 
     async def test_voucher_expired_by_time(self, create_new_user):
         """Ваучер просрочен по времени"""
@@ -192,13 +194,14 @@ class TestActivateVoucher:
             await session.commit()
             await session.refresh(expired_voucher)
 
-        result = await activate_voucher(user, expired_voucher.activation_code, user.language)
+        result_message, success = await activate_voucher(user, expired_voucher.activation_code, user.language)
 
         expected = i18n.gettext(
             "Voucher expired \n\nID '{id}' \nCode '{code}' \n\nVoucher expired due to time limit. It can no longer be activated"
         ).format(id=expired_voucher.voucher_id, code=expired_voucher.activation_code)
 
-        assert result == expected
+        assert result_message == expected
+        assert success == False
 
     async def test_voucher_activate_owner(self, create_new_user, create_voucher):
         """Пытаемся активировать ваучер когда тот кто пытается - его владелец"""
@@ -207,10 +210,11 @@ class TestActivateVoucher:
         user = await get_user(voucher.creator_id)
         i18n = get_i18n(user.language, "discount_dom")
 
-        result = await activate_voucher(user, voucher.activation_code, user.language)
+        result_message, success = await activate_voucher(user, voucher.activation_code, user.language)
 
         expected = i18n.gettext("You cannot activate the voucher. You are its creator")
-        assert result == expected
+        assert result_message == expected
+        assert success == False
 
 
 @pytest.mark.asyncio

@@ -1,10 +1,11 @@
 import pytest
 
 from orjson import orjson
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 
 from src.services.database.database import get_db
-from src.services.referrals.models import ReferralLevels
+from src.services.referrals.actions.actions_ref import add_referral
+from src.services.referrals.models import ReferralLevels, Referrals
 from src.services.referrals.actions import get_referral_lvl
 from src.redis_dependencies.core_redis import get_redis
 
@@ -41,3 +42,17 @@ async def test_get_referral_lvl(use_redis):
     assert isinstance(levels, list)
     assert all(isinstance(l, ReferralLevels) for l in levels)
     assert levels == sorted(levels, key=lambda x: x.level)
+
+@pytest.mark.asyncio
+async def test_get_referral_lvl(create_new_user):
+    user = await create_new_user()
+    owner = await create_new_user()
+
+    await add_referral(user.user_id, owner.user_id)
+
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(Referrals).where(Referrals.referral_id == user.user_id))
+        referral: Referrals = result_db.scalar_one_or_none()
+
+        assert referral.referral_id == user.user_id
+        assert referral.owner_user_id == owner.user_id

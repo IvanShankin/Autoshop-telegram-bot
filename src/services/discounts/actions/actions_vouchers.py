@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, Tuple
 
 import orjson
 from dateutil.parser import parse
@@ -213,7 +213,7 @@ async def deactivate_voucher(voucher_id: int) -> int:
 
 
 
-async def activate_voucher(user: Users, code: str, language: str) -> str:
+async def activate_voucher(user: Users, code: str, language: str) -> Tuple[str, bool]:
     """
     Проверит наличие ваучера с таким кодом, если он действителен и пользователь его ещё не активировал, то ваучер активируется.
     Если user не является создателем ваучера, то он может его активировать.
@@ -223,25 +223,25 @@ async def activate_voucher(user: Users, code: str, language: str) -> str:
     :param user: Тот кто хочет активировать ваучер.
     :param code: Код ваучера.
     :param language: Язык на котором будет возвращено сообщение.
-    :return str: Сообщение с результатом
+    :return Tuple[str, bool]: Сообщение с результатом, успешность активации
     """
     i18n = get_i18n(language, "discount_dom")
     balance_before = user.balance
 
     voucher = await get_valid_voucher(code)
     if not voucher:
-        return i18n.gettext("Voucher with this code not found")
+        return i18n.gettext("Voucher with this code not found"), False
 
     # если кто пытается активировать ваучера является его создателем
     if voucher.creator_id == user.user_id:
-        return i18n.gettext("You cannot activate the voucher. You are its creator")
+        return i18n.gettext("You cannot activate the voucher. You are its creator"), False
 
     # если ваучер просрочен
     if voucher.expire_at < datetime.now(timezone.utc):
         await deactivate_voucher(voucher.voucher_id)
         return i18n.gettext(
             "Voucher expired \n\nID '{id}' \nCode '{code}' \n\nVoucher expired due to time limit. It can no longer be activated"
-        ).format(id=voucher.voucher_id, code=voucher.activation_code)
+        ).format(id=voucher.voucher_id, code=voucher.activation_code), False
 
     async with get_db() as session_db:
         result_db = await session_db.execute(
@@ -254,7 +254,7 @@ async def activate_voucher(user: Users, code: str, language: str) -> str:
         )
         log_activate = result_db.scalar_one_or_none()
         if log_activate:
-            return i18n.gettext("You have already activated this voucher. It can only be activated once")
+            return i18n.gettext("You have already activated this voucher. It can only be activated once"), False
 
     async with get_db() as session_db:
         result_db = await session_db.execute(
@@ -280,7 +280,7 @@ async def activate_voucher(user: Users, code: str, language: str) -> str:
 
     return i18n.gettext(
         "Voucher successfully activated! \n\nVoucher amount: {amount} \nCurrent balance: {new_balance}"
-    ).format(amount=voucher.amount, new_balance=user.balance)
+    ).format(amount=voucher.amount, new_balance=user.balance), True
 
 
 

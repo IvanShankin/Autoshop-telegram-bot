@@ -2,11 +2,13 @@ from typing import List
 
 from orjson import orjson
 from sqlalchemy import select
+from sqlalchemy.util import merge_lists_w_ordering
 
 from src.services.database.database import get_db
 from src.services.database.filling_database import filling_referral_lvl
 from src.services.referrals.models import ReferralLevels, Referrals
 from src.redis_dependencies.core_redis import get_redis
+from src.services.users.models import UserAuditLogs
 
 
 async def get_referral_lvl()->List[ReferralLevels]:
@@ -41,8 +43,26 @@ async def add_referral(referral_id: int, owner_id: int):
         owner_user_id=owner_id,
         level=min_level_obj.level
     )
+    new_log_1 = UserAuditLogs(
+        user_id = owner_id,
+        action_type = 'new_referral',
+        details = {
+            'message': 'У пользователя новый реферал',
+            'referral_id': referral_id,
+        }
+    )
+    new_log_2 = UserAuditLogs(
+        user_id=referral_id,
+        action_type='became_referral',
+        details={
+            'message': 'Пользователь стал рефералом',
+            'owner_id': owner_id,
+        }
+    )
 
     async with get_db() as session_db:
         session_db.add(new_ref)
+        session_db.add(new_log_1)
+        session_db.add(new_log_2)
         await session_db.commit()
 

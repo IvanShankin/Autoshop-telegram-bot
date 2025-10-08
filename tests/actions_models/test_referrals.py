@@ -8,6 +8,7 @@ from src.services.referrals.actions.actions_ref import add_referral
 from src.services.referrals.models import ReferralLevels, Referrals
 from src.services.referrals.actions import get_referral_lvl
 from src.redis_dependencies.core_redis import get_redis
+from src.services.users.models import UserAuditLogs
 
 
 @pytest.mark.asyncio
@@ -56,3 +57,12 @@ async def test_get_referral_lvl(create_new_user):
 
         assert referral.referral_id == user.user_id
         assert referral.owner_user_id == owner.user_id
+
+        result_db = await session_db.execute(select(UserAuditLogs).where(UserAuditLogs.user_id == user.user_id))
+        log = result_db.scalars().all()
+        assert len(log) == 1
+
+        result_db = await session_db.execute(select(UserAuditLogs).where(UserAuditLogs.user_id == owner.user_id))
+        log = result_db.scalars().all()
+        assert len(log) == 1
+

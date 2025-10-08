@@ -58,6 +58,8 @@ async def update_settings(settings: Settings) -> Settings:
                 hash_token_logger_bot=settings.hash_token_logger_bot,
                 channel_for_logging_id=settings.channel_for_logging_id,
                 channel_for_subscription_id=settings.channel_for_subscription_id,
+                shop_name=settings.shop_name,
+                chanel_name=settings.chanel_name,
                 FAQ=settings.FAQ,
             )
         )

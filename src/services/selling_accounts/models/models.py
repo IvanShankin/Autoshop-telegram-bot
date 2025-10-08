@@ -53,7 +53,7 @@ class AccountCategories(Base):
     __tablename__ = "account_categories"
 
     account_category_id = Column(Integer, primary_key=True, autoincrement=True)
-    account_service_id = Column(Integer, ForeignKey("account_services.account_service_id"), nullable=False)
+    account_service_id = Column(Integer, ForeignKey("account_services.account_service_id"), nullable=False, index=True)
     parent_id = Column(Integer, ForeignKey("account_categories.account_category_id"), nullable=True)
     index = Column(Integer)
     show = Column(Boolean, nullable=False, server_default=text('true'))
@@ -108,7 +108,7 @@ class AccountCategoryTranslation(Base):
     )
 
     account_category_translations_id = Column(Integer, primary_key=True, autoincrement=True)
-    account_category_id = Column(Integer, ForeignKey("account_categories.account_category_id", ondelete="CASCADE"),nullable=False)
+    account_category_id = Column(Integer, ForeignKey("account_categories.account_category_id", ondelete="CASCADE"),nullable=False, index=True)
     lang = Column(String(8), nullable=False)  # 'ru', 'en'
     name = Column(String(300), nullable=False)
     description = Column(Text, nullable=True)
@@ -124,7 +124,7 @@ class ProductAccounts(Base):
 
     account_id = Column(Integer, primary_key=True, autoincrement=True)
     type_account_service_id = Column(Integer, ForeignKey("type_account_services.type_account_service_id"), nullable=False)
-    account_category_id = Column(Integer, ForeignKey("account_categories.account_category_id"), nullable=False)
+    account_category_id = Column(Integer, ForeignKey("account_categories.account_category_id"), nullable=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Специфичные поля (могут быть NULL)

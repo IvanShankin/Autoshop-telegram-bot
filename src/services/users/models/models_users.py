@@ -9,10 +9,7 @@ from src.services.database.database import Base
 class Users(Base):
     __tablename__ = "users"
     __table_args__ = (
-        Index('ix_users_username', 'username'),
         Index('ix_users_referral_code', 'unique_referral_code'),
-        Index('ix_users_created', 'created_at'),
-        Index('ix_users_balance_created', 'balance', 'created_at')
     )
 
     user_id = Column(BigInteger, primary_key=True, index=True, autoincrement=False) # одновременно telegram_id
@@ -60,7 +57,7 @@ class NotificationSettings(Base):
     __tablename__ = "notification_settings"
 
     notification_setting_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False, unique=True)
+    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False, unique=True, index=True)
 
     # Уведомления о рефералах
     referral_invitation = Column(Boolean, server_default=text('true'))  # Приглашение реферала

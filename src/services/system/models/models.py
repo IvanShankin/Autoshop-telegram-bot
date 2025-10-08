@@ -29,7 +29,7 @@ class TypePayments(Base):
     type_payment_id = Column(Integer, primary_key=True, autoincrement=True)
     # у админа будет собственное название (только для него в панели администратора)
     name_for_user = Column(String(400), nullable=False)  # Название метода (CryptoBot, ЮMoney и т.д.)
-    name_for_admin = Column(String(400), nullable=False) # это мы устанавливаем сами, админ не может поменять
+    name_for_admin = Column(String(400), nullable=False, index=True) # это мы устанавливаем сами, админ не может поменять
     is_active = Column(Boolean, server_default=text('true'))  # Активен ли метод
     commission = Column(Float, default=0)  # Комиссия в процентах
     index = Column(Integer, nullable=False)

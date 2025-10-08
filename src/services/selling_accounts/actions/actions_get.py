@@ -8,12 +8,11 @@ from sqlalchemy import select, inspect as sa_inspect, true, DateTime
 from sqlalchemy.orm import selectinload
 
 from src.redis_dependencies.core_redis import get_redis
-from src.redis_dependencies.filling_redis import filling_type_account_services, filling_account_services, \
+from src.redis_dependencies.filling_redis import (filling_type_account_services, filling_account_services, \
     filling_account_categories_by_service_id, filling_account_categories_by_category_id, \
     filling_product_accounts_by_category_id, filling_product_accounts_by_account_id, \
-    filling_sold_accounts_by_accounts_id, filling_all_account_services, filling_sold_account_only_one_owner, \
-    filling_sold_account_only_one, filling_all_types_account_service
-from src.redis_dependencies.time_storage import TIME_SOLD_ACCOUNTS_BY_OWNER, TIME_SOLD_ACCOUNTS_BY_ACCOUNT
+    filling_all_account_services, filling_sold_account_only_one_owner, \
+    filling_sold_account_only_one, filling_all_types_account_service)
 from src.services.database.database import get_db
 from src.services.selling_accounts.models import TypeAccountServices, AccountServices, AccountCategories, \
     ProductAccounts, SoldAccounts

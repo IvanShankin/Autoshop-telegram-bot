@@ -16,6 +16,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 LOCALES_DIR = BASE_DIR / 'locales'
 LOG_DIR =  BASE_DIR / 'logs'
+MEDIA_DIR = BASE_DIR / "media"
 
 TYPE_PAYMENTS = {'crypto_bot': 'crypto_bot'}
 TYPE_ACCOUNT_SERVICES = {'telegram': 'telegram', 'other': 'other'}
@@ -24,3 +25,7 @@ DEFAULT_LANG = "ru"
 
 DT_FORMAT_FOR_LOGS = "%Y-%m-%d %H:%M:%S"
 
+UI_IMAGES = {
+    "main_menu": f"{BASE_DIR}/media/ui_sections/main_menu.png",
+    "profile": f"{BASE_DIR}/media/ui_sections/profile.png",
+}

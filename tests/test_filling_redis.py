@@ -5,9 +5,13 @@ from typing import Type, Any
 import orjson
 import pytest
 from dateutil.parser import parse
+from sqlalchemy import select
 
 import src.redis_dependencies.filling_redis as filling
+from src.config import UI_IMAGES
+from src.services.database.filling_database import filling_ui_image
 from src.services.selling_accounts.models.models_with_tranlslate import SoldAccountsFull
+from src.services.system.models.models import UiImages
 from src.services.users.models import Users, BannedAccounts
 from src.services.database.database import get_db
 from src.services.admins.models import Admins
@@ -449,6 +453,26 @@ class TestFillRedisGroupedObjects(TestBase):
         product_ids = {prod['account_id'] for prod in data}
         expected_ids = {product.account_id for product in products}
         assert product_ids == expected_ids
+
+
+@pytest.mark.asyncio
+async def test_filling_types_account_service(create_type_account_service):
+    # заполняем БД
+    for key in UI_IMAGES:
+        await filling_ui_image(key=key, path=UI_IMAGES[key])
+        await filling.filling_ui_image(key) # тестируемая функция
+
+    async with get_redis() as session_redis:
+        async with get_db() as session_db:
+            for key, value in UI_IMAGES:
+                result_db = await session_db.execute(select(UiImages).where(UiImages.key == key)) 
+                data_db = result_db.scalar()
+
+                result_redis = await session_redis.get(f"ui_image:{key}")
+                data_redis = orjson.loads(result_redis)
+
+                assert data_redis == data_db.to_dict()
+                assert value == data_redis['file_path']
 
 
 @pytest.mark.asyncio

@@ -1,13 +1,22 @@
+import os
 from typing import List
 
 import orjson
 from sqlalchemy import select, update
 
-from src.redis_dependencies.filling_redis import filling_types_payments_by_id, filling_all_types_payments
+from src.config import MEDIA_DIR
+from src.redis_dependencies.filling_redis import filling_types_payments_by_id, filling_all_types_payments, \
+    filling_ui_image
 from src.services.system.models import Settings, TypePayments, BackupLogs
 from src.services.database.database import get_db
 from src.services.database.filling_database import filling_settings
 from src.redis_dependencies.core_redis import get_redis
+from src.services.system.models.models import UiImages
+
+
+def _check_file_exists(ui_image: UiImages) -> UiImages | None:
+    full_path = os.path.join(MEDIA_DIR, ui_image.file_path)
+    return ui_image if os.path.exists(full_path) else None
 
 async def get_settings() -> Settings:
     async with get_redis() as session_redis:
@@ -61,6 +70,43 @@ async def update_settings(settings: Settings) -> Settings:
             orjson.dumps(settings.to_dict())
         )
     return settings
+
+async def get_ui_image(key: str) -> UiImages | None:
+    """Если есть файл по данному ключу, то вернёт UiImages по данному ключу, если нет или он невалидный, то вернёт None"""
+    async with get_redis() as session_redis:
+        result_redis = await session_redis.get(f'ui_image:{key}')
+        if result_redis:
+            ui_image_dict = orjson.loads(result_redis)
+            ui_image = UiImages(**ui_image_dict)
+            return _check_file_exists(ui_image)
+
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(UiImages).where(UiImages.key == key))
+        ui_image = result_db.scalar_one_or_none()
+        if ui_image:
+            return _check_file_exists(ui_image)
+        return None
+
+async def get_all_ui_images() -> List[UiImages] | None:
+    """Вернёт все записи у таблице UiImage"""
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(UiImages))
+        return result_db.scalars().all()
+
+async def update_ui_image(key: str, show: bool) -> UiImages:
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            update(UiImages)
+            .where(UiImages.key == key)
+            .values(show=show)
+            .returning(UiImages)
+        )
+        result = result_db.scalar_one_or_none()
+        await session_db.commit()
+        if result:
+            await filling_ui_image(key)
+        return result
+
 
 async def get_all_types_payments() -> List[TypePayments]:
     async with get_redis() as session_redis:

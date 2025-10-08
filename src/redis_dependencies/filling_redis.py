@@ -7,6 +7,7 @@ from sqlalchemy.orm import selectinload
 
 from src.config import ALLOWED_LANGS
 from src.services.selling_accounts.models.models_with_tranlslate import SoldAccountsFull
+from src.services.system.models.models import UiImages
 from src.services.users.models import Users, BannedAccounts
 from src.services.system.models import Settings, TypePayments
 from src.services.database.database import get_db
@@ -26,6 +27,11 @@ async def filling_all_redis():
         types_payments_ids: List[int] = result_db.scalars().all()
         for type_id in types_payments_ids:
             await filling_types_payments_by_id(type_id)
+
+        result_db = await session_db.execute(select(UiImages))
+        ui_images: List[UiImages] = result_db.scalars().all()
+        for ui_image in ui_images:
+            await filling_ui_image(ui_image.key)
 
     await filling_referral_levels()
     await filling_all_types_payments()
@@ -312,6 +318,15 @@ async def filling_settings():
         if settings:
             async with get_redis() as session_redis:
                 await session_redis.set("settings", orjson.dumps(settings.to_dict()))
+
+async def filling_ui_image(key: str):
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(UiImages).where(UiImages.key == key))
+        ui_image = result_db.scalar_one_or_none()
+
+        if ui_image:
+            async with get_redis() as session_redis:
+                await session_redis.set(f"ui_image:{ui_image.key}", value=orjson.dumps(ui_image.to_dict()))
 
 async def filling_referral_levels():
     async with get_db() as session_db:

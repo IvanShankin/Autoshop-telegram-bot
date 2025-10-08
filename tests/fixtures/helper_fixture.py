@@ -17,6 +17,7 @@ from src.services.referrals.utils import create_unique_referral_code
 from src.services.selling_accounts.models import SoldAccounts, TypeAccountServices, SoldAccountsTranslation, \
     AccountServices, AccountCategories, AccountCategoryTranslation, ProductAccounts
 from src.services.selling_accounts.models.models_with_tranlslate import SoldAccountsFull, AccountCategoryFull
+from src.services.system.models.models import UiImages
 from src.services.users.models import Users, Replenishments, NotificationSettings
 from src.services.system.models import TypePayments, Settings
 from src.services.database.database import get_db
@@ -509,3 +510,42 @@ async def create_sold_account(create_new_user, create_type_account_service):
         return full_account
     return _factory
 
+@pytest_asyncio.fixture
+async def create_ui_image(tmp_path, monkeypatch):
+    """
+    Factory: создаёт файл в tmp_path/media/ui_sections/<key>.png,
+    подменяет MEDIA_DIR в модуле с функциями (чтобы get_ui_image видел файл),
+    сохраняет запись UiImages в БД и возвращает (ui_image, abs_path).
+    """
+    async def _factory(key: str = "main_menu", show: bool = True):
+        # Подготовим директорию и файл
+        media_dir = tmp_path / "media"
+        ui_sections = media_dir / "ui_sections"
+        ui_sections.mkdir(parents=True, exist_ok=True)
+
+        file_rel = f"ui_sections/{key}.png"              # относительный путь, как хранится в БД
+        file_abs = ui_sections / f"{key}.png"
+        file_abs.write_bytes(b"fake-image-bytes")       # создаём тестовый файл
+
+        # Подменяем MEDIA_DIR в модуле с функциями (чтобы get_ui_image искал в tmp_path)
+        import src.services.system.actions.actions as ser
+        monkeypatch.setattr(ser, "MEDIA_DIR", str(media_dir))
+
+        # Создаём запись в БД с относительным file_path
+        from src.services.database.database import get_db
+
+        async with get_db() as session:
+            ui_image = UiImages(
+                key=key,
+                file_path=file_rel,
+                show=show,
+                updated_at=datetime.now(timezone.utc)
+            )
+            session.add(ui_image)
+            await session.commit()
+            await session.refresh(ui_image)
+
+        # Вернём модель и абсолютный путь к файлу (для assert'ов)
+        return ui_image, file_abs
+
+    return _factory

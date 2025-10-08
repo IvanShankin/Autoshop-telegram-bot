@@ -3,7 +3,8 @@ import logging
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from src.config import MAIN_ADMIN, TYPE_PAYMENTS, TYPE_ACCOUNT_SERVICES
+from src.config import MAIN_ADMIN, TYPE_PAYMENTS, TYPE_ACCOUNT_SERVICES, UI_IMAGES
+from src.services.system.models.models import UiImages
 from src.services.users.models import Users, NotificationSettings
 from src.services.system.models import Settings, TypePayments
 from src.services.database.database import Base
@@ -50,6 +51,8 @@ async def create_database():
         await filling_type_payment(type_payment)
     for type_account_services in TYPE_ACCOUNT_SERVICES:
         await filling_type_account_services(type_account_services)
+    for key in UI_IMAGES:
+        await filling_ui_image(key=key, path=UI_IMAGES[key])
 
 async def create_table():
     """создает таблицы в целевой базе данных"""
@@ -74,6 +77,17 @@ async def filling_settings():
             new_settings = Settings()
             session_db.add(new_settings)
             await session_db.commit()
+
+async def filling_ui_image(key: str, path: str):
+    async with get_db() as session_db:
+        result = await session_db.execute(select(UiImages).where(UiImages.key == key))
+        result_image = result.scalar_one_or_none()
+
+        if result_image is None:
+            image = UiImages( key=key, file_path=path)
+            session_db.add(image)
+            await session_db.commit()
+
 
 async def filling_referral_lvl():
     async with get_db() as session_db:

@@ -17,7 +17,20 @@
 ```
 **TTL:** Навсегда
 
-### 2. Все типы оплаты (TypePayments)
+### 2. Изображения для разделов (UiImages)
+**Ключ:** `ui_image:{key}`  
+**Значение:** 
+``` json
+{
+    "key": str, 
+    "file_path": str, 
+    "show": bool,
+    "updated_at": str,
+}
+```
+**TTL:** Навсегда
+
+### 3. Все типы оплаты (TypePayments)
 **Ключ:** `all_types_payments:`  
 **Важно:** список отсортирован по возрастанию поля index <br>
 **Значение:**  
@@ -37,7 +50,7 @@
 ```
 **TTL:** Навсегда
 
-### 3. Тип оплаты по id (TypePayments)
+### 4. Тип оплаты по id (TypePayments)
 **Ключ:** `type_payments:{type_payment_id}`  
 **Значение:**  
 ``` json
@@ -53,7 +66,7 @@
 ```
 **TTL:** Навсегда
 
-### 4. Пользователь (Users)
+### 5. Пользователь (Users)
 **Ключ:** `user:{user_id}`  
 **Значение:**  
 ``` json
@@ -70,7 +83,7 @@
 ```
 **TTL:** 6 часов
 
-### 5 Уровни рефералов (ReferralLevels)
+### 6 Уровни рефералов (ReferralLevels)
 **Ключ:** `referral_levels`  
 **Значение:**  
 ``` json
@@ -86,18 +99,18 @@
 ```
 **TTL:** Навсегда
 
-### 6. Админы (Admins)
-**Ключ:** `admin:{user_id}` <br>
-**Значение:** `_` выступает в роли метки <br>
+### 7. Админы (Admins)
+**Ключ:** `admin:{user_id}`   
+**Значение:** `_` выступает в роли метки  
 **TTL:** Навсегда
 
-### 7. Забаненные аккаунты (BannedAccounts)
-**Ключ:** `banned_account:{user_id}` <br>
-**Значение:** `Причина бана` <br>
+### 8. Забаненные аккаунты (BannedAccounts)
+**Ключ:** `banned_account:{user_id}`  
+**Значение:** `Причина бана`  
 **TTL:** Навсегда
 
-### 8. Тип продаваемых аккаунтов (TypeAccountServices)
-**Ключ:** `types_account_service` <br>
+### 9. Тип продаваемых аккаунтов (TypeAccountServices)
+**Ключ:** `types_account_service`   
 **Значение:** 
 ``` json
 [
@@ -110,8 +123,8 @@
 
 ```
 
-### 9. Тип продаваемых аккаунтов (TypeAccountServices)
-**Ключ:** `type_account_service:{type_account_service_id}` <br>
+### 10. Тип продаваемых аккаунтов (TypeAccountServices)
+**Ключ:** `type_account_service:{type_account_service_id}`   
 **Значение:** 
 ``` json
 {
@@ -121,9 +134,9 @@
 ```
 **TTL:** Навсегда
 
-### 10. Список всех сервисов у продаваемых аккаунтов (AccountServices)
-**Важно:** список отсортирован по возрастанию поля index <br>
-**Ключ:** `account_services` <br>
+### 11. Список всех сервисов у продаваемых аккаунтов (AccountServices)
+**Важно:** список отсортирован по возрастанию поля index  
+**Ключ:** `account_services`   
 **Значение:** 
 ``` json
 [
@@ -139,8 +152,8 @@
 ```
 **TTL:** Навсегда
 
-### 11. Сервисы у продаваемых аккаунтов (AccountServices)
-**Ключ:** `account_service:{account_service_id}` <br>
+### 12. Сервисы у продаваемых аккаунтов (AccountServices)
+**Ключ:** `account_service:{account_service_id}`  
 **Значение:** 
 ``` json
 {
@@ -153,8 +166,8 @@
 ```
 **TTL:** Навсегда
 
-### 12. Категории аккаунтов по id сервиса (AccountCategories)
-**Ключ:** `account_categories_by_service_id:{account_service_id}:{language}` <br>
+### 13. Категории аккаунтов по id сервиса (AccountCategories)
+**Ключ:** `account_categories_by_service_id:{account_service_id}:{language}`  
 **Значение:** 
 ``` json
 [
@@ -178,8 +191,8 @@
 ```
 **TTL:** Навсегда
 
-### 13. Категории аккаунтов по id категории(AccountCategories)
-**Ключ:** `account_categories_by_category_id:{account_category_id}:{language}` <br>
+### 14. Категории аккаунтов по id категории(AccountCategories)
+**Ключ:** `account_categories_by_category_id:{account_category_id}:{language}`  
 **Значение:** 
 ``` json
 {
@@ -199,8 +212,8 @@
 **TTL:** Навсегда
 
 
-### 14. Товары Аккаунты по id категории (ProductAccounts)
-**Ключ:** `product_accounts_by_category_id:{account_category_id}` <br>
+### 15. Товары Аккаунты по id категории (ProductAccounts)
+**Ключ:** `product_accounts_by_category_id:{account_category_id}`  
 **Значение:** 
 ``` json
 [
@@ -218,8 +231,8 @@
 ```
 **TTL:** Навсегда
 
-### 15. Товары Аккаунты по id аккаунта (ProductAccounts)
-**Ключ:** `product_accounts_by_account_id:{account_id}` <br>
+### 16. Товары Аккаунты по id аккаунта (ProductAccounts)
+**Ключ:** `product_accounts_by_account_id:{account_id}`  
 **Значение:** 
 ``` json
 {
@@ -234,9 +247,9 @@
 ```
 **TTL:** Навсегда
 
-### 16. Проданные аккаунты по id владельца (SoldAccounts)
-**Важно:** хранит только НЕ удалённые аккаунты (is_deleted == False) <br>
-**Ключ:** `sold_accounts_by_owner_id:{owner_id}:{language}` <br>
+### 17. Проданные аккаунты по id владельца (SoldAccounts)
+**Важно:** хранит только НЕ удалённые аккаунты (is_deleted == False)  
+**Ключ:** `sold_accounts_by_owner_id:{owner_id}:{language}`  
 **Значение:** 
 ``` json
 [
@@ -263,9 +276,9 @@
 ```
 **TTL:** 6 часов
 
-### 17. Проданные аккаунты по id аккаунта (SoldAccounts)
-**Важно:** хранит только НЕ удалённые аккаунты (is_deleted == False) <br>
-**Ключ:** `sold_accounts_by_accounts_id:{sold_account_id}:{language}` <br>
+### 18. Проданные аккаунты по id аккаунта (SoldAccounts)
+**Важно:** хранит только НЕ удалённые аккаунты (is_deleted == False)  
+**Ключ:** `sold_accounts_by_accounts_id:{sold_account_id}:{language}`  
 **Значение:** 
 ``` json
 {
@@ -289,9 +302,9 @@
 **TTL:** 6 часов
 
 
-### 18. Промокоды (PromoCodes)
-**Важно:** хранит только действительные (is_valid == True)<br>
-**Ключ:** `promo_code:{activation_code}` <br>
+### 19. Промокоды (PromoCodes)
+**Важно:** хранит только действительные (is_valid == True)  
+**Ключ:** `promo_code:{activation_code}`  
 **Значение:** 
 ``` json
 {
@@ -312,9 +325,9 @@
 **TTL:** До окончания срока действия
 
 
-### 19. Ваучеры (Vouchers)
-**Важно:** хранит только действительные (is_valid == True)<br>
-**Ключ:** `voucher:{activation_code}` <br>
+### 20. Ваучеры (Vouchers)
+**Важно:** хранит только действительные (is_valid == True)  
+**Ключ:** `voucher:{activation_code}`  
 **Значение:** 
 ``` json
 {

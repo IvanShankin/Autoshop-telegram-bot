@@ -14,6 +14,15 @@ class Settings(Base):
     channel_for_subscription_id = Column(BigInteger, nullable=True)   # ID канала для подписки пользователя
     FAQ = Column(Text, nullable=True) # ссылка
 
+class UiImages(Base):
+    __tablename__ = "ui_images"
+
+    key = Column(String(100), primary_key=True)
+    file_path = Column(String(300), nullable=False)
+    show = Column(Boolean, nullable=False, server_default=text('true'))
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
 class TypePayments(Base):
     __tablename__ = "type_payments"
 

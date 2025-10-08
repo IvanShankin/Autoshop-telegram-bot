@@ -1,13 +1,16 @@
+import os
+
 import pytest
 from orjson import orjson
 from sqlalchemy import delete, select
 
 from src.services.system.actions.actions import get_all_types_payments, add_backup_log, update_type_payment, \
-    get_type_payment
+    get_type_payment, update_ui_image, get_all_ui_images, get_ui_image
 from src.services.system.models import Settings, BackupLogs, TypePayments
 from src.services.system.actions import get_settings, update_settings
 from src.services.database.database import get_db
 from src.redis_dependencies.core_redis import get_redis
+from src.services.system.models.models import UiImages
 from tests.fixtures.helper_fixture import create_settings
 from tests.fixtures.helper_functions import comparison_models
 
@@ -54,6 +57,73 @@ async def test_update_settings(create_settings):
         assert redis_data is not None
         redis_settings = Settings(**orjson.loads(redis_data))
         await comparison_models(settings, redis_settings, ['settings_id'])# проверка redis
+
+@pytest.mark.asyncio
+async def test_get_ui_image_from_redis(create_ui_image, replacement_redis):
+    """Проверяет, что get_ui_image возвращает объект из Redis, если он там есть"""
+    ui_image, abs_path = await create_ui_image(key="profile")
+
+    async with get_redis() as redis_session:
+        await redis_session.set(
+            f"ui_image:{ui_image.key}",
+            orjson.dumps(ui_image.to_dict())
+        )
+
+    result = await get_ui_image(ui_image.key)
+    assert result is not None
+    assert result.key == ui_image.key
+    assert os.path.exists(abs_path)
+
+@pytest.mark.asyncio
+async def test_get_ui_image_from_db(create_ui_image, replacement_redis):
+    """Проверяет, что get_ui_image берёт из БД, если в Redis нет"""
+    ui_image, abs_path = await create_ui_image(key="main_menu")
+
+    async with get_redis() as r:
+        assert await r.get(f"ui_image:{ui_image.key}") is None
+
+    result = await get_ui_image(ui_image.key)
+    assert result is not None
+    assert result.file_path.endswith("ui_sections/main_menu.png")
+
+
+@pytest.mark.asyncio
+async def test_get_ui_image_file_not_exists(create_ui_image, replacement_redis):
+    """Проверяет, что при отсутствии файла возвращает None"""
+    ui_image, abs_path = await create_ui_image(key="ghost")
+    abs_path.unlink()  # удаляем файл
+
+    result = await get_ui_image(ui_image.key)
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_get_all_ui_images(create_ui_image):
+    """Проверяет, что возвращает все записи"""
+    await create_ui_image(key="main_menu")
+    await create_ui_image(key="profile")
+
+    result = await get_all_ui_images()
+    assert len(result) >= 2
+    assert all(isinstance(r, UiImages) for r in result)
+
+
+@pytest.mark.asyncio
+async def test_update_ui_image_updates_db_and_redis(create_ui_image, replacement_redis):
+    """Проверяет, что update_ui_image обновляет запись и Redis"""
+    ui_image, _ = await create_ui_image(key="profile", show=True)
+    new_show_value = False
+
+    result = await update_ui_image(ui_image.key, new_show_value)
+    assert result is not None
+    assert result.show is new_show_value
+
+    # проверяем Redis
+    async with get_redis() as r:
+        redis_data = await r.get(f"ui_image:{ui_image.key}")
+        assert redis_data is not None
+        parsed = orjson.loads(redis_data)
+        assert parsed["show"] == new_show_value
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis',[True,False])

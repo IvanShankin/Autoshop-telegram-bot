@@ -11,8 +11,8 @@ from src.services.database.database import SQL_DB_URL
 from src.services.database import database
 from src.redis_dependencies.filling_redis import filling_all_redis
 
-from tests.fixtures.helper_fixture import *
-from tests.fixtures.monkeypatch_data import replacement_redis, replacement_fake_bot, replacement_fake_keyboard, replacement_exception_aiogram
+from tests.helpers.helper_fixture import *
+from tests.helpers.monkeypatch_data import replacement_redis, replacement_fake_bot, replacement_fake_keyboard, replacement_exception_aiogram
 
 load_dotenv()  # Загружает переменные из .env
 MODE = os.getenv('MODE')

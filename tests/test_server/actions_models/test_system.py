@@ -11,8 +11,8 @@ from src.services.system.actions import get_settings, update_settings
 from src.services.database.database import get_db
 from src.redis_dependencies.core_redis import get_redis
 from src.services.system.models.models import UiImages
-from tests.fixtures.helper_fixture import create_settings
-from tests.fixtures.helper_functions import comparison_models
+from tests.helpers.helper_fixture import create_settings
+from tests.helpers.helper_functions import comparison_models
 
 
 

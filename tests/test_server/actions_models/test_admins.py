@@ -6,7 +6,7 @@ from src.services.admins.actions import check_admin, create_admin as create_admi
     update_message_for_sending
 from src.services.admins.models import MessageForSending, Admins
 from src.services.database.database import get_db
-from tests.fixtures.helper_fixture import create_admin_fix
+from tests.helpers.helper_fixture import create_admin_fix
 
 @pytest.mark.asyncio
 async def test_check_admin(create_admin_fix):

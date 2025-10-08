@@ -22,11 +22,11 @@ from src.utils.i18n import get_i18n
 from src.redis_dependencies.core_redis import get_redis
 from src.services.replenishments_event.schemas import ReplenishmentFailed, ReplenishmentCompleted, NewReplenishment
 
-from tests.fixtures.helper_fixture import (create_new_user, create_type_payment, create_referral, create_replenishment,
+from tests.helpers.helper_fixture import (create_new_user, create_type_payment, create_referral, create_replenishment,
                                            create_promo_code, create_settings)
-from tests.fixtures.monkeypatch_data import replacement_fake_bot, replacement_fake_keyboard, fake_bot, replacement_exception_aiogram
-from tests.fixtures.monkeypatch_event_db import processed_promo_code, processed_voucher, processed_referrals, processed_replenishment
-from tests.fixtures.helper_functions import comparison_models
+from tests.helpers.monkeypatch_data import replacement_fake_bot, replacement_fake_keyboard, fake_bot, replacement_exception_aiogram
+from tests.helpers.monkeypatch_event_db import processed_promo_code, processed_voucher, processed_referrals, processed_replenishment
+from tests.helpers.helper_functions import comparison_models
 
 
 

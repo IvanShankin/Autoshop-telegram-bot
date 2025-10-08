@@ -5,11 +5,11 @@ from sqlalchemy import delete, select
 from src.exceptions.service_exceptions import UserNotFound
 from src.services.admins.models import AdminActions
 from src.services.users.actions.action_user import get_user_by_ref_code
-from tests.fixtures.helper_functions import parse_redis_user
+from tests.helpers.helper_functions import parse_redis_user
 from src.services.users.models import Users, NotificationSettings, BannedAccounts
 from src.services.database.database import get_db
 from src.redis_dependencies.core_redis import get_redis
-from tests.fixtures.helper_fixture import create_new_user
+from tests.helpers.helper_fixture import create_new_user
 
 
 @pytest.mark.asyncio

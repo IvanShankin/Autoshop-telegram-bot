@@ -21,7 +21,7 @@ from src.services.selling_accounts.models import (
     ProductAccounts, SoldAccounts, AccountCategoryTranslation, SoldAccountsTranslation
 )
 from src.redis_dependencies.core_redis import get_redis
-from tests.fixtures.helper_fixture import create_sold_account, create_new_user
+from tests.helpers.helper_fixture import create_sold_account, create_new_user
 
 class TestBase:
     """Базовый класс для тестов с общими методами"""

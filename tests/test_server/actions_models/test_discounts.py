@@ -12,10 +12,10 @@ from src.redis_dependencies.core_redis import get_redis
 from src.services.users.actions import get_user
 from src.services.users.models import Users, WalletTransaction, UserAuditLogs
 from src.utils.i18n import get_i18n
-from tests.fixtures.helper_fixture import create_promo_code, create_voucher
-from tests.fixtures.helper_functions import comparison_models
-from tests.fixtures.monkeypatch_data import replacement_fake_bot, replacement_fake_keyboard, fake_bot, replacement_exception_aiogram
-from tests.fixtures.helper_fixture import create_settings
+from tests.helpers.helper_fixture import create_promo_code, create_voucher
+from tests.helpers.helper_functions import comparison_models
+from tests.helpers.monkeypatch_data import replacement_fake_bot, replacement_fake_keyboard, fake_bot, replacement_exception_aiogram
+from tests.helpers.helper_fixture import create_settings
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("use_redis", [True, False])

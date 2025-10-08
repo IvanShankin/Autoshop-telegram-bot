@@ -76,10 +76,9 @@ async def create_voucher(
 
     while True:
         code = generate_code(15)
-        async with get_redis() as session_redis:
-            result = await session_redis.get(f"voucher:{code}")
-            if not result:  # если создали уникальный код
-                break
+        result = await get_valid_voucher(code)
+        if not result:  # если создали уникальный код
+            break
 
     # убираем у пользователя деньги
     user.balance = user.balance - required_amount

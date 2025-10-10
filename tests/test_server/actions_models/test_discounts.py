@@ -124,6 +124,7 @@ class TestActivateVoucher:
         from src.services.discounts.actions import activate_voucher
 
         user = await create_new_user()
+        origin_balance = user.balance
         voucher = create_voucher
         i18n = get_i18n(user.language, "discount_dom")
 
@@ -131,7 +132,7 @@ class TestActivateVoucher:
 
         expected = i18n.gettext(
             "Voucher successfully activated! \n\nVoucher amount: {amount} \nCurrent balance: {new_balance}"
-        ).format(amount=voucher.amount, new_balance=user.balance + voucher.amount)
+        ).format(amount=voucher.amount, new_balance= origin_balance + voucher.amount)
 
         assert result_message == expected
         assert success == True

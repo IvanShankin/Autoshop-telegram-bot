@@ -6,25 +6,9 @@ from contextlib import asynccontextmanager
 import fakeredis
 import pytest_asyncio
 
+from helpers.fake_aiogram.fake_aiogram_module import FakeBot
 from src.redis_dependencies import core_redis
 
-class FakeBot:
-    def __init__(self):
-        self.sent = []
-
-    async def send_message(self, chat_id: int, text: str, **kwargs):
-        self.sent.append((chat_id, text, kwargs))
-
-    def get_message(self, chat_id: int, text: str) -> bool:
-        """Проверяет наличие сообщения с данными параметрами"""
-        return any(c == chat_id and t == text for c, t, _ in self.sent)
-
-    def check_str_in_messages(self, text: str):
-        """Проверит наличие переданной строки во всех сообщения."""
-        for  c, t, _ in self.sent:
-            if text in t:
-                return True
-        return False
 
 fake_bot = FakeBot()
 
@@ -87,7 +71,7 @@ async def replacement_fake_bot(monkeypatch):
 
     return fake_bot
 
-@pytest_asyncio.fixture(scope="function", autouse=True)
+@pytest_asyncio.fixture(scope="function")
 async def replacement_fake_keyboard(monkeypatch):
     async def support_kb(language: str, support_username: str = None):
         return True
@@ -96,7 +80,7 @@ async def replacement_fake_keyboard(monkeypatch):
     fake_module.support_kb = support_kb
     monkeypatch.setitem(sys.modules, "src.modules.keyboard_main", fake_module)# подменяем во всех местах, где импортируется
 
-@pytest_asyncio.fixture(scope="function", autouse=True)
+@pytest_asyncio.fixture(scope="function")
 async def replacement_exception_aiogram(monkeypatch):
 
     fake_module = types.ModuleType("aiogram.exceptions")# создаём поддельный модуль

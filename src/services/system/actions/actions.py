@@ -59,7 +59,7 @@ async def update_settings(settings: Settings) -> Settings:
                 channel_for_logging_id=settings.channel_for_logging_id,
                 channel_for_subscription_id=settings.channel_for_subscription_id,
                 shop_name=settings.shop_name,
-                chanel_name=settings.chanel_name,
+                channel_name=settings.channel_name,
                 FAQ=settings.FAQ,
             )
         )

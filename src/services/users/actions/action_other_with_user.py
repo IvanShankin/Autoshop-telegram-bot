@@ -13,7 +13,7 @@ from src.redis_dependencies.core_redis import get_redis
 from src.redis_dependencies.time_storage import TIME_USER
 from src.bot_actions.send_messages import send_log
 
-async def add_new_user(user_id: int, username: str, language: str = 'ru'):
+async def add_new_user(user_id: int, username: str, language: str = 'ru') -> Users:
     """Создаст нового пользователя и прикрепит к нему настройки уведомлений"""
     user = Users(
         user_id = user_id,
@@ -38,12 +38,14 @@ async def add_new_user(user_id: int, username: str, language: str = 'ru'):
         session_db.add(new_notification)
         session_db.add(new_log)
         await session_db.commit()
+        await session_db.refresh(user)
 
     async with get_redis() as session_redis:
         await session_redis.setex(f'user:{user_id}', TIME_USER, orjson.dumps(user.to_dict()))
 
     await send_log(f"#Новый_пользователь \n\nID: {user_id}\nusername: {username}")
 
+    return user
 
 async def get_notification(user_id) -> NotificationSettings | None:
     async with get_db() as session_db:

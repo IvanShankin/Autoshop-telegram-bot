@@ -13,7 +13,7 @@
     "channel_for_logging_id": int,
     "channel_for_subscription_id": int,
     "shop_name": str,
-    "chanel_name": str,
+    "channel_name": str,
     "FAQ": str,
 }
 ```

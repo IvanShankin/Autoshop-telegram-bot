@@ -13,7 +13,7 @@ class Settings(Base):
     channel_for_logging_id = Column(BigInteger, nullable=True)   # ID канала для логирования
     channel_for_subscription_id = Column(BigInteger, nullable=True)   # ID канала для подписки пользователя
     shop_name = Column(Text, nullable=True)
-    chanel_name = Column(Text, nullable=True)
+    channel_name = Column(Text, nullable=True)
     FAQ = Column(Text, nullable=True) # ссылка
 
 class UiImages(Base):

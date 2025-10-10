@@ -8,18 +8,9 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 
-msgid "Product catalog"
-msgstr "Каталог товаров"
 
-msgid "Profile"
-msgstr "Профиль"
+msgid "Welcome to {shop_name} SHOP! \nOur news channel: @{channel_name} \nHappy shopping!"
+msgstr "Приветствую тебя в {shop_name} SHOP! \nНаш новостной канал: @{channel_name} \nПриятных покупок!"
 
-msgid "Information"
-msgstr "Информация"
-
-
-msgid "Support"
-msgstr "Поддержка"
-
-
-
+msgid "You have a new referral!"
+msgstr "У вас новый реферал!"

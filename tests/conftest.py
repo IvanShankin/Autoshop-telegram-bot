@@ -1,6 +1,5 @@
 import asyncio
 import os
-import sys
 from contextlib import suppress
 
 import aio_pika
@@ -12,7 +11,10 @@ from src.services.database import database
 from src.redis_dependencies.filling_redis import filling_all_redis
 
 from tests.helpers.helper_fixture import *
-from tests.helpers.monkeypatch_data import replacement_redis, replacement_fake_bot, replacement_fake_keyboard, replacement_exception_aiogram
+from tests.helpers.monkeypatch_data import replacement_redis, replacement_fake_bot, replacement_fake_keyboard, \
+    replacement_exception_aiogram
+
+from helpers.fake_aiogram.fake_aiogram import patch_fake_aiogram
 
 load_dotenv()  # Загружает переменные из .env
 MODE = os.getenv('MODE')
@@ -113,3 +115,8 @@ async def get_engine():
     engine = create_async_engine(SQL_DB_URL)
     yield engine
     await engine.dispose()
+
+
+@pytest_asyncio.fixture(scope="function")
+async def set_fake_aiogram(patch_fake_aiogram):
+    pass

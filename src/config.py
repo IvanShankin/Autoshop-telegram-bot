@@ -26,6 +26,11 @@ DEFAULT_LANG = "ru"
 DT_FORMAT_FOR_LOGS = "%Y-%m-%d %H:%M:%S"
 
 UI_IMAGES = {
+    "welcome_message": f"{BASE_DIR}/media/ui_sections/welcome_message.png",
+    "selecting_language": f"{BASE_DIR}/media/ui_sections/selecting_language.png",
+    "successfully_activate_voucher": f"{BASE_DIR}/media/ui_sections/successfully_activate_voucher.png",
+    "unsuccessfully_activate_voucher": f"{BASE_DIR}/media/ui_sections/unsuccessfully_activate_voucher.png",
+    "new_referral": f"{BASE_DIR}/media/ui_sections/new_referral.png",
     "main_menu": f"{BASE_DIR}/media/ui_sections/main_menu.png",
     "profile": f"{BASE_DIR}/media/ui_sections/profile.png",
 }

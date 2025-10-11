@@ -7,6 +7,7 @@ from sqlalchemy import select, update
 from src.config import MEDIA_DIR
 from src.redis_dependencies.filling_redis import filling_types_payments_by_id, filling_all_types_payments, \
     filling_ui_image
+from src.redis_dependencies.time_storage import TIME_SETTINGS
 from src.services.system.models import Settings, TypePayments, BackupLogs
 from src.services.database.database import get_db
 from src.services.database.filling_database import filling_settings
@@ -25,9 +26,12 @@ async def get_settings() -> Settings:
             data = orjson.loads(redis_data)
             settings = Settings(
                 support_username=data['support_username'],
+                maintenance_mode =data['maintenance_mode'],
                 hash_token_logger_bot=data['hash_token_logger_bot'],
                 channel_for_logging_id=data['channel_for_logging_id'],
                 channel_for_subscription_id=data['channel_for_subscription_id'],
+                shop_name=data['shop_name'],
+                channel_name=data['channel_name'],
                 FAQ=data['FAQ']
             )
             return settings
@@ -37,7 +41,7 @@ async def get_settings() -> Settings:
             settings_db = result_db.scalars().first()
             if settings_db:
                 async with get_redis() as session_redis:
-                    await session_redis.set(f'settings', orjson.dumps(settings_db.to_dict()))
+                    await session_redis.setex(f'settings', TIME_SETTINGS, orjson.dumps(settings_db.to_dict()))
                 return settings_db
             else:
                 await filling_settings()
@@ -55,6 +59,7 @@ async def update_settings(settings: Settings) -> Settings:
             update(Settings)
             .values(
                 support_username=settings.support_username,
+                maintenance_mode =settings.maintenance_mode ,
                 hash_token_logger_bot=settings.hash_token_logger_bot,
                 channel_for_logging_id=settings.channel_for_logging_id,
                 channel_for_subscription_id=settings.channel_for_subscription_id,

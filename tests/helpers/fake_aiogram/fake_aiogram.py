@@ -5,7 +5,8 @@ from tests.helpers.fake_aiogram.fake_aiogram_module import (
     _FakeAttr, FakeMessage, FakeCallbackQuery, FakeFSMContext,
     FakeRouter, FakeBot, FakeDispatcher,
     InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton,
-    ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply, InlineKeyboardBuilder
+    ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply, InlineKeyboardBuilder,
+    BaseMiddleware
 )
 
 @pytest.fixture(scope="session", autouse=False)
@@ -28,6 +29,7 @@ def patch_fake_aiogram():
     fake.Router = FakeRouter
     fake.Bot = FakeBot
     fake.Dispatcher = FakeDispatcher
+    fake.BaseMiddleware = BaseMiddleware
 
     # create submodules
     sys.modules["aiogram"] = fake

@@ -1,12 +1,15 @@
+from types import SimpleNamespace
+
 import pytest
 from sqlalchemy import select
 
 from helpers.fake_aiogram.fake_aiogram_module import FakeMessage, FakeFSMContext, FakeCallbackQuery
 from helpers.helper_fixture import create_new_user, create_settings
+from src.middlewares.aiogram_middleware import MaintenanceMiddleware
 from src.services.database.database import get_db
 from src.services.discounts.models import Vouchers
 from src.services.referrals.models import Referrals
-from src.services.system.actions import get_settings
+from src.services.system.actions import get_settings, update_settings
 from src.services.users.actions import get_user
 from src.utils.i18n import get_i18n
 
@@ -166,3 +169,31 @@ async def test_select_language(patch_fake_aiogram, replacement_fake_bot, create_
     ).format(shop_name=setting.shop_name, channel_name=setting.channel_name)
 
     assert fake_bot.get_message(user.user_id, text), "Не отправилось приветственное сообщение"
+
+
+@pytest.mark.asyncio
+async def test_maintenance_blocks_normal_user(patch_fake_aiogram, replacement_fake_bot, create_new_user):
+    user = await create_new_user()
+
+    setting = await get_settings()
+    setting.maintenance_mode = True
+    await update_settings(setting)
+
+    bot = replacement_fake_bot
+    msg = FakeMessage(chat_id=user.user_id, username="user")
+
+    # middleware
+    mw = MaintenanceMiddleware(allow_admins=True)
+
+    # эмулируем хэндлер
+    called = {"handler": False}
+
+    async def handler(event, data):
+        called["handler"] = True
+
+    await mw(handler, msg, {})
+
+    # проверяем: handler не вызван, бот отправил сообщение
+    assert not called["handler"]
+    assert "temporarily unavailable" in msg._last_answer[0]
+

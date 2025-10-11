@@ -1,4 +1,3 @@
-# tests/helpers/fake_aiogram_module.py
 from types import SimpleNamespace
 
 class _FakeAttr:
@@ -76,6 +75,43 @@ class FakeRouter:
     def __init__(self):
         self._registered_messages = []
         self._registered_callbacks = []
+        self._middlewares = {"message": [], "callback_query": []}
+
+        # создаём объекты-подобные aiogram’у
+        self.message = _FakeHandlerRegistry(
+            self._registered_messages,
+            self._middlewares["message"]
+        )
+        self.callback_query = _FakeHandlerRegistry(
+            self._registered_callbacks,
+            self._middlewares["callback_query"]
+        )
+
+    # --- регистрация хэндлеров ---
+    def _register_message(self, *filters, **kwargs):
+        def decorator(handler):
+            self._registered_messages.append((filters, handler))
+            return handler
+
+        return decorator
+
+    def _register_callback(self, *filters, **kwargs):
+        def decorator(handler):
+            self._registered_callbacks.append((filters, handler))
+            return handler
+
+        return decorator
+
+    # --- регистрация middleware ---
+    def _add_message_middleware(self, middleware):
+        """Добавить middleware для message-хэндлеров."""
+        self._middlewares["message"].append(middleware)
+        return middleware
+
+    def _add_callback_middleware(self, middleware):
+        """Добавить middleware для callback-хэндлеров."""
+        self._middlewares["callback_query"].append(middleware)
+        return middleware
 
     def message(self, *filters, **kwargs):
         def decorator(handler):
@@ -91,6 +127,31 @@ class FakeRouter:
 
     def include_router(self, *a, **kw):
         pass
+
+class _FakeHandlerRegistry:
+    """Имитация router.message / router.callback_query из aiogram."""
+    def __init__(self, registry_list, middleware_list):
+        self._registry = registry_list
+        self._middlewares = middleware_list
+
+    def __call__(self, *filters, **kwargs):
+        """Позволяет использовать @router.message(...) как декоратор."""
+        def decorator(handler):
+            self._registry.append((filters, handler))
+            return handler
+        return decorator
+
+    def register(self, *filters, **kwargs):
+        """Позволяет использовать router.message.register(...)"""
+        def decorator(handler):
+            self._registry.append((filters, handler))
+            return handler
+        return decorator
+
+    def middleware(self, middleware):
+        """Позволяет router.message.middleware(...)"""
+        self._middlewares.append(middleware)
+        return middleware
 
 # --- Bot / Dispatcher / keyboard classes ---
 class FakeBot:
@@ -159,3 +220,13 @@ class InlineKeyboardBuilder:
 
     def as_markup(self):
         return self._buttons
+
+# --- BaseMiddleware (эмуляция aiogram.BaseMiddleware) ---
+class BaseMiddleware:
+    """Базовый класс мидлвари, аналогичный aiogram.BaseMiddleware."""
+    def __init__(self):
+        pass
+
+    async def __call__(self, handler, event, data):
+        """По умолчанию просто вызывает следующий обработчик."""
+        return await handler(event, data)

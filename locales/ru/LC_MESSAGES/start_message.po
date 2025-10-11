@@ -14,3 +14,7 @@ msgstr "Приветствую тебя в {shop_name} SHOP! \nНаш новос
 
 msgid "You have a new referral!"
 msgstr "У вас новый реферал!"
+
+
+msgid "⚙️ The bot is temporarily unavailable due to maintenance. Please try again later"
+msgstr "⚙️ Бот временно недоступен — идут технические работы.\nПожалуйста, попробуйте позже"

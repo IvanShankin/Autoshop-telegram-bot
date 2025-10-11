@@ -8,6 +8,7 @@ class Settings(Base):
     __tablename__ = "settings"
 
     settings_id = Column(Integer, primary_key=True, autoincrement=True)
+    maintenance_mode  = Column(Boolean, nullable=True, server_default=text("false"))
     support_username = Column(String(200), nullable=True)
     hash_token_logger_bot = Column(Text, nullable=True) # токен для бота логера
     channel_for_logging_id = Column(BigInteger, nullable=True)   # ID канала для логирования

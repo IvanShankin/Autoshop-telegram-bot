@@ -100,18 +100,18 @@ async def get_all_ui_images() -> List[UiImages] | None:
         result_db = await session_db.execute(select(UiImages))
         return result_db.scalars().all()
 
-async def update_ui_image(key: str, show: bool) -> UiImages:
+async def update_ui_image(key: str, show: bool, file_id: str) -> UiImages | None:
     async with get_db() as session_db:
         result_db = await session_db.execute(
             update(UiImages)
             .where(UiImages.key == key)
-            .values(show=show)
+            .values(show=show, file_id=file_id)
             .returning(UiImages)
         )
         result = result_db.scalar_one_or_none()
         await session_db.commit()
         if result:
-            await filling_ui_image(key)
+            await filling_ui_image(key) # обновление redis
         return result
 
 

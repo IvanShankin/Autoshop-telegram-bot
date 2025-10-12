@@ -517,13 +517,12 @@ async def create_ui_image(tmp_path, monkeypatch):
     подменяет MEDIA_DIR в модуле с функциями (чтобы get_ui_image видел файл),
     сохраняет запись UiImages в БД и возвращает (ui_image, abs_path).
     """
-    async def _factory(key: str = "main_menu", show: bool = True):
+    async def _factory(key: str = "main_menu", show: bool = True, file_id: str = None):
         # Подготовим директорию и файл
         media_dir = tmp_path / "media"
         ui_sections = media_dir / "ui_sections"
         ui_sections.mkdir(parents=True, exist_ok=True)
 
-        file_rel = f"ui_sections/{key}.png"              # относительный путь, как хранится в БД
         file_abs = ui_sections / f"{key}.png"
         file_abs.write_bytes(b"fake-image-bytes")       # создаём тестовый файл
 
@@ -537,7 +536,8 @@ async def create_ui_image(tmp_path, monkeypatch):
         async with get_db() as session:
             ui_image = UiImages(
                 key=key,
-                file_path=file_rel,
+                file_path=str(file_abs),
+                file_id=file_id,
                 show=show,
                 updated_at=datetime.now(timezone.utc)
             )

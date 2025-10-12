@@ -84,7 +84,7 @@ async def test_get_ui_image_from_db(create_ui_image, replacement_redis):
 
     result = await get_ui_image(ui_image.key)
     assert result is not None
-    assert result.file_path.endswith("ui_sections/main_menu.png")
+    assert result.file_path.endswith(str(abs_path))
 
 
 @pytest.mark.asyncio
@@ -114,7 +114,7 @@ async def test_update_ui_image_updates_db_and_redis(create_ui_image, replacement
     ui_image, _ = await create_ui_image(key="profile", show=True)
     new_show_value = False
 
-    result = await update_ui_image(ui_image.key, new_show_value)
+    result = await update_ui_image(ui_image.key, new_show_value, ui_image.file_id)
     assert result is not None
     assert result.show is new_show_value
 

@@ -162,8 +162,8 @@ class FakeBot:
         self.sent.append((chat_id, text, kwargs))
         return SimpleNamespace(chat=SimpleNamespace(id=chat_id), text=text)
 
-    async def send_photo(self, chat_id, photo, caption=None, **kwargs):
-        self.sent.append((chat_id, caption if caption is not None else "", kwargs))
+    async def send_photo(self, chat_id, photo, caption="", **kwargs):
+        self.sent.append((chat_id, caption, photo, kwargs))
         return SimpleNamespace(chat=SimpleNamespace(id=chat_id), text=caption)
 
     def clear(self):

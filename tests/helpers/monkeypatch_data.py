@@ -63,8 +63,8 @@ async def replacement_fake_bot(monkeypatch):
     # Подменяем модуль в sys.modules
     monkeypatch.setitem(sys.modules, "src.bot_actions.bot_instance", fake_module)
 
-    import src.bot_actions.send_messages
-    importlib.reload(src.bot_actions.send_messages)
+    import src.bot_actions.actions
+    importlib.reload(src.bot_actions.actions)
 
     # Очищаем сообщения перед каждым тестом
     fake_bot.sent.clear()

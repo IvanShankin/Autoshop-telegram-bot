@@ -22,7 +22,7 @@ from src.services.selling_accounts.models.schemas import PurchaseAccountSchem
 from src.services.users.actions import get_user
 from src.services.users.models import Users
 from src.utils.core_logger import logger
-from src.bot_actions.send_messages import send_log
+from src.bot_actions.actions import send_log
 
 
 # Настройки retry

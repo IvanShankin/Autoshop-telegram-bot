@@ -71,19 +71,3 @@ async def replacement_fake_bot(monkeypatch):
 
     return fake_bot
 
-@pytest_asyncio.fixture(scope="function")
-async def replacement_fake_keyboard(monkeypatch):
-    async def support_kb(language: str, support_username: str = None):
-        return True
-
-    fake_module = types.ModuleType("src.modules.keyboard_main")# создаём поддельный модуль
-    fake_module.support_kb = support_kb
-    monkeypatch.setitem(sys.modules, "src.modules.keyboard_main", fake_module)# подменяем во всех местах, где импортируется
-
-@pytest_asyncio.fixture(scope="function")
-async def replacement_exception_aiogram(monkeypatch):
-
-    fake_module = types.ModuleType("aiogram.exceptions")# создаём поддельный модуль
-    fake_module.TelegramForbiddenError = Exception
-    monkeypatch.setitem(sys.modules, "aiogram.exceptions", fake_module)# подменяем во всех местах, где импортируется
-

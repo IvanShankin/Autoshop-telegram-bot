@@ -24,7 +24,7 @@ from src.services.replenishments_event.schemas import ReplenishmentFailed, Reple
 
 from tests.helpers.helper_fixture import (create_new_user, create_type_payment, create_referral, create_replenishment,
                                            create_promo_code, create_settings)
-from tests.helpers.monkeypatch_data import replacement_fake_bot, replacement_fake_keyboard, fake_bot, replacement_exception_aiogram
+from tests.helpers.monkeypatch_data import fake_bot
 from tests.helpers.monkeypatch_event_db import processed_promo_code, processed_voucher, processed_referrals, processed_replenishment
 from tests.helpers.helper_functions import comparison_models
 
@@ -68,9 +68,6 @@ class TestHandlerNewReplenishment:
     @pytest.mark.asyncio
     async def test_access(
             self,
-            replacement_fake_bot,
-            replacement_fake_keyboard,
-            replacement_exception_aiogram,
             processed_replenishment,
             create_new_user,
             create_type_payment,
@@ -144,9 +141,6 @@ class TestHandlerNewReplenishment:
     @pytest.mark.asyncio
     async def test_fail(
             self,
-            replacement_fake_bot,
-            replacement_fake_keyboard,
-            replacement_exception_aiogram,
             processed_replenishment,
             get_engine,
             create_new_user,
@@ -209,9 +203,6 @@ class TestHandlerNewReplenishment:
     @pytest.mark.asyncio
     async def test_on_replenishment_completed(
             self,
-            replacement_fake_bot,
-            replacement_fake_keyboard,
-            replacement_exception_aiogram,
             processed_replenishment,
             create_new_user,
             create_type_payment,
@@ -272,9 +263,6 @@ class TestHandlerNewReplenishment:
     @pytest.mark.asyncio
     async def test_on_replenishment_failed(
             self,
-            replacement_fake_bot,
-            replacement_fake_keyboard,
-            replacement_exception_aiogram,
             processed_replenishment,
             create_new_user,
             create_type_payment,
@@ -328,13 +316,9 @@ class TestHandlerNewIncomeRef:
     @pytest.mark.asyncio
     async def test_handler_new_income_referral(
             self,
-            replacement_fake_bot,
-            replacement_fake_keyboard,
-            replacement_exception_aiogram,
             processed_referrals,
             create_referral,
             create_replenishment,
-            clean_db,
             clean_rabbit
         ):
         """Проверяем корректную работу handler_new_income_referral"""
@@ -428,13 +412,7 @@ class TestHandlerNewIncomeRef:
         assert fake_bot.get_message(owner.user_id, expected_message), "Сообщение о доходе от реферала не отправлено"
 
     @pytest.mark.asyncio
-    async def test_on_referral_income_completed_no_level_up(
-            self,
-            replacement_fake_bot,
-            replacement_fake_keyboard,
-            replacement_exception_aiogram,
-            clean_db
-    ):
+    async def test_on_referral_income_completed_no_level_up(self,):
         """Проверяет сообщение без повышения уровня (last_lvl == current_lvl)"""
         from src.services.referrals.events import on_referral_income_completed
         user_id = 101
@@ -456,13 +434,7 @@ class TestHandlerNewIncomeRef:
 
 
     @pytest.mark.asyncio
-    async def test_on_referral_income_completed_with_level_up(
-            self,
-            replacement_fake_bot,
-            replacement_fake_keyboard,
-            replacement_exception_aiogram,
-            clean_db
-    ):
+    async def test_on_referral_income_completed_with_level_up(self,):
         """Проверяет сообщение с повышением уровня (last_lvl != current_lvl)"""
         from src.services.referrals.events import on_referral_income_completed
         user_id = 202
@@ -486,13 +458,7 @@ class TestHandlerNewIncomeRef:
 
 
     @pytest.mark.asyncio
-    async def test_on_referral_income_failed(
-            self,
-            replacement_fake_bot,
-            replacement_fake_keyboard,
-            replacement_exception_aiogram,
-            clean_db
-    ):
+    async def test_on_referral_income_failed(self,):
         """Проверяет, что on_referral_income_failed пишет лог об ошибке"""
         from src.services.referrals.events import on_referral_income_failed
         error_text = "Some referral error"
@@ -618,9 +584,6 @@ class TestHandlerNewActivatedVoucher:
     @pytest.mark.asyncio
     async def test_successful_voucher_activation(
         self,
-        replacement_fake_bot,
-        replacement_fake_keyboard,
-        replacement_exception_aiogram,
         processed_voucher,
         create_new_user,
         create_voucher,
@@ -689,9 +652,6 @@ class TestHandlerNewActivatedVoucher:
     @pytest.mark.asyncio
     async def test_voucher_activation_with_activation_limit(
             self,
-            replacement_fake_bot,
-            replacement_fake_keyboard,
-            replacement_exception_aiogram,
             processed_voucher,
             create_new_user,
             create_voucher,
@@ -747,9 +707,6 @@ class TestHandlerNewActivatedVoucher:
     @pytest.mark.asyncio
     async def test_voucher_activation_failure(
             self,
-            replacement_fake_bot,
-            replacement_fake_keyboard,
-            replacement_exception_aiogram,
             processed_voucher,
             create_new_user,
             create_voucher,
@@ -795,9 +752,6 @@ class TestHandlerNewActivatedVoucher:
     async def test_send_set_not_valid_voucher(
             self,
             is_created_admin,
-            replacement_fake_bot,
-            replacement_fake_keyboard,
-            replacement_exception_aiogram,
             create_new_user,
             create_voucher,
     ):
@@ -844,12 +798,7 @@ class TestHandlerNewActivatedVoucher:
             assert fake_bot.get_message(user.user_id, expected_user_message)
 
     @pytest.mark.asyncio
-    async def test_send_failed(
-            self,
-            replacement_fake_bot,
-            replacement_fake_keyboard,
-            replacement_exception_aiogram,
-    ):
+    async def test_send_failed(self,):
         """Тест отправки сообщения об ошибке"""
         from src.services.discounts.events import send_failed
 

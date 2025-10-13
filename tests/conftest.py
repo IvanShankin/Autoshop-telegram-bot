@@ -11,8 +11,7 @@ from src.services.database import database
 from src.redis_dependencies.filling_redis import filling_all_redis
 
 from tests.helpers.helper_fixture import *
-from tests.helpers.monkeypatch_data import replacement_redis, replacement_fake_bot, replacement_fake_keyboard, \
-    replacement_exception_aiogram
+from tests.helpers.monkeypatch_data import replacement_redis, replacement_fake_bot
 
 from helpers.fake_aiogram.fake_aiogram import patch_fake_aiogram
 
@@ -61,12 +60,11 @@ async def clean_redis(replacement_redis):
 
     await filling_all_redis()
 
-@pytest_asyncio.fixture(scope="function")
+@pytest_asyncio.fixture(scope="function", autouse=True)
 async def replacement_needed_modules(
         replacement_redis,
         replacement_fake_bot,
-        replacement_fake_keyboard,
-        replacement_exception_aiogram,
+        patch_fake_aiogram,
 ):
     """Заменит все необходимые модули"""
     yield

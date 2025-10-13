@@ -14,7 +14,7 @@ from src.services.users.models import Users, WalletTransaction, UserAuditLogs
 from src.utils.i18n import get_i18n
 from tests.helpers.helper_fixture import create_promo_code, create_voucher
 from tests.helpers.helper_functions import comparison_models
-from tests.helpers.monkeypatch_data import replacement_fake_bot, replacement_fake_keyboard, fake_bot, replacement_exception_aiogram
+from tests.helpers.monkeypatch_data import fake_bot
 from tests.helpers.helper_fixture import create_settings
 
 @pytest.mark.asyncio
@@ -275,12 +275,7 @@ class TestDeactivateVoucher:
 
 
 @pytest.mark.asyncio
-async def test_set_not_valid_promo_code(
-    replacement_fake_bot,
-    replacement_fake_keyboard,
-    replacement_exception_aiogram,
-    create_settings,
-):
+async def test_set_not_valid_promo_code(create_settings):
     """Проверяем, что _set_not_valid_promo_code деактивирует только истёкшие промокоды"""
     from src.services.discounts.utils.set_not_valid import _set_not_valid_promo_code
 

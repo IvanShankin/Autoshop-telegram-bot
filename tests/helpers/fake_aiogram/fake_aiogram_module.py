@@ -230,3 +230,7 @@ class BaseMiddleware:
     async def __call__(self, handler, event, data):
         """По умолчанию просто вызывает следующий обработчик."""
         return await handler(event, data)
+
+
+class FakeTelegramForbiddenError(Exception):
+    pass

@@ -6,7 +6,7 @@ from tests.helpers.fake_aiogram.fake_aiogram_module import (
     FakeRouter, FakeBot, FakeDispatcher,
     InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton,
     ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply, InlineKeyboardBuilder,
-    BaseMiddleware
+    BaseMiddleware, FakeTelegramForbiddenError
 )
 
 @pytest.fixture(scope="session")
@@ -56,6 +56,9 @@ def patch_fake_aiogram():
     sys.modules["aiogram.fsm"] = ModuleType("aiogram.fsm")
     sys.modules["aiogram.fsm.context"] = ModuleType("aiogram.fsm.context")
     sys.modules["aiogram.fsm.context"].FSMContext = FakeFSMContext
+
+    sys.modules["aiogram.exceptions"] = ModuleType("aiogram.exceptions")
+    sys.modules["aiogram.exceptions"].TelegramForbiddenError = FakeTelegramForbiddenError
 
     yield
 

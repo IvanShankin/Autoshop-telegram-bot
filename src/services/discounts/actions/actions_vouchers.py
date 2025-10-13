@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 
 import orjson
 from dateutil.parser import parse
@@ -7,15 +7,37 @@ from sqlalchemy import update, select
 
 from src.broker.producer import publish_event
 from src.redis_dependencies.core_redis import get_redis
+from src.redis_dependencies.filling_redis import filling_voucher_by_user_id
 from src.services.database.database import get_db
 from src.services.discounts.events import NewActivationVoucher
 from src.services.discounts.models import Vouchers, VoucherActivations
+from src.services.discounts.models.schemas import SmallVoucher
 from src.services.users.actions import update_user, get_user
 from src.services.users.models import WalletTransaction, UserAuditLogs, Users
 from src.utils.codes import generate_code
 from src.utils.i18n import get_i18n
 from src.bot_actions.actions import send_log
 
+
+async def get_valid_voucher_by_user(user_id: int) -> List[SmallVoucher]:
+    async with get_redis() as session_redis:
+        vouchers_json = await session_redis.get(f"voucher_by_user:{user_id}")
+        if vouchers_json is not None:
+            return [SmallVoucher(**voucher) for voucher in orjson.loads(vouchers_json)]
+
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            select(Vouchers)
+            .where(
+                (Vouchers.creator_id == user_id) &
+                (Vouchers.is_valid == True) &
+                (Vouchers.is_created_admin == False)
+            ).order_by(Vouchers.start_at.desc())
+        )
+        vouchers: list[Vouchers] = result_db.scalars().all()
+        await filling_voucher_by_user_id(user_id)
+
+        return [SmallVoucher.from_orm_model(voucher) for voucher in vouchers]
 
 async def get_valid_voucher(
     code: str
@@ -114,6 +136,7 @@ async def create_voucher(
     else:
         second_storage = None
 
+    # заполнение redis
     async with get_redis() as session_redis:
         if second_storage is None:  # если не надо устанавливать время хранения
             await session_redis.set(
@@ -127,6 +150,9 @@ async def create_voucher(
                 second_storage,
                 orjson.dumps(new_voucher.to_dict())
             )
+
+        await filling_voucher_by_user_id(user.user_id)
+
     return new_voucher
 
 
@@ -153,6 +179,8 @@ async def deactivate_voucher(voucher_id: int) -> int:
             # удаление с redis
             async with get_redis() as session_redis:
                 await session_redis.delete(f"voucher:{voucher.activation_code}")
+
+            await filling_voucher_by_user_id(owner_id)
 
             # сумма возврата = количество неактивированных ваучеров * сумму одного ваучера
             refund_amount = (voucher.number_of_activations - voucher.activated_counter) * voucher.amount

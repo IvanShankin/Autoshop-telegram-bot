@@ -10,6 +10,7 @@ from sqlalchemy import select
 import src.redis_dependencies.filling_redis as filling
 from src.config import UI_IMAGES
 from src.services.database.filling_database import filling_ui_image
+from src.services.discounts.models.schemas import SmallVoucher
 from src.services.selling_accounts.models.models_with_tranlslate import SoldAccountsFull
 from src.services.system.models.models import UiImages
 from src.services.users.models import Users, BannedAccounts
@@ -589,3 +590,23 @@ async def test_filling_sold_account_only_one(create_type_payment):
         type_payment = orjson.loads(value)
 
     assert type_payment == type_payment_1.to_dict()
+
+
+@pytest.mark.asyncio
+async def test_filling_voucher_by_user_id(patch_fake_aiogram, create_new_user, create_voucher):
+    user = await create_new_user()
+    voucher_1 = await create_voucher(filling_redis=False, creator_id=user.user_id)
+    voucher_2 = await create_voucher(filling_redis=False, creator_id=user.user_id)
+    voucher_3 = await create_voucher(filling_redis=False, creator_id=user.user_id)
+
+    await filling.filling_voucher_by_user_id(user.user_id)
+
+    async with get_redis() as session_redis:
+        value = await session_redis.get(f"voucher_by_user:{user.user_id}")
+        assert value
+        vouchers = orjson.loads(value)
+
+        # проверяем сортировку по дате создания (desc)
+        assert SmallVoucher.from_orm_model(voucher_1).model_dump() == vouchers[2]
+        assert SmallVoucher.from_orm_model(voucher_2).model_dump() == vouchers[1]
+        assert SmallVoucher.from_orm_model(voucher_3).model_dump() == vouchers[0]

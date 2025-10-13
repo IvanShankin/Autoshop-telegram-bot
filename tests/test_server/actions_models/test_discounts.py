@@ -9,6 +9,7 @@ from src.services.admins.models import AdminActions
 from src.services.discounts.models import PromoCodes, Vouchers, VoucherActivations
 from src.services.database.database import get_db
 from src.redis_dependencies.core_redis import get_redis
+from src.services.discounts.models.schemas import SmallVoucher
 from src.services.users.actions import get_user
 from src.services.users.models import Users, WalletTransaction, UserAuditLogs
 from src.utils.i18n import get_i18n
@@ -34,20 +35,30 @@ async def test_get_valid_promo_code(use_redis, create_promo_code):
 
     await comparison_models(create_promo_code, promo)
 
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("use_redis", [True, False])
+async def test_get_valid_voucher_by_user(use_redis, create_new_user, create_voucher):
+    from src.services.discounts.actions import get_valid_voucher_by_user
+    user = await create_new_user()
+    voucher_1 = await create_voucher(filling_redis=use_redis, creator_id=user.user_id)
+    voucher_2 = await create_voucher(filling_redis=use_redis, creator_id=user.user_id)
+    voucher_3 = await create_voucher(filling_redis=use_redis, creator_id=user.user_id)
+
+    vouchers = await get_valid_voucher_by_user(user.user_id)
+
+    assert SmallVoucher.from_orm_model(voucher_3) == vouchers[0]
+    assert SmallVoucher.from_orm_model(voucher_2) == vouchers[1]
+    assert SmallVoucher.from_orm_model(voucher_1) == vouchers[2]
+
+
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize("use_redis", [True, False])
 async def test_get_valid_voucher(use_redis, create_voucher):
     from src.services.discounts.actions import get_valid_voucher
 
-    voucher = await create_voucher()
-
-    if use_redis:
-        async with get_db() as session_db:
-            await session_db.execute(delete(Vouchers))
-            await session_db.commit()
-    else:
-        async with get_redis() as session_redis:
-            await session_redis.flushdb()
+    voucher = await create_voucher(filling_redis=use_redis)
 
     voucher = await get_valid_voucher(voucher.activation_code)
     await comparison_models(voucher, voucher)
@@ -243,6 +254,9 @@ class TestDeactivateVoucher:
             result_redis = await session_redis.get(f"voucher:{voucher.activation_code}")
             assert not result_redis
 
+            result_redis = await session_redis.get(f"voucher_by_user:{voucher.creator_id}")
+            assert not orjson.loads(result_redis)
+
         assert result == 0 # не должны вернутся деньги
 
     async def test_with_refund(self, create_voucher):
@@ -270,8 +284,13 @@ class TestDeactivateVoucher:
         async with get_redis() as session_redis:
             result_redis = await session_redis.get(f"voucher:{voucher.activation_code}")
             assert not result_redis
+
+            result_redis = await session_redis.get(f"voucher_by_user:{voucher.creator_id}")
+            assert not orjson.loads(result_redis)
+
             user_from__redis = orjson.loads(await session_redis.get(f"user:{voucher.creator_id}"))
             assert user_from__redis['balance'] == returned_money
+
 
 
 @pytest.mark.asyncio

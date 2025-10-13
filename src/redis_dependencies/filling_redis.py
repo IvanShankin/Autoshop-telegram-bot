@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.config import ALLOWED_LANGS
+from src.services.discounts.models.schemas import SmallVoucher
 from src.services.selling_accounts.models.models_with_tranlslate import SoldAccountsFull
 from src.services.system.models.models import UiImages
 from src.services.users.models import Users, BannedAccounts
@@ -17,7 +18,8 @@ from src.services.referrals.models import ReferralLevels
 from src.services.selling_accounts.models.models import TypeAccountServices, AccountServices, AccountCategories, \
     ProductAccounts, SoldAccounts
 from src.redis_dependencies.core_redis import get_redis
-from src.redis_dependencies.time_storage import TIME_USER, TIME_SOLD_ACCOUNTS_BY_OWNER, TIME_SOLD_ACCOUNTS_BY_ACCOUNT
+from src.redis_dependencies.time_storage import TIME_USER, TIME_SOLD_ACCOUNTS_BY_OWNER, TIME_SOLD_ACCOUNTS_BY_ACCOUNT, \
+    TIME_ALL_VOUCHER
 
 
 async def filling_all_redis():
@@ -32,6 +34,11 @@ async def filling_all_redis():
         ui_images: List[UiImages] = result_db.scalars().all()
         for ui_image in ui_images:
             await filling_ui_image(ui_image.key)
+
+        result_db = await session_db.execute(select(Users.user_id))
+        users_ids: List[Users] = result_db.scalars().all()
+        for user_id in users_ids:
+            await filling_voucher_by_user_id(user_id)
 
     await filling_referral_levels()
     await filling_all_types_payments()
@@ -536,6 +543,24 @@ async def filling_promo_code():
         field_condition=(PromoCodes.is_valid == True),
         ttl=lambda promo_code: promo_code.expire_at - datetime.now(UTC) if promo_code.expire_at else None
     )
+
+
+async def filling_voucher_by_user_id(user_id: int):
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            select(Vouchers)
+            .where(
+                (Vouchers.creator_id == user_id) &
+                (Vouchers.is_valid == True) &
+                (Vouchers.is_created_admin == False)
+            ).order_by(Vouchers.start_at.desc())
+        )
+        vouchers = result_db.scalars().all()
+
+    async with get_redis() as session_redis:
+        result_list = [ SmallVoucher.from_orm_model(voucher).model_dump() for voucher in vouchers ]
+        await session_redis.delete(f'voucher_by_user:{user_id}')
+        await session_redis.setex(f'voucher_by_user:{user_id}', TIME_ALL_VOUCHER, orjson.dumps(result_list))
 
 
 async def filling_vouchers():

@@ -9,7 +9,7 @@ from tests.helpers.fake_aiogram.fake_aiogram_module import (
     BaseMiddleware
 )
 
-@pytest.fixture(scope="session", autouse=False)
+@pytest.fixture(scope="session")
 def patch_fake_aiogram():
     """
     Регистрирует фейковый aiogram в sys.modules (scope=session).

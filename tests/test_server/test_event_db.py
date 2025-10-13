@@ -628,7 +628,7 @@ class TestHandlerNewActivatedVoucher:
     ):
         """Тест успешной активации ваучера"""
         user = await create_new_user()
-        voucher = create_voucher
+        voucher = await create_voucher()
         initial_balance = user.balance
         expected_balance = initial_balance + voucher.amount
 
@@ -699,7 +699,7 @@ class TestHandlerNewActivatedVoucher:
     ):
         """Тест активации ваучера с достижением лимита активаций"""
         user = await create_new_user()
-        voucher = create_voucher
+        voucher = await create_voucher()
 
         # Устанавливаем лимит активаций в 1
         async with get_db() as session_db:
@@ -758,7 +758,7 @@ class TestHandlerNewActivatedVoucher:
     ):
         """Тест обработки ошибки при активации ваучера"""
         user = await create_new_user()
-        voucher = create_voucher
+        voucher = await create_voucher()
 
         # Ломаем таблицу VoucherActivations чтобы вызвать ошибку
         async with get_engine.begin() as conn:
@@ -805,7 +805,7 @@ class TestHandlerNewActivatedVoucher:
         from src.services.discounts.utils.set_not_valid import send_set_not_valid_voucher
 
         user = await create_new_user()
-        voucher = create_voucher
+        voucher = await create_voucher()
 
         # Устанавливаем флаг is_created_admin
         async with get_db() as session_db:

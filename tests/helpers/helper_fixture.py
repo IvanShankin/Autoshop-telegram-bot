@@ -230,29 +230,36 @@ async def create_promo_code() -> PromoCodes:
     return promo
 
 @pytest_asyncio.fixture
-async def create_voucher(create_new_user) -> Vouchers:
-    """Создаст новый ваучер в БД и в redis."""
-    user = await create_new_user()
-    voucher = Vouchers(
-        creator_id=user.user_id,
-        activation_code="TESTCODE",
-        amount=100,
-        activated_counter=0,
-        number_of_activations=5,
-        expire_at=datetime.now(timezone.utc) + timedelta(days=1),
-        is_valid=True,
-    )
+async def create_voucher(create_new_user):
+    async def _factory(filling_redis: bool = True, creator_id: int = None) -> Vouchers:
+        """Создаст новый ваучер в БД и в redis."""
+        if creator_id is None:
+            user = await create_new_user()
+            creator_id = user.user_id
 
-    async with get_db() as session_db:
-        session_db.add(voucher)
-        await session_db.commit()
-        await session_db.refresh(voucher)
+        voucher = Vouchers(
+            creator_id=creator_id,
+            activation_code="TESTCODE",
+            amount=100,
+            activated_counter=0,
+            number_of_activations=5,
+            expire_at=datetime.now(timezone.utc) + timedelta(days=1),
+            is_valid=True,
+        )
 
-    async with get_redis() as session_redis:
-        promo_dict = voucher.to_dict()
-        await session_redis.set(f'voucher:{voucher.activation_code}', orjson.dumps(promo_dict))
+        async with get_db() as session_db:
+            session_db.add(voucher)
+            await session_db.commit()
+            await session_db.refresh(voucher)
 
-    return voucher
+        if filling_redis:
+            async with get_redis() as session_redis:
+                promo_dict = voucher.to_dict()
+                await session_redis.set(f'voucher:{voucher.activation_code}', orjson.dumps(promo_dict))
+
+        return voucher
+
+    return _factory
 
 @pytest_asyncio.fixture
 async def create_type_account_service():

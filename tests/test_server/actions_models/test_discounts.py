@@ -38,16 +38,19 @@ async def test_get_valid_promo_code(use_redis, create_promo_code):
 @pytest.mark.parametrize("use_redis", [True, False])
 async def test_get_valid_voucher(use_redis, create_voucher):
     from src.services.discounts.actions import get_valid_voucher
+
+    voucher = await create_voucher()
+
     if use_redis:
         async with get_db() as session_db:
-            await session_db.execute(delete(PromoCodes))
+            await session_db.execute(delete(Vouchers))
             await session_db.commit()
     else:
         async with get_redis() as session_redis:
             await session_redis.flushdb()
 
-    voucher = await get_valid_voucher(create_voucher.activation_code)
-    await comparison_models(create_voucher, voucher)
+    voucher = await get_valid_voucher(voucher.activation_code)
+    await comparison_models(voucher, voucher)
 
 @pytest.mark.asyncio
 async def test_create_promo_code(create_promo_code, create_new_user):
@@ -87,7 +90,7 @@ async def test_create_promo_code(create_promo_code, create_new_user):
 @pytest.mark.asyncio
 async def test_create_voucher(create_voucher):
     from src.services.discounts.actions import create_voucher as create_voucher_for_test
-    new_voucher = create_voucher
+    new_voucher = await create_voucher()
 
     async with get_db() as session_db:
         await session_db.execute(
@@ -125,7 +128,7 @@ class TestActivateVoucher:
 
         user = await create_new_user()
         origin_balance = user.balance
-        voucher = create_voucher
+        voucher = await create_voucher()
         i18n = get_i18n(user.language, "discount_dom")
 
         result_message, success = await activate_voucher(user, voucher.activation_code, user.language)
@@ -154,7 +157,7 @@ class TestActivateVoucher:
         from src.services.discounts.actions import activate_voucher
 
         user = await create_new_user()
-        voucher = create_voucher
+        voucher = await create_voucher()
         i18n = get_i18n(user.language, "discount_dom")
 
         async with get_db() as session_db:
@@ -207,7 +210,7 @@ class TestActivateVoucher:
     async def test_voucher_activate_owner(self, create_new_user, create_voucher):
         """Пытаемся активировать ваучер когда тот кто пытается - его владелец"""
         from src.services.discounts.actions import activate_voucher
-        voucher = create_voucher
+        voucher = await create_voucher()
         user = await get_user(voucher.creator_id)
         i18n = get_i18n(user.language, "discount_dom")
 
@@ -226,7 +229,7 @@ class TestDeactivateVoucher:
         """Если ваучер создан админом — возврата нет"""
         from src.services.discounts.actions.actions_vouchers import deactivate_voucher
 
-        voucher = create_voucher
+        voucher = await create_voucher()
         voucher.is_created_admin = True
         voucher.voucher_id = 2
 
@@ -246,7 +249,7 @@ class TestDeactivateVoucher:
         """Корректный возврат денег пользователю + удаление из Redis"""
         from src.services.discounts.actions.actions_vouchers import deactivate_voucher
 
-        voucher = create_voucher
+        voucher = await create_voucher()
         returned_money = voucher.amount * voucher.number_of_activations # сколько денег должно вернутся
         result = await deactivate_voucher(voucher.voucher_id)
         assert result == returned_money

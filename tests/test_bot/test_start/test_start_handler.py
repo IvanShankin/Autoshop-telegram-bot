@@ -88,7 +88,7 @@ async def test_start_activate_voucher_existing_user(
 ):
     """Активация ваучера уже имеющимся пользователем"""
     from src.modules import start_handler as start
-    voucher: Vouchers = create_voucher
+    voucher = await create_voucher()
 
     fake_bot = replacement_fake_bot
     user = await create_new_user()
@@ -117,7 +117,7 @@ async def test_start_activate_voucher_existing_user(
 ):
     """Активация ваучера уже имеющимся пользователем"""
     from src.modules import start_handler as start
-    voucher: Vouchers = create_voucher
+    voucher = await create_voucher()
     owner = await get_user(voucher.creator_id)
 
     fake_bot = replacement_fake_bot

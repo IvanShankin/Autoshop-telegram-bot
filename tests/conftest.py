@@ -115,8 +115,3 @@ async def get_engine():
     engine = create_async_engine(SQL_DB_URL)
     yield engine
     await engine.dispose()
-
-
-@pytest_asyncio.fixture(scope="function")
-async def set_fake_aiogram(patch_fake_aiogram):
-    pass

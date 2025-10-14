@@ -158,6 +158,11 @@ class FakeBot:
     def __init__(self):
         self.sent = []
 
+        # для тестирования изменений сообщения
+        self.calls = []
+        self.edit_media_behavior = None
+        self.edit_text_behavior = None
+        self.delete_behavior = None
     async def send_message(self, chat_id, text, **kwargs):
         self.sent.append((chat_id, text, kwargs))
         return SimpleNamespace(chat=SimpleNamespace(id=chat_id), text=text)
@@ -174,6 +179,44 @@ class FakeBot:
 
     def check_str_in_messages(self, text: str):
         return any(text in t for _, t, _ in self.sent)
+
+    # дял тестирования изменений сообщения
+    async def edit_message_media(self, chat_id, message_id, media, reply_markup=None):
+        self.calls.append(("edit_message_media", chat_id, message_id, media, reply_markup))
+        if callable(self.edit_media_behavior):
+            return await self.edit_media_behavior(chat_id=chat_id, message_id=message_id, media=media,
+                                                  reply_markup=reply_markup)
+        if isinstance(self.edit_media_behavior, BaseException):
+            raise self.edit_media_behavior
+        # стандартный успешный ответ: возвращаем объект с photo -> last .file_id
+        return SimpleNamespace(photo=[SimpleNamespace(file_id="new_file_id")])
+
+    async def edit_message_text(self, text, chat_id, message_id, parse_mode=None, reply_markup=None):
+        self.calls.append(("edit_message_text", chat_id, message_id, text, reply_markup))
+        if callable(self.edit_text_behavior):
+            return await self.edit_text_behavior(chat_id=chat_id, message_id=message_id, text=text,
+                                                 reply_markup=reply_markup)
+        if isinstance(self.edit_text_behavior, BaseException):
+            raise self.edit_text_behavior
+        return SimpleNamespace(text=text)
+
+    async def delete_message(self, chat_id, message_id):
+        self.calls.append(("delete_message", chat_id, message_id))
+        if callable(self.delete_behavior):
+            return await self.delete_behavior(chat_id=chat_id, message_id=message_id)
+        if isinstance(self.delete_behavior, BaseException):
+            raise self.delete_behavior
+        return True
+
+# шпион для send_message (будет мокаем вместо реальной функции)
+class SpySend:
+    def __init__(self):
+        self.calls = []
+
+    async def __call__(self, chat_id, message, image_key=None, reply_markup=None):
+        self.calls.append((chat_id, message, image_key, reply_markup))
+        return SimpleNamespace(chat=SimpleNamespace(id=chat_id), text=message)
+
 
 class FakeDispatcher:
     pass
@@ -234,3 +277,36 @@ class BaseMiddleware:
 
 class FakeTelegramForbiddenError(Exception):
     pass
+
+class FakeTelegramBadRequest(Exception):
+    pass
+
+
+class FakeFSInputFile:
+    """
+    Фейковая замена aiogram.types.FSInputFile.
+    Просто хранит путь до файла и имя, не открывает его.
+    """
+    def __init__(self, path: str, filename: str | None = None):
+        self.path = path
+        self.filename = filename or path.split("/")[-1]
+
+    def read(self):
+        return b"fake-bytes"
+
+    def __repr__(self):
+        return f"<FakeFSInputFile path='{self.path}' filename='{self.filename}'>"
+
+
+class FakeInputMediaPhoto:
+    """
+    Фейковая замена aiogram.types.InputMediaPhoto.
+    Используется для edit_message_media / send_media_group и т.п.
+    """
+    def __init__(self, media: str | FakeFSInputFile, caption: str | None = None, **kwargs):
+        self.media = media  # может быть строка (file_id, URL) или FSInputFile
+        self.caption = caption
+        self.kwargs = kwargs
+
+    def __repr__(self):
+        return f"<FakeInputMediaPhoto media={self.media} caption={self.caption}>"

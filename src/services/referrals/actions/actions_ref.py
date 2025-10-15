@@ -5,7 +5,7 @@ from sqlalchemy import select
 
 from src.services.database.database import get_db
 from src.services.database.filling_database import filling_referral_lvl
-from src.services.referrals.models import ReferralLevels, Referrals
+from src.services.referrals.models import ReferralLevels, Referrals, IncomeFromReferrals
 from src.redis_dependencies.core_redis import get_redis
 from src.services.users.models import UserAuditLogs
 
@@ -19,6 +19,25 @@ async def get_all_referrals(user_id) -> List[Referrals]:
             .order_by(Referrals.created_at.desc())
         )
         return result_db.scalars().all()
+
+
+async def get_all_income_from_referrals(user_id) -> List[IncomeFromReferrals]:
+    """Вернёт все пополнения от реферальной системы у данного пользователя. Список отсортирован (desc)"""
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            select(IncomeFromReferrals)
+            .where(IncomeFromReferrals.owner_user_id == user_id)
+            .order_by(IncomeFromReferrals.created_at.desc())
+        )
+        return result_db.scalars().all()
+
+async def get_income_from_referral(income_from_referral_id: int) -> IncomeFromReferrals:
+    async with get_db() as session_db:
+        result = await session_db.execute(
+            select(IncomeFromReferrals)
+            .where(IncomeFromReferrals.income_from_referral_id == income_from_referral_id)
+        )
+        return result.scalar_one_or_none()
 
 
 async def get_referral_lvl()->List[ReferralLevels]:

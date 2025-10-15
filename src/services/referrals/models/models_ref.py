@@ -38,7 +38,7 @@ class IncomeFromReferrals(Base):
 
     amount = Column(Integer, nullable=False)
     percentage_of_replenishment = Column(Integer, nullable=False) # процент от пополнения на момент операции
-    date_created = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     replenishment = relationship("Replenishments", back_populates="income_from_referral")
     owner = relationship("Users", foreign_keys=[owner_user_id], back_populates="income_as_owner") # владелец реферала

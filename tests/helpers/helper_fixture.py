@@ -21,7 +21,7 @@ from src.services.system.models.models import UiImages
 from src.services.users.models import Users, Replenishments, NotificationSettings
 from src.services.system.models import TypePayments, Settings
 from src.services.database.database import get_db
-from src.services.referrals.models import Referrals
+from src.services.referrals.models import Referrals, IncomeFromReferrals
 
 
 @pytest_asyncio.fixture
@@ -110,38 +110,84 @@ async def create_referral(create_new_user):
 
     return _fabric
 
+@pytest_asyncio.fixture
+async def create_income_from_referral(create_new_user, create_replenishment):
+    """
+    Создаёт доход от реферала, если не указать реферала, то создаст нового, если не указать владельца, то создаст нового.
+    :return Доход(IncomeFromReferrals), Реферал(Users), Владелец(Users)
+    """
+    async def _fabric(
+            referral_user_id: int = None,
+            owner_id: int = None,
+            replenishment_id: int = None,
+            amount: int = 100,
+            percentage_of_replenishment: int = 5,
+    ) -> (IncomeFromReferrals, Users):
+        async with get_db() as session_db:
+            if owner_id is None: # создаём владельца
+                owner = await create_new_user(user_name='owner_user')
+                owner_id = owner.user_id
+            else:
+                result_db = await session_db.execute(select(Users).where(Users.user_id == owner_id))
+                owner = result_db.scalar()
+            if referral_user_id is None:
+                referral = await create_new_user(user_name='referral_user')
+                referral_user_id = referral.user_id
+            if replenishment_id is None:
+                replenishment = await create_replenishment()
+                replenishment_id = replenishment.replenishment_id
+
+            new_income = IncomeFromReferrals(
+                replenishment_id=replenishment_id,
+                owner_user_id = owner_id,
+                referral_id = referral_user_id,
+                amount = amount,
+                percentage_of_replenishment = percentage_of_replenishment,
+            )
+
+            session_db.add(new_income)
+            await session_db.commit()
+            await session_db.refresh(new_income)
+
+        return new_income, referral, owner
+
+    return _fabric
 
 @pytest_asyncio.fixture
-async def create_replenishment(create_new_user)-> Replenishments:
+async def create_replenishment(create_new_user):
     """Создаёт пополнение для пользователя"""
-    async with get_db() as session_db:
-        user = await create_new_user()
-        # создаём тип платежа (если ещё нет)
-        result = await session_db.execute(select(TypePayments))
-        type_payment = result.scalars().first()
-        if not type_payment:
-            type_payment = TypePayments(
-                name_for_user="TestPay",
-                name_for_admin="TestPayAdmin",
-                index=1,
-                commission=0.0,
+
+    async def _fabric() -> Replenishments:
+        async with get_db() as session_db:
+            user = await create_new_user()
+            # создаём тип платежа (если ещё нет)
+            result = await session_db.execute(select(TypePayments))
+            type_payment = result.scalars().first()
+            if not type_payment:
+                type_payment = TypePayments(
+                    name_for_user="TestPay",
+                    name_for_admin="TestPayAdmin",
+                    index=1,
+                    commission=0.0,
+                )
+                session_db.add(type_payment)
+                await session_db.commit()
+                await session_db.refresh(type_payment)
+
+            repl = Replenishments(
+                user_id=user.user_id,
+                type_payment_id=type_payment.type_payment_id,
+                origin_amount=100,
+                amount=110, # сумма пополнения
+                status="completed",
             )
-            session_db.add(type_payment)
+            session_db.add(repl)
             await session_db.commit()
-            await session_db.refresh(type_payment)
+            await session_db.refresh(repl)
 
-        repl = Replenishments(
-            user_id=user.user_id,
-            type_payment_id=type_payment.type_payment_id,
-            origin_amount=100,
-            amount=110, # сумма пополнения
-            status="completed",
-        )
-        session_db.add(repl)
-        await session_db.commit()
-        await session_db.refresh(repl)
+        return repl
 
-    return repl
+    return _fabric
 
 
 @pytest_asyncio.fixture

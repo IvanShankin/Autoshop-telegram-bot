@@ -1,8 +1,10 @@
+from typing import List
+
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.config import ALLOWED_LANGS, NAME_LANGS, EMOJI_LANGS
-from src.services.users.models import NotificationSettings
+from src.services.users.models import NotificationSettings, WalletTransaction
 from src.utils.i18n import get_i18n
 
 
@@ -57,3 +59,29 @@ async def setting_notification_kb(language: str, notification: NotificationSetti
             [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data='profile_settings')]
         ])
 
+
+async def all_wallet_transactions_kb(transactions: List[WalletTransaction], language: str):
+    i18n = get_i18n(language, "type_wallet_transaction")
+    keyboard = InlineKeyboardBuilder()
+    transactions = transactions[:100] # Обрезаем список. Максимальное количество кнопок - 100
+
+    for transaction in transactions:
+        keyboard.add(InlineKeyboardButton(
+            text=f"{transaction.amount} ₽   {i18n.gettext(transaction.type)}",
+            callback_data=f'show_transaction:{transaction.wallet_transaction_id}')
+        )
+
+    i18n = get_i18n(language, "keyboard_dom")
+    keyboard.add(InlineKeyboardButton(
+        text=i18n.gettext('Back'),
+        callback_data=f'profile')
+    )
+
+    keyboard.adjust(1)
+    return keyboard.as_markup()
+
+async def back_in_wallet_transactions(language: str):
+    i18n = get_i18n(language, "keyboard_dom")
+    return InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data='history_transaction')]
+        ])

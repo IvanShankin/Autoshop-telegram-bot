@@ -27,7 +27,7 @@ EMOJI_LANGS = {"ru": "🇷🇺", "en": "🇬🇧", } # эмодзи по код�
 NAME_LANGS = {"ru": "Русский", "en": "English", } # название языка по коду
 DEFAULT_LANG = "ru"
 
-DT_FORMAT_FOR_LOGS = "%Y-%m-%d %H:%M:%S"
+DT_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 UI_IMAGES = {
     "welcome_message": f"{BASE_DIR}/media/ui_sections/welcome_message.png",
@@ -38,4 +38,5 @@ UI_IMAGES = {
     "profile": f"{BASE_DIR}/media/ui_sections/profile.png",
     "profile_settings": f"{BASE_DIR}/media/ui_sections/profile_settings.png",
     "notification_settings": f"{BASE_DIR}/media/ui_sections/notification_settings.png",
+    "history_transections": f"{BASE_DIR}/media/ui_sections/history_transections.png",
 }

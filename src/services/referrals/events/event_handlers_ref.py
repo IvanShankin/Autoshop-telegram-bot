@@ -4,7 +4,7 @@ from aiogram.exceptions import TelegramForbiddenError
 from sqlalchemy import update, select
 
 from src.bot_actions.bot_instance import get_bot_logger
-from src.config import DT_FORMAT_FOR_LOGS
+from src.config import DT_FORMAT
 from src.services.users.actions import get_user, update_user
 from src.services.users.models import UserAuditLogs, WalletTransaction, NotificationSettings
 from src.services.database.database import get_db
@@ -158,7 +158,7 @@ async def on_referral_income_completed(user_id: int, language: str,  amount: int
             "An error occurred while sending a message about replenishing funds to the referral owner. \n"
             "Error: {error}. \n\n"
             "Time: {time}"
-        ).format(error=str(e), time=datetime.now().strftime(DT_FORMAT_FOR_LOGS))
+        ).format(error=str(e), time=datetime.now().strftime(DT_FORMAT))
         await send_log(message_log)
 
 async def on_referral_income_failed(error: str):
@@ -169,7 +169,7 @@ async def on_referral_income_failed(error: str):
         "An error occurred while sending a message about replenishing funds to the referral owner. \n"
         "Error: {error}. \n\n"
         "Time: {time}"
-    ).format(error=error, time=datetime.now().strftime(DT_FORMAT_FOR_LOGS))
+    ).format(error=error, time=datetime.now().strftime(DT_FORMAT))
 
     await send_log(message_log)
 

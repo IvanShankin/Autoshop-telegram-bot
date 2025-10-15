@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import List
 
 import orjson
 from sqlalchemy import select, update, delete
@@ -7,7 +8,7 @@ from src.exceptions.service_exceptions import UserNotFound
 from src.services.admins.models import AdminActions
 from src.services.referrals.utils import create_unique_referral_code
 from src.services.users.actions.action_user import get_user
-from src.services.users.models import Users, NotificationSettings, BannedAccounts, UserAuditLogs
+from src.services.users.models import Users, NotificationSettings, BannedAccounts, UserAuditLogs, WalletTransaction
 from src.services.database.database import get_db
 from src.redis_dependencies.core_redis import get_redis
 from src.redis_dependencies.time_storage import TIME_USER
@@ -140,3 +141,23 @@ async def delete_banned_account(admin_id: int, user_id: int):
         f"Админ c ID = '{admin_id}' разбанил пользователя \n"
         f"ID разбаненного аккаунта: '{user_id}'"
     )
+
+
+async def get_wallet_transactions_by_user(user_id: int) -> List[WalletTransaction]:
+    """Вернёт отсортированный список по дате (desc)"""
+    async with get_db() as session_db:
+        result = await session_db.execute(
+            select(WalletTransaction)
+            .where(WalletTransaction.user_id == user_id)
+            .order_by(WalletTransaction.created_at.desc())
+        )
+        return result.scalars().all()
+
+
+async def get_wallet_transaction(wallet_transaction_id: int) -> WalletTransaction:
+    async with get_db() as session_db:
+        result = await session_db.execute(
+            select(WalletTransaction)
+            .where(WalletTransaction.wallet_transaction_id == wallet_transaction_id)
+        )
+        return result.scalar_one_or_none()

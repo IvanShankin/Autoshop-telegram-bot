@@ -3,7 +3,7 @@ from aiogram.exceptions import TelegramForbiddenError
 from sqlalchemy import update, select
 
 from src.broker.producer import publish_event
-from src.config import DT_FORMAT_FOR_LOGS
+from src.config import DT_FORMAT
 from src.services.users.actions import update_user, get_user
 from src.services.users.models import WalletTransaction, UserAuditLogs, Replenishments
 from src.services.database.database import get_db
@@ -164,7 +164,7 @@ async def on_replenishment_completed(event: ReplenishmentCompleted):
             username=event.username,
             sum=event.amount,
             replenishment_id=event.replenishment_id,
-            time=datetime.now().strftime(DT_FORMAT_FOR_LOGS)
+            time=datetime.now().strftime(DT_FORMAT)
         )
     else:
         message_log = i18n.gettext(
@@ -174,7 +174,7 @@ async def on_replenishment_completed(event: ReplenishmentCompleted):
             username=event.username,
             replenishment_id=event.replenishment_id,
             error=str(event.error_str),
-            time=datetime.now().strftime(DT_FORMAT_FOR_LOGS)
+            time=datetime.now().strftime(DT_FORMAT)
         )
 
     await send_log(message_log)
@@ -201,7 +201,7 @@ async def on_replenishment_failed(event: ReplenishmentFailed):
         username=event.username,
         replenishment_id=event.replenishment_id,
         error=str(event.error_str),
-        time=datetime.now().strftime(DT_FORMAT_FOR_LOGS)
+        time=datetime.now().strftime(DT_FORMAT)
     )
 
     await send_log(message_log)

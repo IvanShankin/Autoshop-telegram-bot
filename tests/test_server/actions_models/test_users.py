@@ -6,7 +6,7 @@ from src.exceptions.service_exceptions import UserNotFound
 from src.services.admins.models import AdminActions
 from src.services.users.actions.action_user import get_user_by_ref_code
 from tests.helpers.helper_functions import parse_redis_user
-from src.services.users.models import Users, NotificationSettings, BannedAccounts
+from src.services.users.models import Users, NotificationSettings, BannedAccounts, WalletTransaction
 from src.services.database.database import get_db
 from src.redis_dependencies.core_redis import get_redis
 from tests.helpers.helper_fixture import create_new_user
@@ -227,3 +227,63 @@ async def test_delete_banned_account_not_found(replacement_fake_bot):
     from src.services.users.actions.action_other_with_user import delete_banned_account
     with pytest.raises(UserNotFound):
         await delete_banned_account(1, 999999)
+
+
+@pytest.mark.asyncio
+async def test_get_wallet_transactions_by_user(replacement_fake_bot, create_new_user):
+    from src.services.users.actions.action_other_with_user import get_wallet_transactions_by_user
+    user = await create_new_user()
+    record_1 = WalletTransaction(
+        user_id = user.user_id,
+        type = 'replenish',
+        amount = 100,
+        balance_before = 0,
+        balance_after = 100
+    )
+    record_2 = WalletTransaction(
+        user_id=user.user_id,
+        type='transfer',
+        amount=100,
+        balance_before=100,
+        balance_after=200
+    )
+    record_3 = WalletTransaction(
+        user_id=user.user_id,
+        type='purchase',
+        amount=50,
+        balance_before=200,
+        balance_after=150
+    )
+
+    async with get_db() as session_db:
+        session_db.add(record_1)
+        await session_db.commit()
+        session_db.add(record_2)
+        await session_db.commit()
+        session_db.add(record_3)
+        await session_db.commit()
+
+    wallet_transactions = await get_wallet_transactions_by_user(user.user_id)
+    assert wallet_transactions[0].to_dict() == record_3.to_dict()
+    assert wallet_transactions[1].to_dict() == record_2.to_dict()
+    assert wallet_transactions[2].to_dict() == record_1.to_dict()
+
+@pytest.mark.asyncio
+async def test_get_wallet_transaction(replacement_fake_bot, create_new_user):
+    from src.services.users.actions.action_other_with_user import get_wallet_transaction
+    user = await create_new_user()
+    record = WalletTransaction(
+        user_id=user.user_id,
+        type='replenish',
+        amount=100,
+        balance_before=0,
+        balance_after=100
+    )
+
+    async with get_db() as session_db:
+        session_db.add(record)
+        await session_db.commit()
+
+    wallet_transaction = await get_wallet_transaction(record.wallet_transaction_id)
+    assert wallet_transaction.to_dict() == record.to_dict()
+

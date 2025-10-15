@@ -11,7 +11,7 @@ from sqlalchemy import select, update
 from sqlalchemy import MetaData, Table
 
 from src.broker.producer import publish_event
-from src.config import DT_FORMAT_FOR_LOGS
+from src.config import DT_FORMAT
 from src.services.discounts.models import VoucherActivations, Vouchers
 from src.services.selling_accounts.events.schemas import NewPurchaseAccount, AccountsData
 from src.services.system.actions import get_settings, update_settings
@@ -195,7 +195,7 @@ class TestHandlerNewReplenishment:
             username=user.username,
             replenishment_id=new_replenishment.replenishment_id,
             error="",
-            time=datetime.now().strftime(DT_FORMAT_FOR_LOGS),
+            time=datetime.now().strftime(DT_FORMAT),
         )
 
         assert fake_bot.check_str_in_messages(message_log[:100])
@@ -255,7 +255,7 @@ class TestHandlerNewReplenishment:
             username=user.username,
             sum=amount,
             replenishment_id=replenishment_id,
-            time=datetime.now().strftime(DT_FORMAT_FOR_LOGS)
+            time=datetime.now().strftime(DT_FORMAT)
         )
 
         assert fake_bot.check_str_in_messages(message_log[:100])
@@ -307,7 +307,7 @@ class TestHandlerNewReplenishment:
             username=user.username,
             replenishment_id=replenishment_id,
             error=error_text,
-            time=datetime.now().strftime(DT_FORMAT_FOR_LOGS)
+            time=datetime.now().strftime(DT_FORMAT)
         )
 
         assert fake_bot.check_str_in_messages(message_log[:100])
@@ -470,7 +470,7 @@ class TestHandlerNewIncomeRef:
             "An error occurred while sending a message about replenishing funds to the referral owner. \n"
             "Error: {error}. \n\n"
             "Time: {time}"
-        ).format(error=error_text, time=datetime.now().strftime(DT_FORMAT_FOR_LOGS))
+        ).format(error=error_text, time=datetime.now().strftime(DT_FORMAT))
 
         assert fake_bot.check_str_in_messages(message_log[:100]), "Лог об ошибке рефералки не был отправлен"
 

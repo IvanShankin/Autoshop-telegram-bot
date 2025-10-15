@@ -1,5 +1,6 @@
 from typing import Optional, Any
 
+from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
 
 from src.bot_actions.bot_instance import get_bot_logger
@@ -52,11 +53,11 @@ def _is_file_id_invalid_error(exc: Exception) -> bool:
     return any(p in text for p in phrases)
 
 
-async def _try_edit_media_by_file_id(bot: Any, chat_id: int, message_id: int, file_id: str,
+async def _try_edit_media_by_file_id(bot: Bot, chat_id: int, message_id: int, file_id: str,
                                      caption: str, reply_markup) -> bool:
     """Пробуем заменить media по существующему file_id. Возвращаем True при успехе."""
     try:
-        media = InputMediaPhoto(media=file_id, caption=caption)
+        media = InputMediaPhoto(media=file_id, caption=caption, parse_mode="HTML")
         await bot.edit_message_media(chat_id=chat_id, message_id=message_id, media=media, reply_markup=reply_markup)
         return True
     except TelegramForbiddenError as e:
@@ -83,7 +84,7 @@ async def _try_edit_media_by_file(bot: Any, chat_id: int, message_id: int, ui_im
         logger.warning(f"[edit_message] Local file not found: {ui_image.file_path}")
         return False
     try:
-        media = InputMediaPhoto(media=photo, caption=caption)
+        media = InputMediaPhoto(media=photo, caption=caption, parse_mode="HTML")
         msg = await bot.edit_message_media(chat_id=chat_id, message_id=message_id, media=media, reply_markup=reply_markup)
         # извлекаем новый file_id если он есть
         try:
@@ -108,7 +109,7 @@ async def _try_edit_media_by_file(bot: Any, chat_id: int, message_id: int, ui_im
         return False
 
 
-async def _try_edit_text(bot: Any, chat_id: int, message_id: int, text: str, reply_markup) -> Optional[bool]:
+async def _try_edit_text(bot: Bot, chat_id: int, message_id: int, text: str, reply_markup) -> Optional[bool]:
     """
     Пробуем отредактировать текст. Возвращает:
       - True  => успешно отредактировали

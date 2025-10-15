@@ -55,7 +55,6 @@ async def get_notification(user_id) -> NotificationSettings | None:
 async def update_notification(
         user_id: int,
         referral_invitation: bool,
-        referral_level_up: bool,
         referral_replenishment: bool
 ) -> NotificationSettings | None:
     async with (get_db() as session_db):
@@ -64,7 +63,6 @@ async def update_notification(
             .where(NotificationSettings.user_id == user_id)
             .values(
                 referral_invitation = referral_invitation,
-                referral_level_up = referral_level_up,
                 referral_replenishment = referral_replenishment
             )
             .returning(NotificationSettings)

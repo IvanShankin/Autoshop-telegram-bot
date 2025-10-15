@@ -1,0 +1,29 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: autoshop 1.0\n"
+"PO-Revision-Date: 2025-09-04 00:00+0000\n"
+"Last-Translator: Ivan \n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+
+msgid "Username: {username} \nID: {id} \nRef_link: {ref_link} \nTotal sum replenishment: {total_sum_replenishment}"
+"\nBalance: {balance}, \nMoney in vouchers {money_in_vouchers}"
+msgstr "👤 Информация \n"
+"├ Username: @{username} \n"
+"├ ID: <code>{id}</code> \n"
+"├ Реферальная ссылка: <a href='{ref_link}'>Ссылка</a> \n"
+"├ Общая сумма пополнения: {total_sum_replenishment} ₽ \n"
+"├ Баланс: {balance} ₽ \n"
+"╰ Средства удержанные в ваучерах: {money_in_vouchers} ₽ \n"
+
+msgid "Select the settings item"
+msgstr "Выберите пункт настроек"
+
+msgid "Language in the bot"
+msgstr "Язык в боте"
+
+msgid "Notification Settings"
+msgstr "Настройки уведомлений"

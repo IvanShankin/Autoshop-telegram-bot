@@ -1,5 +1,6 @@
 from aiogram import BaseMiddleware
-from aiogram.types import Message
+from aiogram.filters import BaseFilter
+from aiogram.types import Message, Update
 
 from typing import Callable, Dict, Any, Awaitable
 
@@ -41,3 +42,19 @@ class MaintenanceMiddleware(BaseMiddleware):
         await event.answer(
             i18n.gettext("⚙️ The bot is temporarily unavailable due to maintenance. Please try again later.")
         )
+
+class I18nKeyFilter(BaseFilter):
+    """Извлечёт i18n_key из I18nKeyResolverMiddleware"""
+    def __init__(self, key: str):
+        self.key = key
+
+    async def __call__(self, message: Message, **data) -> bool:
+        # сообщение должно содержать текст
+        if not getattr(message, "text", None):
+            return False
+        try:
+            user = await get_user(message.from_user.id)
+        except Exception:
+            return False
+        i18n = get_i18n(user.language, "keyboard_dom")
+        return message.text == i18n.gettext(self.key)

@@ -17,3 +17,6 @@ class I18n:
 @lru_cache(maxsize=None)
 def get_i18n(lang: str, domain: str)->I18n:
     return I18n(lang, domain)
+
+def get_text(lang, key, domain):
+    return get_i18n(lang, domain).gettext(key)

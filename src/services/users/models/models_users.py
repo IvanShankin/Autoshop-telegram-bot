@@ -61,7 +61,6 @@ class NotificationSettings(Base):
 
     # Уведомления о рефералах
     referral_invitation = Column(Boolean, server_default=text('true'))  # Приглашение реферала
-    referral_level_up = Column(Boolean, server_default=text('true'))  # Повышение уровня реферала
     referral_replenishment = Column(Boolean, server_default=text('true'))  # Пополнение реферала
 
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

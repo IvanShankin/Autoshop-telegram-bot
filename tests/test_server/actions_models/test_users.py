@@ -136,19 +136,16 @@ async def test_update_notification_updates_correctly(replacement_fake_bot, creat
     updated = await update_notification(
         user.user_id,
         referral_invitation=False,
-        referral_level_up=True,
         referral_replenishment=False
     )
 
     assert updated.referral_invitation is False
-    assert updated.referral_level_up is True
     assert updated.referral_replenishment is False
 
     async with get_db() as session:
         result = await session.execute(select(NotificationSettings).where(NotificationSettings.user_id == user.user_id))
         notif = result.scalar_one()
         assert notif.referral_invitation is False
-        assert notif.referral_level_up is True
         assert notif.referral_replenishment is False
 
 

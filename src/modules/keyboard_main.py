@@ -12,15 +12,12 @@ selecting_language = InlineKeyboardMarkup(
         ],
 )
 
-def main_kb(language):
+def main_kb(language: str):
     i18n = get_i18n(language, 'keyboard_dom')
-    catalog = i18n.gettext('Product catalog')
-    profile = i18n.gettext('Profile')
-    information = i18n.gettext('Information')
     return ReplyKeyboardMarkup(
         keyboard = [
-            [KeyboardButton(text = catalog)],
-            [KeyboardButton(text = profile), KeyboardButton(text = information)]
+            [KeyboardButton(text = i18n.gettext('Product catalog'))],
+            [KeyboardButton(text = i18n.gettext('Profile')), KeyboardButton(text = i18n.gettext('Information'))]
         ],
         resize_keyboard=True,
         input_field_placeholder='Воспользуйтесь меню'

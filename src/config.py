@@ -1,5 +1,6 @@
 import os
 import sys
+from typing import List
 
 from dotenv import load_dotenv
 from pathlib import Path
@@ -20,7 +21,10 @@ MEDIA_DIR = BASE_DIR / "media"
 
 TYPE_PAYMENTS = {'crypto_bot': 'crypto_bot'}
 TYPE_ACCOUNT_SERVICES = {'telegram': 'telegram', 'other': 'other'}
-ALLOWED_LANGS = ["ru", "en"]
+
+ALLOWED_LANGS = ["ru", "en"] # все коды языков
+EMOJI_LANGS = {"ru": "🇷🇺", "en": "🇬🇧", } # эмодзи по коду языка
+NAME_LANGS = {"ru": "Русский", "en": "English", } # название языка по коду
 DEFAULT_LANG = "ru"
 
 DT_FORMAT_FOR_LOGS = "%Y-%m-%d %H:%M:%S"
@@ -31,6 +35,7 @@ UI_IMAGES = {
     "successfully_activate_voucher": f"{BASE_DIR}/media/ui_sections/successfully_activate_voucher.png",
     "unsuccessfully_activate_voucher": f"{BASE_DIR}/media/ui_sections/unsuccessfully_activate_voucher.png",
     "new_referral": f"{BASE_DIR}/media/ui_sections/new_referral.png",
-    "main_menu": f"{BASE_DIR}/media/ui_sections/main_menu.png",
     "profile": f"{BASE_DIR}/media/ui_sections/profile.png",
+    "profile_settings": f"{BASE_DIR}/media/ui_sections/profile_settings.png",
+    "notification_settings": f"{BASE_DIR}/media/ui_sections/notification_settings.png",
 }

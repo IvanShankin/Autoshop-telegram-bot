@@ -4,7 +4,7 @@ from orjson import orjson
 from sqlalchemy import delete, select
 
 from src.services.database.database import get_db
-from src.services.referrals.actions.actions_ref import add_referral
+from src.services.referrals.actions.actions_ref import add_referral, get_all_referrals
 from src.services.referrals.models import ReferralLevels, Referrals
 from src.services.referrals.actions import get_referral_lvl
 from src.redis_dependencies.core_redis import get_redis
@@ -66,3 +66,15 @@ async def test_get_referral_lvl(create_new_user):
         log = result_db.scalars().all()
         assert len(log) == 1
 
+@pytest.mark.asyncio
+async def test_get_referral_lvl(create_referral, create_new_user):
+    owner = await create_new_user()
+    ref_1, _, _ = await create_referral(owner.user_id)
+    ref_2, _, _ = await create_referral(owner.user_id)
+    ref_3, _, _ = await create_referral(owner.user_id)
+
+    all_ref = await get_all_referrals(owner.user_id)
+
+    assert all_ref[0].to_dict() == ref_3.to_dict()
+    assert all_ref[1].to_dict() == ref_2.to_dict()
+    assert all_ref[2].to_dict() == ref_1.to_dict()

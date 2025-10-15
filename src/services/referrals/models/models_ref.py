@@ -12,6 +12,7 @@ class Referrals(Base):
     referral_id = Column(Integer, ForeignKey('users.user_id'), primary_key=True, nullable=False)
     owner_user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False, index=True) # Это ID пользователя, который пригласил (владельца)
     level = Column(Integer, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     owner = relationship("Users", foreign_keys=[owner_user_id], back_populates="owned_referrals") # владелец реферала
     referral = relationship("Users", foreign_keys=[referral_id], back_populates="referred_by_link") # реферал

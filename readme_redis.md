@@ -15,6 +15,7 @@
     "channel_for_subscription_id": int,
     "shop_name": str,
     "channel_name": str,
+    "linc_info_ref_system": str,
     "FAQ": str,
 }
 ```

@@ -32,6 +32,7 @@ async def get_settings() -> Settings:
                 channel_for_subscription_id=data['channel_for_subscription_id'],
                 shop_name=data['shop_name'],
                 channel_name=data['channel_name'],
+                linc_info_ref_system=data['linc_info_ref_system'],
                 FAQ=data['FAQ']
             )
             return settings
@@ -65,6 +66,7 @@ async def update_settings(settings: Settings) -> Settings:
                 channel_for_subscription_id=settings.channel_for_subscription_id,
                 shop_name=settings.shop_name,
                 channel_name=settings.channel_name,
+                linc_info_ref_system=settings.linc_info_ref_system,
                 FAQ=settings.FAQ,
             )
         )

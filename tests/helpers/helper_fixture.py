@@ -83,7 +83,7 @@ async def create_admin_fix(create_new_user):
 async def create_referral(create_new_user):
     """
     Создаёт тестовый реферала (у нового пользователя появляется владелец)
-    :return Владельца и Реферала
+    :return Реферал(Referrals), Владельца(Users) и Реферала(Users)
     """
     async def _fabric(owner_id: int = None) -> (Referrals, Users, Users):
         async with get_db() as session_db:
@@ -106,7 +106,7 @@ async def create_referral(create_new_user):
             await session_db.commit()
             await session_db.refresh(referral)
 
-        return owner, user
+        return referral, owner, user
 
     return _fabric
 

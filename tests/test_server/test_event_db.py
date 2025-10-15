@@ -325,7 +325,7 @@ class TestHandlerNewIncomeRef:
         from src.services.referrals.actions import get_referral_lvl
         from src.services.referrals.models import IncomeFromReferrals, Referrals
 
-        owner, referral = await create_referral()
+        _, owner, referral = await create_referral()
 
         initial_balance = owner.balance
         initial_total_profit = owner.total_profit_from_referrals

@@ -2,13 +2,23 @@ from typing import List
 
 from orjson import orjson
 from sqlalchemy import select
-from sqlalchemy.util import merge_lists_w_ordering
 
 from src.services.database.database import get_db
 from src.services.database.filling_database import filling_referral_lvl
 from src.services.referrals.models import ReferralLevels, Referrals
 from src.redis_dependencies.core_redis import get_redis
 from src.services.users.models import UserAuditLogs
+
+
+async def get_all_referrals(user_id) -> List[Referrals]:
+    """Вернёт всех рефералов у данного пользователя. Список отсортирован (desc)"""
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            select(Referrals)
+            .where(Referrals.owner_user_id == user_id)
+            .order_by(Referrals.created_at.desc())
+        )
+        return result_db.scalars().all()
 
 
 async def get_referral_lvl()->List[ReferralLevels]:

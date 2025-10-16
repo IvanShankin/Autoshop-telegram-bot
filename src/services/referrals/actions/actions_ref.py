@@ -1,7 +1,7 @@
 from typing import List
 
 from orjson import orjson
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from src.services.database.database import get_db
 from src.services.database.filling_database import filling_referral_lvl
@@ -21,15 +21,24 @@ async def get_all_referrals(user_id) -> List[Referrals]:
         return result_db.scalars().all()
 
 
-async def get_all_income_from_referrals(user_id) -> List[IncomeFromReferrals]:
-    """Вернёт все пополнения от реферальной системы у данного пользователя. Список отсортирован (desc)"""
+async def get_referral_income_page(user_id: int, page: int, page_size: int = 10):
+    offset = (page - 1) * page_size
     async with get_db() as session_db:
-        result_db = await session_db.execute(
+        result = await session_db.execute(
             select(IncomeFromReferrals)
             .where(IncomeFromReferrals.owner_user_id == user_id)
             .order_by(IncomeFromReferrals.created_at.desc())
+            .limit(page_size)
+            .offset(offset)
         )
-        return result_db.scalars().all()
+        return result.scalars().all()
+
+async def get_count_referral_income(user_id: int) -> int:
+    async with get_db() as session_db:
+        result = await session_db.execute(
+            select(func.count()).where(IncomeFromReferrals.owner_user_id == user_id)
+        )
+        return result.scalar()
 
 async def get_income_from_referral(income_from_referral_id: int) -> IncomeFromReferrals:
     async with get_db() as session_db:

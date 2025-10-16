@@ -4,9 +4,9 @@ from orjson import orjson
 from sqlalchemy import delete, select
 
 from src.services.database.database import get_db
-from src.services.referrals.actions.actions_ref import add_referral, get_all_referrals, get_all_income_from_referrals, \
-    get_income_from_referral
-from src.services.referrals.models import ReferralLevels, Referrals, IncomeFromReferrals
+from src.services.referrals.actions.actions_ref import add_referral, get_all_referrals, get_income_from_referral, \
+    get_referral_income_page, get_count_referral_income
+from src.services.referrals.models import ReferralLevels, Referrals
 from src.services.referrals.actions import get_referral_lvl
 from src.redis_dependencies.core_redis import get_redis
 from src.services.users.models import UserAuditLogs
@@ -82,18 +82,27 @@ async def test_all_get_referrals(create_referral, create_new_user):
 
 
 @pytest.mark.asyncio
-async def test_get_all_income_from_referrals(create_new_user, create_income_from_referral):
+async def test_get_referral_income_page(create_new_user, create_income_from_referral):
     owner = await create_new_user()
     income_1, _, _ = await create_income_from_referral(owner_id=owner.user_id)
     income_2, _, _ = await create_income_from_referral(owner_id=owner.user_id)
     income_3, _, _ = await create_income_from_referral(owner_id=owner.user_id)
 
-    all_incomes = await get_all_income_from_referrals(owner.user_id)
+    all_incomes = await get_referral_income_page(owner.user_id, 1)
 
     assert all_incomes[0].to_dict() == income_3.to_dict()
     assert all_incomes[1].to_dict() == income_2.to_dict()
     assert all_incomes[2].to_dict() == income_1.to_dict()
 
+@pytest.mark.asyncio
+async def test_get_count_referral_income(create_new_user, create_income_from_referral):
+    owner = await create_new_user()
+    income_1, _, _ = await create_income_from_referral(owner_id=owner.user_id)
+    income_2, _, _ = await create_income_from_referral(owner_id=owner.user_id)
+
+    count_income = await get_count_referral_income(owner.user_id)
+
+    assert count_income == 2
 
 @pytest.mark.asyncio
 async def test_get_income_from_referral(create_income_from_referral):

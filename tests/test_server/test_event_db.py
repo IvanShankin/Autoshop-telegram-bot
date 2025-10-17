@@ -189,10 +189,10 @@ class TestHandlerNewReplenishment:
 
         # лог
         message_log = i18n.gettext(
-            "#Replenishment_error \n\nUser @{username} Paid money, balance updated, but an error occurred inside the server. \n"
+            "#Replenishment_error \n\nUser {username} Paid money, balance updated, but an error occurred inside the server. \n"
             "Replenishment ID: {replenishment_id}.\nError: {error} \n\nTime: {time}"
         ).format(
-            username=user.username,
+            username=f'@{user.username}',
             replenishment_id=new_replenishment.replenishment_id,
             error="",
             time=datetime.now().strftime(DT_FORMAT),
@@ -244,10 +244,10 @@ class TestHandlerNewReplenishment:
 
         # лог
         message_log = i18n.ngettext(
-            "#Replenishment \n\nUser @{username} successfully topped up the balance by {sum} ruble. \n"
+            "#Replenishment \n\nUser {username} successfully topped up the balance by {sum} ruble. \n"
             "Replenishment ID: {replenishment_id} \n\n"
             "Time: {time}",
-            "#Replenishment \n\nUser @{username} successfully topped up the balance by {sum} rubles. \n"
+            "#Replenishment \n\nUser {username} successfully topped up the balance by {sum} rubles. \n"
             "Replenishment ID: {replenishment_id}  \n\n"
             "Time: {time}",
             amount
@@ -301,7 +301,7 @@ class TestHandlerNewReplenishment:
 
         # лог
         message_log = i18n.gettext(
-            "#Replenishment_error \n\nUser @{username} Paid money, but the balance was not updated. \n"
+            "#Replenishment_error \n\nUser {username} Paid money, but the balance was not updated. \n"
             "Replenishment ID: {replenishment_id}. \nError: {error} \n\nTime: {time}"
         ).format(
             username=user.username,

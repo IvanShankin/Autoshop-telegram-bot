@@ -17,7 +17,7 @@ class ReplenishmentCompleted(BaseModel):
     error: bool # флаг ошибки
     error_str: str | None # данные об ошибке
     language: str # выбранный язык пользователя
-    username: str
+    username: str | None
 
 class ReplenishmentFailed(BaseModel):
     user_id: int

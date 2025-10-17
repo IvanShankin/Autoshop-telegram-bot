@@ -50,10 +50,11 @@ async def handler_new_replenishment(new_replenishment: NewReplenishment):
                 return
 
         user = await get_user(new_replenishment.user_id)
+        i18n = get_i18n(user.language, 'profile_messages')
         user.balance = user.balance + new_replenishment.amount
         user.total_sum_replenishment = user.total_sum_replenishment + new_replenishment.amount
         language = user.language
-        username = user.username
+        username = i18n.gettext('No') if user.username is None else f'@{user.username}'
         total_sum_replenishment = user.total_sum_replenishment
 
         updated_user = await update_user(user)
@@ -153,10 +154,10 @@ async def on_replenishment_completed(event: ReplenishmentCompleted):
 
     if not event.error:
         message_log = i18n.ngettext(
-            "#Replenishment \n\nUser @{username} successfully topped up the balance by {sum} ruble. \n"
+            "#Replenishment \n\nUser {username} successfully topped up the balance by {sum} ruble. \n"
             "Replenishment ID: {replenishment_id} \n\n"
             "Time: {time}",
-            "#Replenishment \n\nUser @{username} successfully topped up the balance by {sum} rubles. \n"
+            "#Replenishment \n\nUser {username} successfully topped up the balance by {sum} rubles. \n"
             "Replenishment ID: {replenishment_id}  \n\n"
             "Time: {time}",
             event.amount
@@ -168,7 +169,7 @@ async def on_replenishment_completed(event: ReplenishmentCompleted):
         )
     else:
         message_log = i18n.gettext(
-            "#Replenishment_error \n\nUser @{username} Paid money, balance updated, but an error occurred inside the server. \n"
+            "#Replenishment_error \n\nUser {username} Paid money, balance updated, but an error occurred inside the server. \n"
             "Replenishment ID: {replenishment_id}.\nError: {error} \n\nTime: {time}"
         ).format(
             username=event.username,
@@ -195,7 +196,7 @@ async def on_replenishment_failed(event: ReplenishmentFailed):
         pass
 
     message_log = i18n.gettext(
-        "#Replenishment_error \n\nUser @{username} Paid money, but the balance was not updated. \n"
+        "#Replenishment_error \n\nUser {username} Paid money, but the balance was not updated. \n"
         "Replenishment ID: {replenishment_id}. \nError: {error} \n\nTime: {time}"
     ).format(
         username=event.username,

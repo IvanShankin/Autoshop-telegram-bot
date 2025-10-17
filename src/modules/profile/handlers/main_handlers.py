@@ -21,6 +21,9 @@ async def handler_profile(
         message_id: int = None
 ):
     user = await get_user(user_id, username)
+    i18n = get_i18n(user.language, 'profile_messages')
+    username = i18n.gettext('No') if  user.username is None else f'@{user.username}'
+
     bot = await get_bot()
     bot_me = await bot.me()
     vouchers = await get_valid_voucher_by_user(user_id)
@@ -29,12 +32,12 @@ async def handler_profile(
     for voucher in vouchers:
         money_in_vouchers += voucher.amount
 
-    i18n = get_i18n(user.language, 'profile_messages')
+    i18n = get_i18n(user.language, 'miscellaneous')
     text = i18n.gettext(
         "Username: {username} \nID: {id} \nRef_link: {ref_link} \nTotal sum replenishment: {total_sum_replenishment}"
         "\nBalance: {balance}, \nMoney in vouchers {money_in_vouchers}"
     ).format(
-        username = user.username,
+        username = username,
         id = user.user_id,
         ref_link = f'https://t.me/{bot_me.username}?start=ref:{user.unique_referral_code}',
         total_sum_replenishment = user.total_sum_replenishment,

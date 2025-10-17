@@ -64,3 +64,14 @@ msgstr "Новый реферал"
 msgid "Replenishment referral"
 msgstr "Пополнение реферала"
 
+
+# ---- Реферальная система ----
+
+msgid "Information"
+msgstr "ℹ️ Информация"
+
+msgid "Accrual history"
+msgstr "История начислений"
+
+msgid "Download a list of referrals"
+msgstr "Выгрузить список рефералов"

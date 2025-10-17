@@ -21,17 +21,19 @@ async def get_all_referrals(user_id) -> List[Referrals]:
         return result_db.scalars().all()
 
 
-async def get_referral_income_page(user_id: int, page: int, page_size: int = 10):
-    offset = (page - 1) * page_size
+async def get_referral_income_page(user_id: int, page: int = None, page_size: int = 10) -> List[IncomeFromReferrals]:
+    """Еслине указывать page, то вернётся весь список"""
     async with get_db() as session_db:
-        result = await session_db.execute(
-            select(IncomeFromReferrals)
-            .where(IncomeFromReferrals.owner_user_id == user_id)
-            .order_by(IncomeFromReferrals.created_at.desc())
-            .limit(page_size)
-            .offset(offset)
-        )
-        return result.scalars().all()
+        query = select(
+            IncomeFromReferrals
+        ).where(IncomeFromReferrals.owner_user_id == user_id).order_by(IncomeFromReferrals.created_at.desc())
+
+        if page:
+            offset = (page - 1) * page_size
+            query = query.limit(page_size).offset(offset)
+
+        result_db = await session_db.execute(query)
+        return result_db.scalars().all()
 
 async def get_count_referral_income(user_id: int) -> int:
     async with get_db() as session_db:

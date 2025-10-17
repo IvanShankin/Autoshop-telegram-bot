@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery
 
 from src.bot_actions.actions import edit_message
 from src.config import DT_FORMAT
-from src.modules.profile.keyboard_profile import all_wallet_transactions_kb, back_in_wallet_transactions
+from src.modules.profile.keyboard_profile import all_wallet_transactions_kb, back_in_wallet_transactions_kb
 from src.services.users.actions import get_user
 from src.services.users.actions.action_other_with_user import get_wallet_transactions_by_user, get_wallet_transaction
 from src.utils.i18n import get_i18n
@@ -24,7 +24,7 @@ async def show_all_history_transaction(callback: CallbackQuery):
         message_id = callback.message.message_id,
         message = text,
         image_key = 'history_transections',
-        reply_markup = await all_wallet_transactions_kb(transactions, user.language)
+        reply_markup = all_wallet_transactions_kb(transactions, user.language)
     )
     
 @router.callback_query(F.data.startswith('show_transaction:'))
@@ -56,6 +56,6 @@ async def show_transaction(callback: CallbackQuery):
         message_id = callback.message.message_id,
         message = text,
         image_key = 'history_transections',
-        reply_markup = await back_in_wallet_transactions(user.language)
+        reply_markup = back_in_wallet_transactions_kb(user.language)
     )
 

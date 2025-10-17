@@ -326,7 +326,7 @@ class TestHandlerNewIncomeRef:
         from src.services.referrals.models import IncomeFromReferrals, Referrals
 
         _, owner, referral = await create_referral()
-        replenishment = await create_replenishment()
+        replenishment = await create_replenishment(amount = 999999)
 
         initial_balance = owner.balance
         initial_total_profit = owner.total_profit_from_referrals
@@ -336,7 +336,7 @@ class TestHandlerNewIncomeRef:
             user_id = referral.user_id,
             replenishment_id = replenishment.replenishment_id,
             amount = replenishment.amount,
-            total_sum_replenishment = referral.total_sum_replenishment,
+            total_sum_replenishment = referral.total_sum_replenishment + replenishment.amount,
             error = False,
             error_str = '',
             language = 'ru',
@@ -408,7 +408,7 @@ class TestHandlerNewIncomeRef:
             "🌠 Referral level: {last_lvl} ➡️ {current_lvl}\n"
             "💰 You have earned: {amount}₽ ({percent}%)\n\n"
             "• Funds have been credited to your balance in your personal account."
-        ).format(last_lvl=0, current_lvl=updated_ref.level,  amount=replenishment.amount, percent=percent)
+        ).format(last_lvl=1, current_lvl=updated_ref.level,  amount=replenishment.amount, percent=percent)
 
         assert fake_bot.get_message(owner.user_id, expected_message), "Сообщение о доходе от реферала не отправлено"
 

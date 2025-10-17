@@ -1,0 +1,87 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: autoshop 1.0\n"
+"PO-Revision-Date: 2025-09-04 00:00+0000\n"
+"Last-Translator: Ivan \n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+
+# ---- Служебная информация ----
+
+msgid "Parameter"
+msgstr "Параметр"
+
+msgid "Value"
+msgstr "Значение"
+
+msgid "Export date"
+msgstr "Дата выгрузки"
+
+msgid "Owner ID"
+msgstr "ID владельца"
+
+msgid "Total referrals"
+msgstr "Всего рефералов"
+
+msgid "Total income"
+msgstr "Всего дохода"
+
+
+# ---- Данные о рефералах ----
+
+msgid "Referral ID"
+msgstr "ID реферала"
+
+msgid "Referral username"
+msgstr "Юзернейм реферала"
+
+msgid "Level"
+msgstr "Уровень"
+
+msgid "Join date"
+msgstr "Дата прихода"
+
+msgid "Total brought"
+msgstr "Всего принёс"
+
+
+# ---- Данные о пополнениях ----
+
+msgid "Deposit ID"
+msgstr "ID пополнения"
+
+msgid "Referral ID"
+msgstr "ID реферала"
+
+msgid "Amount"
+msgstr "Сумма"
+
+msgid "Referral deposit percentage"
+msgstr "Процент от пополнения реферала"
+
+msgid "Deposit date"
+msgstr "Дата пополнения"
+
+
+# ---- Метрика ----
+
+msgid "Metric"
+msgstr "Метрика"
+
+msgid "Value"
+msgstr "Значение"
+
+msgid "Total referrals"
+msgstr "Рефералов всего"
+
+msgid "Total income"
+msgstr "Дохода всего"
+
+msgid "Level 1 referrals"
+msgstr "Рефералов 1 уровня"
+
+msgid "Level 2 referrals"
+msgstr "Рефералов 2 уровня"

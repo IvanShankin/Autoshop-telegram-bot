@@ -18,6 +18,7 @@ sys.path.append(str(BASE_DIR))
 LOCALES_DIR = BASE_DIR / 'locales'
 LOG_DIR =  BASE_DIR / 'logs'
 MEDIA_DIR = BASE_DIR / "media"
+TEMP_FILE_DIR = BASE_DIR / "temp"
 
 TYPE_PAYMENTS = {'crypto_bot': 'crypto_bot'}
 TYPE_ACCOUNT_SERVICES = {'telegram': 'telegram', 'other': 'other'}
@@ -29,6 +30,8 @@ DEFAULT_LANG = "ru"
 
 DT_FORMAT = "%Y-%m-%d %H:%M:%S"
 
+PAGE_SIZE = 6
+
 UI_IMAGES = {
     "welcome_message": f"{BASE_DIR}/media/ui_sections/welcome_message.png",
     "selecting_language": f"{BASE_DIR}/media/ui_sections/selecting_language.png",
@@ -39,4 +42,6 @@ UI_IMAGES = {
     "profile_settings": f"{BASE_DIR}/media/ui_sections/profile_settings.png",
     "notification_settings": f"{BASE_DIR}/media/ui_sections/notification_settings.png",
     "history_transections": f"{BASE_DIR}/media/ui_sections/history_transections.png",
+    "ref_system": f"{BASE_DIR}/media/ui_sections/ref_system.png",
+    "history_income_from_referrals": f"{BASE_DIR}/media/ui_sections/history_income_from_referrals.png",
 }

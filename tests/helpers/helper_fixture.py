@@ -100,7 +100,7 @@ async def create_referral(create_new_user):
             referral = Referrals(
                 referral_id=user.user_id,
                 owner_user_id=owner_id,
-                level=0,
+                level=1,
             )
             session_db.add(referral)
             await session_db.commit()
@@ -133,6 +133,9 @@ async def create_income_from_referral(create_new_user, create_replenishment):
             if referral_user_id is None:
                 referral = await create_new_user(user_name='referral_user')
                 referral_user_id = referral.user_id
+            else:
+                result_db = await session_db.execute(select(Users).where(Users.user_id == referral_user_id))
+                referral = result_db.scalar()
             if replenishment_id is None:
                 replenishment = await create_replenishment()
                 replenishment_id = replenishment.replenishment_id
@@ -157,7 +160,7 @@ async def create_income_from_referral(create_new_user, create_replenishment):
 async def create_replenishment(create_new_user):
     """Создаёт пополнение для пользователя"""
 
-    async def _fabric() -> Replenishments:
+    async def _fabric(amount: int = 110) -> Replenishments:
         async with get_db() as session_db:
             user = await create_new_user()
             # создаём тип платежа (если ещё нет)
@@ -178,7 +181,7 @@ async def create_replenishment(create_new_user):
                 user_id=user.user_id,
                 type_payment_id=type_payment.type_payment_id,
                 origin_amount=100,
-                amount=110, # сумма пополнения
+                amount=amount, # сумма пополнения
                 status="completed",
             )
             session_db.add(repl)

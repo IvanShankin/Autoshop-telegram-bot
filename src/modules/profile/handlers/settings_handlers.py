@@ -20,7 +20,7 @@ async def notification_settings(user_id: int, username: str, message_id: int, no
         message_id=message_id,
         message=i18n.gettext("Notification Settings"),
         image_key='selecting_language',
-        reply_markup=await setting_notification_kb(user.language, notification=notification)
+        reply_markup=setting_notification_kb(user.language, notification=notification)
     )
 
 async def language_settings(user_id: int, message_id: int, user: Users):

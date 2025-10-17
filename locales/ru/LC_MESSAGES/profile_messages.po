@@ -28,6 +28,7 @@ msgstr "Язык в боте"
 msgid "Notification Settings"
 msgstr "Настройки уведомлений"
 
+
 msgid "All fund movements. To view a specific transaction, click on it"
 msgstr "Все движения средств. Для просмотра конкретной транзакции нажмите на неё"
 
@@ -43,3 +44,32 @@ msgstr "ID: {transaction_id} \n\n"
 "Баланс до: {balance_before} \n"
 "Баланс после: {balance_after} \n"
 "Дата: {created_at}"
+
+
+msgid "Your referral link: <a href='{ref_link}'>Link</a> \n\n"
+"Total earnings: {total_earnings} \n"
+"Number of total invited referrals: {total_number_ref} \n"
+"Number of 1st level referrals: {ref_first_lvl} \n"
+"Number of 2nd level referrals: {ref_second_lvl} \n"
+msgstr "Ваша реферальная ссылка: <a href='{ref_link}'>Ссылка</a> \n\n"
+"Общий заработок: {total_earnings} \n"
+"Кол-во общих приглашенных рефералов: {total_number_ref} \n"
+"Кол-во рефералов 1-го уровня: {ref_first_lvl} \n"
+"Кол-во рефералов 2-го уровня: {ref_second_lvl} \n"
+
+msgid "A history of all referral earnings. To view a specific transaction, click on it"
+msgstr "История всех начислений от рефералов. Для просмотра конкретной транзакции нажмите на неё"
+
+msgid "ID: {id}\n\n"
+"Referral Username: {username}\n"
+"Amount: {amount}\n"
+"Percentage of Replenishment: {percentage_of_replenishment}\n"
+"Date: {date}\n"
+msgstr "ID: {id} \n\n"
+"Username реферала: {username}\n"
+"Cумма: {amount}\n"
+"Процент от пополнения: {percentage_of_replenishment}\n"
+"Дата: {date}\n"
+
+msgid "The file was successfully generated"
+msgstr "Файл  успешно сформирован"

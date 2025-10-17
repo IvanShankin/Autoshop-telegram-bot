@@ -82,6 +82,11 @@ async def detail_income_from_ref(callback: CallbackQuery):
     income_from_ref_id = callback.data.split(':')[1]
     current_page = callback.data.split(':')[2]
     income = await get_income_from_referral(int(income_from_ref_id))
+
+    if income is None:
+        i18n = get_i18n(user.language, 'miscellaneous')
+        await callback.answer(text=i18n.gettext('Data not found'), show_alert=True)
+
     referral_user = await get_user(income.referral_id)
     username = f"@{referral_user.username}" if referral_user.username else 'None'
 

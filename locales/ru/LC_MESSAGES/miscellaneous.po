@@ -10,3 +10,6 @@ msgstr ""
 
 msgid "No"
 msgstr "Нет"
+
+msgid "Data not found"
+msgstr "Данные не найдены"

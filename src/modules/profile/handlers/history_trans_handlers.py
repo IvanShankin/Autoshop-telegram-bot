@@ -33,6 +33,10 @@ async def show_transaction(callback: CallbackQuery):
     user = await get_user(callback.from_user.id, callback.from_user.username)
     transaction = await get_wallet_transaction(int(transaction_id))
 
+    if transaction is None:
+        i18n = get_i18n(user.language, 'miscellaneous')
+        await callback.answer(text=i18n.gettext('Data not found'), show_alert=True)
+
     i18n_type = get_i18n(user.language, "type_wallet_transaction")
     i18n_profile = get_i18n(user.language, "profile_messages")
     text = i18n_profile.gettext(

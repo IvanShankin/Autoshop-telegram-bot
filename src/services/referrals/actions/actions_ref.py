@@ -42,7 +42,7 @@ async def get_count_referral_income(user_id: int) -> int:
         )
         return result.scalar()
 
-async def get_income_from_referral(income_from_referral_id: int) -> IncomeFromReferrals:
+async def get_income_from_referral(income_from_referral_id: int) -> IncomeFromReferrals | None:
     async with get_db() as session_db:
         result = await session_db.execute(
             select(IncomeFromReferrals)

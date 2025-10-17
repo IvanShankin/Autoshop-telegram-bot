@@ -81,8 +81,12 @@ async def cmd_start(message: Message, state: FSMContext):
         if owner_user: # если пользователь должен стать рефераллом
             await add_referral(referral_id=user.user_id, owner_id=owner_user.user_id)
 
-            i18n = get_i18n(owner_user.language, 'start_message')
-            text = i18n.gettext('You have a new referral!')
+            i18n = get_i18n(owner_user.language, 'referral_messages')
+            text = i18n.gettext(
+                "You've invited a new referral!\n"
+                "Username: {username}\n\n"
+                "Thank you for using our service!"
+            )
             await send_message(chat_id=owner_user.user_id, message=text, image_key='new_referral')
 
         # Выбор языка. Именно таким текстом, ибо не знаем какой язык знает пользователь

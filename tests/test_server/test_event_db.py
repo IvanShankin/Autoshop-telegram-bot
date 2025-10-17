@@ -401,13 +401,13 @@ class TestHandlerNewIncomeRef:
             if updated_ref.level == lvl.level:
                 percent = lvl.percent
 
-        i18n = get_i18n(owner.language, "replenishment_dom")
+        i18n = get_i18n(owner.language, "referral_messages")
 
         expected_message = i18n.gettext(
-            "💸 Your referral has replenished their balance and increased the level of the referral system.\n"
-            "🌠 Referral level: {last_lvl} ➡️ {current_lvl}\n"
-            "💰 You have earned: {amount}₽ ({percent}%)\n\n"
-            "• Funds have been credited to your balance in your personal account."
+            "Your referral has replenished their balance and increased the level of the referral system.\n"
+            "Referral level: {last_lvl} {current_lvl}\n"
+            "You have earned: {amount}₽ ({percent}%)\n\n"
+            "Funds have been credited to your balance in your personal account."
         ).format(last_lvl=1, current_lvl=updated_ref.level,  amount=replenishment.amount, percent=percent)
 
         assert fake_bot.get_message(owner.user_id, expected_message), "Сообщение о доходе от реферала не отправлено"
@@ -425,10 +425,10 @@ class TestHandlerNewIncomeRef:
 
         await on_referral_income_completed(user_id, language, amount, last_lvl, current_lvl, percent)
 
-        i18n = get_i18n(language, "replenishment_dom")
+        i18n = get_i18n(language, "referral_messages")
         message = i18n.gettext(
-            "💸 Your referral has replenished the balance. \n💡 Referral level: {level} \n💵 You have earned {amount}₽ ({percent}%)\n\n"
-            "• Funds have been credited to your balance in your personal account."
+            "Your referral has replenished the balance. \nReferral level: {level} \nYou have earned {amount}₽ ({percent}%)\n\n"
+            "Funds have been credited to your balance in your personal account."
         ).format(level=current_lvl, amount=amount, percent=percent)
 
         assert fake_bot.check_str_in_messages(message[:100]), "Сообщение о пополнении без повышения уровня не отправлено"
@@ -447,12 +447,12 @@ class TestHandlerNewIncomeRef:
 
         await on_referral_income_completed(user_id, language, amount, last_lvl, current_lvl, percent)
 
-        i18n = get_i18n(language, "replenishment_dom")
+        i18n = get_i18n(language, "referral_messages")
         message = i18n.gettext(
-            "💸 Your referral has replenished their balance and increased the level of the referral system.\n"
-            "🌠 Referral level: {last_lvl} ➡️ {current_lvl}\n"
-            "💰 You have earned: {amount}₽ ({percent}%)\n\n"
-            "• Funds have been credited to your balance in your personal account."
+            "Your referral has replenished their balance and increased the level of the referral system.\n"
+            "Referral level: {last_lvl} {current_lvl}\n"
+            "You have earned: {amount}₽ ({percent}%)\n\n"
+            "Funds have been credited to your balance in your personal account."
         ).format(last_lvl=last_lvl, current_lvl=current_lvl, amount=amount, percent=percent)
 
         assert fake_bot.check_str_in_messages(message[:100]), "Сообщение о пополнении с повышением уровня не отправлено"
@@ -465,7 +465,7 @@ class TestHandlerNewIncomeRef:
         error_text = "Some referral error"
         await on_referral_income_failed(error_text)
 
-        i18n = get_i18n("ru", "replenishment_dom")
+        i18n = get_i18n("ru", "referral_messages")
         message_log = i18n.gettext(
             "#Replenishment_error \n\n"
             "An error occurred while sending a message about replenishing funds to the referral owner. \n"

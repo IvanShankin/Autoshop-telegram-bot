@@ -12,9 +12,5 @@ msgstr ""
 msgid "Welcome to {shop_name} SHOP! \nOur news channel: @{channel_name} \nHappy shopping!"
 msgstr "Приветствую тебя в {shop_name} SHOP! \nНаш новостной канал: @{channel_name} \nПриятных покупок!"
 
-msgid "You have a new referral!"
-msgstr "У вас новый реферал!"
-
-
 msgid "⚙️ The bot is temporarily unavailable due to maintenance. Please try again later"
 msgstr "⚙️ Бот временно недоступен — идут технические работы.\nПожалуйста, попробуйте позже"

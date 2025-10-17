@@ -11,6 +11,3 @@ msgstr ""
 
 msgid "Welcome to {shop_name} SHOP! \nOur news channel: @{channel_name} \nHappy shopping!"
 msgstr "Welcome to {shop_name} SHOP! \nOur news channel: @{channel_name} \nHappy shopping!"
-
-msgid "You have a new referral!"
-msgstr "You have a new referral!"

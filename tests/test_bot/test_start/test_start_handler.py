@@ -72,8 +72,12 @@ async def test_start_with_new_referral(patch_fake_aiogram, replacement_fake_bot,
 
 
     # сообщение для владельца рефералла
-    i18n = get_i18n(owner.language, 'start_message')
-    message = i18n.gettext('You have a new referral!')
+    i18n = get_i18n(owner.language, 'referral_messages')
+    message = i18n.gettext(
+        "You've invited a new referral!\n"
+        "Username: {username}\n\n"
+        "Thank you for using our service!"
+    )
     assert fake_bot.get_message(owner.user_id, message), "Не отправилось сообщение о новом рефералле"
 
     # сообщение для того кто запустил бота

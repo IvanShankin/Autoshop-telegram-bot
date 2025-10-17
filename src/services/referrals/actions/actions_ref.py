@@ -3,6 +3,7 @@ from typing import List
 from orjson import orjson
 from sqlalchemy import select, func
 
+from src.config import PAGE_SIZE
 from src.services.database.database import get_db
 from src.services.database.filling_database import filling_referral_lvl
 from src.services.referrals.models import ReferralLevels, Referrals, IncomeFromReferrals
@@ -21,7 +22,7 @@ async def get_all_referrals(user_id) -> List[Referrals]:
         return result_db.scalars().all()
 
 
-async def get_referral_income_page(user_id: int, page: int = None, page_size: int = 10) -> List[IncomeFromReferrals]:
+async def get_referral_income_page(user_id: int, page: int = None, page_size: int = PAGE_SIZE) -> List[IncomeFromReferrals]:
     """Еслине указывать page, то вернётся весь список"""
     async with get_db() as session_db:
         query = select(

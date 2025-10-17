@@ -6,8 +6,7 @@ from aiogram.types import CallbackQuery, InputFile, FSInputFile
 from src.bot_actions.actions import edit_message
 from src.bot_actions.bot_instance import get_bot
 from src.config import DT_FORMAT
-from src.modules.profile.keyboard_profile import ref_system_kb, all_accrual_history_kb, \
-    back_in_accrual_history_kb
+from src.modules.profile.keyboard_profile import ref_system_kb, accruals_history_kb, back_in_accrual_history_kb
 from src.services.referrals.actions.actions_ref import get_all_referrals, get_income_from_referral
 from src.services.referrals.reports import generate_referral_report_exel
 from src.services.users.actions import get_user
@@ -72,7 +71,7 @@ async def accrual_history(callback: CallbackQuery):
         message_id=callback.message.message_id,
         message=text,
         image_key='history_income_from_referrals',
-        reply_markup= await all_accrual_history_kb(user.language, int(current_page), user.user_id)
+        reply_markup= await accruals_history_kb(user.language, int(current_page), user.user_id)
     )
 
 

@@ -2,8 +2,9 @@ from datetime import datetime, timezone
 from typing import List
 
 import orjson
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, update, delete, func
 
+from src.config import PAGE_SIZE
 from src.exceptions.service_exceptions import UserNotFound
 from src.services.admins.models import AdminActions
 from src.services.referrals.utils import create_unique_referral_code
@@ -143,17 +144,6 @@ async def delete_banned_account(admin_id: int, user_id: int):
     )
 
 
-async def get_wallet_transactions_by_user(user_id: int) -> List[WalletTransaction]:
-    """Вернёт отсортированный список по дате (desc)"""
-    async with get_db() as session_db:
-        result = await session_db.execute(
-            select(WalletTransaction)
-            .where(WalletTransaction.user_id == user_id)
-            .order_by(WalletTransaction.created_at.desc())
-        )
-        return result.scalars().all()
-
-
 async def get_wallet_transaction(wallet_transaction_id: int) -> WalletTransaction:
     async with get_db() as session_db:
         result = await session_db.execute(
@@ -161,3 +151,25 @@ async def get_wallet_transaction(wallet_transaction_id: int) -> WalletTransactio
             .where(WalletTransaction.wallet_transaction_id == wallet_transaction_id)
         )
         return result.scalar_one_or_none()
+
+
+async def get_wallet_transaction_page(user_id: int, page: int = None, page_size: int = PAGE_SIZE) -> List[WalletTransaction]:
+    """Если не указывать page, то вернётся весь список. Отсортирован по дате (desc)"""
+    async with get_db() as session_db:
+        query = select(
+            WalletTransaction
+        ).where(WalletTransaction.user_id == user_id).order_by(WalletTransaction.created_at.desc())
+
+        if page:
+            offset = (page - 1) * page_size
+            query = query.limit(page_size).offset(offset)
+
+        result_db = await session_db.execute(query)
+        return result_db.scalars().all()
+
+async def get_count_wallet_transaction(user_id: int) -> int:
+    async with get_db() as session_db:
+        result = await session_db.execute(
+            select(func.count()).where(WalletTransaction.user_id == user_id)
+        )
+        return result.scalar()

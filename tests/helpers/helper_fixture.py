@@ -18,7 +18,7 @@ from src.services.selling_accounts.models import SoldAccounts, TypeAccountServic
     AccountServices, AccountCategories, AccountCategoryTranslation, ProductAccounts
 from src.services.selling_accounts.models.models_with_tranlslate import SoldAccountsFull, AccountCategoryFull
 from src.services.system.models.models import UiImages
-from src.services.users.models import Users, Replenishments, NotificationSettings
+from src.services.users.models import Users, Replenishments, NotificationSettings, WalletTransaction
 from src.services.system.models import TypePayments, Settings
 from src.services.database.database import get_db
 from src.services.referrals.models import Referrals, IncomeFromReferrals
@@ -605,3 +605,27 @@ async def create_ui_image(tmp_path, monkeypatch):
         return ui_image, file_abs
 
     return _factory
+
+
+@pytest_asyncio.fixture
+async def create_wallet_transaction(create_new_user):
+    async def _fabric(user_id: int, type: str = 'replenish', amount: int = 100) -> WalletTransaction:
+        if user_id is None:
+            user = await create_new_user()
+            user_id = user.user_id
+
+        async with get_db() as session:
+            transaction = WalletTransaction(
+                user_id = user_id,
+                type = type,
+                amount = amount,
+                balance_before = 0,
+                balance_after = 100
+            )
+
+            session.add(transaction)
+            await session.commit()
+            await session.refresh(transaction)
+            return transaction
+
+    return _fabric

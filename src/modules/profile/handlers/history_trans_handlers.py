@@ -3,18 +3,21 @@ from aiogram.types import CallbackQuery
 
 from src.bot_actions.actions import edit_message
 from src.config import DT_FORMAT
-from src.modules.profile.keyboard_profile import all_wallet_transactions_kb, back_in_wallet_transactions_kb
+from src.modules.profile.keyboard_profile import back_in_wallet_transactions_kb,  wallet_transactions_kb
 from src.services.users.actions import get_user
-from src.services.users.actions.action_other_with_user import get_wallet_transactions_by_user, get_wallet_transaction
+from src.services.users.actions.action_other_with_user import get_wallet_transaction
 from src.utils.i18n import get_i18n
 
 router = Router()
 
-@router.callback_query(F.data == "history_transaction")
+@router.callback_query(F.data == "history_transaction_none")
+async def list_is_over(callback: CallbackQuery):
+    await callback.answer("Список закончился")
+
+@router.callback_query(F.data.startswith("history_transaction:"))
 async def show_all_history_transaction(callback: CallbackQuery):
     user = await get_user(callback.from_user.id, callback.from_user.username)
-
-    transactions = await get_wallet_transactions_by_user(user.user_id)
+    current_page = callback.data.split(':')[1]
 
     i18n = get_i18n(user.language, "profile_messages")
     text = i18n.gettext('All fund movements. To view a specific transaction, click on it')
@@ -24,9 +27,9 @@ async def show_all_history_transaction(callback: CallbackQuery):
         message_id = callback.message.message_id,
         message = text,
         image_key = 'history_transections',
-        reply_markup = all_wallet_transactions_kb(transactions, user.language)
+        reply_markup = await wallet_transactions_kb(user.language, int(current_page), user.user_id)
     )
-    
+
 @router.callback_query(F.data.startswith('show_transaction:'))
 async def show_transaction(callback: CallbackQuery):
     transaction_id = callback.data.split(':')[1]

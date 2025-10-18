@@ -374,6 +374,10 @@ async def filling_users():
         ttl=lambda user: TIME_USER
     )
 
+async def filling_user(user: Users):
+    async with get_redis() as session_redis:
+        await session_redis.setex(f"user:{user.user_id}", TIME_USER, orjson.dumps(user.to_dict()))
+
 
 async def filling_admins():
     await _fill_redis_single_objects(

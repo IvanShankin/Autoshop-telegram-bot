@@ -8,6 +8,7 @@ from dateutil.parser import parse
 from sqlalchemy import select
 
 import src.redis_dependencies.filling_redis as filling
+from helpers.helper_functions import comparison_models
 from src.config import UI_IMAGES
 from src.services.database.filling_database import filling_ui_image
 from src.services.discounts.models.schemas import SmallVoucher
@@ -455,6 +456,14 @@ class TestFillRedisGroupedObjects(TestBase):
         expected_ids = {product.account_id for product in products}
         assert product_ids == expected_ids
 
+@pytest.mark.asyncio
+async def test_filling_user(create_new_user):
+    user = await create_new_user()
+    await filling.filling_user(user)
+
+    async with get_redis() as session_redis:
+        user_redis = await session_redis.get(f'user:{user.user_id}')
+        await comparison_models(user, orjson.loads(user_redis))
 
 @pytest.mark.asyncio
 async def test_filling_types_account_service(create_type_account_service):

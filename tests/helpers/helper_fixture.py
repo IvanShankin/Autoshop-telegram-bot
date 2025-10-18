@@ -27,7 +27,7 @@ from src.services.referrals.models import Referrals, IncomeFromReferrals
 @pytest_asyncio.fixture
 async def create_new_user():
     """ Создаст нового пользователя в БД"""
-    async def _fabric(user_name: str = "test_username", union_ref_code: str = None) -> Users:
+    async def _fabric(user_name: str = "test_username", union_ref_code: str = None, balance: int = 0) -> Users:
         if union_ref_code is None:
             union_ref_code = await create_unique_referral_code()
 
@@ -41,6 +41,7 @@ async def create_new_user():
             new_user = Users(
                 user_id=new_id,
                 username=user_name,
+                balance=balance,
                 unique_referral_code=union_ref_code,
             )
 

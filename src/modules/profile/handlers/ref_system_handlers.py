@@ -1,7 +1,7 @@
 import os
 
 from aiogram import Router, F
-from aiogram.types import CallbackQuery, InputFile, FSInputFile
+from aiogram.types import CallbackQuery, FSInputFile
 
 from src.bot_actions.actions import edit_message
 from src.bot_actions.bot_instance import get_bot

@@ -6,7 +6,8 @@ from tests.helpers.fake_aiogram.fake_aiogram_module import (
     FakeRouter, FakeBot, FakeDispatcher,
     InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton,
     ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply, InlineKeyboardBuilder,
-    BaseMiddleware, FakeTelegramForbiddenError, FakeTelegramBadRequest, FakeInputMediaPhoto, FakeFSInputFile
+    BaseMiddleware, FakeTelegramForbiddenError, FakeTelegramBadRequest, FakeInputMediaPhoto, FakeFSInputFile,
+    FakeBaseFilter, FakeState, FakeStatesGroup
 )
 
 @pytest.fixture(scope="session")
@@ -36,6 +37,7 @@ def patch_fake_aiogram():
     sys.modules["aiogram.filters"] = ModuleType("aiogram.filters")
     sys.modules["aiogram.filters"].CommandStart = object
     sys.modules["aiogram.filters"].Text = object
+    sys.modules["aiogram.filters"].BaseFilter = FakeBaseFilter
     sys.modules["aiogram.filters.state"] = ModuleType("aiogram.filters.state")
     sys.modules["aiogram.filters.state"].StateFilter = object
 
@@ -58,6 +60,9 @@ def patch_fake_aiogram():
     sys.modules["aiogram.fsm"] = ModuleType("aiogram.fsm")
     sys.modules["aiogram.fsm.context"] = ModuleType("aiogram.fsm.context")
     sys.modules["aiogram.fsm.context"].FSMContext = FakeFSMContext
+    sys.modules["aiogram.fsm.state"] = ModuleType("aiogram.fsm.state")
+    sys.modules["aiogram.fsm.state"].StatesGroup = FakeStatesGroup
+    sys.modules["aiogram.fsm.state"].State = FakeState
 
     sys.modules["aiogram.exceptions"] = ModuleType("aiogram.exceptions")
     sys.modules["aiogram.exceptions"].TelegramForbiddenError = FakeTelegramForbiddenError

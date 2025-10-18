@@ -1,5 +1,4 @@
 from math import ceil
-from typing import List
 
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -9,7 +8,7 @@ from src.config import ALLOWED_LANGS, NAME_LANGS, EMOJI_LANGS, PAGE_SIZE
 from src.services.referrals.actions.actions_ref import get_referral_income_page, get_count_referral_income
 from src.services.system.actions import get_settings
 from src.services.users.actions.action_other_with_user import get_wallet_transaction_page, get_count_wallet_transaction
-from src.services.users.models import NotificationSettings, WalletTransaction
+from src.services.users.models import NotificationSettings
 from src.utils.i18n import get_i18n
 
 
@@ -22,6 +21,12 @@ def profile_kb(language: str):
         [InlineKeyboardButton(text=i18n.gettext('Referral system'), callback_data='referral_system')],
         [InlineKeyboardButton(text=i18n.gettext('History transfer'), callback_data='history_transaction:1')],
         [InlineKeyboardButton(text=i18n.gettext('Settings'), callback_data='profile_settings')]
+    ])
+
+def back_in_profile_kb(language: str):
+    i18n = get_i18n(language, 'keyboard_dom')
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data='profile')]
     ])
 
 # ---- Настройки ----
@@ -179,3 +184,34 @@ async def back_in_accrual_history_kb(language: str, current_page_id: int):
     ])
 
 
+# ---- Передача баланса ----
+
+def balance_transfer_kb(language: str):
+    i18n = get_i18n(language, "keyboard_dom")
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=i18n.gettext('Transfer by id'), callback_data='transfer_money')],
+        [InlineKeyboardButton(text=i18n.gettext('Create voucher'), callback_data='create_voucher')],
+        [InlineKeyboardButton(text=i18n.gettext('My vouchers'), callback_data=f'my_voucher')],
+        [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'profile')],
+    ])
+
+def confirmation_transfer_kb(language: str):
+    i18n = get_i18n(language, "keyboard_dom")
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=i18n.gettext('Confirm'), callback_data='confirm_transfer_money'),
+         InlineKeyboardButton(text=i18n.gettext('Again'), callback_data='balance_transfer')],
+        [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'my_voucher')],
+    ])
+
+def back_in_balance_transfer_kb(language: str):
+    i18n = get_i18n(language, "keyboard_dom")
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'balance_transfer')],
+    ])
+
+def replenishment_and_back_in_transfer_kb(language: str):
+    i18n = get_i18n(language, 'keyboard_dom')
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=i18n.gettext('Top up your balance'), callback_data='money_replenishment')],
+        [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data='balance_transfer')]
+    ])

@@ -1,4 +1,5 @@
 from aiogram import Router, F
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 
 from src.bot_actions.actions import send_message, edit_message
@@ -32,7 +33,7 @@ async def handler_profile(
     for voucher in vouchers:
         money_in_vouchers += voucher.amount
 
-    i18n = get_i18n(user.language, 'miscellaneous')
+    i18n = get_i18n(user.language, 'profile_messages')
     text = i18n.gettext(
         "Username: {username} \nID: {id} \nRef_link: {ref_link} \nTotal sum replenishment: {total_sum_replenishment}"
         "\nBalance: {balance}, \nMoney in vouchers {money_in_vouchers}"
@@ -57,11 +58,13 @@ async def handler_profile(
         )
 
 @router_with_repl_kb.message(I18nKeyFilter("Profile"))
-async def handle_profile_message(message: Message):
+async def handle_profile_message(message: Message, state: FSMContext):
+    await state.clear()
     await handler_profile(user_id=message.from_user.id, username=message.from_user.username)
 
 @router.callback_query(F.data == "profile")
-async def handle_profile_callback(callback: CallbackQuery):
+async def handle_profile_callback(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
     await handler_profile(
         user_id=callback.from_user.id,
         username=callback.from_user.username,

@@ -33,6 +33,9 @@ async def replacement_redis(monkeypatch):
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def replacement_fake_bot(monkeypatch):
+    # очищаем бота
+    fake_bot.clear()
+
     # удаляем старый модуль полностью
     sys.modules.pop("src.bot_actions.bot_instance", None)
 

@@ -17,6 +17,37 @@ class _FakeAttr:
     def __repr__(self):
         return f"<FakeF {self._name}>"
 
+
+class FakeBaseFilter:
+    """Простейшая заглушка BaseFilter для тестов."""
+    def __init__(self, *args, **kwargs):
+        pass
+
+    async def __call__(self, event, *args, **kwargs):
+        """Возвращает True для любых событий."""
+        return True
+
+
+class FakeStatesGroup:
+    """Простейшая заглушка StatesGroup для тестов."""
+    def __init_subclass__(cls, **kwargs):
+        # Позволяет объявлять состояния как в aiogram:
+        # class MyState(StatesGroup):
+        #     waiting_name = State()
+        pass
+
+
+class FakeState:
+    """Простейшая заглушка State для тестов."""
+    def __init__(self):
+        self.name = None
+
+    def __set_name__(self, owner, name):
+        self.name = name
+
+    def __repr__(self):
+        return f"<State {self.name}>"
+
 # --- Message / CallbackQuery / FSMContext ---
 class FakeMessage:
     def __init__(self, text="/start", chat_id: int = 1, username: str = "test_user", **extra):
@@ -65,10 +96,22 @@ class FakeCallbackQuery:
         return None
 
 class FakeFSMContext:
-    async def clear(self): ...
-    async def set_state(self, *a, **kw): ...
-    async def update_data(self, **kw): ...
-    async def get_data(self): return {}
+    def __init__(self):
+        self.state = None
+        self.data = {}
+
+    async def clear(self):
+        self.state = None
+        self.data = {}
+
+    async def set_state(self, st):
+        self.state = st
+
+    async def update_data(self, **kw):
+        self.data.update(kw)
+
+    async def get_data(self):
+        return dict(self.data)
 
 # --- Router (реализует декораторы) ---
 class FakeRouter:
@@ -173,6 +216,10 @@ class FakeBot:
 
     def clear(self):
         self.sent.clear()
+        self.calls.clear()
+        self.edit_media_behavior = None
+        self.edit_text_behavior = None
+        self.delete_behavior = None
 
     def get_message(self, chat_id: int, text: str) -> bool:
         return any(c == chat_id and t == text for c, t, _ in self.sent)

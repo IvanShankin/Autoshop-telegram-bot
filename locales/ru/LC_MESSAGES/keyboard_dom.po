@@ -13,6 +13,12 @@ msgstr ""
 msgid "Back"
 msgstr "Назад"
 
+msgid "Confirm"
+msgstr "Подтвердить"
+
+msgid "Again"
+msgstr "Заново"
+
 # ---- Стартовая ----
 
 msgid "Product catalog"
@@ -75,3 +81,16 @@ msgstr "История начислений"
 
 msgid "Download a list of referrals"
 msgstr "Выгрузить список рефералов"
+
+
+# ---- Передача баланса ----
+
+msgid "Transfer by id"
+msgstr "Передача по ID"
+
+msgid "Create voucher"
+msgstr "Создать ваучер"
+
+msgid "My vouchers"
+msgstr "Мои ваучеры"
+

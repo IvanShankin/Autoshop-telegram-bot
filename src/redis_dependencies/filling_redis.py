@@ -20,6 +20,7 @@ from src.services.selling_accounts.models.models import TypeAccountServices, Acc
 from src.redis_dependencies.core_redis import get_redis
 from src.redis_dependencies.time_storage import TIME_USER, TIME_SOLD_ACCOUNTS_BY_OWNER, TIME_SOLD_ACCOUNTS_BY_ACCOUNT, \
     TIME_ALL_VOUCHER
+from src.utils.core_logger import logger
 
 
 async def filling_all_redis():
@@ -57,6 +58,7 @@ async def filling_all_redis():
     await filling_sold_accounts_by_accounts_id()
     await filling_promo_code()
     await filling_vouchers()
+    logger.info("Redis filling successfully")
 
 async def _delete_keys_by_pattern(pattern: str):
     """Удаляет все ключи, соответствующие шаблону. Пример: 'user:*'"""

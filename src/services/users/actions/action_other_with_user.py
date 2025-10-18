@@ -180,6 +180,13 @@ async def get_count_wallet_transaction(user_id: int) -> int:
 
 
 async def money_transfer(sender_id: int, recipient_id: int, amount: int):
+    """
+    :param sender_id: отправитель
+    :param recipient_id: получатель
+    :param amount: сумма
+    :except UserNotFound: Если получатель не найден
+    :except NotEnoughMoney: Если недостаточно денег
+    """
     sender = await get_user(sender_id)
     recipient = await get_user(recipient_id)
 

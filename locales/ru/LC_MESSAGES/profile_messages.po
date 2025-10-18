@@ -73,3 +73,24 @@ msgstr "ID: {id} \n\n"
 
 msgid "The file was successfully generated"
 msgstr "Файл  успешно сформирован"
+
+
+# ---- Перевод денег ----
+
+msgid "Select the desired action"
+msgstr "Выберите желаемое действие "
+
+msgid "Enter the amount"
+msgstr "Введите сумму"
+
+msgid "Enter the recipients ID"
+msgstr "Введите ID получателя"
+
+msgid "Check the data for accuracy \n\nAmount: {amount} \nID Recipient: {recipient}"
+msgstr "Проверьте корректность данных \n\nСумма: {amount} \nID получателя: {recipient}"
+
+msgid "Funds have been successfully transferred"
+msgstr "Средства успешно переведены"
+
+msgid "Funds transferred to your balance: {amount} ₽ \n\nCurrent balance: {balance}"
+msgstr "На ваш баланс переведены средства: {amount} ₽ \n\nТекущий баланс: {balance}"

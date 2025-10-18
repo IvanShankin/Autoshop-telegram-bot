@@ -6,8 +6,10 @@ from dateutil.parser import parse
 from sqlalchemy import update, select
 
 from src.broker.producer import publish_event
+from src.exceptions.service_exceptions import NotEnoughMoney
 from src.redis_dependencies.core_redis import get_redis
-from src.redis_dependencies.filling_redis import filling_voucher_by_user_id
+from src.redis_dependencies.filling_redis import filling_voucher_by_user_id, filling_user
+from src.services.admins.models import AdminActions
 from src.services.database.database import get_db
 from src.services.discounts.events import NewActivationVoucher
 from src.services.discounts.models import Vouchers, VoucherActivations
@@ -87,14 +89,14 @@ async def create_voucher(
     :param number_of_activations: количество активаций
     :param expire_at: время жизни
     :return:
-    :exception ValueError: если у пользователя недостаточно денег
+    :exception NotEnoughMoney: если у пользователя недостаточно денег
     """
 
     user = await get_user(user_id)
     required_amount = amount * number_of_activations
 
-    if user.balance < required_amount:
-        raise ValueError("У пользователя недостаточно денег")
+    if user.balance < required_amount and is_created_admin == False:
+        raise NotEnoughMoney("У пользователя недостаточно денег", required_amount - user.balance)
 
     while True:
         code = generate_code(15)
@@ -102,33 +104,48 @@ async def create_voucher(
         if not result:  # если создали уникальный код
             break
 
-    # убираем у пользователя деньги
-    user.balance = user.balance - required_amount
-    user = await update_user(user)
-
     async with get_db() as session_db:
-        new_voucher = Vouchers(
-            creator_id=user_id,
-            is_created_admin=is_created_admin,
-            activation_code=code,
-            amount=amount,
-            number_of_activations=number_of_activations,
-            expire_at=expire_at
-        )
-        session_db.add(new_voucher)
-        await session_db.commit()
+        async with session_db.begin(): # Транзакия. При выходе произведёт commit
+            await session_db.execute(
+                update(Users)
+                .where(Users.user_id == user.user_id)
+                .values(balance=user.balance - required_amount)
+            )
+
+            new_voucher = Vouchers(
+                creator_id=user_id,
+                is_created_admin=is_created_admin,
+                activation_code=code,
+                amount=amount,
+                number_of_activations=number_of_activations,
+                expire_at=expire_at
+            )
+            session_db.add(new_voucher)
         await session_db.refresh(new_voucher)
 
-        new_user_log = UserAuditLogs(
-            user_id=user.user_id,
-            action_type="create_voucher",
-            details={
-                "message": 'Пользователь создал ваучер',
-                "voucher_id": new_voucher.voucher_id,
-            },
-        )
-        session_db.add(new_user_log)
-        await session_db.commit()
+        # создание лога
+        if is_created_admin:
+            new_admin_actions = AdminActions(
+                user_id = user.user_id,
+                action_type = 'create_voucher',
+                details = {'message': "Админ создал ваучер", "voucher_id": new_voucher.voucher_id}
+            )
+            session_db.add(new_admin_actions)
+            await session_db.commit()
+            await send_log(
+                f'#Админ_создал_ваучер \n\nСумма: {amount} \nЧисло активаций: {number_of_activations} \nГоден до: {expire_at}'
+            )
+        else:
+            new_user_log = UserAuditLogs(
+                user_id=user.user_id,
+                action_type="create_voucher",
+                details={
+                    "message": 'Пользователь создал ваучер',
+                    "voucher_id": new_voucher.voucher_id,
+                },
+            )
+            session_db.add(new_user_log)
+            await session_db.commit()
 
     if expire_at:
         storage_time = expire_at - datetime.now(timezone.utc)
@@ -137,12 +154,13 @@ async def create_voucher(
         second_storage = None
 
     # заполнение redis
+    await filling_user(user)
+
     async with get_redis() as session_redis:
         if second_storage is None:  # если не надо устанавливать время хранения
             await session_redis.set(
                 f"voucher:{new_voucher.activation_code}",
                 orjson.dumps(new_voucher.to_dict()),
-
             )
         else:
             await session_redis.setex(

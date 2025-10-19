@@ -43,14 +43,14 @@ async def start_background_consumer():
 
 
 async def stop_background_consumer():
-    global _consumer_task, _stop_event
+    global _consumer_task, _consumer_stop_event
 
     if not _consumer_task:
         return
 
     logger.info("Stopping consumer...")
 
-    _stop_event.set()
+    _consumer_stop_event.set()
 
     try:
         await asyncio.wait_for(_consumer_task, timeout=10.0)

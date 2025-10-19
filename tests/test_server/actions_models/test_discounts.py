@@ -38,19 +38,29 @@ async def test_get_valid_promo_code(use_redis, create_promo_code):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("use_redis", [True, False])
-async def test_get_valid_voucher_by_user(use_redis, create_new_user, create_voucher):
-    from src.services.discounts.actions import get_valid_voucher_by_user
+async def test_get_valid_voucher_by_user_page(use_redis, create_new_user, create_voucher):
+    from src.services.discounts.actions import get_valid_voucher_by_user_page
     user = await create_new_user()
     voucher_1 = await create_voucher(filling_redis=use_redis, creator_id=user.user_id)
     voucher_2 = await create_voucher(filling_redis=use_redis, creator_id=user.user_id)
     voucher_3 = await create_voucher(filling_redis=use_redis, creator_id=user.user_id)
 
-    vouchers = await get_valid_voucher_by_user(user.user_id)
+    vouchers = await get_valid_voucher_by_user_page(user.user_id)
 
     assert SmallVoucher.from_orm_model(voucher_3) == vouchers[0]
     assert SmallVoucher.from_orm_model(voucher_2) == vouchers[1]
     assert SmallVoucher.from_orm_model(voucher_1) == vouchers[2]
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize("use_redis", [True, False])
+async def test_get_count_voucher(use_redis, create_new_user, create_voucher):
+    from src.services.discounts.actions import get_count_voucher
+    user = await create_new_user()
+    voucher_1 = await create_voucher(filling_redis=use_redis, creator_id=user.user_id)
+    voucher_2 = await create_voucher(filling_redis=use_redis, creator_id=user.user_id)
+
+    counter = await get_count_voucher(user.user_id)
+    assert counter == 2
 
 
 @pytest.mark.asyncio

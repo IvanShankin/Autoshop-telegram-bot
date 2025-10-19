@@ -335,9 +335,11 @@
 ``` json
 [
     {
-        "creator_id": int,
-        "amount": int,
-        "activation_code": str
+        voucher_id: int
+        creator_id: int
+        amount: int
+        activation_code: str
+        number_of_activations: int
     }
     .....
 ]

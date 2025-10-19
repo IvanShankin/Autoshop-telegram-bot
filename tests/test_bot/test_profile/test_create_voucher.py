@@ -156,7 +156,7 @@ async def test_confirm_create_voucher_success(
     """
     from src.modules.profile.handlers import transfer_balance_handler as module
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
-    from src.services.discounts.actions import get_valid_voucher_by_user
+    from src.services.discounts.actions import get_valid_voucher_by_user_page
 
     fake_bot = replacement_fake_bot
     bot_me = await fake_bot.me()
@@ -170,7 +170,7 @@ async def test_confirm_create_voucher_success(
 
     await module.confirm_create_voucher(cb, fsm)
 
-    vouchers = await get_valid_voucher_by_user(user.user_id)
+    vouchers = await get_valid_voucher_by_user_page(user.user_id)
 
     i18n = module.get_i18n(user.language, 'profile_messages')
     text = i18n.gettext(

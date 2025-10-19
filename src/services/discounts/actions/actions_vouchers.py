@@ -3,9 +3,10 @@ from typing import Optional, Tuple, List
 
 import orjson
 from dateutil.parser import parse
-from sqlalchemy import update, select
+from sqlalchemy import update, select, func
 
 from src.broker.producer import publish_event
+from src.config import PAGE_SIZE
 from src.exceptions.service_exceptions import NotEnoughMoney
 from src.redis_dependencies.core_redis import get_redis
 from src.redis_dependencies.filling_redis import filling_voucher_by_user_id, filling_user
@@ -21,25 +22,48 @@ from src.utils.i18n import get_i18n
 from src.bot_actions.actions import send_log
 
 
-async def get_valid_voucher_by_user(user_id: int) -> List[SmallVoucher]:
+async def get_valid_voucher_by_user_page(user_id: int, page: int = None, page_size: int = PAGE_SIZE) -> List[SmallVoucher]:
+    """Если не указывать page, то вернётся весь список. Отсортирован по дате (desc)"""
     async with get_redis() as session_redis:
         vouchers_json = await session_redis.get(f"voucher_by_user:{user_id}")
         if vouchers_json is not None:
-            return [SmallVoucher(**voucher) for voucher in orjson.loads(vouchers_json)]
+            vouchers = [SmallVoucher(**voucher) for voucher in orjson.loads(vouchers_json)]
+
+            # аналог постраничного вывода как в БД
+            if page:
+                start = (page - 1) * page_size
+                end = start + page_size
+                return vouchers[start:end]
+            return vouchers
+
+    async with (get_db() as session_db):
+        query = select(
+            Vouchers
+        ).where(
+            (Vouchers.creator_id == user_id) &
+            (Vouchers.is_valid == True) &
+            (Vouchers.is_created_admin == False)
+        ).order_by(Vouchers.start_at.desc())
+
+        if page:
+            offset = (page - 1) * page_size
+            query = query.limit(page_size).offset(offset)
+
+        result_db = await session_db.execute(query)
+        vouchers = result_db.scalars().all()
+        return [SmallVoucher.from_orm_model(voucher) for voucher in vouchers]
+
+async def get_count_voucher(user_id: int) -> int:
+    async with get_redis() as session_redis:
+        vouchers_json = await session_redis.get(f"voucher_by_user:{user_id}")
+        if vouchers_json is not None:
+            return len(orjson.loads(vouchers_json))
 
     async with get_db() as session_db:
-        result_db = await session_db.execute(
-            select(Vouchers)
-            .where(
-                (Vouchers.creator_id == user_id) &
-                (Vouchers.is_valid == True) &
-                (Vouchers.is_created_admin == False)
-            ).order_by(Vouchers.start_at.desc())
+        result = await session_db.execute(
+            select(func.count()).where((Vouchers.creator_id == user_id) &(Vouchers.is_valid == True))
         )
-        vouchers: list[Vouchers] = result_db.scalars().all()
-        await filling_voucher_by_user_id(user_id)
-
-        return [SmallVoucher.from_orm_model(voucher) for voucher in vouchers]
+        return result.scalar()
 
 async def get_valid_voucher(
     code: str

@@ -144,6 +144,13 @@ class TestActivateVoucher:
 
         result_message, success = await activate_voucher(user, voucher.activation_code, user.language)
 
+        async with get_db() as session_db:
+            result = await session_db.execute(
+                select(VoucherActivations)
+                .where(VoucherActivations.voucher_id == voucher.voucher_id)
+            )
+            assert result.scalar_one_or_none()
+
         expected = i18n.gettext(
             "Voucher successfully activated! \n\nVoucher amount: {amount} \nCurrent balance: {new_balance}"
         ).format(amount=voucher.amount, new_balance= origin_balance + voucher.amount)
@@ -173,7 +180,7 @@ class TestActivateVoucher:
 
         async with get_db() as session_db:
             new_activate = VoucherActivations(
-                vouchers_id = voucher.voucher_id,
+                voucher_id = voucher.voucher_id,
                 user_id = user.user_id
             )
             session_db.add(new_activate)

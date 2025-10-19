@@ -59,7 +59,7 @@ async def get_valid_voucher(
                 number_of_activations = selected_voucher['number_of_activations'],
 
                 start_at = parse(selected_voucher['start_at']),
-                expire_at = parse(selected_voucher['expire_at']),
+                expire_at = parse(selected_voucher['expire_at']) if selected_voucher['expire_at'] else selected_voucher['expire_at'],
                 is_valid = selected_voucher['is_valid']
             )
 
@@ -282,7 +282,7 @@ async def activate_voucher(user: Users, code: str, language: str) -> Tuple[str, 
         return i18n.gettext("You cannot activate the voucher. You are its creator"), False
 
     # если ваучер просрочен
-    if voucher.expire_at < datetime.now(timezone.utc):
+    if voucher.expire_at and voucher.expire_at < datetime.now(timezone.utc):
         await deactivate_voucher(voucher.voucher_id)
         return i18n.gettext(
             "Voucher expired \n\nID '{id}' \nCode '{code}' \n\nVoucher expired due to time limit. It can no longer be activated"
@@ -292,7 +292,7 @@ async def activate_voucher(user: Users, code: str, language: str) -> Tuple[str, 
         result_db = await session_db.execute(
             select(VoucherActivations)
             .where(
-                (VoucherActivations.vouchers_id == voucher.voucher_id) &
+                (VoucherActivations.voucher_id == voucher.voucher_id) &
                 (VoucherActivations.user_id == user.user_id)
             )
             .with_for_update() # чтобы блокировать эту запись, для того что бы другие её вызовы не могли получить неактуальные данные
@@ -303,6 +303,14 @@ async def activate_voucher(user: Users, code: str, language: str) -> Tuple[str, 
 
     user.balance = user.balance + voucher.amount
     user = await update_user(user)
+
+    async with get_db() as session_db:
+        new_activated = VoucherActivations(
+            voucher_id=voucher.voucher_id,
+            user_id=user.user_id,
+        )
+        session_db.add(new_activated)
+        await session_db.commit()
 
     new_event = NewActivationVoucher(
         user_id = user.user_id,

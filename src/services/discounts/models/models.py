@@ -67,7 +67,7 @@ class VoucherActivations(Base):
     __tablename__ = "voucher_activations"
 
     voucher_activation_id = Column(Integer, primary_key=True, autoincrement=True)
-    vouchers_id = Column(Integer, ForeignKey("vouchers.voucher_id"), nullable=False)
+    voucher_id = Column(Integer, ForeignKey("vouchers.voucher_id"), nullable=False)
     user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

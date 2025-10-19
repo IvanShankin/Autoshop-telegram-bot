@@ -23,15 +23,6 @@ async def handler_new_activated_voucher(new_activation_voucher: NewActivationVou
     """Залогирует все действия и отошлёт владельцу сообщение об активации"""
     try:
         async with get_db() as session_db:
-            # проверка на повторную активацию
-            result_db = await session_db.execute(
-                select(VoucherActivations)
-                .where(VoucherActivations.vouchers_id == new_activation_voucher.voucher_id)
-            )
-            activated_voucher= result_db.scalar_one_or_none()
-            if activated_voucher:  # если активировал ранее
-                return
-
             result_db = await session_db.execute(
                 update(Vouchers)
                 .where(Vouchers.voucher_id == new_activation_voucher.voucher_id)
@@ -62,10 +53,6 @@ async def handler_new_activated_voucher(new_activation_voucher: NewActivationVou
                     new_activation_voucher.language
                 )
 
-            new_activated = VoucherActivations(
-                vouchers_id=new_activation_voucher.voucher_id,
-                user_id=new_activation_voucher.user_id,
-            )
             new_wallet_transaction = WalletTransaction(
                 user_id=new_activation_voucher.user_id,
                 type='voucher',
@@ -83,7 +70,6 @@ async def handler_new_activated_voucher(new_activation_voucher: NewActivationVou
                 }
             )
 
-            session_db.add(new_activated)
             session_db.add(new_wallet_transaction)
             session_db.add(new_user_log)
 

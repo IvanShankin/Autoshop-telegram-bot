@@ -612,17 +612,6 @@ class TestHandlerNewActivatedVoucher:
             updated_voucher = voucher_result.scalar_one()
             assert updated_voucher.activated_counter == voucher.activated_counter + 1
 
-            # Проверяем создание записи активации
-            activation_result = await session_db.execute(
-                select(VoucherActivations)
-                .where(
-                    (VoucherActivations.vouchers_id == voucher.voucher_id) &
-                    (VoucherActivations.user_id == user.user_id)
-                )
-            )
-            activation = activation_result.scalar_one_or_none()
-            assert activation is not None
-
             # Проверяем транзакцию кошелька
             transaction_result = await session_db.execute(
                 select(WalletTransaction)
@@ -721,7 +710,7 @@ class TestHandlerNewActivatedVoucher:
         # Ломаем таблицу VoucherActivations чтобы вызвать ошибку
         async with get_engine.begin() as conn:
             await conn.run_sync(
-                lambda sync_conn: Table(VoucherActivations.__table__, MetaData()).drop(sync_conn)
+                lambda sync_conn: Table(WalletTransaction.__table__, MetaData()).drop(sync_conn)
             )
 
         activation_amount = voucher.amount

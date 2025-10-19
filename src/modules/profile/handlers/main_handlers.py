@@ -31,7 +31,7 @@ async def handler_profile(
 
     money_in_vouchers = 0
     for voucher in vouchers:
-        money_in_vouchers += voucher.amount
+        money_in_vouchers += voucher.amount * voucher.number_of_activations
 
     i18n = get_i18n(user.language, 'profile_messages')
     text = i18n.gettext(

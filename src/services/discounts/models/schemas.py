@@ -8,6 +8,7 @@ class SmallVoucher(BaseModel):
     creator_id: int
     amount: int
     activation_code: str
+    number_of_activations: int
 
     @classmethod
     def from_orm_model(cls, voucher: "Vouchers"):
@@ -15,5 +16,6 @@ class SmallVoucher(BaseModel):
         return cls(
             creator_id=voucher.creator_id,
             amount=voucher.amount,
-            activation_code=voucher.activation_code
+            activation_code=voucher.activation_code,
+            number_of_activations=voucher.number_of_activations
         )

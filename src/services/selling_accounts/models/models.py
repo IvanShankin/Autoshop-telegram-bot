@@ -1,7 +1,7 @@
 from typing import Callable, Any
 
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Text, Index, text, UniqueConstraint, \
-    inspect
+    inspect, BigInteger
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -142,7 +142,7 @@ class SoldAccounts(Base):
     )
 
     sold_account_id = Column(Integer, primary_key=True, autoincrement=True)
-    owner_id = Column(Integer, ForeignKey("users.user_id"), nullable=True)
+    owner_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=True)
     type_account_service_id = Column(Integer, ForeignKey("type_account_services.type_account_service_id"), nullable=False)
 
     is_valid = Column(Boolean, nullable=False, server_default=text('true'))
@@ -212,7 +212,7 @@ class PurchasesAccounts(Base):
     )
 
     purchase_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
     sold_account_id = Column(Integer, ForeignKey("sold_accounts.sold_account_id"), nullable=False)
     promo_code_id = Column(Integer, ForeignKey("promo_codes.promo_code_id"), nullable=True)
 

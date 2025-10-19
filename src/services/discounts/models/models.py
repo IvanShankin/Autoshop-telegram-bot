@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, CheckConstraint, Index, text
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, CheckConstraint, Index, text, BigInteger
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -35,7 +35,7 @@ class ActivatedPromoCodes(Base):
 
     activated_promo_code_id = Column(Integer, primary_key=True, autoincrement=True)
     promo_code_id = Column(Integer, ForeignKey("promo_codes.promo_code_id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     promo_code = relationship("PromoCodes", back_populates="promo_code_activated_account")
@@ -48,7 +48,7 @@ class Vouchers(Base):
     )
 
     voucher_id = Column(Integer, primary_key=True, autoincrement=True)
-    creator_id = Column(Integer, ForeignKey("users.user_id"))
+    creator_id = Column(BigInteger, ForeignKey("users.user_id"))
     is_created_admin = Column(Boolean, nullable=False, server_default=text('false'))
 
     activation_code = Column(String(150), nullable=False) # НЕ уникальный, фильтровать необходимо по is_valid
@@ -68,7 +68,7 @@ class VoucherActivations(Base):
 
     voucher_activation_id = Column(Integer, primary_key=True, autoincrement=True)
     vouchers_id = Column(Integer, ForeignKey("vouchers.voucher_id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=True)
+    user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     vouchers = relationship("Vouchers", back_populates="voucher_activations")

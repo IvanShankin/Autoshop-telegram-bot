@@ -57,7 +57,7 @@ class NotificationSettings(Base):
     __tablename__ = "notification_settings"
 
     notification_setting_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False, unique=True, index=True)
+    user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False, unique=True, index=True)
 
     # Уведомления о рефералах
     referral_invitation = Column(Boolean, server_default=text('true'))  # Приглашение реферала
@@ -72,7 +72,7 @@ class BannedAccounts(Base):
     __tablename__ = "banned_accounts"
 
     banned_account_id = Column(Integer, primary_key=True, autoincrement=True,)
-    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False, index=True)
+    user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False, index=True)
     reason = Column(Text, nullable=False) # причина
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -82,7 +82,7 @@ class Replenishments(Base):
     __tablename__ = "replenishments"
 
     replenishment_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
     type_payment_id = Column(Integer, ForeignKey("type_payments.type_payment_id"), nullable=False)
     origin_amount = Column(Integer, nullable=False)  # Сумма в рублях которая начислилась пользователю (без учёта комиссии)
     amount = Column(Integer, nullable=False)  # Сумма в рублях (с учётом комиссии)
@@ -104,8 +104,8 @@ class TransferMoneys(Base):
     __tablename__ = "transfer_moneys"
 
     transfer_money_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_from_id = Column(Integer, ForeignKey("users.user_id"), nullable=False) # от кого
-    user_where_id = Column(Integer, ForeignKey("users.user_id"), nullable=False) # кому
+    user_from_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False) # от кого
+    user_where_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False) # кому
     amount = Column(Integer, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -116,7 +116,7 @@ class UserAuditLogs(Base):
     __tablename__ = "user_audit_logs"
 
     user_audit_log_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)  # Кто совершил действие
+    user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)  # Кто совершил действие
     action_type = Column(String(200), nullable=False)  # Тип действия (может быть любое)
     details = Column(JSON, nullable=True)  # Гибкое поле для любых деталей
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -128,7 +128,7 @@ class WalletTransaction(Base):
     __tablename__ = "wallet_transactions"
 
     wallet_transaction_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
     type = Column(Enum('replenish', 'referral', 'purchase','refund','transfer','voucher', 'other', name='wallet_tx_type'), nullable=False)
     amount = Column(Integer, nullable=False)
     balance_before = Column(Integer, nullable=False)

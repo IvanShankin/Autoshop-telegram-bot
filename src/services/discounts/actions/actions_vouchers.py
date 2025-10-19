@@ -65,7 +65,7 @@ async def get_count_voucher(user_id: int) -> int:
         )
         return result.scalar()
 
-async def get_valid_voucher(
+async def get_valid_voucher_by_code(
     code: str
 ) -> Vouchers | None:
     async with get_redis() as session_redis:
@@ -98,6 +98,19 @@ async def get_valid_voucher(
         if voucher:
             return voucher
 
+async def get_voucher_by_id(
+    voucher_id: int,
+    check_on_valid: bool = True
+) -> Vouchers | None:
+    """Если есть флаг check_on_valid, то при запросе к БД буде доп проверка на валидность"""
+    async with get_db() as session_db:
+        query = select(Vouchers).where((Vouchers.voucher_id == voucher_id))
+        if check_on_valid:
+            query.where(Vouchers.is_valid == True)
+
+        result = await session_db.execute(query)
+        return result.scalar_one_or_none()
+
 async def create_voucher(
         user_id: int,
         is_created_admin: bool,
@@ -124,7 +137,7 @@ async def create_voucher(
 
     while True:
         code = generate_code(15)
-        result = await get_valid_voucher(code)
+        result = await get_valid_voucher_by_code(code)
         if not result:  # если создали уникальный код
             break
 
@@ -305,7 +318,7 @@ async def activate_voucher(user: Users, code: str, language: str) -> Tuple[str, 
     i18n = get_i18n(language, "discount_dom")
     balance_before = user.balance
 
-    voucher = await get_valid_voucher(code)
+    voucher = await get_valid_voucher_by_code(code)
     if not voucher:
         return i18n.gettext("Voucher with this code not found"), False
 

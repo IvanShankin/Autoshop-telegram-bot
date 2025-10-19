@@ -65,12 +65,17 @@ async def test_get_count_voucher(use_redis, create_new_user, create_voucher):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("use_redis", [True, False])
-async def test_get_valid_voucher(use_redis, create_voucher):
-    from src.services.discounts.actions import get_valid_voucher
-
+async def test_get_valid_voucher_by_code(use_redis, create_voucher):
+    from src.services.discounts.actions import get_valid_voucher_by_code
     voucher = await create_voucher(filling_redis=use_redis)
+    voucher = await get_valid_voucher_by_code(voucher.activation_code)
+    await comparison_models(voucher, voucher)
 
-    voucher = await get_valid_voucher(voucher.activation_code)
+@pytest.mark.asyncio
+async def test_get_voucher_by_id(create_voucher):
+    from src.services.discounts.actions import get_voucher_by_id
+    voucher = await create_voucher()
+    voucher = await get_voucher_by_id(voucher.voucher_id)
     await comparison_models(voucher, voucher)
 
 @pytest.mark.asyncio

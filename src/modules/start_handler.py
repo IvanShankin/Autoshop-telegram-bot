@@ -6,7 +6,7 @@ from aiogram.types import Message, CallbackQuery
 from src.modules.keyboard_main import main_kb, selecting_language
 from src.bot_actions.actions import send_message
 from src.services.admins.actions import check_admin
-from src.services.discounts.actions import get_valid_voucher, activate_voucher
+from src.services.discounts.actions import get_valid_voucher_by_code, activate_voucher
 from src.services.discounts.models import Vouchers
 from src.services.referrals.actions.actions_ref import add_referral
 from src.services.system.actions import get_settings
@@ -35,7 +35,7 @@ async def cmd_start(message: Message, command: CommandObject, state: FSMContext)
         params = args.split('_')
         if params[0] == 'voucher': # если активировали ваучер
             voucher_code = params[1]
-            voucher = await get_valid_voucher(params[1]) # ваучера может не быть
+            voucher = await get_valid_voucher_by_code(params[1]) # ваучера может не быть
             if voucher and user:
                 result_message_voucher, success_activate_voucher = await activate_voucher(user, voucher_code, language)
         elif params[0] == 'ref':

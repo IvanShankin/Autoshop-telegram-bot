@@ -72,12 +72,12 @@ async def replacement_needed_modules(
 @pytest_asyncio.fixture(scope="function")
 async def start_consumer():
     """ Запускает consumer и корректно его останавливает по завершению теста. """
-    from src.broker.consumer import consume_events
+    from src.broker.consumer import _run_single_consumer_loop
 
     started_event = asyncio.Event()
     stop_event = asyncio.Event()
 
-    task = asyncio.create_task(consume_events(started_event, stop_event))
+    task = asyncio.create_task(_run_single_consumer_loop(started_event, stop_event))
 
     # ждём сигнала, что consumer реально подписался на очередь
     await asyncio.wait_for(started_event.wait(), timeout=7.0)

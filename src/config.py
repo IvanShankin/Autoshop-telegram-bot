@@ -33,25 +33,42 @@ DT_FORMAT = "%Y-%m-%d %H:%M:%S"
 PAGE_SIZE = 6
 
 UI_IMAGES = {
+    # Начальные экраны
     "welcome_message": f"{BASE_DIR}/media/ui_sections/welcome_message.png",
     "selecting_language": f"{BASE_DIR}/media/ui_sections/selecting_language.png",
-    "successfully_activate_voucher": f"{BASE_DIR}/media/ui_sections/successfully_activate_voucher.png",
-    "unsuccessfully_activate_voucher": f"{BASE_DIR}/media/ui_sections/unsuccessfully_activate_voucher.png",
-    "new_referral": f"{BASE_DIR}/media/ui_sections/new_referral.png",
+
+    # Основные разделы профиля
     "profile": f"{BASE_DIR}/media/ui_sections/profile.png",
     "profile_settings": f"{BASE_DIR}/media/ui_sections/profile_settings.png",
     "notification_settings": f"{BASE_DIR}/media/ui_sections/notification_settings.png",
+
+    # История операций
     "history_transections": f"{BASE_DIR}/media/ui_sections/history_transections.png",
-    "ref_system": f"{BASE_DIR}/media/ui_sections/ref_system.png",
     "history_income_from_referrals": f"{BASE_DIR}/media/ui_sections/history_income_from_referrals.png",
+
+    # Реферальная система
+    "ref_system": f"{BASE_DIR}/media/ui_sections/ref_system.png",
+    "new_referral": f"{BASE_DIR}/media/ui_sections/new_referral.png",
+
+    # Перевод средств
     "balance_transfer": f"{BASE_DIR}/media/ui_sections/balance_transfer.png",
     "enter_amount": f"{BASE_DIR}/media/ui_sections/enter_amount.png",
     "enter_user_id": f"{BASE_DIR}/media/ui_sections/enter_user_id.png",
-    "data_validation": f"{BASE_DIR}/media/ui_sections/data_validation.png",
-    "insufficient_funds": f"{BASE_DIR}/media/ui_sections/insufficient_funds.png",
-    "incorrect_data_entered": f"{BASE_DIR}/media/ui_sections/incorrect_data_entered.png",
     "confirm_the_data": f"{BASE_DIR}/media/ui_sections/confirm_the_data.png",
-    "user_no_found": f"{BASE_DIR}/media/ui_sections/user_no_found.png",
+    "data_validation": f"{BASE_DIR}/media/ui_sections/data_validation.png",
     "successful_transfer": f"{BASE_DIR}/media/ui_sections/successful_transfer.png",
     "receiving_funds_from_transfer": f"{BASE_DIR}/media/ui_sections/receiving_funds_from_transfer.png",
+
+    # Ваучеры
+    "enter_number_activations_for_voucher": f"{BASE_DIR}/media/ui_sections/enter_number_activations_for_voucher.png",
+    "successful_create_voucher": f"{BASE_DIR}/media/ui_sections/successful_create_voucher.png",
+    "successfully_activate_voucher": f"{BASE_DIR}/media/ui_sections/successfully_activate_voucher.png",
+    "unsuccessfully_activate_voucher": f"{BASE_DIR}/media/ui_sections/unsuccessfully_activate_voucher.png",
+
+    # Ошибки
+    "insufficient_funds": f"{BASE_DIR}/media/ui_sections/insufficient_funds.png",
+    "incorrect_data_entered": f"{BASE_DIR}/media/ui_sections/incorrect_data_entered.png",
+    "user_no_found": f"{BASE_DIR}/media/ui_sections/user_no_found.png",
+
+
 }

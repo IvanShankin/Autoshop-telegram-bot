@@ -40,7 +40,7 @@ async def handler_profile(
     ).format(
         username = username,
         id = user.user_id,
-        ref_link = f'https://t.me/{bot_me.username}?start=ref:{user.unique_referral_code}',
+        ref_link = f'https://t.me/{bot_me.username}?start=ref_{user.unique_referral_code}',
         total_sum_replenishment = user.total_sum_replenishment,
         balance = user.balance,
         money_in_vouchers = money_in_vouchers,

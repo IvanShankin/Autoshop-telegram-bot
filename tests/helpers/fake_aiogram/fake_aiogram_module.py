@@ -48,7 +48,38 @@ class FakeState:
     def __repr__(self):
         return f"<State {self.name}>"
 
-# --- Message / CallbackQuery / FSMContext ---
+
+class FakeCommandObject:
+    """
+    Фейковый аналог aiogram.filters.CommandObject.
+
+    Позволяет удобно тестировать команды с аргументами:
+        /start ref=ABC123
+        /transfer 100 200
+    """
+
+    def __init__(self, command: str = "start", args: str | None = None):
+        self.command = command
+        self.args = args or ""
+        self.mention = None  # в реальном CommandObject может быть @username
+        self.offset = 0      # смещение в тексте сообщения (не используется в тестах)
+
+    def __repr__(self):
+        return f"<FakeCommandObject command={self.command!r} args={self.args!r}>"
+
+    @classmethod
+    def from_message(cls, text: str):
+        """
+        Быстрое создание из строки:
+        >>> FakeCommandObject.from_message('/start ref=123')
+        """
+        if not text.startswith('/'):
+            return cls(command=text)
+        parts = text[1:].split(maxsplit=1)
+        command = parts[0]
+        args = parts[1] if len(parts) > 1 else ""
+        return cls(command, args)
+
 class FakeMessage:
     def __init__(self, text="/start", chat_id: int = 1, username: str = "test_user", **extra):
         self.text = text
@@ -206,6 +237,10 @@ class FakeBot:
         self.edit_media_behavior = None
         self.edit_text_behavior = None
         self.delete_behavior = None
+
+    async def me(self):
+        return SimpleNamespace(username="username bot")
+
     async def send_message(self, chat_id, text, **kwargs):
         self.sent.append((chat_id, text, kwargs))
         return SimpleNamespace(chat=SimpleNamespace(id=chat_id), text=text)
@@ -220,6 +255,10 @@ class FakeBot:
         self.edit_media_behavior = None
         self.edit_text_behavior = None
         self.delete_behavior = None
+
+    def get_edited_message(self, user_id: int, message_id: int, message: str):
+        return any(user_id == chat_id and message == text and received_message_id == message_id
+                   for func_name, chat_id, received_message_id, text, reply_markup in self.calls)
 
     def get_message(self, chat_id: int, text: str) -> bool:
         return any(c == chat_id and t == text for c, t, _ in self.sent)

@@ -94,3 +94,20 @@ msgstr "Средства успешно переведены"
 
 msgid "Funds transferred to your balance: {amount} ₽ \n\nCurrent balance: {balance}"
 msgstr "На ваш баланс переведены средства: {amount} ₽ \n\nТекущий баланс: {balance}"
+
+# ---- Ваучеры ----
+msgid "Enter the number of activations for the voucher"
+msgstr "Введите число активаций для ваучера"
+
+msgid "Check the data for accuracy \n\nTotal amount of funds required for activation: {total_sum}\n"
+"Amount of one voucher: {amount} \nNumber of activations: {number_activations}"
+msgstr "Проверьте корректность данных \n\nОбщее количество средств на активацию: {total_sum}\n"
+"Сумма одного ваучера: {amount} \nЧисло активаций: {number_activations}"
+
+msgid "Voucher successfully created. \n\nActivation link: <a href='{link}'>Ссылка</a> \nAmount: {amount} \n"
+"Number of activations: {number_activations} \nTotal amount spent on activation: {total_sum} \n"
+"Current balance: {balance} \n\nNote: One user can only activate one voucher"
+msgstr "Ваучер успешно создан \n\nСсылка на активацию: <a href='{link}'>Ссылка</a> \nСумма: {amount} \n"
+"Число активаций: {number_activations} \nОбщее количество средств затраченное на активацию: {total_sum} \n"
+"Текущий баланс: {balance} \n\nПримечание: один пользователь может активировать только один ваучер"
+

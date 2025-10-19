@@ -56,5 +56,9 @@ class I18nKeyFilter(BaseFilter):
             user = await get_user(message.from_user.id)
         except Exception:
             return False
+
+        if not user:
+            return False
+
         i18n = get_i18n(user.language, "keyboard_dom")
         return message.text == i18n.gettext(self.key)

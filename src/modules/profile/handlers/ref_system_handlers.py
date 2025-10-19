@@ -39,7 +39,7 @@ async def referral_system(callback: CallbackQuery):
         "Number of 1st level referrals: {ref_first_lvl} \n"
         "Number of 2nd level referrals: {ref_second_lvl} \n"
     ).format(
-        ref_link=f'https://t.me/{bot_me.username}?start=ref:{user.unique_referral_code}',
+        ref_link=f'https://t.me/{bot_me.username}?start=ref_{user.unique_referral_code}',
         total_earnings=user.total_profit_from_referrals,
         total_number_ref=len(referrals),
         ref_first_lvl=ref_first_lvl,

@@ -3,11 +3,9 @@ from types import SimpleNamespace
 import pytest
 from sqlalchemy import select
 
-from helpers.fake_aiogram.fake_aiogram_module import FakeMessage, FakeFSMContext, FakeCallbackQuery
+from helpers.fake_aiogram.fake_aiogram_module import FakeMessage, FakeFSMContext, FakeCallbackQuery, FakeCommandObject
 from helpers.helper_fixture import create_new_user, create_settings
-from src.middlewares.aiogram_middleware import MaintenanceMiddleware
 from src.services.database.database import get_db
-from src.services.discounts.models import Vouchers
 from src.services.referrals.models import Referrals
 from src.services.system.actions import get_settings, update_settings
 from src.services.users.actions import get_user
@@ -20,8 +18,9 @@ async def test_start_non_existing_user(patch_fake_aiogram, replacement_fake_bot)
 
     fake_bot = replacement_fake_bot
     msg = FakeMessage(text="/start", chat_id=123, username="User")
+    com = FakeCommandObject(command = "start", args = None)
 
-    await start.cmd_start(msg, FakeFSMContext())
+    await start.cmd_start(msg, com, FakeFSMContext())
 
     user = await get_user(123)
     assert user # должны добавить пользователя
@@ -38,8 +37,9 @@ async def test_start_existing_user(patch_fake_aiogram, replacement_fake_bot, cre
     user = await create_new_user()
     setting = create_settings
     msg = FakeMessage(text="/start", chat_id=user.user_id, username=user.username)
+    com = FakeCommandObject(command = "start", args = None)
 
-    await start.cmd_start(msg, FakeFSMContext())
+    await start.cmd_start(msg, com, FakeFSMContext())
 
     i18n = get_i18n(user.language, 'start_message')
     text = i18n.gettext(
@@ -54,9 +54,10 @@ async def test_start_with_new_referral(patch_fake_aiogram, replacement_fake_bot,
 
     fake_bot = replacement_fake_bot
     owner = await create_new_user()
-    msg = FakeMessage(text=f"/start ref:{owner.unique_referral_code}", chat_id=123, username="User")
+    msg = FakeMessage(text=f"/start ref_{owner.unique_referral_code}", chat_id=123, username="User")
+    com = FakeCommandObject(command = "start", args = f'ref_{owner.unique_referral_code}')
 
-    await start.cmd_start(msg, FakeFSMContext())
+    await start.cmd_start(msg, com, FakeFSMContext())
 
     user = await get_user(123)
     assert user  # должны добавить пользователя
@@ -96,9 +97,10 @@ async def test_start_activate_voucher_existing_user(
 
     fake_bot = replacement_fake_bot
     user = await create_new_user()
-    msg = FakeMessage(text=f"/start voucher:{voucher.activation_code}", chat_id=user.user_id, username=user.username)
+    msg = FakeMessage(text=f"/start voucher_{voucher.activation_code}", chat_id=user.user_id, username=user.username)
+    com = FakeCommandObject(command = "start", args = f'voucher_{voucher.activation_code}')
 
-    await start.cmd_start(msg, FakeFSMContext())
+    await start.cmd_start(msg, com,  FakeFSMContext())
 
     user = await get_user(user.user_id) # для обновления баланса
     assert user.balance == voucher.amount # т.к. у пользователя не было денег
@@ -125,9 +127,10 @@ async def test_start_activate_voucher_existing_user(
     owner = await get_user(voucher.creator_id)
 
     fake_bot = replacement_fake_bot
-    msg = FakeMessage(text=f"/start voucher:{voucher.activation_code}", chat_id=123, username="user")
+    msg = FakeMessage(text=f"/start voucher_{voucher.activation_code}", chat_id=123, username="user")
+    com = FakeCommandObject(command = "start", args = f'voucher_{voucher.activation_code}')
 
-    await start.cmd_start(msg, FakeFSMContext())
+    await start.cmd_start(msg, com, FakeFSMContext())
 
     user = await get_user(123)
     assert user  # должны добавить пользователя
@@ -177,6 +180,7 @@ async def test_select_language(patch_fake_aiogram, replacement_fake_bot, create_
 
 @pytest.mark.asyncio
 async def test_maintenance_blocks_normal_user(patch_fake_aiogram, replacement_fake_bot, create_new_user):
+    from src.middlewares.aiogram_middleware import MaintenanceMiddleware
     user = await create_new_user()
 
     setting = await get_settings()

@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, CommandObject
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 
@@ -19,7 +19,7 @@ from src.utils.i18n import get_i18n
 router = Router()
 
 @router.message(CommandStart())
-async def cmd_start(message: Message, state: FSMContext):
+async def cmd_start(message: Message, command: CommandObject, state: FSMContext):
     await state.clear()
 
     user = await get_user(message.from_user.id, username=message.from_user.username)
@@ -29,9 +29,10 @@ async def cmd_start(message: Message, state: FSMContext):
     owner_user: Users | None = None
     language = user.language if user  else 'ru'
 
-    args = message.text.split()[1] if len(message.text.split()) > 1 else None
+    args = command.args
+
     if args:
-        params = args.split(':')
+        params = args.split('_')
         if params[0] == 'voucher': # если активировали ваучер
             voucher_code = params[1]
             voucher = await get_valid_voucher(params[1]) # ваучера может не быть

@@ -199,8 +199,16 @@ def confirmation_transfer_kb(language: str):
     i18n = get_i18n(language, "keyboard_dom")
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=i18n.gettext('Confirm'), callback_data='confirm_transfer_money'),
-         InlineKeyboardButton(text=i18n.gettext('Again'), callback_data='balance_transfer')],
-        [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'my_voucher')],
+         InlineKeyboardButton(text=i18n.gettext('Again'), callback_data='transfer_money')],
+        [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'balance_transfer')],
+    ])
+
+def confirmation_voucher_kb(language: str):
+    i18n = get_i18n(language, "keyboard_dom")
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=i18n.gettext('Confirm'), callback_data='confirm_create_voucher'),
+         InlineKeyboardButton(text=i18n.gettext('Again'), callback_data='create_voucher')],
+        [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'balance_transfer')],
     ])
 
 def back_in_balance_transfer_kb(language: str):

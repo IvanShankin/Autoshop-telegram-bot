@@ -144,7 +144,15 @@ async def create_voucher(
                     "voucher_id": new_voucher.voucher_id,
                 },
             )
+            wallet_transaction = WalletTransaction(
+                user_id = user.user_id,
+                type = 'voucher',
+                amount = required_amount,
+                balance_before = user.balance, # тут старые данные
+                balance_after = user.balance + required_amount
+            )
             session_db.add(new_user_log)
+            session_db.add(wallet_transaction)
             await session_db.commit()
 
     if expire_at:

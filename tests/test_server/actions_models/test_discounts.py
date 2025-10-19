@@ -121,14 +121,19 @@ async def test_create_voucher(create_voucher):
 
     async with get_db() as session_db:
         result = await session_db.execute(select(Vouchers).where(Vouchers.voucher_id == voucher_returned.voucher_id))
-        promo_db = result.scalar_one_or_none()
+        voucher = result.scalar_one_or_none()
+
+        result = await session_db.execute(select(WalletTransaction).where(WalletTransaction.user_id == new_voucher.creator_id))
+        transfer = result.scalar_one_or_none()
+        assert transfer
+        assert transfer.amount == new_voucher.amount * new_voucher.number_of_activations
 
     async with get_redis() as session_redis:
-        promo_redis = orjson.loads(await session_redis.get(f'voucher:{voucher_returned.activation_code}'))
+        voucher_redis = orjson.loads(await session_redis.get(f'voucher:{voucher_returned.activation_code}'))
 
     await comparison_models(new_voucher, voucher_returned, ['voucher_id', 'start_at', 'activation_code'])
-    await comparison_models(voucher_returned, promo_db)
-    await comparison_models(voucher_returned, promo_redis)
+    await comparison_models(voucher_returned, voucher)
+    await comparison_models(voucher_returned, voucher_redis)
 
 
 @pytest.mark.asyncio

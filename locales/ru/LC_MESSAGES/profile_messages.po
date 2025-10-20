@@ -111,3 +111,22 @@ msgstr "Ваучер успешно создан \n\nСсылка на акти�
 "Число активаций: {number_activations} \nОбщее количество средств затраченное на активацию: {total_sum} \n"
 "Текущий баланс: {balance} \n\nПримечание: один пользователь может активировать только один ваучер"
 
+msgid "This voucher is currently inactive"
+msgstr "На данный момент, этот ваучер является  неактивным"
+
+msgid "All vouchers. To view a specific voucher, click on it"
+msgstr "Все ваучеры. Для просмотра конкретного ваучера нажмите на него"
+
+msgid "ID: {id} \n\nLink: <a href='{link}'>Copy</a> \nTotal spent: {total_amount} \nAmount: {amount} \n"
+"Allowed number of activations: {number_of_activations} \nNumber of activations: {activated_counter}"
+msgstr "ID: {id} \n\nСсылка: <a href='{link}'>Копировать</a> \nСуммарно затрачено: {total_amount} \nСумма: {amount} \n"
+"Разрешённое число активаций: {number_of_activations} \nЧисло активаций: {activated_counter}"
+
+msgid "Are you sure you want to deactivate the voucher? \nAmount to be refunded: {amount}"
+msgstr "Вы действительно хотите деактивировать ваучер? \nСумма которая вернётся: {amount}"
+
+msgid "The voucher has been successfully deactivated \n\nYour account has been credited with: {amount} \nCurrent balance: {balance}"
+msgstr "Ваучер успешно деактивирован \n\nНа ваш счёт начислено: {amount}\nТекущий баланс: {balance}"
+
+msgid "There was an error deactivating your voucher \n\nIf your funds have not been returned, please contact support: @{username_support}"
+msgstr "Во время деактивации ваучера произошла ошибка \n\nЕсли средства не вернулись, обратитесь к поддержке: @{username_support}"

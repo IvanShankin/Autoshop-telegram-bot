@@ -6,7 +6,7 @@ from src.bot_actions.actions import send_message, edit_message
 from src.bot_actions.bot_instance import get_bot
 from src.middlewares.aiogram_middleware import I18nKeyFilter
 from src.modules.profile.keyboard_profile import profile_kb
-from src.services.discounts.actions import get_valid_voucher_by_user
+from src.services.discounts.actions import get_valid_voucher_by_user_page
 from src.services.users.actions import get_user
 from src.utils.i18n import get_i18n
 
@@ -27,11 +27,11 @@ async def handler_profile(
 
     bot = await get_bot()
     bot_me = await bot.me()
-    vouchers = await get_valid_voucher_by_user(user_id)
+    vouchers = await get_valid_voucher_by_user_page(user_id)
 
     money_in_vouchers = 0
     for voucher in vouchers:
-        money_in_vouchers += voucher.amount * voucher.number_of_activations
+        money_in_vouchers += voucher.amount * (voucher.number_of_activations - voucher.activated_counter)
 
     i18n = get_i18n(user.language, 'profile_messages')
     text = i18n.gettext(

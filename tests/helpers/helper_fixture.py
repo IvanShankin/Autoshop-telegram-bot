@@ -281,7 +281,12 @@ async def create_promo_code() -> PromoCodes:
 
 @pytest_asyncio.fixture
 async def create_voucher(create_new_user):
-    async def _factory(filling_redis: bool = True, creator_id: int = None) -> Vouchers:
+    async def _factory(
+            filling_redis: bool = True,
+            creator_id: int = None,
+            expire_at: datetime = datetime.now(timezone.utc) + timedelta(days=1),
+            is_valid: bool = True
+    ) -> Vouchers:
         """Создаст новый ваучер в БД и в redis."""
         if creator_id is None:
             user = await create_new_user()
@@ -293,8 +298,8 @@ async def create_voucher(create_new_user):
             amount=100,
             activated_counter=0,
             number_of_activations=5,
-            expire_at=datetime.now(timezone.utc) + timedelta(days=1),
-            is_valid=True,
+            expire_at=expire_at,
+            is_valid=is_valid,
         )
 
         async with get_db() as session_db:

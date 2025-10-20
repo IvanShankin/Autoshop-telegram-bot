@@ -9,6 +9,7 @@ class SmallVoucher(BaseModel):
     creator_id: int
     amount: int
     activation_code: str
+    activated_counter: int
     number_of_activations: int
 
     @classmethod
@@ -19,5 +20,6 @@ class SmallVoucher(BaseModel):
             creator_id=voucher.creator_id,
             amount=voucher.amount,
             activation_code=voucher.activation_code,
+            activated_counter=voucher.activated_counter,
             number_of_activations=voucher.number_of_activations
         )

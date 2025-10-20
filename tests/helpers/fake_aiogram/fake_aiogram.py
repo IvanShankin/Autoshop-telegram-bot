@@ -4,8 +4,8 @@ import pytest
 from tests.helpers.fake_aiogram.fake_aiogram_module import (
     _FakeAttr, FakeMessage, FakeCallbackQuery, FakeFSMContext,
     FakeRouter, FakeBot, FakeDispatcher,
-    InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton,
-    ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply, InlineKeyboardBuilder,
+    FakeInlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton,
+    ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply, FakeInlineKeyboardBuilder,
     BaseMiddleware, FakeTelegramForbiddenError, FakeTelegramBadRequest, FakeInputMediaPhoto, FakeFSInputFile,
     FakeBaseFilter, FakeState, FakeStatesGroup, FakeCommandObject
 )
@@ -45,7 +45,7 @@ def patch_fake_aiogram():
     sys.modules["aiogram.types"] = ModuleType("aiogram.types")
     sys.modules["aiogram.types"].Message = FakeMessage
     sys.modules["aiogram.types"].CallbackQuery = FakeCallbackQuery
-    sys.modules["aiogram.types"].InlineKeyboardButton = InlineKeyboardButton
+    sys.modules["aiogram.types"].InlineKeyboardButton = FakeInlineKeyboardButton
     sys.modules["aiogram.types"].InlineKeyboardMarkup = InlineKeyboardMarkup
     sys.modules["aiogram.types"].KeyboardButton = KeyboardButton
     sys.modules["aiogram.types"].ReplyKeyboardMarkup = ReplyKeyboardMarkup
@@ -56,7 +56,7 @@ def patch_fake_aiogram():
 
     sys.modules["aiogram.utils"] = ModuleType("aiogram.utils")
     sys.modules["aiogram.utils.keyboard"] = ModuleType("aiogram.utils.keyboard")
-    sys.modules["aiogram.utils.keyboard"].InlineKeyboardBuilder = InlineKeyboardBuilder
+    sys.modules["aiogram.utils.keyboard"].InlineKeyboardBuilder = FakeInlineKeyboardBuilder
 
     sys.modules["aiogram.fsm"] = ModuleType("aiogram.fsm")
     sys.modules["aiogram.fsm.context"] = ModuleType("aiogram.fsm.context")

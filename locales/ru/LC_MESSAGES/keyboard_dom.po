@@ -94,3 +94,5 @@ msgstr "Создать ваучер"
 msgid "My vouchers"
 msgstr "Мои ваучеры"
 
+msgid "Deactivate"
+msgstr "Деактивировать"

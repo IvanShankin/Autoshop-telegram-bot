@@ -7,12 +7,14 @@ from src.bot_actions.bot_instance import get_bot
 from src.exceptions.service_exceptions import UserNotFound, NotEnoughMoney
 from src.modules.profile.keyboard_profile import balance_transfer_kb, \
     back_in_balance_transfer_kb, replenishment_and_back_in_transfer_kb, confirmation_transfer_kb, \
-    confirmation_voucher_kb
+    confirmation_voucher_kb, all_vouchers_kb, back_in_all_voucher_kb, show_voucher_kb, confirm_deactivate_voucher_kb
 from src.modules.profile.schemas import TransferData
 from src.modules.profile.schemas.transfer_balance import CreateVoucherData
 from src.modules.profile.state import TransferMoney
 from src.modules.profile.state.transfer_balance import CreateVoucher
-from src.services.discounts.actions.actions_vouchers import create_voucher as create_voucher_db
+from src.services.discounts.actions.actions_vouchers import (create_voucher as create_voucher_db, get_voucher_by_id,
+                                                             deactivate_voucher as deactivate_voucher_server)
+from src.services.system.actions import get_settings
 from src.services.users.actions import get_user
 from src.services.users.actions.action_other_with_user import money_transfer
 from src.utils.converter import safe_int_conversion
@@ -335,6 +337,118 @@ async def confirm_create_voucher(callback: CallbackQuery, state: FSMContext):
 
 
 
-@router.callback_query(F.data == "my_voucher")
+@router.callback_query(F.data.startswith("my_voucher:"))
 async def my_voucher(callback: CallbackQuery):
-    pass
+    current_page = callback.data.split(":")[1]
+    user = await get_user(callback.from_user.id, callback.from_user.username)
+
+    i18n = get_i18n(user.language, 'profile_messages')
+    text = i18n.gettext("All vouchers. To view a specific voucher, click on it")
+
+    await edit_message(
+        chat_id=callback.from_user.id,
+        message_id=callback.message.message_id,
+        message=text,
+        image_key='viewing_vouchers',
+        reply_markup=await all_vouchers_kb(user_id=user.user_id, current_page=int(current_page), language=user.language)
+    )
+
+@router.callback_query(F.data.startswith("show_voucher:"))
+async def show_voucher(callback: CallbackQuery):
+    voucher_id = int(callback.data.split(":")[1])
+    current_page = int(callback.data.split(':')[2])
+
+    user = await get_user(callback.from_user.id, callback.from_user.username)
+    voucher = await get_voucher_by_id(voucher_id)
+    i18n = get_i18n(user.language, 'profile_messages')
+
+    if not voucher or not voucher.is_valid:
+        text = i18n.gettext('This voucher is currently inactive, please select another one')
+        reply_markup=back_in_all_voucher_kb(user.language, current_page)
+    else:
+        bot = await get_bot()
+        bot_me = await bot.me()
+        text = i18n.gettext(
+            "ID: {id} \n\nLink: <a href='{link}'>Copy</a> \nTotal spent: {total_amount} \nAmount: {amount} \n"
+            "Allowed number of activations: {number_of_activations} \nNumber of activations: {activated_counter}"
+        ).format(
+            id=voucher_id,
+            link=f'https://t.me/{bot_me.username}?start=voucher_{voucher.activation_code}',
+            total_amount=voucher.amount * voucher.number_of_activations,
+            amount=voucher.amount,
+            number_of_activations=voucher.number_of_activations,
+            activated_counter=voucher.activated_counter
+        )
+        reply_markup = show_voucher_kb(user.language, current_page, voucher_id)
+
+    await edit_message(
+        chat_id=callback.from_user.id,
+        message_id=callback.message.message_id,
+        message=text,
+        image_key='viewing_vouchers',
+        reply_markup=reply_markup
+    )
+
+@router.callback_query(F.data.startswith("confirm_deactivate_voucher:"))
+async def confirm_deactivate_voucher(callback: CallbackQuery):
+    voucher_id = int(callback.data.split(":")[1])
+    current_page = int(callback.data.split(':')[2])
+
+    voucher = await get_voucher_by_id(voucher_id)
+    user = await get_user(callback.from_user.id, callback.from_user.username)
+    i18n = get_i18n(user.language, 'profile_messages')
+
+    if not voucher or not voucher.is_valid:
+        text = i18n.gettext('This voucher is currently inactive')
+        reply_markup = back_in_all_voucher_kb(user.language, current_page)
+        image_key = 'viewing_vouchers'
+    else:
+        text = i18n.gettext(
+            "Are you sure you want to deactivate the voucher? \nAmount to be refunded: {amount}"
+        ).format(amount=voucher.amount * (voucher.number_of_activations - voucher.activated_counter))
+        image_key = 'confirm_deactivate_voucher'
+        reply_markup = confirm_deactivate_voucher_kb(user.language, current_page, voucher_id)
+
+    await edit_message(
+            chat_id=callback.from_user.id,
+            message_id=callback.message.message_id,
+            message=text,
+            image_key=image_key,
+            reply_markup=reply_markup
+    )
+
+@router.callback_query(F.data.startswith("deactivate_voucher:"))
+async def deactivate_voucher(callback: CallbackQuery):
+    voucher_id = int(callback.data.split(":")[1])
+    current_page = int(callback.data.split(':')[2])
+
+    voucher = await get_voucher_by_id(voucher_id)
+    user = await get_user(callback.from_user.id, callback.from_user.username)
+    i18n = get_i18n(user.language, 'profile_messages')
+
+    if not voucher or not voucher.is_valid:
+        text = i18n.gettext('This voucher is currently inactive')
+        image_key = 'voucher_successful_deactivate'
+    else:
+        try:
+            await deactivate_voucher_server(voucher_id)
+            user = await get_user(callback.from_user.id, callback.from_user.username)
+            text = i18n.gettext(
+                "The voucher has been successfully deactivated \n\nYour account has been credited with: {amount} \nCurrent balance: {balance}"
+            ).format(amount=voucher.amount * (voucher.number_of_activations - voucher.activated_counter), balance=user.balance)
+            image_key = 'voucher_successful_deactivate'
+        except Exception as e:
+            settings = await get_settings()
+
+            text = i18n.gettext(
+                'There was an error deactivating your voucher \n\nIf your funds have not been returned, please contact support: @{username_support}'
+            ).format(username_support=settings.support_username)
+            image_key = 'server_error'
+
+    await edit_message(
+            chat_id=callback.from_user.id,
+            message_id=callback.message.message_id,
+            message=text,
+            image_key=image_key,
+            reply_markup=back_in_all_voucher_kb(user.language, current_page)
+    )

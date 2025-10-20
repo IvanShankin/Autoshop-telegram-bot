@@ -64,11 +64,15 @@ UI_IMAGES = {
     "successful_create_voucher": f"{BASE_DIR}/media/ui_sections/successful_create_voucher.png",
     "successfully_activate_voucher": f"{BASE_DIR}/media/ui_sections/successfully_activate_voucher.png",
     "unsuccessfully_activate_voucher": f"{BASE_DIR}/media/ui_sections/unsuccessfully_activate_voucher.png",
+    "viewing_vouchers": f"{BASE_DIR}/media/ui_sections/viewing_vouchers.png",
+    "confirm_deactivate_voucher": f"{BASE_DIR}/media/ui_sections/confirm_deactivate_voucher.png",
+    "voucher_successful_deactivate": f"{BASE_DIR}/media/ui_sections/voucher_successful_deactivate.png",
 
     # Ошибки
     "insufficient_funds": f"{BASE_DIR}/media/ui_sections/insufficient_funds.png",
     "incorrect_data_entered": f"{BASE_DIR}/media/ui_sections/incorrect_data_entered.png",
     "user_no_found": f"{BASE_DIR}/media/ui_sections/user_no_found.png",
+    "server_error": f"{BASE_DIR}/media/ui_sections/server_error.png",
 
 
 }

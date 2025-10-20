@@ -5,6 +5,8 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.bot_actions.bot_instance import get_bot
 from src.config import ALLOWED_LANGS, NAME_LANGS, EMOJI_LANGS, PAGE_SIZE
+from src.services.discounts.actions import get_valid_voucher_by_user_page
+from src.services.discounts.actions.actions_vouchers import get_count_voucher
 from src.services.referrals.actions.actions_ref import get_referral_income_page, get_count_referral_income
 from src.services.system.actions import get_settings
 from src.services.users.actions.action_other_with_user import get_wallet_transaction_page, get_count_wallet_transaction
@@ -191,7 +193,7 @@ def balance_transfer_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=i18n.gettext('Transfer by id'), callback_data='transfer_money')],
         [InlineKeyboardButton(text=i18n.gettext('Create voucher'), callback_data='create_voucher')],
-        [InlineKeyboardButton(text=i18n.gettext('My vouchers'), callback_data=f'my_voucher')],
+        [InlineKeyboardButton(text=i18n.gettext('My vouchers'), callback_data=f'my_voucher:1')],
         [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'profile')],
     ])
 
@@ -222,4 +224,62 @@ def replenishment_and_back_in_transfer_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=i18n.gettext('Top up your balance'), callback_data='money_replenishment')],
         [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data='balance_transfer')]
+    ])
+
+async def all_vouchers_kb(user_id: int, current_page: int, language: str):
+    """Клавиатура со списком только активных ваучеров у данного пользователя"""
+    records = await get_valid_voucher_by_user_page(user_id, current_page, PAGE_SIZE)
+    total = await get_count_voucher(user_id)
+    total_pages = max(ceil(total / PAGE_SIZE), 1)
+
+    keyboard = InlineKeyboardBuilder()
+
+    for voucher in records:
+        keyboard.row(InlineKeyboardButton(
+            text=f"{voucher.amount} ₽   {voucher.activation_code}",
+            callback_data=f'show_voucher:{voucher.voucher_id}:{current_page}')
+        )
+
+    if records and total_pages > 1:
+        left_button = f"my_voucher_none"
+        right_button = f"my_voucher_none"
+        if current_page > 1 and total_pages > current_page:  # если есть куда двинуться направо и налево
+            left_button = f"my_voucher:{current_page - 1}"
+            right_button = f"my_voucher:{current_page + 1}"
+        elif current_page == 1:  # если есть записи только впереди
+            right_button = f"my_voucher:{current_page + 1}"
+        elif current_page > 1:  # если есть записи только позади
+            left_button = f"my_voucher:{current_page - 1}"
+
+        keyboard.row(
+            InlineKeyboardButton(text="⬅️", callback_data=left_button),
+            InlineKeyboardButton(text=f"{current_page}/{total_pages}", callback_data=f"none"),
+            InlineKeyboardButton(text="➡️", callback_data=right_button)
+        )
+
+    i18n = get_i18n(language, "keyboard_dom")
+    keyboard.row(
+        InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'profile'),
+    )
+
+    return keyboard.as_markup()
+
+def show_voucher_kb(language: str, current_page: int, voucher_id: int):
+    i18n = get_i18n(language, "keyboard_dom")
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=i18n.gettext('Deactivate'), callback_data=f'confirm_deactivate_voucher:{voucher_id}:{current_page}')],
+        [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'my_voucher:{current_page}')]
+    ])
+
+def confirm_deactivate_voucher_kb(language: str, current_page: int, voucher_id: int):
+    i18n = get_i18n(language, "keyboard_dom")
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=i18n.gettext('Confirm'), callback_data=f'deactivate_voucher:{voucher_id}:{current_page}')],
+        [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'my_voucher:{current_page}')]
+    ])
+
+def back_in_all_voucher_kb(language: str, current_page: int):
+    i18n = get_i18n(language, "keyboard_dom")
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'my_voucher:{current_page}')]
     ])

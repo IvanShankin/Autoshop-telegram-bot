@@ -224,8 +224,8 @@ async def deactivate_voucher(voucher_id: int) -> int:
     Сделает ваучер невалидным в БД (is_valid = False), вернёт деньги пользователю и удалит ваучер с redis.
     Сообщение пользователю НЕ будет отправлено!
     :return Возвращённая сумма пользователю
+    :except Exception вызовет ошибку если есть
     """
-    returned_money = False
     owner_id = None
     try:
         async with get_db() as session_db:
@@ -300,6 +300,7 @@ async def deactivate_voucher(voucher_id: int) -> int:
         ).format(voucher_id=voucher_id, owner_id=owner_id, error=str(e))
 
         await send_log(log_message)
+        raise e
 
 
 

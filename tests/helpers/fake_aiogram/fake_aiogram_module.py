@@ -266,6 +266,9 @@ class FakeBot:
     def check_str_in_messages(self, text: str):
         return any(text in t for _, t, _ in self.sent)
 
+    def check_str_in_edited_messages(self, text: str):
+        return any(text in text for _, _, _, text, _ in self.calls)
+
     # дял тестирования изменений сообщения
     async def edit_message_media(self, chat_id, message_id, media, reply_markup=None):
         self.calls.append(("edit_message_media", chat_id, message_id, media, reply_markup))
@@ -307,7 +310,7 @@ class SpySend:
 class FakeDispatcher:
     pass
 
-class InlineKeyboardButton:
+class FakeInlineKeyboardButton:
     def __init__(self, text=None, callback_data=None, url=None, **kw):
         self.text = text
         self.callback_data = callback_data
@@ -337,7 +340,7 @@ class ForceReply:
         self.force = force
         self.selective = selective
 
-class InlineKeyboardBuilder:
+class FakeInlineKeyboardBuilder:
     def __init__(self):
         self._buttons = []
 
@@ -349,6 +352,9 @@ class InlineKeyboardBuilder:
 
     def as_markup(self):
         return self._buttons
+
+    def row(self,  *buttons, width: int | None = None):
+        pass
 
 # --- BaseMiddleware (эмуляция aiogram.BaseMiddleware) ---
 class BaseMiddleware:

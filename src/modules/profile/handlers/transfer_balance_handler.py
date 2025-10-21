@@ -4,6 +4,7 @@ from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.actions import edit_message, send_message
 from src.bot_actions.bot_instance import get_bot
+from src.bot_actions.checking_data import checking_availability_money, checking_correctness_number
 from src.exceptions.service_exceptions import UserNotFound, NotEnoughMoney
 from src.modules.profile.keyboard_profile import balance_transfer_kb, \
     back_in_balance_transfer_kb, replenishment_and_back_in_transfer_kb, confirmation_transfer_kb, \
@@ -17,45 +18,9 @@ from src.services.discounts.actions.actions_vouchers import (create_voucher as c
 from src.services.system.actions import get_settings
 from src.services.users.actions import get_user
 from src.services.users.actions.action_other_with_user import money_transfer
-from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_i18n
 
 router = Router()
-
-async def _checking_correctness_number(message: str, language: str, user_id: int, positive: bool) -> bool:
-    """
-    Проверяет, что message это число, если это не так, то отошлёт пользователю сообщение об это.
-    :return Результат (Корректное число = True)
-    """
-    if not safe_int_conversion(message, positive=positive):
-        i18n = get_i18n(language, 'miscellaneous')
-        text = i18n.gettext('Incorrect value entered')
-        await send_message(
-            chat_id=user_id,
-            message=text,
-            image_key='incorrect_data_entered',
-            reply_markup=back_in_balance_transfer_kb(language)
-        )
-        return False
-    return True
-
-async def _checking_availability_money(user_balance: int, need_money: int, language: str, user_id: int):
-    """
-    Проверяет, что у пользователя достаточно денег если это нет так, то отошлёт пользователю сообщение об это.
-    :return Результат (Достаточно = True)
-    """
-    if user_balance < need_money:
-        i18n = get_i18n(language, 'miscellaneous')
-        text = i18n.gettext('Insufficient funds: {amount}').format(amount=need_money - user_balance)
-        await send_message(
-            chat_id=user_id,
-            message=text,
-            image_key='insufficient_funds',
-            reply_markup=replenishment_and_back_in_transfer_kb(language)
-        )
-        return False
-    return True
-
 
 @router.callback_query(F.data == "balance_transfer")
 async def balance_transfer(callback: CallbackQuery, state: FSMContext):
@@ -95,14 +60,22 @@ async def transfer_money_start(callback: CallbackQuery, state: FSMContext):
 async def transfer_money_get_amount(message: Message, state: FSMContext):
     user = await get_user(message.from_user.id, message.from_user.username)
 
-    if not await _checking_correctness_number(
-            message=message.text, language=user.language, user_id=user.user_id, positive=True
+    if not await checking_correctness_number(
+            message=message.text,
+            language=user.language,
+            user_id=user.user_id,
+            positive=True,
+            reply_markup=back_in_balance_transfer_kb(user.language)
     ):
         await state.set_state(TransferMoney.amount)
         return
 
-    if not await _checking_availability_money(
-            user_balance=user.balance, need_money=int(message.text), language=user.language, user_id=user.user_id
+    if not await checking_availability_money(
+            user_balance=user.balance,
+            need_money=int(message.text),
+            language=user.language,
+            user_id=user.user_id,
+            reply_markup=replenishment_and_back_in_transfer_kb(user.language)
     ):
         await state.set_state(TransferMoney.amount)
         return
@@ -126,8 +99,12 @@ async def transfer_money_get_amount(message: Message, state: FSMContext):
 async def transfer_money_get_recipient_id(message: Message, state: FSMContext):
     user = await get_user(message.from_user.id, message.from_user.username)
 
-    if not await _checking_correctness_number(
-            message=message.text, language=user.language, user_id=user.user_id, positive=False
+    if not await checking_correctness_number(
+            message=message.text,
+            language=user.language,
+            user_id=user.user_id,
+            positive=False,
+            reply_markup=back_in_balance_transfer_kb(user.language)
     ):
         await state.set_state(TransferMoney.recipient_id)
         return
@@ -235,8 +212,12 @@ async def create_voucher(callback: CallbackQuery, state: FSMContext):
 async def create_voucher_get_amount(message: Message, state: FSMContext):
     user = await get_user(message.from_user.id, message.from_user.username)
 
-    if not await _checking_correctness_number(
-            message=message.text, language=user.language, user_id=user.user_id, positive=True
+    if not await checking_correctness_number(
+            message=message.text,
+            language=user.language,
+            user_id=user.user_id,
+            positive=True,
+            reply_markup=back_in_balance_transfer_kb(user.language)
     ):
         await state.set_state(CreateVoucher.amount)
         return
@@ -257,8 +238,12 @@ async def create_voucher_get_amount(message: Message, state: FSMContext):
 async def create_voucher_get_number_of_activations(message: Message, state: FSMContext):
     user = await get_user(message.from_user.id, message.from_user.username)
 
-    if not await _checking_correctness_number(
-            message=message.text, language=user.language, user_id=user.user_id, positive=True
+    if not await checking_correctness_number(
+            message=message.text,
+            language=user.language,
+            user_id=user.user_id,
+            positive=True,
+            reply_markup=back_in_balance_transfer_kb(user.language)
     ):
         await state.set_state(CreateVoucher.number_of_activations)
         return
@@ -266,8 +251,12 @@ async def create_voucher_get_number_of_activations(message: Message, state: FSMC
     await state.update_data(number_of_activations=message.text)
     data = CreateVoucherData(**(await state.get_data()))
 
-    if not await _checking_availability_money(
-            user_balance=user.balance, need_money=data.amount * data.number_of_activations, language=user.language, user_id=user.user_id
+    if not await checking_availability_money(
+            user_balance=user.balance,
+            need_money=data.amount * data.number_of_activations,
+            language=user.language,
+            user_id=user.user_id,
+            reply_markup=replenishment_and_back_in_transfer_kb(user.language)
     ):
         await state.set_state(CreateVoucher.number_of_activations)
         return

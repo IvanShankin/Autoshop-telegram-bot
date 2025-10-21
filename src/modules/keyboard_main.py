@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.services.system.actions import get_settings
+from src.services.database.system.actions import get_settings
 from src.utils.i18n import get_i18n
 
 

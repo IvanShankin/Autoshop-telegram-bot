@@ -6,8 +6,8 @@ from src.bot_actions.actions import send_message, edit_message
 from src.bot_actions.bot_instance import get_bot
 from src.middlewares.aiogram_middleware import I18nKeyFilter
 from src.modules.profile.keyboard_profile import profile_kb
-from src.services.discounts.actions import get_valid_voucher_by_user_page
-from src.services.users.actions import get_user
+from src.services.database.discounts.actions import get_valid_voucher_by_user_page
+from src.services.database.users.actions import get_user
 from src.utils.i18n import get_i18n
 
 router_with_repl_kb = Router()

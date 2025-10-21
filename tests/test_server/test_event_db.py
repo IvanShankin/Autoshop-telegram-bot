@@ -1,10 +1,8 @@
 import asyncio
-import time
 from datetime import datetime
 from typing import AsyncGenerator
 
 import orjson
-import pytest_asyncio
 import pytest
 
 from sqlalchemy import select, update
@@ -12,15 +10,15 @@ from sqlalchemy import MetaData, Table
 
 from src.broker.producer import publish_event
 from src.config import DT_FORMAT
-from src.services.discounts.models import VoucherActivations, Vouchers
-from src.services.selling_accounts.events.schemas import NewPurchaseAccount, AccountsData
-from src.services.system.actions import get_settings, update_settings
-from src.services.users.actions import get_user
-from src.services.users.models import Replenishments, Users, WalletTransaction, UserAuditLogs
-from src.services.database.database import get_db
+from src.services.database.discounts.models import Vouchers
+from src.services.database.selling_accounts.events.schemas import NewPurchaseAccount, AccountsData
+from src.services.database.system.actions import get_settings, update_settings
+from src.services.database.users.actions import get_user
+from src.services.database.users.models import Replenishments, Users, WalletTransaction, UserAuditLogs
+from src.services.database.core.database import get_db
 from src.utils.i18n import get_i18n
-from src.redis_dependencies.core_redis import get_redis
-from src.services.replenishments_event.schemas import ReplenishmentFailed, ReplenishmentCompleted, NewReplenishment
+from src.services.redis.core_redis import get_redis
+from src.services.database.replenishments_event.schemas import ReplenishmentFailed, ReplenishmentCompleted, NewReplenishment
 
 from tests.helpers.helper_fixture import (create_new_user, create_type_payment, create_referral, create_replenishment,
                                            create_promo_code, create_settings)
@@ -322,8 +320,8 @@ class TestHandlerNewIncomeRef:
             clean_rabbit
         ):
         """Проверяем корректную работу handler_new_income_referral"""
-        from src.services.referrals.actions import get_referral_lvl
-        from src.services.referrals.models import IncomeFromReferrals, Referrals
+        from src.services.database.referrals.actions import get_referral_lvl
+        from src.services.database.referrals.models import IncomeFromReferrals, Referrals
 
         _, owner, referral = await create_referral()
         replenishment = await create_replenishment(amount = 999999)
@@ -415,7 +413,7 @@ class TestHandlerNewIncomeRef:
     @pytest.mark.asyncio
     async def test_on_referral_income_completed_no_level_up(self,):
         """Проверяет сообщение без повышения уровня (last_lvl == current_lvl)"""
-        from src.services.referrals.events import on_referral_income_completed
+        from src.services.database.referrals.events import on_referral_income_completed
         user_id = 101
         language = "ru"
         amount = 50
@@ -437,7 +435,7 @@ class TestHandlerNewIncomeRef:
     @pytest.mark.asyncio
     async def test_on_referral_income_completed_with_level_up(self,):
         """Проверяет сообщение с повышением уровня (last_lvl != current_lvl)"""
-        from src.services.referrals.events import on_referral_income_completed
+        from src.services.database.referrals.events import on_referral_income_completed
         user_id = 202
         language = "ru"
         amount = 100
@@ -461,7 +459,7 @@ class TestHandlerNewIncomeRef:
     @pytest.mark.asyncio
     async def test_on_referral_income_failed(self,):
         """Проверяет, что on_referral_income_failed пишет лог об ошибке"""
-        from src.services.referrals.events import on_referral_income_failed
+        from src.services.database.referrals.events import on_referral_income_failed
         error_text = "Some referral error"
         await on_referral_income_failed(error_text)
 
@@ -488,8 +486,8 @@ async def test_handler_new_activate_promo_code(
     create_settings,
     clean_rabbit
 ):
-    from src.services.discounts.events.schemas import NewActivatePromoCode
-    from src.services.discounts.models import PromoCodes, ActivatedPromoCodes
+    from src.services.database.discounts.events.schemas import NewActivatePromoCode
+    from src.services.database.discounts.models import PromoCodes, ActivatedPromoCodes
 
     if should_become_inactive: # сделаем поромокод на одну активацию
         async with get_db() as session_db:
@@ -571,7 +569,7 @@ class TestHandlerNewActivatedVoucher:
         balance_after: int
     ):
         """Создает событие активации ваучера"""
-        from src.services.discounts.events import NewActivationVoucher
+        from src.services.database.discounts.events import NewActivationVoucher
 
         return NewActivationVoucher(
             voucher_id=voucher.voucher_id,
@@ -746,7 +744,7 @@ class TestHandlerNewActivatedVoucher:
             create_voucher,
     ):
         """Тест отправки сообщений при истечении ваучера"""
-        from src.services.discounts.utils.set_not_valid import send_set_not_valid_voucher
+        from src.services.database.discounts.utils.set_not_valid import send_set_not_valid_voucher
 
         user = await create_new_user()
         voucher = await create_voucher()
@@ -790,7 +788,7 @@ class TestHandlerNewActivatedVoucher:
     @pytest.mark.asyncio
     async def test_send_failed(self,):
         """Тест отправки сообщения об ошибке"""
-        from src.services.discounts.events import send_failed
+        from src.services.database.discounts.events import send_failed
 
         voucher_id = 999
         error_text = "Test error message"
@@ -825,7 +823,7 @@ async def test_handler_new_purchase_creates_wallet_and_logs(
     - отправляются логи (проверяется fake_bot)
     """
 
-    from src.services.selling_accounts.events.even_handlers_acc import handler_new_purchase
+    from src.services.database.selling_accounts.events.even_handlers_acc import handler_new_purchase
     # подготовка данных
     user = await create_new_user()
     # создаём sold_account в БД и перевод для языка 'ru'
@@ -913,7 +911,7 @@ async def test_account_purchase_event_handler_parses_and_calls_handler(
     Проверяем, что account_purchase_event_handler корректно парсит dict-ивент
     и вызывает handler_new_purchase (через этот wrapper вставится Pydantic->handler).
     """
-    from src.services.selling_accounts.events.even_handlers_acc import account_purchase_event_handler
+    from src.services.database.selling_accounts.events.even_handlers_acc import account_purchase_event_handler
     user = await create_new_user()
     sold_full = await create_sold_account(filling_redis=False, owner_id=user.user_id, language='ru')
 

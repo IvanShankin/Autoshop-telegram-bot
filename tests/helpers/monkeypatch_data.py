@@ -7,8 +7,7 @@ import fakeredis
 import pytest_asyncio
 
 from helpers.fake_aiogram.fake_aiogram_module import FakeBot
-from src.redis_dependencies import core_redis
-
+from src.services.redis import core_redis
 
 fake_bot = FakeBot()
 

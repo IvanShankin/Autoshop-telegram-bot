@@ -9,8 +9,8 @@ from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboa
     InputMediaPhoto
 
 from src.bot_actions.bot_instance import get_bot
-from src.services.system.actions import get_ui_image, update_ui_image
-from src.services.system.actions import get_settings
+from src.services.database.system.actions import get_ui_image, update_ui_image
+from src.services.database.system.actions import get_settings
 from src.utils.core_logger import logger
 
 

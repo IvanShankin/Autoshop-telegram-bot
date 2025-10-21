@@ -1,9 +1,9 @@
 import asyncio
 
 from src.broker.consumer import start_background_consumer, stop_background_consumer
-from src.services.database.filling_database import create_database
-from src.redis_dependencies.filling_redis import filling_all_redis
-from src.services.discounts.utils.set_not_valid import deactivate_expired_promo_codes_and_vouchers
+from src.services.database.core.filling_database import create_database
+from src.services.redis.filling_redis import filling_all_redis
+from src.services.database.discounts.utils.set_not_valid import deactivate_expired_promo_codes_and_vouchers
 from src.bot_actions.bot_run import run_bot
 from src.utils.core_logger import logger
 

@@ -2,16 +2,16 @@ import pytest
 import orjson
 from sqlalchemy import select
 
-from src.redis_dependencies.core_redis import get_redis
-from src.services.database.database import get_db
-from src.services.selling_accounts.models import (AccountServices, AccountCategories,AccountCategoryTranslation,
-                                                  SoldAccounts)
+from src.services.redis.core_redis import get_redis
+from src.services.database.core.database import get_db
+from src.services.database.selling_accounts.models import (AccountServices, AccountCategories, AccountCategoryTranslation,
+                                                           SoldAccounts)
 
 
 class TestUpdateAccountService:
     @pytest.mark.asyncio
     async def test_update_account_service_change_index_up_and_down(self, create_type_account_service, create_account_service):
-        from src.services.selling_accounts.actions import update_account_service
+        from src.services.database.selling_accounts.actions import update_account_service
         # создаём 3 сервиса с индексами 0,1,2
         s1 = await create_account_service(filling_redis=True, name="s1", index=0)
         s2 = await create_account_service(filling_redis=True, name="s2", index=1)
@@ -64,7 +64,7 @@ class TestUpdateAccountService:
 
     @pytest.mark.asyncio
     async def test_update_account_service_name_show_only_updates_single_redis_key(self,create_type_account_service, create_account_service):
-        from src.services.selling_accounts.actions import update_account_service
+        from src.services.database.selling_accounts.actions import update_account_service
 
         t1 = await create_type_account_service(name="t1b")
         s = await create_account_service(filling_redis=True, name="orig_name", type_account_service_id=t1.type_account_service_id, index=0)
@@ -97,7 +97,7 @@ class TestUpdateAccountService:
 class TestUpdateAccountCategory:
     @pytest.mark.asyncio
     async def test_update_account_category_index_reorder_and_redis(self, create_account_service, create_account_category):
-        from src.services.selling_accounts.actions import update_account_category
+        from src.services.database.selling_accounts.actions import update_account_category
         # Создаём один сервис и три категории (main) с индексами 0,1,2
         svc = await create_account_service(filling_redis=True, name="svc_cat_test")
         c1 = await create_account_category(filling_redis=True, account_service_id=svc.account_service_id, language="ru", name="c1")
@@ -146,7 +146,7 @@ class TestUpdateAccountCategory:
 
     @pytest.mark.asyncio
     async def test_update_account_category_validation_and_product_conflict(self, create_account_service, create_account_category, create_product_account):
-        from src.services.selling_accounts.actions import update_account_category
+        from src.services.database.selling_accounts.actions import update_account_category
 
         svc = await create_account_service(filling_redis=False)
         cat = await create_account_category(
@@ -191,7 +191,7 @@ class TestUpdateAccountCategory:
 class TestUpdateAccountCategoryTranslation:
     @pytest.mark.asyncio
     async def test_update_account_category_translation_success(self,create_account_category):
-        from src.services.selling_accounts.actions import update_account_category_translation
+        from src.services.database.selling_accounts.actions import update_account_category_translation
 
         full_category = await create_account_category(filling_redis=True, language="ru", name="orig", description="orig")
 
@@ -244,7 +244,7 @@ class TestUpdateAccountCategoryTranslation:
 
     @pytest.mark.asyncio
     async def test_update_account_category_translation_errors(self, create_account_category):
-        from src.services.selling_accounts.actions import update_account_category_translation
+        from src.services.database.selling_accounts.actions import update_account_category_translation
         # несуществующая категория
         with pytest.raises(ValueError):
             await update_account_category_translation(account_category_id=999999, language="ru", name="x")
@@ -259,7 +259,7 @@ class TestUpdateAccountCategoryTranslation:
 class TestUpdateSoldAccount:
     @pytest.mark.asyncio
     async def test_update_sold_account_mark_invalid_and_redis_update(self, create_sold_account):
-        from src.services.selling_accounts.actions import update_sold_account
+        from src.services.database.selling_accounts.actions import update_sold_account
 
         full_account = await create_sold_account(filling_redis=True, language="ru", name="orig_name")
         sold_account_id = full_account.sold_account_id
@@ -306,7 +306,7 @@ class TestUpdateSoldAccount:
 
     @pytest.mark.asyncio
     async def test_update_sold_account_mark_deleted_removes_from_owner_list(self, create_sold_account):
-        from src.services.selling_accounts.actions import update_sold_account
+        from src.services.database.selling_accounts.actions import update_sold_account
 
         full_account = await create_sold_account(filling_redis=True, language="ru", name="to_delete")
         sold_account_id = full_account.sold_account_id

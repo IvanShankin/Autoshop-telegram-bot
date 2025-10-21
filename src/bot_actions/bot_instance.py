@@ -1,7 +1,7 @@
 from aiogram import Bot, Dispatcher
 
 from src.config import TOKEN_BOT
-from src.services.system.actions import get_settings
+from src.services.database.system.actions import get_settings
 from src.utils.secret_data import decrypt_token
 
 _bot: Bot | None = None

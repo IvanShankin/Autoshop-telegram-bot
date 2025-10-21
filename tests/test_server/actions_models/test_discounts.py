@@ -1,17 +1,16 @@
 from datetime import datetime, timezone, timedelta
-from typing import List
 
 import pytest
 from orjson import orjson
 from sqlalchemy import delete, select, update
 
-from src.services.admins.models import AdminActions
-from src.services.discounts.models import PromoCodes, Vouchers, VoucherActivations
-from src.services.database.database import get_db
-from src.redis_dependencies.core_redis import get_redis
-from src.services.discounts.models.schemas import SmallVoucher
-from src.services.users.actions import get_user
-from src.services.users.models import Users, WalletTransaction, UserAuditLogs
+from src.services.database.admins.models import AdminActions
+from src.services.database.discounts.models import PromoCodes, Vouchers, VoucherActivations
+from src.services.database.core.database import get_db
+from src.services.redis.core_redis import get_redis
+from src.services.database.discounts.models import SmallVoucher
+from src.services.database.users.actions import get_user
+from src.services.database.users.models import Users, WalletTransaction, UserAuditLogs
 from src.utils.i18n import get_i18n
 from tests.helpers.helper_fixture import create_promo_code, create_voucher
 from tests.helpers.helper_functions import comparison_models
@@ -21,7 +20,7 @@ from tests.helpers.helper_fixture import create_settings
 @pytest.mark.asyncio
 @pytest.mark.parametrize("use_redis", [True, False])
 async def test_get_valid_promo_code(use_redis, create_promo_code):
-    from src.services.discounts.actions import get_valid_promo_code
+    from src.services.database.discounts.actions import get_valid_promo_code
     if use_redis:
         async with get_db() as session_db:
             await session_db.execute(delete(PromoCodes))
@@ -39,7 +38,7 @@ async def test_get_valid_promo_code(use_redis, create_promo_code):
 @pytest.mark.asyncio
 @pytest.mark.parametrize("use_redis", [True, False])
 async def test_get_valid_voucher_by_user_page(use_redis, create_new_user, create_voucher):
-    from src.services.discounts.actions import get_valid_voucher_by_user_page
+    from src.services.database.discounts.actions import get_valid_voucher_by_user_page
     user = await create_new_user()
     voucher_1 = await create_voucher(filling_redis=use_redis, creator_id=user.user_id)
     voucher_2 = await create_voucher(filling_redis=use_redis, creator_id=user.user_id)
@@ -54,7 +53,7 @@ async def test_get_valid_voucher_by_user_page(use_redis, create_new_user, create
 @pytest.mark.asyncio
 @pytest.mark.parametrize("use_redis", [True, False])
 async def test_get_count_voucher(use_redis, create_new_user, create_voucher):
-    from src.services.discounts.actions import get_count_voucher
+    from src.services.database.discounts.actions import get_count_voucher
     user = await create_new_user()
     voucher_1 = await create_voucher(filling_redis=use_redis, creator_id=user.user_id)
     voucher_2 = await create_voucher(filling_redis=use_redis, creator_id=user.user_id)
@@ -66,21 +65,21 @@ async def test_get_count_voucher(use_redis, create_new_user, create_voucher):
 @pytest.mark.asyncio
 @pytest.mark.parametrize("use_redis", [True, False])
 async def test_get_valid_voucher_by_code(use_redis, create_voucher):
-    from src.services.discounts.actions import get_valid_voucher_by_code
+    from src.services.database.discounts.actions import get_valid_voucher_by_code
     voucher = await create_voucher(filling_redis=use_redis)
     voucher = await get_valid_voucher_by_code(voucher.activation_code)
     await comparison_models(voucher, voucher)
 
 @pytest.mark.asyncio
 async def test_get_voucher_by_id(create_voucher):
-    from src.services.discounts.actions import get_voucher_by_id
+    from src.services.database.discounts.actions import get_voucher_by_id
     voucher = await create_voucher()
     voucher = await get_voucher_by_id(voucher.voucher_id)
     await comparison_models(voucher, voucher)
 
 @pytest.mark.asyncio
 async def test_create_promo_code(create_promo_code, create_new_user):
-    from src.services.discounts.actions import create_promo_code as create_promo_code_for_test
+    from src.services.database.discounts.actions import create_promo_code as create_promo_code_for_test
     new_promo_code = create_promo_code
     new_promo_code.activation_code = 'unique_code'
     user = await create_new_user()
@@ -115,7 +114,7 @@ async def test_create_promo_code(create_promo_code, create_new_user):
 
 @pytest.mark.asyncio
 async def test_create_voucher(create_voucher):
-    from src.services.discounts.actions import create_voucher as create_voucher_for_test
+    from src.services.database.discounts.actions import create_voucher as create_voucher_for_test
     new_voucher = await create_voucher()
 
     async with get_db() as session_db:
@@ -155,7 +154,7 @@ async def test_create_voucher(create_voucher):
 class TestActivateVoucher:
     async def test_success_activation(self, create_voucher, create_new_user):
         """Пользователь успешно активирует ваучер"""
-        from src.services.discounts.actions import activate_voucher
+        from src.services.database.discounts.actions import activate_voucher
 
         user = await create_new_user()
         origin_balance = user.balance
@@ -180,7 +179,7 @@ class TestActivateVoucher:
 
     async def test_voucher_not_found(self, create_new_user):
         """Ваучера с таким кодом нет"""
-        from src.services.discounts.actions import activate_voucher
+        from src.services.database.discounts.actions import activate_voucher
 
         user = await create_new_user()
         i18n = get_i18n(user.language, "discount_dom")
@@ -192,7 +191,7 @@ class TestActivateVoucher:
 
     async def test_voucher_already_activated(self, create_voucher, create_new_user):
         """Пользователь не может активировать один и тот же ваучер дважды"""
-        from src.services.discounts.actions import activate_voucher
+        from src.services.database.discounts.actions import activate_voucher
 
         user = await create_new_user()
         voucher = await create_voucher()
@@ -215,7 +214,7 @@ class TestActivateVoucher:
 
     async def test_voucher_expired_by_time(self, create_new_user):
         """Ваучер просрочен по времени"""
-        from src.services.discounts.actions import activate_voucher
+        from src.services.database.discounts.actions import activate_voucher
         owner_voucher = await create_new_user()
         user = await create_new_user()
         i18n = get_i18n(user.language, "discount_dom")
@@ -247,7 +246,7 @@ class TestActivateVoucher:
 
     async def test_voucher_activate_owner(self, create_new_user, create_voucher):
         """Пытаемся активировать ваучер когда тот кто пытается - его владелец"""
-        from src.services.discounts.actions import activate_voucher
+        from src.services.database.discounts.actions import activate_voucher
         voucher = await create_voucher()
         user = await get_user(voucher.creator_id)
         i18n = get_i18n(user.language, "discount_dom")
@@ -265,7 +264,7 @@ class TestDeactivateVoucher:
     @pytest.mark.asyncio
     async def test_admin_voucher_no_refund(self, create_voucher):
         """Если ваучер создан админом — возврата нет"""
-        from src.services.discounts.actions.actions_vouchers import deactivate_voucher
+        from src.services.database.discounts.actions import deactivate_voucher
 
         voucher = await create_voucher()
         voucher.is_created_admin = True
@@ -288,7 +287,7 @@ class TestDeactivateVoucher:
 
     async def test_with_refund(self, create_voucher):
         """Корректный возврат денег пользователю + удаление из Redis"""
-        from src.services.discounts.actions.actions_vouchers import deactivate_voucher
+        from src.services.database.discounts.actions import deactivate_voucher
 
         voucher = await create_voucher()
         returned_money = voucher.amount * voucher.number_of_activations # сколько денег должно вернутся
@@ -323,7 +322,7 @@ class TestDeactivateVoucher:
 @pytest.mark.asyncio
 async def test_set_not_valid_promo_code(create_settings):
     """Проверяем, что _set_not_valid_promo_code деактивирует только истёкшие промокоды"""
-    from src.services.discounts.utils.set_not_valid import _set_not_valid_promo_code
+    from src.services.database.discounts.utils.set_not_valid import _set_not_valid_promo_code
 
     now = datetime.now(timezone.utc)
     expired_promo = PromoCodes(

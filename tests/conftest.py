@@ -6,9 +6,9 @@ import aio_pika
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from src.services.database.database import SQL_DB_URL
-from src.services.database import database
-from src.redis_dependencies.filling_redis import filling_all_redis
+from src.services.database.core.database import SQL_DB_URL
+from src.services.database import core
+from src.services.redis.filling_redis import filling_all_redis
 
 from tests.helpers.helper_fixture import *
 from tests.helpers.monkeypatch_data import replacement_redis, replacement_fake_bot
@@ -20,7 +20,7 @@ MODE = os.getenv('MODE')
 RABBITMQ_URL = os.getenv('RABBITMQ_URL')
 
 import pytest_asyncio
-from src.services.database.filling_database import create_database
+from src.services.database.core.filling_database import create_database
 
 consumer_started = False
 
@@ -38,16 +38,16 @@ async def create_database_fixture():
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def clean_db(monkeypatch):
     # создаём новый engine для теста
-    test_engine = create_async_engine(database.SQL_DB_URL, future=True)
+    test_engine = create_async_engine(core.SQL_DB_URL, future=True)
 
-    # подменяем глобальный engine и sessionmaker внутри database.py
-    monkeypatch.setattr(database, "engine", test_engine)
-    database.session_local.configure(bind=test_engine)
+    # подменяем глобальный engine и sessionmaker внутри core.py
+    monkeypatch.setattr(core, "engine", test_engine)
+    core.session_local.configure(bind=test_engine)
 
     # дропаем и создаём таблицы
     async with test_engine.begin() as conn:
-        await conn.run_sync(database.Base.metadata.drop_all)
-        await conn.run_sync(database.Base.metadata.create_all)
+        await conn.run_sync(core.Base.metadata.drop_all)
+        await conn.run_sync(core.Base.metadata.create_all)
 
     yield
 

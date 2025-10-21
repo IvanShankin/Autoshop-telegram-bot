@@ -13,11 +13,11 @@ from src.modules.profile.schemas import TransferData
 from src.modules.profile.schemas.transfer_balance import CreateVoucherData
 from src.modules.profile.state import TransferMoney
 from src.modules.profile.state.transfer_balance import CreateVoucher
-from src.services.discounts.actions.actions_vouchers import (create_voucher as create_voucher_db, get_voucher_by_id,
-                                                             deactivate_voucher as deactivate_voucher_server)
-from src.services.system.actions import get_settings
-from src.services.users.actions import get_user
-from src.services.users.actions.action_other_with_user import money_transfer
+from src.services.database.discounts.actions import (create_voucher as create_voucher_db, get_voucher_by_id,
+                                                     deactivate_voucher as deactivate_voucher_server)
+from src.services.database.system.actions import get_settings
+from src.services.database.users.actions import get_user
+from src.services.database.users.actions.action_other_with_user import money_transfer
 from src.utils.i18n import get_i18n
 
 router = Router()

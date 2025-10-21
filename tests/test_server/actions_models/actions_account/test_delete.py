@@ -2,9 +2,9 @@ import pytest
 import orjson
 from sqlalchemy import select
 
-from src.redis_dependencies.core_redis import get_redis
-from src.services.database.database import get_db
-from src.services.selling_accounts.actions import (
+from src.services.redis.core_redis import get_redis
+from src.services.database.core.database import get_db
+from src.services.database.selling_accounts.actions import (
     delete_account_service,
     delete_translate_category,
     delete_account_category,
@@ -12,7 +12,7 @@ from src.services.selling_accounts.actions import (
     delete_sold_account,
     add_translation_in_account_category,  # используется в тестах
 )
-from src.services.selling_accounts.models import (
+from src.services.database.selling_accounts.models import (
     AccountServices, AccountCategories, AccountCategoryTranslation,
     ProductAccounts, SoldAccounts, SoldAccountsTranslation
 )

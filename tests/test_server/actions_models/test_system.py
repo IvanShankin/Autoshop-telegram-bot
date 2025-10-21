@@ -4,13 +4,13 @@ import pytest
 from orjson import orjson
 from sqlalchemy import delete, select
 
-from src.services.system.actions.actions import get_all_types_payments, add_backup_log, update_type_payment, \
+from src.services.database.system.actions.actions import get_all_types_payments, add_backup_log, update_type_payment, \
     get_type_payment, update_ui_image, get_all_ui_images, get_ui_image
-from src.services.system.models import Settings, BackupLogs, TypePayments
-from src.services.system.actions import get_settings, update_settings
-from src.services.database.database import get_db
-from src.redis_dependencies.core_redis import get_redis
-from src.services.system.models.models import UiImages
+from src.services.database.system.models import Settings, BackupLogs, TypePayments
+from src.services.database.system.actions import get_settings, update_settings
+from src.services.database.core.database import get_db
+from src.services.redis.core_redis import get_redis
+from src.services.database.system.models import UiImages
 from tests.helpers.helper_fixture import create_settings
 from tests.helpers.helper_functions import comparison_models
 

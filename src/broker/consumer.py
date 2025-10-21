@@ -6,10 +6,10 @@ import aiormq
 from orjson import orjson
 
 from src.config import RABBITMQ_URL
-from src.services.discounts.events import promo_code_event_handler, voucher_event_handler
-from src.services.referrals.events import referral_event_handler
-from src.services.replenishments_event.event_handlers_replenishments import replenishment_event_handler
-from src.services.selling_accounts.events.even_handlers_acc import account_purchase_event_handler
+from src.services.database.discounts.events import promo_code_event_handler, voucher_event_handler
+from src.services.database.referrals.events import referral_event_handler
+from src.services.database.replenishments_event.event_handlers_replenishments import replenishment_event_handler
+from src.services.database.selling_accounts.events.even_handlers_acc import account_purchase_event_handler
 from src.utils.core_logger import logger
 
 # глобальные переменные для управления задачей

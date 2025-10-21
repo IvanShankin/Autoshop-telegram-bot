@@ -5,9 +5,9 @@ from aiogram.types import Message
 from typing import Callable, Dict, Any, Awaitable
 
 from src.config import DEFAULT_LANG
-from src.services.admins.actions import check_admin
-from src.services.system.actions import get_settings
-from src.services.users.actions import get_user
+from src.services.database.admins.actions import check_admin
+from src.services.database.system.actions import get_settings
+from src.services.database.users.actions import get_user
 from src.utils.i18n import get_i18n
 
 

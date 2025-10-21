@@ -5,14 +5,14 @@ from orjson import orjson
 from sqlalchemy import select
 
 from src.exceptions.service_exceptions import NotEnoughAccounts, NotEnoughMoney, InvalidPromoCode
-from src.redis_dependencies.core_redis import get_redis
-from src.services.database.database import get_db
-from src.services.discounts.models import PromoCodes
+from src.services.redis.core_redis import get_redis
+from src.services.database.core.database import get_db
+from src.services.database.discounts.models import PromoCodes
 
-from src.services.selling_accounts.models import SoldAccounts, PurchasesAccounts, \
+from src.services.database.selling_accounts.models import SoldAccounts, PurchasesAccounts, \
     SoldAccountsTranslation
-from src.services.selling_accounts.models.schemas import PurchaseAccountSchem
-from src.services.users.models import UserAuditLogs, Users
+from src.services.database.selling_accounts.models.schemas import PurchaseAccountSchem
+from src.services.database.users.models import UserAuditLogs, Users
 
 
 async def _get_user_from_db(user_id: int) -> Users:
@@ -40,7 +40,7 @@ async def test_purchase_accounts_with_amount_promo(
     create_product_account,
     create_promo_code,
 ):
-    from src.services.selling_accounts.actions.action_purchase import purchase_accounts
+    from src.services.database.selling_accounts.actions.action_purchase import purchase_accounts
     # подготовка данных
     user = await create_new_user()
     # выставим баланс пользователя (через DB), чтобы хватило денег
@@ -143,7 +143,7 @@ async def test_purchase_accounts_without_promo(
     create_translate_account_category,
     create_product_account,
 ):
-    from src.services.selling_accounts.actions.action_purchase import purchase_accounts
+    from src.services.database.selling_accounts.actions.action_purchase import purchase_accounts
     # подготовим пользователя и данные
     user = await create_new_user()
     async with get_db() as s:
@@ -221,7 +221,7 @@ async def test_purchase_accounts_percent_discount(
     create_product_account,
 ):
     """Промокод процентный"""
-    from src.services.selling_accounts.actions.action_purchase import purchase_accounts
+    from src.services.database.selling_accounts.actions.action_purchase import purchase_accounts
     user = await create_new_user()
     async with get_db() as s:
         await s.execute(Users.__table__.update().where(Users.user_id == user.user_id).values(balance=10000))
@@ -262,7 +262,7 @@ async def test_purchase_accounts_not_enough_accounts(
     create_account_category,
     create_translate_account_category,
 ):
-    from src.services.selling_accounts.actions.action_purchase import purchase_accounts
+    from src.services.database.selling_accounts.actions.action_purchase import purchase_accounts
     user = await create_new_user()
     async with get_db() as s:
         await s.execute(Users.__table__.update().where(Users.user_id == user.user_id).values(balance=10000))
@@ -286,7 +286,7 @@ async def test_purchase_accounts_not_enough_money(
     create_translate_account_category,
     create_product_account,
 ):
-    from src.services.selling_accounts.actions.action_purchase import purchase_accounts
+    from src.services.database.selling_accounts.actions.action_purchase import purchase_accounts
     user = await create_new_user()
     # выставляем маленький баланс
     async with get_db() as s:
@@ -312,7 +312,7 @@ async def test_purchase_accounts_invalid_promo(
     create_translate_account_category,
     create_product_account,
 ):
-    from src.services.selling_accounts.actions.action_purchase import purchase_accounts
+    from src.services.database.selling_accounts.actions.action_purchase import purchase_accounts
     user = await create_new_user()
     async with get_db() as s:
         await s.execute(Users.__table__.update().where(Users.user_id == user.user_id).values(balance=10000))

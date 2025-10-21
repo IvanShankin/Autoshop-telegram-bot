@@ -70,8 +70,8 @@ async def processed_promo_code(monkeypatch):
     """Определяет точный момент когда закончится обработка события"""
     ev = monkeypatch_event_db(
         monkeypatch,
-        "src.services.discounts.events.event_handlers_promo_code",
-        "src.services.discounts.events",
+        "src.services.database.discounts.events.event_handlers_promo_code",
+        "src.services.database.discounts.events",
         "promo_code_event_handler"
     )
     yield ev
@@ -81,8 +81,8 @@ async def processed_voucher(monkeypatch):
     """Определяет точный момент когда закончится обработка события"""
     ev = monkeypatch_event_db(
         monkeypatch,
-        "src.services.discounts.events.event_handlers_voucher",
-        "src.services.discounts.events",
+        "src.services.database.discounts.events.event_handlers_voucher",
+        "src.services.database.discounts.events",
         "voucher_event_handler"
     )
     yield ev
@@ -92,8 +92,8 @@ async def processed_referrals(monkeypatch):
     """Определяет точный момент когда закончится обработка события"""
     ev = monkeypatch_event_db(
         monkeypatch,
-        "src.services.referrals.events.event_handlers_ref",
-        "src.services.referrals.events.",
+        "src.services.database.referrals.events.event_handlers_ref",
+        "src.services.database.referrals.events.",
         "referral_event_handler"
     )
     yield ev
@@ -104,8 +104,8 @@ async def processed_replenishment(monkeypatch):
     """Определяет точный момент когда закончится обработка события"""
     ev = monkeypatch_event_db(
         monkeypatch,
-        "src.services.replenishments_event.event_handlers_replenishments",
-        "src.services.replenishments_event.",
+        "src.services.database.replenishments_event.event_handlers_replenishments",
+        "src.services.database.replenishments_event.",
         "replenishment_event_handler"
     )
     yield ev

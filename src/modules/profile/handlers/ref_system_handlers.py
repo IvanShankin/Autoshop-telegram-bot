@@ -7,9 +7,9 @@ from src.bot_actions.actions import edit_message
 from src.bot_actions.bot_instance import get_bot
 from src.config import DT_FORMAT
 from src.modules.profile.keyboard_profile import ref_system_kb, accruals_history_kb, back_in_accrual_history_kb
-from src.services.referrals.actions.actions_ref import get_all_referrals, get_income_from_referral
-from src.services.referrals.reports import generate_referral_report_exel
-from src.services.users.actions import get_user
+from src.services.database.referrals.actions.actions_ref import get_all_referrals, get_income_from_referral
+from src.services.database.referrals.reports import generate_referral_report_exel
+from src.services.database.users.actions import get_user
 from src.utils.i18n import get_i18n
 
 router_with_repl_kb = Router()

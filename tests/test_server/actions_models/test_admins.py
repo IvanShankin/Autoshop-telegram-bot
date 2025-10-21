@@ -1,11 +1,11 @@
 import pytest
 from sqlalchemy import select
 
-from src.redis_dependencies.core_redis import get_redis
-from src.services.admins.actions import check_admin, create_admin as create_admin_fun, get_message_for_sending, \
+from src.services.redis.core_redis import get_redis
+from src.services.database.admins.actions import check_admin, create_admin as create_admin_fun, get_message_for_sending, \
     update_message_for_sending
-from src.services.admins.models import MessageForSending, Admins
-from src.services.database.database import get_db
+from src.services.database.admins.models import MessageForSending, Admins
+from src.services.database.core.database import get_db
 from tests.helpers.helper_fixture import create_admin_fix
 
 @pytest.mark.asyncio
@@ -60,7 +60,7 @@ async def test_get_message_for_sending_returns_existing(create_admin_fix):
 @pytest.mark.asyncio
 async def test_get_message_for_sending_creates_if_missing(create_admin_fix):
     # удаляем все записи MessageForSending из БД
-    from src.services.database.database import get_db
+    from src.services.database.core.database import get_db
 
     admin = await create_admin_fix()
     async with get_db() as session_db:

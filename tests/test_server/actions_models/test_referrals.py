@@ -3,13 +3,13 @@ import pytest
 from orjson import orjson
 from sqlalchemy import delete, select
 
-from src.services.database.database import get_db
-from src.services.referrals.actions.actions_ref import add_referral, get_all_referrals, get_income_from_referral, \
+from src.services.database.core.database import get_db
+from src.services.database.referrals.actions.actions_ref import add_referral, get_all_referrals, get_income_from_referral, \
     get_referral_income_page, get_count_referral_income
-from src.services.referrals.models import ReferralLevels, Referrals
-from src.services.referrals.actions import get_referral_lvl
-from src.redis_dependencies.core_redis import get_redis
-from src.services.users.models import UserAuditLogs
+from src.services.database.referrals.models import ReferralLevels, Referrals
+from src.services.database.referrals.actions import get_referral_lvl
+from src.services.redis.core_redis import get_redis
+from src.services.database.users.models import UserAuditLogs
 
 
 @pytest.mark.asyncio

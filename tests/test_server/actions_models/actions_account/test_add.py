@@ -2,11 +2,11 @@ import pytest
 from orjson import orjson
 from sqlalchemy import select
 
-from src.redis_dependencies.core_redis import get_redis
-from src.services.database.database import get_db
-from src.services.selling_accounts.actions import add_account_services, add_deleted_accounts, add_sold_sold_account, \
+from src.services.redis.core_redis import get_redis
+from src.services.database.core.database import get_db
+from src.services.database.selling_accounts.actions import add_account_services, add_deleted_accounts, add_sold_sold_account, \
     add_translation_in_account_category, add_product_account, add_translation_in_sold_account, add_account_category
-from src.services.selling_accounts.models import AccountServices, DeletedAccounts, SoldAccounts, \
+from src.services.database.selling_accounts.models import AccountServices, DeletedAccounts, SoldAccounts, \
     AccountCategoryTranslation, ProductAccounts, AccountCategories, SoldAccountsTranslation
 
 

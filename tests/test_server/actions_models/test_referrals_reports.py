@@ -3,7 +3,7 @@ import os
 import pytest
 from openpyxl import load_workbook
 
-from src.services.referrals.reports import generate_referral_report_exel
+from src.services.database.referrals.reports import generate_referral_report_exel
 
 
 @pytest.mark.asyncio

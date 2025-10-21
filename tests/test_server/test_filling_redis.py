@@ -7,22 +7,22 @@ import pytest
 from dateutil.parser import parse
 from sqlalchemy import select
 
-import src.redis_dependencies.filling_redis as filling
+import src.services.redis.filling_redis as filling
 from helpers.helper_functions import comparison_models
 from src.config import UI_IMAGES
-from src.services.database.filling_database import filling_ui_image
-from src.services.discounts.models.schemas import SmallVoucher
-from src.services.selling_accounts.models.models_with_tranlslate import SoldAccountsFull
-from src.services.system.models.models import UiImages
-from src.services.users.models import Users, BannedAccounts
-from src.services.database.database import get_db
-from src.services.admins.models import Admins
-from src.services.discounts.models import PromoCodes, Vouchers
-from src.services.selling_accounts.models import (
+from src.services.database.core.filling_database import filling_ui_image
+from src.services.database.discounts.models import SmallVoucher
+from src.services.database.selling_accounts.models.models_with_tranlslate import SoldAccountsFull
+from src.services.database.system.models import UiImages
+from src.services.database.users.models import Users, BannedAccounts
+from src.services.database.core.database import get_db
+from src.services.database.admins.models import Admins
+from src.services.database.discounts.models import PromoCodes, Vouchers
+from src.services.database.selling_accounts.models import (
     TypeAccountServices, AccountServices, AccountCategories,
     ProductAccounts, SoldAccounts, AccountCategoryTranslation, SoldAccountsTranslation
 )
-from src.redis_dependencies.core_redis import get_redis
+from src.services.redis.core_redis import get_redis
 from tests.helpers.helper_fixture import create_sold_account, create_new_user
 
 class TestBase:

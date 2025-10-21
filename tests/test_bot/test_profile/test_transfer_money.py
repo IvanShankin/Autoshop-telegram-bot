@@ -24,7 +24,7 @@ async def test_transfer_amount_invalid_input(
     user = await create_new_user()
     async def fake_get_user(arg_id, username=None):
         return user
-    monkeypatch.setattr("src.services.users.actions.get_user", fake_get_user)
+    monkeypatch.setattr("src.services.database.users.actions.get_user", fake_get_user)
 
     # Подготовим сообщение — нечисловая строка
     fake_msg = FakeMessage(text="not_a_number", chat_id=user.user_id, username=user.username)
@@ -121,7 +121,7 @@ async def test_transfer_recipient_not_found(
         if arg_id == user.user_id:
             return user
         return None
-    monkeypatch.setattr("src.services.users.actions.get_user", fake_get_user)
+    monkeypatch.setattr("src.services.database.users.actions.get_user", fake_get_user)
 
 
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage
@@ -164,7 +164,7 @@ async def test_confirm_transfer_money_user_not_found_exception(
     # заставим money_transfer бросить исключение UserNotFound
     async def fake_money_transfer(sender_id, recipient_id, amount):
         raise UserNotFound()
-    monkeypatch.setattr("src.services.users.actions.action_other_with_user.money_transfer", fake_money_transfer)
+    monkeypatch.setattr("src.services.database.users.actions.action_other_with_user.money_transfer", fake_money_transfer)
 
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
     cb = FakeCallbackQuery(data="confirm_transfer_money", chat_id=user.user_id, username=user.username)

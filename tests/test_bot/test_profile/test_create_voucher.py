@@ -156,7 +156,7 @@ async def test_confirm_create_voucher_success(
     """
     from src.modules.profile.handlers import transfer_balance_handler as module
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
-    from src.services.discounts.actions import get_valid_voucher_by_user_page
+    from src.services.database.discounts.actions import get_valid_voucher_by_user_page
 
     fake_bot = replacement_fake_bot
     bot_me = await fake_bot.me()

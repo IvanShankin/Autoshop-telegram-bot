@@ -5,23 +5,23 @@ import pytest_asyncio
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from src.redis_dependencies.core_redis import get_redis
-from src.redis_dependencies.filling_redis import filling_sold_accounts_by_owner_id, \
+from src.services.redis.core_redis import get_redis
+from src.services.redis.filling_redis import filling_sold_accounts_by_owner_id, \
     filling_sold_accounts_by_accounts_id, filling_account_categories_by_service_id, \
     filling_account_categories_by_category_id, filling_all_account_services, filling_account_services, \
     filling_product_accounts_by_account_id, filling_product_accounts_by_category_id, filling_all_types_payments, \
     filling_types_payments_by_id
-from src.services.admins.models import Admins
-from src.services.discounts.models import PromoCodes, Vouchers
-from src.services.referrals.utils import create_unique_referral_code
-from src.services.selling_accounts.models import SoldAccounts, TypeAccountServices, SoldAccountsTranslation, \
+from src.services.database.admins.models import Admins
+from src.services.database.discounts.models import PromoCodes, Vouchers
+from src.services.database.referrals.utils import create_unique_referral_code
+from src.services.database.selling_accounts.models import SoldAccounts, TypeAccountServices, SoldAccountsTranslation, \
     AccountServices, AccountCategories, AccountCategoryTranslation, ProductAccounts
-from src.services.selling_accounts.models.models_with_tranlslate import SoldAccountsFull, AccountCategoryFull
-from src.services.system.models.models import UiImages
-from src.services.users.models import Users, Replenishments, NotificationSettings, WalletTransaction
-from src.services.system.models import TypePayments, Settings
-from src.services.database.database import get_db
-from src.services.referrals.models import Referrals, IncomeFromReferrals
+from src.services.database.selling_accounts.models.models_with_tranlslate import AccountCategoryFull, SoldAccountsFull
+from src.services.database.system.models import UiImages
+from src.services.database.users.models import Users, Replenishments, NotificationSettings, WalletTransaction
+from src.services.database.system.models import TypePayments, Settings
+from src.services.database.core.database import get_db
+from src.services.database.referrals.models import Referrals, IncomeFromReferrals
 
 
 @pytest_asyncio.fixture
@@ -589,11 +589,11 @@ async def create_ui_image(tmp_path, monkeypatch):
         file_abs.write_bytes(b"fake-image-bytes")       # создаём тестовый файл
 
         # Подменяем MEDIA_DIR в модуле с функциями (чтобы get_ui_image искал в tmp_path)
-        import src.services.system.actions.actions as ser
+        import src.services.database.system.actions.actions as ser
         monkeypatch.setattr(ser, "MEDIA_DIR", str(media_dir))
 
         # Создаём запись в БД с относительным file_path
-        from src.services.database.database import get_db
+        from src.services.database.core.database import get_db
 
         async with get_db() as session:
             ui_image = UiImages(

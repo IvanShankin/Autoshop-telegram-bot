@@ -1,17 +1,19 @@
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Optional, Any, Dict
 
 import orjson
+from asyncpg.pgproto.pgproto import timedelta
 from sqlalchemy import select, update, delete, func
 
-from src.config import PAGE_SIZE
+from src.config import PAGE_SIZE, PAYMENT_LIFETIME_SECONDS
 from src.exceptions.service_exceptions import UserNotFound, NotEnoughMoney
 from src.services.redis.filling_redis import filling_user
 from src.services.database.admins.models import AdminActions
 from src.services.database.referrals.utils import create_unique_referral_code
 from src.services.database.users.actions.action_user import get_user
-from src.services.database.users.models import Users, NotificationSettings, BannedAccounts, UserAuditLogs, WalletTransaction, \
-    TransferMoneys
+from src.services.database.users.models import Users, NotificationSettings, BannedAccounts, UserAuditLogs, \
+    WalletTransaction, \
+    TransferMoneys, Replenishments
 from src.services.database.core.database import get_db
 from src.services.redis.core_redis import get_redis
 from src.services.redis.time_storage import TIME_USER
@@ -269,3 +271,62 @@ async def money_transfer(sender_id: int, recipient_id: int, amount: int):
         await send_log(f"#Ошибка_при_переводе_денег \n\nID пользователя: {sender_id} \nОшибка: {e}")
         logger.exception(f"ошибка: {e}")
 
+
+async def create_replenishment(
+        user_id: int,
+        type_payment_id: int,
+        origin_amount_rub: int,
+        amount_rub: int,
+) -> Replenishments:
+    """
+    Создает Replenishments в БД. Статус выставляется автоматически "pending"
+
+    Args:
+        user_id: ID пользователя (обязательный)
+        type_payment_id: ID типа платежа (обязательный)
+        origin_amount_rub: Сумма в рублях без учёта комиссии (обязательный)
+        amount_rub: Сумма в рублях с учётом комиссии (обязательный)
+    """
+    async with get_db() as session_db:
+        new_replenishment = Replenishments(
+            user_id = user_id,
+            type_payment_id=type_payment_id,
+            origin_amount = origin_amount_rub,
+            amount = amount_rub,
+        )
+        session_db.add(new_replenishment)
+        await session_db.commit()
+        await session_db.refresh(new_replenishment)
+    return new_replenishment
+
+
+async def update_replenishment(
+    replenishment_id: int,
+    payment_system_id: Optional[str] = None,
+    invoice_url: Optional[str] = None,
+    expire_at: datetime | None = datetime.now(timezone.utc) + timedelta(seconds=PAYMENT_LIFETIME_SECONDS),
+    payment_data: Optional[Dict[str, Any]] = None,
+) -> Replenishments:
+    """
+    Args:
+        replenishment_id: ID пополнения
+        payment_system_id: ID транзакции в системе платежа
+        invoice_url: URL для оплаты
+        expire_at: Срок действия платежа
+        payment_data: Дополнительные данные платежа в формате JSON
+    """
+    async with get_db() as session_db:
+        result = await session_db.execute(
+            update(Replenishments)
+            .where(Replenishments.replenishment_id == replenishment_id)
+            .values(
+                payment_system_id=payment_system_id,
+                invoice_url=invoice_url,
+                expire_at=expire_at,
+                payment_data=payment_data
+            )
+            .returning(Replenishments)
+        )
+        replenishment = result.scalar_one()
+        await session_db.commit()
+    return replenishment

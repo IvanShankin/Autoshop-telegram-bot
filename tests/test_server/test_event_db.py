@@ -54,8 +54,7 @@ class TestHandlerNewReplenishment:
             event = NewReplenishment(
                 replenishment_id=new_replenishment.replenishment_id,
                 user_id=new_replenishment.user_id,
-                amount=new_replenishment.amount,
-                create_at=new_replenishment.created_at
+                amount=new_replenishment.amount
             )
 
             await publish_event(event.model_dump(), 'replenishment.new_replenishment')  # публикация события

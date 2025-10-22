@@ -1,13 +1,18 @@
 import os
 import sys
+from datetime import timezone, datetime
 from typing import List
 
+from asyncpg.pgproto.pgproto import timedelta
 from dotenv import load_dotenv
 from pathlib import Path
 
 
 load_dotenv()
+
 TOKEN_BOT = os.getenv('TOKEN_BOT')
+TOKEN_CRYPTO_BOT = os.getenv('TOKEN_CRYPTO_BOT')
+
 MAIN_ADMIN = int(os.getenv('MAIN_ADMIN'))
 RABBITMQ_URL = os.getenv('RABBITMQ_URL')
 SECRET_KEY = os.getenv('SECRET_KEY')
@@ -18,9 +23,9 @@ sys.path.append(str(BASE_DIR))
 LOCALES_DIR = BASE_DIR / 'locales'
 LOG_DIR =  BASE_DIR / 'logs'
 MEDIA_DIR = BASE_DIR / "media"
-TEMP_FILE_DIR = BASE_DIR / "temp"
+TEMP_FILE_DIR = MEDIA_DIR / "temp"
 
-TYPE_PAYMENTS = {'crypto_bot': 'crypto_bot'}
+TYPE_PAYMENTS = ['crypto_bot', 'zelenka'] # отображают в типах оплаты для админа
 TYPE_ACCOUNT_SERVICES = {'telegram': 'telegram', 'other': 'other'}
 
 ALLOWED_LANGS = ["ru", "en"] # все коды языков
@@ -29,6 +34,7 @@ NAME_LANGS = {"ru": "Русский", "en": "English", } # название яз
 DEFAULT_LANG = "ru"
 
 DT_FORMAT = "%Y-%m-%d %H:%M:%S"
+PAYMENT_LIFETIME_SECONDS = 1200 # 20 минут
 
 PAGE_SIZE = 6
 
@@ -74,5 +80,9 @@ UI_IMAGES = {
     "user_no_found": f"{BASE_DIR}/media/ui_sections/user_no_found.png",
     "server_error": f"{BASE_DIR}/media/ui_sections/server_error.png",
 
+    # Пополнение
+    "show_all_services_replenishments": f"{BASE_DIR}/media/ui_sections/show_all_services_replenishments.png",
+    "request_enter_amount": f"{BASE_DIR}/media/ui_sections/request_enter_amount.png",
+    "pay": f"{BASE_DIR}/media/ui_sections/pay.png",
 
 }

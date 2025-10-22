@@ -6,8 +6,9 @@ from src.exceptions.service_exceptions import UserNotFound, NotEnoughMoney
 from src.services.database.admins.models import AdminActions
 from src.services.database.users.actions.action_user import get_user_by_ref_code
 from tests.helpers.helper_functions import parse_redis_user, comparison_models
-from src.services.database.users.models import Users, NotificationSettings, BannedAccounts, WalletTransaction, TransferMoneys, \
-    UserAuditLogs
+from src.services.database.users.models import Users, NotificationSettings, BannedAccounts, WalletTransaction, \
+    TransferMoneys, \
+    UserAuditLogs, Replenishments
 from src.services.database.core.database import get_db
 from src.services.redis.core_redis import get_redis
 from tests.helpers.helper_fixture import create_new_user, create_wallet_transaction
@@ -406,3 +407,53 @@ async def test_money_transfer_integrity_error_rollback(monkeypatch, replacement_
 
     assert fake_bot.sent, "send_log должен был вызваться при обработке исключения"
 
+
+@pytest.mark.asyncio
+async def test_money_transfer_integrity_error_rollback(replacement_fake_bot, create_new_user, create_type_payment):
+    """
+    Симулируем ошибку при создании TransferMoneys (бросаем Exception),
+    ожидаем откат (балансы не меняются), и что send_log был вызван.
+    """
+    from src.services.database.users.actions import create_replenishment
+
+    user = await create_new_user()
+    type_payment = await create_type_payment()
+
+    replenishment = await create_replenishment(
+        user_id = user.user_id,
+        type_payment_id = type_payment.type_payment_id,
+        origin_amount_rub = 100,
+        amount_rub = 105,
+    )
+
+    async with get_db() as session_db:
+        result = await session_db.execute(
+            select(Replenishments)
+            .where(Replenishments.replenishment_id == replenishment.replenishment_id))
+        replenishment_db = result.scalar_one()
+
+    await comparison_models(replenishment, replenishment_db)
+
+@pytest.mark.asyncio
+async def test_money_transfer_integrity_error_rollback(replacement_fake_bot, create_new_user, create_replenishment):
+    """
+    Симулируем ошибку при создании TransferMoneys (бросаем Exception),
+    ожидаем откат (балансы не меняются), и что send_log был вызван.
+    """
+    from src.services.database.users.actions import update_replenishment
+
+    replenishment = await create_replenishment(amount=100)
+
+    replenishment = await update_replenishment(
+        replenishment_id = replenishment.replenishment_id,
+        payment_system_id = "ID",
+        invoice_url = "URL"
+    )
+
+    async with get_db() as session_db:
+        result = await session_db.execute(
+            select(Replenishments)
+            .where(Replenishments.replenishment_id == replenishment.replenishment_id))
+        replenishment_db = result.scalar_one()
+
+    await comparison_models(replenishment, replenishment_db)

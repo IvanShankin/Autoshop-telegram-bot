@@ -91,9 +91,9 @@ class Replenishments(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # Универсальные поля для разных платежных систем
-    payment_system_id = Column(String(500))  # ID транзакции в системе платежа
+    payment_system_id = Column(String(500), nullable=True)  # ID транзакции в системе платежа
     invoice_url = Column(Text, nullable=True)  # URL для оплаты
-    expire_at = Column(DateTime(timezone=True))  # Срок действия платежа
+    expire_at = Column(DateTime(timezone=True),  server_default=func.now())  # Срок действия платежа
     payment_data = Column(JSON, nullable=True)  # Дополнительные данные платежа
 
     user = relationship("Users", back_populates="replenishments")

@@ -35,6 +35,7 @@ DEFAULT_LANG = "ru"
 
 DT_FORMAT = "%Y-%m-%d %H:%M:%S"
 PAYMENT_LIFETIME_SECONDS = 1200 # 20 минут
+FETCH_INTERVAL = 7200 # 2 часа (для обновления курса доллара)
 
 PAGE_SIZE = 6
 

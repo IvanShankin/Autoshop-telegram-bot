@@ -2,6 +2,7 @@ import asyncio
 
 from src.broker.consumer import start_background_consumer, stop_background_consumer
 from src.services.database.core.filling_database import create_database
+from src.services.fastapi_core.server import start_server
 from src.services.redis.filling_redis import filling_all_redis
 from src.services.database.discounts.utils.set_not_valid import deactivate_expired_promo_codes_and_vouchers
 from src.bot_actions.bot_run import run_bot
@@ -12,8 +13,10 @@ async def on_startup():
     await create_database()
     await filling_all_redis()
     await start_background_consumer()
+
     asyncio.create_task(deactivate_expired_promo_codes_and_vouchers())
     asyncio.create_task(start_dollar_rate_scheduler())
+    asyncio.create_task(start_server())
 
     await run_bot()
 

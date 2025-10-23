@@ -272,6 +272,15 @@ async def money_transfer(sender_id: int, recipient_id: int, amount: int):
         logger.exception(f"ошибка: {e}")
 
 
+async def get_replenishment(replenishment_id: int) -> Replenishments | None:
+    async with get_db() as session_db:
+        result = await session_db.execute(
+            select(Replenishments)
+            .where(Replenishments.replenishment_id == replenishment_id)
+        )
+        return result.scalar_one_or_none()
+
+
 async def create_replenishment(
         user_id: int,
         type_payment_id: int,
@@ -302,6 +311,7 @@ async def create_replenishment(
 
 async def update_replenishment(
     replenishment_id: int,
+    status: str,
     payment_system_id: Optional[str] = None,
     invoice_url: Optional[str] = None,
     expire_at: datetime | None = datetime.now(timezone.utc) + timedelta(seconds=PAYMENT_LIFETIME_SECONDS),
@@ -310,6 +320,7 @@ async def update_replenishment(
     """
     Args:
         replenishment_id: ID пополнения
+        status: Статус
         payment_system_id: ID транзакции в системе платежа
         invoice_url: URL для оплаты
         expire_at: Срок действия платежа
@@ -321,6 +332,7 @@ async def update_replenishment(
             .where(Replenishments.replenishment_id == replenishment_id)
             .values(
                 payment_system_id=payment_system_id,
+                status=status,
                 invoice_url=invoice_url,
                 expire_at=expire_at,
                 payment_data=payment_data

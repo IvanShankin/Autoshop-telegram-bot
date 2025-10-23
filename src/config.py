@@ -1,7 +1,7 @@
 import os
 import sys
 from datetime import timezone, datetime
-from typing import List
+from typing import List, Dict
 
 from asyncpg.pgproto.pgproto import timedelta
 from dotenv import load_dotenv
@@ -11,6 +11,7 @@ from pathlib import Path
 load_dotenv()
 
 TOKEN_BOT = os.getenv('TOKEN_BOT')
+TOKEN_LOGGER_BOT = os.getenv('TOKEN_LOGGER_BOT')
 TOKEN_CRYPTO_BOT = os.getenv('TOKEN_CRYPTO_BOT')
 
 MAIN_ADMIN = int(os.getenv('MAIN_ADMIN'))
@@ -26,6 +27,7 @@ MEDIA_DIR = BASE_DIR / "media"
 TEMP_FILE_DIR = MEDIA_DIR / "temp"
 
 TYPE_PAYMENTS = ['crypto_bot', 'zelenka'] # отображают в типах оплаты для админа
+MIN_MAX_REPLENISHMENT = {'crypto_bot': {"min": 1, "max": 99999999}}
 TYPE_ACCOUNT_SERVICES = {'telegram': 'telegram', 'other': 'other'}
 
 ALLOWED_LANGS = ["ru", "en"] # все коды языков

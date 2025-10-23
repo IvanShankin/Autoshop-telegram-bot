@@ -27,7 +27,6 @@ async def get_settings() -> Settings:
             settings = Settings(
                 support_username=data['support_username'],
                 maintenance_mode =data['maintenance_mode'],
-                hash_token_logger_bot=data['hash_token_logger_bot'],
                 channel_for_logging_id=data['channel_for_logging_id'],
                 channel_for_subscription_id=data['channel_for_subscription_id'],
                 shop_name=data['shop_name'],
@@ -61,7 +60,6 @@ async def update_settings(settings: Settings) -> Settings:
             .values(
                 support_username=settings.support_username,
                 maintenance_mode =settings.maintenance_mode ,
-                hash_token_logger_bot=settings.hash_token_logger_bot,
                 channel_for_logging_id=settings.channel_for_logging_id,
                 channel_for_subscription_id=settings.channel_for_subscription_id,
                 shop_name=settings.shop_name,

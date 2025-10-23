@@ -409,11 +409,16 @@ async def test_money_transfer_integrity_error_rollback(monkeypatch, replacement_
 
 
 @pytest.mark.asyncio
-async def test_money_transfer_integrity_error_rollback(replacement_fake_bot, create_new_user, create_type_payment):
-    """
-    Симулируем ошибку при создании TransferMoneys (бросаем Exception),
-    ожидаем откат (балансы не меняются), и что send_log был вызван.
-    """
+async def test_get_replenishment(replacement_fake_bot, create_new_user, create_replenishment):
+    from src.services.database.users.actions import get_replenishment
+
+    replenishment = await create_replenishment(amount=100)
+    replenishment_res = await get_replenishment(replenishment.replenishment_id)
+
+    await comparison_models(replenishment, replenishment_res)
+
+@pytest.mark.asyncio
+async def test_create_replenishment(replacement_fake_bot, create_new_user, create_type_payment):
     from src.services.database.users.actions import create_replenishment
 
     user = await create_new_user()
@@ -435,17 +440,14 @@ async def test_money_transfer_integrity_error_rollback(replacement_fake_bot, cre
     await comparison_models(replenishment, replenishment_db)
 
 @pytest.mark.asyncio
-async def test_money_transfer_integrity_error_rollback(replacement_fake_bot, create_new_user, create_replenishment):
-    """
-    Симулируем ошибку при создании TransferMoneys (бросаем Exception),
-    ожидаем откат (балансы не меняются), и что send_log был вызван.
-    """
+async def test_update_replenishment(replacement_fake_bot, create_new_user, create_replenishment):
     from src.services.database.users.actions import update_replenishment
 
     replenishment = await create_replenishment(amount=100)
 
     replenishment = await update_replenishment(
         replenishment_id = replenishment.replenishment_id,
+        status = 'pending',
         payment_system_id = "ID",
         invoice_url = "URL"
     )

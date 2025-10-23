@@ -242,7 +242,6 @@ async def create_type_payment():
 async def create_settings() -> Settings:
     settings = Settings(
         support_username='support_username',
-        hash_token_logger_bot='hash_token_logger_bot',
         channel_for_logging_id=123456789,
         channel_for_subscription_id=987654321,
         FAQ='FAQ'

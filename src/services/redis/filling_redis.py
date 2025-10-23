@@ -41,6 +41,7 @@ async def filling_all_redis():
         for user_id in users_ids:
             await filling_voucher_by_user_id(user_id)
 
+    await filling_settings()
     await filling_referral_levels()
     await filling_all_types_payments()
     await filling_users()

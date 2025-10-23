@@ -1,4 +1,6 @@
 import asyncio
+import json
+
 import aiohttp
 import logging
 
@@ -69,7 +71,8 @@ async def _fetch_cbr(session: aiohttp.ClientSession) -> float | None:
     """Получает официальный курс ЦБ РФ."""
     try:
         async with session.get(URL_CBR, timeout=8) as resp:
-            data = await resp.json()
+            text = await resp.text()
+            data = json.loads(text)
             usd = data.get("Valute", {}).get("USD", {})
             if usd and "Value" in usd:
                 return float(usd["Value"])

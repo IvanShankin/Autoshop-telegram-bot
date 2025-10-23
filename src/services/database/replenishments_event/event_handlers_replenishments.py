@@ -13,7 +13,7 @@ from src.bot_actions.bot_instance import get_bot_logger
 from src.modules.keyboard_main import support_kb
 from src.services.database.replenishments_event.schemas import ReplenishmentCompleted, ReplenishmentFailed
 from src.utils.core_logger import logger
-from src.bot_actions.actions import send_log
+from src.bot_actions.actions import send_log, send_message
 
 
 async def replenishment_event_handler(event):
@@ -53,6 +53,7 @@ async def handler_new_replenishment(new_replenishment: NewReplenishment):
         i18n = get_i18n(user.language, 'profile_messages')
         user.balance = user.balance + new_replenishment.amount
         user.total_sum_replenishment = user.total_sum_replenishment + new_replenishment.amount
+
         language = user.language
         username = i18n.gettext('No') if user.username is None else f'@{user.username}'
         total_sum_replenishment = user.total_sum_replenishment
@@ -146,19 +147,15 @@ async def on_replenishment_completed(event: ReplenishmentCompleted):
         event.amount
     ).format(sum=event.amount)
 
-    try:
-        bot = await get_bot_logger()
-        await bot.send_message(event.user_id, message_success)
-    except TelegramForbiddenError:  # если бот заблокирован у пользователя
-        pass
+    await send_message(event.user_id, message_success)
 
     if not event.error:
         message_log = i18n.ngettext(
-            "#Replenishment \n\nUser {username} successfully topped up the balance by {sum} ruble. \n"
+             "#Replenishment \n\nUser {username} successfully topped up the balance by {sum} ruble. \n"
             "Replenishment ID: {replenishment_id} \n\n"
             "Time: {time}",
             "#Replenishment \n\nUser {username} successfully topped up the balance by {sum} rubles. \n"
-            "Replenishment ID: {replenishment_id}  \n\n"
+            "Replenishment ID: {replenishment_id} \n\n"
             "Time: {time}",
             event.amount
         ).format(
@@ -189,11 +186,7 @@ async def on_replenishment_failed(event: ReplenishmentFailed):
         "\n\nWe apologize for the inconvenience. \nPlease contact support."
     ).format(replenishment_id=event.replenishment_id)
 
-    try:
-        bot = await get_bot_logger()
-        await bot.send_message(event.user_id, message_for_user, reply_markup=await support_kb(event.language))
-    except TelegramForbiddenError:  # если бот заблокирован у пользователя
-        pass
+    await send_message(event.user_id, message_for_user, reply_markup=await support_kb(event.language))
 
     message_log = i18n.gettext(
         "#Replenishment_error \n\nUser {username} Paid money, but the balance was not updated. \n"

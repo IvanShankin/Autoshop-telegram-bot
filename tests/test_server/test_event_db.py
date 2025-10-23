@@ -245,7 +245,7 @@ class TestHandlerNewReplenishment:
             "Replenishment ID: {replenishment_id} \n\n"
             "Time: {time}",
             "#Replenishment \n\nUser {username} successfully topped up the balance by {sum} rubles. \n"
-            "Replenishment ID: {replenishment_id}  \n\n"
+            "Replenishment ID: {replenishment_id} \n\n"
             "Time: {time}",
             amount
         ).format(

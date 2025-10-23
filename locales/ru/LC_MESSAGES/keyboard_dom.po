@@ -55,6 +55,12 @@ msgid "Settings"
 msgstr "⚙️ Настройки"
 
 
+# ---- Пополнение ----
+
+msgid "Pay"
+msgstr "Оплатить"
+
+
 # ---- Настройки ----
 
 msgid "Language"

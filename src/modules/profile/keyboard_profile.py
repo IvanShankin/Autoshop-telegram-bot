@@ -5,19 +5,21 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.bot_actions.bot_instance import get_bot
 from src.config import ALLOWED_LANGS, NAME_LANGS, EMOJI_LANGS, PAGE_SIZE
-from src.services.discounts.actions import get_valid_voucher_by_user_page
-from src.services.discounts.actions.actions_vouchers import get_count_voucher
-from src.services.referrals.actions.actions_ref import get_referral_income_page, get_count_referral_income
-from src.services.system.actions import get_settings
-from src.services.users.actions.action_other_with_user import get_wallet_transaction_page, get_count_wallet_transaction
-from src.services.users.models import NotificationSettings
+from src.services.database.discounts.actions import get_valid_voucher_by_user_page
+from src.services.database.discounts.actions import get_count_voucher
+from src.services.database.referrals.actions.actions_ref import get_referral_income_page, get_count_referral_income
+from src.services.database.system.actions import get_settings
+from src.services.database.system.actions.actions import get_all_types_payments
+from src.services.database.users.actions.action_other_with_user import get_wallet_transaction_page, \
+    get_count_wallet_transaction
+from src.services.database.users.models import NotificationSettings
 from src.utils.i18n import get_i18n
 
 
 def profile_kb(language: str):
     i18n = get_i18n(language, 'keyboard_dom')
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=i18n.gettext('Top up your balance'), callback_data='money_replenishment')],
+        [InlineKeyboardButton(text=i18n.gettext('Top up your balance'), callback_data='show_type_replenishment')],
         [InlineKeyboardButton(text=i18n.gettext('Purchased accounts'), callback_data='purchased_accounts')],
         [InlineKeyboardButton(text=i18n.gettext('Balance transfer'), callback_data='balance_transfer')],
         [InlineKeyboardButton(text=i18n.gettext('Referral system'), callback_data='referral_system')],
@@ -30,6 +32,38 @@ def back_in_profile_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data='profile')]
     ])
+
+
+# ---- Пополнение ----
+
+async def type_replenishment_kb(language: str):
+    i18n = get_i18n(language, 'keyboard_dom')
+    type_payments = await get_all_types_payments()
+    keyboard = InlineKeyboardBuilder()
+
+    for type_payment in type_payments:
+        if type_payment.is_active:
+            keyboard.row(InlineKeyboardButton(
+                text=type_payment.name_for_user,
+                callback_data=f'replenishment:{type_payment.type_payment_id}:{type_payment.name_for_user}')
+            )
+
+    keyboard.row(InlineKeyboardButton(text=i18n.gettext('Back'), callback_data='profile'))
+    keyboard.adjust(1)
+    return keyboard.as_markup()
+
+def payment_invoice(language: str, url: str):
+    i18n = get_i18n(language, 'keyboard_dom')
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=i18n.gettext('Pay'), url=url)],
+        [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data='show_type_replenishment')]
+    ])
+
+def back_in_type_replenishment_kb(language: str):
+    i18n = get_i18n(language, 'keyboard_dom')
+    return InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data='show_type_replenishment')]
+        ])
 
 # ---- Настройки ----
 

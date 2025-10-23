@@ -25,3 +25,6 @@ msgstr "Недостаточно средств: {amount}"
 
 msgid "User not found"
 msgstr "Пользователь не найден"
+
+msgid "An error occurred, please try again"
+msgstr "Произошла ошибка, пожалуйста попробуйте ещё раз"

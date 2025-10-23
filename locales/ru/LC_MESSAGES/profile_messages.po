@@ -19,6 +19,49 @@ msgstr "👤 Информация \n"
 "├ Баланс: {balance} ₽ \n"
 "╰ Средства удержанные в ваучерах: {money_in_vouchers} ₽ \n"
 
+
+# ---- Пополнение ----
+
+msgid "Select the desired service for replenishment"
+msgstr "Выберите желаемый сервис для пополнения"
+
+msgid "This service is temporarily inactive"
+msgstr "Данный сервис временно неактивен"
+
+msgid "{name_payment}. Enter the top-up amount in rubles"
+msgstr "{name_payment}. Введите сумму пополнения в рублях"
+
+msgid ""
+"{service_name}. Invoice successfully created. You have {minutes} minute to "
+"pay. After the time expires, the invoice will be canceled. \n\n"
+"Amount: {origin_sum}\n"
+"Payable: {total_sum} ₽ ( + commission {percent}%)"
+msgid_plural ""
+"{service_name}. Invoice successfully created. You have {minutes} minutes to "
+"pay. After the time expires, the invoice will be canceled. \n\n"
+"Amount: {origin_sum}\n"
+"Payable: {total_sum} ₽ ( + commission {percent}%)"
+msgstr[0] ""
+"{service_name}. Счёт успешно создан. У вас есть {minutes} минута для оплаты. "
+"По истечении времени счёт будет отменён. \n\n"
+"Сумма: {origin_sum}\n"
+"К оплате: {total_sum} ₽ ( + commission {percent}%)"
+msgstr[1] ""
+"{service_name}. Счёт успешно создан. У вас есть {minutes} минуты для оплаты. "
+"По истечении времени счёт будет отменён. \n\n"
+"Сумма: {origin_sum}\n"
+"К оплате: {total_sum} ₽ ( + commission {percent}%)"
+msgstr[2] ""
+"{service_name}. Счёт успешно создан. У вас есть {minutes} минут для оплаты. "
+"По истечении времени счёт будет отменён. \n\n"
+"Сумма: {origin_sum}\n"
+"К оплате: {total_sum} ₽ ( + комиссия {percent}%)"
+
+msgid "Incorrect amount entered. \n\nMaximum: {amount_max} \nMinimum: {amount_min}"
+msgstr "Введена некорректная сумма \n\nМаксимум: {amount_max} \nМинимум: {amount_min}"
+
+# ---- Настройки ----
+
 msgid "Select the settings item"
 msgstr "Выберите пункт настроек"
 
@@ -28,6 +71,8 @@ msgstr "Язык в боте"
 msgid "Notification Settings"
 msgstr "Настройки уведомлений"
 
+
+# ---- Движение средств ----
 
 msgid "All fund movements. To view a specific transaction, click on it"
 msgstr "Все движения средств. Для просмотра конкретной транзакции нажмите на неё"
@@ -45,6 +90,8 @@ msgstr "ID: {transaction_id} \n\n"
 "Баланс после: {balance_after} \n"
 "Дата: {created_at}"
 
+
+# ---- Рефералы ----
 
 msgid "Your referral link: <a href='{ref_link}'>Link</a> \n\n"
 "Total earnings: {total_earnings} \n"

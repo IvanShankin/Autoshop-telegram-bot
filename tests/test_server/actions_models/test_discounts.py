@@ -140,7 +140,7 @@ async def test_create_voucher(create_voucher):
         result = await session_db.execute(select(WalletTransaction).where(WalletTransaction.user_id == new_voucher.creator_id))
         transfer = result.scalar_one_or_none()
         assert transfer
-        assert transfer.amount == new_voucher.amount * new_voucher.number_of_activations
+        assert transfer.amount == (new_voucher.amount * new_voucher.number_of_activations) * -1
 
     async with get_redis() as session_redis:
         voucher_redis = orjson.loads(await session_redis.get(f'voucher:{voucher_returned.activation_code}'))

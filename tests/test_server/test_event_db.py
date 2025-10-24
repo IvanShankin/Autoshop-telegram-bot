@@ -864,7 +864,7 @@ async def test_handler_new_purchase_creates_wallet_and_logs(
         wt = result.scalar_one_or_none()
         assert wt is not None, "WalletTransaction не создан"
         assert wt.type == 'purchase'
-        assert wt.amount == new_purchase.amount_purchase
+        assert wt.amount == new_purchase.amount_purchase * -1
         assert wt.balance_before == new_purchase.user_balance_before
         assert wt.balance_after == new_purchase.user_balance_after
 

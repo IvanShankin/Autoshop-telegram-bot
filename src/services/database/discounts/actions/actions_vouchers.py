@@ -184,7 +184,7 @@ async def create_voucher(
             wallet_transaction = WalletTransaction(
                 user_id = user.user_id,
                 type = 'voucher',
-                amount = required_amount,
+                amount = required_amount * -1,
                 balance_before = user.balance, # тут старые данные
                 balance_after = user.balance + required_amount
             )

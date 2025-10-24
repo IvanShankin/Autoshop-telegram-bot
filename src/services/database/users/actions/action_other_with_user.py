@@ -220,7 +220,7 @@ async def money_transfer(sender_id: int, recipient_id: int, amount: int):
                 wallet_trans_sender = WalletTransaction(
                     user_id = sender_id,
                     type = 'transfer',
-                    amount = amount,
+                    amount = amount * -1,
                     balance_before = sender.balance - amount,
                     balance_after = sender.balance
                 )
@@ -228,7 +228,7 @@ async def money_transfer(sender_id: int, recipient_id: int, amount: int):
                     user_id = recipient_id,
                     type = 'transfer',
                     amount = amount,
-                    balance_before = recipient.balance - amount,
+                    balance_before = recipient.balance - amount, # т.к. ранее обновили баланс
                     balance_after = recipient.balance
                 )
 

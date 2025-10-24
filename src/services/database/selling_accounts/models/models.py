@@ -116,6 +116,7 @@ class AccountCategoryTranslation(Base):
     account_category = relationship("AccountCategories", back_populates="translations")
 
 class ProductAccounts(Base):
+    """Хранит записи об аккаунтах которые стоят на продаже, если аккаунт продан, здесь запись удаляется"""
     __tablename__ = "product_accounts"
     __table_args__ = (
         Index('ix_accounts_type_service', 'type_account_service_id'),
@@ -135,6 +136,7 @@ class ProductAccounts(Base):
     account_category = relationship("AccountCategories", back_populates="product_accounts")
 
 class SoldAccounts(Base):
+    """Хранит только проданные аккаунты, которые отображаются пользователю"""
     __tablename__ = "sold_accounts"
     __table_args__ = (
         Index('ix_sold_accounts_owner', 'owner_id'),
@@ -152,7 +154,7 @@ class SoldAccounts(Base):
     hash_login = Column(Text, nullable=True)
     hash_password = Column(Text, nullable=True)
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    sold_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("Users", back_populates="sold_account")
     type_account_service = relationship("TypeAccountServices", back_populates="sold_accounts")

@@ -49,7 +49,7 @@ async def handler_new_purchase(new_purchase: NewPurchaseAccount):
     new_wallet_transaction = WalletTransaction(
         user_id = new_purchase.user_id,
         type = 'purchase',
-        amount = new_purchase.amount_purchase,
+        amount = new_purchase.amount_purchase * -1,
         balance_before = new_purchase.user_balance_before,
         balance_after = new_purchase.user_balance_after
     )

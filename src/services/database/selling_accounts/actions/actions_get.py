@@ -7,16 +7,18 @@ import orjson
 from sqlalchemy import select, inspect as sa_inspect, true, DateTime
 from sqlalchemy.orm import selectinload
 
+from src.services.database.selling_accounts.models.models import AccountStorage
 from src.services.redis.core_redis import get_redis
-from src.services.redis.filling_redis import (filling_type_account_services, filling_account_services, \
-                                              filling_account_categories_by_service_id, filling_account_categories_by_category_id, \
-                                              filling_product_accounts_by_category_id, filling_product_accounts_by_account_id, \
-                                              filling_all_account_services, filling_sold_account_only_one_owner, \
-                                              filling_sold_account_only_one, filling_all_types_account_service)
+from src.services.redis.filling_redis import (
+    filling_type_account_services, filling_account_services, filling_account_categories_by_service_id,
+    filling_account_categories_by_category_id, filling_product_accounts_by_category_id, filling_product_account_by_account_id,
+    filling_all_account_services, filling_sold_account_by_account_id, filling_all_types_account_service,
+    filling_sold_accounts_by_owner_id
+)
 from src.services.database.core.database import get_db
 from src.services.database.selling_accounts.models import TypeAccountServices, AccountServices, AccountCategories, \
-    ProductAccounts, SoldAccounts
-from src.services.database.selling_accounts.models.models_with_tranlslate import AccountCategoryFull, SoldAccountsFull
+    ProductAccounts, SoldAccounts, AccountCategoryFull, SoldAccountSmall, SoldAccountFull, \
+    ProductAccountFull
 
 
 async def _maybe_await(v):
@@ -47,7 +49,7 @@ async def _get_single_obj(
     redis_key: str,
     filter_expr,
     call_fun_filling: Callable[[], Awaitable[None]],
-    options = None,
+    options: tuple = None,
     post_process: Callable[[Any], Any] | None = None
 ) -> Any | None:
     """
@@ -75,7 +77,7 @@ async def _get_single_obj(
     async with get_db() as session_db:
         query = select(model_db)
         if options is not None:
-            query = query.options(options)
+            query = query.options(*options)
 
         result_db = await session_db.execute(query.where(filter_expr))
         result = result_db.scalar_one_or_none()
@@ -236,7 +238,7 @@ async def get_account_categories_by_category_id(
     category = await _get_single_obj(
         model_db=AccountCategories,
         redis_key=f'account_categories_by_category_id:{account_category_id}:{language}',
-        options=selectinload(AccountCategories.translations),
+        options=(selectinload(AccountCategories.translations), ),
         filter_expr=AccountCategories.account_category_id == account_category_id,
         call_fun_filling=filling_account_categories_by_category_id,
         post_process=post_process
@@ -279,55 +281,74 @@ async def get_product_account_by_category_id(category_id: int) -> List[ProductAc
     )
 
 
-async def get_product_account_by_account_id(account_id: int) -> ProductAccounts:
+async def get_product_account_by_account_id(account_id: int) -> ProductAccountFull:
+    def post_process(obj):
+        # если пришёл словарь (из кеша), создаём DTO напрямую
+        if isinstance(obj, dict):
+            return ProductAccountFull.model_validate(obj)
+
+        # если пришёл ORM-объект из БД — используем существующий метод
+        return ProductAccountFull.from_orm_model(obj, obj.account_storage)
+
+    async def call_fun_filling():
+        await filling_product_account_by_account_id(account_id)
+
     return await _get_single_obj(
         model_db=ProductAccounts,
         redis_key=f'product_accounts_by_account_id:{account_id}',
+        options=(selectinload(ProductAccounts.account_storage), ),
         filter_expr=ProductAccounts.account_id == account_id,
-        call_fun_filling=filling_product_accounts_by_account_id
+        post_process=post_process,
+        call_fun_filling=call_fun_filling
     )
 
-async def get_sold_accounts_by_owner_id(owner_id: int, language: str = 'ru') -> List[SoldAccountsFull]:
+async def get_sold_accounts_by_owner_id(owner_id: int, language: str = 'ru') -> List[SoldAccountSmall]:
     """Отсортировано по возрастанию даты создания"""
     async def filling_list_account():
-        await filling_sold_account_only_one_owner(owner_id, language)
+        await filling_sold_accounts_by_owner_id(owner_id)
 
     def post_process(obj):
         # если пришёл словарь (из кеша), создаём DTO напрямую
         if isinstance(obj, dict):
-            return SoldAccountsFull.model_validate(obj)
+            return SoldAccountSmall.model_validate(obj)
 
         # если пришёл ORM-объект из БД — используем существующий метод
-        return SoldAccountsFull.from_orm_with_translation(obj, lang=language)
+        return SoldAccountSmall.from_orm_with_translation(obj, lang=language)
 
     return await _get_grouped_objects(
         model_db=SoldAccounts,
         redis_key=f'sold_accounts_by_owner_id:{owner_id}:{language}',
         options=selectinload(SoldAccounts.translations),
         filter_expr=SoldAccounts.owner_id == owner_id,
-        order_by=SoldAccounts.created_at.desc(),
+        order_by=SoldAccounts.sold_at.desc(),
         call_fun_filling=filling_list_account,
         post_process=post_process,
     )
 
-async def get_sold_accounts_by_account_id(sold_account_id: int, language: str = 'ru') -> SoldAccountsFull | None:
+async def get_sold_accounts_by_account_id(sold_account_id: int, language: str = 'ru') -> SoldAccountFull | None:
 
     async def filling_account():
-        await filling_sold_account_only_one(sold_account_id, language)
+        await filling_sold_account_by_account_id(sold_account_id)
 
     def post_process(obj):
         # если пришёл словарь (из кеша), создаём DTO напрямую
         if isinstance(obj, dict):
-            return SoldAccountsFull.model_validate(obj)
+            return SoldAccountFull.model_validate(obj)
 
         # если пришёл ORM-объект из БД — используем существующий метод
-        return SoldAccountsFull.from_orm_with_translation(obj, lang=language)
+        return SoldAccountFull.from_orm_with_translation(obj, lang=language)
 
     return await _get_single_obj(
         model_db=SoldAccounts,
         redis_key=f'sold_accounts_by_accounts_id:{sold_account_id}:{language}',
         filter_expr=SoldAccounts.sold_account_id == sold_account_id,
         call_fun_filling=filling_account,
-        options=selectinload(SoldAccounts.translations),
+        options=(selectinload(SoldAccounts.translations), selectinload(SoldAccounts.account_storage)),
         post_process=post_process
     )
+
+async def get_account_storage(account_storage_id: int) -> AccountStorage | None:
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(AccountStorage).where(AccountStorage.account_storage_id == account_storage_id))
+        return result_db.scalar_one_or_none()
+

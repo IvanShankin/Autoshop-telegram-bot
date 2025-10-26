@@ -2,10 +2,12 @@ import pytest
 import orjson
 from sqlalchemy import select
 
+from src.services.database.selling_accounts.models.models import AccountStorage, ProductAccounts
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
-from src.services.database.selling_accounts.models import (AccountServices, AccountCategories, AccountCategoryTranslation,
-                                                           SoldAccounts)
+from src.services.database.selling_accounts.models import (AccountServices, AccountCategories,
+                                                           AccountCategoryTranslation,
+                                                           SoldAccounts, SoldAccountFull, ProductAccountFull)
 
 
 class TestUpdateAccountService:
@@ -256,93 +258,49 @@ class TestUpdateAccountCategoryTranslation:
         with pytest.raises(ValueError):
             await update_account_category_translation(account_category_id=full_category.account_category_id, language="en", name="x")
 
-class TestUpdateSoldAccount:
+class TestUpdateAccountStorage:
     @pytest.mark.asyncio
-    async def test_update_sold_account_mark_invalid_and_redis_update(self, create_sold_account):
-        from src.services.database.selling_accounts.actions import update_sold_account
-
-        full_account = await create_sold_account(filling_redis=True, language="ru", name="orig_name")
+    async def test_update_account_storage_sold_account(self, create_sold_account, create_account_storage):
+        from src.services.database.selling_accounts.actions import update_account_storage
+        account_storage = await create_account_storage()
+        _, full_account = await create_sold_account(
+            filling_redis=True, account_storage_id=account_storage.account_storage_id, language="ru"
+        )
         sold_account_id = full_account.sold_account_id
-        owner_id = full_account.owner_id
-
-        # Удостоверимся, что ключи в redis есть до изменений
-        async with get_redis() as r:
-            key_single = f"sold_accounts_by_accounts_id:{sold_account_id}:ru"
-            key_owner = f"sold_accounts_by_owner_id:{owner_id}:ru"
-            raw_single_before = await r.get(key_single)
-            raw_owner_before = await r.get(key_owner)
-            assert raw_single_before is not None
-            assert raw_owner_before is not None
 
         # делаем аккаунт невалидным
-        updated = await update_sold_account(sold_account_id=sold_account_id, is_valid=False)
+        await update_account_storage(account_storage_id=account_storage.account_storage_id, is_active=False)
 
-        # проверяем DB-поле
         async with get_db() as session:
-            res = await session.execute(select(SoldAccounts).where(SoldAccounts.sold_account_id == sold_account_id))
-            row = res.scalar_one()
-            assert row.is_valid is False
+            res_db = await session.execute(select(AccountStorage).where(AccountStorage.account_storage_id == account_storage.account_storage_id))
+            account_storage: AccountStorage = res_db.scalar_one()
+            assert account_storage.is_active == False
 
-        # проверяем redis: single ключ должен отражать is_valid=False
         async with get_redis() as r:
-            raw_single = await r.get(key_single)
-            assert raw_single is not None
-            parsed_single = orjson.loads(raw_single)
-            # parsed_single может быть dict (если корректно сериализуется) или модель — проверяем поля
-            if isinstance(parsed_single, dict):
-                assert parsed_single.get("is_valid") is False
-            else:
-                # в случае сериализации Pydantic-модели через orjson — всё равно поле должно присутствовать в JSON
-                assert b'"is_valid":false' in raw_single or b'"is_valid": 0' in raw_single
+            # в redis не должны ничего хранить, т.к. мы установили is_valid == False
+            json_str = await r.get(f"sold_accounts_by_accounts_id:{sold_account_id}:ru")
+            assert not json_str
 
-            # также проверим список владельца — в нём должна быть запись с is_valid=False
-            raw_owner = await r.get(key_owner)
-            assert raw_owner is not None
-            parsed_owner = orjson.loads(raw_owner)
-            found = [x for x in parsed_owner if x["sold_account_id"] == sold_account_id]
-            assert found, "В списке sold_accounts_by_owner_id ожидалась запись по нашему sold_account_id"
-            assert found[0]["is_valid"] is False
-
+            json_str = await r.get(f"sold_accounts_by_owner_id:{full_account.owner_id}:ru")
+            assert not json_str
 
     @pytest.mark.asyncio
-    async def test_update_sold_account_mark_deleted_removes_from_owner_list(self, create_sold_account):
-        from src.services.database.selling_accounts.actions import update_sold_account
+    async def test_update_account_storage_product_account(self, create_product_account, create_account_storage):
+        from src.services.database.selling_accounts.actions import update_account_storage
+        account_storage = await create_account_storage()
+        _, full_account = await create_product_account(filling_redis=True, account_storage_id=account_storage.account_storage_id)
+        product_account_id = full_account.account_id
 
-        full_account = await create_sold_account(filling_redis=True, language="ru", name="to_delete")
-        sold_account_id = full_account.sold_account_id
-        owner_id = full_account.owner_id
+        # делаем аккаунт невалидным
+        await update_account_storage(account_storage_id=account_storage.account_storage_id, is_valid=False)
 
-        # убедимся, что есть ключи
-        async with get_redis() as r:
-            key_single = f"sold_accounts_by_accounts_id:{sold_account_id}:ru"
-            key_owner = f"sold_accounts_by_owner_id:{owner_id}:ru"
-            assert await r.get(key_single) is not None
-            assert await r.get(key_owner) is not None
-
-        # помечаем как удалённый
-        updated = await update_sold_account(sold_account_id=sold_account_id, is_deleted=True)
-
-        # проверяем БД
         async with get_db() as session:
-            res = await session.execute(select(SoldAccounts).where(SoldAccounts.sold_account_id == sold_account_id))
-            acct = res.scalar_one()
-            assert acct.is_deleted is True
+            res_db = await session.execute(
+                select(AccountStorage).where(AccountStorage.account_storage_id == account_storage.account_storage_id))
+            account_storage: AccountStorage = res_db.scalar_one()
+            assert account_storage.is_valid == False
 
-        # проверяем redis: в списке владельца не должно быть записи с этим sold_account_id
         async with get_redis() as r:
-            raw_owner = await r.get(key_owner)
-            # key_owner может быть пересоздан функцией или оставаться прежним — проверяем отсутствие id
-            if raw_owner:
-                parsed_owner = orjson.loads(raw_owner)
-                assert all(x["sold_account_id"] != sold_account_id for x in parsed_owner)
-
-            # единичный ключ для аккаунта может быть удалён либо содержать пустой список/значение
-            raw_single = await r.get(key_single)
-            if raw_single:
-                parsed_single = orjson.loads(raw_single)
-                # допускаем, что single-key либо отсутствует, либо пустой, либо содержит данные, но не с нашим id
-                if isinstance(parsed_single, dict):
-                    # если dict — должен быть is_deleted True
-                    assert parsed_single.get("is_deleted") is True
-                elif isinstance(parsed_single, list):
-                    assert all(item.get("sold_account_id") != sold_account_id for item in parsed_single)
+            raw_single = await r.get(f"product_accounts_by_account_id:{product_account_id}")
+            product_account = ProductAccountFull(**orjson.loads(raw_single))
+            assert product_account.account_storage.is_valid == False

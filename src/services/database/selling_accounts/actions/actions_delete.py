@@ -4,7 +4,7 @@ from sqlalchemy import select, delete, distinct, update
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_account_categories_by_service_id, \
     filling_account_categories_by_category_id, filling_product_accounts_by_category_id, \
-    filling_sold_account_only_one_owner
+    filling_sold_accounts_by_owner_id
 from src.services.database.core.database import get_db
 from src.services.database.selling_accounts.models import AccountServices, AccountCategories, ProductAccounts, \
     AccountCategoryTranslation, SoldAccounts, SoldAccountsTranslation
@@ -177,5 +177,5 @@ async def delete_sold_account(account_id: int):
         # обновляем redis
         async with get_redis() as session_redis:
             for language in all_lang:
-                await filling_sold_account_only_one_owner(account.owner_id, language=language)
+                await filling_sold_accounts_by_owner_id(account.owner_id)
                 await session_redis.delete(f'sold_accounts_by_accounts_id:{account.sold_account_id}:{language}')

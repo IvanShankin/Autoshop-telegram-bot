@@ -13,12 +13,11 @@ from src.config import DT_FORMAT
 from src.services.database.discounts.models import Vouchers
 from src.services.database.selling_accounts.events.schemas import NewPurchaseAccount, AccountsData
 from src.services.database.system.actions import get_settings, update_settings
-from src.services.database.users.actions import get_user
 from src.services.database.users.models import Replenishments, Users, WalletTransaction, UserAuditLogs
+from src.services.database.replenishments_event.schemas import ReplenishmentFailed, ReplenishmentCompleted, NewReplenishment
 from src.services.database.core.database import get_db
 from src.utils.i18n import get_i18n
 from src.services.redis.core_redis import get_redis
-from src.services.database.replenishments_event.schemas import ReplenishmentFailed, ReplenishmentCompleted, NewReplenishment
 
 from tests.helpers.helper_fixture import (create_new_user, create_type_payment, create_referral, create_replenishment,
                                            create_promo_code, create_settings)
@@ -582,11 +581,14 @@ class TestHandlerNewActivatedVoucher:
     @pytest.mark.asyncio
     async def test_successful_voucher_activation(
         self,
+        replacement_needed_modules,
         processed_voucher,
         create_new_user,
         create_voucher,
         clean_rabbit
     ):
+
+        from src.services.database.users.actions import get_user
         """Тест успешной активации ваучера"""
         user = await create_new_user()
         voucher = await create_voucher()
@@ -642,7 +644,8 @@ class TestHandlerNewActivatedVoucher:
             processed_voucher,
             create_new_user,
             create_voucher,
-            clean_rabbit
+            clean_rabbit,
+            replacement_fake_bot
     ):
         """Тест активации ваучера с достижением лимита активаций"""
         user = await create_new_user()
@@ -683,13 +686,13 @@ class TestHandlerNewActivatedVoucher:
                 assert not redis_result
 
         # Проверяем отправку сообщения об истечении ваучера
-        i18n = get_i18n('ru', "replenishment_dom")
+        i18n = get_i18n('ru', "discount_dom")
         expected_user_message = i18n.gettext(
-            "Voucher has reached its activation limit \n\nID '{id}' \nCode '{code}' "
-            "\n\nThe voucher has expired due to the activation limit. It can no longer be activated"
+            "Voucher has reached its activation limit \n\nID: {id} \nCode: {code} \n\n"
+                "The voucher has expired due to the activation limit. It can no longer be activated"
         ).format(id=voucher.voucher_id, code=voucher.activation_code)
 
-        assert fake_bot.get_message(user.user_id, expected_user_message)
+        assert fake_bot.get_message(voucher.creator_id, expected_user_message)
 
     @pytest.mark.asyncio
     async def test_voucher_activation_failure(
@@ -767,7 +770,7 @@ class TestHandlerNewActivatedVoucher:
 
         await send_set_not_valid_voucher(user.user_id, voucher, True, user.language)
 
-        i18n = get_i18n(user.language, "replenishment_dom")
+        i18n = get_i18n(user.language, "discount_dom")
 
         if is_created_admin:
             # Проверяем лог в канале
@@ -779,8 +782,8 @@ class TestHandlerNewActivatedVoucher:
         else:
             # Проверяем сообщение пользователю
             expected_user_message = i18n.gettext(
-                "Voucher has reached its activation limit \n\nID '{id}' \nCode '{code}' "
-                "\n\nThe voucher has expired due to the activation limit. It can no longer be activated"
+                "Voucher has reached its activation limit \n\nID: {id} \nCode: {code} \n\n"
+                "The voucher has expired due to the activation limit. It can no longer be activated"
             ).format(id=voucher.voucher_id, code=voucher.activation_code)
             assert fake_bot.get_message(user.user_id, expected_user_message)
 
@@ -826,7 +829,7 @@ async def test_handler_new_purchase_creates_wallet_and_logs(
     # подготовка данных
     user = await create_new_user()
     # создаём sold_account в БД и перевод для языка 'ru'
-    sold_full = await create_sold_account(filling_redis=False, owner_id=user.user_id, language='ru')
+    _, sold_full = await create_sold_account(filling_redis=False, owner_id=user.user_id, language='ru')
 
     # параметры покупки (имитация того, что уже произошла основная транзакция и purchase_id = 777)
     account_movement = [
@@ -885,7 +888,7 @@ async def test_handler_new_purchase_creates_wallet_and_logs(
                 break
         assert found, "Лог покупки с нужными деталями не найден"
 
-    # ---- проверки Redis (filling_sold_account_only_one и filling_sold_account_only_one_owner) ----
+    # ---- проверки Redis (filling_sold_account_by_account_id и filling_sold_accounts_by_owner_id) ----
     async with get_redis() as r:
         val_by_id = await r.get(f"sold_accounts_by_accounts_id:{sold_full.sold_account_id}:ru")
         assert val_by_id is not None, "Redis: sold_accounts_by_accounts_id не заполнен"
@@ -912,7 +915,7 @@ async def test_account_purchase_event_handler_parses_and_calls_handler(
     """
     from src.services.database.selling_accounts.events.even_handlers_acc import account_purchase_event_handler
     user = await create_new_user()
-    sold_full = await create_sold_account(filling_redis=False, owner_id=user.user_id, language='ru')
+    _, sold_full = await create_sold_account(filling_redis=False, owner_id=user.user_id, language='ru')
 
     account_movement = [
         {

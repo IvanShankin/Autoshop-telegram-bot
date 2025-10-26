@@ -42,6 +42,7 @@ class Users(Base):
     promo_code_activated_account = relationship("ActivatedPromoCodes", foreign_keys="ActivatedPromoCodes.user_id", back_populates="user")
     purchases = relationship("PurchasesAccounts", back_populates="user")
     sold_account = relationship("SoldAccounts", back_populates="user")
+    purchase_requests = relationship("PurchaseRequests", back_populates="user")
     vouchers = relationship("Vouchers", back_populates="user")
     voucher_activations = relationship("VoucherActivations", back_populates="user")
 
@@ -51,6 +52,22 @@ class Users(Base):
     audit_logs = relationship("UserAuditLogs",back_populates="user")
     admin_actions = relationship("AdminActions",back_populates="user")
     wallet_transactions = relationship("WalletTransaction",back_populates="user")
+
+    balance_holder = relationship("BalanceHolder",back_populates="user")
+
+
+class BalanceHolder(Base):
+    __tablename__ = "balance_holder"
+
+    balance_holder_id = Column(Integer, primary_key=True, autoincrement=True)
+    purchase_request_id = Column(Integer, ForeignKey("purchase_requests.purchase_request_id"), nullable=False, index=True)
+    user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False, index=True)
+    amount = Column(Integer, nullable=False)
+    status = Column(Enum('held', 'used', 'released', name='status_balance'), server_default='held')
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("Users", back_populates="balance_holder")
+    purchase_requests = relationship("PurchaseRequests", back_populates="balance_holder")
 
 
 class NotificationSettings(Base):

@@ -1,9 +1,10 @@
 from typing import Callable, Any
 
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Text, Index, text, UniqueConstraint, \
-    inspect, BigInteger
+    inspect, BigInteger, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+import uuid
 
 from src.services.database.core.database import Base
 
@@ -115,24 +116,61 @@ class AccountCategoryTranslation(Base):
 
     account_category = relationship("AccountCategories", back_populates="translations")
 
+
+class AccountStorage(Base):
+    """
+    Универсальное хранилище данных аккаунта.
+    Все состояния (продажа, продан, удалён) ссылаются на него.
+    """
+    __tablename__ = "account_storage"
+
+    account_storage_id = Column(Integer, primary_key=True, autoincrement=True)
+    # UUID, используется в структуре папок (accounts/for_sale/telegram/<uuid>/)
+    storage_uuid = Column(String(36), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
+
+    # === Основные поля ===
+    file_path = Column(Text, nullable=False)     # относительный путь к зашифрованному файлу (относительно accounts/)
+    checksum = Column(String(64), nullable=False) # Контроль целостности (SHA256 зашифрованного файла)
+    status = Column(Enum('for_sale', 'reserved', 'bought', 'deleted', name='account_status'), server_default='for_sale')
+
+    # === Шифрование ===
+    encrypted_key = Column(Text, nullable=False)       # Персональный ключ аккаунта, зашифрованный мастер-ключом (base64)
+    encrypted_key_nonce = Column(Text, nullable=False) # nonce, использованный при wrap (Nonce (IV) для AES-GCM (base64))
+    key_version = Column(Integer, nullable=False, server_default=text("1")) # Номер мастер-ключа (для ротации)
+    encryption_algo = Column(String(32), nullable=False, server_default=text("'AES-GCM-256'")) # Алгоритм шифрования
+
+    # === Основные поля ===
+    login_encrypted = Column(Text, nullable=True)
+    password_encrypted = Column(Text, nullable=True)
+
+    # === Флаги ===
+    is_active = Column(Boolean, nullable=False, server_default=text('true')) # логическое удаление
+    is_valid = Column(Boolean, nullable=False, server_default=text('true'))  # валидный или нет
+
+    # === Таймштампы ===
+    added_at = Column(DateTime(timezone=True), server_default=func.now())
+    last_check_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())  # последняя проверка
+
+    # связи
+    product_account = relationship("ProductAccounts", back_populates="account_storage", uselist=False)
+    sold_account = relationship("SoldAccounts", back_populates="account_storage", uselist=False)
+    deleted_account = relationship("DeletedAccounts", back_populates="account_storage", uselist=False)
+    purchase_request_accounts = relationship("PurchaseRequestAccount", back_populates="account_storage", uselist=False)
+
+
 class ProductAccounts(Base):
     """Хранит записи об аккаунтах которые стоят на продаже, если аккаунт продан, здесь запись удаляется"""
     __tablename__ = "product_accounts"
-    __table_args__ = (
-        Index('ix_accounts_type_service', 'type_account_service_id'),
-        Index('ix_accounts_category', 'account_category_id'),
-    )
 
     account_id = Column(Integer, primary_key=True, autoincrement=True)
-    type_account_service_id = Column(Integer, ForeignKey("type_account_services.type_account_service_id"), nullable=False)
+    type_account_service_id = Column(Integer, ForeignKey("type_account_services.type_account_service_id"), nullable=False, index=True)
     account_category_id = Column(Integer, ForeignKey("account_categories.account_category_id"), nullable=False, index=True)
+    account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id"), nullable=False)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # Специфичные поля (могут быть NULL)
-    hash_login = Column(Text, nullable=True)
-    hash_password = Column(Text, nullable=True)
-
     type_account_service = relationship("TypeAccountServices", back_populates="product_accounts")
+    account_storage = relationship("AccountStorage", back_populates="product_account")
     account_category = relationship("AccountCategories", back_populates="product_accounts")
 
 class SoldAccounts(Base):
@@ -140,22 +178,17 @@ class SoldAccounts(Base):
     __tablename__ = "sold_accounts"
     __table_args__ = (
         Index('ix_sold_accounts_owner', 'owner_id'),
-        Index('ix_sold_accounts_type', 'type_account_service_id', 'is_valid', 'is_deleted'),
+        Index('ix_sold_accounts_type', 'type_account_service_id'),
     )
 
     sold_account_id = Column(Integer, primary_key=True, autoincrement=True)
     owner_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=True)
+    account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id"), nullable=False)
     type_account_service_id = Column(Integer, ForeignKey("type_account_services.type_account_service_id"), nullable=False)
-
-    is_valid = Column(Boolean, nullable=False, server_default=text('true'))
-    is_deleted = Column(Boolean, nullable=False, server_default=text('false'))
-
-    # Специфичные поля (могут быть NULL)
-    hash_login = Column(Text, nullable=True)
-    hash_password = Column(Text, nullable=True)
 
     sold_at = Column(DateTime(timezone=True), server_default=func.now())
 
+    account_storage = relationship("AccountStorage", back_populates="sold_account")
     user = relationship("Users", back_populates="sold_account")
     type_account_service = relationship("TypeAccountServices", back_populates="sold_accounts")
     purchase = relationship("PurchasesAccounts", back_populates="sold_account", uselist=False)
@@ -237,9 +270,38 @@ class DeletedAccounts(Base):
     __tablename__ = "deleted_accounts"
 
     deleted_account_id = Column(Integer, primary_key=True, autoincrement=True)
+    account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id"), nullable=False)
     type_account_service_id = Column(Integer, ForeignKey("type_account_services.type_account_service_id"), nullable=False)
     category_name = Column(Text, nullable=False)
     description = Column(Text, nullable=False)
 
     create_at = Column(DateTime(timezone=True), server_default=func.now())
 
+    account_storage = relationship("AccountStorage", back_populates="deleted_account")
+
+
+class PurchaseRequests(Base):
+    __tablename__ = "purchase_requests"
+
+    purchase_request_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
+    quantity = Column(Integer, nullable=False)
+    total_amount = Column(Integer, nullable=False)
+    status = Column(Enum('processing', 'completed', 'failed', name='status_request'), server_default='processing')
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    purchase_request_accounts = relationship("PurchaseRequestAccount", back_populates="purchase_request")
+    user = relationship("Users", back_populates="purchase_requests")
+    balance_holder = relationship("BalanceHolder", back_populates="purchase_requests")
+
+
+class PurchaseRequestAccount(Base):
+    __tablename__ = "purchase_request_accounts"
+
+    purchase_request_accounts_id = Column(Integer, primary_key=True)
+    purchase_request_id = Column(ForeignKey("purchase_requests.purchase_request_id"), nullable=False)
+    account_storage_id = Column(ForeignKey("account_storage.account_storage_id"), nullable=False)
+    status = Column(Enum('reserved', 'valid', 'invalid', 'sold', name='status_request', default="reserved"))
+
+    purchase_request = relationship("PurchaseRequests", back_populates="purchase_request_accounts")
+    account_storage = relationship("AccountStorage", back_populates="purchase_request_accounts")

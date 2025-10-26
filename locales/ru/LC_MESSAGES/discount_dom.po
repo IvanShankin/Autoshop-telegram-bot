@@ -28,8 +28,8 @@ msgstr "#Ваучер_закончился \nID '{id}' \nКод '{code}'"
 msgid "Voucher expired \n\nID '{id}' \nCode '{code}' \n\nVoucher expired due to time limit. It can no longer be activated"
 msgstr "У ваучера истёк срок действия \n\nID '{id}' \nКод '{code}' \n\nВаучер закончился  из-за ограничения по времени. Теперь его невозможно активировать"
 
-msgid "Voucher has reached its activation limit \n\nID '{id}' \nCode '{code}' "
-"\n\nThe voucher has expired due to the activation limit. It can no longer be activated"
+msgid "Voucher has reached its activation limit \n\nID: {id} \nCode: {code} \n\n"
+"The voucher has expired due to the activation limit. It can no longer be activated"
 msgstr "У ваучера достигнут лимит активаций \n\nID '{id}' \nКод '{code}' "
 "\n\nВаучер закончился  из-за ограничения по количеству активаций. Теперь его невозможно активировать"
 

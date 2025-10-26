@@ -4,10 +4,15 @@ from typing import Type, Any, Optional, Callable, Iterable, List
 import orjson
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
+from sqlalchemy.sql.expression import distinct
 
 from src.config import ALLOWED_LANGS
 from src.services.database.discounts.models import SmallVoucher
-from src.services.database.selling_accounts.models.models_with_tranlslate import SoldAccountsFull
+from src.services.database.selling_accounts.models.models import AccountStorage
+from src.services.database.selling_accounts.models.schemas import SoldAccountSmall, SoldAccountFull, \
+    SoldAccountSmall, AccountStoragePydentic, ProductAccountFull
+from src.services.database.selling_accounts.models import TypeAccountServices, AccountServices, AccountCategories, \
+    ProductAccounts, SoldAccounts
 from src.services.database.system.models import UiImages
 from src.services.database.users.models import Users, BannedAccounts
 from src.services.database.system.models import Settings, TypePayments
@@ -15,8 +20,6 @@ from src.services.database.core.database import get_db
 from src.services.database.admins.models import Admins
 from src.services.database.discounts.models import PromoCodes, Vouchers
 from src.services.database.referrals.models import ReferralLevels
-from src.services.database.selling_accounts.models import TypeAccountServices, AccountServices, AccountCategories, \
-    ProductAccounts, SoldAccounts
 from src.services.redis.core_redis import get_redis
 from src.services.redis.time_storage import TIME_USER, TIME_SOLD_ACCOUNTS_BY_OWNER, TIME_SOLD_ACCOUNTS_BY_ACCOUNT, \
     TIME_ALL_VOUCHER
@@ -37,9 +40,24 @@ async def filling_all_redis():
             await filling_ui_image(ui_image.key)
 
         result_db = await session_db.execute(select(Users.user_id))
-        users_ids: List[Users] = result_db.scalars().all()
+        users_ids: List[int] = result_db.scalars().all()
         for user_id in users_ids:
             await filling_voucher_by_user_id(user_id)
+
+        result_db = await session_db.execute(select(ProductAccounts.account_id))
+        product_accounts_ids: List[int] = result_db.scalars().all()
+        for product_account_id in product_accounts_ids:
+            await filling_product_account_by_account_id(product_account_id)
+
+        result_db = await session_db.execute(select(distinct(SoldAccounts.owner_id)))
+        union_sold_accounts_owner_ids: List[int] = result_db.scalars().all()
+        for owner_id in union_sold_accounts_owner_ids:
+            await filling_sold_accounts_by_owner_id(owner_id)
+
+        result_db = await session_db.execute(select(SoldAccounts.sold_account_id))
+        sold_accounts_ids: List[int] = result_db.scalars().all()
+        for account_id in sold_accounts_ids:
+            await filling_sold_account_by_account_id(account_id)
 
     await filling_settings()
     await filling_referral_levels()
@@ -54,9 +72,6 @@ async def filling_all_redis():
     await filling_account_categories_by_service_id()
     await filling_account_categories_by_category_id()
     await filling_product_accounts_by_category_id()
-    await filling_product_accounts_by_account_id()
-    await filling_sold_accounts_by_owner_id()
-    await filling_sold_accounts_by_accounts_id()
     await filling_promo_code()
     await filling_vouchers()
     logger.info("Redis filling successfully")
@@ -69,76 +84,6 @@ async def _delete_keys_by_pattern(pattern: str):
             await session_redis.delete(key)
             count += 1
     return count
-
-async def _fill_redis_single_objects_multilang(
-    model: Type,
-    key_prefix: str,
-    key_extractor: Callable[[Any], str],
-    *,
-    field_condition: Optional[Any] = None,
-    ttl_seconds: Optional[int] = None,
-    joinedload_rels: Optional[Iterable[str]] = ("translations",),
-):
-    """
-    Для каждой записи model кладём в redis по ключу:
-      {key_prefix}:{key_extractor(obj)}:{lang}
-    Только для тех lang, которые реально есть в obj.translations и которые входят в ALLOWED_LANGS.
-    Если объекты в БД не будут найдены, то ничего не заполнит
-
-    :param ttl_seconds: если None — бессрочно, иначе int секунд для всех ключей.
-    :param joinedload_rels: имена отношений, которые следует предварительно загрузить (обычно "translations").
-    """
-    await _delete_keys_by_pattern(f'{key_prefix}:*')
-    async with get_db() as session_db:
-        query = select(model)
-        if field_condition is not None:
-            query = query.where(field_condition)
-        # joinedload для избежания N+1
-        if joinedload_rels:
-            for rel in joinedload_rels:
-                query = query.options(selectinload(getattr(model, rel)))
-        result = (await session_db.execute(query)).scalars().all()
-
-        if not result:
-            return
-
-        async with get_redis() as r:
-            async with r.pipeline(transaction=False) as pipe:
-                for obj in result:
-                    obj_id = key_extractor(obj)
-
-                    # получаем все языки которые имеются у данного объекта (obj)
-                    langs = []
-                    for t in getattr(obj, "translations", []) or []: # получение у объекта model, его translations
-                        lang = getattr(t, "lang", None)
-                        if not lang:
-                            continue
-                        if lang not in ALLOWED_LANGS:
-                            continue
-                        if lang not in langs:
-                            langs.append(lang)
-
-                    if not langs:
-                        # у объекта нет переводов — пропускаем
-                        continue
-
-                    for lang in langs:
-                        try:
-                            value_obj = obj.to_localized_dict(lang)
-                        except Exception: # если по какой-то причине to_localized_dict упадёт — пропускаем этот язык
-                            continue
-                        if not value_obj:
-                            continue
-
-                        value_bytes = orjson.dumps(value_obj)
-                        key = f"{key_prefix}:{obj_id}:{lang}"
-                        if ttl_seconds and ttl_seconds > 1:
-                            await pipe.setex(key, int(ttl_seconds), value_bytes)
-                        elif ttl_seconds and ttl_seconds < 1:
-                            continue
-                        else:
-                            await pipe.set(key, value_bytes)
-                await pipe.execute()
 
 
 async def _fill_redis_grouped_objects_multilang(
@@ -444,103 +389,168 @@ async def filling_account_categories_by_service_id():
     )
 
 async def filling_account_categories_by_category_id():
-    await _fill_redis_single_objects_multilang(
-        model=AccountCategories,
-        key_prefix="account_categories_by_category_id",
-        key_extractor= lambda account_category: account_category.account_category_id,
-        joinedload_rels=("translations",)
-    )
+    await _delete_keys_by_pattern(f'account_categories_by_category_id:*')
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(AccountCategories).options(selectinload(AccountCategories.translations)))
+        categories: list[AccountCategories] = result_db.scalars().all()
+
+        if not categories:
+            return
+
+        async with get_redis() as session_redis:
+            async with session_redis.pipeline(transaction=False) as pipe:
+                for category in categories:
+                    category_id = category.account_category_id
+
+                    # получаем все языки которые имеются у данного объекта (obj)
+                    langs = []
+                    for translate in category.translations:  # получение у объекта model, его translations
+                        lang = translate.lang
+                        if not lang:
+                            continue
+                        if lang not in ALLOWED_LANGS:
+                            continue
+                        if lang not in langs:
+                            langs.append(lang)
+
+                    if not langs:
+                        # у объекта нет переводов — пропускаем
+                        continue
+
+                    for lang in langs:
+                        try:
+                            value_obj = category.to_localized_dict(lang)
+                        except Exception:  # если по какой-то причине to_localized_dict упадёт — пропускаем этот язык
+                            continue
+                        if not value_obj:
+                            continue
+
+                        value_bytes = orjson.dumps(value_obj)
+                        key = f"account_categories_by_category_id:{category_id}:{lang}"
+                        await pipe.set(key, value_bytes)
+                await pipe.execute()
 
 
 async def filling_product_accounts_by_category_id():
-    await _fill_redis_grouped_objects(
-        model=ProductAccounts,
-        group_by_field_models="account_category_id",
-        group_by_model=AccountCategories,
-        group_by_field_for_group_model="account_category_id",
-        key_prefix="product_accounts_by_category_id"
-    )
+    await _delete_keys_by_pattern(f'product_accounts_by_category_id:*')
+    async with get_db() as session_db:
+        # Получаем все ID для группировки
+        result_db = await session_db.execute(select(ProductAccounts.account_category_id))
+        category_ids = result_db.scalars().all()
 
-async def filling_product_accounts_by_account_id():
-    await _fill_redis_single_objects(
-        model=ProductAccounts,
-        key_prefix='product_accounts_by_account_id',
-        key_extractor=lambda product_accounts_by_account_id: product_accounts_by_account_id.account_id,
-    )
+        for category_id in category_ids:
+            # Строим запрос с условием
+            result_db = await session_db.execute(select(ProductAccounts).where(ProductAccounts.account_category_id == category_id))
+            product_accounts = result_db.scalars().all()
 
-
-async def filling_sold_accounts_by_owner_id():
-    await _fill_redis_grouped_objects_multilang(
-        model=SoldAccounts,
-        group_by_field_models="owner_id",
-        group_by_model=Users,
-        group_by_field_for_group_model="user_id",
-        key_prefix="sold_accounts_by_owner_id",
-        order_by=SoldAccounts.created_at.desc(),
-        filter_condition=(SoldAccounts.is_deleted == False),
-        ttl_seconds=TIME_SOLD_ACCOUNTS_BY_OWNER.total_seconds(),
-        joinedload_rels=("translations",),
-    )
+            if product_accounts:
+                async with get_redis() as session_redis:
+                    list_for_redis = [obj.to_dict() for obj in product_accounts]
+                    key = f"product_accounts_by_category_id:{category_id}"
+                    value = orjson.dumps(list_for_redis)
+                    await session_redis.set(key, value)
 
 
-async def filling_sold_accounts_by_accounts_id():
-    await _fill_redis_single_objects_multilang(
-        model=SoldAccounts,
-        key_prefix="sold_accounts_by_accounts_id",
-        key_extractor=lambda s: s.sold_account_id,
-        field_condition=(SoldAccounts.is_deleted == False),
-        joinedload_rels=("translations",),
-        ttl_seconds=TIME_SOLD_ACCOUNTS_BY_ACCOUNT.total_seconds(),  # или время в секундах
-    )
 
-async def filling_sold_account_only_one_owner(owner_id: int, language: str = 'ru'):
+async def filling_product_account_by_account_id(account_id: int):
+    await _delete_keys_by_pattern(f'product_accounts_by_account_id:*')
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(ProductAccounts).where(ProductAccounts.account_id == account_id))
+        account: ProductAccounts = result_db.scalar_one_or_none()
+        if not account: return
+
+        result_db = await session_db.execute(select(AccountStorage).where(AccountStorage.account_storage_id == account.account_storage_id))
+        storage_account: AccountStorage = result_db.scalar_one_or_none()
+        if not storage_account: return
+
+        async with get_redis() as session_redis:
+            product_account = ProductAccountFull(
+                account_id = account.account_id,
+                type_account_service_id = account.type_account_service_id,
+                account_category_id = account.account_category_id,
+                created_at = account.created_at,
+                account_storage = AccountStoragePydentic(**storage_account.to_dict())
+            )
+            await session_redis.set(
+                f'product_accounts_by_account_id:{account.account_id}',
+                orjson.dumps(product_account.model_dump())
+            )
+
+async def filling_sold_accounts_by_owner_id(owner_id: int):
+    """Заполнит SoldAccounts по всем языкам которые есть"""
+    await _delete_keys_by_pattern(f'sold_accounts_by_owner_id:{owner_id}:*')
     async with get_db() as session_db:
         result_db = await session_db.execute(
             select(SoldAccounts)
-            .options(selectinload(SoldAccounts.translations))
+            .join(SoldAccounts.account_storage)  # связываем таблицы
+            .options(selectinload(SoldAccounts.translations), selectinload(SoldAccounts.account_storage))
             .where(
                 (SoldAccounts.owner_id == owner_id) &
-                (SoldAccounts.is_deleted == False)
+                (SoldAccounts.account_storage.has(is_active=True))  # фильтр по связанной модели
             )
-            .order_by(SoldAccounts.created_at.desc())
+            .order_by(SoldAccounts.sold_at.desc())
         )
         accounts_list = result_db.scalars().all()
 
-        new_list_accounts = []
-        for account in accounts_list:
-            account_full = SoldAccountsFull.from_orm_with_translation(account, lang=language)
-            new_list_accounts.append(account_full.model_dump())
+        # все языки
+        languages = {
+            t.lang
+            for account in accounts_list
+            for t in account.translations
+        }
+
+        # хранит все списки с аккаунтами на разных языках. [[список с аккаунтами на одном языке, код языка]]
+        list_accounts_by_lang: list[tuple[list, str]] = []
+
+        for lang in languages:
+            new_list_accounts = []
+            for account in accounts_list:
+                account_full = SoldAccountSmall.from_orm_with_translation(account, lang=lang)
+                new_list_accounts.append(account_full.model_dump())
+            list_accounts_by_lang.append((new_list_accounts, lang))
 
     async with get_redis() as session_redis:
-        await session_redis.setex(
-            f"sold_accounts_by_owner_id:{owner_id}:{language}",
-            TIME_SOLD_ACCOUNTS_BY_OWNER,
-            orjson.dumps(new_list_accounts)
-        )
+        for account_list, lang in list_accounts_by_lang:
+            await session_redis.setex(
+                f"sold_accounts_by_owner_id:{owner_id}:{lang}",
+                TIME_SOLD_ACCOUNTS_BY_OWNER,
+                orjson.dumps(account_list)
+            )
 
-async def filling_sold_account_only_one(sold_account_id: int, language: str = 'ru'):
+async def filling_sold_account_by_account_id(sold_account_id: int):
+    """Заполнит SoldAccounts по всем языкам которые есть"""
+    await _delete_keys_by_pattern(f'sold_accounts_by_accounts_id:{sold_account_id}:*')
     async with get_db() as session_db:
         result_db = await session_db.execute(
             select(SoldAccounts)
-            .options(selectinload(SoldAccounts.translations))
+            .join(SoldAccounts.account_storage)  # связываем таблицы
+            .options(selectinload(SoldAccounts.translations), selectinload(SoldAccounts.account_storage))
             .where(
                 (SoldAccounts.sold_account_id == sold_account_id) &
-                (SoldAccounts.is_deleted == False)
+                (SoldAccounts.account_storage.has(is_active=True))  # фильтр по связанной модели
             )
         )
         account = result_db.scalar_one_or_none()
 
-        async with get_redis() as session_redis:
-            if account:
-                account_full = SoldAccountsFull.from_orm_with_translation(account, lang=language)
+        if account:
+            # все языки
+            languages = {t.lang for t in account.translations}
 
-                await session_redis.setex(
-                    f"sold_accounts_by_accounts_id:{sold_account_id}:{language}",
-                    TIME_SOLD_ACCOUNTS_BY_ACCOUNT,
-                    orjson.dumps(account_full.model_dump())
-                )
-            else:
-                await session_redis.delete(f'sold_accounts_by_accounts_id:{sold_account_id}:{language}')
+            # хранит все списки с аккаунтами на разных языках. [[список с аккаунтами на одном языке, код языка]]
+            list_accounts_by_lang: list[tuple[SoldAccountFull, str]] = []
+
+            for lang in languages:
+                account_full = await SoldAccountFull.from_orm_with_translation(account, lang=lang)
+                list_accounts_by_lang.append((account_full, lang))
+
+            async with get_redis() as session_redis:
+                for account, lang in list_accounts_by_lang:
+                    await session_redis.setex(
+                        f"sold_accounts_by_accounts_id:{sold_account_id}:{lang}",
+                        TIME_SOLD_ACCOUNTS_BY_ACCOUNT,
+                        orjson.dumps(account.model_dump())
+                    )
+
 
 async def filling_promo_code():
     await _fill_redis_single_objects(

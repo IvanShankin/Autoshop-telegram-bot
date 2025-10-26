@@ -1,16 +1,29 @@
+from datetime import datetime
+from typing import Literal, Any, List
+
 import orjson
 from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
+from src.services.database.selling_accounts.models.models import AccountStorage
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_all_account_services, filling_account_categories_by_service_id, \
-    filling_account_categories_by_category_id, filling_account_services
-from src.services.redis.time_storage import TIME_SOLD_ACCOUNTS_BY_OWNER, TIME_SOLD_ACCOUNTS_BY_ACCOUNT
+    filling_account_categories_by_category_id, filling_account_services, filling_product_account_by_account_id, \
+    filling_product_accounts_by_category_id, filling_sold_account_by_account_id, filling_sold_accounts_by_owner_id
 from src.services.database.core.database import get_db
-from src.services.database.selling_accounts.actions.actions_get import get_sold_accounts_by_owner_id
 from src.services.database.selling_accounts.models import AccountServices, AccountCategories, ProductAccounts, \
-    AccountCategoryTranslation, SoldAccounts, SoldAccountsTranslation
-from src.services.database.selling_accounts.models.models_with_tranlslate import AccountCategoryFull, SoldAccountsFull
+    AccountCategoryTranslation, AccountCategoryFull
+
+def _create_dict(data: List[tuple[str, Any]]) -> dict:
+    """
+    Формирует словарь, если переменная есть, то запишет её с указанным ключом
+    :param data: List[("имя для ключа", значение)]
+    """
+    result = {}
+    for key_name, value in data:
+        if value is not None:
+            result[key_name] = value
+    return result
 
 
 async def update_account_service(
@@ -229,89 +242,68 @@ async def update_account_category_translation(
     return translation
 
 
-async def update_sold_account(
-        sold_account_id: int,
-        is_valid: bool = None,
-        is_deleted: bool = None,
-) -> SoldAccounts:
+async def update_account_storage(
+    account_storage_id: int = None,
+    storage_uuid: str = None,
+    file_path: str = None,
+    checksum: str = None,
+    status: Literal["for_sale", "bought", "deleted"] = None,
+    encrypted_key: str = None,
+    encrypted_key_nonce: str = None,
+    key_version: int = None,
+    encryption_algo: str = None,
+    login_encrypted: str = None,
+    password_encrypted: str = None,
+    last_check_at: datetime = None,
+    is_valid: bool = None,
+    is_active: bool = None,
+) -> AccountStorage:
     async with get_db() as session:
-        # загружаем текущий объект
         result = await session.execute(
-            select(SoldAccounts)
-            .options(selectinload(SoldAccounts.translations))
-            .where(SoldAccounts.sold_account_id == sold_account_id)
+            select(AccountStorage)
+            .options(
+                selectinload(AccountStorage.product_account),
+                selectinload(AccountStorage.sold_account),
+                selectinload(AccountStorage.deleted_account)
+            )
+            .where(AccountStorage.account_storage_id == account_storage_id)
         )
-        account: SoldAccounts = result.scalar_one_or_none()
-        if not account:
-            raise ValueError(f"Аккаунта с id = {sold_account_id} не найдено")
+        account: AccountStorage = result.scalar_one_or_none()
 
-        # собираем поля которые передали
-        update_data = {}
-        if is_valid is not None:
-            update_data['is_valid'] = is_valid
-        if is_deleted is not None:
-            update_data['is_deleted'] = is_deleted
+        update_data = _create_dict([
+            ('storage_uuid', storage_uuid),
+            ('file_path', file_path),
+            ('checksum', checksum),
+            ('status', status),
+            ('encrypted_key', encrypted_key),
+            ('encrypted_key_nonce', encrypted_key_nonce),
+            ('key_version', key_version),
+            ('encryption_algo', encryption_algo),
+            ('login_encrypted', login_encrypted),
+            ('password_encrypted', password_encrypted),
+            ('last_check_at', last_check_at),
+            ('is_valid', is_valid),
+            ('is_active', is_active),
+        ])
 
         if update_data:
             await session.execute(
-                update(SoldAccounts)
-                .where(SoldAccounts.sold_account_id == sold_account_id)
+                update(AccountStorage)
+                .where(AccountStorage.account_storage_id == account_storage_id)
                 .values(**update_data)
             )
-
             await session.commit()
 
             # обновляем объект в памяти (чтобы вернуть актуальные данные)
             for key, value in update_data.items():
                 setattr(account, key, value)
 
-        # обновляем redis
-        result_db = await session.execute(
-            select(SoldAccountsTranslation.lang)
-            .where(SoldAccountsTranslation.sold_account_id == sold_account_id)
-            .distinct()
-        )
-        list_lang = result_db.scalars().all() # список всех языков
-
-        async with get_redis() as session_redis:
-            for lang in list_lang:
-
-                if is_deleted is not None: # если аккаунт стал удалённым, то такое не храним в redis
-                    # меняем по одиночному значению
-                    await session_redis.delete(f"sold_accounts_by_accounts_id:{sold_account_id}:{lang}")
-
-                    # меняем по ключу со списком
-                    # не обновлённый список (ожидаемо, но может быть и обновлённым)
-                    account_list = await get_sold_accounts_by_owner_id(account.owner_id, lang)
-                    new_list = [acc.model_dump() for acc in account_list if acc.sold_account_id != sold_account_id]
-                    await session_redis.setex(
-                        f"sold_accounts_by_owner_id:{account.owner_id}:{lang}",
-                        TIME_SOLD_ACCOUNTS_BY_OWNER,
-                        orjson.dumps(new_list)
-                    )
-                else:
-                    # меняем по одиночному значению
-                    account_full = SoldAccountsFull.from_orm_with_translation(account, lang)
-                    await session_redis.setex(
-                        f"sold_accounts_by_accounts_id:{sold_account_id}:{lang}",
-                        TIME_SOLD_ACCOUNTS_BY_ACCOUNT,
-                        orjson.dumps(account_full.model_dump())
-                    )
-
-                    # меняем по ключу со списком
-                    # не обновлённый список (ожидаемо, но может быть и обновлённым)
-                    account_list = await get_sold_accounts_by_owner_id(account.owner_id, lang)
-                    new_list = []
-                    for acc in account_list:
-                        if acc.sold_account_id != sold_account_id:
-                            new_list.append(acc.model_dump())
-                        else:
-                            new_list.append(account_full.model_dump()) # добавление изменённой модели
-
-                    await session_redis.setex(
-                        f"sold_accounts_by_owner_id:{account.owner_id}:{lang}",
-                        TIME_SOLD_ACCOUNTS_BY_OWNER,
-                        orjson.dumps(new_list)
-                    )
+        # один AccountStorage - одна запись в другой таблице, но будем заполнять везде где есть
+        if account.product_account:
+            await filling_product_account_by_account_id(account.product_account.account_id)
+            await filling_product_accounts_by_category_id()
+        if account.sold_account:
+            await filling_sold_account_by_account_id(account.sold_account.sold_account_id)
+            await filling_sold_accounts_by_owner_id(account.sold_account.owner_id)
 
         return account

@@ -5,18 +5,19 @@ import pytest_asyncio
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from src.services.database.selling_accounts.models.models import AccountStorage
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_sold_accounts_by_owner_id, \
-    filling_sold_accounts_by_accounts_id, filling_account_categories_by_service_id, \
+    filling_sold_account_by_account_id, filling_account_categories_by_service_id, \
     filling_account_categories_by_category_id, filling_all_account_services, filling_account_services, \
-    filling_product_accounts_by_account_id, filling_product_accounts_by_category_id, filling_all_types_payments, \
+    filling_product_account_by_account_id, filling_product_accounts_by_category_id, filling_all_types_payments, \
     filling_types_payments_by_id
 from src.services.database.admins.models import Admins
 from src.services.database.discounts.models import PromoCodes, Vouchers
 from src.services.database.referrals.utils import create_unique_referral_code
 from src.services.database.selling_accounts.models import SoldAccounts, TypeAccountServices, SoldAccountsTranslation, \
-    AccountServices, AccountCategories, AccountCategoryTranslation, ProductAccounts
-from src.services.database.selling_accounts.models.models_with_tranlslate import AccountCategoryFull, SoldAccountsFull
+    AccountServices, AccountCategories, AccountCategoryTranslation, ProductAccounts, ProductAccountSmall, \
+    SoldAccountFull, AccountCategoryFull, SoldAccountSmall, ProductAccountFull
 from src.services.database.system.models import UiImages
 from src.services.database.users.models import Users, Replenishments, NotificationSettings, WalletTransaction
 from src.services.database.system.models import TypePayments, Settings
@@ -475,15 +476,42 @@ async def create_account_category(create_account_service):
         return full_category
     return _factory
 
+
 @pytest_asyncio.fixture
-async def create_product_account(create_type_account_service, create_account_category):
+async def create_account_storage(create_type_account_service, create_account_category):
+    async def _factory(
+            is_active: bool = True,
+            is_valid: bool = True,
+    ) -> AccountStorage:
+        account_storage = AccountStorage(
+            file_path = 'fake/file/path.',
+            checksum = "checksum",
+
+            encrypted_key = "gywegufbds",
+            encrypted_key_nonce = "gnjfdsnjds",
+
+            login_encrypted = 'login_encrypted',
+            password_encrypted = 'password_encrypted',
+
+            is_active = is_active,
+            is_valid = is_valid
+        )
+        async with get_db() as session_db:
+            session_db.add(account_storage)
+            await session_db.commit()
+            await session_db.refresh(account_storage)
+            return account_storage
+
+    return _factory
+
+@pytest_asyncio.fixture
+async def create_product_account(create_type_account_service, create_account_category, create_account_storage):
     async def _factory(
             filling_redis: bool = True,
             type_account_service_id: int = None,
             account_category_id: int = None,
-            hash_login: str = 'hash_login',
-            hash_password: str = 'hash_password'
-    ) -> ProductAccounts:
+            account_storage_id: int = None,
+    ) -> (ProductAccounts, ProductAccountFull):
         async with get_db() as session_db:
             if type_account_service_id is None:
                 service_type = await create_type_account_service(filling_redis=filling_redis)
@@ -491,12 +519,16 @@ async def create_product_account(create_type_account_service, create_account_cat
             if account_category_id is None:
                 category = await create_account_category(filling_redis=filling_redis)
                 account_category_id = category.account_category_id
+            if account_storage_id is None:
+                account_storage = await create_account_storage()
+                account_storage_id = account_storage.account_storage_id
+            else:
+                account_storage = None
 
             new_account = ProductAccounts(
                 type_account_service_id = type_account_service_id,
                 account_category_id = account_category_id,
-                hash_login = hash_login,
-                hash_password = hash_password
+                account_storage_id = account_storage_id,
             )
             session_db.add(new_account)
             await session_db.commit()
@@ -504,26 +536,32 @@ async def create_product_account(create_type_account_service, create_account_cat
 
             if filling_redis:
                 await filling_product_accounts_by_category_id()
-                await filling_product_accounts_by_account_id()
+                await filling_product_account_by_account_id(new_account.account_id)
 
-        return new_account
+            if not account_storage:
+                result_db = await session_db.execute(
+                    select(AccountStorage)
+                    .where(AccountStorage.account_storage_id == account_storage_id)
+                )
+                account_storage = result_db.scalar()
+
+        return new_account, ProductAccountFull.from_orm_model(new_account, account_storage)
 
     return _factory
 
 @pytest_asyncio.fixture
-async def create_sold_account(create_new_user, create_type_account_service):
+async def create_sold_account(create_new_user, create_type_account_service, create_account_storage):
     async def _factory(
             filling_redis: bool = True,
             owner_id: int = None,
             type_account_service_id: int = None,
+            account_storage_id: int = None,
+            is_active: bool = True,
             is_valid: bool = True,
-            is_deleted: bool = False,
-            hash_login: str = 'hash_login',
-            hash_password: str = 'hash_password',
             language: str = "ru",
             name: str = "name",
             description: str = "description"
-    ) -> SoldAccountsFull:
+    ) -> (SoldAccountSmall, SoldAccountFull):
         async with get_db() as session_db:
             if owner_id is None:
                 user = await create_new_user()
@@ -531,14 +569,14 @@ async def create_sold_account(create_new_user, create_type_account_service):
             if type_account_service_id is None:
                 service = await create_type_account_service(filling_redis=filling_redis)
                 type_account_service_id = service.type_account_service_id
+            if account_storage_id is None:
+                account_storage = await create_account_storage(is_active, is_valid)
+                account_storage_id = account_storage.account_storage_id
 
             new_sold_account = SoldAccounts(
                 owner_id = owner_id,
                 type_account_service_id = type_account_service_id,
-                is_valid = is_valid,
-                is_deleted = is_deleted,
-                hash_login = hash_login,
-                hash_password = hash_password
+                account_storage_id = account_storage_id,
             )
 
             session_db.add(new_sold_account)
@@ -557,18 +595,19 @@ async def create_sold_account(create_new_user, create_type_account_service):
             # Перечитываем объект с подгруженными translations
             result = await session_db.execute(
                 select(SoldAccounts)
-                .options(selectinload(SoldAccounts.translations))
+                .options(selectinload(SoldAccounts.translations), selectinload(SoldAccounts.account_storage))
                 .where(SoldAccounts.sold_account_id == new_sold_account.sold_account_id)
             )
             new_sold_account = result.scalar_one()
 
-            full_account = SoldAccountsFull.from_orm_with_translation(new_sold_account, language)
+            full_account = await SoldAccountFull.from_orm_with_translation(new_sold_account, language)
+            new_sold_account = SoldAccountSmall.from_orm_with_translation(new_sold_account, language)
 
         if filling_redis:
-            await filling_sold_accounts_by_owner_id()
-            await filling_sold_accounts_by_accounts_id()
+            await filling_sold_accounts_by_owner_id(full_account.owner_id)
+            await filling_sold_account_by_account_id(full_account.sold_account_id)
 
-        return full_account
+        return new_sold_account, full_account
     return _factory
 
 @pytest_asyncio.fixture

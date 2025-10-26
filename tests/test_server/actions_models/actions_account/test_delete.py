@@ -133,7 +133,7 @@ async def test_delete_account_category_various_errors_and_index_shift(create_acc
     # попытка удалить категорию-хранилище (если пометить её как is_accounts_storage) -> создаём такую и пробуем
     storage_cat = await create_account_category(filling_redis=False, account_service_id=svc.account_service_id, is_accounts_storage=True, language="ru", name="storage")
     # добавим product в storage_cat
-    prod = await create_product_account(filling_redis=True, account_category_id=storage_cat.account_category_id, hash_login="l", hash_password="p")
+    prod, _ = await create_product_account(filling_redis=True, account_category_id=storage_cat.account_category_id)
 
     with pytest.raises(ValueError):
         await delete_account_category(storage_cat.account_category_id)
@@ -174,7 +174,7 @@ async def test_delete_product_account_success_and_error(create_product_account, 
     - ошибка при попытке удалить несуществующий аккаунт
     """
     cat = await create_account_category(filling_redis=True)
-    prod = await create_product_account(filling_redis=True, account_category_id=cat.account_category_id)
+    prod, _ = await create_product_account(filling_redis=True, account_category_id=cat.account_category_id)
     prod_2 = await create_product_account(filling_redis=True, account_category_id=cat.account_category_id)
     account_id = prod.account_id
 
@@ -205,7 +205,7 @@ async def test_delete_sold_account_success_and_redis_update(create_new_user, cre
     - Redis обновлён: список владельца и одиночный ключ удалены
     """
     # создаём user и sold_account через фабрику
-    full = await create_sold_account(filling_redis=True, language="ru", name="to_del")
+    full, _ = await create_sold_account(filling_redis=True, language="ru", name="to_del")
     sold_id = full.sold_account_id
     owner = full.owner_id
 

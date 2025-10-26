@@ -107,9 +107,9 @@ async def test_get_account_categories_by_parent_id(use_redis, create_account_cat
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_product_account_by_category_id(use_redis, create_account_category, create_product_account):
     category = await create_account_category()
-    account_1 = await create_product_account(use_redis, account_category_id=category.account_category_id)
-    account_2 = await create_product_account(use_redis, account_category_id=category.account_category_id)
-    account_other = await create_product_account(use_redis)
+    account_1, _ = await create_product_account(use_redis, account_category_id=category.account_category_id)
+    account_2, _ = await create_product_account(use_redis, account_category_id=category.account_category_id)
+    account_other, _ = await create_product_account(use_redis)
 
     list_account = await get_product_account_by_category_id(category.account_category_id)
     list_account = [account.to_dict() for account in list_account]
@@ -122,21 +122,20 @@ async def test_get_product_account_by_category_id(use_redis, create_account_cate
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_product_account_by_account_id(use_redis, create_account_category, create_product_account):
     category = await create_account_category()
-    account = await create_product_account(use_redis, account_category_id=category.account_category_id)
-    account_other = await create_product_account(use_redis)
+    _, account = await create_product_account(use_redis, account_category_id=category.account_category_id)
+    _, account_other = await create_product_account(use_redis)
 
     account_result = await get_product_account_by_account_id(account.account_id)
-
-    assert account.to_dict() == account_result.to_dict()
+    assert account == account_result
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_sold_accounts_by_owner_id(use_redis, create_new_user, create_sold_account):
     owner = await create_new_user()
-    account_1 = await create_sold_account(use_redis, owner_id=owner.user_id)
-    account_2 = await create_sold_account(use_redis, owner_id=owner.user_id)
-    account_other = await create_sold_account(use_redis)
+    account_1, _ = await create_sold_account(use_redis, owner_id=owner.user_id)
+    account_2, _ = await create_sold_account(use_redis, owner_id=owner.user_id)
+    account_other, _ = await create_sold_account(use_redis)
 
     list_account = await get_sold_accounts_by_owner_id(owner.user_id, owner.language)
     list_account = [account.model_dump() for account in list_account]
@@ -150,8 +149,8 @@ async def test_get_sold_accounts_by_owner_id(use_redis, create_new_user, create_
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_sold_accounts_by_account_id(use_redis, create_sold_account):
-    account = await create_sold_account(use_redis)
-    account_other = await create_sold_account(use_redis)
+    _, account = await create_sold_account(use_redis)
+    _, account_other = await create_sold_account(use_redis)
 
     account_result = await get_sold_accounts_by_account_id(account.sold_account_id)
 

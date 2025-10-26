@@ -4,14 +4,13 @@ from sqlalchemy import select
 
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
-from src.services.database.selling_accounts.actions import add_account_services, add_deleted_accounts, add_sold_sold_account, \
-    add_translation_in_account_category, add_product_account, add_translation_in_sold_account, add_account_category
 from src.services.database.selling_accounts.models import AccountServices, DeletedAccounts, SoldAccounts, \
     AccountCategoryTranslation, ProductAccounts, AccountCategories, SoldAccountsTranslation
 
 
 @pytest.mark.asyncio
-async def test_add_account_services(create_type_account_service):
+async def test_add_account_services(replacement_needed_modules, create_type_account_service):
+    from src.services.database.selling_accounts.actions import add_account_services
     type_service = await create_type_account_service(name="telegram")
     type_service_2 = await create_type_account_service(name="other")
 
@@ -48,7 +47,8 @@ async def test_add_account_services(create_type_account_service):
         assert new_service.to_dict() == service_from_redis
 
 @pytest.mark.asyncio
-async def test_add_translation_in_account_category(create_account_category):
+async def test_add_translation_in_account_category(replacement_needed_modules, create_account_category):
+    from src.services.database.selling_accounts.actions import add_translation_in_account_category
     category = await create_account_category(filling_redis=False)
 
     # Успешное добавление перевода
@@ -98,7 +98,8 @@ async def test_add_translation_in_account_category(create_account_category):
         )
 
 @pytest.mark.asyncio
-async def test_add_account_category(create_account_service):
+async def test_add_account_category(replacement_needed_modules, create_account_service):
+    from src.services.database.selling_accounts.actions import add_account_category
     service = await create_account_service(filling_redis=False)
 
     # Успешное добавление
@@ -132,15 +133,16 @@ async def test_add_account_category(create_account_service):
 
 
 @pytest.mark.asyncio
-async def test_add_product_account(create_account_category):
+async def test_add_product_account(replacement_needed_modules, create_account_category, create_account_storage):
+    from src.services.database.selling_accounts.actions import add_product_account
     # Создаём категорию-хранилище
+    account_storage = await create_account_storage()
     category = await create_account_category(is_accounts_storage=True, filling_redis=False)
 
     # Успешное добавление
     new_product = await add_product_account(
         account_category_id=category.account_category_id,
-        hash_login="login123",
-        hash_password="pass123"
+        account_storage_id=account_storage.account_storage_id,
     )
 
     async with get_db() as session_db:
@@ -149,32 +151,27 @@ async def test_add_product_account(create_account_category):
         )
         product_db = result.scalar_one_or_none()
         assert product_db is not None
-        assert product_db.hash_login == "login123"
 
     async with get_redis() as session_redis:
         redis_data = await session_redis.get(f"product_accounts_by_account_id:{new_product.account_id}")
         assert redis_data
-        account = orjson.loads(redis_data)
-        assert account["hash_login"] == "login123"
 
         redis_data = await session_redis.get(f"product_accounts_by_category_id:{category.account_category_id}")
         assert redis_data
-        account_list = orjson.loads(redis_data)
-        assert account_list[0]["hash_login"] == "login123"
 
     # Ошибка: категория не является хранилищем
     category_non_storage = await create_account_category(is_accounts_storage=False, filling_redis=False)
     with pytest.raises(ValueError):
         await add_product_account(
             account_category_id=category_non_storage.account_category_id,
-            hash_login="fail",
-            hash_password="fail"
+            account_storage_id=account_storage.account_storage_id,
         )
 
 
 @pytest.mark.asyncio
-async def test_add_translation_in_sold_account(create_sold_account):
-    sold_account = await create_sold_account(filling_redis=False)
+async def test_add_translation_in_sold_account(replacement_needed_modules, create_sold_account):
+    from src.services.database.selling_accounts.actions import add_translation_in_sold_account
+    sold_account, _ = await create_sold_account(filling_redis=False)
 
     # Успешное добавление нового перевода
     translated = await add_translation_in_sold_account(
@@ -201,7 +198,7 @@ async def test_add_translation_in_sold_account(create_sold_account):
         redis_data = await session_redis.get(f"sold_accounts_by_owner_id:{sold_account.owner_id}:en")
         assert redis_data
         account = orjson.loads(redis_data)
-        assert account[1]["name"] == "translated name" # берём первый [1] т.к. в тестируемой функции вызывается заполнение redis
+        assert account[0]["name"] == "translated name"
 
         redis_data = await session_redis.get(f"sold_accounts_by_accounts_id:{sold_account.sold_account_id}:en")
         assert redis_data
@@ -219,21 +216,20 @@ async def test_add_translation_in_sold_account(create_sold_account):
 
 
 @pytest.mark.asyncio
-async def test_add_sold_sold_account(create_new_user, create_type_account_service):
+async def test_add_sold_account(replacement_needed_modules, create_new_user, create_account_storage, create_type_account_service):
+    from src.services.database.selling_accounts.actions import add_sold_account
     user = await create_new_user()
+    account_storage = await create_account_storage()
     type_service = await create_type_account_service(filling_redis=False)
 
     # Успешное добавление
-    sold = await add_sold_sold_account(
+    sold = await add_sold_account(
         owner_id=user.user_id,
         type_account_service_id=type_service.type_account_service_id,
-        is_valid=True,
-        is_deleted=False,
+        account_storage_id=account_storage.account_storage_id,
         language="ru",
         name="sold",
         description="sold desc",
-        hash_login="hash_login",
-        hash_password="hash_password",
     )
     assert sold.owner_id == user.user_id
     assert sold.name == "sold"
@@ -242,17 +238,15 @@ async def test_add_sold_sold_account(create_new_user, create_type_account_servic
         result = await session_db.execute(
             select(SoldAccounts).where(SoldAccounts.sold_account_id == sold.sold_account_id)
         )
-        sold_db = result.scalar_one_or_none()
+        sold_db: SoldAccounts = result.scalar_one_or_none()
         assert sold_db is not None
-        assert sold_db.hash_login == "hash_login"
 
     # Ошибка: несуществующий пользователь
     with pytest.raises(ValueError):
-        await add_sold_sold_account(
+        await add_sold_account(
             owner_id=99999,
             type_account_service_id=type_service.type_account_service_id,
-            is_valid=True,
-            is_deleted=False,
+            account_storage_id=account_storage.account_storage_id,
             language="ru",
             name="fail",
             description="fail"
@@ -260,11 +254,14 @@ async def test_add_sold_sold_account(create_new_user, create_type_account_servic
 
 
 @pytest.mark.asyncio
-async def test_add_deleted_accounts(create_type_account_service):
+async def test_add_deleted_accounts(replacement_needed_modules, create_account_storage, create_type_account_service):
+    from src.services.database.selling_accounts.actions import add_deleted_accounts
+    account_storage = await create_account_storage()
     type_service = await create_type_account_service(filling_redis=False)
 
     deleted = await add_deleted_accounts(
         type_account_service_id=type_service.type_account_service_id,
+        account_storage_id=account_storage.account_storage_id,
         category_name="cat",
         description="desc"
     )
@@ -282,6 +279,7 @@ async def test_add_deleted_accounts(create_type_account_service):
     with pytest.raises(ValueError):
         await add_deleted_accounts(
             type_account_service_id=99999,
+            account_storage_id=account_storage.account_storage_id,
             category_name="fail",
             description="fail"
         )

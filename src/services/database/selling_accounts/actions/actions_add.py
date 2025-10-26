@@ -1,16 +1,23 @@
+import uuid
+from pathlib import Path
+from typing import Literal
+
 import orjson
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from src.config import TYPE_ACCOUNT_SERVICES
+from src.services.database.selling_accounts.models import AccountStorage
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
 from src.services.database.selling_accounts.actions.actions_get import get_account_service, \
     get_account_categories_by_category_id, _get_account_categories_by_service_id, get_type_account_service, \
-    get_product_account_by_category_id, get_sold_accounts_by_owner_id
+    get_product_account_by_category_id
 from src.services.database.selling_accounts.models import AccountServices, AccountCategories, AccountCategoryTranslation, \
-    ProductAccounts, SoldAccounts, SoldAccountsTranslation, DeletedAccounts
-from src.services.database.selling_accounts.models.models_with_tranlslate import AccountCategoryFull, SoldAccountsFull
+    ProductAccounts, SoldAccounts, SoldAccountsTranslation, DeletedAccounts, AccountCategoryFull, SoldAccountSmall
 from src.services.database.users.actions import get_user
+from src.services.redis.filling_redis import filling_product_account_by_account_id, \
+    filling_product_accounts_by_category_id, filling_sold_accounts_by_owner_id, filling_sold_account_by_account_id
 
 
 async def add_account_services(name: str, type_account_service_id: int) -> AccountServices:
@@ -213,10 +220,62 @@ async def add_account_category(
     )
 
 
+async def add_account_storage(
+    type_service_name: str,
+    checksum: str,
+    encrypted_key: str,
+    encrypted_key_nonce: str,
+
+    status: Literal["for_sale", "bought", "deleted"] = 'for_sale',
+    key_version: int = 1,
+    encryption_algo: str = 'AES-GCM-256',
+    login_encrypted: str = None,
+    password_encrypted: str = None,
+) -> AccountStorage:
+    """
+    Путь сформируется только для аккаунтов телеграмма т.к. только их данные хранятся в файле
+    :param type_service_name: Имя сервиса необходимо для формирования пути (должен иметься в TYPE_ACCOUNT_SERVICES)
+    :param checksum: Контроль целостности (SHA256 зашифрованного файла)
+    :param encrypted_key: Персональный ключ аккаунта, зашифрованный мастер-ключом (base64)
+    :param encrypted_key_nonce: nonce, использованный при wrap (Nonce (IV) для AES-GCM (base64))
+    :param status: статус
+    :param key_version: Номер мастер-ключа (для ротации)
+    :param encryption_algo: Алгоритм шифрования
+    :param login_encrypted: Зашифрованный логин
+    :param password_encrypted: Зашифрованный Пароль
+    """
+    if type_service_name not in TYPE_ACCOUNT_SERVICES:
+        raise ValueError(f"type_service_name = {type_service_name} не найден")
+
+    # только для аккаунтов телеграмм формируем путь
+    storage_uuid = str(uuid.uuid4()) if type_service_name == 'telegram' else None
+    file_path = Path(f'status') / type_service_name / str(storage_uuid) / 'account.zip.enc' if type_service_name == 'telegram' else None
+    if type_service_name != 'telegram' and (login_encrypted is None or password_encrypted is None):
+        raise ValueError(f"Необходимо указать login_encrypted и password_encrypted")
+
+    new_account_storage = AccountStorage(
+        storage_uuid = storage_uuid,
+        file_path =file_path, # относительный путь к зашифрованному файлу (относительно accounts/)
+        checksum = checksum,
+        status = status,
+        encrypted_key = encrypted_key,
+        encrypted_key_nonce = encrypted_key_nonce,
+        key_version = key_version,
+        encryption_algo = encryption_algo,
+        login_encrypted = login_encrypted,
+        password_encrypted = password_encrypted
+    )
+
+    async with get_db() as session_db:
+        session_db.add(new_account_storage)
+        await session_db.commit()
+        await session_db.refresh(new_account_storage)
+    return new_account_storage
+
+
 async def add_product_account(
-        account_category_id: int,
-        hash_login: str = None,
-        hash_password: str = None
+    account_category_id: int,
+    account_storage_id: int,
 ) -> ProductAccounts:
     """
     Добавится аккаунт в категорию только где is_accounts_storage = True.
@@ -236,8 +295,7 @@ async def add_product_account(
     new_product_account = ProductAccounts(
         type_account_service_id = service.type_account_service_id,
         account_category_id = account_category_id,
-        hash_login = hash_login,
-        hash_password = hash_password
+        account_storage_id = account_storage_id,
     )
 
     async with get_db() as session_db:
@@ -250,15 +308,9 @@ async def add_product_account(
     for account in all_account:
         new_list_accounts.append(account.to_dict())
 
-    async with get_redis() as session_redis:
-        await session_redis.set(
-            f"product_accounts_by_category_id:{account_category_id}",
-            orjson.dumps(new_list_accounts)
-        )
-        await session_redis.set(
-            f"product_accounts_by_account_id:{new_product_account.account_id}",
-            orjson.dumps(new_product_account.to_dict())
-        )
+    # заполнение redis
+    await filling_product_account_by_account_id(new_product_account.account_id)
+    await filling_product_accounts_by_category_id()
 
     return new_product_account
 
@@ -268,12 +320,12 @@ async def add_translation_in_sold_account(
     language: str,
     name: str,
     description: str
-) -> SoldAccountsFull:
+) -> SoldAccountSmall:
     """Добавит перевод и закэширует"""
 
     async with get_db() as session_db:
         result_db = await session_db.execute(select(SoldAccounts).where(SoldAccounts.sold_account_id == sold_account_id))
-        sold_account = result_db.scalar_one_or_none()
+        sold_account: SoldAccounts = result_db.scalar_one_or_none()
         if not sold_account:
             raise ValueError(f"Продаваемый аккаунт с ID = {sold_account_id} не найден")
 
@@ -306,36 +358,23 @@ async def add_translation_in_sold_account(
         )
         sold_account = result_db.scalar_one_or_none()
 
-        full_sold_account = SoldAccountsFull.from_orm_with_translation(sold_account, language)
+        full_sold_account = SoldAccountSmall.from_orm_with_translation(sold_account, language)
 
-    all_account = await get_sold_accounts_by_owner_id(full_sold_account.owner_id)
-    all_account.append(full_sold_account)
-    all_account = [account.model_dump() for account in all_account]
-
-    async with get_redis() as session_redis:
-        await session_redis.set(
-            f"sold_accounts_by_owner_id:{full_sold_account.owner_id}:{language}",
-            orjson.dumps(all_account)
-        )
-        await session_redis.set(
-            f"sold_accounts_by_accounts_id:{sold_account_id}:{language}",
-            orjson.dumps(full_sold_account.model_dump())
-        )
+    # заполнение redis
+    await filling_sold_accounts_by_owner_id(sold_account.owner_id)
+    await filling_sold_account_by_account_id(sold_account_id)
 
     return full_sold_account
 
 
-async def add_sold_sold_account(
+async def add_sold_account(
     owner_id: int,
     type_account_service_id: int,
-    is_valid: bool,
-    is_deleted: bool,
+    account_storage_id: int,
     language: str,
     name: str,
     description: str,
-    hash_login: str = None,
-    hash_password: str = None,
-) -> SoldAccountsFull:
+) -> SoldAccountSmall:
     """Сделает запись в БД, и закэширует"""
     if not await get_user(owner_id):
         raise ValueError(f"Пользователь с ID = {owner_id} не найден")
@@ -345,11 +384,8 @@ async def add_sold_sold_account(
 
     new_sold_account = SoldAccounts(
         owner_id = owner_id,
-        type_account_service_id = type_account_service_id,
-        is_valid = is_valid,
-        is_deleted = is_deleted,
-        hash_login = hash_login,
-        hash_password = hash_password
+        account_storage_id = account_storage_id,
+        type_account_service_id = type_account_service_id
     )
 
     async with get_db() as session_db:
@@ -366,6 +402,7 @@ async def add_sold_sold_account(
 
 async def add_deleted_accounts(
         type_account_service_id: int,
+        account_storage_id: int,
         category_name: str,
         description: str
 ) -> DeletedAccounts:
@@ -376,6 +413,7 @@ async def add_deleted_accounts(
     async with get_db() as session_db:
         new_deleted_account = DeletedAccounts(
             type_account_service_id = type_account_service_id,
+            account_storage_id = account_storage_id,
             category_name = category_name,
             description = description
         )

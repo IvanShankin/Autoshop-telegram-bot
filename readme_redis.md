@@ -224,10 +224,8 @@
         "account_id": int,
         "type_account_service_id": int,
         "account_category_id": int,
-        "created_at": datatime,
-        
-        "hash_login": str or None,
-        "hash_password": str or None,
+        "account_storage_id": int,
+        "created_at": datetime,
     }
     .....
 ]
@@ -242,10 +240,30 @@
     "account_id": int,
     "type_account_service_id": int,
     "account_category_id": int,
-    "created_at": datatime,
-    
-    "hash_login": str or None,
-    "hash_password": str or None,
+    "created_at": datetime,
+     
+    "account_storage": {
+        "account_storage_id": int,
+        "storage_uuid": str,
+        
+        "file_path": str,
+        "checksum": str,
+        "status": str,
+        
+        "encrypted_key": str,
+        "encrypted_key_nonce": str,
+        "key_version": int,
+        "encryption_algo": str,
+        
+        "login_encrypted": str | None,
+        "password_encrypted": str | None,
+        
+        "is_active": bool,
+        "is_valid": bool,
+        
+        "added_at": datetime,
+        "last_check_at": datetime
+    }
 }
 ```
 **TTL:** Навсегда
@@ -261,17 +279,10 @@
         "owner_id": int,
         "type_account_service_id": int,
         
-        "category_name": str,
-        "service_name": str,
         "name": str,
         "description": str,
         
-        "is_valid": bool,
-        "is_deleted": bool,
-        
-        # Специфичные поля (могут быть NULL)
-        "hash_login": str or None,
-        "hash_password": str or None,
+        "sold_at": datetime
         
     }
     .....
@@ -289,17 +300,33 @@
     "owner_id": int,
     "type_account_service_id": int,
     
-    "category_name": str,
-    "service_name": str,
-    "type_name": str,
+    "name": str,
+    "description": str,
     
-    "is_valid": bool,
-    "is_deleted": bool,
+    "sold_at": datetime,
     
-    # Специфичные поля (могут быть None)
-    "hash_login": str or None,
-    "hash_password": str or None,
-    
+    "account_storage": {
+        "account_storage_id": int,
+        "storage_uuid": str,
+        
+        "file_path": str,
+        "checksum": str,
+        "status": str,
+        
+        "encrypted_key": str,
+        "encrypted_key_nonce": str,
+        "key_version": int,
+        "encryption_algo": str,
+        
+        "login_encrypted": str | None,
+        "password_encrypted": str | None,
+        
+        "is_active": bool,
+        "is_valid": bool,
+        
+        "added_at": datetime,
+        "last_check_at": datetime
+    }
 }
 ```
 **TTL:** 6 часов

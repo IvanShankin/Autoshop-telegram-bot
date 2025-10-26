@@ -14,6 +14,8 @@ async def comparison_models(Expected: Type | dict, Actual: Type | dict, keys_not
             # если ожидаемый результат должен быть датой, и актуальный является не датой
             if isinstance(Expected[key], datetime) and not isinstance(Actual[key], datetime):
                 assert Expected[key] == parse(Actual[key])
+            elif isinstance(Expected[key], dict) and isinstance(Actual[key], dict):
+                await comparison_models(Expected[key], Actual[key])
             else:
                 assert Expected[key] == Actual[key],f'ключ "{key}" не совпал'
 

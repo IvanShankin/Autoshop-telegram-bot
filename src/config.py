@@ -28,7 +28,7 @@ TEMP_FILE_DIR = MEDIA_DIR / "temp"
 
 TYPE_PAYMENTS = ['crypto_bot', 'zelenka'] # отображают в типах оплаты для админа
 MIN_MAX_REPLENISHMENT = {'crypto_bot': {"min": 1, "max": 99999999}}
-TYPE_ACCOUNT_SERVICES = {'telegram': 'telegram', 'other': 'other'}
+TYPE_ACCOUNT_SERVICES = ['telegram', 'other']
 
 ALLOWED_LANGS = ["ru", "en"] # все коды языков
 EMOJI_LANGS = {"ru": "🇷🇺", "en": "🇬🇧", } # эмодзи по коду языка
@@ -64,7 +64,6 @@ UI_IMAGES = {
     "enter_amount": f"{BASE_DIR}/media/ui_sections/enter_amount.png",
     "enter_user_id": f"{BASE_DIR}/media/ui_sections/enter_user_id.png",
     "confirm_the_data": f"{BASE_DIR}/media/ui_sections/confirm_the_data.png",
-    "data_validation": f"{BASE_DIR}/media/ui_sections/data_validation.png",
     "successful_transfer": f"{BASE_DIR}/media/ui_sections/successful_transfer.png",
     "receiving_funds_from_transfer": f"{BASE_DIR}/media/ui_sections/receiving_funds_from_transfer.png",
 

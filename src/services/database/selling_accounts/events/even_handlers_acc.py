@@ -1,4 +1,4 @@
-from src.services.redis.filling_redis import filling_sold_account_only_one_owner, filling_sold_account_only_one
+from src.services.redis.filling_redis import filling_sold_accounts_by_owner_id, filling_sold_account_by_account_id
 from src.services.database.core.database import get_db
 from src.services.database.selling_accounts.events.schemas import NewPurchaseAccount
 from src.services.database.users.models import UserAuditLogs, WalletTransaction
@@ -12,6 +12,7 @@ async def account_purchase_event_handler(event):
         await handler_new_purchase(obj)
 
 async def handler_new_purchase(new_purchase: NewPurchaseAccount):
+    """Отошлёт логи в канал, обновит SoldAccount в redis, добавить в БД запись о покупке"""
     logs = []
     for account_data in new_purchase.account_movement:
         text = (
@@ -37,13 +38,11 @@ async def handler_new_purchase(new_purchase: NewPurchaseAccount):
         )
         logs.append(new_log)
 
-        # обновление redis по каждому языку проданный аккаунт
-        for lang in new_purchase.languages:
-            await filling_sold_account_only_one(account_data.id_new_sold_account, language=lang)
+        # обновление redis по каждому проданный аккаунт
+        await filling_sold_account_by_account_id(account_data.id_new_sold_account)
 
-    # обновление redis
-    for lang in new_purchase.languages:
-        await filling_sold_account_only_one_owner(new_purchase.user_id, language=lang)
+    # обновление redis у всего пользователя
+    await filling_sold_accounts_by_owner_id(new_purchase.user_id)
 
 
     new_wallet_transaction = WalletTransaction(

@@ -47,7 +47,7 @@ async def handler_new_activated_voucher(new_activation_voucher: NewActivationVou
                     await session_redis.delete(f"voucher:{voucher.activation_code}")
 
                 await send_set_not_valid_voucher(
-                    new_activation_voucher.user_id,
+                    voucher.creator_id,
                     voucher,
                     True,
                     new_activation_voucher.language

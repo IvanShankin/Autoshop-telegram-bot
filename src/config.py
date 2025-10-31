@@ -21,7 +21,7 @@ sys.path.append(str(BASE_DIR))
 LOCALES_DIR = BASE_DIR / 'locales'
 LOG_DIR =  BASE_DIR / 'logs'
 MEDIA_DIR = BASE_DIR / "media"
-ACCOUNTS_DIR = BASE_DIR / "accounts"
+ACCOUNTS_DIR = MEDIA_DIR / "accounts"
 TEMP_FILE_DIR = MEDIA_DIR / "temp"
 
 TYPE_PAYMENTS = ['crypto_bot', 'zelenka'] # отображают в типах оплаты для админа
@@ -41,48 +41,48 @@ PAGE_SIZE = 6
 
 UI_IMAGES = {
     # Начальные экраны
-    "welcome_message": f"{BASE_DIR}/media/ui_sections/welcome_message.png",
-    "selecting_language": f"{BASE_DIR}/media/ui_sections/selecting_language.png",
+    "welcome_message": MEDIA_DIR / "ui_sections" / "welcome_message.png",
+    "selecting_language": MEDIA_DIR / "ui_sections" / "selecting_language.png",
 
     # Основные разделы профиля
-    "profile": f"{BASE_DIR}/media/ui_sections/profile.png",
-    "profile_settings": f"{BASE_DIR}/media/ui_sections/profile_settings.png",
-    "notification_settings": f"{BASE_DIR}/media/ui_sections/notification_settings.png",
+    "profile": MEDIA_DIR / "ui_sections" / "profile.png",
+    "profile_settings": MEDIA_DIR / "ui_sections" / "profile_settings.png",
+    "notification_settings": MEDIA_DIR / "ui_sections" / "notification_settings.png",
 
     # История операций
-    "history_transections": f"{BASE_DIR}/media/ui_sections/history_transections.png",
-    "history_income_from_referrals": f"{BASE_DIR}/media/ui_sections/history_income_from_referrals.png",
+    "history_transections": MEDIA_DIR / "ui_sections" / "history_transections.png",
+    "history_income_from_referrals": MEDIA_DIR / "ui_sections" / "history_income_from_referrals.png",
 
     # Реферальная система
-    "ref_system": f"{BASE_DIR}/media/ui_sections/ref_system.png",
-    "new_referral": f"{BASE_DIR}/media/ui_sections/new_referral.png",
+    "ref_system": MEDIA_DIR / "ui_sections" / "ref_system.png",
+    "new_referral": MEDIA_DIR / "ui_sections" / "new_referral.png",
 
     # Перевод средств
-    "balance_transfer": f"{BASE_DIR}/media/ui_sections/balance_transfer.png",
-    "enter_amount": f"{BASE_DIR}/media/ui_sections/enter_amount.png",
-    "enter_user_id": f"{BASE_DIR}/media/ui_sections/enter_user_id.png",
-    "confirm_the_data": f"{BASE_DIR}/media/ui_sections/confirm_the_data.png",
-    "successful_transfer": f"{BASE_DIR}/media/ui_sections/successful_transfer.png",
-    "receiving_funds_from_transfer": f"{BASE_DIR}/media/ui_sections/receiving_funds_from_transfer.png",
+    "balance_transfer": MEDIA_DIR / "ui_sections" / "balance_transfer.png",
+    "enter_amount": MEDIA_DIR / "ui_sections" / "enter_amount.png",
+    "enter_user_id": MEDIA_DIR / "ui_sections" / "enter_user_id.png",
+    "confirm_the_data": MEDIA_DIR / "ui_sections" / "confirm_the_data.png",
+    "successful_transfer": MEDIA_DIR / "ui_sections" / "successful_transfer.png",
+    "receiving_funds_from_transfer": MEDIA_DIR / "ui_sections" / "receiving_funds_from_transfer.png",
 
     # Ваучеры
-    "enter_number_activations_for_voucher": f"{BASE_DIR}/media/ui_sections/enter_number_activations_for_voucher.png",
-    "successful_create_voucher": f"{BASE_DIR}/media/ui_sections/successful_create_voucher.png",
-    "successfully_activate_voucher": f"{BASE_DIR}/media/ui_sections/successfully_activate_voucher.png",
-    "unsuccessfully_activate_voucher": f"{BASE_DIR}/media/ui_sections/unsuccessfully_activate_voucher.png",
-    "viewing_vouchers": f"{BASE_DIR}/media/ui_sections/viewing_vouchers.png",
-    "confirm_deactivate_voucher": f"{BASE_DIR}/media/ui_sections/confirm_deactivate_voucher.png",
-    "voucher_successful_deactivate": f"{BASE_DIR}/media/ui_sections/voucher_successful_deactivate.png",
+    "enter_number_activations_for_voucher": MEDIA_DIR / "ui_sections" / "enter_number_activations_for_voucher.png",
+    "successful_create_voucher": MEDIA_DIR / "ui_sections" / "successful_create_voucher.png",
+    "successfully_activate_voucher": MEDIA_DIR / "ui_sections" / "successfully_activate_voucher.png",
+    "unsuccessfully_activate_voucher": MEDIA_DIR / "ui_sections" / "unsuccessfully_activate_voucher.png",
+    "viewing_vouchers": MEDIA_DIR / "ui_sections" / "viewing_vouchers.png",
+    "confirm_deactivate_voucher": MEDIA_DIR / "ui_sections" / "confirm_deactivate_voucher.png",
+    "voucher_successful_deactivate": MEDIA_DIR / "ui_sections" / "voucher_successful_deactivate.png",
 
     # Ошибки
-    "insufficient_funds": f"{BASE_DIR}/media/ui_sections/insufficient_funds.png",
-    "incorrect_data_entered": f"{BASE_DIR}/media/ui_sections/incorrect_data_entered.png",
-    "user_no_found": f"{BASE_DIR}/media/ui_sections/user_no_found.png",
-    "server_error": f"{BASE_DIR}/media/ui_sections/server_error.png",
+    "insufficient_funds": MEDIA_DIR / "ui_sections" / "insufficient_funds.png",
+    "incorrect_data_entered": MEDIA_DIR / "ui_sections" / "incorrect_data_entered.png",
+    "user_no_found": MEDIA_DIR / "ui_sections" / "user_no_found.png",
+    "server_error": MEDIA_DIR / "ui_sections" / "server_error.png",
 
     # Пополнение
-    "show_all_services_replenishments": f"{BASE_DIR}/media/ui_sections/show_all_services_replenishments.png",
-    "request_enter_amount": f"{BASE_DIR}/media/ui_sections/request_enter_amount.png",
-    "pay": f"{BASE_DIR}/media/ui_sections/pay.png",
+    "show_all_services_replenishments": MEDIA_DIR / "ui_sections" / "show_all_services_replenishments.png",
+    "request_enter_amount": MEDIA_DIR / "ui_sections" / "request_enter_amount.png",
+    "pay": MEDIA_DIR / "ui_sections" / "pay.png",
 
 }

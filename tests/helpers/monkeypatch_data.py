@@ -1,5 +1,6 @@
 import importlib
 import os
+import pathlib
 import shutil
 import sys
 import types
@@ -76,13 +77,13 @@ async def replacement_fake_bot(monkeypatch):
     return fake_bot
 
 
-@pytest_asyncio.fixture(scope="function", autouse=False)
+@pytest_asyncio.fixture(scope="function", autouse=True)
 async def replacement_pyth_account(monkeypatch):
     from src import config
     from src.services.database.selling_accounts.actions import action_purchase
     from src.services.filesystem import account_actions
 
-    new_account_dir = config.BASE_DIR / "accounts_test"
+    new_account_dir = config.MEDIA_DIR / "accounts_test"
 
     monkeypatch.setattr(config, 'ACCOUNTS_DIR', new_account_dir)
     monkeypatch.setattr(action_purchase, 'ACCOUNTS_DIR', new_account_dir)
@@ -90,4 +91,5 @@ async def replacement_pyth_account(monkeypatch):
 
     yield
 
-    shutil.rmtree(new_account_dir) # удаляет директорию созданную для тестов
+    if os.path.isdir(new_account_dir):
+        shutil.rmtree(new_account_dir) # удаляет директорию созданную для тестов

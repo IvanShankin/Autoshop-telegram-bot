@@ -52,7 +52,7 @@ async def create_database():
     for type_account_services in TYPE_ACCOUNT_SERVICES:
         await filling_type_account_services(type_account_services)
     for key in UI_IMAGES:
-        await filling_ui_image(key=key, path=UI_IMAGES[key])
+        await filling_ui_image(key=key, path=str(UI_IMAGES[key]))
 
 async def create_table():
     """создает таблицы в целевой базе данных"""

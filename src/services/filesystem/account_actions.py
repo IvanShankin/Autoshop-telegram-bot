@@ -105,7 +105,8 @@ def decryption_tg_account(account_storage: AccountStorage):
     master_key = derive_master_key()
     account_key = unwrap_account_key(account_storage.encrypted_key, master_key)
 
-    abs_path = os.path.join(str(ACCOUNTS_DIR), account_storage.file_path)
+    abs_path = ACCOUNTS_DIR / Path(account_storage.file_path)
+    abs_path = abs_path.resolve()
     folder_path = decrypt_folder(abs_path, account_key)
     return folder_path  # Временная папка с .session и tdata
 

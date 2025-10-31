@@ -1,5 +1,6 @@
 import os
 import shutil
+from pathlib import Path
 from types import SimpleNamespace
 
 import orjson
@@ -459,14 +460,14 @@ async def test__check_account_validity_async_success(
     monkeypatch.setattr(action_mod, "TYPE_ACCOUNT_SERVICES", {"test_service": True})
 
     # СДЕЛАЕМ decryption синхронным (то, что ожидает asyncio.to_thread)
-    temp_folder_path = os.path.join(os.getcwd(), "tmp_test_account_folder")
+    temp_folder_path = Path.cwd() / "tmp_test_account_folder"
 
     def fake_decryption_tg_account(account_storage_arg):
         # создаём папку, чтобы rmtree мог ее удалить (проверим вызов)
         os.makedirs(temp_folder_path, exist_ok=True)
         # создадим минимальные файлы, которые могут понадобиться
-        open(os.path.join(temp_folder_path, "session.session"), "wb").close()
-        tdata_dir = os.path.join(temp_folder_path, "tdata")
+        open(str((temp_folder_path / "session.session").touch()), "wb").close()
+        tdata_dir = temp_folder_path / "tdata"
         os.makedirs(tdata_dir, exist_ok=True)
         return temp_folder_path
 

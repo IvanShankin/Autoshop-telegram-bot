@@ -1,5 +1,4 @@
 import asyncio
-import os
 from contextlib import suppress
 
 import aio_pika

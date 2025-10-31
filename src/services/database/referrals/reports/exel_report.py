@@ -60,7 +60,7 @@ async def generate_referral_report_exel(owner_user_id: int, language: str) -> st
 
     # Формируем excel
     os.makedirs(TEMP_FILE_DIR, exist_ok=True)
-    temp_path = os.path.join(TEMP_FILE_DIR, f"referrals_report_{owner_user_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx")
+    temp_path = TEMP_FILE_DIR /  f"referrals_report_{owner_user_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
 
     with pd.ExcelWriter(temp_path, engine="openpyxl") as writer:
         # блок 1 - служебная информация

@@ -16,8 +16,7 @@ from src.services.database.system.models import UiImages
 
 
 def _check_file_exists(ui_image: UiImages) -> UiImages | None:
-    full_path = os.path.join(MEDIA_DIR, ui_image.file_path)
-    return ui_image if os.path.exists(full_path) else None
+    return ui_image if os.path.exists(ui_image.file_path) else None
 
 async def get_settings() -> Settings:
     async with get_redis() as session_redis:

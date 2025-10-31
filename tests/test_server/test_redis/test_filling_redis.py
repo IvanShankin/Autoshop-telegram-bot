@@ -209,7 +209,7 @@ async def test_filling_user(create_new_user):
 async def test_filling_types_account_service(create_type_account_service):
     # заполняем БД
     for key in UI_IMAGES:
-        await filling_ui_image(key=key, path=UI_IMAGES[key])
+        await filling_ui_image(key=key, path=str(UI_IMAGES[key]))
         await filling.filling_ui_image(key) # тестируемая функция
 
     async with get_redis() as session_redis:
@@ -222,7 +222,7 @@ async def test_filling_types_account_service(create_type_account_service):
                 data_redis = orjson.loads(result_redis)
 
                 assert data_redis == data_db.to_dict()
-                assert value == data_redis['file_path']
+                assert str(value) == data_redis['file_path']
 
 
 @pytest.mark.asyncio

@@ -1,6 +1,6 @@
 import pytest
 from types import SimpleNamespace
-from helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
+from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
 
 
 @pytest.mark.asyncio

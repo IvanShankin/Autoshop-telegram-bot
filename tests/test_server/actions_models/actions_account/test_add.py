@@ -2,6 +2,7 @@ import pytest
 from orjson import orjson
 from sqlalchemy import select
 
+from src.exceptions.service_exceptions import TranslationAlreadyExists
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
 from src.services.database.selling_accounts.models import AccountServices, DeletedAccounts, SoldAccounts, \
@@ -206,7 +207,7 @@ async def test_add_translation_in_sold_account(replacement_needed_modules, creat
         assert account["name"] == "translated name"
 
     # Ошибка: перевод уже существует
-    with pytest.raises(ValueError):
+    with pytest.raises(TranslationAlreadyExists):
         await add_translation_in_sold_account(
             sold_account_id=sold_account.sold_account_id,
             language="en",

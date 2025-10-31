@@ -11,10 +11,8 @@ from src.services.database.system.actions import get_settings, update_settings
 from src.services.database.core.database import get_db
 from src.services.redis.core_redis import get_redis
 from src.services.database.system.models import UiImages
-from tests.helpers.helper_fixture import create_settings
+
 from tests.helpers.helper_functions import comparison_models
-
-
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis',[True,False])

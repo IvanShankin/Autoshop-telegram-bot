@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.config import TYPE_ACCOUNT_SERVICES
+from src.exceptions.service_exceptions import TranslationAlreadyExists
 from src.services.database.selling_accounts.models import AccountStorage
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
@@ -319,7 +320,8 @@ async def add_translation_in_sold_account(
     sold_account_id: int,
     language: str,
     name: str,
-    description: str
+    description: str,
+    filling_redis: bool = True
 ) -> SoldAccountSmall:
     """Добавит перевод и закэширует"""
 
@@ -338,7 +340,7 @@ async def add_translation_in_sold_account(
         )
         translation = result_db.scalar_one_or_none()
         if translation:
-            raise ValueError(f"Перевод по данному языку '{language}' уже есть")
+            raise TranslationAlreadyExists(f"Перевод по данному языку '{language}' уже есть")
 
         new_translation = SoldAccountsTranslation(
             sold_account_id = sold_account_id,
@@ -361,8 +363,9 @@ async def add_translation_in_sold_account(
         full_sold_account = SoldAccountSmall.from_orm_with_translation(sold_account, language)
 
     # заполнение redis
-    await filling_sold_accounts_by_owner_id(sold_account.owner_id)
-    await filling_sold_account_by_account_id(sold_account_id)
+    if filling_redis:
+        await filling_sold_accounts_by_owner_id(sold_account.owner_id)
+        await filling_sold_account_by_account_id(sold_account_id)
 
     return full_sold_account
 

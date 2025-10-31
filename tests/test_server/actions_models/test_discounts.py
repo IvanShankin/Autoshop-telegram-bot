@@ -12,10 +12,9 @@ from src.services.database.discounts.models import SmallVoucher
 from src.services.database.users.actions import get_user
 from src.services.database.users.models import Users, WalletTransaction, UserAuditLogs
 from src.utils.i18n import get_i18n
-from tests.helpers.helper_fixture import create_promo_code, create_voucher
+
 from tests.helpers.helper_functions import comparison_models
 from tests.helpers.monkeypatch_data import fake_bot
-from tests.helpers.helper_fixture import create_settings
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("use_redis", [True, False])

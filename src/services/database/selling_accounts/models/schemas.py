@@ -4,12 +4,32 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 from src.services.database.selling_accounts.models import SoldAccounts, ProductAccounts
-from src.services.database.selling_accounts.models.models import AccountStorage, AccountCategories
+from src.services.database.selling_accounts.models.models import AccountStorage, AccountCategories, \
+    AccountCategoryTranslation
 
 
 class PurchaseAccountSchem(BaseModel):
     ids_deleted_product_account: List[int]
     ids_new_sold_account: List[int]
+
+class StartPurchaseAccount(BaseModel):
+    purchase_request_id: int
+    category_id: int
+    type_account_service_id: int
+    promo_code_id: int | None
+    product_accounts: List[ProductAccounts] # ОБЯЗАТЕЛЬНО с подгруженными AccountStorage
+    type_service_name: str
+    translations_category: List[AccountCategoryTranslation]
+    original_price_one_acc: int  # Цена на момент покупки (без учёта промокода)
+    purchase_price_one_acc: int  # Цена на момент покупки (с учётом промокода)
+    cost_price_one_acc: int  # Себестоимость на момент покупки
+    total_amount: int  # цена которую заплатил пользователь
+
+    user_balance_before: int
+    user_balance_after: int
+
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 class AccountCategoryFull(BaseModel):
     account_category_id: int

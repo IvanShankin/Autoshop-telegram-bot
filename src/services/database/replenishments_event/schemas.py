@@ -4,7 +4,8 @@ from pydantic import BaseModel
 class NewReplenishment(BaseModel):
     replenishment_id: int
     user_id: int
-    amount: int
+    origin_amount: int # Сумма для начисления.
+    amount: int # Сумма которую заплатил пользователь
 
 class ReplenishmentCompleted(BaseModel):
     user_id: int

@@ -89,10 +89,10 @@ async def handler_new_replenishment(new_replenishment: NewReplenishment):
         error = False
     except Exception as e:
         logger.error(
-            f"#Ошибка_пополнения Произошла ошибка при пополнении 'handler_new_replenishment'. "
-            f"Флаг обновлённого баланса: {money_credited}. "
-            f"ID пополнения: {new_replenishment.replenishment_id}. "
-            f"Ошибка: {str(e)}"
+            f"\n#Ошибка_пополнения Произошла ошибка при пополнении 'handler_new_replenishment'. \n"
+            f"Флаг обновлённого баланса: {money_credited}. \n"
+            f"ID пополнения: {new_replenishment.replenishment_id}. \n"
+            f"Ошибка: {str(e)} "
         )
         error_str = str(e)
 

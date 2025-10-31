@@ -3,7 +3,7 @@ import pytest
 from sqlalchemy import select
 
 import src.services.redis.filling_redis as filling
-from helpers.helper_functions import comparison_models
+from tests.helpers.helper_functions import comparison_models
 from src.config import UI_IMAGES
 from src.services.database.core.filling_database import filling_ui_image
 from src.services.database.discounts.models import SmallVoucher
@@ -11,7 +11,7 @@ from src.services.database.system.models import UiImages
 from src.services.database.users.models import  BannedAccounts
 from src.services.database.core.database import get_db
 from src.services.redis.core_redis import get_redis
-from tests.helpers.helper_fixture import create_sold_account, create_new_user
+
 
 @pytest.mark.asyncio
 async def test_filling_account_categories_by_category_id(create_account_category):

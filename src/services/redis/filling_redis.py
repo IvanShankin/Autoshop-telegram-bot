@@ -218,52 +218,6 @@ async def _fill_redis_single_objects(
                             await pipe.set(key, value)
                     await pipe.execute()
 
-async def _fill_redis_grouped_objects(
-        model: Type,
-        group_by_field_models: str,
-        group_by_model: Type,
-        group_by_field_for_group_model: str,
-        key_prefix: str,
-        filter_condition: Optional[Any] = None,
-        ttl: Optional[int] = None
-):
-    """
-    Заполняет Redis сгруппированными объектами. Если объекты в БД не будут найдены, то удалит по ключу
-    :param model: Модель БД которая заполнит redis.
-    :param group_by_model: Модель по которой будет происходить группировка.
-    :param group_by_field_for_group_model: Столбец по которому будет отбираться group_by_model.
-    :param group_by_field_models: Столбец по которому будет отбираться model.
-    :param key_prefix: Префикс у ключа redis
-    :param filter_condition: Фильтрация model. Пример: (User.user_id == 1)
-    :param ttl:
-    :return:
-    """
-    await _delete_keys_by_pattern(f'{key_prefix}:*')
-    async with get_db() as session_db:
-        # Получаем все ID для группировки
-        result_db = await session_db.execute(select(getattr(group_by_model, group_by_field_for_group_model)))
-        group_ids = result_db.scalars().all()
-
-        for group_id in group_ids:
-            # Строим запрос с условием
-            query = select(model).where(getattr(model, group_by_field_models) == group_id)
-            if filter_condition is not None:
-                query = query.where(filter_condition)
-
-            result_db = await session_db.execute(query)
-            grouped_objects = result_db.scalars().all()
-
-            if grouped_objects:
-                async with get_redis() as session_redis:
-                    list_for_redis = [obj.to_dict() for obj in grouped_objects]
-                    key = f"{key_prefix}:{group_id}"
-                    value = orjson.dumps(list_for_redis)
-
-                    if ttl:
-                        await session_redis.setex(key, ttl, value)
-                    else:
-                        await session_redis.set(key, value)
-
 
 async def filling_settings():
     async with get_db() as session_db:
@@ -389,7 +343,7 @@ async def filling_account_categories_by_service_id():
     )
 
 async def filling_account_categories_by_category_id():
-    await _delete_keys_by_pattern(f'account_categories_by_category_id:*')
+    await _delete_keys_by_pattern(f'account_categories_by_category_id:*') # удаляем по каждой категории
     async with get_db() as session_db:
         result_db = await session_db.execute(select(AccountCategories).options(selectinload(AccountCategories.translations)))
         categories: list[AccountCategories] = result_db.scalars().all()
@@ -432,7 +386,7 @@ async def filling_account_categories_by_category_id():
 
 
 async def filling_product_accounts_by_category_id():
-    await _delete_keys_by_pattern(f'product_accounts_by_category_id:*')
+    await _delete_keys_by_pattern(f'product_accounts_by_category_id:*') # удаляем по каждой категории
     async with get_db() as session_db:
         # Получаем все ID для группировки
         result_db = await session_db.execute(select(ProductAccounts.account_category_id))
@@ -453,7 +407,7 @@ async def filling_product_accounts_by_category_id():
 
 
 async def filling_product_account_by_account_id(account_id: int):
-    await _delete_keys_by_pattern(f'product_accounts_by_account_id:*')
+    await _delete_keys_by_pattern(f'product_accounts_by_account_id:{account_id}') # удаляем только по данному id
     async with get_db() as session_db:
         result_db = await session_db.execute(select(ProductAccounts).where(ProductAccounts.account_id == account_id))
         account: ProductAccounts = result_db.scalar_one_or_none()
@@ -478,7 +432,7 @@ async def filling_product_account_by_account_id(account_id: int):
 
 async def filling_sold_accounts_by_owner_id(owner_id: int):
     """Заполнит SoldAccounts по всем языкам которые есть"""
-    await _delete_keys_by_pattern(f'sold_accounts_by_owner_id:{owner_id}:*')
+    await _delete_keys_by_pattern(f'sold_accounts_by_owner_id:{owner_id}:*') # удаляем по всем аккаунтах у владельца
     async with get_db() as session_db:
         result_db = await session_db.execute(
             select(SoldAccounts)
@@ -519,7 +473,7 @@ async def filling_sold_accounts_by_owner_id(owner_id: int):
 
 async def filling_sold_account_by_account_id(sold_account_id: int):
     """Заполнит SoldAccounts по всем языкам которые есть"""
-    await _delete_keys_by_pattern(f'sold_accounts_by_accounts_id:{sold_account_id}:*')
+    await _delete_keys_by_pattern(f'sold_accounts_by_accounts_id:{sold_account_id}:*') # удаляем по всем языкам
     async with get_db() as session_db:
         result_db = await session_db.execute(
             select(SoldAccounts)

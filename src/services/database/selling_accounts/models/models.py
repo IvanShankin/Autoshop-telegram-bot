@@ -249,7 +249,6 @@ class PurchasesAccounts(Base):
     purchase_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
     sold_account_id = Column(Integer, ForeignKey("sold_accounts.sold_account_id"), nullable=False)
-    promo_code_id = Column(Integer, ForeignKey("promo_codes.promo_code_id"), nullable=True)
 
     original_price = Column(Integer, nullable=False)  # Цена на момент покупки (без учёта промокода)
     purchase_price = Column(Integer, nullable=False)  # Цена на момент покупки (с учётом промокода)
@@ -260,12 +259,10 @@ class PurchasesAccounts(Base):
 
     user = relationship("Users", back_populates="purchases")
     sold_account = relationship("SoldAccounts", back_populates="purchase")  # Связь с SoldAccounts
-    promo_code = relationship("PromoCodes", back_populates="purchases_accounts")
 
 class DeletedAccounts(Base):
     """
-    Логирование аккаунтов которые удалены самим ботом по причине их не валидности.
-    Аккаунты удалённые пользователем сюда не попадают!
+    Аккаунты которые удалены либо пользователем, либо серверной частью по причине их не валидности
     """
     __tablename__ = "deleted_accounts"
 
@@ -285,12 +282,14 @@ class PurchaseRequests(Base):
 
     purchase_request_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
+    promo_code_id = Column(Integer, ForeignKey("promo_codes.promo_code_id"), nullable=True)
     quantity = Column(Integer, nullable=False)
     total_amount = Column(Integer, nullable=False)
     status = Column(Enum('processing', 'completed', 'failed', name='status_request'), server_default='processing')
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     purchase_request_accounts = relationship("PurchaseRequestAccount", back_populates="purchase_request")
+    promo_code = relationship("PromoCodes", back_populates="purchase_requests")
     user = relationship("Users", back_populates="purchase_requests")
     balance_holder = relationship("BalanceHolder", back_populates="purchase_requests")
 

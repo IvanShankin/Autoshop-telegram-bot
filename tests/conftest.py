@@ -6,14 +6,18 @@ import aio_pika
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine
 
+from tests.helpers.monkeypatch_data import *
 from src.services.database.core.database import SQL_DB_URL
 from src.services.database import core
+from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_all_redis
 
 from tests.helpers.helper_fixture import *
-from tests.helpers.monkeypatch_data import replacement_redis, replacement_fake_bot
 
-from helpers.fake_aiogram.fake_aiogram import patch_fake_aiogram
+from tests.helpers.fake_aiogram.fake_aiogram import patch_fake_aiogram
+
+
+# ИМПОРТЫ  НЕ УБИРАТЬ, ОНИ ИСПОЛЬЗУЮТСЯ В ТЕСТАХ ПОДГРУЖАЯСЬ С conftest.py
 
 load_dotenv()  # Загружает переменные из .env
 MODE = os.getenv('MODE')

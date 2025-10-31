@@ -1,4 +1,6 @@
 import importlib
+import os
+import shutil
 import sys
 import types
 from contextlib import asynccontextmanager
@@ -6,7 +8,7 @@ from contextlib import asynccontextmanager
 import fakeredis
 import pytest_asyncio
 
-from helpers.fake_aiogram.fake_aiogram_module import FakeBot
+from tests.helpers.fake_aiogram.fake_aiogram_module import FakeBot
 from src.services.redis import core_redis
 
 fake_bot = FakeBot()
@@ -73,3 +75,19 @@ async def replacement_fake_bot(monkeypatch):
 
     return fake_bot
 
+
+@pytest_asyncio.fixture(scope="function", autouse=False)
+async def replacement_pyth_account(monkeypatch):
+    from src import config
+    from src.services.database.selling_accounts.actions import action_purchase
+    from src.services.filesystem import account_actions
+
+    new_account_dir = config.BASE_DIR / "accounts_test"
+
+    monkeypatch.setattr(config, 'ACCOUNTS_DIR', new_account_dir)
+    monkeypatch.setattr(action_purchase, 'ACCOUNTS_DIR', new_account_dir)
+    monkeypatch.setattr(account_actions, 'ACCOUNTS_DIR', new_account_dir)
+
+    yield
+
+    shutil.rmtree(new_account_dir) # удаляет директорию созданную для тестов

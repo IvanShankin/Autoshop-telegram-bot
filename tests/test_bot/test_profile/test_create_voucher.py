@@ -1,6 +1,6 @@
 import pytest
 from types import SimpleNamespace
-from helpers.fake_aiogram.fake_aiogram_module import FakeFSMContext
+from tests.helpers.fake_aiogram.fake_aiogram_module import FakeFSMContext
 
 @pytest.mark.asyncio
 async def test_create_voucher_start_callback(

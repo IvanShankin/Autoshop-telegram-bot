@@ -79,7 +79,8 @@ async def test_webhook_crypto_bot(monkeypatch, create_new_user, create_replenish
     payload = NewReplenishment(
         replenishment_id = replenishment.replenishment_id,
         user_id = user.user_id,
-        amount = replenishment.amount
+        origin_amount = replenishment.origin_amount,
+        amount = replenishment.amount,
     )
 
     invoice = Invoice(

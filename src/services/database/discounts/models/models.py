@@ -28,7 +28,7 @@ class PromoCodes(Base):
     is_valid = Column(Boolean, nullable=False, server_default=text('true'))
 
     promo_code_activated_account = relationship("ActivatedPromoCodes", back_populates="promo_code")
-    purchases_accounts = relationship("PurchasesAccounts", back_populates="promo_code")
+    purchase_requests = relationship("PurchaseRequests", back_populates="promo_code")
 
 class ActivatedPromoCodes(Base):
     __tablename__ = "activated_promo_codes"

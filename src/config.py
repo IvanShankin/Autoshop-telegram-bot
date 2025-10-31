@@ -1,9 +1,6 @@
 import os
 import sys
-from datetime import timezone, datetime
-from typing import List, Dict
 
-from asyncpg.pgproto.pgproto import timedelta
 from dotenv import load_dotenv
 from pathlib import Path
 
@@ -24,6 +21,7 @@ sys.path.append(str(BASE_DIR))
 LOCALES_DIR = BASE_DIR / 'locales'
 LOG_DIR =  BASE_DIR / 'logs'
 MEDIA_DIR = BASE_DIR / "media"
+ACCOUNTS_DIR = BASE_DIR / "accounts"
 TEMP_FILE_DIR = MEDIA_DIR / "temp"
 
 TYPE_PAYMENTS = ['crypto_bot', 'zelenka'] # отображают в типах оплаты для админа

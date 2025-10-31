@@ -19,11 +19,9 @@ from src.services.database.core.database import get_db
 from src.utils.i18n import get_i18n
 from src.services.redis.core_redis import get_redis
 
-from tests.helpers.helper_fixture import (create_new_user, create_type_payment, create_referral, create_replenishment,
-                                           create_promo_code, create_settings)
+from tests.helpers.helper_functions import comparison_models
 from tests.helpers.monkeypatch_data import fake_bot
 from tests.helpers.monkeypatch_event_db import processed_promo_code, processed_voucher, processed_referrals, processed_replenishment
-from tests.helpers.helper_functions import comparison_models
 
 
 
@@ -53,6 +51,7 @@ class TestHandlerNewReplenishment:
             event = NewReplenishment(
                 replenishment_id=new_replenishment.replenishment_id,
                 user_id=new_replenishment.user_id,
+                origin_amount=new_replenishment.origin_amount,
                 amount=new_replenishment.amount
             )
 
@@ -834,7 +833,7 @@ async def test_handler_new_purchase_creates_wallet_and_logs(
     # параметры покупки (имитация того, что уже произошла основная транзакция и purchase_id = 777)
     account_movement = [
         AccountsData(
-            id_old_product_account=111,
+            id_account_storage=sold_full.account_storage.account_storage_id,
             id_new_sold_account=sold_full.sold_account_id,
             id_purchase_account=777,
             cost_price=10,
@@ -846,13 +845,11 @@ async def test_handler_new_purchase_creates_wallet_and_logs(
     new_purchase = NewPurchaseAccount(
         user_id=user.user_id,
         category_id=1,
-        quantity=1,
         amount_purchase=100,
         account_movement=account_movement,
-        languages=['ru'],
-        promo_code_id=None,
         user_balance_before=1000,
         user_balance_after=900,
+        accounts_left=3,
     )
 
     # вызов тестируемой функции
@@ -882,23 +879,15 @@ async def test_handler_new_purchase_creates_wallet_and_logs(
         for l in logs:
             if l.action_type == "purchase_account" and l.details.get("id_new_sold_account") == sold_full.sold_account_id:
                 found = True
-                assert l.details["id_old_product_account"] == 111
+                assert l.details["id_account_storage"] == sold_full.account_storage.account_storage_id
                 assert l.details["id_purchase_account"] == 777
                 assert l.details["profit"] == 90
                 break
         assert found, "Лог покупки с нужными деталями не найден"
 
-    # ---- проверки Redis (filling_sold_account_by_account_id и filling_sold_accounts_by_owner_id) ----
-    async with get_redis() as r:
-        val_by_id = await r.get(f"sold_accounts_by_accounts_id:{sold_full.sold_account_id}:ru")
-        assert val_by_id is not None, "Redis: sold_accounts_by_accounts_id не заполнен"
-
-        val_by_owner = await r.get(f"sold_accounts_by_owner_id:{user.user_id}:ru")
-        assert val_by_owner is not None, "Redis: sold_accounts_by_owner_id не заполнен"
-
     # ---- проверка отправленных логов (send_log должен был использовать fake bot) ----
     # формируется текст в handler_new_purchase, проверим что хотя бы кусок текста попал в сообщения
-    expected_substring = f"Аккаунт на продаже с id = {account_movement[0].id_old_product_account} продан!"
+    expected_substring = f"Аккаунт на продаже с id (StorageAccount) = {sold_full.account_storage.account_storage_id} продан!"
     assert fake_bot.check_str_in_messages(expected_substring) or fake_bot.check_str_in_messages(expected_substring[:30])
 
 
@@ -918,27 +907,25 @@ async def test_account_purchase_event_handler_parses_and_calls_handler(
     _, sold_full = await create_sold_account(filling_redis=False, owner_id=user.user_id, language='ru')
 
     account_movement = [
-        {
-            "id_old_product_account": 222,
-            "id_new_sold_account": sold_full.sold_account_id,
-            "id_purchase_account": 888,
-            "cost_price": 5,
-            "purchase_price": 50,
-            "net_profit": 45
-        }
+        AccountsData(
+            id_account_storage=sold_full.account_storage.account_storage_id,
+            id_new_sold_account=sold_full.sold_account_id,
+            id_purchase_account=777,
+            cost_price=10,
+            purchase_price=100,
+            net_profit=90
+        ).model_dump()
     ]
 
-    payload = {
-        "user_id": user.user_id,
-        "category_id": 1,
-        "quantity": 1,
-        "amount_purchase": 50,
-        "account_movement": account_movement,
-        "languages": ["ru"],
-        "promo_code_id": None,
-        "user_balance_before": 500,
-        "user_balance_after": 450
-    }
+    payload = NewPurchaseAccount(
+        user_id=user.user_id,
+        category_id=1,
+        amount_purchase=100,
+        account_movement=account_movement,
+        user_balance_before=1000,
+        user_balance_after=900,
+        accounts_left=3,
+    ).model_dump()
 
     event = {"event": "account.purchase", "payload": payload}
 
@@ -958,14 +945,6 @@ async def test_account_purchase_event_handler_parses_and_calls_handler(
         logs = result.scalars().all()
         assert len(logs) >= 1
 
-    # Redis проверки
-    async with get_redis() as r:
-        by_id = await r.get(f"sold_accounts_by_accounts_id:{sold_full.sold_account_id}:ru")
-        assert by_id is not None
-
-        by_owner = await r.get(f"sold_accounts_by_owner_id:{user.user_id}:ru")
-        assert by_owner is not None
-
     # проверка на отправленные логи
-    expected_substring = f"Аккаунт на продаже с id = {account_movement[0]['id_old_product_account']} продан!"
+    expected_substring = f"Аккаунт на продаже с id (StorageAccount) = {sold_full.account_storage.account_storage_id} продан!"
     assert fake_bot.check_str_in_messages(expected_substring) or fake_bot.check_str_in_messages(expected_substring[:30])

@@ -20,3 +20,6 @@ class PromoCodeAlreadyActivated(Exception):
 
 class UserNotFound(Exception):
     pass
+
+class TranslationAlreadyExists(Exception):
+    pass

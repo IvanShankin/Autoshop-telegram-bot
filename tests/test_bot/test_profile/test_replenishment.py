@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery, FakeFSMContext
+from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery, FakeFSMContext
 from src.config import PAYMENT_LIFETIME_SECONDS
 from src.utils.i18n import get_i18n
 
@@ -104,7 +104,7 @@ async def test_start_replenishment_invalid_number(
 ):
     """Неверное число при вводе суммы — остаёмся на том же шаге и отправляем сообщение об ошибке."""
     from src.modules.profile.handlers import replenishment_handler as module
-    from helpers.fake_aiogram.fake_aiogram_module import FakeMessage
+    from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage
     from src.modules.profile.state.replenishment import GetAmount
 
     user = await create_new_user()
@@ -128,7 +128,7 @@ async def test_start_replenishment_crypto_bot_success(
 ):
     """Корректное создание инвойса через CryptoBot."""
     from src.modules.profile.handlers import replenishment_handler as module
-    from helpers.fake_aiogram.fake_aiogram_module import FakeMessage
+    from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage
     from src.services.database.users.actions import get_replenishment
 
     fake_bot = replacement_fake_bot

@@ -1,11 +1,18 @@
+import os, base64
+import uuid
+import zipfile
 from datetime import datetime, timezone, timedelta
+from pathlib import Path
 
 import orjson
 import pytest_asyncio
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from src.config import SECRET_KEY
 from src.services.database.selling_accounts.models.models import AccountStorage
+from src.services.filesystem.account_actions import create_path_account
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_sold_accounts_by_owner_id, \
     filling_sold_account_by_account_id, filling_account_categories_by_service_id, \
@@ -24,6 +31,57 @@ from src.services.database.system.models import TypePayments, Settings
 from src.services.database.core.database import get_db
 from src.services.database.referrals.models import Referrals, IncomeFromReferrals
 
+
+def make_fake_account_key_for_test() -> tuple[str, bytes]:
+    """Создаёт случайный account_key и его base64-зашифрованную версию через master_key."""
+    master_key = base64.b64decode(SECRET_KEY)
+    account_key = os.urandom(32)
+    aesgcm = AESGCM(master_key)
+    nonce = os.urandom(12)
+    wrapped = nonce + aesgcm.encrypt(nonce, account_key, None)
+    return base64.b64encode(wrapped).decode(), account_key
+
+
+def make_fake_encrypted_archive_for_test(account_key: bytes, status: str = "for_sale", type_account_service: str = "telegram") -> str:
+    """
+    Создаёт зашифрованный архив аккаунта в структуре проекта:
+    accounts/<status>/<type_account_service>/<uuid>/account.enc
+
+    Архив можно расшифровать с помощью переданного account_key.
+    """
+    # генерируем UUID
+    account_uuid = str(uuid.uuid4())
+
+    # путь к account.enc в структуре проекта
+    encrypted_path = create_path_account(status, type_account_service, account_uuid)
+    os.makedirs(os.path.dirname(encrypted_path), exist_ok=True)
+
+    # создаём тестовый файл в той же папке
+    test_file = Path(os.path.dirname(encrypted_path)) / "test.txt"
+    with open(test_file, "w", encoding="utf-8") as f:
+        f.write("hello world")
+
+    # создаём zip-архив рядом
+    zip_path = Path(os.path.dirname(encrypted_path)) / "archive.zip"
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.write(test_file, arcname="test.txt")
+
+    # шифруем zip-файл с помощью account_key
+    aesgcm = AESGCM(account_key)
+    nonce = os.urandom(12)
+    with open(zip_path, "rb") as f:
+        data = f.read()
+    ciphertext = aesgcm.encrypt(nonce, data, None)
+
+    # сохраняем как account.enc
+    with open(encrypted_path, "wb") as f:
+        f.write(nonce + ciphertext)
+
+    # чистим временные файлы
+    os.remove(zip_path)
+    os.remove(test_file)
+
+    return encrypted_path
 
 @pytest_asyncio.fixture
 async def create_new_user():
@@ -318,7 +376,7 @@ async def create_voucher(create_new_user):
 
 @pytest_asyncio.fixture
 async def create_type_account_service():
-    async def _factory(filling_redis: bool = True, name: str = "service_name") -> TypeAccountServices:
+    async def _factory(filling_redis: bool = True, name: str = "telegram") -> TypeAccountServices:
         async with get_db() as session_db:
             new_type = TypeAccountServices(name=name)
             session_db.add(new_type)
@@ -337,7 +395,7 @@ async def create_type_account_service():
 async def create_account_service(create_type_account_service):
     async def _factory(
             filling_redis: bool = True,
-            name: str = "service_name",
+            name: str = "telegram",
             index: int = None,
             type_account_service_id: int = None,
             show: bool = True,
@@ -482,19 +540,24 @@ async def create_account_storage(create_type_account_service, create_account_cat
     async def _factory(
             is_active: bool = True,
             is_valid: bool = True,
+            status: str = 'for_sale'
     ) -> AccountStorage:
+        encrypted_key_b64, account_key = make_fake_account_key_for_test()
+        file_path = make_fake_encrypted_archive_for_test(account_key)
+
         account_storage = AccountStorage(
-            file_path = 'fake/file/path.',
+            file_path = file_path,
             checksum = "checksum",
 
-            encrypted_key = "gywegufbds",
+            encrypted_key = encrypted_key_b64,
             encrypted_key_nonce = "gnjfdsnjds",
 
             login_encrypted = 'login_encrypted',
             password_encrypted = 'password_encrypted',
 
             is_active = is_active,
-            is_valid = is_valid
+            is_valid = is_valid,
+            status = status
         )
         async with get_db() as session_db:
             session_db.add(account_storage)
@@ -511,6 +574,7 @@ async def create_product_account(create_type_account_service, create_account_cat
             type_account_service_id: int = None,
             account_category_id: int = None,
             account_storage_id: int = None,
+            status: str = 'for_sale'
     ) -> (ProductAccounts, ProductAccountFull):
         async with get_db() as session_db:
             if type_account_service_id is None:
@@ -520,7 +584,7 @@ async def create_product_account(create_type_account_service, create_account_cat
                 category = await create_account_category(filling_redis=filling_redis)
                 account_category_id = category.account_category_id
             if account_storage_id is None:
-                account_storage = await create_account_storage()
+                account_storage = await create_account_storage(status=status)
                 account_storage_id = account_storage.account_storage_id
             else:
                 account_storage = None
@@ -532,7 +596,12 @@ async def create_product_account(create_type_account_service, create_account_cat
             )
             session_db.add(new_account)
             await session_db.commit()
-            await session_db.refresh(new_account)
+            result_db = await session_db.execute((
+                select(ProductAccounts)
+                .options(selectinload(ProductAccounts.account_storage))
+                .where(ProductAccounts.account_id == new_account.account_id)
+            ))
+            new_account = result_db.scalar()
 
             if filling_redis:
                 await filling_product_accounts_by_category_id()

@@ -1,7 +1,7 @@
 import pytest
 from types import SimpleNamespace
 
-from helpers.fake_aiogram.fake_aiogram_module import FakeFSMContext
+from tests.helpers.fake_aiogram.fake_aiogram_module import FakeFSMContext
 from src.utils.i18n import get_i18n
 
 

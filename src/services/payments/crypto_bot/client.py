@@ -16,8 +16,8 @@ class CryptoPayService:
 
     async def create_invoice(self, user_id: int, type_payment_id, origin_amount_rub: int, amount_rub: int) -> str | None:
         """
-        :param origin_amount_rub: Сумма без комиссии в рублях.
-        :param amount_rub: Сумма для пополнения в рублях
+        :param origin_amount_rub: Сумма без комиссии в рублях (её начислим).
+        :param amount_rub: Сумма для пополнения в рублях (её возьмём с пользователя)
         :return: url для оплаты, если ничего не вернулось, то произошла ошибка(отошлёт лог в канал)
         """
         async with get_redis() as session_redis:
@@ -34,6 +34,7 @@ class CryptoPayService:
         new_replenishment = NewReplenishment(
             replenishment_id = replenishment.replenishment_id,
             user_id = user_id,
+            origin_amount = replenishment.origin_amount,
             amount = amount_rub
         )
 

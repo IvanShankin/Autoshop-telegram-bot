@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 import pytest
 
-from helpers.fake_aiogram.fake_aiogram_module import FakeTelegramBadRequest, SpySend
+from tests.helpers.fake_aiogram.fake_aiogram_module import FakeTelegramBadRequest, SpySend
 
 
 class TestSendMessage:

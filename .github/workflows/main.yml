@@ -63,11 +63,11 @@ jobs:
       - name: Run tests
         env:
           # токены
-          SECRET_KEY: "fake-token"
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
           TOKEN_BOT: ${{ secrets.TOKEN_BOT }}
           TOKEN_LOGGER_BOT: ${{ secrets.TOKEN_LOGGER_BOT }}
           TOKEN_CRYPTO_BOT: ${{ secrets.TOKEN_CRYPTO_BOT }}
-          MAIN_ADMIN: "123456789"
+          MAIN_ADMIN: ${{ secrets.MAIN_ADMIN }}
 
           # Redis
           REDIS_HOST: localhost

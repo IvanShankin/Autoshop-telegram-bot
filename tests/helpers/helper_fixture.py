@@ -12,7 +12,6 @@ from sqlalchemy.orm import selectinload
 
 from src.config import SECRET_KEY
 from src.services.database.selling_accounts.models.models import AccountStorage
-from src.services.filesystem.account_actions import create_path_account
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_sold_accounts_by_owner_id, \
     filling_sold_account_by_account_id, filling_account_categories_by_service_id, \
@@ -49,6 +48,8 @@ def make_fake_encrypted_archive_for_test(account_key: bytes, status: str = "for_
 
     Архив можно расшифровать с помощью переданного account_key.
     """
+
+    from src.services.filesystem.account_actions import create_path_account
     # генерируем UUID
     account_uuid = str(uuid.uuid4())
 

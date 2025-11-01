@@ -15,8 +15,7 @@ from tests.helpers.helper_fixture import *
 
 from tests.helpers.fake_aiogram.fake_aiogram import patch_fake_aiogram
 
-
-# ИМПОРТЫ  НЕ УБИРАТЬ, ОНИ ИСПОЛЬЗУЮТСЯ В ТЕСТАХ ПОДГРУЖАЯСЬ С conftest.py
+# ИМПОРТЫ НЕ УБИРАТЬ, ОНИ ИСПОЛЬЗУЮТСЯ В ТЕСТАХ ПОДГРУЖАЯСЬ С conftest.py
 
 load_dotenv()  # Загружает переменные из .env
 MODE = os.getenv('MODE')
@@ -26,6 +25,10 @@ import pytest_asyncio
 from src.services.database.core.filling_database import create_database
 
 consumer_started = False
+
+if "aiogram" in sys.modules:
+    raise RuntimeError("aiogram был импортирован слишком рано! Используй локальный импорт в функции/фикстуре.")
+
 
 # ---------- фикстуры ----------
 
@@ -68,6 +71,7 @@ async def replacement_needed_modules(
         replacement_redis,
         replacement_fake_bot,
         patch_fake_aiogram,
+        replacement_pyth_account,
 ):
     """Заменит все необходимые модули"""
     yield

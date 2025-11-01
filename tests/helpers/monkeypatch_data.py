@@ -77,7 +77,7 @@ async def replacement_fake_bot(monkeypatch):
     return fake_bot
 
 
-@pytest_asyncio.fixture(scope="function", autouse=True)
+@pytest_asyncio.fixture(scope="function")
 async def replacement_pyth_account(monkeypatch):
     from src import config
     from src.services.database.selling_accounts.actions import action_purchase

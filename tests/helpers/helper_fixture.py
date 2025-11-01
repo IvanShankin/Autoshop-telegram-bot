@@ -23,7 +23,7 @@ from src.services.database.admins.models import Admins
 from src.services.database.discounts.models import PromoCodes, Vouchers
 from src.services.database.referrals.utils import create_unique_referral_code
 from src.services.database.selling_accounts.models import SoldAccounts, TypeAccountServices, SoldAccountsTranslation, \
-    AccountServices, AccountCategories, AccountCategoryTranslation, ProductAccounts, ProductAccountSmall, \
+    AccountServices, AccountCategories, AccountCategoryTranslation, ProductAccounts, \
     SoldAccountFull, AccountCategoryFull, SoldAccountSmall, ProductAccountFull
 from src.services.database.system.models import UiImages
 from src.services.database.users.models import Users, Replenishments, NotificationSettings, WalletTransaction

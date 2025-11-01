@@ -182,6 +182,7 @@
         "description": str,
         "index": int,
         "show": bool,
+        "number_buttons_in_row": int, 
         "is_main": bool, 
         "is_accounts_storage": bool, 
         
@@ -206,6 +207,7 @@
     "description": str,
     "index": int,
     "show": bool,
+    "number_buttons_in_row": int, 
     "is_main": bool, 
     "is_accounts_storage": bool, 
     "price_one_account": int,

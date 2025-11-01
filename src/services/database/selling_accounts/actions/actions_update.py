@@ -101,6 +101,7 @@ async def update_account_category(
         account_category_id: int,
         index: int = None,
         show: bool = None,
+        number_buttons_in_row: int = None,
         is_accounts_storage: bool = None,
         price_one_account: int = None,
         cost_price_one_account: int = None,
@@ -109,6 +110,8 @@ async def update_account_category(
         raise ValueError("Цена аккаунтов должна быть положительным числом")
     if cost_price_one_account is not None  and cost_price_one_account < 0:
         raise ValueError("Себестоимость аккаунтов должна быть положительным числом")
+    if number_buttons_in_row is not None and (number_buttons_in_row < 1 or number_buttons_in_row > 8):
+        raise ValueError("Количество кнопок в строке, должно быть в диапазоне от 1 до 8")
 
     async with get_db() as session:
         # загружаем текущий объект
@@ -140,6 +143,8 @@ async def update_account_category(
             update_data["price_one_account"] = price_one_account
         if cost_price_one_account is not None:
             update_data["cost_price_one_account"] = cost_price_one_account
+        if number_buttons_in_row is not None:
+            update_data["number_buttons_in_row"] = number_buttons_in_row
         if index is not None and index != category.index:
             old_index = category.index or 0
             new_index = index

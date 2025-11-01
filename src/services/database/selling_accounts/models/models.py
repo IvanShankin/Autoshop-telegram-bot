@@ -48,6 +48,7 @@ class AccountCategories(Base):
     """
     Категории у аккаунтов, к каждой категории может быть подкатегория (подкатегория это тоже запись в БД)
     Если установлен флаг show, то данная категория будет показываться пользователю (админу всегда показывается).
+    Если у категории нет аккаунтов, то она не отображается пользователю.
     Если установлен флаг is_main, то у данной категории нет родителя.
     Если установлен флаг is_accounts_storage, то данная категория хранит аккаунты и задействована для продажи
     """
@@ -58,6 +59,8 @@ class AccountCategories(Base):
     parent_id = Column(Integer, ForeignKey("account_categories.account_category_id"), nullable=True)
     index = Column(Integer)
     show = Column(Boolean, nullable=False, server_default=text('true'))
+    # количество кнопок для перехода в другую категорию на одну строку от 1 до 8
+    number_buttons_in_row = Column(Integer, nullable=False, server_default=text('1'))
     is_main = Column(Boolean, nullable=False, server_default=text('false'))
     is_accounts_storage = Column(Boolean, nullable=False, server_default=text('false')) # если это хранилище аккаунтов
 

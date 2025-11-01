@@ -148,6 +148,7 @@ async def add_account_category(
         name: str,
         description: str = None,
         parent_id: int = None,
+        number_buttons_in_row: int = 1,
         is_accounts_storage: bool = False,
         price_one_account: int = None,
         cost_price_one_account: int = None
@@ -157,6 +158,7 @@ async def add_account_category(
     :param account_service_id: Сервис у данной категории.
     :param parent_id: ID другой категории для которой новая категория будет дочерней и тем самым будет находиться
     ниже по иерархии. Если не указывать, то будет категорией которая находится сразу после сервиса.
+    :param number_buttons_in_row: Количество кнопок для перехода в другую категорию на одну строку от 1 до 8.
     :param is_accounts_storage: Флаг установки категории хранилищем аккаунтов.
     :param price_one_account: Цена одного аккаунта.
     :param cost_price_one_account: Себестоимость аккаунта.
@@ -168,6 +170,8 @@ async def add_account_category(
         raise ValueError("Цена аккаунтов должна быть положительным числом")
     if cost_price_one_account is not None and cost_price_one_account < 0:
         raise ValueError("Себестоимость аккаунтов должна быть положительным числом")
+    if number_buttons_in_row is not None and (number_buttons_in_row < 1 or number_buttons_in_row > 8):
+        raise ValueError("Количество кнопок в строке, должно быть в диапазоне от 1 до 8")
 
     if not await get_account_service(account_service_id, return_not_show=True):
         raise ValueError(f"Сервис для аккаунтов с id = {account_service_id} не найдена")
@@ -202,6 +206,7 @@ async def add_account_category(
             account_service_id = account_service_id,
             parent_id = parent_id,
             index = new_index,
+            number_buttons_in_row = number_buttons_in_row,
             is_main = is_main,
             is_accounts_storage = is_accounts_storage,
 

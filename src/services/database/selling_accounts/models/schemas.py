@@ -41,6 +41,7 @@ class AccountCategoryFull(BaseModel):
 
     index: int
     show: bool
+    number_buttons_in_row: int
     is_main: bool
     is_accounts_storage: bool
 
@@ -58,6 +59,7 @@ class AccountCategoryFull(BaseModel):
             parent_id=category.parent_id,
             index=category.index,
             show=category.show,
+            number_buttons_in_row=category.number_buttons_in_row,
             is_main=category.is_main,
             is_accounts_storage=category.is_accounts_storage,
             price_one_account=category.price_one_account,

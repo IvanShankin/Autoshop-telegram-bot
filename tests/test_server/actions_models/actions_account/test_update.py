@@ -2,12 +2,11 @@ import pytest
 import orjson
 from sqlalchemy import select
 
-from src.services.database.selling_accounts.models.models import AccountStorage, ProductAccounts
+from src.services.database.selling_accounts.models.models import AccountStorage
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
-from src.services.database.selling_accounts.models import (
-    AccountServices, AccountCategories,AccountCategoryTranslation,SoldAccounts, SoldAccountFull, ProductAccountFull
-)
+from src.services.database.selling_accounts.models import (AccountServices, AccountCategories,AccountCategoryTranslation,
+                                                           ProductAccountFull)
 
 
 class TestUpdateAccountService:

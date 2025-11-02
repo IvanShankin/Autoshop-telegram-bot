@@ -4,7 +4,7 @@ from sqlalchemy import select
 
 import src.services.redis.filling_redis as filling
 from tests.helpers.helper_functions import comparison_models
-from src.config import UI_IMAGES
+from src.utils.ui_images_data import UI_IMAGES
 from src.services.database.core.filling_database import filling_ui_image
 from src.services.database.discounts.models import SmallVoucher
 from src.services.database.system.models import UiImages

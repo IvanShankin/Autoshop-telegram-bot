@@ -3,7 +3,8 @@ import logging
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from src.config import MAIN_ADMIN, TYPE_PAYMENTS, TYPE_ACCOUNT_SERVICES, UI_IMAGES
+from src.config import MAIN_ADMIN, TYPE_PAYMENTS, TYPE_ACCOUNT_SERVICES
+from src.utils.ui_images_data import UI_IMAGES
 from src.services.database.system.models import UiImages
 from src.services.database.users.models import Users, NotificationSettings
 from src.services.database.system.models import Settings, TypePayments

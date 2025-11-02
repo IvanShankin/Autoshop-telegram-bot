@@ -76,7 +76,7 @@ async def test_start_with_new_referral(patch_fake_aiogram, replacement_fake_bot,
         "You've invited a new referral!\n"
         "Username: {username}\n\n"
         "Thank you for using our service!"
-    )
+    ).format(username= f'@{user.username}' if user.username else 'None')
     assert fake_bot.get_message(owner.user_id, message), "Не отправилось сообщение о новом рефералле"
 
     # сообщение для того кто запустил бота

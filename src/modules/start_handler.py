@@ -87,7 +87,7 @@ async def cmd_start(message: Message, command: CommandObject, state: FSMContext)
                 "You've invited a new referral!\n"
                 "Username: {username}\n\n"
                 "Thank you for using our service!"
-            )
+            ).format(username= f'@{user.username}' if user.username else 'None')
             await send_message(chat_id=owner_user.user_id, message=text, image_key='new_referral')
 
         # Выбор языка. Именно таким текстом, ибо не знаем какой язык знает пользователь

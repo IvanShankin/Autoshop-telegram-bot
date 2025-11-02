@@ -102,3 +102,9 @@ msgstr "Мои ваучеры"
 
 msgid "Deactivate"
 msgstr "Деактивировать"
+
+
+# ---- Каталог ----
+
+msgid "Accounts"
+msgstr "Аккаунты"

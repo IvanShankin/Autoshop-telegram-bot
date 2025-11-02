@@ -205,7 +205,7 @@ async def edit_message(
 
 async def send_message(
         chat_id: int,
-        message: str,
+        message: str = None,
         image_key: str = None,
         reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | None = None
 ):
@@ -214,6 +214,9 @@ async def send_message(
 
     В обоих случаях parse_mode="HTML"
     """
+    if not message and not image_key:
+        raise ValueError("При отсылке нового сообщения необходимо указать хотя бы 'message' или 'image_key'")
+
     bot = await get_bot()
     if image_key:
         ui_image = await get_ui_image(image_key)
@@ -253,8 +256,22 @@ async def send_message(
 
             except Exception as e:
                 logger.exception(f"#Ошибка при отправке фото: {str(e)}")
+        else:
+            text = f"#Не_найдено_фото. \nget_ui_image='{image_key}'"
+            logger.warning(text)
+
+            ui_image = await get_ui_image('default')
+            photo = FSInputFile(ui_image.file_path)
+            msg = await bot.send_photo(chat_id, photo=photo, caption=message, parse_mode="HTML", reply_markup=reply_markup)
+
+            await send_log(text) # лучше после отправки пользователю
+
+            # Сохраняем file_id для будущего использования
+            new_file_id = msg.photo[-1].file_id
+            await update_ui_image(key=ui_image.key, show=ui_image.show, file_id=new_file_id)
     try:
-        await bot.send_message(chat_id, text=message, parse_mode="HTML", reply_markup=reply_markup)
+        if message:
+            await bot.send_message(chat_id, text=message, parse_mode="HTML", reply_markup=reply_markup)
     except Exception as e:
         logger.exception(f"#Ошибка при отправке сообщения. Ошибка: {str(e)}")
 

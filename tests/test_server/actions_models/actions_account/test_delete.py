@@ -2,6 +2,7 @@ import pytest
 import orjson
 from sqlalchemy import select
 
+from src.services.database.system.actions import get_ui_image
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
 from src.services.database.selling_accounts.actions import (
@@ -164,6 +165,15 @@ async def test_delete_account_category_various_errors_and_index_shift(create_acc
         lst = orjson.loads(raw_list)
         # в списке больше нет cat2
         assert all(el["account_category_id"] != cat2.account_category_id for el in lst)
+
+@pytest.mark.asyncio
+async def test_delete_account_category_deleted_ui_image(create_account_category, create_ui_image):
+    ui_image, _ = await create_ui_image()
+    category = await create_account_category(ui_image_key=ui_image.key)
+
+    await delete_account_category(category.account_category_id)
+
+    assert not await get_ui_image(ui_image.key)
 
 
 @pytest.mark.asyncio

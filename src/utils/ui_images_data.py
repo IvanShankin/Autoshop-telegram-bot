@@ -1,9 +1,24 @@
 from src.config import MEDIA_DIR
+from io import BytesIO
+from PIL import Image
+
 UI_SECTIONS = MEDIA_DIR / "ui_sections"
+
+
+def get_default_image_bytes(color: str = "white", size: tuple[int, int] = (500, 500)) -> bytes:
+    """
+    Создаёт изображение-заглушку и возвращает его в виде байтов (PNG).
+    Подходит для передачи в create_ui_image как file_data.
+    """
+    img = Image.new("RGB", size, color=color)
+    buf = BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue()
+
 
 UI_IMAGES = {
     # дефолтный путь к изображению заглушки
-    "default": UI_SECTIONS / "default.png",
+    "default_catalog_account": UI_SECTIONS / "default_catalog_account.png",
 
     # Начальные экраны
     "welcome_message": UI_SECTIONS / "welcome_message.png",
@@ -40,7 +55,7 @@ UI_IMAGES = {
     "voucher_successful_deactivate": UI_SECTIONS / "voucher_successful_deactivate.png",
 
     # Ошибки
-    "insufficient_funds": UI_SECTIONS / "insufficient_funds.png",
+    "insufficient_funds": UI_SECTIONS / "insufficient_funds.png", # недостаточно средств
     "incorrect_data_entered": UI_SECTIONS / "incorrect_data_entered.png",
     "user_no_found": UI_SECTIONS / "user_no_found.png",
     "server_error": UI_SECTIONS / "server_error.png",
@@ -48,9 +63,15 @@ UI_IMAGES = {
     # Пополнение
     "show_all_services_replenishments": UI_SECTIONS / "show_all_services_replenishments.png",
     "request_enter_amount": UI_SECTIONS / "request_enter_amount.png",
-    "pay": UI_SECTIONS / "pay.png",
+    "pay": UI_SECTIONS / "pay.png", # успешная оплата при пополнении
 
     # каталог
     "main_catalog": UI_SECTIONS / "main_catalog.png",
+    "account_catalog": UI_SECTIONS / "account_catalog.png",
+    "confirm_purchase": UI_SECTIONS / "confirm_purchase.png",
+    "successful_purchase": UI_SECTIONS / "successful_purchase.png",
+
+    # промокод
+    "entering_promo_code": UI_SECTIONS / "entering_promo_code.png",
 
 }

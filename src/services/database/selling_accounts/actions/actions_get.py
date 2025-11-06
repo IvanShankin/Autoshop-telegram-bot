@@ -92,7 +92,7 @@ async def _get_grouped_objects(
     model_db,
     redis_key: str,
     call_fun_filling: Callable[[], Awaitable[None]],
-    options = None,
+    options: tuple = None,
     filter_expr = None,
     order_by = None,
     post_process: Callable[[Any], Any] | None = None
@@ -121,7 +121,7 @@ async def _get_grouped_objects(
     async with get_db() as session_db:
         query = select(model_db)
         if options is not None:
-            query = query.options(options)
+            query = query.options(*options)
         if filter_expr is not None:
             query = query.where(filter_expr)
         if order_by is not None:
@@ -184,6 +184,30 @@ async def get_account_service(account_service_id: int, return_not_show: bool = F
         return service if service.show == True else None
 
 
+def _has_accounts_in_subtree(category: AccountCategoryFull, all_categories: list[AccountCategoryFull]) -> bool:
+    """
+    Проверяет, есть ли в поддереве категории хотя бы одна видимая категория-хранилище с аккаунтами.
+    Категории с show=False не учитываются и не "передают" наличие аккаунтов вверх.
+    """
+
+    # Если текущая категория скрыта — её поддерево не рассматриваем
+    if not category.show:
+        return False
+
+    # Если текущая категория — хранилище и в ней есть аккаунты
+    if category.is_accounts_storage and category.quantity_product_account > 0:
+        return True
+
+    # Находим дочерние категории
+    children = [c for c in all_categories if c.parent_id == category.account_category_id]
+
+    # Проверяем рекурсивно
+    for child in children:
+        if _has_accounts_in_subtree(child, all_categories):
+            return True
+
+    return False
+
 async def _get_account_categories_by_service_id(
         account_service_id: int,
         language: str = 'ru',
@@ -194,18 +218,22 @@ async def _get_account_categories_by_service_id(
     :param return_not_show: Если необходимо вернуть запись, даже если у неё стоит флаг `show = False`
     """
 
-    def post_process(obj):
+    def post_process(obj: AccountCategories | dict):
         # если пришёл словарь (из кеша), создаём DTO напрямую
         if isinstance(obj, dict):
             return AccountCategoryFull.model_validate(obj)
 
         # если пришёл ORM-объект из БД — используем существующий метод
-        return AccountCategoryFull.from_orm_with_translation(obj, lang=language)
+        return AccountCategoryFull.from_orm_with_translation(
+            obj,
+            lang=language,
+            quantity_product_account=len(obj.product_accounts)
+        )
 
     category_list: list[AccountCategories] = await _get_grouped_objects(
         model_db=AccountCategories,
         redis_key=f"account_categories_by_service_id:{account_service_id}:{language}",
-        options=selectinload(AccountCategories.translations),
+        options=(selectinload(AccountCategories.translations), selectinload(AccountCategories.product_accounts)),
         filter_expr=AccountCategories.account_service_id == account_service_id,
         call_fun_filling=filling_account_categories_by_service_id,
         post_process=post_process
@@ -213,12 +241,12 @@ async def _get_account_categories_by_service_id(
 
     if return_not_show: # необходимо вернуть любую запись
         return category_list
-    else:
-        return_list = []
-        for category in category_list:
-            if category.show: return_list.append(category)
 
-        return return_list
+    # Фильтрация по show и наличию аккаунтов в поддереве
+    return [
+        category for category in category_list
+        if category.show and _has_accounts_in_subtree(category, category_list)
+    ]
 
 async def get_account_categories_by_category_id(
         account_category_id: int,
@@ -227,18 +255,22 @@ async def get_account_categories_by_category_id(
 ) -> AccountCategoryFull | None:
     """:param return_not_show: Если необходимо вернуть запись, даже если у неё стоит флаг `show = False`"""
 
-    def post_process(obj):
+    def post_process(obj: AccountCategories | dict):
         # если пришёл словарь (из кеша), создаём DTO напрямую
         if isinstance(obj, dict):
             return AccountCategoryFull.model_validate(obj)
 
         # если пришёл ORM-объект из БД — используем существующий метод
-        return AccountCategoryFull.from_orm_with_translation(obj, lang=language)
+        return AccountCategoryFull.from_orm_with_translation(
+            obj,
+            quantity_product_account=len(obj.product_accounts),
+            lang=language
+        )
 
     category = await _get_single_obj(
         model_db=AccountCategories,
         redis_key=f'account_categories_by_category_id:{account_category_id}:{language}',
-        options=(selectinload(AccountCategories.translations), ),
+        options=(selectinload(AccountCategories.translations), selectinload(AccountCategories.product_accounts)),
         filter_expr=AccountCategories.account_category_id == account_category_id,
         call_fun_filling=filling_account_categories_by_category_id,
         post_process=post_process
@@ -247,7 +279,7 @@ async def get_account_categories_by_category_id(
     if return_not_show: # необходимо вернуть любую запись
         return category
     else:
-        return category if category.show == True else None
+        return category if category and category.show == True else None
 
 async def get_account_categories_by_parent_id(
         account_service_id: int,
@@ -318,7 +350,7 @@ async def get_sold_accounts_by_owner_id(owner_id: int, language: str = 'ru') -> 
     return await _get_grouped_objects(
         model_db=SoldAccounts,
         redis_key=f'sold_accounts_by_owner_id:{owner_id}:{language}',
-        options=selectinload(SoldAccounts.translations),
+        options=(selectinload(SoldAccounts.translations), ),
         filter_expr=SoldAccounts.owner_id == owner_id,
         order_by=SoldAccounts.sold_at.desc(),
         call_fun_filling=filling_list_account,

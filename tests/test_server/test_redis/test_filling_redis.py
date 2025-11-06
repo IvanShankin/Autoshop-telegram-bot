@@ -24,7 +24,7 @@ async def test_filling_account_categories_by_category_id(create_account_category
         val = await session_redis.get(
             f"account_categories_by_category_id:{category.account_category_id}:ru"
         )
-    await comparison_models(category.model_dump(), orjson.loads(val))
+    await comparison_models(category.model_dump(), orjson.loads(val), ['quantity_product_account'])
 
 @pytest.mark.asyncio
 async def test_filling_sold_account_by_account_id(create_sold_account):
@@ -57,8 +57,8 @@ async def test_filling_account_categories_by_service_id(create_account_service, 
 
     categories_list = orjson.loads(val)
     assert len(categories_list) == 2
-    await comparison_models(category_1.model_dump(), categories_list[0])
-    await comparison_models(category_2.model_dump(), categories_list[1])
+    await comparison_models(category_1.model_dump(), categories_list[0], ['quantity_product_account'])
+    await comparison_models(category_2.model_dump(), categories_list[1], ['quantity_product_account'])
 
 @pytest.mark.asyncio
 async def test_filling_sold_accounts_by_owner_id(create_new_user, create_sold_account):

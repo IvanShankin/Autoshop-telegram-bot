@@ -1,0 +1,130 @@
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+from src.services.database.selling_accounts.actions import get_account_service, get_all_account_services, \
+    get_account_categories_by_parent_id, get_account_categories_by_category_id
+from src.services.database.selling_accounts.models import AccountCategoryFull
+from src.utils.i18n import get_i18n
+
+async def all_services_account_kb(language: str):
+    i18n = get_i18n(language, 'keyboard_dom')
+    services = await get_all_account_services()
+    keyboard = InlineKeyboardBuilder()
+
+    for ser in services:
+        keyboard.add(InlineKeyboardButton(text=ser.name, callback_data=f'show_service_acc:{ser.account_service_id}'))
+
+    keyboard.add(InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'catalog'))
+    keyboard.adjust(1)
+    return keyboard.as_markup()
+
+
+async def main_catalog_account_by_service_kb(language: str, service_id: int):
+    i18n = get_i18n(language, 'keyboard_dom')
+    categories = await get_account_categories_by_parent_id(account_service_id=service_id, language=language)
+    keyboard = InlineKeyboardBuilder()
+
+    for cat in categories:
+        keyboard.add(InlineKeyboardButton(text=cat.name, callback_data=f'show_account_category:{cat.account_category_id}:0'))
+
+    keyboard.add(InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'show_catalog_services_accounts'))
+    keyboard.adjust(1)
+    return keyboard.as_markup()
+
+async def account_category_kb(
+    language: str,
+    category: AccountCategoryFull,
+    quantity_for_buying: int = 0,
+    promo_code_id: int = None
+):
+    i18n = get_i18n(language, 'keyboard_dom')
+    parent_category = category
+    keyboard = InlineKeyboardBuilder()
+    current_category_id = parent_category.account_category_id
+
+    if parent_category.is_accounts_storage: # если в этой категории продаются аккаунты
+        keyboard.row(
+            InlineKeyboardButton(
+                # callback_data - "show_account_category:{id категории}:{количество аккаунтов}"
+                text="—", callback_data=f'show_account_category:{current_category_id}:{quantity_for_buying - 1}'
+            ),
+            InlineKeyboardButton(text=str(quantity_for_buying), callback_data=f'none'),
+            InlineKeyboardButton(
+                text="+", callback_data=f'show_account_category:{current_category_id}:{quantity_for_buying + 1}'
+            ),
+        )
+
+        keyboard.row(InlineKeyboardButton(
+            text=i18n.gettext('Buy'),
+            # callback_data - "confirm_buy_acc:{id категории}:{количество аккаунтов}:{id промокода(если есть)}"
+            callback_data=f'confirm_buy_acc:{current_category_id}:{quantity_for_buying}:{promo_code_id}')
+        )
+        keyboard.row(InlineKeyboardButton(
+            text=i18n.gettext('Enter promo code'),
+            # callback_data - "enter_promo:{id категории}:{количество аккаунтов}"
+            callback_data=f'enter_promo:{current_category_id}:{quantity_for_buying}')
+        )
+    else: # если эта категория хранит другие категории
+        categories = await get_account_categories_by_parent_id(
+            account_service_id=parent_category.account_service_id,
+            parent_id=current_category_id,
+            language=language
+        )
+
+        buttons_in_row = max(1, min(8, parent_category.number_buttons_in_row)) # # ограничим от 1 до 8
+
+        # Добавляем кнопки в билдер
+        buttons = [
+            InlineKeyboardButton(
+                text=cat.name,
+                callback_data=f'show_account_category:{cat.account_category_id}:0'
+            )
+            for cat in categories
+        ]
+
+        # размещаем по N кнопок в строке
+        for i in range(0, len(buttons), buttons_in_row):
+            keyboard.row(*buttons[i:i + buttons_in_row])
+
+    if parent_category.is_main: # если это главная категория, то вернём в выбор сервиса
+        keyboard.row(InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'show_catalog_services_accounts'))
+    else:
+        keyboard.row(InlineKeyboardButton(
+            text=i18n.gettext('Back'),
+            callback_data=f'show_account_category:{parent_category.parent_id}:0')
+        )
+
+    return keyboard.as_markup()
+
+
+def confirm_buy_acc_kb(language: str, category_id: int, quantity_for_buying: int = 0, promo_code_id: int = 0):
+    i18n = get_i18n(language, 'keyboard_dom')
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(
+            # callback_data - "buy_acc:{id категории}:{количество аккаунтов}:{id промокода(если есть)}"
+            text=i18n.gettext('Confirm'), callback_data=f'buy_acc:{category_id}:{quantity_for_buying}:{promo_code_id}'
+            ),
+            InlineKeyboardButton(
+                text=i18n.gettext('Back'), callback_data=f'show_account_category:{category_id}:{quantity_for_buying}'
+            ),
+        ]
+    ])
+
+
+def back_in_account_category_kb(language: str, category_id: int, quantity_for_buying: int = 0):
+    i18n = get_i18n(language, 'keyboard_dom')
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text=i18n.gettext('Back'), callback_data=f'show_account_category:{category_id}:{quantity_for_buying}'
+        )]
+    ])
+
+
+def replenishment_and_back_in_cat(language: str, category_id: int, quantity_for_buying: int = 0):
+    i18n = get_i18n(language, 'keyboard_dom')
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=i18n.gettext('Top up your balance'), callback_data='show_type_replenishment')],
+        [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'show_account_category:{category_id}:{quantity_for_buying}')]
+    ])
+

@@ -56,6 +56,61 @@ async def test_update_settings(create_settings):
         redis_settings = Settings(**orjson.loads(redis_data))
         await comparison_models(settings, redis_settings, ['settings_id'])# проверка redis
 
+
+@pytest.mark.asyncio
+async def test_create_ui_image_new_record(tmp_path, monkeypatch):
+    """Проверяет, что функция создаёт новую запись и файл, если key не существует."""
+    from src.services.database.system.actions import create_ui_image
+    from src.utils.ui_images_data import UI_SECTIONS
+
+    # Подготовка
+    fake_key = "banner"
+    fake_data = b"test_image_bytes"
+    fake_path = UI_SECTIONS / (fake_key + '.png')
+
+    # Действие
+    result = await create_ui_image(fake_key, fake_data)
+
+    # Проверки
+    assert fake_path.exists(), "Файл должен быть создан"
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(UiImages).where(UiImages.key == fake_key))
+        ui_image: UiImages = result_db.scalar_one_or_none()
+        assert ui_image.file_path == str(fake_path)
+
+    async with get_redis() as session_redis:
+        data_redis = await session_redis.get(f"ui_image:{fake_key}")
+        ui_image_redis = orjson.loads(data_redis)
+
+    await comparison_models(ui_image.to_dict(), ui_image_redis)
+
+
+@pytest.mark.asyncio
+async def test_create_ui_image_existing_record(replacement_needed_modules, monkeypatch, tmp_path, create_ui_image):
+    """Проверяет, что при существующей записи файл перезаписывается и запись обновляется."""
+    from src.services.database.system.actions import create_ui_image as testing_fun
+
+    fake_data = b"new_bytes"
+    origin_ui_image, abs_path = await create_ui_image(key="existing_banner")
+
+    # Действие
+    result = await testing_fun(origin_ui_image.key, fake_data)
+
+    # Проверки
+    assert os.path.isfile(origin_ui_image.file_path), "Файл должен быть перезаписан"
+
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(UiImages).where(UiImages.key == origin_ui_image.key))
+        ui_image: UiImages = result_db.scalar_one_or_none()
+        assert ui_image.file_path == str(abs_path)
+
+    async with get_redis() as session_redis:
+        data_redis = await session_redis.get(f"ui_image:{origin_ui_image.key}")
+        ui_image_redis = orjson.loads(data_redis)
+
+    await comparison_models(ui_image.to_dict(), ui_image_redis)
+
+
 @pytest.mark.asyncio
 async def test_get_ui_image_from_redis(create_ui_image, replacement_redis):
     """Проверяет, что get_ui_image возвращает объект из Redis, если он там есть"""
@@ -122,6 +177,30 @@ async def test_update_ui_image_updates_db_and_redis(create_ui_image, replacement
         assert redis_data is not None
         parsed = orjson.loads(redis_data)
         assert parsed["show"] == new_show_value
+
+
+@pytest.mark.asyncio
+async def test_delete_ui_image(create_ui_image, replacement_redis):
+    from src.services.database.system.actions import delete_ui_image
+
+    ui_image, _ = await create_ui_image(key="test_ui_image")
+    assert os.path.isfile(ui_image.file_path) # что бы убедиться что файл был
+
+    await delete_ui_image(ui_image.key)
+
+    async with get_db() as session_db:
+        result = await session_db.execute(select(UiImages).where(UiImages.key == ui_image.key))
+        ui_image_db = result.scalar_one_or_none()
+
+        assert not ui_image_db
+
+    async with get_redis() as r:
+        redis_data = await r.get(f"ui_image:{ui_image.key}")
+        assert redis_data is None
+
+    assert not os.path.isfile(ui_image.file_path)
+
+
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis',[True,False])

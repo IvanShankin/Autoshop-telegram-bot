@@ -36,6 +36,9 @@ msgstr "Поддержка"
 
 # ---- Профиль ----
 
+msgid "In profile"
+msgstr "В профиль"
+
 msgid "Top up your balance"
 msgstr "💸 Пополнить баланс"
 
@@ -108,3 +111,9 @@ msgstr "Деактивировать"
 
 msgid "Accounts"
 msgstr "Аккаунты"
+
+msgid "Buy"
+msgstr "Купить"
+
+msgid "Enter promo code"
+msgstr "Ввести промокод"

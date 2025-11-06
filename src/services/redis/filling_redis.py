@@ -10,7 +10,7 @@ from src.config import ALLOWED_LANGS
 from src.services.database.discounts.models import SmallVoucher
 from src.services.database.selling_accounts.models.models import AccountStorage
 from src.services.database.selling_accounts.models.schemas import SoldAccountFull, SoldAccountSmall, \
-    AccountStoragePydentic, ProductAccountFull
+    AccountStoragePydentic, ProductAccountFull, AccountCategoryFull
 from src.services.database.selling_accounts.models import TypeAccountServices, AccountServices, AccountCategories, \
     ProductAccounts, SoldAccounts
 from src.services.database.system.models import UiImages
@@ -260,19 +260,19 @@ async def filling_account_services():
 async def filling_account_categories_by_service_id():
     await _delete_keys_by_pattern(f'account_categories_by_service_id:*')
     async with get_db() as session_db:
-        group_ids = (await session_db.execute(select(AccountServices.account_service_id))).scalars().all()
+        service_ids = (await session_db.execute(select(AccountServices.account_service_id))).scalars().all()
 
-        if not group_ids:
+        if not service_ids:
             return
 
         async with get_redis() as r:
-            for group_id in group_ids:
+            for service_id in service_ids:
                 # получаем объекты группы
                 result_db = await session_db.execute(
                     select(AccountCategories)
-                    .where(AccountCategories.account_service_id == group_id)
+                    .where(AccountCategories.account_service_id == service_id)
                     .order_by(AccountCategories.index.asc())
-                    .options(selectinload(AccountCategories.translations))
+                    .options(selectinload(AccountCategories.translations), selectinload(AccountCategories.product_accounts))
                 )
 
                 account_categories: list[AccountCategories] = result_db.scalars().all()
@@ -303,18 +303,18 @@ async def filling_account_categories_by_service_id():
                             if not has_lang:
                                 continue
 
-                            try:
-                                value_obj = category.to_localized_dict(lang)
-                            except Exception:
-                                continue
-                            if not value_obj:
-                                continue
-                            list_for_redis.append(value_obj)
+                            result_category = AccountCategoryFull.from_orm_with_translation(
+                                category = category,
+                                quantity_product_account = len(category.product_accounts),
+                                lang = lang
+                            )
+
+                            list_for_redis.append(result_category.model_dump())
 
                         if not list_for_redis:
                             continue
 
-                        key = f"account_categories_by_service_id:{group_id}:{lang}"
+                        key = f"account_categories_by_service_id:{service_id}:{lang}"
                         value_bytes = orjson.dumps(list_for_redis)
                         await pipe.set(key, value_bytes)
                     await pipe.execute()
@@ -323,7 +323,10 @@ async def filling_account_categories_by_service_id():
 async def filling_account_categories_by_category_id():
     await _delete_keys_by_pattern(f'account_categories_by_category_id:*') # удаляем по каждой категории
     async with get_db() as session_db:
-        result_db = await session_db.execute(select(AccountCategories).options(selectinload(AccountCategories.translations)))
+        result_db = await session_db.execute(
+            select(AccountCategories)
+            .options(selectinload(AccountCategories.translations), selectinload(AccountCategories.product_accounts))
+        )
         categories: list[AccountCategories] = result_db.scalars().all()
 
         if not categories:
@@ -351,13 +354,17 @@ async def filling_account_categories_by_category_id():
 
                     for lang in langs:
                         try:
-                            value_obj = category.to_localized_dict(lang)
+                            value_obj = AccountCategoryFull.from_orm_with_translation(
+                                category=category,
+                                quantity_product_account=len(category.product_accounts),
+                                lang=lang
+                            )
                         except Exception:  # если по какой-то причине to_localized_dict упадёт — пропускаем этот язык
                             continue
                         if not value_obj:
                             continue
 
-                        value_bytes = orjson.dumps(value_obj)
+                        value_bytes = orjson.dumps(value_obj.model_dump())
                         key = f"account_categories_by_category_id:{category_id}:{lang}"
                         await pipe.set(key, value_bytes)
                 await pipe.execute()

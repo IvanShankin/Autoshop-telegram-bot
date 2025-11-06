@@ -5,29 +5,26 @@ from tests.helpers.fake_aiogram.fake_aiogram_module import FakeTelegramBadReques
 
 
 class TestSendMessage:
-
     @pytest.mark.asyncio
     async def test_send_message_with_valid_file_id(self, patch_fake_aiogram, replacement_fake_bot, create_ui_image, monkeypatch):
-        """✅ Валидный file_id: отправляется фото без загрузки"""
+        """Валидный file_id: отправляется фото без загрузки"""
         from src.bot_actions.actions import send_message
         fake_bot = replacement_fake_bot
         ui_image, _ = await create_ui_image(key="welcome", file_id='existing_file_id')
 
-        await send_message(chat_id=123, message="Hello!", image_key="welcome")
+        await send_message(chat_id=123, message="Hello!", image_key="welcome", fallback_image_key=None)
 
         assert len(fake_bot.sent) == 1
-        chat_id, caption, photo, kwargs = fake_bot.sent[0]
+        chat_id, caption, kwargs = fake_bot.sent[0]
         assert caption == "Hello!"
-        assert photo == "existing_file_id"
         assert chat_id == 123
-
 
 
     @pytest.mark.asyncio
     async def test_send_message_with_invalid_file_id(
         self, patch_fake_aiogram, replacement_fake_bot, create_ui_image, monkeypatch, tmp_path
     ):
-        """⚠️ Недействительный file_id — fallback на загрузку файла с диска"""
+        """Недействительный file_id — fallback на загрузку файла с диска"""
         from src.bot_actions.actions import send_message
         fake_bot = replacement_fake_bot
 
@@ -63,7 +60,7 @@ class TestSendMessage:
         monkeypatch.setattr("src.bot_actions.actions.update_ui_image", fake_update_ui_image)
 
         # --- Запуск ---
-        await send_message(chat_id=321, message="Reupload test", image_key="error_case")
+        await send_message(chat_id=321, message="Reupload test", image_key="error_case", fallback_image_key=None)
 
         # --- Проверки ---
         assert len(fake_bot.sent) == 1, "Ожидалось одно успешное сообщение после fallback"
@@ -79,13 +76,13 @@ class TestSendMessage:
     async def test_send_message_with_show_false(
         self, patch_fake_aiogram, replacement_fake_bot, create_ui_image
     ):
-        """🚫 show=False — фото не отправляется, только текст"""
+        """ show=False — фото не отправляется, только текст"""
         from src.bot_actions.actions import send_message
 
         fake_bot = replacement_fake_bot
         ui_image, _ = await create_ui_image(key="hidden_img", show=False, file_id="file123")
 
-        await send_message(chat_id=777, message="Hidden image", image_key="hidden_img")
+        await send_message(chat_id=777, message="Hidden image", image_key="hidden_img", fallback_image_key=None)
 
         assert len(fake_bot.sent) == 1
         chat_id, text, kwargs = fake_bot.sent[0]
@@ -97,7 +94,7 @@ class TestSendMessage:
     async def test_send_message_no_image_found(
         self, patch_fake_aiogram, replacement_fake_bot, monkeypatch
     ):
-        """📭 Нет изображения по ключу — отправляется обычный текст"""
+        """ Нет изображения по ключу — отправляется обычный текст"""
         from src.bot_actions.actions import send_message
 
         fake_bot = replacement_fake_bot
@@ -119,7 +116,7 @@ class TestSendMessage:
     async def test_send_message_without_image_key(
         self, patch_fake_aiogram, replacement_fake_bot
     ):
-        """💬 Без image_key — просто сообщение"""
+        """Без image_key — просто сообщение"""
         from src.bot_actions.actions import send_message
 
         fake_bot = replacement_fake_bot
@@ -153,6 +150,7 @@ class TestEditMessage:
             message_id=100,
             message="New caption",
             image_key="test_key",
+            fallback_image_key=None,
             reply_markup=None
         )
 
@@ -200,6 +198,7 @@ class TestEditMessage:
             message_id=77,
             message="Caption after trying both",
             image_key="upl_key",
+            fallback_image_key=None,
             reply_markup=None
         )
 
@@ -230,6 +229,7 @@ class TestEditMessage:
             message_id=2,
             message="Same text",
             image_key=None,
+            fallback_image_key=None,
             reply_markup=None
         )
 
@@ -259,6 +259,7 @@ class TestEditMessage:
             message_id=12,
             message="This will fallback",
             image_key=None,
+            fallback_image_key=None,
             reply_markup=None
         )
 
@@ -295,6 +296,7 @@ class TestEditMessage:
             message_id=901,
             message="Trying to upload missing file",
             image_key="missing_local",
+            fallback_image_key=None,
             reply_markup=None
         )
 

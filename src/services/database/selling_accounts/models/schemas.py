@@ -34,6 +34,7 @@ class StartPurchaseAccount(BaseModel):
 class AccountCategoryFull(BaseModel):
     account_category_id: int
     account_service_id: int
+    ui_image_key: str
     parent_id: Optional[int]
 
     name: str
@@ -48,14 +49,24 @@ class AccountCategoryFull(BaseModel):
     price_one_account: Optional[int]
     cost_price_one_account: Optional[int]
 
+    # Число аккаунтов на продаже которое хранит в себе. Есть только у категорий хранящие аккаунты
+    quantity_product_account: int
+
     model_config = ConfigDict(from_attributes=True)
 
     @classmethod
-    def from_orm_with_translation(cls, category: AccountCategories, lang: str, fallback: str | None = None):
+    def from_orm_with_translation(
+            cls,
+            category: AccountCategories,
+            quantity_product_account:int,
+            lang: str,
+            fallback: str | None = None
+        ):
         """orm модель превратит в AccountCategoryFull"""
         return cls(
             account_category_id=category.account_category_id,
             account_service_id=category.account_service_id,
+            ui_image_key=category.ui_image_key,
             parent_id=category.parent_id,
             index=category.index,
             show=category.show,
@@ -65,7 +76,8 @@ class AccountCategoryFull(BaseModel):
             price_one_account=category.price_one_account,
             cost_price_one_account=category.cost_price_one_account,
             name=category.get_name(lang, fallback),
-            description=category.get_description(lang, fallback)
+            description=category.get_description(lang, fallback),
+            quantity_product_account=quantity_product_account
         )
 
 class AccountStoragePydentic(BaseModel):

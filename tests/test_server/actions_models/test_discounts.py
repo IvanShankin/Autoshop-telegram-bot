@@ -5,7 +5,7 @@ from orjson import orjson
 from sqlalchemy import delete, select, update
 
 from src.services.database.admins.models import AdminActions
-from src.services.database.discounts.models import PromoCodes, Vouchers, VoucherActivations
+from src.services.database.discounts.models import PromoCodes, Vouchers, VoucherActivations, ActivatedPromoCodes
 from src.services.database.core.database import get_db
 from src.services.redis.core_redis import get_redis
 from src.services.database.discounts.models import SmallVoucher
@@ -31,6 +31,12 @@ async def test_get_valid_promo_code(use_redis, create_promo_code):
 
     promo = await get_valid_promo_code(create_promo_code.activation_code)
 
+    await comparison_models(create_promo_code, promo)
+
+@pytest.mark.asyncio
+async def test_get_valid_promo_code_by_id(create_promo_code):
+    from src.services.database.discounts.actions import get_valid_promo_code
+    promo = await get_valid_promo_code(promo_code_id=create_promo_code.promo_code_id)
     await comparison_models(create_promo_code, promo)
 
 
@@ -368,5 +374,21 @@ async def test_set_not_valid_promo_code(create_settings):
     ).format(id=expired_promo.promo_code_id, code=expired_promo.activation_code)
     assert fake_bot.get_message(create_settings.channel_for_logging_id, message_log)
 
+
+@pytest.mark.asyncio
+async def test_check_activate_promo_code(create_promo_code, create_new_user):
+    from src.services.database.discounts.actions import check_activate_promo_code
+    user = await create_new_user()
+    promo_code = create_promo_code
+
+    async with get_db() as session_db:
+        activated = ActivatedPromoCodes(
+            promo_code_id=promo_code.promo_code_id,
+            user_id=user.user_id
+        )
+        session_db.add(activated)
+        await session_db.commit()
+
+    assert  await check_activate_promo_code(promo_code.promo_code_id, user.user_id)
 
 

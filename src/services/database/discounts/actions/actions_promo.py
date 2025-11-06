@@ -7,40 +7,37 @@ from sqlalchemy import select
 from src.services.redis.core_redis import get_redis
 from src.services.database.admins.models import AdminActions
 from src.services.database.core.database import get_db
-from src.services.database.discounts.models import PromoCodes
+from src.services.database.discounts.models import PromoCodes, ActivatedPromoCodes
 from src.utils.codes import generate_code
 
 
 async def get_valid_promo_code(
-    code: str
+    code: str | None = None,
+    promo_code_id: int | None = None
 ) -> PromoCodes | None:
-    async with get_redis() as session_redis:
-        promo_code_json = await session_redis.get(f"promo_code:{code}")
-        if promo_code_json:
-            selected_promo_code = orjson.loads(promo_code_json)
-            return PromoCodes(
-                promo_code_id=selected_promo_code['promo_code_id'],
-                activation_code = selected_promo_code['activation_code'],
-                min_order_amount = selected_promo_code['min_order_amount'],
-
-                activated_counter = selected_promo_code['activated_counter'],
-                amount = selected_promo_code['amount'],
-                discount_percentage = selected_promo_code['discount_percentage'],
-                number_of_activations = selected_promo_code['number_of_activations'],
-
-                start_at = selected_promo_code['start_at'],
-                expire_at = selected_promo_code['expire_at'],
-                is_valid = selected_promo_code['is_valid']
-            )
+    if code:
+        async with get_redis() as session_redis:
+            promo_code_json = await session_redis.get(f"promo_code:{code}")
+            if promo_code_json:
+                selected_promo_code = orjson.loads(promo_code_json)
+                return PromoCodes(**selected_promo_code)
 
     async with get_db() as session_db:
-        result = await session_db.execute(
-            select(PromoCodes)
-            .where(
+        query = select(PromoCodes)
+        if code:
+            query = query.where(
                 (PromoCodes.activation_code == code) &
                 (PromoCodes.is_valid == True)
-            ))
-        promo_code = result.scalars().first()
+            )
+        elif promo_code_id:
+            query = query.where(
+                (PromoCodes.promo_code_id == promo_code_id) &
+                (PromoCodes.is_valid == True)
+            )
+        else:
+            raise ValueError("Необходимо указать хотя бы 'code' или 'promo_code_id'")
+
+        promo_code = (await session_db.execute(query)).scalars().first()
         if promo_code:
             return promo_code
 
@@ -132,8 +129,21 @@ async def create_promo_code(
 
 
 
+async def check_activate_promo_code(promo_code_id: int, user_id: int) -> bool:
+    """
+    Проверит, активировал ли пользователь этот.
+    :return True если активировал ранее
+    """
 
-
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            select(ActivatedPromoCodes)
+            .where(
+                (ActivatedPromoCodes.promo_code_id == promo_code_id) &
+                (ActivatedPromoCodes.user_id == user_id)
+            )
+        )
+        return bool(result_db.scalars().all())
 
 
 

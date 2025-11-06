@@ -8,4 +8,59 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 
+msgid "Thank you for your purchase \nThe account is already in the profile"
+msgid_plural "Thank you for your purchase \nThe account is already in the profile"
+msgstr[0] "❤️ Благодарим за покупку \nАккаунт уже в профиле"
+msgstr[1] "❤️ Благодарим за покупку \nАккаунты уже в профиле"
+msgstr[2] "❤️ Благодарим за покупку \nАккаунты уже в профиле"
+
+msgid "The service is temporarily unavailable"
+msgstr "Сервис временно недоступен"
+
+msgid "The category is temporarily unavailable"
+msgstr "Категория временно недоступна"
+
+msgid ""
+"{name} \n\n"
+"Service: {service_name}\n"
+"Description: {description}\n"
+"Price per account: {price_one_account} ₽ \n\n"
+"Accounts selected: {selected_accounts}\n"
+"{discount}"
+"Total: {total_price}\n\n"
+"To specify the required quantity, send the bot a number"
+msgstr "{name} \n\nСервис: {service_name}\nОписание: {description}\nЦена одного аккаунта: {price_one_account} ₽ \n\n"
+"Выбрано аккаунтов: {selected_accounts}\n{discount}Итого: {total_price}\n\n"
+"Чтобы указать необходимое количество, отправьте боту цифру"
+
+msgid ""
+"Confirm your purchase\n\n"
+"{category_name}\n"
+"Accounts will be received: {quantity_account}\n"
+"Your balance: {balance}\n"
+"Due: {total_sum}"
+msgstr ""
+"Подтвердите покупку\n\n"
+"{category_name}\n"
+"Аккаунтов будет получено: {quantity_account}\n"
+"Ваш баланс: {balance}\n"
+"К оплате: {total_sum}"
+
+msgid "Discount with promo code: {discount}\n"
+msgstr "Скидка по промокоду: {discount}\n"
+
+msgid "No longer in stock"
+msgstr "Больше нет в наличии"
+
+msgid "Enter the activation code"
+msgstr "Введите код активации"
+
+msgid "Select at least one account"
+msgstr "Выберите хотя бы один аккаунт"
+
+msgid "There are not enough accounts on the server, please change the number of accounts to purchase"
+msgstr "На сервере недостаточно аккаунтов, пожалуйста измените их количество на приобретение"
+
+
+
 

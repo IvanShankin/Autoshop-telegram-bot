@@ -9,6 +9,7 @@ from sqlalchemy.orm import selectinload
 from src.config import TYPE_ACCOUNT_SERVICES
 from src.exceptions.service_exceptions import TranslationAlreadyExists
 from src.services.database.selling_accounts.models import AccountStorage
+from src.services.database.system.actions.actions import create_ui_image
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
 from src.services.database.selling_accounts.actions.actions_get import get_account_service, \
@@ -19,6 +20,7 @@ from src.services.database.selling_accounts.models import AccountServices, Accou
 from src.services.database.users.actions import get_user
 from src.services.redis.filling_redis import filling_product_account_by_account_id, \
     filling_product_accounts_by_category_id, filling_sold_accounts_by_owner_id, filling_sold_account_by_account_id
+from src.utils.ui_images_data import get_default_image_bytes
 
 
 async def add_account_services(name: str, type_account_service_id: int) -> AccountServices:
@@ -118,12 +120,19 @@ async def add_translation_in_account_category(
         # Перечитываем category с актуальными translations
         result_db = await session_db.execute(
             select(AccountCategories)
-            .options(selectinload(AccountCategories.translations))
+            .options(
+                selectinload(AccountCategories.translations),
+                selectinload(AccountCategories.product_accounts)
+            )
             .where(AccountCategories.account_category_id == account_category_id)
         )
         category = result_db.scalar_one()
 
-        full_category = AccountCategoryFull.from_orm_with_translation(category, language)
+        full_category = AccountCategoryFull.from_orm_with_translation(
+            category=category,
+            quantity_product_account= len(category.product_accounts),
+            lang=language
+        )
 
     new_all_categories = [full_category.model_dump()]
     all_categories = await _get_account_categories_by_service_id(full_category.account_service_id)
@@ -155,14 +164,16 @@ async def add_account_category(
 ) -> AccountCategoryFull:
     """
     Создаст новый AccountCategories и закэширует его.
+
+
     :param account_service_id: Сервис у данной категории.
     :param parent_id: ID другой категории для которой новая категория будет дочерней и тем самым будет находиться
-    ниже по иерархии. Если не указывать, то будет категорией которая находится сразу после сервиса.
+    ниже по иерархии. Если не указывать, то будет категорией которая находится сразу после сервиса (главной).
     :param number_buttons_in_row: Количество кнопок для перехода в другую категорию на одну строку от 1 до 8.
     :param is_accounts_storage: Флаг установки категории хранилищем аккаунтов.
     :param price_one_account: Цена одного аккаунта.
     :param cost_price_one_account: Себестоимость аккаунта.
-    :return: AccountCategories: только что созданный
+    :return: AccountCategories: только что созданный.
     :exception ValueError: Если account_service_id не найден.
     """
 
@@ -202,9 +213,16 @@ async def add_account_category(
         categories = result_db.scalars().all()
         new_index = max((category.index for category in categories), default=-1) + 1
 
+        # создание простой фото заглушки с белым фоном
+        file_data = get_default_image_bytes()
+        key = str(uuid.uuid4())
+        new_ui_image = await create_ui_image(key=key, file_data=file_data, show=False)
+
+        # создание категории
         new_account_categories = AccountCategories(
             account_service_id = account_service_id,
             parent_id = parent_id,
+            ui_image_key = new_ui_image.key,
             index = new_index,
             number_buttons_in_row = number_buttons_in_row,
             is_main = is_main,

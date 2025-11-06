@@ -3,6 +3,7 @@ from orjson import orjson
 from sqlalchemy import select
 
 from src.exceptions.service_exceptions import TranslationAlreadyExists
+from src.services.database.system.models import UiImages
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
 from src.services.database.selling_accounts.models import AccountServices, DeletedAccounts, SoldAccounts, \
@@ -121,6 +122,12 @@ async def test_add_account_category(replacement_needed_modules, create_account_s
         category_db = result.scalar_one_or_none()
         assert category_db is not None
         assert category_db.index == 0  # первая категория
+
+        result = await session_db.execute(
+            select(UiImages).where(UiImages.key == category_db.ui_image_key)
+        )
+        ui_image = result.scalar_one_or_none()
+        assert category_db is not None
 
     # Ошибка, если указать parent_id от категории-хранилища
     with pytest.raises(ValueError):

@@ -1,7 +1,9 @@
+import os.path
 from typing import Optional, Any
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
+from pydantic import ValidationError
 
 from src.bot_actions.bot_instance import get_bot_logger
 from src.config import MAIN_ADMIN
@@ -60,11 +62,16 @@ async def _try_edit_media_by_file_id(bot: Bot, chat_id: int, message_id: int, fi
         media = InputMediaPhoto(media=file_id, caption=caption, parse_mode="HTML")
         await bot.edit_message_media(chat_id=chat_id, message_id=message_id, media=media, reply_markup=reply_markup)
         return True
+    except ValidationError: # если текс не передан
+        return False
     except TelegramForbiddenError as e:
         logger.warning(f"[edit_message] Forbidden editing media by file_id chat={chat_id} id={message_id}: {e}")
         return False
     except TelegramBadRequest as e:
-        if _is_file_id_invalid_error(e):
+        # это не критичные ошибки
+        if 'canceled by new editMessageMedia request' in e.message or 'message is not modified' in e.message:
+            return True # это сообщение уже обработано или не надо обрабатывать
+        elif _is_file_id_invalid_error(e):
             logger.info(f"[edit_message] file_id invalid for file_id={file_id}; will try upload. Detail: {e}")
         elif _is_message_not_found_error(e):
             logger.info(f"[edit_message] message not found when editing media by file_id chat={chat_id} id={message_id}")
@@ -76,12 +83,36 @@ async def _try_edit_media_by_file_id(bot: Bot, chat_id: int, message_id: int, fi
         return False
 
 
-async def _try_edit_media_by_file(bot: Any, chat_id: int, message_id: int, ui_image, caption: str, reply_markup) -> bool:
+async def _try_edit_media_by_file(
+        bot: Any,
+        chat_id: int,
+        message_id: int,
+        ui_image,
+        caption: str,
+        reply_markup,
+        fallback_image_key:  Optional[str] = None,
+    ) -> bool:
     """Пробуем заменить media, загрузив файл с диска. При успехе сохраняем новый file_id (если есть)."""
     try:
         photo = FSInputFile(ui_image.file_path)
-    except FileNotFoundError:
+    except (FileNotFoundError, AttributeError):
         logger.warning(f"[edit_message] Local file not found: {ui_image.file_path}")
+
+        if fallback_image_key:
+            ui_image = await get_ui_image(fallback_image_key)
+            if ui_image:
+                if ui_image.file_id:
+                    ok = await _try_edit_media_by_file_id(bot, chat_id, message_id, ui_image.file_id, caption, reply_markup)
+                    if ok:
+                        return True # успешно
+
+                if not os.path.isfile(ui_image.file_path):
+                    await send_log(f"#Не_найдено_фото [edit_message]. \nget_ui_image='{ui_image.key}'")  # лучше после отправки пользователю
+                else:
+                    ok = await _try_edit_media_by_file(bot, chat_id, message_id, ui_image, caption, reply_markup)
+                    if ok:
+                        return True # успешно
+
         return False
     try:
         media = InputMediaPhoto(media=photo, caption=caption, parse_mode="HTML")
@@ -92,6 +123,12 @@ async def _try_edit_media_by_file(bot: Any, chat_id: int, message_id: int, ui_im
                 new_file_id = msg.photo[-1].file_id
                 if new_file_id:
                     await update_ui_image(key=ui_image.key, show=ui_image.show, file_id=new_file_id)
+        except TelegramBadRequest as e:
+            # это не критичные ошибки
+            if 'canceled by new editMessageMedia request' in e.message or 'message is not modified' in e.message:
+                return True # это сообщение уже обработано или не надо обрабатывать
+            else:
+                logger.exception("[edit_message] Failed to extract/save new file_id after edit_message_media")
         except Exception:
             logger.exception("[edit_message] Failed to extract/save new file_id after edit_message_media")
         return True
@@ -149,13 +186,13 @@ async def _try_edit_text(bot: Bot, chat_id: int, message_id: int, text: str, rep
 async def edit_message(
     chat_id: int,
     message_id: int,
-    message: str,
+    message: str = None,
     image_key: Optional[str] = None,
+    fallback_image_key:  Optional[str] = None,
     reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | None = None
 ):
     """
     Попытаться отредактировать сообщение. Если редактирование невозможно — отправить новое (через send_message).
-    Логика разделена на небольшие функции для читаемости и тестируемости.
     """
     bot = await get_bot()
 
@@ -180,8 +217,33 @@ async def edit_message(
             except Exception as e:
                 logger.warning(f"[edit_message] Failed to delete old message before resend: {e}")
 
-            await send_message(chat_id=chat_id, message=message, image_key=image_key, reply_markup=reply_markup)
+            await send_message(
+                chat_id=chat_id,
+                message=message,
+                image_key=image_key,
+                fallback_image_key=fallback_image_key,
+                reply_markup=reply_markup
+            )
             return
+        elif not ui_image and fallback_image_key:
+            text = f"#Не_найдено_фото [edit_message]. \nget_ui_image='{image_key}'"
+            logger.warning(text)
+            # если не нашли ui_image
+            ui_image = await get_ui_image(fallback_image_key)
+            if ui_image:
+                if ui_image.file_id:
+                    ok = await _try_edit_media_by_file_id(bot, chat_id, message_id, ui_image.file_id, message, reply_markup)
+                    if ok:
+                        await send_log(text)
+                        return  # успешно
+                else:
+                    # пробуем редактировать media с загрузкой файла
+                    ok = await _try_edit_media_by_file(bot, chat_id, message_id, ui_image, message, reply_markup)
+                    if ok:
+                        await send_log(text)
+                        return  # успешно
+
+                await send_log(text)  # лучше после отправки пользователю
 
         # если ui_image не найден или скрыт (show=False), то переходим к ветке "без фото"
 
@@ -200,13 +262,20 @@ async def edit_message(
     except Exception as e:
         logger.warning(f"[edit_message] Failed to delete old message before sending new one: {e}")
 
-    await send_message(chat_id=chat_id, message=message, image_key=None, reply_markup=reply_markup)
+    await send_message(
+        chat_id=chat_id,
+        message=message,
+        image_key=image_key,
+        fallback_image_key=fallback_image_key,
+        reply_markup=reply_markup
+    )
     return
 
 async def send_message(
         chat_id: int,
         message: str = None,
         image_key: str = None,
+        fallback_image_key: str = None,
         reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | None = None
 ):
     """
@@ -256,19 +325,31 @@ async def send_message(
 
             except Exception as e:
                 logger.exception(f"#Ошибка при отправке фото: {str(e)}")
-        else:
-            text = f"#Не_найдено_фото. \nget_ui_image='{image_key}'"
+        elif fallback_image_key:
+            text = f"#Не_найдено_фото [send_message]. \nimage_key='{image_key}'"
             logger.warning(text)
 
-            ui_image = await get_ui_image('default')
-            photo = FSInputFile(ui_image.file_path)
-            msg = await bot.send_photo(chat_id, photo=photo, caption=message, parse_mode="HTML", reply_markup=reply_markup)
+            ui_image = await get_ui_image(fallback_image_key)
+            if ui_image:
+                if ui_image.file_id:
+                    await bot.send_photo(
+                        chat_id=chat_id,
+                        photo=ui_image.file_id,
+                        caption=message,
+                        parse_mode="HTML",
+                        reply_markup=reply_markup
+                    )
+                    return
+                else:
+                    photo = FSInputFile(ui_image.file_path)
+                    msg = await bot.send_photo(chat_id, photo=photo, caption=message, parse_mode="HTML", reply_markup=reply_markup)
+
+                    # Сохраняем file_id для будущего использования
+                    new_file_id = msg.photo[-1].file_id
+                    await update_ui_image(key=ui_image.key, show=ui_image.show, file_id=new_file_id)
 
             await send_log(text) # лучше после отправки пользователю
 
-            # Сохраняем file_id для будущего использования
-            new_file_id = msg.photo[-1].file_id
-            await update_ui_image(key=ui_image.key, show=ui_image.show, file_id=new_file_id)
     try:
         if message:
             await bot.send_message(chat_id, text=message, parse_mode="HTML", reply_markup=reply_markup)
@@ -295,10 +376,10 @@ async def send_log(text: str, channel_for_logging_id: int = None):
 
     try:
         for message in parts:
-            await bot.send_message(channel_for_logging_id, message)
+            await bot.send_message(int(channel_for_logging_id), message)
     except Exception as e:
         settings = await get_settings()
-        message_error = f"Не удалось отправить сообщение в канал с логами. \n\nОшибка: {str(e)}"
+        message_error = f"Не удалось отправить сообщение в канал с логами. \nОшибка: {str(e)}"
         logger.error(message_error)
 
         try:

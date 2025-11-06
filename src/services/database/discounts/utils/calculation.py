@@ -1,13 +1,18 @@
 from src.exceptions.service_exceptions import InvalidPromoCode
 from src.services.database.discounts.actions import get_valid_promo_code
+from src.services.database.discounts.models import PromoCodes
 
 
-async def discount_calculation(amount: int, code_promo_code: str) -> tuple[int, int]:
+async def discount_calculation(
+        amount: int,
+        code_promo_code: str = None,
+        promo_code_id: int = None
+) -> tuple[int, PromoCodes]:
     """
     Рассчитает скидку с промокодом
-    :return: tuple[скидка (int), id промокода (int)]
+    :return: tuple[скидка (int), id промокода (int), найденный промокод (PromoCodes)]
     """
-    promo_code = await get_valid_promo_code(code_promo_code)
+    promo_code = await get_valid_promo_code(code_promo_code, promo_code_id)
     if not promo_code:
         raise InvalidPromoCode("Промокод невалидный")
 
@@ -19,4 +24,6 @@ async def discount_calculation(amount: int, code_promo_code: str) -> tuple[int, 
     else:
         discount_amount = 0
 
-    return discount_amount, promo_code.promo_code_id
+    discount_amount = max(0, discount_amount)
+
+    return discount_amount, promo_code

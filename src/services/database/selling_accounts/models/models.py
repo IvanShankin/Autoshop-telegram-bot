@@ -47,15 +47,20 @@ class AccountServices(Base):
 class AccountCategories(Base):
     """
     Категории у аккаунтов, к каждой категории может быть подкатегория (подкатегория это тоже запись в БД)
+
     Если установлен флаг show, то данная категория будет показываться пользователю (админу всегда показывается).
+
     Если у категории нет аккаунтов, то она не отображается пользователю.
+
     Если установлен флаг is_main, то у данной категории нет родителя.
+
     Если установлен флаг is_accounts_storage, то данная категория хранит аккаунты и задействована для продажи
     """
     __tablename__ = "account_categories"
 
     account_category_id = Column(Integer, primary_key=True, autoincrement=True)
     account_service_id = Column(Integer, ForeignKey("account_services.account_service_id"), nullable=False, index=True)
+    ui_image_key = Column(String, ForeignKey("ui_images.key"), nullable=False)
     parent_id = Column(Integer, ForeignKey("account_categories.account_category_id"), nullable=True)
     index = Column(Integer)
     show = Column(Boolean, nullable=False, server_default=text('true'))
@@ -70,6 +75,7 @@ class AccountCategories(Base):
 
     account_service = relationship("AccountServices", back_populates="account_categories")
     next_account_categories = relationship("AccountCategories",back_populates="parent",foreign_keys=[parent_id])
+    ui_image = relationship("UiImages",back_populates="account_category")
     parent = relationship("AccountCategories",back_populates="next_account_categories",remote_side=lambda: [AccountCategories.account_category_id])
     product_accounts = relationship("ProductAccounts", back_populates="account_category")
     translations = relationship("AccountCategoryTranslation", back_populates="account_category", cascade="all, delete-orphan")
@@ -303,7 +309,6 @@ class PurchaseRequestAccount(Base):
     purchase_request_accounts_id = Column(Integer, primary_key=True)
     purchase_request_id = Column(ForeignKey("purchase_requests.purchase_request_id"), nullable=False)
     account_storage_id = Column(ForeignKey("account_storage.account_storage_id"), nullable=False)
-    status = Column(Enum('reserved', 'valid', 'invalid', 'sold', name='status_request', default="reserved"))
 
     purchase_request = relationship("PurchaseRequests", back_populates="purchase_request_accounts")
     account_storage = relationship("AccountStorage", back_populates="purchase_request_accounts")

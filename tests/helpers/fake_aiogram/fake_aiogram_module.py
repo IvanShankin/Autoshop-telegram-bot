@@ -246,8 +246,8 @@ class FakeBot:
         return SimpleNamespace(chat=SimpleNamespace(id=chat_id), text=text)
 
     async def send_photo(self, chat_id, photo, caption="", **kwargs):
-        self.sent.append((chat_id, caption, photo, kwargs))
-        return SimpleNamespace(chat=SimpleNamespace(id=chat_id), text=caption)
+        self.sent.append((chat_id, caption, photo))
+        return SimpleNamespace(chat=SimpleNamespace(id=chat_id), text=caption, photo=[SimpleNamespace(file_id=1)])
 
     def clear(self):
         self.sent.clear()
@@ -270,11 +270,10 @@ class FakeBot:
         return any(text in text for _, _, _, text, _ in self.calls)
 
     # дял тестирования изменений сообщения
-    async def edit_message_media(self, chat_id, message_id, media, reply_markup=None):
-        self.calls.append(("edit_message_media", chat_id, message_id, media, reply_markup))
+    async def edit_message_media(self, chat_id, message_id, media, caption="", reply_markup=None):
+        self.calls.append(("edit_message_media", chat_id, message_id, caption, reply_markup))
         if callable(self.edit_media_behavior):
-            return await self.edit_media_behavior(chat_id=chat_id, message_id=message_id, media=media,
-                                                  reply_markup=reply_markup)
+            return await self.edit_media_behavior(chat_id=chat_id, message_id=message_id, media=media,reply_markup=reply_markup)
         if isinstance(self.edit_media_behavior, BaseException):
             raise self.edit_media_behavior
         # стандартный успешный ответ: возвращаем объект с photo -> last .file_id
@@ -290,7 +289,7 @@ class FakeBot:
         return SimpleNamespace(text=text)
 
     async def delete_message(self, chat_id, message_id):
-        self.calls.append(("delete_message", chat_id, message_id))
+        self.calls.append(("delete_message", chat_id, message_id, '', ''))
         if callable(self.delete_behavior):
             return await self.delete_behavior(chat_id=chat_id, message_id=message_id)
         if isinstance(self.delete_behavior, BaseException):
@@ -302,7 +301,7 @@ class SpySend:
     def __init__(self):
         self.calls = []
 
-    async def __call__(self, chat_id, message, image_key=None, reply_markup=None):
+    async def __call__(self, chat_id, message, image_key=None, fallback_image_key=None, reply_markup=None):
         self.calls.append((chat_id, message, image_key, reply_markup))
         return SimpleNamespace(chat=SimpleNamespace(id=chat_id), text=message)
 
@@ -368,10 +367,10 @@ class BaseMiddleware:
 
 
 class FakeTelegramForbiddenError(Exception):
-    pass
+    message="error"
 
 class FakeTelegramBadRequest(Exception):
-    pass
+    message="error"
 
 
 class FakeFSInputFile:

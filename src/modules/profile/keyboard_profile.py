@@ -33,6 +33,12 @@ def back_in_profile_kb(language: str):
         [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data='profile')]
     ])
 
+def in_profile_kb(language: str):
+    i18n = get_i18n(language, 'keyboard_dom')
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=i18n.gettext('In profile'), callback_data='profile')]
+    ])
+
 
 # ---- Пополнение ----
 
@@ -256,7 +262,7 @@ def back_in_balance_transfer_kb(language: str):
 def replenishment_and_back_in_transfer_kb(language: str):
     i18n = get_i18n(language, 'keyboard_dom')
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=i18n.gettext('Top up your balance'), callback_data='money_replenishment')],
+        [InlineKeyboardButton(text=i18n.gettext('Top up your balance'), callback_data='show_type_replenishment')],
         [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data='balance_transfer')]
     ])
 

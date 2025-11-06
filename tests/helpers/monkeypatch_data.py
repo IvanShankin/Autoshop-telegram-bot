@@ -78,7 +78,7 @@ async def replacement_fake_bot(monkeypatch):
 
 
 @pytest_asyncio.fixture(scope="function")
-async def replacement_pyth_account(monkeypatch):
+async def replacement_pyth_account(monkeypatch, replacement_pyth_ui_image):
     from src import config
     from src.services.database.selling_accounts.actions import action_purchase
     from src.services.filesystem import account_actions
@@ -93,3 +93,11 @@ async def replacement_pyth_account(monkeypatch):
 
     if os.path.isdir(new_account_dir):
         shutil.rmtree(new_account_dir) # удаляет директорию созданную для тестов
+
+@pytest_asyncio.fixture(scope="function")
+async def replacement_pyth_ui_image(monkeypatch, tmp_path):
+    from src.services.database.system.actions import actions as actions_modul
+    from src.utils import ui_images_data
+    new_ui_section_dir = tmp_path / "ui_sections_test"
+    monkeypatch.setattr(actions_modul, "UI_SECTIONS", new_ui_section_dir)
+    monkeypatch.setattr(ui_images_data, "UI_SECTIONS", new_ui_section_dir)

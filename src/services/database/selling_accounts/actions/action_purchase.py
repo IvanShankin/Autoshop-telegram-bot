@@ -21,7 +21,7 @@ from src.services.filesystem.account_actions import cheek_valid_accounts, decryp
     create_path_account, move_file, rename_file, move_in_account
 from src.services.redis.filling_redis import filling_product_accounts_by_category_id, \
     filling_product_account_by_account_id, filling_sold_accounts_by_owner_id, filling_sold_account_by_account_id, \
-    filling_user
+    filling_user, filling_account_categories_by_service_id, filling_account_categories_by_category_id
 from src.services.database.core.database import get_db
 from src.services.database.selling_accounts.actions import get_account_categories_by_category_id, \
     update_account_storage, delete_product_account, add_deleted_accounts, get_account_service, get_type_account_service, \
@@ -43,7 +43,7 @@ async def purchase_accounts(
     user_id: int,
     category_id: int,
     quantity_accounts: int,
-    code_promo_code: Optional[str],
+    promo_code_id: Optional[int],
 ) -> bool:
     """
     Произведёт покупку необходимых аккаунтов, переместив файлы для входа в аккаунт в необходимую директорию.
@@ -56,23 +56,42 @@ async def purchase_accounts(
     :except NotEnoughMoney: Если у пользователя недостаточно средств
     :except NotEnoughAccounts: Если у категории недостаточно аккаунтов
     """
-    data = await start_purchase_request(user_id, category_id, quantity_accounts, code_promo_code)
-
+    result = False
+    data = await start_purchase_request(user_id, category_id, quantity_accounts, promo_code_id)
     valid_list = await verify_reserved_accounts(data.product_accounts, data.type_service_name, data.purchase_request_id)
     if valid_list is False:
-        await cancel_purchase_request(user_id, [], [], data)
-        return False
+        await cancel_purchase_request(
+            user_id = user_id,
+            mapping = [],
+            sold_account_ids = [],
+            total_amount = data.total_amount,
+            purchase_request_id = data.purchase_request_id,
+            product_accounts = [],
+            type_service_name=data.type_service_name
+        )
+        text = (
+            "#Недостаточно_аккаунтов \n"
+            "Пользователь пытался купить аккаунты, но ему не нашлось необходимое количество аккаунтов"
+        )
+        await send_log(text)
+        logger.warning(text)
+        result = False
+    else:
+        data.product_accounts = valid_list # обновляем data.product_accounts на валидные
+        await finalize_purchase(user_id, data)
+        result = True
 
-    data.product_accounts = valid_list# обновляем data.product_accounts на валидные
-    await finalize_purchase(user_id, data)
-    return True
+    # обновляем redis
+    await filling_account_categories_by_service_id()
+    await filling_account_categories_by_category_id()
+    return result
 
 
 async def start_purchase_request(
-    user_id: int,
-    category_id: int,
-    quantity_accounts: int,
-    code_promo_code: Optional[str]
+        user_id: int,
+        category_id: int,
+        quantity_accounts: int,
+    promo_code_id: Optional[int]
 ) -> StartPurchaseAccount:
     """
 Зафиксирует намерение покупки и заморозит деньги
@@ -108,10 +127,10 @@ async def start_purchase_request(
     original_total = original_price_per * quantity_accounts  # оригинальная сумма которую должен заплатить пользователь
 
     # рассчитываем скидку
-    if code_promo_code:
-        discount_amount, promo_code_id = await discount_calculation(original_total, code_promo_code)
+    if promo_code_id:
+        discount_amount, _ = await discount_calculation(original_total, promo_code_id=promo_code_id)
     else:
-        discount_amount, promo_code_id = 0, None
+        discount_amount = 0
     final_total = max(0, original_total - discount_amount)  # конечная сумма которую должен заплатить пользователь
 
     # проверяем баланс пользователя
@@ -194,7 +213,7 @@ async def start_purchase_request(
         type_service_name = type_service.name,
         translations_category = translations_category,
         original_price_one_acc = category.price_one_account,
-        purchase_price_one_acc = final_total // quantity_accounts,
+        purchase_price_one_acc = final_total // quantity_accounts if final_total > 0 else final_total ,
         cost_price_one_acc = category.cost_price_one_account,
         total_amount = final_total,
         user_balance_before = user_balance_before,
@@ -223,6 +242,52 @@ async def _check_account_validity_async(account_storage: AccountStorage, type_se
             await asyncio.to_thread(shutil.rmtree, temp_folder, ignore_errors=True)
 
 
+async def _delete_account(account_storage: List[ProductAccounts], type_service_name: str):
+    """Проведёт всю необходимую работу с БД и переместит аккаунты с for_sale в deleted"""
+
+    if account_storage:
+        category = await get_account_categories_by_category_id(
+            account_category_id=account_storage[0].account_category_id,
+            return_not_show=True
+        )
+
+        for bad_account in account_storage:
+            await move_in_account(account=bad_account, type_service_name=type_service_name, status="deleted")
+
+            # помечаем первоначальный плохо прошедший аккаунт как deleted сразу
+            try:
+                await update_account_storage(
+                    bad_account.account_storage.account_storage_id,
+                    status='deleted',
+                    is_valid=False,
+                    is_active=False
+                )
+                await delete_product_account(bad_account.account_id)
+            except Exception:
+                logger.exception("Error marking bad account deleted %s", bad_account.account_storage.account_storage_id)
+
+            # логируем в deleted_accounts
+            try:
+
+                await add_deleted_accounts(
+                    type_account_service_id=bad_account.type_account_service_id,
+                    account_storage_id=bad_account.account_storage.account_storage_id,
+                    category_name=category.name,
+                    description=category.description
+                )
+                text = (
+                    "\n#Невалидный_аккаунт \n"
+                    "При покупке был найден невалидный аккаунт, он удалён с продажи \n"
+                    "Данные об аккаунте: \n"
+                    f"storage_account_id: {bad_account.account_storage.account_storage_id}\n"
+                    f"Себестоимость: {category.cost_price_one_account}\n"
+                )
+                await send_log(text)
+                logger.info(text)
+            except Exception:
+                logger.exception("Failed to log deleted account %s", bad_account.account_storage.account_storage_id)
+
+
 async def verify_reserved_accounts(
     product_accounts: List[ProductAccounts],
     type_service_name: str,
@@ -230,7 +295,7 @@ async def verify_reserved_accounts(
 ) -> List[ProductAccounts] | False:
     """
     Проверяет валидность аккаунтов, если невалидный — заменит и логирует.
-    Возвращает True, если удалось собрать нужное количество валидных аккаунтов.
+    Возвращает False, если не удалось собрать нужное количество валидных аккаунтов.
     :param product_accounts: Обязательно ProductAccounts с подгруженными account_storage
     :param type_service_name: имя типа сервиса
     :param purchase_request_id: id заказа
@@ -285,52 +350,15 @@ async def verify_reserved_accounts(
         return valid_accounts
 
     # нам нужно заменить эти invalid_accounts — считаем сколько нужно
-    total_needed = len(invalid_accounts)
     bad_queue = deque(invalid_accounts)
 
     # Начинаем итеративный поиск замен пакетами
     async with get_db() as session_db:
         attempts = 0
 
-        # переносим аккауты к невалидным
-        for bad_account in invalid_accounts:
-            await move_in_account(account=bad_account, type_service_name=type_service_name, status="deleted")
-
-            # помечаем первоначальный плохо прошедший аккаунт как deleted сразу
-            try:
-                await update_account_storage(
-                    bad_account.account_storage.account_storage_id,
-                    status='deleted',
-                    is_valid=False,
-                    is_active=False
-                )
-                await delete_product_account(bad_account.account_id)
-            except Exception:
-                logger.exception("Error marking bad account deleted %s", bad_account.account_storage.account_storage_id)
-
-            # логируем в deleted_accounts
-            try:
-                category = await get_account_categories_by_category_id(
-                    account_category_id=bad_account.account_category_id,
-                    return_not_show=True
-                )
-                await add_deleted_accounts(
-                    type_account_service_id=bad_account.type_account_service_id,
-                    account_storage_id=bad_account.account_storage.account_storage_id,
-                    category_name=category.name,
-                    description=category.description
-                )
-                text = (
-                    "#Невалидный_аккаунт \n\n" 
-                    "При покупке был найден невалидный аккаунт, он удалён с продажи \n\n" 
-                    "Данные об аккаунте: \n" 
-                    f"storage_account_id: {bad_account.account_storage.account_storage_id}\n" 
-                    f"Себестоимость: {category.cost_price_one_account}"
-                )
-                await send_log(text)
-                logger.info(text)
-            except Exception:
-                logger.exception("Failed to log deleted account %s", bad_account.account_storage.account_storage_id)
+        if invalid_accounts:
+            # переносим аккаунты к невалидным
+            await _delete_account(invalid_accounts, type_service_name=type_service_name)
 
         while bad_queue and attempts < MAX_REPLACEMENT_ATTEMPTS:
             attempts += 1
@@ -398,45 +426,11 @@ async def verify_reserved_accounts(
             # Теперь применяем изменения в БД: удаляем невалидных, возвращаем неиспользованных валидных в for_sale,
             # и привязываем нужное количество валидных к заявке (заменяем позиции из bad_queue).
             try:
+                # удаление невалидных аккаунтов
+                await _delete_account(invalid_candidates, type_service_name=type_service_name)
+
                 async with session_db.begin():
-                    # 1) Пометить невалидных кандидатов как deleted и удалить ProductAccounts
-                    if invalid_candidates:
-                        invalid_storage_ids = [c.account_storage.account_storage_id for c in invalid_candidates]
-                        invalid_product_ids = [c.account_id for c in invalid_candidates]
-
-                        await session_db.execute(
-                            update(AccountStorage)
-                            .where(AccountStorage.account_storage_id.in_(invalid_storage_ids))
-                            .values(status='deleted', is_valid=False, is_active=False)
-                        )
-                        await session_db.execute(
-                            delete(ProductAccounts)
-                            .where(ProductAccounts.account_id.in_(invalid_product_ids))
-                        )
-
-                        # логирование / запись в deleted_accounts (best-effort)
-                        for c in invalid_candidates:
-                            try:
-                                await move_in_account(account=bad_account, type_service_name=type_service_name, status="deleted")
-                                category = await get_account_categories_by_category_id(
-                                    account_category_id=c.account_category_id,
-                                    return_not_show=True
-                                )
-                                await add_deleted_accounts(
-                                    type_account_service_id=c.type_account_service_id,
-                                    account_storage_id=c.account_storage.account_storage_id,
-                                    category_name=category.name,
-                                    description=category.description
-                                )
-                                await send_log(
-                                    "#Невалидный_аккаунт\n\n"
-                                    f"При проверке замены найден невалидный аккаунт: storage_id={c.account_storage.account_storage_id}"
-                                )
-                            except Exception:
-                                logger.exception("Failed to log deleted candidate %s",
-                                                 c.account_storage.account_storage_id)
-
-                    # 2) Используем столько валидных кандидатов, сколько нужно (по очереди из bad_queue)
+                    # Используем столько валидных кандидатов, сколько нужно (по очереди из bad_queue)
                     used = 0
                     while valid_candidates and bad_queue:
                         chosen = valid_candidates.pop(0)
@@ -499,16 +493,20 @@ async def cancel_purchase_request(
     user_id: int,
     mapping: List[Tuple[str, str, str]],  # list of (orig_path, temp_path, final_path)
     sold_account_ids: List[int],
-    data: StartPurchaseAccount
+    total_amount: int,
+    purchase_request_id: int,
+    product_accounts: List[ProductAccounts],
+    type_service_name: str,
 ):
     """
     получает mapping и пытается вернуть файлы и БД в исходное состояние
 
-    mapping: список кортежей (orig_path, temp_path, final_path)
+    :param mapping: список кортежей (orig_path, temp_path, final_path)
      - orig_path: изначальный путь (старое место)
      - temp_path: временный путь куда мы переместили файл до коммита
      - final_path: финальный путь (куда будет переименован после commit)
-    sold_account_ids: список уже созданных sold_account (если есть) — удалим их и вернём product-строки
+    :param sold_account_ids: список уже созданных sold_account (если есть) — удалим их и вернём product-строки
+    :param product_accounts: Список orm объектов с обязательно подгруженными account_storage
     """
     user = None
     # Попытаться вернуть временные файлы обратно (temp -> orig) если они существуют
@@ -536,7 +534,7 @@ async def cancel_purchase_request(
             result_db = await session.execute(select(Users).where(Users.user_id == user_id))
             user: Users | None = result_db.scalars().one_or_none()
             if user is not None:
-                new_balance = user.balance + data.total_amount
+                new_balance = user.balance + total_amount
                 await session.execute(
                     update(Users).where(Users.user_id == user_id).values(balance=new_balance)
                 )
@@ -546,12 +544,20 @@ async def cancel_purchase_request(
                 # Удалим PurchasesAccounts и SoldAccounts
                 await session.execute(delete(PurchasesAccounts).where(PurchasesAccounts.sold_account_id.in_(sold_account_ids)))
                 await session.execute(delete(SoldAccounts).where(SoldAccounts.sold_account_id.in_(sold_account_ids)))
+
             try:
-                account_storages_ids = [account.account_storage.account_storage_id for account in data.product_accounts]
+                account_storages_ids = [account.account_storage.account_storage_id for account in product_accounts]
                 await session.execute(
                     update(AccountStorage)
                     .where(AccountStorage.account_storage_id.in_(account_storages_ids))
-                    .values(status="for_sale")
+                    .values(
+                        status="for_sale",
+                        file_path=create_path_account(
+                            status="bought",
+                            type_account_service=type_service_name,
+                            uuid=AccountStorage.storage_uuid
+                        )
+                    )
                 )
 
                 existing = await session.execute(
@@ -560,7 +566,7 @@ async def cancel_purchase_request(
                 )
                 existing_ids = set(existing.scalars().all())
 
-                for account in data.product_accounts:
+                for account in product_accounts:
                     aid = account.account_storage.account_storage_id
                     if aid not in existing_ids:
                         session.add(ProductAccounts(
@@ -576,12 +582,12 @@ async def cancel_purchase_request(
             try:
                 await session.execute(
                     update(PurchaseRequests)
-                    .where(PurchaseRequests.purchase_request_id == data.purchase_request_id)
+                    .where(PurchaseRequests.purchase_request_id == purchase_request_id)
                     .values(status='failed')
                 )
                 await session.execute(
                     update(BalanceHolder)
-                    .where(BalanceHolder.purchase_request_id == data.purchase_request_id)
+                    .where(BalanceHolder.purchase_request_id == purchase_request_id)
                     .values(status='released')
                 )
             except Exception:
@@ -593,10 +599,10 @@ async def cancel_purchase_request(
     await filling_product_accounts_by_category_id()
     for sid in sold_account_ids:
         await filling_sold_account_by_account_id(sid)
-    for pid in data.product_accounts:
+    for pid in product_accounts:
         await filling_product_account_by_account_id(pid.account_id)
 
-    logger.info("cancel_purchase_request finished for purchase %s", data.purchase_request_id)
+    logger.info("cancel_purchase_request finished for purchase %s", purchase_request_id)
 
 
 async def finalize_purchase(user_id: int, data: StartPurchaseAccount):
@@ -626,7 +632,15 @@ async def finalize_purchase(user_id: int, data: StartPurchaseAccount):
                 await send_log(text)
                 logger.exception(text)
                 # сразу откатываем — возвращаем то что успели переместить
-                await cancel_purchase_request(user_id, mapping, sold_account_ids, data)
+                await cancel_purchase_request(
+                    user_id=user_id,
+                    mapping=mapping,
+                    sold_account_ids=sold_account_ids,
+                    total_amount=data.total_amount,
+                    purchase_request_id=data.purchase_request_id,
+                    product_accounts=data.product_accounts,
+                    type_service_name=data.type_service_name
+                )
                 return
 
             # Удаление директории где хранится аккаунт (uui). Директория уже будет пустой
@@ -678,7 +692,14 @@ async def finalize_purchase(user_id: int, data: StartPurchaseAccount):
                     await session.execute(
                         update(AccountStorage)
                         .where(AccountStorage.account_storage_id == account.account_storage.account_storage_id)
-                        .values(status='bought')
+                        .values(
+                            status='bought',
+                            file_path=create_path_account(
+                                status="bought",
+                                type_account_service=data.type_service_name,
+                                uuid=account.account_storage.storage_uuid
+                            )
+                        )
                     )
                     account_movement.append(AccountsData(
                         id_account_storage = account.account_storage.account_storage_id,
@@ -714,7 +735,15 @@ async def finalize_purchase(user_id: int, data: StartPurchaseAccount):
         if rename_fail:
             # Если переименование файлов не удалось — сильно редкий случай.
             # Попробуем откатить DB изменения и вернуть файлы обратно
-            await cancel_purchase_request(user_id, mapping, sold_account_ids, data)
+            await cancel_purchase_request(
+                user_id=user_id,
+                mapping=mapping,
+                sold_account_ids=sold_account_ids,
+                total_amount=data.total_amount,
+                purchase_request_id=data.purchase_request_id,
+                product_accounts=data.product_accounts,
+                type_service_name=data.type_service_name
+            )
             return
 
         # обновление redis
@@ -748,5 +777,13 @@ async def finalize_purchase(user_id: int, data: StartPurchaseAccount):
     except Exception as e:
         logger.exception("Error in finalize_purchase: %s", e)
         await send_log(f"#Ошибка finalise_purchase: {e}")
-        await cancel_purchase_request(user_id, mapping, sold_account_ids, data)
+        await cancel_purchase_request(
+            user_id=user_id,
+            mapping=mapping,
+            sold_account_ids=sold_account_ids,
+            total_amount=data.total_amount,
+            purchase_request_id=data.purchase_request_id,
+            product_accounts=data.product_accounts,
+            type_service_name=data.type_service_name
+        )
 

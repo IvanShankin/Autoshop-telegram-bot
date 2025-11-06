@@ -111,7 +111,11 @@ class TestUpdateAccountCategory:
 
         # проверка базы данных: категории для этой услуги, упорядоченные по индексу (возрастание): c3(0), c1(1), c2(2)
         async with get_db() as session:
-            res = await session.execute(select(AccountCategories).where(AccountCategories.account_service_id == svc.account_service_id).order_by(AccountCategories.index.asc()))
+            res = await session.execute(
+                select(AccountCategories)
+                .where(AccountCategories.account_service_id == svc.account_service_id)
+                .order_by(AccountCategories.index.asc())
+            )
             rows = res.scalars().all()
             assert rows[0].account_category_id == c3.account_category_id
             assert rows[0].index == 0
@@ -131,7 +135,11 @@ class TestUpdateAccountCategory:
         assert updated2.index == 2
 
         async with get_db() as session:
-            res = await session.execute(select(AccountCategories).where(AccountCategories.account_service_id == svc.account_service_id).order_by(AccountCategories.index.asc()))
+            res = await session.execute(
+                select(AccountCategories)
+                .where(AccountCategories.account_service_id == svc.account_service_id)
+                .order_by(AccountCategories.index.asc())
+            )
             rows = res.scalars().all()
             assert rows[0].index == 0
             assert rows[1].index == 1
@@ -146,7 +154,41 @@ class TestUpdateAccountCategory:
 
 
     @pytest.mark.asyncio
-    async def test_update_account_category_validation_and_product_conflict(self, create_account_service, create_account_category, create_product_account):
+    async def test_update_account_category_changed_file_data(
+            self,
+            create_account_service,
+            create_account_category,
+            create_product_account,
+            create_ui_image
+    ):
+        from src.services.database.selling_accounts.actions import update_account_category
+        from src.utils.ui_images_data import get_default_image_bytes
+
+        old_ui_image, _ = await create_ui_image()
+        cat = await create_account_category(
+            is_accounts_storage=True,
+            ui_image_key=old_ui_image.key,
+            language="ru"
+        )
+
+        await update_account_category(cat.account_category_id, file_data=get_default_image_bytes())
+
+        async with get_db() as session:
+            res = await session.execute(
+                select(AccountCategories)
+                .where(AccountCategories.account_category_id == cat.account_category_id)
+            )
+            dbcat: AccountCategories = res.scalar_one()
+            assert dbcat.ui_image_key != old_ui_image.key
+
+
+    @pytest.mark.asyncio
+    async def test_update_account_category_validation_and_product_conflict(
+        self,
+        create_account_service,
+        create_account_category,
+        create_product_account
+    ):
         from src.services.database.selling_accounts.actions import update_account_category
 
         svc = await create_account_service(filling_redis=False)

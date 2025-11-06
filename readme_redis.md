@@ -175,20 +175,25 @@
 ``` json
 [
     {
-        "account_category_id": int ,
-        "account_service_id": int ,
-        "parent_id": int ,
+        "account_category_id": int,
+        "account_service_id": int,
+        "ui_image_key": str
+        "parent_id": int,
+        
         "name": str,
         "description": str,
         "index": int,
         "show": bool,
         "number_buttons_in_row": int, 
+        
         "is_main": bool, 
         "is_accounts_storage": bool, 
         
         # только для тех кто хранит аккаунты 
         "price_one_account": int or None,
         "cost_price_one_account": int or None
+        
+        "quantity_product_account": int
     }
     .....
 ]
@@ -202,16 +207,23 @@
 {
     "account_category_id": int,
     "account_service_id": int,
+    "ui_image_key": str
     "parent_id": int,
+    
     "name": str,
     "description": str,
     "index": int,
     "show": bool,
     "number_buttons_in_row": int, 
+    
     "is_main": bool, 
     "is_accounts_storage": bool, 
+    
+    # только для тех кто хранит аккаунты 
     "price_one_account": int,
     "cost_price_one_account": int
+    
+    "quantity_product_account": int
 }
 ```
 **TTL:** Навсегда

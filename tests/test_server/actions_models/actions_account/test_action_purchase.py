@@ -134,7 +134,7 @@ async def test_purchase_accounts_fail_no_replacement(
     create_product_account,
 ):
     """
-    Если все аккаунты невалидны и замены не нашлось -> должно произойти откатывание:
+    Если все аккаунты невалидны и замены не нашлось -> должно произойти откатывание и аккаунты переместиться в deleted:
       - PurchaseRequests.status == 'failed'
       - BalanceHolder.status == 'released'
       - AccountStorage.status возвращён в 'for_sale'
@@ -185,7 +185,7 @@ async def test_purchase_accounts_fail_no_replacement(
         storage_ids = [p.account_storage.account_storage_id for p in products]
         q = await session.execute(select(AccountStorage).where(AccountStorage.account_storage_id.in_(storage_ids)))
         storages = q.scalars().all()
-        assert all(s.status == "for_sale" for s in storages), "AccountStorage не восстановлены в 'for_sale'"
+        assert all(s.status == "deleted" for s in storages), "AccountStorage не установленны 'deleted'"
 
         # баланс пользователя восстановлен (в create_new_user он уже был установлен)
         db_user = await session.get(Users, user.user_id)
@@ -261,7 +261,7 @@ class TestStartPurchaseRequest:
             user_id=user.user_id,
             category_id=category_id,
             quantity_accounts=quantity,
-            code_promo_code=None
+            promo_code_id=None
         )
 
         result_product_accounts: list[dict] = [account.to_dict() for account in result.product_accounts]
@@ -359,7 +359,7 @@ class TestStartPurchaseRequest:
             user_id=user.user_id,
             category_id=category.account_category_id,
             quantity_accounts=quantity,
-            code_promo_code=promo.activation_code,
+            promo_code_id=promo.promo_code_id,
         )
 
         # проверки возвращаемых данных
@@ -402,7 +402,7 @@ class TestStartPurchaseRequest:
                 user_id=user.user_id,
                 category_id=category_id,
                 quantity_accounts=5,
-                code_promo_code=None
+                promo_code_id=None
             )
 
 
@@ -432,7 +432,7 @@ class TestStartPurchaseRequest:
                 user_id=user.user_id,
                 category_id=category_id,
                 quantity_accounts=1,
-                code_promo_code=None
+                promo_code_id=None
             )
 
 @pytest.mark.asyncio
@@ -963,7 +963,15 @@ class TestCancelPurchase:
         )
 
         # Вызов
-        await action_mod.cancel_purchase_request(user.user_id, mapping, sold_account_ids=[], data=data)
+        await action_mod.cancel_purchase_request(
+            user_id=user.user_id,
+            mapping=mapping,
+            sold_account_ids=[],
+            total_amount=data.total_amount,
+            purchase_request_id=data.purchase_request_id,
+            product_accounts=data.product_accounts,
+            type_service_name=data.type_service_name
+        )
 
         # --- проверки файлов ---
         # orig должен существовать, temp — удалён
@@ -1072,7 +1080,15 @@ class TestCancelPurchase:
         )
 
         # вызов с sold_account_ids
-        await action_mod.cancel_purchase_request(user.user_id, mapping, sold_account_ids=[sold.sold_account_id], data=data)
+        await action_mod.cancel_purchase_request(
+            user_id=user.user_id,
+            mapping=mapping,
+            sold_account_ids=[sold.sold_account_id],
+            total_amount=data.total_amount,
+            purchase_request_id=data.purchase_request_id,
+            product_accounts=data.product_accounts,
+            type_service_name=data.type_service_name
+        )
 
         # проверки
         # файл перемещён
@@ -1261,7 +1277,7 @@ class TestFinalizePurchase:
 
         called = {"cancel": False, "logged": False}
 
-        async def fake_cancel(user_id, mapping, sold_account_ids, data):
+        async def fake_cancel(user_id, mapping, sold_account_ids, **kw):
             called["cancel"] = True
 
         async def fake_send_log(text):

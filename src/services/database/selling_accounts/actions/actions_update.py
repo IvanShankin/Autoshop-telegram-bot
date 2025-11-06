@@ -1,11 +1,14 @@
+import uuid
 from datetime import datetime
 from typing import Literal, Any, List
 
 import orjson
-from sqlalchemy import select, update
+from sqlalchemy import select, update, delete
 from sqlalchemy.orm import selectinload
 
 from src.services.database.selling_accounts.models.models import AccountStorage
+from src.services.database.system.actions import get_ui_image, create_ui_image, delete_ui_image
+from src.services.database.system.models import UiImages
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_all_account_services, filling_account_categories_by_service_id, \
     filling_account_categories_by_category_id, filling_account_services, filling_product_account_by_account_id, \
@@ -13,6 +16,8 @@ from src.services.redis.filling_redis import filling_all_account_services, filli
 from src.services.database.core.database import get_db
 from src.services.database.selling_accounts.models import AccountServices, AccountCategories, ProductAccounts, \
     AccountCategoryTranslation, AccountCategoryFull
+from src.utils.core_logger import logger
+
 
 def _create_dict(data: List[tuple[str, Any]]) -> dict:
     """
@@ -101,11 +106,13 @@ async def update_account_category(
         account_category_id: int,
         index: int = None,
         show: bool = None,
+        file_data: bytes = None,
         number_buttons_in_row: int = None,
         is_accounts_storage: bool = None,
         price_one_account: int = None,
         cost_price_one_account: int = None,
 ) -> AccountCategories:
+    """:param file_data: поток байтов для создания нового ui_image, старый будет удалён"""
     if price_one_account is not None and price_one_account <= 0:
         raise ValueError("Цена аккаунтов должна быть положительным числом")
     if cost_price_one_account is not None  and cost_price_one_account < 0:
@@ -116,9 +123,12 @@ async def update_account_category(
     async with get_db() as session:
         # загружаем текущий объект
         result = await session.execute(
-            select(AccountCategories).where(AccountCategories.account_category_id == account_category_id)
+            select(AccountCategories)
+            .options(selectinload(AccountCategories.ui_image))
+            .where(AccountCategories.account_category_id == account_category_id)
         )
         category: AccountCategories = result.scalar_one_or_none()
+        old_ui_image = category.ui_image_key
         if not category:
             raise ValueError(f"Категория аккаунтов с id = {account_category_id} не найдена")
 
@@ -145,6 +155,13 @@ async def update_account_category(
             update_data["cost_price_one_account"] = cost_price_one_account
         if number_buttons_in_row is not None:
             update_data["number_buttons_in_row"] = number_buttons_in_row
+        if file_data is not None:
+            ui_image = await create_ui_image(
+                key=str(uuid.uuid4()),
+                file_data=file_data,
+                show=category.ui_image.show if category.ui_image else True
+            )
+            update_data["ui_image_key"] = ui_image.key
         if index is not None and index != category.index:
             old_index = category.index or 0
             new_index = index
@@ -177,6 +194,9 @@ async def update_account_category(
             )
 
             await session.commit()
+
+            if file_data is not None and category.ui_image: # удаление прошлого изображения
+                await delete_ui_image(old_ui_image)
 
             # обновляем объект в памяти (чтобы вернуть актуальные данные)
             for key, value in update_data.items():
@@ -296,6 +316,7 @@ async def update_account_storage(
                 update(AccountStorage)
                 .where(AccountStorage.account_storage_id == account_storage_id)
                 .values(**update_data)
+                .returning(AccountStorage)
             )
             await session.commit()
 

@@ -19,6 +19,24 @@ msgid "#Promo_code_expired \nID '{id}' \nCode '{code}'"
 msgstr "#Промокод_закончился \nID '{id}' \nКод '{code}'"
 "\n\nПромокод закончился из-за достижения количества активаций или ограничения по времени. Теперь его невозможно активировать"
 
+msgid "The promo code has been successfully activated"
+msgstr "Промокод успешно активирован"
+
+msgid "A promo code with this code was not found/expired \n\nTry again"
+msgstr "Промокод с таким кодом не найден/истёк срок годности \n\nПопробуйте ещё раз"
+
+msgid "This promo code has already been activated previously \n\nTry again"
+msgstr "Этот промокод был уже активирован ранее \n\nПопробуйте ещё раз"
+
+msgid "Attention, the promo code is no longer valid, the discount will no longer apply!"
+msgstr "Внимание \nпромокод стал не валидным, скидка за него не будет действовать!"
+
+msgid "Purchase not processed! \n"
+"Minimum amount to apply the promo code: {amount}"
+msgstr "Покупка не оформлена! \n"
+"Минимальная сумма с которой можно применить промокод: {amount}"
+
+
 
 msgid "#Voucher_expired \nID '{id}' \nCode '{code}'"
 "\n\nThe voucher has expired due to reaching the number of activations or time limit. It is no longer possible to activate it"

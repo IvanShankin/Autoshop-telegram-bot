@@ -1,10 +1,12 @@
 import os
+import shutil
+from pathlib import Path
 from typing import List
 
+import aiofiles
 import orjson
-from sqlalchemy import select, update
+from sqlalchemy import select, update, delete
 
-from src.config import MEDIA_DIR
 from src.services.redis.filling_redis import filling_types_payments_by_id, filling_all_types_payments, \
     filling_ui_image
 from src.services.redis.time_storage import TIME_SETTINGS
@@ -13,6 +15,7 @@ from src.services.database.core.database import get_db
 from src.services.database.core.filling_database import filling_settings
 from src.services.redis.core_redis import get_redis
 from src.services.database.system.models import UiImages
+from src.utils.ui_images_data import UI_SECTIONS
 
 
 def _check_file_exists(ui_image: UiImages) -> UiImages | None:
@@ -23,16 +26,7 @@ async def get_settings() -> Settings:
         redis_data = await session_redis.get(f'settings')
         if redis_data:
             data = orjson.loads(redis_data)
-            settings = Settings(
-                support_username=data['support_username'],
-                maintenance_mode =data['maintenance_mode'],
-                channel_for_logging_id=data['channel_for_logging_id'],
-                channel_for_subscription_id=data['channel_for_subscription_id'],
-                shop_name=data['shop_name'],
-                channel_name=data['channel_name'],
-                linc_info_ref_system=data['linc_info_ref_system'],
-                FAQ=data['FAQ']
-            )
+            settings = Settings(**data)
             return settings
 
         async with get_db() as session_db:
@@ -77,6 +71,47 @@ async def update_settings(settings: Settings) -> Settings:
         )
     return settings
 
+async def create_ui_image(key: str, file_data: bytes, show: bool = True) -> UiImages:
+    """
+    Сохраняет файл локально с именем в аргументе "key" и создаёт запись в БД UiImages.
+
+    :param key: Уникальный ключ изображения (например: 'main_menu_banner')
+    :param file_data: Содержимое файла в виде байтов
+    :param show: Флаг отображения
+    :return:
+    """
+    new_path = UI_SECTIONS / f"{key}.png"
+    new_path.parent.mkdir(parents=True, exist_ok=True) # создаём директорию, если её нет
+
+    async with get_db() as session_db:
+        result = await session_db.execute(select(UiImages).where(UiImages.key == key))
+        ui_image = result.scalar_one_or_none()
+
+        if ui_image:
+            # Перезаписываем файл, но не создаём новую запись
+            async with aiofiles.open(new_path, "wb") as f:
+                await f.write(file_data)
+            ui_image.file_path = str(new_path)
+            await session_db.commit()
+            await update_ui_image(key=key, show=ui_image.show, file_id=None)
+            return ui_image
+        else:
+            # Иначе создаём новую запись
+            async with aiofiles.open(new_path, "wb") as f:
+                await f.write(file_data)
+
+            ui_image = UiImages(
+                key=key,
+                file_path=str(new_path),
+                show=show,
+            )
+            session_db.add(ui_image)
+            await session_db.commit()
+
+        await filling_ui_image(key) # обновление redis
+        return ui_image
+
+
 async def get_ui_image(key: str) -> UiImages | None:
     """Если есть файл по данному ключу, то вернёт UiImages по данному ключу, если нет или он невалидный, то вернёт None"""
     async with get_redis() as session_redis:
@@ -94,12 +129,12 @@ async def get_ui_image(key: str) -> UiImages | None:
         return None
 
 async def get_all_ui_images() -> List[UiImages] | None:
-    """Вернёт все записи у таблице UiImage"""
+    """Вернёт все записи в таблице UiImage"""
     async with get_db() as session_db:
         result_db = await session_db.execute(select(UiImages))
         return result_db.scalars().all()
 
-async def update_ui_image(key: str, show: bool, file_id: str) -> UiImages | None:
+async def update_ui_image(key: str, show: bool, file_id: str | None) -> UiImages | None:
     async with get_db() as session_db:
         result_db = await session_db.execute(
             update(UiImages)
@@ -112,6 +147,30 @@ async def update_ui_image(key: str, show: bool, file_id: str) -> UiImages | None
         if result:
             await filling_ui_image(key) # обновление redis
         return result
+
+async def delete_ui_image(key: str) -> UiImages | None:
+    """
+    Удалит UiImage с БД и redis, удалит связанный с ним файл.
+    :return: Удалённый объект (если удалили)
+    """
+    async with get_db() as session_db:
+        result = await session_db.execute(
+            delete(UiImages)
+            .where(UiImages.key == key)
+            .returning(UiImages)
+        )
+        deleted_ui_image: UiImages = result.scalar_one_or_none()
+        await session_db.commit()
+
+        if deleted_ui_image and deleted_ui_image.file_path:
+            # можно не проверять его существование
+            Path(deleted_ui_image.file_path).unlink(missing_ok=True)
+
+    async with get_redis() as session_redis:
+        await session_redis.delete(f'ui_image:{key}')
+
+    return deleted_ui_image
+
 
 
 async def get_all_types_payments() -> List[TypePayments]:

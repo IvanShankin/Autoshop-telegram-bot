@@ -1,6 +1,7 @@
 import orjson
 from sqlalchemy import select, delete, distinct, update
 
+from src.services.database.system.actions import delete_ui_image
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_account_categories_by_service_id, \
     filling_account_categories_by_category_id, filling_product_accounts_by_category_id, \
@@ -87,6 +88,7 @@ async def delete_translate_category(account_category_id: int, language: str):
             await session_redis.delete(f"account_categories_by_category_id:{account_category_id}:{language}")
 
 async def delete_account_category(account_category_id: int):
+    """Удалит категорию аккаунтов и связанную UiImage"""
     async with get_db() as session_db:
         result_db = await session_db.execute(
             select(AccountCategories)
@@ -113,10 +115,12 @@ async def delete_account_category(account_category_id: int):
             raise ValueError(f"У данной категории не должно быть подкатегорий (дочерних)")
 
         # удаление
-        await session_db.execute(
+        deleted_result = await session_db.execute(
             delete(AccountCategories)
             .where(AccountCategories.account_category_id == account_category_id)
+            .returning(AccountCategories)
         )
+        deleted_cat: AccountCategories = deleted_result.scalar_one_or_none()
         await session_db.execute(
             delete(AccountCategoryTranslation)
             .where(AccountCategoryTranslation.account_category_id == account_category_id)
@@ -134,6 +138,9 @@ async def delete_account_category(account_category_id: int):
         # обновление redis
         await filling_account_categories_by_service_id()
         await filling_account_categories_by_category_id()
+
+    if deleted_cat and deleted_cat.ui_image_key:
+        await delete_ui_image(deleted_cat.ui_image_key)
 
 async def delete_product_account(account_id: int):
     async with get_db() as session_db:

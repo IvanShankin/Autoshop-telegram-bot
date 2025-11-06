@@ -84,8 +84,8 @@ class TestSendMessage:
 
         await send_message(chat_id=777, message="Hidden image", image_key="hidden_img", fallback_image_key=None)
 
-        assert len(fake_bot.sent) == 1
-        chat_id, text, kwargs = fake_bot.sent[0]
+        assert len(fake_bot.sent) == 2 # 2 т.к. ещё отправляется сообщение о проверке аккаунтов
+        chat_id, text, kwargs = fake_bot.sent[1]
         assert text == "Hidden image"
         assert chat_id == 777
 
@@ -106,8 +106,8 @@ class TestSendMessage:
 
         await send_message(chat_id=555, message="Plain text", image_key="missing")
 
-        assert len(fake_bot.sent) == 1
-        chat_id, text, kwargs = fake_bot.sent[0]
+        assert len(fake_bot.sent) == 2 # 2 т.к. ещё отправляется сообщение о проверке аккаунтов
+        chat_id, text, kwargs = fake_bot.sent[1]
         assert text == "Plain text"
         assert chat_id == 555
 

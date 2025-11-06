@@ -8,7 +8,7 @@ from pydantic import ValidationError
 from src.bot_actions.bot_instance import get_bot_logger
 from src.config import MAIN_ADMIN
 from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply, FSInputFile, \
-    InputMediaPhoto
+    InputMediaPhoto, Message
 
 from src.bot_actions.bot_instance import get_bot
 from src.services.database.system.actions import get_ui_image, update_ui_image
@@ -283,7 +283,7 @@ async def send_message(
         image_key: str = None,
         fallback_image_key: str = None,
         reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | None = None
-):
+) -> Message | None:
     """
     Отправит сообщение по-указанному chat_id, если есть image_key, то отправит фото с сообщением.
 
@@ -300,14 +300,13 @@ async def send_message(
                 # Если уже есть file_id — отправляем без загрузки
                 if ui_image.file_id:
                     try:
-                        await bot.send_photo(
+                        return await bot.send_photo(
                             chat_id=chat_id,
                             photo=ui_image.file_id,
                             caption=message,
                             parse_mode="HTML",
                             reply_markup=reply_markup
                         )
-                        return
                     except Exception as e:
                         # file_id устарел или недействителен
                         if "file" in str(e).lower() or "not found" in str(e).lower():
@@ -327,7 +326,7 @@ async def send_message(
                 new_file_id = msg.photo[-1].file_id
                 await update_ui_image(key=ui_image.key, show=ui_image.show, file_id=new_file_id)
 
-                return
+                return msg
 
             except Exception as e:
                 logger.exception(f"#Ошибка при отправке фото: {str(e)}")
@@ -338,14 +337,13 @@ async def send_message(
             ui_image = await get_ui_image(fallback_image_key)
             if ui_image:
                 if ui_image.file_id:
-                    await bot.send_photo(
+                    return await bot.send_photo(
                         chat_id=chat_id,
                         photo=ui_image.file_id,
                         caption=message,
                         parse_mode="HTML",
                         reply_markup=reply_markup
                     )
-                    return
                 else:
                     photo = FSInputFile(ui_image.file_path)
                     msg = await bot.send_photo(chat_id, photo=photo, caption=message, parse_mode="HTML", reply_markup=reply_markup)
@@ -353,6 +351,7 @@ async def send_message(
                     # Сохраняем file_id для будущего использования
                     new_file_id = msg.photo[-1].file_id
                     await update_ui_image(key=ui_image.key, show=ui_image.show, file_id=new_file_id)
+                    return msg
 
             await send_log(text) # лучше после отправки пользователю
         else:
@@ -363,7 +362,7 @@ async def send_message(
 
     try:
         if message:
-            await bot.send_message(chat_id, text=message, parse_mode="HTML", reply_markup=reply_markup)
+            return await bot.send_message(chat_id, text=message, parse_mode="HTML", reply_markup=reply_markup)
     except Exception as e:
         logger.exception(f"#Ошибка при отправке сообщения. Ошибка: {str(e)}")
 

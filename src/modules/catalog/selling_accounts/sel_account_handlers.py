@@ -488,6 +488,13 @@ async def buy_acc(callback: CallbackQuery):
         await _show_not_enough_money(total_sum - user.balance)
         return
 
+    message_load = await send_message(user.user_id, "Проверка аккаунтов...")
+    async def delete_message():
+        try:
+            await message_load.delete()
+        except Exception:
+            pass
+
     result = None
     try:
         result = await purchase_accounts(
@@ -498,6 +505,7 @@ async def buy_acc(callback: CallbackQuery):
         )
 
     except CategoryNotFound as e:
+        await delete_message()
         try:
             bot = await get_bot()
             await bot.delete_message(user.user_id, callback.message.message_id)
@@ -509,12 +517,20 @@ async def buy_acc(callback: CallbackQuery):
             chat_id=user.user_id,
             message=i18n.gettext("The category is temporarily unavailable"),
         )
+        return
     except NotEnoughMoney as e:
+        await delete_message()
         await _show_not_enough_money(e.need_money)
+        return
 
     except NotEnoughAccounts as e:
+        await delete_message()
         await _show_no_enough_accounts()
+        return
 
+    await delete_message()
+
+    # работа с результатом
     if result is True:
         i18n = get_i18n(user.language, 'catalog')
         await edit_message(

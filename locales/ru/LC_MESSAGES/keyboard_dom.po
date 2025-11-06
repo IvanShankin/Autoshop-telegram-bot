@@ -109,6 +109,12 @@ msgstr "Деактивировать"
 
 # ---- Каталог ----
 
+msgid "Skip"
+msgstr "Пропустить"
+
+msgid "Channel"
+msgstr "Канал"
+
 msgid "Accounts"
 msgstr "Аккаунты"
 

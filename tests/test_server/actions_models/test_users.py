@@ -123,6 +123,8 @@ async def test_add_new_user_creates_records_and_logs(
         assert data is not None
         user_dict = orjson.loads(data)
         assert user_dict["username"] == username
+        data = await r.get(f"subscription_prompt:{user_id}")
+        assert data
 
     # Проверяем FakeBot (лог)
     assert fake_bot.check_str_in_messages("#Новый_пользователь")

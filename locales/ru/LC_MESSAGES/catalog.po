@@ -8,6 +8,9 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 
+msgid "Want to stay up-to-date on all the latest news? \nSubscribe to our channel where we share news and special offers"
+msgstr "Хотите быть в курсе всего самого важного? \nПодпишитесь на канал, где мы делимся новостями и выгодными предложениями"
+
 msgid "Thank you for your purchase \nThe account is already in the profile"
 msgid_plural "Thank you for your purchase \nThe account is already in the profile"
 msgstr[0] "❤️ Благодарим за покупку \nАккаунт уже в профиле"

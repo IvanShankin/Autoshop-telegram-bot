@@ -6,4 +6,4 @@ __pycache__/
 *.log
 *.env
 *.test.env
-
+tests/manual_test.py

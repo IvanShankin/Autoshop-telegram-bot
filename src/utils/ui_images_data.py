@@ -23,6 +23,7 @@ UI_IMAGES = {
     # Начальные экраны
     "welcome_message": UI_SECTIONS / "welcome_message.png",
     "selecting_language": UI_SECTIONS / "selecting_language.png",
+    "subscription_prompt": UI_SECTIONS / "subscription_prompt.png",
 
     # Основные разделы профиля
     "profile": UI_SECTIONS / "profile.png",

@@ -16,7 +16,7 @@ from src.services.database.users.models import Users, NotificationSettings, Bann
     TransferMoneys, Replenishments
 from src.services.database.core.database import get_db
 from src.services.redis.core_redis import get_redis
-from src.services.redis.time_storage import TIME_USER
+from src.services.redis.time_storage import TIME_USER, TIME_SUBSCRIPTION_PROMPT
 from src.bot_actions.actions import send_log
 from src.utils.core_logger import logger
 
@@ -50,6 +50,7 @@ async def add_new_user(user_id: int, username: str, language: str = 'ru') -> Use
 
     async with get_redis() as session_redis:
         await session_redis.setex(f'user:{user_id}', TIME_USER, orjson.dumps(user.to_dict()))
+        await session_redis.setex(f'subscription_prompt:{user_id}', TIME_SUBSCRIPTION_PROMPT, '_')
 
     await send_log(f"#Новый_пользователь \n\nID: {user_id}\nusername: {username}")
 

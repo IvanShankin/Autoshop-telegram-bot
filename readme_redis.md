@@ -86,7 +86,12 @@
 ```
 **TTL:** 6 часов
 
-### 6 Уровни рефералов (ReferralLevels)
+### 6. Пользователь (Users)
+**Ключ:** `subscription_prompt:{user_id}`
+**Значение:** `_` выступает в роли метки  
+**TTL:** 15 дней
+
+### 7. Уровни рефералов (ReferralLevels)
 **Ключ:** `referral_levels`  
 **Значение:**  
 ``` json
@@ -102,17 +107,17 @@
 ```
 **TTL:** Навсегда
 
-### 7. Админы (Admins)
+### 8. Админы (Admins)
 **Ключ:** `admin:{user_id}`   
 **Значение:** `_` выступает в роли метки  
 **TTL:** Навсегда
 
-### 8. Забаненные аккаунты (BannedAccounts)
+### 9. Забаненные аккаунты (BannedAccounts)
 **Ключ:** `banned_account:{user_id}`  
 **Значение:** `Причина бана`  
 **TTL:** Навсегда
 
-### 9. Тип продаваемых аккаунтов (TypeAccountServices)
+### 10. Тип продаваемых аккаунтов (TypeAccountServices)
 **Ключ:** `types_account_service`   
 **Значение:** 
 ``` json
@@ -126,7 +131,7 @@
 
 ```
 
-### 10. Тип продаваемых аккаунтов (TypeAccountServices)
+### 11. Тип продаваемых аккаунтов (TypeAccountServices)
 **Ключ:** `type_account_service:{type_account_service_id}`   
 **Значение:** 
 ``` json
@@ -137,7 +142,7 @@
 ```
 **TTL:** Навсегда
 
-### 11. Список всех сервисов у продаваемых аккаунтов (AccountServices)
+### 12. Список всех сервисов у продаваемых аккаунтов (AccountServices)
 **Важно:** список отсортирован по возрастанию поля index  
 **Ключ:** `account_services`   
 **Значение:** 
@@ -155,7 +160,7 @@
 ```
 **TTL:** Навсегда
 
-### 12. Сервисы у продаваемых аккаунтов (AccountServices)
+### 13. Сервисы у продаваемых аккаунтов (AccountServices)
 **Ключ:** `account_service:{account_service_id}`  
 **Значение:** 
 ``` json
@@ -169,7 +174,7 @@
 ```
 **TTL:** Навсегда
 
-### 13. Категории аккаунтов по id сервиса (AccountCategories)
+### 14. Категории аккаунтов по id сервиса (AccountCategories)
 **Ключ:** `account_categories_by_service_id:{account_service_id}:{language}`  
 **Значение:** 
 ``` json
@@ -200,7 +205,7 @@
 ```
 **TTL:** Навсегда
 
-### 14. Категории аккаунтов по id категории(AccountCategories)
+### 15. Категории аккаунтов по id категории(AccountCategories)
 **Ключ:** `account_categories_by_category_id:{account_category_id}:{language}`  
 **Значение:** 
 ``` json
@@ -229,7 +234,7 @@
 **TTL:** Навсегда
 
 
-### 15. Товары Аккаунты по id категории (ProductAccounts)
+### 16. Товары Аккаунты по id категории (ProductAccounts)
 **Ключ:** `product_accounts_by_category_id:{account_category_id}`  
 **Значение:** 
 ``` json
@@ -246,7 +251,7 @@
 ```
 **TTL:** Навсегда
 
-### 16. Товары Аккаунты по id аккаунта (ProductAccounts)
+### 17. Товары Аккаунты по id аккаунта (ProductAccounts)
 **Ключ:** `product_accounts_by_account_id:{account_id}`  
 **Значение:** 
 ``` json
@@ -282,7 +287,7 @@
 ```
 **TTL:** Навсегда
 
-### 17. Проданные аккаунты по id владельца (SoldAccounts)
+### 18. Проданные аккаунты по id владельца (SoldAccounts)
 **Важно:** хранит только НЕ удалённые аккаунты (is_deleted == False)  
 **Ключ:** `sold_accounts_by_owner_id:{owner_id}:{language}`  
 **Значение:** 
@@ -304,7 +309,7 @@
 ```
 **TTL:** 6 часов
 
-### 18. Проданные аккаунты по id аккаунта (SoldAccounts)
+### 19. Проданные аккаунты по id аккаунта (SoldAccounts)
 **Важно:** хранит только НЕ удалённые аккаунты (is_deleted == False)  
 **Ключ:** `sold_accounts_by_accounts_id:{sold_account_id}:{language}`  
 **Значение:** 
@@ -346,7 +351,7 @@
 **TTL:** 6 часов
 
 
-### 19. Промокоды (PromoCodes)
+### 20. Промокоды (PromoCodes)
 **Важно:** хранит только действительные (is_valid == True)  
 **Ключ:** `promo_code:{activation_code}`  
 **Значение:** 
@@ -368,7 +373,7 @@
 ```
 **TTL:** До окончания срока действия
 
-### 20. Список ваучеров (Vouchers)
+### 21. Список ваучеров (Vouchers)
 **Важно:** хранит только действительные (is_valid == True), отфильтровано по дате создания `desc`   
 **Ключ:** `voucher_by_user:{user_id}`  
 **Значение:** 
@@ -386,7 +391,7 @@
 ```
 **TTL:** 10 часов
 
-### 21. Ваучеры (Vouchers)
+### 22. Ваучеры (Vouchers)
 **Важно:** хранит только действительные (is_valid == True)  
 **Ключ:** `voucher:{activation_code}`  
 **Значение:** 

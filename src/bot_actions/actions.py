@@ -225,6 +225,7 @@ async def edit_message(
                 reply_markup=reply_markup
             )
             return
+
         elif not ui_image and fallback_image_key:
             text = f"#Не_найдено_фото [edit_message]. \nget_ui_image='{image_key}'"
             logger.warning(text)
@@ -244,6 +245,11 @@ async def edit_message(
                         return  # успешно
 
                 await send_log(text)  # лучше после отправки пользователю
+        else:
+            # если нет замены для фото
+            text = f"#Не_найдено_фото_и_сообщение_пользователю_не_отправлено [edit_message]. \nget_ui_image='{image_key}'"
+            logger.warning(text)
+            await send_log(text)
 
         # если ui_image не найден или скрыт (show=False), то переходим к ветке "без фото"
 
@@ -349,6 +355,11 @@ async def send_message(
                     await update_ui_image(key=ui_image.key, show=ui_image.show, file_id=new_file_id)
 
             await send_log(text) # лучше после отправки пользователю
+        else:
+            # если нет замены для фото
+            text = f"#Не_найдено_фото_и_сообщение_пользователю_не_отправлено [edit_message]. \nget_ui_image='{image_key}'"
+            logger.warning(text)
+            await send_log(text)
 
     try:
         if message:

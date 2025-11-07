@@ -3,12 +3,11 @@ from datetime import datetime
 from typing import Literal, Any, List
 
 import orjson
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
 from src.services.database.selling_accounts.models.models import AccountStorage
-from src.services.database.system.actions import get_ui_image, create_ui_image, delete_ui_image
-from src.services.database.system.models import UiImages
+from src.services.database.system.actions import create_ui_image, delete_ui_image
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_all_account_services, filling_account_categories_by_service_id, \
     filling_account_categories_by_category_id, filling_account_services, filling_product_account_by_account_id, \
@@ -16,7 +15,6 @@ from src.services.redis.filling_redis import filling_all_account_services, filli
 from src.services.database.core.database import get_db
 from src.services.database.selling_accounts.models import AccountServices, AccountCategories, ProductAccounts, \
     AccountCategoryTranslation, AccountCategoryFull
-from src.utils.core_logger import logger
 
 
 def _create_dict(data: List[tuple[str, Any]]) -> dict:

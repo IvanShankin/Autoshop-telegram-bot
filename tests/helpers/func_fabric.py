@@ -486,7 +486,7 @@ async def create_account_storage_factory(
         status: str = 'for_sale'
 ) -> AccountStorage:
     encrypted_key_b64, account_key = make_fake_account_key_for_test()
-    file_path = make_fake_encrypted_archive_for_test(account_key)
+    file_path = make_fake_encrypted_archive_for_test(account_key, status)
 
     account_storage = AccountStorage(
         file_path = file_path,
@@ -495,6 +495,7 @@ async def create_account_storage_factory(
         encrypted_key = encrypted_key_b64,
         encrypted_key_nonce = "gnjfdsnjds",
 
+        phone_number = '+7 920 107-42-12',
         login_encrypted = 'login_encrypted',
         password_encrypted = 'password_encrypted',
 
@@ -581,7 +582,7 @@ async def create_sold_account_factory(
             service = await create_type_account_service_factory(filling_redis=filling_redis)
             type_account_service_id = service.type_account_service_id
         if account_storage_id is None:
-            account_storage = await create_account_storage_factory(is_active, is_valid)
+            account_storage = await create_account_storage_factory(is_active, is_valid, 'bought')
             account_storage_id = account_storage.account_storage_id
 
         new_sold_account = SoldAccounts(

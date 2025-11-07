@@ -175,6 +175,25 @@ async def test_get_sold_accounts_by_owner_id(use_redis, create_new_user, create_
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
+async def test_get_sold_account_by_page(use_redis, create_new_user, create_sold_account):
+    from src.services.database.selling_accounts.actions import get_sold_account_by_page
+
+    owner = await create_new_user()
+    account_1, _ = await create_sold_account(use_redis, owner_id=owner.user_id)
+    account_2, _ = await create_sold_account(use_redis, type_account_service_id=account_1.type_account_service_id, owner_id=owner.user_id)
+    account_other, _ = await create_sold_account(use_redis)
+
+    list_account = await get_sold_account_by_page(owner.user_id, account_1.type_account_service_id, 1, owner.language)
+    list_account = [account.model_dump() for account in list_account]
+
+    # должен быть отсортирован по возрастанию даты
+    assert len(list_account) == 2
+    assert account_2.model_dump() == list_account[0]
+    assert account_1.model_dump() == list_account[1]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_sold_accounts_by_account_id(use_redis, create_sold_account):
     from src.services.database.selling_accounts.actions import get_sold_accounts_by_account_id
 
@@ -184,6 +203,24 @@ async def test_get_sold_accounts_by_account_id(use_redis, create_sold_account):
     account_result = await get_sold_accounts_by_account_id(account.sold_account_id)
 
     assert account.model_dump() == account_result.model_dump()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('use_redis', (True, False))
+async def test_get_union_type_account_service_id(use_redis, create_sold_account):
+    from src.services.database.selling_accounts.actions import get_union_type_account_service_id
+
+    _, account_1 = await create_sold_account(use_redis)
+    _, account_2 = await create_sold_account(
+        use_redis, type_account_service_id=account_1.type_account_service_id, owner_id=account_1.owner_id
+    )
+    _, account_3 = await create_sold_account(use_redis, owner_id=account_1.owner_id)
+
+    result = await get_union_type_account_service_id(account_1.owner_id)
+
+    assert 2 == len(result)
+    assert account_1.type_account_service_id in result
+    assert account_3.type_account_service_id in result
 
 
 @pytest.mark.asyncio

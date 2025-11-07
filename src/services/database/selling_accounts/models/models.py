@@ -149,6 +149,7 @@ class AccountStorage(Base):
     encryption_algo = Column(String(32), nullable=False, server_default=text("'AES-GCM-256'")) # Алгоритм шифрования
 
     # === Основные поля ===
+    phone_number = Column(String(100), nullable=False)
     login_encrypted = Column(Text, nullable=True)
     password_encrypted = Column(Text, nullable=True)
 

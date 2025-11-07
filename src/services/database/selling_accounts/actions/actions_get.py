@@ -4,9 +4,10 @@ from typing import List, Any, Callable, Awaitable
 import inspect as inspect_python
 import orjson
 
-from sqlalchemy import select, inspect as sa_inspect, true, DateTime
+from sqlalchemy import select, inspect as sa_inspect, true, DateTime, func
 from sqlalchemy.orm import selectinload
 
+from src.config import PAGE_SIZE, DEFAULT_LANG
 from src.services.database.selling_accounts.models.models import AccountStorage
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import (
@@ -334,8 +335,12 @@ async def get_product_account_by_account_id(account_id: int) -> ProductAccountFu
         call_fun_filling=call_fun_filling
     )
 
-async def get_sold_accounts_by_owner_id(owner_id: int, language: str = 'ru') -> List[SoldAccountSmall]:
-    """Отсортировано по возрастанию даты создания"""
+async def get_sold_accounts_by_owner_id(owner_id: int, language: str) -> List[SoldAccountSmall]:
+    """
+    Вернёт все аккуанты которы не удалены
+
+    Отсортировано по возрастанию даты создания
+    """
     async def filling_list_account():
         await filling_sold_accounts_by_owner_id(owner_id)
 
@@ -350,15 +355,99 @@ async def get_sold_accounts_by_owner_id(owner_id: int, language: str = 'ru') -> 
     return await _get_grouped_objects(
         model_db=SoldAccounts,
         redis_key=f'sold_accounts_by_owner_id:{owner_id}:{language}',
-        options=(selectinload(SoldAccounts.translations), ),
-        filter_expr=SoldAccounts.owner_id == owner_id,
+        options=(selectinload(SoldAccounts.translations), selectinload(SoldAccounts.account_storage)),
+        filter_expr=(SoldAccounts.owner_id == owner_id) & (SoldAccounts.account_storage.has(is_active=True)),
         order_by=SoldAccounts.sold_at.desc(),
         call_fun_filling=filling_list_account,
         post_process=post_process,
     )
 
-async def get_sold_accounts_by_account_id(sold_account_id: int, language: str = 'ru') -> SoldAccountFull | None:
+async def get_sold_account_by_page(
+        user_id: int,
+        type_account_service_id: int,
+        page: int,
+        language: str,
+        page_size: int = PAGE_SIZE
+) -> List[SoldAccountSmall]:
+    """
+        Возвращает список проданных аккаунтов пользователя с пагинацией. Не вернёт удалённые аккаунты
+        Отсортировано по дате продажи (desc).
+    """
+    async with get_redis() as session_redis:
+        result_redis = await session_redis.get(f'sold_accounts_by_owner_id:{user_id}:{language}')
+        if result_redis:
+            objs_list: list[dict] = orjson.loads(result_redis)  # список с redis
+            if objs_list:
+                account_list = []
+                for account in objs_list:
+                    account_validate = SoldAccountSmall.model_validate(account)
+                    if account_validate.type_account_service_id == type_account_service_id:
+                        account_list.append(account_validate)
 
+                start = (page - 1) * page_size
+                end = start + page_size
+                return account_list[start:end]
+
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            select(SoldAccounts)
+            .options(selectinload(SoldAccounts.translations), selectinload(SoldAccounts.account_storage))
+            .where(
+                (SoldAccounts.owner_id == user_id) &
+                (SoldAccounts.type_account_service_id == type_account_service_id) &
+                (SoldAccounts.account_storage.has(is_active=True))
+            )
+            .order_by(SoldAccounts.sold_at.desc())
+            .limit(page_size).offset((page - 1) * page_size)
+        )
+        await filling_sold_accounts_by_owner_id(user_id)
+        account_list = result_db.scalars().all()
+        print("1", account_list)
+
+        return [SoldAccountSmall.from_orm_with_translation(account, lang=language) for account in account_list]
+
+async def get_count_sold_account(user_id: int, type_account_service_id: int) -> int:
+    """Вернёт количество не удалённых аккаунтов"""
+    async with get_db() as session_db:
+        result = await session_db.execute(
+            select(func.count(SoldAccounts.sold_account_id))
+            .where(
+                (SoldAccounts.owner_id == user_id) &
+                (SoldAccounts.type_account_service_id == type_account_service_id) &
+                (SoldAccounts.account_storage.has(is_active=True))
+            )
+        )
+        return result.scalar_one()
+
+
+async def get_union_type_account_service_id(user_id: int) -> List[int]:
+    async with get_redis() as session_redis:
+        result_redis = await session_redis.get(f'sold_accounts_by_owner_id:{user_id}:{DEFAULT_LANG}')
+        if result_redis:
+            objs_list: list[dict] = orjson.loads(result_redis)  # список с redis
+            if objs_list:
+                type_ids = []
+                for account in objs_list:
+                    account_validate = SoldAccountSmall.model_validate(account)
+                    if account_validate.type_account_service_id not in type_ids:
+                        type_ids.append(account_validate.type_account_service_id)
+
+                return type_ids
+
+    async with get_db() as session_db:
+        result = await session_db.execute(
+            select(SoldAccounts.type_account_service_id)
+            .where(
+                (SoldAccounts.owner_id == user_id)
+                & (SoldAccounts.account_storage.has(is_active=True))
+            )
+            .distinct()  # выбираем только уникальные значения
+        )
+        await filling_sold_accounts_by_owner_id(user_id)
+        return [row[0] for row in result.all()]
+
+
+async def get_sold_accounts_by_account_id(sold_account_id: int, language: str = 'ru') -> SoldAccountFull | None:
     async def filling_account():
         await filling_sold_account_by_account_id(sold_account_id)
 
@@ -373,7 +462,7 @@ async def get_sold_accounts_by_account_id(sold_account_id: int, language: str = 
     return await _get_single_obj(
         model_db=SoldAccounts,
         redis_key=f'sold_accounts_by_accounts_id:{sold_account_id}:{language}',
-        filter_expr=SoldAccounts.sold_account_id == sold_account_id,
+        filter_expr=(SoldAccounts.sold_account_id == sold_account_id) & (SoldAccounts.account_storage.has(is_active=True)),
         call_fun_filling=filling_account,
         options=(selectinload(SoldAccounts.translations), selectinload(SoldAccounts.account_storage)),
         post_process=post_process

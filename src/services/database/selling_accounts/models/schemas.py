@@ -92,6 +92,7 @@ class AccountStoragePydentic(BaseModel):
     key_version: int
     encryption_algo: str
 
+    phone_number: str
     login_encrypted: Optional[str] = None
     password_encrypted: Optional[str] = None
 
@@ -172,6 +173,7 @@ class SoldAccountSmall(BaseModel):
     owner_id: int
     type_account_service_id: int
 
+    phone_number: str
     name: str
     description: str
 
@@ -179,7 +181,7 @@ class SoldAccountSmall(BaseModel):
 
     @classmethod
     def from_orm_with_translation(cls, account: SoldAccounts, lang: str, fallback: str | None = None):
-        """orm модель превратит в SoldAccountSmall"""
+        """orm модель превратит в SoldAccountSmall. SoldAccounts передавать обязательно с подгруженным account_storage"""
         return cls(
             sold_account_id=account.sold_account_id,
             owner_id=account.owner_id,
@@ -187,4 +189,5 @@ class SoldAccountSmall(BaseModel):
             name=account.get_name(lang, fallback),
             description=account.get_description(lang, fallback),
             sold_at=account.sold_at,
+            phone_number=account.account_storage.phone_number
         )

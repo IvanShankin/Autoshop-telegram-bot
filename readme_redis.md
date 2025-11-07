@@ -274,6 +274,7 @@
         "key_version": int,
         "encryption_algo": str,
         
+        "phone_number": str,
         "login_encrypted": str | None,
         "password_encrypted": str | None,
         
@@ -298,6 +299,7 @@
         "owner_id": int,
         "type_account_service_id": int,
         
+        "phone_number": str,
         "name": str,
         "description": str,
         
@@ -337,6 +339,7 @@
         "key_version": int,
         "encryption_algo": str,
         
+        "phone_number": str,
         "login_encrypted": str | None,
         "password_encrypted": str | None,
         

@@ -249,6 +249,7 @@ async def add_account_storage(
     checksum: str,
     encrypted_key: str,
     encrypted_key_nonce: str,
+    phone_number: str,
 
     status: Literal["for_sale", "bought", "deleted"] = 'for_sale',
     key_version: int = 1,
@@ -262,6 +263,7 @@ async def add_account_storage(
     :param checksum: Контроль целостности (SHA256 зашифрованного файла)
     :param encrypted_key: Персональный ключ аккаунта, зашифрованный мастер-ключом (base64)
     :param encrypted_key_nonce: nonce, использованный при wrap (Nonce (IV) для AES-GCM (base64))
+    :param phone_number: номер телефона
     :param status: статус
     :param key_version: Номер мастер-ключа (для ротации)
     :param encryption_algo: Алгоритм шифрования
@@ -286,6 +288,7 @@ async def add_account_storage(
         encrypted_key_nonce = encrypted_key_nonce,
         key_version = key_version,
         encryption_algo = encryption_algo,
+        phone_number = phone_number,
         login_encrypted = login_encrypted,
         password_encrypted = password_encrypted
     )
@@ -378,7 +381,7 @@ async def add_translation_in_sold_account(
         session_db.expire(sold_account, ["translations"])
         result_db = await session_db.execute(
             select(SoldAccounts)
-            .options(selectinload(SoldAccounts.translations))
+            .options(selectinload(SoldAccounts.translations), selectinload(SoldAccounts.account_storage))
             .where(SoldAccounts.sold_account_id == sold_account_id)
         )
         sold_account = result_db.scalar_one_or_none()

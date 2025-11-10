@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.config import SECRET_KEY
-from src.services.database.selling_accounts.models.models import AccountStorage
+from src.services.database.selling_accounts.models.models import AccountStorage, TgAccountMedia
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_sold_accounts_by_owner_id, \
     filling_sold_account_by_account_id, filling_account_categories_by_service_id, \
@@ -28,6 +28,7 @@ from src.services.database.users.models import Users, Replenishments, Notificati
 from src.services.database.system.models import TypePayments
 from src.services.database.core.database import get_db
 from src.services.database.referrals.models import Referrals, IncomeFromReferrals
+from src.utils.secret_data import encrypt_data
 
 
 def make_fake_account_key_for_test() -> tuple[str, bytes]:
@@ -46,40 +47,63 @@ def make_fake_encrypted_archive_for_test(account_key: bytes, status: str = "for_
     accounts/<status>/<type_account_service>/<uuid>/account.enc
 
     Архив можно расшифровать с помощью переданного account_key.
+
+    Внутри архива (после расшифровки):
+    ├── session.session
+    └── tdata/
+        └── loans.txt
     """
 
     from src.services.filesystem.account_actions import create_path_account
     # генерируем UUID
+    # === 1. Генерация UUID и путей ===
     account_uuid = str(uuid.uuid4())
-
-    # путь к account.enc в структуре проекта
     encrypted_path = create_path_account(status, type_account_service, account_uuid)
-    os.makedirs(os.path.dirname(encrypted_path), exist_ok=True)
+    account_dir = Path(os.path.dirname(encrypted_path))
+    os.makedirs(account_dir, exist_ok=True)
 
-    # создаём тестовый файл в той же папке
-    test_file = Path(os.path.dirname(encrypted_path)) / "test.txt"
-    with open(test_file, "w", encoding="utf-8") as f:
+    # === 2. Создаём файлы для архива ===
+    session_file = account_dir / "session.session"
+    tdata_dir = account_dir / "tdata"
+    loans_file = tdata_dir / "loans.txt"
+
+    tdata_dir.mkdir(exist_ok=True)
+
+    # session.session
+    with open(session_file, "w", encoding="utf-8") as f:
         f.write("hello world")
 
-    # создаём zip-архив рядом
-    zip_path = Path(os.path.dirname(encrypted_path)) / "archive.zip"
-    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-        zf.write(test_file, arcname="test.txt")
+    # loans.txt
+    with open(loans_file, "w", encoding="utf-8") as f:
+        f.write("login details")
 
-    # шифруем zip-файл с помощью account_key
+    # === 3. Создаём zip-архив с нужной структурой ===
+    zip_path = account_dir / "archive.zip"
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        # Добавляем session.session в корень архива
+        zf.write(session_file, arcname="session.session")
+
+        # Добавляем loans.txt внутрь tdata/
+        zf.write(loans_file, arcname="tdata/loans.txt")
+
+    # === 4. Шифруем zip-файл с помощью AES-GCM ===
     aesgcm = AESGCM(account_key)
     nonce = os.urandom(12)
+
     with open(zip_path, "rb") as f:
         data = f.read()
+
     ciphertext = aesgcm.encrypt(nonce, data, None)
 
-    # сохраняем как account.enc
+    # === 5. Сохраняем как account.enc ===
     with open(encrypted_path, "wb") as f:
         f.write(nonce + ciphertext)
 
-    # чистим временные файлы
+    # === 6. Удаляем временные файлы ===
     os.remove(zip_path)
-    os.remove(test_file)
+    os.remove(session_file)
+    os.remove(loans_file)
+    os.rmdir(tdata_dir)
 
     return encrypted_path
 
@@ -483,7 +507,8 @@ async def create_account_category_factory(
 async def create_account_storage_factory(
         is_active: bool = True,
         is_valid: bool = True,
-        status: str = 'for_sale'
+        status: str = 'for_sale',
+        phone_number: str = '+7 920 107-42-12'
 ) -> AccountStorage:
     encrypted_key_b64, account_key = make_fake_account_key_for_test()
     file_path = make_fake_encrypted_archive_for_test(account_key, status)
@@ -495,9 +520,9 @@ async def create_account_storage_factory(
         encrypted_key = encrypted_key_b64,
         encrypted_key_nonce = "gnjfdsnjds",
 
-        phone_number = '+7 920 107-42-12',
-        login_encrypted = 'login_encrypted',
-        password_encrypted = 'password_encrypted',
+        phone_number = phone_number,
+        login_encrypted = encrypt_data('login_encrypted'),
+        password_encrypted = encrypt_data('password_encrypted'),
 
         is_active = is_active,
         is_valid = is_valid,
@@ -572,7 +597,8 @@ async def create_sold_account_factory(
         is_valid: bool = True,
         language: str = "ru",
         name: str = "name",
-        description: str = "description"
+        description: str = "description",
+        phone_number: str = "+7 920 107-42-12"
 ) -> (SoldAccountSmall, SoldAccountFull):
     async with get_db() as session_db:
         if owner_id is None:
@@ -582,7 +608,9 @@ async def create_sold_account_factory(
             service = await create_type_account_service_factory(filling_redis=filling_redis)
             type_account_service_id = service.type_account_service_id
         if account_storage_id is None:
-            account_storage = await create_account_storage_factory(is_active, is_valid, 'bought')
+            account_storage = await create_account_storage_factory(
+                is_active, is_valid, 'bought', phone_number=phone_number
+            )
             account_storage_id = account_storage.account_storage_id
 
         new_sold_account = SoldAccounts(
@@ -622,11 +650,35 @@ async def create_sold_account_factory(
     return new_sold_account, full_account
 
 
+async def create_tg_account_media_factory(
+    account_storage_id: int = None,
+    tdata_tg_id: str = None,
+    session_tg_id: str = None
+) -> TgAccountMedia:
+    if account_storage_id is None:
+        account_storage = await create_account_storage_factory()
+        account_storage_id = account_storage.account_storage_id
+
+    async with get_db() as session_db:
+        new_tg_media = TgAccountMedia(
+            account_storage_id=account_storage_id,
+            tdata_tg_id=tdata_tg_id,
+            session_tg_id=session_tg_id,
+        )
+
+        session_db.add(new_tg_media)
+        await session_db.commit()
+        await session_db.refresh(new_tg_media)
+
+        return new_tg_media
+
+
+
 
 async def create_ui_image_factory(key: str = "main_menu", show: bool = True, file_id: str = None):
     """
        сохраняет запись UiImages в БД и возвращает (ui_image, abs_path).
-   """
+    """
     from src.utils.ui_images_data import UI_SECTIONS
     # Подготовим директорию и файл
     UI_SECTIONS.mkdir(parents=True, exist_ok=True)

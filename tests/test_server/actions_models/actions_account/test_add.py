@@ -3,11 +3,12 @@ from orjson import orjson
 from sqlalchemy import select
 
 from src.exceptions.service_exceptions import TranslationAlreadyExists
+from src.services.database.selling_accounts.models.models import TgAccountMedia
 from src.services.database.system.models import UiImages
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
 from src.services.database.selling_accounts.models import AccountServices, DeletedAccounts, SoldAccounts, \
-    AccountCategoryTranslation, ProductAccounts, AccountCategories, SoldAccountsTranslation
+    AccountCategoryTranslation, ProductAccounts, AccountCategories, SoldAccountsTranslation, AccountStorage
 
 
 @pytest.mark.asyncio
@@ -174,6 +175,35 @@ async def test_add_product_account(replacement_needed_modules, create_account_ca
             account_category_id=category_non_storage.account_category_id,
             account_storage_id=account_storage.account_storage_id,
         )
+
+
+@pytest.mark.asyncio
+async def test_add_translation_in_sold_account(replacement_needed_modules):
+    from src.services.database.selling_accounts.actions import add_account_storage
+
+    new_acc = await add_account_storage(
+        type_service_name='telegram',
+        checksum='checksum',
+        encrypted_key='fgdshjyte3',
+        encrypted_key_nonce='encrypted_key_nonce',
+        phone_number='+7 324 345-54-34',
+    )
+
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            select(AccountStorage)
+            .where(AccountStorage.account_storage_id == new_acc.account_storage_id)
+        )
+        account = result_db.scalar_one_or_none()
+        assert account is not None
+
+        result_db = await session_db.execute(
+            select(TgAccountMedia)
+            .where(TgAccountMedia.account_storage_id == new_acc.account_storage_id)
+        )
+        tg_media = result_db.scalar_one_or_none()
+        assert tg_media is not None
+
 
 
 @pytest.mark.asyncio

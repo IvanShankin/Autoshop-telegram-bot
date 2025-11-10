@@ -9,6 +9,7 @@ from sqlalchemy.orm import selectinload
 from src.config import TYPE_ACCOUNT_SERVICES
 from src.exceptions.service_exceptions import TranslationAlreadyExists
 from src.services.database.selling_accounts.models import AccountStorage
+from src.services.database.selling_accounts.models.models import TgAccountMedia
 from src.services.database.system.actions.actions import create_ui_image
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
@@ -297,6 +298,15 @@ async def add_account_storage(
         session_db.add(new_account_storage)
         await session_db.commit()
         await session_db.refresh(new_account_storage)
+
+    if type_service_name == 'telegram':
+        tg_media = TgAccountMedia(
+            account_storage_id=new_account_storage.account_storage_id
+        )
+        async with get_db() as session_db:
+            session_db.add(tg_media)
+            await session_db.commit()
+
     return new_account_storage
 
 

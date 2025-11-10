@@ -8,6 +8,9 @@ from src.config import ALLOWED_LANGS, NAME_LANGS, EMOJI_LANGS, PAGE_SIZE
 from src.services.database.discounts.actions import get_valid_voucher_by_user_page
 from src.services.database.discounts.actions import get_count_voucher
 from src.services.database.referrals.actions.actions_ref import get_referral_income_page, get_count_referral_income
+from src.services.database.selling_accounts.actions import get_sold_account_by_page
+from src.services.database.selling_accounts.actions.actions_get import get_count_sold_account, \
+    get_union_type_account_service_id, get_all_account_services, get_all_types_account_service, get_type_account_service
 from src.services.database.system.actions import get_settings
 from src.services.database.system.actions.actions import get_all_types_payments
 from src.services.database.users.actions.action_other_with_user import get_wallet_transaction_page, \
@@ -20,7 +23,7 @@ def profile_kb(language: str):
     i18n = get_i18n(language, 'keyboard_dom')
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=i18n.gettext('Top up your balance'), callback_data='show_type_replenishment')],
-        [InlineKeyboardButton(text=i18n.gettext('Purchased accounts'), callback_data='purchased_accounts')],
+        [InlineKeyboardButton(text=i18n.gettext('Purchased accounts'), callback_data='services_sold_accounts')],
         [InlineKeyboardButton(text=i18n.gettext('Balance transfer'), callback_data='balance_transfer')],
         [InlineKeyboardButton(text=i18n.gettext('Referral system'), callback_data='referral_system')],
         [InlineKeyboardButton(text=i18n.gettext('History transfer'), callback_data='history_transaction:1')],
@@ -70,6 +73,182 @@ def back_in_type_replenishment_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data='show_type_replenishment')]
         ])
+
+# ---- Аккаунты ----
+
+async def services_sold_accounts_kb(language: str, user_id: int):
+    """Отобразит только те сервисы в которых у пользователя есть купленные аккаунты"""
+    i18n = get_i18n(language, "keyboard_dom")
+    union_type_service_ids = await get_union_type_account_service_id(user_id)
+    account_services = await get_all_account_services(return_not_show=True)
+
+    # определяем id типа сервиса 'other'
+    all_type_services = await get_all_types_account_service()
+    type_service_other_id = next(
+        (s.type_account_service_id for s in all_type_services if s.name == 'other'),
+        -1
+    )
+
+    keyboard = InlineKeyboardBuilder()
+
+    # сперва пытаемся получить имя с созданных сервисов
+    used_type_service = []
+    for service in account_services:
+        if (service.type_account_service_id in union_type_service_ids and
+            service.type_account_service_id != type_service_other_id):
+
+            keyboard.row(InlineKeyboardButton(
+                text=service.name,
+                callback_data=f'all_sold_accounts:1:{service.type_account_service_id}')
+            )
+            used_type_service.append(service.type_account_service_id)
+
+
+    # если нет некоторых созданных сервисов, то устанавливаем имя которое находится в типе сервиса
+    unused_ids = [service_id for service_id in union_type_service_ids if service_id not in used_type_service]
+    for type_service_id in unused_ids:
+        if type_service_id != type_service_other_id:
+
+            for type_service in all_type_services:
+                if type_service.type_account_service_id == type_service_id:
+                    keyboard.row(InlineKeyboardButton(
+                        text=type_service.name,
+                        callback_data=f'all_sold_accounts:1:{type_service_id}')
+                    )
+                    break
+
+    # тип сервиса "other" должен быть всегда последним
+    if type_service_other_id in union_type_service_ids:
+        keyboard.row(InlineKeyboardButton(
+            text=i18n.gettext('Others'),
+            callback_data=f'all_sold_accounts:1:{type_service_other_id}')
+        )
+
+    keyboard.row(
+        InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'profile'),
+    )
+
+    return keyboard.as_markup()
+
+
+async def sold_accounts_kb(language: str, current_page: int, type_account_service_id: int, user_id: int):
+    records = await get_sold_account_by_page(user_id, type_account_service_id, current_page, language, PAGE_SIZE)
+    total = await get_count_sold_account(user_id, type_account_service_id)
+    total_pages = max(ceil(total / PAGE_SIZE), 1)
+
+    keyboard = InlineKeyboardBuilder()
+
+    for account in records:
+        keyboard.row(InlineKeyboardButton(
+            text=account.phone_number if account.phone_number else account.name,
+            callback_data=f'sold_account:{account.sold_account_id}:{type_account_service_id}:{current_page}')
+        )
+
+    if records and total_pages > 1:
+        left_button = f"all_sold_accounts_none"
+        right_button = f"all_sold_accounts_none"
+        if current_page > 1 and total_pages > current_page:  # если есть куда двинуться направо и налево
+            left_button = f"all_sold_accounts:{current_page - 1}:{type_account_service_id}"
+            right_button = f"all_sold_accounts:{current_page + 1}:{type_account_service_id}"
+        elif current_page == 1:  # если есть записи только впереди
+            right_button = f"all_sold_accounts:{current_page + 1}:{type_account_service_id}"
+        elif current_page > 1:  # если есть записи только позади
+            left_button = f"all_sold_accounts:{current_page - 1}:{type_account_service_id}"
+
+        keyboard.row(
+            InlineKeyboardButton(text="⬅️", callback_data=left_button),
+            InlineKeyboardButton(text=f"{current_page}/{total_pages}", callback_data=f"none"),
+            InlineKeyboardButton(text="➡️", callback_data=right_button)
+        )
+
+    i18n = get_i18n(language, "keyboard_dom")
+    keyboard.row(
+        InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'services_sold_accounts'),
+    )
+
+    return keyboard.as_markup()
+
+
+def account_kb(language: str, sold_account_id: int, type_account_service_id: int, current_page: int, current_validity: bool):
+    i18n = get_i18n(language, 'keyboard_dom')
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text=i18n.gettext('Login details'),
+            callback_data=f'login_details:{sold_account_id}:{type_account_service_id}:{current_page}')
+        ],
+        [InlineKeyboardButton(
+            text=i18n.gettext('Check for validity'),
+            # current_validity преобразовал в int что бы занимал меньше места
+            callback_data=f'chek_valid_acc:{sold_account_id}:{type_account_service_id}:{current_page}:{int(current_validity)}')
+        ],
+        [InlineKeyboardButton(
+            text=i18n.gettext('Delete'),
+            callback_data=f'confirm_del_acc:{sold_account_id}:{type_account_service_id}:{current_page}')
+        ],
+        [InlineKeyboardButton(
+            text=i18n.gettext('Back'),
+            callback_data=f'all_sold_accounts:{current_page}:{type_account_service_id}')
+        ]
+    ])
+
+
+async def login_details_kb(language: str, sold_account_id: int, type_account_service_id: int, current_page: int):
+    i18n = get_i18n(language, 'keyboard_dom')
+
+    type_service = await get_type_account_service(type_account_service_id)
+    keyboard = InlineKeyboardBuilder()
+    if type_service.name == "telegram":
+        keyboard.row(
+            InlineKeyboardButton(
+                text=i18n.gettext('Get code'),
+                callback_data=f'get_code_acc:{sold_account_id}'
+            ),
+        )
+        keyboard.row(
+            InlineKeyboardButton(
+                text='tdata',
+                callback_data=f'get_tdata_acc:{sold_account_id}'
+            ),
+        )
+        keyboard.row(
+            InlineKeyboardButton(
+                text='.session',
+                callback_data=f'get_session_acc:{sold_account_id}'
+            ),
+        )
+    # в дальнейшем тут писать для других сервисов
+    else:
+        keyboard.row(
+            InlineKeyboardButton(
+                text=i18n.gettext('Login and Password'),
+                callback_data=f'get_log_pas:{sold_account_id}'
+            ),
+        )
+
+    keyboard.row(
+        InlineKeyboardButton(
+            text=i18n.gettext('Back'),
+            callback_data=f'sold_account:{sold_account_id}:{type_account_service_id}:{current_page}'
+        ),
+    )
+    return keyboard.as_markup()
+
+
+def confirm_del_acc_kb(language: str, sold_account_id: int, type_account_service_id: int, current_page: int):
+    i18n = get_i18n(language, 'keyboard_dom')
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text=i18n.gettext('Confirm'),
+            callback_data=f'del_account:{sold_account_id}:{type_account_service_id}:{current_page}')
+        ],
+        [InlineKeyboardButton(
+            text=i18n.gettext('Back'),
+            callback_data=f'sold_account:{sold_account_id}:{type_account_service_id}:{current_page}')
+        ]
+    ])
+
+
+
 
 # ---- Настройки ----
 

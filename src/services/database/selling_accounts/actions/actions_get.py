@@ -8,7 +8,7 @@ from sqlalchemy import select, inspect as sa_inspect, true, DateTime, func
 from sqlalchemy.orm import selectinload
 
 from src.config import PAGE_SIZE, DEFAULT_LANG
-from src.services.database.selling_accounts.models.models import AccountStorage
+from src.services.database.selling_accounts.models.models import AccountStorage, TgAccountMedia
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import (
     filling_type_account_services, filling_account_services, filling_account_categories_by_service_id,
@@ -473,3 +473,8 @@ async def get_account_storage(account_storage_id: int) -> AccountStorage | None:
         result_db = await session_db.execute(select(AccountStorage).where(AccountStorage.account_storage_id == account_storage_id))
         return result_db.scalar_one_or_none()
 
+
+async def get_tg_account_media(account_storage_id: int) -> TgAccountMedia:
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(TgAccountMedia).where(TgAccountMedia.account_storage_id == account_storage_id))
+        return result_db.scalar_one_or_none()

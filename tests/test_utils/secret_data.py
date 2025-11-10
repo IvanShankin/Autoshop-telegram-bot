@@ -3,15 +3,15 @@ import base64
 import pytest
 from pathlib import Path
 
-from src.utils.secret_data import encrypt_token, decrypt_token, gen_key, encrypt_bytes_with_key, decrypt_bytes_with_key, \
+from src.utils.secret_data import encrypt_data, decrypt_data, gen_key, encrypt_bytes_with_key, decrypt_bytes_with_key, \
     unwrap_account_key, decrypt_file_to_bytes, encrypt_folder, decrypt_folder
 
 
 @pytest.mark.asyncio
 async def test_encrypt_decrypt_token_roundtrip():
     text = "my_secret_text"
-    enc = encrypt_token(text)
-    dec = decrypt_token(enc)
+    enc = encrypt_data(text)
+    dec = decrypt_data(enc)
     assert dec == text
     assert enc != text
 

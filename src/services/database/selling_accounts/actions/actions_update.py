@@ -6,7 +6,7 @@ import orjson
 from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
-from src.services.database.selling_accounts.models.models import AccountStorage
+from src.services.database.selling_accounts.models.models import AccountStorage, TgAccountMedia
 from src.services.database.system.actions import create_ui_image, delete_ui_image
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_all_account_services, filling_account_categories_by_service_id, \
@@ -314,7 +314,6 @@ async def update_account_storage(
                 update(AccountStorage)
                 .where(AccountStorage.account_storage_id == account_storage_id)
                 .values(**update_data)
-                .returning(AccountStorage)
             )
             await session.commit()
 
@@ -331,3 +330,27 @@ async def update_account_storage(
             await filling_sold_accounts_by_owner_id(account.sold_account.owner_id)
 
         return account
+
+async def update_tg_account_media(
+        tg_account_media_id: int,
+        tdata_tg_id: str = None,
+        session_tg_id: str = None
+) -> TgAccountMedia | None:
+    async with get_db() as session:
+        update_data = _create_dict([
+            ('tdata_tg_id', tdata_tg_id),
+            ('session_tg_id', session_tg_id),
+        ])
+
+        if update_data:
+            result = await session.execute(
+                update(TgAccountMedia)
+                .where(TgAccountMedia.tg_account_media_id == tg_account_media_id)
+                .values(**update_data)
+                .returning(TgAccountMedia)
+            )
+            tg_account_media = result.scalar_one_or_none()
+            await session.commit()
+            return tg_account_media
+
+

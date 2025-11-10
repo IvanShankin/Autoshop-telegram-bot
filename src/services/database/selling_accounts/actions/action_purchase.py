@@ -10,15 +10,15 @@ from sqlalchemy import select, update, delete
 from sqlalchemy.orm import selectinload
 
 from src.broker.producer import publish_event
-from src.config import TYPE_ACCOUNT_SERVICES, ACCOUNTS_DIR
+from src.config import ACCOUNTS_DIR
 from src.exceptions.service_exceptions import CategoryNotFound, NotEnoughAccounts, NotEnoughMoney
 from src.services.database.discounts.events import NewActivatePromoCode
 from src.services.database.discounts.utils.calculation import discount_calculation
 from src.services.database.selling_accounts.events.schemas import NewPurchaseAccount, AccountsData
 from src.services.database.selling_accounts.models.models import PurchaseRequests, PurchaseRequestAccount
 from src.services.database.users.models.models_users import BalanceHolder
-from src.services.filesystem.account_actions import cheek_valid_accounts, decryption_tg_account, \
-    create_path_account, move_file, rename_file, move_in_account
+from src.services.filesystem.account_actions import create_path_account, move_file, rename_file, move_in_account, \
+    check_account_validity
 from src.services.redis.filling_redis import filling_product_accounts_by_category_id, \
     filling_product_account_by_account_id, filling_sold_accounts_by_owner_id, filling_sold_account_by_account_id, \
     filling_user, filling_account_categories_by_service_id, filling_account_categories_by_category_id
@@ -64,6 +64,7 @@ async def purchase_accounts(
             user_id = user_id,
             mapping = [],
             sold_account_ids = [],
+            purchase_ids = [],
             total_amount = data.total_amount,
             purchase_request_id = data.purchase_request_id,
             product_accounts = [],
@@ -221,27 +222,6 @@ async def start_purchase_request(
     )
 
 
-async def _check_account_validity_async(account_storage: AccountStorage, type_service_name: str) -> bool:
-    """Дешифровка + проверка валидности — обёртка, возвращает True/False."""
-    if type_service_name not in TYPE_ACCOUNT_SERVICES:
-        return False
-
-    temp_folder = None
-    try:
-        # decryption heavy IO в thread
-        temp_folder = await asyncio.to_thread(decryption_tg_account, account_storage)
-        # проверка уже асинхронная
-        is_valid = await cheek_valid_accounts(temp_folder)
-        return bool(is_valid)
-    except Exception as e:
-        logger.exception("Error while validating account %s: %s", getattr(account_storage, "account_storage_id", None), e)
-        return False
-    finally:
-        if temp_folder:
-            # удаление временной папки в thread, передаём kwargs
-            await asyncio.to_thread(shutil.rmtree, temp_folder, ignore_errors=True)
-
-
 async def _delete_account(account_storage: List[ProductAccounts], type_service_name: str):
     """Проведёт всю необходимую работу с БД и переместит аккаунты с for_sale в deleted"""
 
@@ -252,7 +232,7 @@ async def _delete_account(account_storage: List[ProductAccounts], type_service_n
         )
 
         for bad_account in account_storage:
-            await move_in_account(account=bad_account, type_service_name=type_service_name, status="deleted")
+            await move_in_account(account=bad_account.account_storage, type_service_name=type_service_name, status="deleted")
 
             # помечаем первоначальный плохо прошедший аккаунт как deleted сразу
             try:
@@ -312,7 +292,7 @@ async def verify_reserved_accounts(
     async def validate_slot(pa: ProductAccounts):
         """Проверка одного ProductAccounts -> возвращает (pa, is_valid)"""
         async with sem:
-            return pa, await _check_account_validity_async(pa.account_storage, type_service_name)
+            return pa, await check_account_validity(pa.account_storage, type_service_name)
 
     # 2) Получим purchase_request (чтобы иметь доступ к balance_holder)
     async with get_db() as session_db:
@@ -410,7 +390,7 @@ async def verify_reserved_accounts(
             async def validate_candidate(candidate: ProductAccounts):
                 async with sem:
                     try:
-                        ok = await _check_account_validity_async(candidate.account_storage, type_service_name)
+                        ok = await check_account_validity(candidate.account_storage, type_service_name)
                         return candidate, ok
                     except Exception as e:
                         logger.exception("Candidate validation exception for %s: %s",
@@ -493,6 +473,7 @@ async def cancel_purchase_request(
     user_id: int,
     mapping: List[Tuple[str, str, str]],  # list of (orig_path, temp_path, final_path)
     sold_account_ids: List[int],
+    purchase_ids: List[int],
     total_amount: int,
     purchase_request_id: int,
     product_accounts: List[ProductAccounts],
@@ -506,6 +487,7 @@ async def cancel_purchase_request(
      - temp_path: временный путь куда мы переместили файл до коммита
      - final_path: финальный путь (куда будет переименован после commit)
     :param sold_account_ids: список уже созданных sold_account (если есть) — удалим их и вернём product-строки
+    :param purchase_ids: список purchases_accounts — удалим PurchasesAccounts
     :param product_accounts: Список orm объектов с обязательно подгруженными account_storage
     """
     user = None
@@ -539,10 +521,10 @@ async def cancel_purchase_request(
                     update(Users).where(Users.user_id == user_id).values(balance=new_balance)
                 )
 
+            # Удалим PurchasesAccounts и SoldAccounts
+            if purchase_ids:
+                await session.execute(delete(PurchasesAccounts).where(PurchasesAccounts.purchase_id.in_(purchase_ids)))
             if sold_account_ids:
-                # удалить purchases_accounts, sold_accounts, и восстановить product_accounts rows if needed
-                # Удалим PurchasesAccounts и SoldAccounts
-                await session.execute(delete(PurchasesAccounts).where(PurchasesAccounts.sold_account_id.in_(sold_account_ids)))
                 await session.execute(delete(SoldAccounts).where(SoldAccounts.sold_account_id.in_(sold_account_ids)))
 
             try:
@@ -612,6 +594,7 @@ async def finalize_purchase(user_id: int, data: StartPurchaseAccount):
     """
     mapping: List[Tuple[str, str, str]] = []  #  (orig, temp, final)
     sold_account_ids: List[int] = []
+    purchase_ids: List[int] = []
     account_movement: list[AccountsData] = []
 
     try:
@@ -636,6 +619,7 @@ async def finalize_purchase(user_id: int, data: StartPurchaseAccount):
                     user_id=user_id,
                     mapping=mapping,
                     sold_account_ids=sold_account_ids,
+                    purchase_ids=purchase_ids,
                     total_amount=data.total_amount,
                     purchase_request_id=data.purchase_request_id,
                     product_accounts=data.product_accounts,
@@ -679,7 +663,7 @@ async def finalize_purchase(user_id: int, data: StartPurchaseAccount):
                     # purchases row
                     new_purchase = PurchasesAccounts(
                         user_id=user_id,
-                        sold_account_id=new_sold.sold_account_id,
+                        account_storage_id=account.account_storage.account_storage_id,
                         original_price=data.original_price_one_acc,
                         purchase_price=data.purchase_price_one_acc,
                         cost_price=data.cost_price_one_acc,
@@ -687,6 +671,7 @@ async def finalize_purchase(user_id: int, data: StartPurchaseAccount):
                     )
                     session.add(new_purchase)
                     await session.flush()
+                    purchase_ids.append(new_purchase.purchase_id)
 
                     # Обновляем AccountStorage.status = 'bought' через update (на всякий случай)
                     await session.execute(
@@ -739,6 +724,7 @@ async def finalize_purchase(user_id: int, data: StartPurchaseAccount):
                 user_id=user_id,
                 mapping=mapping,
                 sold_account_ids=sold_account_ids,
+                purchase_ids=purchase_ids,
                 total_amount=data.total_amount,
                 purchase_request_id=data.purchase_request_id,
                 product_accounts=data.product_accounts,
@@ -781,6 +767,7 @@ async def finalize_purchase(user_id: int, data: StartPurchaseAccount):
             user_id=user_id,
             mapping=mapping,
             sold_account_ids=sold_account_ids,
+            purchase_ids=purchase_ids,
             total_amount=data.total_amount,
             purchase_request_id=data.purchase_request_id,
             product_accounts=data.product_accounts,

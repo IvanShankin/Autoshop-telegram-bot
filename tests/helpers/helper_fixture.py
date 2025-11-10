@@ -7,7 +7,7 @@ from tests.helpers.func_fabric import create_new_user_fabric, create_admin_fabri
     create_voucher_factory, create_type_account_service_factory, create_account_service_factory, \
     create_translate_account_category_factory, create_account_category_factory, create_account_storage_factory, \
     create_product_account_factory, create_sold_account_factory, create_ui_image_factory, \
-    create_wallet_transaction_fabric
+    create_wallet_transaction_fabric, create_tg_account_media_factory
 from src.services.redis.core_redis import get_redis
 from src.services.database.discounts.models import PromoCodes
 from src.services.database.system.models import  Settings
@@ -129,6 +129,11 @@ async def create_product_account(create_type_account_service, create_account_cat
 @pytest_asyncio.fixture
 async def create_sold_account(create_new_user, create_type_account_service, create_account_storage):
     return create_sold_account_factory
+
+
+@pytest_asyncio.fixture
+async def create_tg_account_media(create_new_user, create_type_account_service, create_account_storage):
+    return create_tg_account_media_factory
 
 
 @pytest_asyncio.fixture

@@ -149,7 +149,7 @@ class AccountStorage(Base):
     encryption_algo = Column(String(32), nullable=False, server_default=text("'AES-GCM-256'")) # Алгоритм шифрования
 
     # === Основные поля ===
-    phone_number = Column(String(100), nullable=False)
+    phone_number = Column(String(100), nullable=False) # Пример: +79161234567
     login_encrypted = Column(Text, nullable=True)
     password_encrypted = Column(Text, nullable=True)
 
@@ -166,6 +166,24 @@ class AccountStorage(Base):
     sold_account = relationship("SoldAccounts", back_populates="account_storage", uselist=False)
     deleted_account = relationship("DeletedAccounts", back_populates="account_storage", uselist=False)
     purchase_request_accounts = relationship("PurchaseRequestAccount", back_populates="account_storage", uselist=False)
+    purchase = relationship("PurchasesAccounts", back_populates="account_storage", uselist=False)
+    tg_account_media = relationship("TgAccountMedia", back_populates="account_storage", uselist=False)
+
+
+class TgAccountMedia(Base):
+    """
+    Хранит ID файлов в телеграмме (tdata, .session) которое отправляли ранее.
+
+    Названия столбцов связаны в функции по отправке данных пользователю (get_file_for_login)
+    """
+    __tablename__ = "tg_account_media"
+
+    tg_account_media_id = Column(Integer, primary_key=True, autoincrement=True)
+    account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id"), nullable=False)
+    tdata_tg_id = Column(String(500), nullable=True)
+    session_tg_id = Column(String(500), nullable=True)
+
+    account_storage = relationship("AccountStorage", back_populates="tg_account_media")
 
 
 class ProductAccounts(Base):
@@ -201,7 +219,6 @@ class SoldAccounts(Base):
     account_storage = relationship("AccountStorage", back_populates="sold_account")
     user = relationship("Users", back_populates="sold_account")
     type_account_service = relationship("TypeAccountServices", back_populates="sold_accounts")
-    purchase = relationship("PurchasesAccounts", back_populates="sold_account", uselist=False)
     translations = relationship("SoldAccountsTranslation", back_populates="sold_account", cascade="all, delete-orphan")
 
     def _get_field_with_translation(self,field: Callable[[Any], Any], lang: str, fallback: str = None)->str | None:
@@ -258,7 +275,7 @@ class PurchasesAccounts(Base):
 
     purchase_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
-    sold_account_id = Column(Integer, ForeignKey("sold_accounts.sold_account_id"), nullable=False)
+    account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id"), nullable=False)
 
     original_price = Column(Integer, nullable=False)  # Цена на момент покупки (без учёта промокода)
     purchase_price = Column(Integer, nullable=False)  # Цена на момент покупки (с учётом промокода)
@@ -268,7 +285,7 @@ class PurchasesAccounts(Base):
     purchase_date = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("Users", back_populates="purchases")
-    sold_account = relationship("SoldAccounts", back_populates="purchase")  # Связь с SoldAccounts
+    account_storage = relationship("AccountStorage", back_populates="purchase")
 
 class DeletedAccounts(Base):
     """

@@ -30,7 +30,7 @@ async def test_purchase_accounts_success(
     create_product_account,
 ):
     """
-    Интеграционный тест: если все аккаунты валидны (cheek_valid_accounts -> True),
+    Интеграционный тест: если все аккаунты валидны (_cheek_valid_accounts_telethon -> True),
     то purchase_accounts завершает процесс покупки:
       - создаются SoldAccounts / PurchasesAccounts,
       - PurchaseRequests.status -> 'completed', BalanceHolder.status -> 'used',
@@ -39,6 +39,7 @@ async def test_purchase_accounts_success(
       - файлы переехали в финальный путь (create_path_account(...)).
     """
     from src.services.database.selling_accounts.actions import action_purchase as action_mod
+    from src.services.filesystem import account_actions
     from src.services.filesystem.account_actions import create_path_account
 
     # подготовка: пользователь + категория + N аккаунтов
@@ -52,10 +53,10 @@ async def test_purchase_accounts_success(
         p, _ = await create_product_account(account_category_id=category_id)
         products.append(p)
 
-    # подменяем только cheek_valid_accounts -> True
+    # подменяем только _cheek_valid_accounts_telethon -> True
     async def always_true(folder_path):
         return True
-    monkeypatch.setattr(action_mod, "cheek_valid_accounts", always_true)
+    monkeypatch.setattr(account_actions, "_cheek_valid_accounts_telethon", always_true)
 
     # подавим publish_event, чтобы не посылать реальные события
     async def noop_publish(*a, **kw):
@@ -141,6 +142,7 @@ async def test_purchase_accounts_fail_no_replacement(
       - баланс пользователя восстановлен
     """
     from src.services.database.selling_accounts.actions import action_purchase as action_mod
+    from src.services.filesystem import account_actions
     from src.services.filesystem.account_actions import create_path_account
 
     # подготовка: пользователь + категория + N аккаунтов
@@ -154,10 +156,10 @@ async def test_purchase_accounts_fail_no_replacement(
         p, _ = await create_product_account(account_category_id=category_id)
         products.append(p)
 
-    # подменим cheek_valid_accounts -> False (все аккаунты окажутся "плохими")
+    # подменим _cheek_valid_accounts_telethon -> False (все аккаунты окажутся "плохими")
     async def always_false(folder_path):
         return False
-    monkeypatch.setattr(action_mod, "cheek_valid_accounts", always_false)
+    monkeypatch.setattr(account_actions, "_cheek_valid_accounts_telethon", always_false)
 
     # подавим publish_event
     async def noop_publish(*a, **kw):
@@ -317,6 +319,7 @@ class TestStartPurchaseRequest:
             await comparison_models(db_user_after.to_dict(), user_dict)
 
             for account in created_products_full:
+                account.account_storage.status = "reserved" # аккаунт должен стать зарезервированным
                 account_redis = await session_redis.get(f'product_accounts_by_account_id:{account.account_id}')
                 account_dict = orjson.loads(account_redis)
                 await comparison_models(account.model_dump(), account_dict)
@@ -444,12 +447,14 @@ async def test__check_account_validity_async_success(
     monkeypatch,
 ):
     """
-    Unit: _check_account_validity_async должен:
-    - вызвать decryption_tg_account (мы мокаем),
-    - вызвать cheek_valid_accounts (мокаем) и вернуть True,
+    Unit: check_account_validity должен:
+    - вызвать _decryption_tg_account (мы мокаем),
+    - вызвать _cheek_valid_accounts_telethon (мокаем) и вернуть True,
     - вызвать shutil.rmtree в finally (мокаем).
     """
     from src.services.database.selling_accounts.actions import action_purchase as action_mod
+    from src.services.filesystem import account_actions
+
     # создаём тестовую категорию и продукт (этот шаг даёт нам AccountStorage)
     cat = await create_account_category()
     prod_obj, _ = await create_product_account(account_category_id=cat.account_category_id)
@@ -457,7 +462,7 @@ async def test__check_account_validity_async_success(
     account_storage = prod_obj.account_storage
 
     # Подменим TYPE_ACCOUNT_SERVICES чтобы наш type_service_name считался валидным
-    monkeypatch.setattr(action_mod, "TYPE_ACCOUNT_SERVICES", {"test_service": True})
+    monkeypatch.setattr(account_actions, "TYPE_ACCOUNT_SERVICES", {"test_service": True})
 
     # СДЕЛАЕМ decryption синхронным (то, что ожидает asyncio.to_thread)
     temp_folder_path = Path.cwd() / "tmp_test_account_folder"
@@ -471,7 +476,7 @@ async def test__check_account_validity_async_success(
         os.makedirs(tdata_dir, exist_ok=True)
         return temp_folder_path
 
-    monkeypatch.setattr(action_mod, "decryption_tg_account", fake_decryption_tg_account)
+    monkeypatch.setattr(account_actions, "_decryption_tg_account", fake_decryption_tg_account)
 
     # Мокаем асинхронную проверку аккаунта — вернём True
     async def fake_cheek_valid_accounts(folder_path):
@@ -479,7 +484,7 @@ async def test__check_account_validity_async_success(
         assert folder_path == temp_folder_path
         return True
 
-    monkeypatch.setattr(action_mod, "cheek_valid_accounts", fake_cheek_valid_accounts)
+    monkeypatch.setattr(account_actions, "_cheek_valid_accounts_telethon", fake_cheek_valid_accounts)
 
     # Сохраним оригинал rmtree и подменим на фейк, который вызовет оригинал
     orig_rmtree = shutil.rmtree
@@ -500,7 +505,7 @@ async def test__check_account_validity_async_success(
     monkeypatch.setattr(shutil, "rmtree", fake_rmtree)
 
     # Вызов тестируемой функции
-    ok = await action_mod._check_account_validity_async(account_storage, "test_service")
+    ok = await action_mod.check_account_validity(account_storage, "test_service")
 
     assert ok is True
     # rmtree должен быть вызван в finally
@@ -546,10 +551,10 @@ class TestVerifyReservedAccounts:
             purchase_request_id = pr.purchase_request_id
 
 
-        # Мокаем _check_account_validity_async чтобы вернуть True для всех
+        # Мокаем check_account_validity чтобы вернуть True для всех
         async def always_ok(account_storage, type_service_name):
             return True
-        monkeypatch.setattr(action_mod, "_check_account_validity_async", always_ok)
+        monkeypatch.setattr(action_mod, "check_account_validity", always_ok)
 
         # Вызов
         result = await action_mod.verify_reserved_accounts(products, "telegram", purchase_request_id)
@@ -598,7 +603,7 @@ class TestVerifyReservedAccounts:
             await session.refresh(pr)
             purchase_request_id = pr.purchase_request_id
 
-        # Мокаем _check_account_validity_async: плохой -> False, кандидат -> True
+        # Мокаем check_account_validity: плохой -> False, кандидат -> True
         async def check_by_storage(storage, type_service_name):
             sid = getattr(storage, "account_storage_id", None)
             bad_sid = bad_prod.account_storage.account_storage_id
@@ -606,7 +611,7 @@ class TestVerifyReservedAccounts:
                 return False
             return True
 
-        monkeypatch.setattr(action_mod, "_check_account_validity_async", check_by_storage)
+        monkeypatch.setattr(action_mod, "check_account_validity", check_by_storage)
 
         # Вызов: подаём список с одним 'плохим' аккаунтом
         result = await action_mod.verify_reserved_accounts([bad_prod], "telegram", purchase_request_id)
@@ -657,7 +662,7 @@ class TestVerifyReservedAccounts:
 
         # мок — все невалидные
         async def always_invalid(*a, **kw): return False
-        monkeypatch.setattr(action_mod, "_check_account_validity_async", always_invalid)
+        monkeypatch.setattr(action_mod, "check_account_validity", always_invalid)
 
         result = await action_mod.verify_reserved_accounts(bad_accounts, "telegram", pr_id)
 
@@ -713,7 +718,7 @@ class TestVerifyReservedAccounts:
             sid = getattr(account_storage, "account_storage_id", None)
             return sid != acc2.account_storage.account_storage_id
 
-        monkeypatch.setattr(action_mod, "_check_account_validity_async", validity_check)
+        monkeypatch.setattr(action_mod, "check_account_validity", validity_check)
 
         result = await action_mod.verify_reserved_accounts(accounts, "telegram", pr_id)
 
@@ -744,6 +749,7 @@ class TestVerifyReservedAccounts:
         Ожидаем: возвращается 1 аккаунт (замена), остальные невалидные удалены.
         """
         from src.services.database.selling_accounts.actions import action_purchase as action_mod
+        from src.services.filesystem import account_actions
 
         user = await create_new_user()
         cat = await create_account_category()
@@ -779,7 +785,7 @@ class TestVerifyReservedAccounts:
             bad_sids = [b.account_storage.account_storage_id for b in bad_accounts]
             return sid not in bad_sids
 
-        monkeypatch.setattr(action_mod, "_check_account_validity_async", validity_check)
+        monkeypatch.setattr(action_mod, "check_account_validity", validity_check)
 
         result = await action_mod.verify_reserved_accounts([bad_accounts[0]], "telegram", pr_id)
 
@@ -858,7 +864,7 @@ class TestVerifyReservedAccounts:
             sid = getattr(storage, "account_storage_id", None)
             return False if bad_account.account_id == sid else True
 
-        monkeypatch.setattr(action_mod, "_check_account_validity_async", validity_check)
+        monkeypatch.setattr(action_mod, "check_account_validity", validity_check)
 
         result = await action_mod.verify_reserved_accounts(accounts, "telegram", pr_id)
         result_dicts = [acc.to_dict() for acc in result]
@@ -967,6 +973,7 @@ class TestCancelPurchase:
             user_id=user.user_id,
             mapping=mapping,
             sold_account_ids=[],
+            purchase_ids=[],
             total_amount=data.total_amount,
             purchase_request_id=data.purchase_request_id,
             product_accounts=data.product_accounts,
@@ -1028,7 +1035,7 @@ class TestCancelPurchase:
 
         # product для data.product_accounts
         prod, prod_full = await create_product_account(account_category_id=cat.account_category_id)
-        sold, _ = await create_sold_account(
+        _, sold = await create_sold_account(
             owner_id=user.user_id,
             type_account_service_id=prod.type_account_service_id
         )
@@ -1037,7 +1044,7 @@ class TestCancelPurchase:
         async with get_db() as session:
             pa = PurchasesAccounts(
                 user_id=user.user_id,
-                sold_account_id=sold.sold_account_id,
+                account_storage_id=sold.account_storage.account_storage_id,
                 original_price = 120,
                 purchase_price = 120,
                 cost_price = 100,
@@ -1084,6 +1091,7 @@ class TestCancelPurchase:
             user_id=user.user_id,
             mapping=mapping,
             sold_account_ids=[sold.sold_account_id],
+            purchase_ids=[pa.purchase_id],
             total_amount=data.total_amount,
             purchase_request_id=data.purchase_request_id,
             product_accounts=data.product_accounts,
@@ -1097,11 +1105,11 @@ class TestCancelPurchase:
 
         async with get_db() as session:
             # SoldAccounts удалены
-            q = await session.execute(select(SoldAccounts).where(SoldAccounts.sold_account_id == sold.sold_account_id))
+            q = await session.execute(select(SoldAccounts).where(SoldAccounts.account_storage_id == sold.account_storage.account_storage_id))
             assert q.scalars().first() is None
 
             # PurchasesAccounts удалены
-            q = await session.execute(select(PurchasesAccounts).where(PurchasesAccounts.sold_account_id == sold.sold_account_id))
+            q = await session.execute(select(PurchasesAccounts).where(PurchasesAccounts.account_storage_id == sold.account_storage.account_storage_id))
             assert q.scalars().first() is None
 
             # PurchaseRequests status / BalanceHolder status

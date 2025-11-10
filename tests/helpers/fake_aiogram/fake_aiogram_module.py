@@ -249,6 +249,10 @@ class FakeBot:
         self.sent.append((chat_id, caption, photo))
         return SimpleNamespace(chat=SimpleNamespace(id=chat_id), text=caption, photo=[SimpleNamespace(file_id=1)])
 
+    async def send_document(self, chat_id, document, caption="", **kwargs):
+        self.sent.append((chat_id, caption, document))
+        return SimpleNamespace(chat=SimpleNamespace(id=chat_id), text=caption, document=SimpleNamespace(file_id='1'))
+
     def clear(self):
         self.sent.clear()
         self.calls.clear()

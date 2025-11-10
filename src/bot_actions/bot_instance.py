@@ -2,7 +2,7 @@ from aiogram import Bot, Dispatcher
 
 from src.config import TOKEN_BOT, TOKEN_LOGGER_BOT
 from src.services.database.system.actions import get_settings
-from src.utils.secret_data import decrypt_token
+from src.utils.secret_data import decrypt_data
 
 _bot = Bot(token=TOKEN_BOT)
 _dp = Dispatcher()

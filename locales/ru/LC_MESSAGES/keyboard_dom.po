@@ -57,6 +57,28 @@ msgstr "🧾 История операций"
 msgid "Settings"
 msgstr "⚙️ Настройки"
 
+# ---- Купленные аккаунты ----
+
+msgid "Others"
+msgstr "Другие"
+
+msgid "Login details"
+msgstr "Данные для входа"
+
+msgid "Get code"
+msgstr "Получить код"
+
+msgid "Login and Password"
+msgstr "Логин и Пароль"
+
+msgid "Check for validity"
+msgstr "Проверить на валид"
+
+msgid "Delete"
+msgstr "Удалить"
+
+msgid "Login: <code>{login}</code> \nPassword: <code>{password}</code>"
+msgstr "Логин: <code>{login}</code> \Пароль: <code>{password}</code>"
 
 # ---- Пополнение ----
 

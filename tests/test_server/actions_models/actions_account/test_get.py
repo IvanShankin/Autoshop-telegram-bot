@@ -313,3 +313,13 @@ async def test_subtree_wide_siblings_only_one_branch_has_accounts(create_account
             assert _has_accounts_in_subtree(child, all_cats) is True
         else:
             assert _has_accounts_in_subtree(child, all_cats) is False
+
+
+@pytest.mark.asyncio
+async def test_update_tg_account_media(create_tg_account_media):
+    from src.services.database.selling_accounts.actions import get_tg_account_media
+
+    tg_media = await create_tg_account_media()
+    result_tg_media = await get_tg_account_media(tg_media.account_storage_id)
+
+    assert tg_media.to_dict() == result_tg_media.to_dict()

@@ -60,6 +60,69 @@ msgstr[2] ""
 msgid "Incorrect amount entered. \n\nMaximum: {amount_max} \nMinimum: {amount_min}"
 msgstr "Введена некорректная сумма \n\nМаксимум: {amount_max} \nМинимум: {amount_min}"
 
+
+# ---- Купленные аккаунты ----
+
+msgid "Phone: {phone_number}\n\n"
+"Name: {name}\n"
+"Description: {description}\n\n"
+"{valid}\n"
+"Purchased: {sold_at}"
+msgstr "Телефон: {phone_number}\n\n"
+"Имя: {name}\n"
+"Описание: {description}\n\n"
+"{valid}\n"
+"Куплен: {sold_at}"
+
+msgid "Valid"
+msgstr "Валидный"
+
+msgid "Not valid"
+msgstr "Не валидный"
+
+msgid "Account not found"
+msgstr "Аккаунт не найден"
+
+msgid "Confirm deletion of this account?\n\n"
+"Phone number: {phone_number}\n"
+"Name: {name}"
+msgstr "Подтвердите удаление этого аккаунта?\n\n"
+"Номер телефона: {phone_number}\n"
+"Имя: {name}"
+
+msgid "An error occurred, please try again"
+msgstr "Произошла ошибка, попробуйте ещё раз"
+
+msgid "The account has been successfully deleted"
+msgstr "Аккаунт успешно удалён"
+
+msgid "Checking for validity..."
+msgstr "Проверяем на валидность..."
+
+msgid "The account is not valid"
+msgstr "Аккаунт не валидный"
+
+msgid "The account is valid"
+msgstr "Аккаунт валидный"
+
+msgid "Unable to retrieve data"
+msgstr "Невозможно получить данные"
+
+msgid "Date: {date} \nCode: <code>{code}</code>\n\n"
+msgstr "Дата: {date} \nКод: <code>{code}</code>\n\n"
+
+msgid "Loading..."
+msgstr "Загрузка..."
+
+msgid "Search..."
+msgstr "Поиск..."
+
+msgid "No codes found"
+msgstr "Коды не найдены"
+
+
+
+
 # ---- Настройки ----
 
 msgid "Select the settings item"

@@ -80,12 +80,14 @@ class AccountCategoryFull(BaseModel):
             quantity_product_account=quantity_product_account
         )
 
+
 class AccountStoragePydentic(BaseModel):
     account_storage_id: int
     storage_uuid: str
 
     file_path: str
     checksum: str
+    status: str
 
     encrypted_key: str
     encrypted_key_nonce: str

@@ -75,4 +75,7 @@ UI_IMAGES = {
     # промокод
     "entering_promo_code": UI_SECTIONS / "entering_promo_code.png",
 
+    # аккаунты
+    "purchased_accounts": UI_SECTIONS / "purchased_accounts.png",
+
 }

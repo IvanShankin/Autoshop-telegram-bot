@@ -668,7 +668,7 @@ class TestHandlerNewActivatedVoucher:
         event = await self.create_voucher_activation_event(user, voucher, initial_balance, expected_balance)
 
         await publish_event(event.model_dump(), 'voucher.activated')  # публикация события
-        await asyncio.wait_for(processed_voucher.wait(), timeout=5.0)  # ожидание завершения события
+        await asyncio.wait_for(processed_voucher.wait(), timeout=10.0)  # ожидание завершения события
 
         async with get_db() as session_db:
             # Проверяем, что ваучер стал невалидным

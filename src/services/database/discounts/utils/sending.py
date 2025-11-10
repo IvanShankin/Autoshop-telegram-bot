@@ -1,7 +1,6 @@
 from src.services.database.discounts.models import Vouchers
-from src.bot_actions.bot_instance import get_bot
 from src.utils.i18n import get_i18n
-from src.bot_actions.actions import send_log
+from src.bot_actions.actions import send_log, send_message
 
 
 async def send_set_not_valid_voucher(user_id: int, voucher: Vouchers, limit_reached: bool, language: str):
@@ -33,5 +32,4 @@ async def send_set_not_valid_voucher(user_id: int, voucher: Vouchers, limit_reac
                 "Voucher expired \n\nID '{id}' \nCode '{code}' \n\nVoucher expired due to time limit. It can no longer be activated"
             ).format(id=voucher.voucher_id, code=voucher.activation_code)
 
-        bot = await get_bot()
-        await bot.send_message(user_id, message_user)
+        await send_message(user_id, message_user)

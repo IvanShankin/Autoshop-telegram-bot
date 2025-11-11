@@ -164,7 +164,7 @@ class TestActivateVoucher:
         user = await create_new_user()
         origin_balance = user.balance
         voucher = await create_voucher()
-        i18n = get_i18n(user.language, "discount_dom")
+        i18n = get_i18n(user.language, "discount")
 
         result_message, success = await activate_voucher(user, voucher.activation_code, user.language)
 
@@ -187,7 +187,7 @@ class TestActivateVoucher:
         from src.services.database.discounts.actions import activate_voucher
 
         user = await create_new_user()
-        i18n = get_i18n(user.language, "discount_dom")
+        i18n = get_i18n(user.language, "discount")
 
         result_message, success = await activate_voucher(user, "INVALIDCODE", user.language)
 
@@ -200,7 +200,7 @@ class TestActivateVoucher:
 
         user = await create_new_user()
         voucher = await create_voucher()
-        i18n = get_i18n(user.language, "discount_dom")
+        i18n = get_i18n(user.language, "discount")
 
         async with get_db() as session_db:
             new_activate = VoucherActivations(
@@ -222,7 +222,7 @@ class TestActivateVoucher:
         from src.services.database.discounts.actions import activate_voucher
         owner_voucher = await create_new_user()
         user = await create_new_user()
-        i18n = get_i18n(user.language, "discount_dom")
+        i18n = get_i18n(user.language, "discount")
 
         # создаём просроченный ваучер
         expired_voucher = Vouchers(
@@ -254,7 +254,7 @@ class TestActivateVoucher:
         from src.services.database.discounts.actions import activate_voucher
         voucher = await create_voucher()
         user = await get_user(voucher.creator_id)
-        i18n = get_i18n(user.language, "discount_dom")
+        i18n = get_i18n(user.language, "discount")
 
         result_message, success = await activate_voucher(user, voucher.activation_code, user.language)
 
@@ -367,7 +367,7 @@ async def test_set_not_valid_promo_code(create_settings):
         assert active_from_db.is_valid is True
 
     # проверка лога (должен быть только при деактивации промокода)
-    i18n = get_i18n('ru', "discount_dom")
+    i18n = get_i18n('ru', "discount")
     message_log = i18n.gettext(
         "#Promo_code_expired \nID '{id}' \nCode '{code}'"
         "\n\nThe promo code has expired due to reaching the number of activations or time limit. It is no longer possible to activate it"

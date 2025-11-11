@@ -274,7 +274,7 @@ async def set_promo_code(message: Message, state: FSMContext, user: Users):
         pass
 
     promo = await get_valid_promo_code(message.text)
-    i18n = get_i18n(user.language, 'discount_dom')
+    i18n = get_i18n(user.language, 'discount')
     data = BuyAccountsData(**(await state.get_data()))
 
     category = await _check_category(
@@ -368,7 +368,7 @@ async def confirm_buy_acc(callback: CallbackQuery, user: Users):
             discount_sum, _ = await discount_calculation(amount=total_sum, promo_code_id=promo_code_id)
             total_sum = max(0, total_sum - discount_sum)
         except InvalidPromoCode:
-            i18n = get_i18n(user.language, 'discount_dom')
+            i18n = get_i18n(user.language, 'discount')
             await callback.answer(
                 i18n.gettext("Attention, the promo code is no longer valid, the discount will no longer apply!"),
                 show_alert=True
@@ -456,7 +456,7 @@ async def buy_acc(callback: CallbackQuery, user: Users):
 
             # если минимальная сумма активации промокода не достигнута
             if promo_code and promo_code.min_order_amount > total_sum:
-                i18n = get_i18n(user.language, 'discount_dom')
+                i18n = get_i18n(user.language, 'discount')
                 await callback.answer(
                     i18n.gettext(
                         "Purchase not processed! \n"
@@ -466,7 +466,7 @@ async def buy_acc(callback: CallbackQuery, user: Users):
                 )
                 return
         except InvalidPromoCode:
-            i18n = get_i18n(user.language, 'discount_dom')
+            i18n = get_i18n(user.language, 'discount')
             await callback.answer(
                 i18n.gettext("Attention, the promo code is no longer valid, the discount will no longer apply!"),
                 show_alert=True

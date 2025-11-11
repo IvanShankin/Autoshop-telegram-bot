@@ -122,7 +122,7 @@ class TestHandlerNewReplenishment:
         await comparison_models(updated_user, result_redis)
 
         # проверяем, что ReplenishmentFailed отработал
-        i18n = get_i18n(user.language, "replenishment_dom")
+        i18n = get_i18n(user.language, "replenishment")
 
         # сообщение пользователю
         message_for_user = i18n.ngettext(
@@ -171,7 +171,7 @@ class TestHandlerNewReplenishment:
         )
 
         # проверяем, что ReplenishmentFailed отработал
-        i18n = get_i18n(user.language, "replenishment_dom")
+        i18n = get_i18n(user.language, "replenishment")
 
         # сообщение пользователю
         message_for_user = i18n.ngettext(
@@ -227,7 +227,7 @@ class TestHandlerNewReplenishment:
         await publish_event(event.model_dump(), 'replenishment.completed')  # публикация события
         await asyncio.wait_for(processed_replenishment.wait(), timeout=5.0)  # ожидание завершения события
 
-        i18n = get_i18n(user.language, "replenishment_dom")
+        i18n = get_i18n(user.language, "replenishment")
 
         # сообщение пользователю
         message_success = i18n.ngettext(
@@ -285,7 +285,7 @@ class TestHandlerNewReplenishment:
         await publish_event(event.model_dump(), 'replenishment.failed')  # публикация события
         await asyncio.wait_for(processed_replenishment.wait(), timeout=5.0)  # ожидание завершения события
 
-        i18n = get_i18n(user.language, "replenishment_dom")
+        i18n = get_i18n(user.language, "replenishment")
 
         # сообщение пользователю
         message_for_user = i18n.gettext(
@@ -536,7 +536,7 @@ async def test_handler_new_activate_promo_code(
             else:
                 assert redis_result
 
-        i18n = get_i18n('ru', "discount_dom")
+        i18n = get_i18n('ru', "discount")
         message = i18n.gettext(
             "#Promocode_activation \nID promo_code '{promo_code_id}' \nCode '{code}' \nID user '{user_id}'"
             "\n\nSuccessfully activated. \nActivations remaining: {number_of_activations}"
@@ -630,7 +630,7 @@ class TestHandlerNewActivatedVoucher:
 
 
         owner = await get_user(voucher.creator_id)
-        i18n = get_i18n(owner.language, "discount_dom")
+        i18n = get_i18n(owner.language, "discount")
         message_for_user = i18n.gettext(
             "Voucher with code '{code}' has been activated! \n\nRemaining number of voucher activations: {number_activations}"
         ).format(code=updated_voucher.activation_code, number_activations=updated_voucher.number_of_activations - updated_voucher.activated_counter)
@@ -685,7 +685,7 @@ class TestHandlerNewActivatedVoucher:
                 assert not redis_result
 
         # Проверяем отправку сообщения об истечении ваучера
-        i18n = get_i18n('ru', "discount_dom")
+        i18n = get_i18n('ru', "discount")
         expected_user_message = i18n.gettext(
             "Voucher has reached its activation limit \n\nID: {id} \nCode: {code} \n\n"
                 "The voucher has expired due to the activation limit. It can no longer be activated"
@@ -729,7 +729,7 @@ class TestHandlerNewActivatedVoucher:
         await asyncio.wait_for(processed_voucher.wait(), timeout=5.0)  # ожидание завершения события
 
         # Проверяем отправку лога об ошибке
-        i18n = get_i18n('ru', "discount_dom")
+        i18n = get_i18n('ru', "discount")
         expected_error_message = i18n.gettext(
             "Error_while_activating_voucher. \n\nVoucher ID '{id}' \nError: {error}"
         ).format(id=voucher.voucher_id, error="")
@@ -769,7 +769,7 @@ class TestHandlerNewActivatedVoucher:
 
         await send_set_not_valid_voucher(user.user_id, voucher, True, user.language)
 
-        i18n = get_i18n(user.language, "discount_dom")
+        i18n = get_i18n(user.language, "discount")
 
         if is_created_admin:
             # Проверяем лог в канале
@@ -801,7 +801,7 @@ class TestHandlerNewActivatedVoucher:
 
         await send_failed(voucher_id, error_text)
 
-        i18n = get_i18n('ru', "discount_dom")
+        i18n = get_i18n('ru', "discount")
         expected_error_message = i18n.gettext(
             "Error_while_activating_voucher. \n\nVoucher ID '{id}' \nError: {error}"
         ).format(id=voucher_id, error=error_text)

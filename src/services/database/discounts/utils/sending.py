@@ -13,7 +13,7 @@ async def send_set_not_valid_voucher(user_id: int, voucher: Vouchers, limit_reac
     :return:
     """
     if voucher.is_created_admin: # отсылка лога в канал
-        i18n = get_i18n('ru', "discount_dom")
+        i18n = get_i18n('ru', "discount")
         message_log = i18n.gettext(
             "#Voucher_expired \nID '{id}' \nCode '{code}'"
             "\n\nThe voucher has expired due to reaching the number of activations or time limit. It is no longer possible to activate it"
@@ -21,7 +21,7 @@ async def send_set_not_valid_voucher(user_id: int, voucher: Vouchers, limit_reac
         await send_log(message_log)
 
     else:
-        i18n = get_i18n(language, "discount_dom")
+        i18n = get_i18n(language, "discount")
         if limit_reached: # если достигли лимита по активациям
             message_user = i18n.gettext(
                 "Voucher has reached its activation limit \n\nID: {id} \nCode: {code} \n\n"

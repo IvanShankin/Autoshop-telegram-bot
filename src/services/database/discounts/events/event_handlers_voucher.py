@@ -78,7 +78,7 @@ async def handler_new_activated_voucher(new_activation_voucher: NewActivationVou
             if not voucher.is_created_admin:
                 bot = await get_bot()
                 owner = await get_user(voucher.creator_id)
-                i18n = get_i18n(owner.language, "discount_dom")
+                i18n = get_i18n(owner.language, "discount")
                 message_for_user = i18n.gettext(
                     "Voucher with code '{code}' has been activated! \n\nRemaining number of voucher activations: {number_activations}"
                 ).format(code=voucher.activation_code, number_activations=voucher.number_of_activations - voucher.activated_counter)
@@ -90,7 +90,7 @@ async def handler_new_activated_voucher(new_activation_voucher: NewActivationVou
 
 
 async def send_failed(voucher_id: int, error: str):
-    i18n = get_i18n('ru', "discount_dom")
+    i18n = get_i18n('ru', "discount")
     message_log = i18n.gettext(
         "Error_while_activating_voucher. \n\nVoucher ID '{id}' \nError: {error}"
     ).format(id=voucher_id, error=error)

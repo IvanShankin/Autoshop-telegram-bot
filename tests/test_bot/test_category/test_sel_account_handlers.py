@@ -242,7 +242,7 @@ async def test_set_promo_code_not_found_shows_error_and_keeps_state(
     # FSM должен остаться на шаге promo_code
     assert fsm.state is not None, "FSM state неожиданно очищен"
 
-    i18n = get_i18n(user.language, 'discount_dom')
+    i18n = get_i18n(user.language, 'discount')
     expected = i18n.gettext("A promo code with this code was not found/expired \n\nTry again")
 
     # проверяем, что исходное сообщение (old_message_id) было отредактировано с текстом ошибки

@@ -32,7 +32,7 @@ async def _set_not_valid_promo_code() -> None:
         await session.commit()
 
         changed_promo_codes = result_db.scalars().all()
-        i18n = get_i18n('ru', "discount_dom")
+        i18n = get_i18n('ru', "discount")
         for promo in changed_promo_codes:
             message_log = i18n.gettext(
                 "#Promo_code_expired \nID '{id}' \nCode '{code}'"

@@ -6,13 +6,13 @@ from src.services.database.system.actions import get_settings
 from src.utils.i18n import get_i18n
 
 def catalog_kb(language: str):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=i18n.gettext('Accounts'), callback_data='show_catalog_services_accounts')],
     ])
 
 async def subscription_prompt_kb(language: str):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
     settings = await get_settings()
     bot = await get_bot()
 

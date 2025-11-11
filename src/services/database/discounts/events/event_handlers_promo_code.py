@@ -98,7 +98,7 @@ async def handler_new_activate_promo_code(new_activate: NewActivatePromoCode):
 
 
 async def on_new_activate_promo_code_completed(promo_code_id: int, user_id: int, activation_code: str, activations_left: int):
-    i18n = get_i18n('ru', "discount_dom")
+    i18n = get_i18n('ru', "discount")
     message_log = i18n.gettext(
         "#Promocode_activation \nID promo_code '{promo_code_id}' \nCode '{code}' \nID user '{user_id}'"
         "\n\nSuccessfully activated. \nActivations remaining: {number_of_activations}"
@@ -106,7 +106,7 @@ async def on_new_activate_promo_code_completed(promo_code_id: int, user_id: int,
     await send_log(message_log)
 
 async def send_promo_code_expired(promo_code_id: int, activation_code: str):
-    i18n = get_i18n('ru', "discount_dom")
+    i18n = get_i18n('ru', "discount")
     message_log = i18n.gettext(
         "#Promo_code_expired \nID '{id}' \nCode '{code}'"
         "\n\nThe promo code has expired due to reaching the number of activations or time limit. It is no longer possible to activate it"
@@ -114,7 +114,7 @@ async def send_promo_code_expired(promo_code_id: int, activation_code: str):
     await send_log(message_log)
 
 async def on_new_activate_promo_code_failed(promo_code_id: int, error: str):
-    i18n = get_i18n('ru', "discount_dom")
+    i18n = get_i18n('ru', "discount")
     message_log = i18n.gettext(
         "#Error_activating_promo_code \n\nPromo code ID '{id}' \nError: {error}"
     ).format(id=promo_code_id, error=error)

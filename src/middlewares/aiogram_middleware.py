@@ -87,5 +87,5 @@ class I18nKeyFilter(BaseFilter):
         if not user:
             return False
 
-        i18n = get_i18n(user.language, "keyboard_dom")
+        i18n = get_i18n(user.language, "keyboard")
         return message.text == i18n.gettext(self.key)

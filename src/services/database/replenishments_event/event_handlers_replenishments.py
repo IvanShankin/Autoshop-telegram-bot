@@ -138,7 +138,7 @@ async def handler_new_replenishment(new_replenishment: NewReplenishment):
 
 async def on_replenishment_completed(event: ReplenishmentCompleted):
     """Обрабатывается когда пользователь получил деньги и не возникло ошибки"""
-    i18n = get_i18n(event.language, "replenishment_dom")
+    i18n = get_i18n(event.language, "replenishment")
 
     # отсылка успеха
     message_success = i18n.ngettext(
@@ -179,7 +179,7 @@ async def on_replenishment_completed(event: ReplenishmentCompleted):
 
 async def on_replenishment_failed(event: ReplenishmentFailed):
     """Обрабатывается когда пользователь НЕ получил деньги"""
-    i18n = get_i18n(event.language, "replenishment_dom")
+    i18n = get_i18n(event.language, "replenishment")
 
     message_for_user = i18n.gettext(
         "An error occurred while replenishing!\nReplenishment ID: {replenishment_id} "

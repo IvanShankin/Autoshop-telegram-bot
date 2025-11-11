@@ -103,7 +103,7 @@ async def test_start_activate_voucher_existing_user(
     user = await get_user(user.user_id) # для обновления баланса
     assert user.balance == voucher.amount # т.к. у пользователя не было денег
 
-    i18n = get_i18n(user.language, 'discount_dom')
+    i18n = get_i18n(user.language, 'discount')
     text = i18n.gettext(
         "Voucher successfully activated! \n\nVoucher amount: {amount} \nCurrent balance: {new_balance}"
     ).format(amount=voucher.amount, new_balance=user.balance)
@@ -145,7 +145,7 @@ async def test_start_activate_voucher_existing_user(
         )
         assert result_db.scalar_one_or_none()  # должна появиться запись о новом рефералле
 
-    i18n = get_i18n(user.language, 'discount_dom')
+    i18n = get_i18n(user.language, 'discount')
     text = i18n.gettext(
         "Voucher successfully activated! \n\nVoucher amount: {amount} \nCurrent balance: {new_balance}"
     ).format(amount=voucher.amount, new_balance=user.balance)

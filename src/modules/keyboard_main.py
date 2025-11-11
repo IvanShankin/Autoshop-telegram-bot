@@ -14,7 +14,7 @@ selecting_language = InlineKeyboardMarkup(
 )
 
 async def main_kb(language: str, user_id: int):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
     keyboard_builder = ReplyKeyboardBuilder()
 
     # Добавление кнопок
@@ -33,7 +33,7 @@ async def support_kb(language: str, support_username: str = None):
         settings = await get_settings()
         support_username = settings.support_username
 
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
     support_name = i18n.gettext('Support')
 
     keyboard = InlineKeyboardBuilder()

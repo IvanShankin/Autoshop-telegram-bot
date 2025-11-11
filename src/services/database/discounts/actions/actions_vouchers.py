@@ -294,7 +294,7 @@ async def deactivate_voucher(voucher_id: int) -> int:
 
             return refund_amount
     except Exception as e:
-        i18n = get_i18n('ru', 'discount_dom')
+        i18n = get_i18n('ru', 'discount')
         log_message = i18n.gettext(
             "#Error_refunding_money_from_voucher \n\nVoucher ID: {voucher_id} \nOwner ID: {owner_id} \nError: {error}"
         ).format(voucher_id=voucher_id, owner_id=owner_id, error=str(e))
@@ -316,7 +316,7 @@ async def activate_voucher(user: Users, code: str, language: str) -> Tuple[str, 
     :param language: Язык на котором будет возвращено сообщение.
     :return Tuple[str, bool]: Сообщение с результатом, успешность активации
     """
-    i18n = get_i18n(language, "discount_dom")
+    i18n = get_i18n(language, "discount")
     balance_before = user.balance
 
     voucher = await get_valid_voucher_by_code(code)

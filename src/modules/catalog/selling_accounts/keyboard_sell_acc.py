@@ -7,7 +7,7 @@ from src.services.database.selling_accounts.models import AccountCategoryFull
 from src.utils.i18n import get_i18n
 
 async def all_services_account_kb(language: str):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
     services = await get_all_account_services()
     keyboard = InlineKeyboardBuilder()
 
@@ -20,7 +20,7 @@ async def all_services_account_kb(language: str):
 
 
 async def main_catalog_account_by_service_kb(language: str, service_id: int):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
     categories = await get_account_categories_by_parent_id(account_service_id=service_id, language=language)
     keyboard = InlineKeyboardBuilder()
 
@@ -37,7 +37,7 @@ async def account_category_kb(
     quantity_for_buying: int = 0,
     promo_code_id: int = None
 ):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
     parent_category = category
     keyboard = InlineKeyboardBuilder()
     current_category_id = parent_category.account_category_id
@@ -98,7 +98,7 @@ async def account_category_kb(
 
 
 def confirm_buy_acc_kb(language: str, category_id: int, quantity_for_buying: int = 0, promo_code_id: int = 0):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
     return InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(
@@ -113,7 +113,7 @@ def confirm_buy_acc_kb(language: str, category_id: int, quantity_for_buying: int
 
 
 def back_in_account_category_kb(language: str, category_id: int, quantity_for_buying: int = 0):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
             text=i18n.gettext('Back'), callback_data=f'show_account_category:{category_id}:{quantity_for_buying}'
@@ -122,7 +122,7 @@ def back_in_account_category_kb(language: str, category_id: int, quantity_for_bu
 
 
 def replenishment_and_back_in_cat(language: str, category_id: int, quantity_for_buying: int = 0):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=i18n.gettext('Top up your balance'), callback_data='show_type_replenishment')],
         [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'show_account_category:{category_id}:{quantity_for_buying}')]

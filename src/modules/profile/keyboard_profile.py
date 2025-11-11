@@ -20,7 +20,7 @@ from src.utils.i18n import get_i18n
 
 
 def profile_kb(language: str):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=i18n.gettext('Top up your balance'), callback_data='show_type_replenishment')],
         [InlineKeyboardButton(text=i18n.gettext('Purchased accounts'), callback_data='services_sold_accounts')],
@@ -31,13 +31,13 @@ def profile_kb(language: str):
     ])
 
 def back_in_profile_kb(language: str):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data='profile')]
     ])
 
 def in_profile_kb(language: str):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=i18n.gettext('In profile'), callback_data='profile')]
     ])
@@ -46,7 +46,7 @@ def in_profile_kb(language: str):
 # ---- Пополнение ----
 
 async def type_replenishment_kb(language: str):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
     type_payments = await get_all_types_payments()
     keyboard = InlineKeyboardBuilder()
 
@@ -62,14 +62,14 @@ async def type_replenishment_kb(language: str):
     return keyboard.as_markup()
 
 def payment_invoice(language: str, url: str):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=i18n.gettext('Pay'), url=url)],
         [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data='show_type_replenishment')]
     ])
 
 def back_in_type_replenishment_kb(language: str):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
     return InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data='show_type_replenishment')]
         ])
@@ -78,7 +78,7 @@ def back_in_type_replenishment_kb(language: str):
 
 async def services_sold_accounts_kb(language: str, user_id: int):
     """Отобразит только те сервисы в которых у пользователя есть купленные аккаунты"""
-    i18n = get_i18n(language, "keyboard_dom")
+    i18n = get_i18n(language, "keyboard")
     union_type_service_ids = await get_union_type_account_service_id(user_id)
     account_services = await get_all_account_services(return_not_show=True)
 
@@ -161,7 +161,7 @@ async def sold_accounts_kb(language: str, current_page: int, type_account_servic
             InlineKeyboardButton(text="➡️", callback_data=right_button)
         )
 
-    i18n = get_i18n(language, "keyboard_dom")
+    i18n = get_i18n(language, "keyboard")
     keyboard.row(
         InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'services_sold_accounts'),
     )
@@ -170,7 +170,7 @@ async def sold_accounts_kb(language: str, current_page: int, type_account_servic
 
 
 def account_kb(language: str, sold_account_id: int, type_account_service_id: int, current_page: int, current_validity: bool):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
             text=i18n.gettext('Login details'),
@@ -193,7 +193,7 @@ def account_kb(language: str, sold_account_id: int, type_account_service_id: int
 
 
 async def login_details_kb(language: str, sold_account_id: int, type_account_service_id: int, current_page: int):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
 
     type_service = await get_type_account_service(type_account_service_id)
     keyboard = InlineKeyboardBuilder()
@@ -235,7 +235,7 @@ async def login_details_kb(language: str, sold_account_id: int, type_account_ser
 
 
 def confirm_del_acc_kb(language: str, sold_account_id: int, type_account_service_id: int, current_page: int):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
             text=i18n.gettext('Confirm'),
@@ -253,7 +253,7 @@ def confirm_del_acc_kb(language: str, sold_account_id: int, type_account_service
 # ---- Настройки ----
 
 def profile_settings_kb(language: str):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=i18n.gettext('Language'), callback_data='selecting_language')],
         [InlineKeyboardButton(text=i18n.gettext('Notification'), callback_data='notification_settings')],
@@ -261,7 +261,7 @@ def profile_settings_kb(language: str):
     ])
 
 def settings_language_kb(language: str):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
     keyboard = InlineKeyboardBuilder()
 
     for lang in ALLOWED_LANGS:
@@ -276,7 +276,7 @@ def settings_language_kb(language: str):
     return keyboard.as_markup()
 
 def setting_notification_kb(language: str, notification: NotificationSettings):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
 
     return InlineKeyboardMarkup(inline_keyboard=[
             [
@@ -326,7 +326,7 @@ async def wallet_transactions_kb(language: str, current_page: int, user_id: int)
             InlineKeyboardButton(text="➡️", callback_data=right_button)
         )
 
-    i18n = get_i18n(language, "keyboard_dom")
+    i18n = get_i18n(language, "keyboard")
     keyboard.row(
         InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'profile'),
     )
@@ -334,7 +334,7 @@ async def wallet_transactions_kb(language: str, current_page: int, user_id: int)
     return keyboard.as_markup()
 
 def back_in_wallet_transactions_kb(language: str):
-    i18n = get_i18n(language, "keyboard_dom")
+    i18n = get_i18n(language, "keyboard")
     return InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data='history_transaction:1')]
         ])
@@ -343,7 +343,7 @@ def back_in_wallet_transactions_kb(language: str):
 # ---- Реферальная система ----
 
 async def ref_system_kb(language: str):
-    i18n = get_i18n(language, "keyboard_dom")
+    i18n = get_i18n(language, "keyboard")
     settings = await get_settings()
 
     if not settings.linc_info_ref_system:
@@ -365,7 +365,7 @@ async def accruals_history_kb(language: str, current_page: int, user_id: int):
     records = await get_referral_income_page(user_id, current_page, PAGE_SIZE)
     total = await get_count_referral_income(user_id)
     total_pages = max(ceil(total / PAGE_SIZE), 1)
-    i18n = get_i18n(language, "keyboard_dom")
+    i18n = get_i18n(language, "keyboard")
 
     keyboard = InlineKeyboardBuilder()
 
@@ -399,7 +399,7 @@ async def accruals_history_kb(language: str, current_page: int, user_id: int):
     return keyboard.as_markup()
 
 async def back_in_accrual_history_kb(language: str, current_page_id: int):
-    i18n = get_i18n(language, "keyboard_dom")
+    i18n = get_i18n(language, "keyboard")
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'accrual_history:{current_page_id}')]
     ])
@@ -408,7 +408,7 @@ async def back_in_accrual_history_kb(language: str, current_page_id: int):
 # ---- Передача баланса ----
 
 def balance_transfer_kb(language: str):
-    i18n = get_i18n(language, "keyboard_dom")
+    i18n = get_i18n(language, "keyboard")
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=i18n.gettext('Transfer by id'), callback_data='transfer_money')],
         [InlineKeyboardButton(text=i18n.gettext('Create voucher'), callback_data='create_voucher')],
@@ -417,7 +417,7 @@ def balance_transfer_kb(language: str):
     ])
 
 def confirmation_transfer_kb(language: str):
-    i18n = get_i18n(language, "keyboard_dom")
+    i18n = get_i18n(language, "keyboard")
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=i18n.gettext('Confirm'), callback_data='confirm_transfer_money'),
          InlineKeyboardButton(text=i18n.gettext('Again'), callback_data='transfer_money')],
@@ -425,7 +425,7 @@ def confirmation_transfer_kb(language: str):
     ])
 
 def confirmation_voucher_kb(language: str):
-    i18n = get_i18n(language, "keyboard_dom")
+    i18n = get_i18n(language, "keyboard")
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=i18n.gettext('Confirm'), callback_data='confirm_create_voucher'),
          InlineKeyboardButton(text=i18n.gettext('Again'), callback_data='create_voucher')],
@@ -433,13 +433,13 @@ def confirmation_voucher_kb(language: str):
     ])
 
 def back_in_balance_transfer_kb(language: str):
-    i18n = get_i18n(language, "keyboard_dom")
+    i18n = get_i18n(language, "keyboard")
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'balance_transfer')],
     ])
 
 def replenishment_and_back_in_transfer_kb(language: str):
-    i18n = get_i18n(language, 'keyboard_dom')
+    i18n = get_i18n(language, 'keyboard')
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=i18n.gettext('Top up your balance'), callback_data='show_type_replenishment')],
         [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data='balance_transfer')]
@@ -476,7 +476,7 @@ async def all_vouchers_kb(user_id: int, current_page: int, language: str):
             InlineKeyboardButton(text="➡️", callback_data=right_button)
         )
 
-    i18n = get_i18n(language, "keyboard_dom")
+    i18n = get_i18n(language, "keyboard")
     keyboard.row(
         InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'profile'),
     )
@@ -484,21 +484,21 @@ async def all_vouchers_kb(user_id: int, current_page: int, language: str):
     return keyboard.as_markup()
 
 def show_voucher_kb(language: str, current_page: int, voucher_id: int):
-    i18n = get_i18n(language, "keyboard_dom")
+    i18n = get_i18n(language, "keyboard")
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=i18n.gettext('Deactivate'), callback_data=f'confirm_deactivate_voucher:{voucher_id}:{current_page}')],
         [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'my_voucher:{current_page}')]
     ])
 
 def confirm_deactivate_voucher_kb(language: str, current_page: int, voucher_id: int):
-    i18n = get_i18n(language, "keyboard_dom")
+    i18n = get_i18n(language, "keyboard")
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=i18n.gettext('Confirm'), callback_data=f'deactivate_voucher:{voucher_id}:{current_page}')],
         [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'my_voucher:{current_page}')]
     ])
 
 def back_in_all_voucher_kb(language: str, current_page: int):
-    i18n = get_i18n(language, "keyboard_dom")
+    i18n = get_i18n(language, "keyboard")
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=i18n.gettext('Back'), callback_data=f'my_voucher:{current_page}')]
     ])

@@ -36,8 +36,7 @@ async def language_settings(user_id: int, message_id: int, user: Users):
     )
 
 @router.callback_query(F.data == "profile_settings")
-async def profile_settings(callback: CallbackQuery):
-    user = await get_user(callback.from_user.id, callback.from_user.username)
+async def profile_settings(callback: CallbackQuery, user: Users):
 
     i18n = get_i18n(user.language, 'profile_messages')
     text = i18n.gettext("Select the settings item")
@@ -51,8 +50,7 @@ async def profile_settings(callback: CallbackQuery):
     )
 
 @router.callback_query(F.data == "selecting_language")
-async def open_language_settings(callback: CallbackQuery):
-    user = await get_user(callback.from_user.id, callback.from_user.username)
+async def open_language_settings(callback: CallbackQuery, user: Users):
     await language_settings(
         user_id=callback.from_user.id,
         message_id=callback.message.message_id,
@@ -60,10 +58,9 @@ async def open_language_settings(callback: CallbackQuery):
     )
 
 @router.callback_query(F.data.startswith('language_selection:'))
-async def update_language(callback: CallbackQuery):
+async def update_language(callback: CallbackQuery, user: Users):
     new_lang = callback.data.split(':')[1]
 
-    user = await get_user(callback.from_user.id)
     user.language = new_lang
     user = await update_user(user)
 
@@ -84,11 +81,10 @@ async def open_notification_settings(callback: CallbackQuery):
     )
 
 @router.callback_query(F.data.startswith('update_notif:'))
-async def update_notification_settings(callback: CallbackQuery):
+async def update_notification_settings(callback: CallbackQuery, user: Users):
     column = callback.data.split(':')[1]
     new_value = True if callback.data.split(':')[2] == "True" else False
 
-    user = await get_user(callback.from_user.id, callback.from_user.username)
     notification = await get_notification(callback.from_user.id)
 
     if column == 'invitation':

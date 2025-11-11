@@ -40,7 +40,7 @@ async def test_show_account_category_sets_state_and_edits_message_when_accounts_
     cb.message = SimpleNamespace(message_id=123)
 
     fsm = FakeFSMContext()
-    await module.show_account_category(cb, fsm)
+    await module.show_account_category(cb, fsm, user)
 
     # state должен быть установлен (точный класс состояния проверять не будем, проверим, что state не None)
     assert fsm.state is not None, "FSM state не установлен"
@@ -78,7 +78,7 @@ async def test_show_account_category_non_storage_clears_state_and_edits_message(
     # предварительно задам какие-то данные в state, чтобы убедиться, что handler их перезапишет/очистит
     await fsm.update_data(old_message_id=999, category_id=999, quantity_for_buying=5)
 
-    await module.show_account_category(cb, fsm)
+    await module.show_account_category(cb, fsm, user)
 
     # state должен быть установлен в некоторую форму (мы ожидаем, что данные обновлены на текущую категорию)
     data = await fsm.get_data()
@@ -113,7 +113,7 @@ async def test_set_quantity_accounts_invalid_and_exceeds_stock_behaviour(
     # подготовим state как будто пользователь уже выбрал категорию
     await fsm1.update_data(category_id=category_id, old_message_id=11, quantity_for_buying=0)
     msg_bad = FakeMessage(text="not_a_number", chat_id=user.user_id, username=user.username)
-    await module.set_quantity_accounts(msg_bad, fsm1)
+    await module.set_quantity_accounts(msg_bad, fsm1, user)
 
     i18n = get_i18n(user.language, 'catalog')
     bad_text = i18n.gettext("Incorrect value entered")
@@ -125,7 +125,7 @@ async def test_set_quantity_accounts_invalid_and_exceeds_stock_behaviour(
     await fsm2.update_data(category_id=category_id, old_message_id=22, quantity_for_buying=0)
     # на текущий момент quantity_product_account скорее всего 0, запросим 5
     msg_too_many = FakeMessage(text="5", chat_id=user.user_id, username=user.username)
-    await module.set_quantity_accounts(msg_too_many, fsm2)
+    await module.set_quantity_accounts(msg_too_many, fsm2, user)
 
     no_stock_text = i18n.gettext("No longer in stock")
     assert fake_bot.get_message(chat_id=user.user_id, text=no_stock_text), "Не отправилось сообщение о нехватке на складе"
@@ -163,7 +163,7 @@ async def test_set_quantity_accounts_success_updates_state_and_edits_message(
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage
     msg = FakeMessage(text="3", chat_id=user.user_id, username=user.username)
 
-    await module.set_quantity_accounts(msg, fsm)
+    await module.set_quantity_accounts(msg, fsm, user)
 
     data = await fsm.get_data()
     assert int(data.get("quantity_for_buying")) == 3 or data.get("quantity_for_buying") == "3"
@@ -196,7 +196,7 @@ async def test_enter_promo_sets_state_and_edits_message(
     cb.message = SimpleNamespace(message_id=77)
 
     fsm = FakeFSMContext()
-    await module.enter_promo(cb, fsm)
+    await module.enter_promo(cb, fsm, user)
 
     # state должен быть установлен в BuyAccount.promo_code (мы только проверим, что state не None)
     assert fsm.state is not None, "FSM state не установлен"
@@ -237,7 +237,7 @@ async def test_set_promo_code_not_found_shows_error_and_keeps_state(
     # вводим случайный код которого нет
     msg = FakeMessage(text="NOT_EXISTING_CODE", chat_id=user.user_id, username=user.username)
 
-    await module.set_promo_code(msg, fsm)
+    await module.set_promo_code(msg, fsm, user)
 
     # FSM должен остаться на шаге promo_code
     assert fsm.state is not None, "FSM state неожиданно очищен"
@@ -277,7 +277,7 @@ async def test_set_promo_code_success_updates_state_and_notifies_user(
 
     msg = FakeMessage(text=promo.activation_code, chat_id=user.user_id, username=user.username)
 
-    await module.set_promo_code(msg, fsm)
+    await module.set_promo_code(msg, fsm, user)
 
     data = await fsm.get_data()
     # проверим что promo_code_id и promo_code попали в state
@@ -311,7 +311,7 @@ async def test_confirm_buy_acc_invalid_quantity_answers_user_and_no_edit(
     cb = FakeCallbackQuery(data=f"confirm_buy_acc:{category.account_category_id}:0:None", chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=12)
 
-    await module.confirm_buy_acc(cb)
+    await module.confirm_buy_acc(cb, user)
 
     # не было редактирования сообщения (так как quantity <= 0)
     assert not fake_bot.check_str_in_edited_messages("Confirm your purchase"), "Сообщение неожиданно отредактировалось при некорректном количестве"
@@ -342,7 +342,7 @@ async def test_confirm_buy_acc_with_promo_applies_discount_and_edits_message(
     cb = FakeCallbackQuery(data=f"confirm_buy_acc:{category.account_category_id}:{quantity}:{promo.promo_code_id}", chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=99)
 
-    await module.confirm_buy_acc(cb)
+    await module.confirm_buy_acc(cb, user)
 
     # Проверим, что сообщение редактировалось и в нём указана верная сумма after discount (Due: 50)
     i18n = get_i18n(user.language, 'catalog')
@@ -379,7 +379,7 @@ async def test_confirm_buy_acc_invalid_promo_alerts_user(
     cb = FakeCallbackQuery(data=f"confirm_buy_acc:{category.account_category_id}:1:9999", chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=55)
 
-    await module.confirm_buy_acc(cb)
+    await module.confirm_buy_acc(cb, user)
 
     # handler реагирует alert'ом — в тестах мы проверим, что сообщение не было отредактировано
     assert not fake_bot.check_str_in_edited_messages("Confirm your purchase"), "При невалидном промокоде сообщение неожиданно отредактировалось"
@@ -408,7 +408,7 @@ class TestBuyAccount:
                                username=user.username)
         cb.message = SimpleNamespace(message_id=10)
 
-        await module.buy_acc(cb)
+        await module.buy_acc(cb, user)
 
         # Проверяем: сообщение не редактировалось (только alert)
         assert not fake_bot.check_str_in_edited_messages("Thank you for your purchase"), \
@@ -438,7 +438,7 @@ class TestBuyAccount:
                                chat_id=user.user_id, username=user.username)
         cb.message = SimpleNamespace(message_id=20)
 
-        await module.buy_acc(cb)
+        await module.buy_acc(cb, user)
 
         # Проверяем отсутствие редактирования (был alert)
         assert not fake_bot.check_str_in_edited_messages("Thank you for your purchase"), \
@@ -474,7 +474,7 @@ class TestBuyAccount:
                                chat_id=user.user_id, username=user.username)
         cb.message = SimpleNamespace(message_id=30)
 
-        await module.buy_acc(cb)
+        await module.buy_acc(cb, user)
 
         assert not fake_bot.check_str_in_edited_messages("Thank you for your purchase"), \
             "Сообщение не должно было редактироваться при невалидном промокоде"
@@ -502,7 +502,7 @@ class TestBuyAccount:
                                chat_id=user.user_id, username=user.username)
         cb.message = SimpleNamespace(message_id=40)
 
-        await module.buy_acc(cb)
+        await module.buy_acc(cb, user)
 
         i18n = get_i18n(user.language, 'miscellaneous')
         expected_text = i18n.gettext("Insufficient funds: {amount}").format(amount=150)
@@ -539,7 +539,7 @@ class TestBuyAccount:
                                chat_id=user.user_id, username=user.username)
         cb.message = SimpleNamespace(message_id=50)
 
-        await module.buy_acc(cb)
+        await module.buy_acc(cb, user)
 
         assert fake_bot.check_str_in_edited_messages("Thank you for your purchase"), \
             "Не появилось сообщение об успешной покупке"
@@ -574,7 +574,7 @@ class TestBuyAccount:
                                chat_id=user.user_id, username=user.username)
         cb.message = SimpleNamespace(message_id=60)
 
-        await module.buy_acc(cb)
+        await module.buy_acc(cb, user)
 
         assert fake_bot.check_str_in_edited_messages("There are not enough accounts on the server"), \
             "Не появилось сообщение о нехватке аккаунтов при result=False"

@@ -12,6 +12,7 @@ from src.services.database.selling_accounts.actions import get_sold_accounts_by_
     delete_sold_account, get_type_account_service, add_deleted_accounts, get_tg_account_media, update_tg_account_media
 from src.services.database.selling_accounts.models import SoldAccountFull, AccountStorage
 from src.services.database.users.actions import get_user
+from src.services.database.users.models import Users
 from src.services.filesystem.account_actions import move_in_account, check_account_validity, get_tdata_tg_acc, \
     get_session_tg_acc, get_auth_codes
 from src.utils.core_logger import logger
@@ -140,9 +141,7 @@ async def list_is_over(callback: CallbackQuery):
 
 
 @router.callback_query(F.data == "services_sold_accounts")
-async def services_sold_accounts(callback: CallbackQuery):
-    user = await get_user(callback.from_user.id)
-
+async def services_sold_accounts(callback: CallbackQuery, user: Users):
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
@@ -152,10 +151,9 @@ async def services_sold_accounts(callback: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith("all_sold_accounts:"))
-async def all_sold_accounts(callback: CallbackQuery):
+async def all_sold_accounts(callback: CallbackQuery, user: Users):
     current_page = int(callback.data.split(':')[1])
     type_account_service_id = int(callback.data.split(':')[2])
-    user = await get_user(callback.from_user.id)
 
     await show_all_sold_account(
         user_id=callback.from_user.id,
@@ -167,11 +165,10 @@ async def all_sold_accounts(callback: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith("sold_account:"))
-async def sold_account(callback: CallbackQuery):
+async def sold_account(callback: CallbackQuery, user: Users):
     sold_account_id = int(callback.data.split(':')[1])
     type_account_service_id = int(callback.data.split(':')[2])
     current_page = int(callback.data.split(':')[3])
-    user = await get_user(callback.from_user.id)
     i18n = get_i18n(user.language, 'profile_messages')
 
     account = await get_sold_accounts_by_account_id(sold_account_id, language=user.language)
@@ -188,11 +185,10 @@ async def sold_account(callback: CallbackQuery):
     )
 
 @router.callback_query(F.data.startswith("login_details:"))
-async def login_details(callback: CallbackQuery):
+async def login_details(callback: CallbackQuery, user: Users):
     sold_account_id = int(callback.data.split(':')[1])
     type_account_service_id = int(callback.data.split(':')[2])
     current_page = int(callback.data.split(':')[3])
-    user = await get_user(callback.from_user.id)
     i18n = get_i18n(user.language, 'profile_messages')
 
     account = await get_sold_accounts_by_account_id(sold_account_id, language=user.language)
@@ -214,9 +210,8 @@ async def login_details(callback: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith("get_code_acc:"))
-async def get_code_acc(callback: CallbackQuery):
+async def get_code_acc(callback: CallbackQuery, user: Users):
     sold_account_id = int(callback.data.split(':')[1])
-    user = await get_user(callback.from_user.id)
     i18n = get_i18n(user.language, 'profile_messages')
 
     account = await get_sold_accounts_by_account_id(sold_account_id, language=user.language)
@@ -265,9 +260,8 @@ async def get_session_acc(callback: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith("get_log_pas:"))
-async def get_log_pas(callback: CallbackQuery):
+async def get_log_pas(callback: CallbackQuery, user: Users):
     sold_account_id = int(callback.data.split(':')[1])
-    user = await get_user(callback.from_user.id)
     i18n = get_i18n(user.language, 'profile_messages')
 
     account = await get_sold_accounts_by_account_id(sold_account_id, language=user.language)
@@ -285,12 +279,11 @@ async def get_log_pas(callback: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith("chek_valid_acc:"))
-async def chek_valid_acc(callback: CallbackQuery):
+async def chek_valid_acc(callback: CallbackQuery, user: Users):
     sold_account_id = int(callback.data.split(':')[1])
     type_account_service_id = int(callback.data.split(':')[2])
     current_page = int(callback.data.split(':')[3])
     current_validity = bool(int(callback.data.split(':')[4]))
-    user = await get_user(callback.from_user.id)
     i18n = get_i18n(user.language, 'profile_messages')
 
     account = await cheek_sold_account(
@@ -337,12 +330,11 @@ async def chek_valid_acc(callback: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith("confirm_del_acc:"))
-async def confirm_del_acc(callback: CallbackQuery):
+async def confirm_del_acc(callback: CallbackQuery, user: Users):
     sold_account_id = int(callback.data.split(':')[1])
     type_account_service_id = int(callback.data.split(':')[2])
     current_page = int(callback.data.split(':')[3])
 
-    user = await get_user(callback.from_user.id)
     i18n = get_i18n(user.language, 'profile_messages')
 
     account = await cheek_sold_account(
@@ -377,12 +369,11 @@ async def confirm_del_acc(callback: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith("del_account:"))
-async def del_account(callback: CallbackQuery):
+async def del_account(callback: CallbackQuery, user: Users):
     sold_account_id = int(callback.data.split(':')[1])
     type_account_service_id = int(callback.data.split(':')[2])
     current_page = int(callback.data.split(':')[3])
 
-    user = await get_user(callback.from_user.id)
     i18n = get_i18n(user.language, 'profile_messages')
 
     account = await cheek_sold_account(

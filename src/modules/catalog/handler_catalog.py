@@ -5,7 +5,7 @@ from aiogram.types import Message, CallbackQuery
 from src.bot_actions.actions import send_message, edit_message
 from src.middlewares.aiogram_middleware import I18nKeyFilter
 from src.modules.catalog.keyboard_catalog import catalog_kb, subscription_prompt_kb
-from src.services.database.users.actions import get_user
+from src.services.database.users.models import Users
 from src.services.redis.actions import get_subscription_prompt, delete_subscription_prompt
 from src.utils.i18n import get_i18n
 
@@ -13,9 +13,8 @@ router_with_repl_kb = Router()
 router = Router()
 
 @router_with_repl_kb.message(I18nKeyFilter("Product catalog"))
-async def handle_catalog_message(message: Message, state: FSMContext):
+async def handle_catalog_message(message: Message, state: FSMContext, user: Users):
     await state.clear()
-    user = await get_user(message.from_user.id, message.from_user.username)
 
     if await get_subscription_prompt(user.user_id): # если пользователю ранее не предлагали подписаться
         i18n = get_i18n(user.language, 'catalog')
@@ -37,8 +36,7 @@ async def handle_catalog_message(message: Message, state: FSMContext):
         reply_markup=catalog_kb(user.language)
     )
 
-async def edit_message_in_catalog(user_id: int, username: str, old_message_id: int):
-    user = await get_user(user_id, username)
+async def edit_message_in_catalog(user: Users, old_message_id: int):
     await edit_message(
         message_id=old_message_id,
         chat_id=user.user_id,
@@ -48,22 +46,20 @@ async def edit_message_in_catalog(user_id: int, username: str, old_message_id: i
     )
 
 @router.callback_query(F.data == "skip_subscription")
-async def skip_subscription(callback: CallbackQuery, state: FSMContext):
+async def skip_subscription(callback: CallbackQuery, state: FSMContext, user: Users):
     await state.clear()
     await delete_subscription_prompt(callback.from_user.id) # больше не просим подписаться
 
     await edit_message_in_catalog(
-        user_id=callback.from_user.id,
-        username=callback.from_user.username,
+        user=user,
         old_message_id=callback.message.message_id
     )
 
 
 @router.callback_query(F.data == "catalog")
-async def handle_catalog_callback(callback: CallbackQuery, state: FSMContext):
+async def handle_catalog_callback(callback: CallbackQuery, state: FSMContext, user: Users):
     await state.clear()
     await edit_message_in_catalog(
-        user_id = callback.from_user.id,
-        username = callback.from_user.username,
+        user=user,
         old_message_id = callback.message.message_id
     )

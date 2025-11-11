@@ -1,6 +1,6 @@
 from aiogram import BaseMiddleware
 from aiogram.filters import BaseFilter
-from aiogram.types import Message
+from aiogram.types import Message, TelegramObject
 
 from typing import Callable, Dict, Any, Awaitable
 
@@ -10,6 +10,33 @@ from src.services.database.system.actions import get_settings
 from src.services.database.users.actions import get_user
 from src.utils.i18n import get_i18n
 
+
+
+class UserMiddleware(BaseMiddleware):
+    """
+    Универсальный middleware, который добавляет объект пользователя (User)
+    в data для всех типов апдейтов, где есть from_user.
+    """
+
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: Dict[str, Any],
+    ) -> Any:
+        # aiogram сам парсит объект апдейта и кладёт ключи вроде "event_from_user"
+        event_user = data.get("event_from_user")
+
+        if event_user:
+            user_id = event_user.id
+            username = event_user.username
+
+            # Получаем или создаём пользователя
+            user = await get_user(user_id, username)
+            data["user"] = user
+
+        # даже если from_user нет, не ломаем обработку
+        return await handler(event, data)
 
 class MaintenanceMiddleware(BaseMiddleware):
     """

@@ -163,7 +163,7 @@ async def test_select_language(patch_fake_aiogram, replacement_fake_bot, create_
 
     callback = FakeCallbackQuery(data = "set_language_after_start:en", chat_id = user.user_id)
 
-    await start.select_language(callback)
+    await start.select_language(callback, user)
 
     user = await get_user(user.user_id)
     assert user.language == 'en'

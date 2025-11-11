@@ -26,9 +26,11 @@ async def test_get_file_for_login_with_existing_tg_media(
     sold_small, sold_full = await create_sold_account(owner_id=user.user_id)
 
     # создаём TgAccountMedia с уже заполненным tdata_tg_id
-    await create_tg_account_media(account_storage_id=sold_full.account_storage.account_storage_id,
-                                  tdata_tg_id="EXISTING_FILE_ID",
-                                  session_tg_id=None)
+    await create_tg_account_media(
+        account_storage_id=sold_full.account_storage.account_storage_id,
+        tdata_tg_id="EXISTING_FILE_ID",
+        session_tg_id=None
+    )
 
     # func_get_file сделаем генератором, который бы упал если вызван (так поймём, что не был вызван)
     async def func_get_file_should_not_be_called(_):
@@ -105,7 +107,7 @@ async def test_get_code_acc_returns_codes_and_sends_message(
     monkeypatch,
 ):
     """Позитивный сценарий"""
-    from src.modules.profile.handlers.accounts_handlers import get_code_acc, get_auth_codes
+    from src.modules.profile.handlers.accounts_handlers import get_code_acc
 
     user = await create_new_user()
     sold_small, sold_full = await create_sold_account(owner_id=user.user_id)
@@ -132,7 +134,7 @@ async def test_get_code_acc_returns_codes_and_sends_message(
     cb.message = SimpleNamespace(message_id=1)
 
     # Выполняем
-    await get_code_acc(cb)
+    await get_code_acc(cb, user)
     assert replacement_fake_bot.get_message(user.user_id, result_message)
 
 
@@ -166,7 +168,7 @@ async def test_get_code_acc_returns_false_shows_unable_to_retrieve(
         answered["kw"] = kwargs
 
     cb.answer = fake_answer
-    await get_code_acc(cb)
+    await get_code_acc(cb, user)
     assert i18n.gettext("Unable to retrieve data") in answered["text"]
 
 
@@ -200,7 +202,7 @@ async def test_get_code_acc_no_codes_found_alert(
         answered["kw"] = kwargs
 
     cb.answer = fake_answer
-    await get_code_acc(cb)
+    await get_code_acc(cb, user)
     assert i18n.gettext("No codes found") in answered["text"]
 
 
@@ -238,7 +240,7 @@ async def test_chek_valid_acc_valid_true_no_change(
         answered["kw"] = kwargs
     cb.answer = fake_answer
 
-    await chek_valid_acc(cb)
+    await chek_valid_acc(cb, user)
 
     i18n = get_i18n(user.language, 'profile_messages')
     assert i18n.gettext('The account is valid') in answered["text"]
@@ -282,7 +284,7 @@ async def test_chek_valid_acc_valid_false_updates_and_refreshes_card(
         answered["kw"] = kwargs
     cb.answer = fake_answer
 
-    await chek_valid_acc(cb)
+    await chek_valid_acc(cb, user)
 
     i18n = get_i18n(user.language, 'profile_messages')
     assert i18n.gettext('The account is not valid') in answered["text"]
@@ -310,7 +312,7 @@ async def test_confirm_del_acc_edits_message(
     )
     cb.message = SimpleNamespace(message_id=20)
 
-    await confirm_del_acc(cb)
+    await confirm_del_acc(cb, user)
 
     i18n = get_i18n(user.language, 'profile_messages')
     text = i18n.gettext(
@@ -363,7 +365,7 @@ async def test_del_account_successful_flow(
         answered["kw"] = kwargs
     cb.answer = fake_answer
 
-    await del_account(cb)
+    await del_account(cb, user)
 
     i18n = get_i18n(user.language, 'profile_messages')
     assert i18n.gettext("The account has been successfully deleted") in answered["text"]
@@ -402,7 +404,7 @@ async def test_del_account_move_in_account_fails_shows_alert(
         answered["kw"] = kwargs
     cb.answer = fake_answer
 
-    await del_account(cb)
+    await del_account(cb, user)
 
     i18n = get_i18n(user.language, 'profile_messages')
     assert i18n.gettext("An error occurred, please try again") in answered["text"]

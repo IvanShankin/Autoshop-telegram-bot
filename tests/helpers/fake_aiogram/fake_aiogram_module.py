@@ -80,6 +80,30 @@ class FakeCommandObject:
         args = parts[1] if len(parts) > 1 else ""
         return cls(command, args)
 
+class FakeTelegramObject:
+    """
+    Упрощённая версия aiogram.types.TelegramObject.
+    Используется как базовый класс для фейковых aiogram-типов.
+    """
+
+    def __init__(self, **data):
+        # просто сохраняем все переданные поля как атрибуты
+        for key, value in data.items():
+            setattr(self, key, value)
+
+    def __repr__(self):
+        cls = self.__class__.__name__
+        attrs = ", ".join(f"{k}={v!r}" for k, v in self.__dict__.items())
+        return f"<{cls} {attrs}>"
+
+    def model_dump(self):
+        """Имитация pydantic BaseModel.model_dump()"""
+        return self.__dict__.copy()
+
+    def copy(self):
+        """Возвращает копию объекта"""
+        return self.__class__(**self.__dict__)
+
 class FakeMessage:
     def __init__(self, text="/start", chat_id: int = 1, username: str = "test_user", **extra):
         self.text = text
@@ -342,6 +366,24 @@ class ForceReply:
     def __init__(self, force: bool = True, selective: bool = False):
         self.force = force
         self.selective = selective
+
+
+class FakeReplyKeyboardBuilder:
+    def __init__(self):
+        self._buttons = []
+
+    def add(self, *buttons):
+        self._buttons.extend(buttons)
+
+    def adjust(self, *a, **kw):
+        pass
+
+    def as_markup(self, **kw):
+        return self._buttons
+
+    def row(self,  *buttons, width: int | None = None):
+        pass
+
 
 class FakeInlineKeyboardBuilder:
     def __init__(self):

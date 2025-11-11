@@ -51,9 +51,7 @@ async def _check_category(category_id: int, old_message_id: int, user_id: int, l
 
 
 @router.callback_query(F.data == "show_catalog_services_accounts")
-async def show_catalog_services_accounts(callback: CallbackQuery):
-    user = await get_user(callback.from_user.id, callback.from_user.username)
-
+async def show_catalog_services_accounts(callback: CallbackQuery, user: Users):
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
@@ -64,9 +62,8 @@ async def show_catalog_services_accounts(callback: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith("show_service_acc"))
-async def show_service_acc(callback: CallbackQuery):
+async def show_service_acc(callback: CallbackQuery, user: Users):
     service_id = int(callback.data.split(':')[1])
-    user = await get_user(callback.from_user.id, callback.from_user.username)
     service = await get_account_service(service_id)
 
     if not service:
@@ -143,11 +140,10 @@ async def edit_message_account_category(
     )
 
 @router.callback_query(F.data.startswith("show_account_category"))
-async def show_account_category(callback: CallbackQuery, state: FSMContext):
+async def show_account_category(callback: CallbackQuery, state: FSMContext, user: Users):
     category_id = int(callback.data.split(':')[1])
     quantity_account = int(callback.data.split(':')[2]) # число аккаунтов на приобретение
 
-    user = await get_user(callback.from_user.id, callback.from_user.username)
     category = await _check_category(
         category_id=category_id,
         old_message_id=callback.message.message_id,
@@ -191,13 +187,12 @@ async def show_account_category(callback: CallbackQuery, state: FSMContext):
 
 
 @router.message(BuyAccount.quantity_accounts)
-async def set_quantity_accounts(message: Message, state: FSMContext):
+async def set_quantity_accounts(message: Message, state: FSMContext, user: Users):
     try:
         await message.delete()
     except Exception:
         pass # если пользователь удалил сам
 
-    user = await get_user(message.from_user.id)
     data = BuyAccountsData(**(await state.get_data()))
     i18n = get_i18n(user.language, 'catalog')
 
@@ -241,11 +236,10 @@ async def set_quantity_accounts(message: Message, state: FSMContext):
 
 
 @router.callback_query(F.data.startswith('enter_promo'))
-async def enter_promo(callback: CallbackQuery, state: FSMContext):
+async def enter_promo(callback: CallbackQuery, state: FSMContext, user: Users):
     category_id = int(callback.data.split(':')[1])
     quantity_account = int(callback.data.split(':')[2]) # число аккаунтов на приобретение
 
-    user = await get_user(callback.from_user.id)
     category = await _check_category(
         category_id=category_id,
         old_message_id=callback.message.message_id,
@@ -273,14 +267,13 @@ async def enter_promo(callback: CallbackQuery, state: FSMContext):
 
 
 @router.message(BuyAccount.promo_code)
-async def set_promo_code(message: Message, state: FSMContext):
+async def set_promo_code(message: Message, state: FSMContext, user: Users):
     try:
         await message.delete()
     except Exception:
         pass
 
     promo = await get_valid_promo_code(message.text)
-    user = await get_user(message.from_user.id)
     i18n = get_i18n(user.language, 'discount_dom')
     data = BuyAccountsData(**(await state.get_data()))
 
@@ -348,12 +341,11 @@ async def set_promo_code(message: Message, state: FSMContext):
 
 
 @router.callback_query(F.data.startswith('confirm_buy_acc'))
-async def confirm_buy_acc(callback: CallbackQuery):
+async def confirm_buy_acc(callback: CallbackQuery, user: Users):
     category_id = int(callback.data.split(':')[1])
     quantity_account = int(callback.data.split(':')[2]) # число аккаунтов на приобретение
     promo_code_id = safe_int_conversion(callback.data.split(':')[3], positive=True) # либо int, либо "None"
 
-    user = await get_user(callback.from_user.id)
     i18n = get_i18n(user.language, 'catalog')
 
     if quantity_account <= 0:
@@ -410,7 +402,7 @@ async def confirm_buy_acc(callback: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith('buy_acc'))
-async def buy_acc(callback: CallbackQuery):
+async def buy_acc(callback: CallbackQuery, user: Users):
 
     async def _show_not_enough_money(need_money: int):
         i18n = get_i18n(user.language, 'miscellaneous')
@@ -440,8 +432,6 @@ async def buy_acc(callback: CallbackQuery):
     category_id = int(callback.data.split(':')[1])
     quantity_account = int(callback.data.split(':')[2])  # число аккаунтов на приобретение
     promo_code_id = safe_int_conversion(callback.data.split(':')[3], positive=True)  # либо int, либо "None"
-
-    user = await get_user(callback.from_user.id)
 
     category = await _check_category(
         category_id=category_id,

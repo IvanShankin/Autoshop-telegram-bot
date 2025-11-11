@@ -31,7 +31,7 @@ async def test_transfer_amount_invalid_input(
 
     # Используем реальный handler (имя из твоего файла)
     # предполагаю имя функции `transfer_money_get_amount`
-    await module.transfer_money_get_amount(fake_msg, FakeFSMContext())
+    await module.transfer_money_get_amount(fake_msg, FakeFSMContext(), user)
 
     i18n = get_i18n(user.language, 'miscellaneous')
     text = i18n.gettext('Incorrect value entered')
@@ -57,7 +57,7 @@ async def test_transfer_amount_insufficient_funds(
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage
     fake_msg = FakeMessage(text="1000", chat_id=user.user_id, username=user.username)
 
-    await module.transfer_money_get_amount(fake_msg, FakeFSMContext())
+    await module.transfer_money_get_amount(fake_msg, FakeFSMContext(), user)
 
     i18n = get_i18n(user.language, 'miscellaneous')
     text = i18n.gettext('Insufficient funds: {amount}').format(amount=990)
@@ -86,7 +86,7 @@ async def test_transfer_amount_success_sets_state_and_prompts_recipient(
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage
     fake_msg = FakeMessage(text="500", chat_id=user.user_id, username=user.username)
 
-    await module.transfer_money_get_amount(fake_msg, fsm)
+    await module.transfer_money_get_amount(fake_msg, fsm, user)
 
     # проверяем, что update_data сохранил amount
     assert fsm.data.get("amount") == "500" or fsm.data.get("amount") == 500, "amount не записался в state"
@@ -130,7 +130,7 @@ async def test_transfer_recipient_not_found(
     fake_msg = FakeMessage(text="99999", chat_id=user.user_id, username=user.username)
 
     # FSM can be anything (we're not using stored data here)
-    await module.transfer_money_get_recipient_id(fake_msg, FakeFSMContext())
+    await module.transfer_money_get_recipient_id(fake_msg, FakeFSMContext(), user)
 
     i18n = get_i18n(user.language, 'miscellaneous')
     text = i18n.gettext('User not found')
@@ -171,7 +171,7 @@ async def test_confirm_transfer_money_user_not_found_exception(
     # Подменяем callback.message.message_id (в редактировании используется callback.message.message_id)
     cb.message = SimpleNamespace(message_id=42)
 
-    await module.confirm_transfer_money(cb, fsm)
+    await module.confirm_transfer_money(cb, fsm, user)
 
     i18n = get_i18n(user.language, 'miscellaneous')
     text = i18n.gettext('User not found')
@@ -207,7 +207,7 @@ async def test_confirm_transfer_money_success(
     cb = FakeCallbackQuery(data="confirm_transfer_money", chat_id=sender.user_id, username=sender.username)
     cb.message = SimpleNamespace(message_id=99)
 
-    await module.confirm_transfer_money(cb, fsm)
+    await module.confirm_transfer_money(cb, fsm, sender)
 
     i18n = get_i18n(sender.language, 'profile_messages')
     text = i18n.gettext('Funds have been successfully transferred')

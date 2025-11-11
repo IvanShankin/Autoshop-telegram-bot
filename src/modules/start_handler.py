@@ -99,11 +99,10 @@ async def cmd_start(message: Message, command: CommandObject, state: FSMContext)
         )
 
 @router.callback_query(F.data.startswith('set_language_after_start'))
-async def select_language(callback: CallbackQuery):
+async def select_language(callback: CallbackQuery, user: Users):
     selected_lang = callback.data.split(':')[1]
     setting = await get_settings()
 
-    user = await get_user(callback.from_user.id)
     user.language = selected_lang
     await update_user(user)
 

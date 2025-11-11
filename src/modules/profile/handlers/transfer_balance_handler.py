@@ -18,15 +18,14 @@ from src.services.database.discounts.actions import (create_voucher as create_vo
 from src.services.database.system.actions import get_settings
 from src.services.database.users.actions import get_user
 from src.services.database.users.actions.action_other_with_user import money_transfer
+from src.services.database.users.models import Users
 from src.utils.i18n import get_i18n
 
 router = Router()
 
 @router.callback_query(F.data == "balance_transfer")
-async def balance_transfer(callback: CallbackQuery, state: FSMContext):
+async def balance_transfer(callback: CallbackQuery, state: FSMContext, user: Users):
     await state.clear()
-
-    user = await get_user(callback.from_user.id, callback.from_user.username)
 
     i18n = get_i18n(user.language, 'profile_messages')
     text = i18n.gettext('Select the desired action')
@@ -40,9 +39,7 @@ async def balance_transfer(callback: CallbackQuery, state: FSMContext):
     )
 
 @router.callback_query(F.data == "transfer_money")
-async def transfer_money_start(callback: CallbackQuery, state: FSMContext):
-    user = await get_user(callback.from_user.id, callback.from_user.username)
-
+async def transfer_money_start(callback: CallbackQuery, state: FSMContext, user: Users):
     i18n = get_i18n(user.language, 'profile_messages')
     text = i18n.gettext('Enter the amount')
 
@@ -57,9 +54,7 @@ async def transfer_money_start(callback: CallbackQuery, state: FSMContext):
 
 
 @router.message(TransferMoney.amount)
-async def transfer_money_get_amount(message: Message, state: FSMContext):
-    user = await get_user(message.from_user.id, message.from_user.username)
-
+async def transfer_money_get_amount(message: Message, state: FSMContext, user: Users):
     if not await checking_correctness_number(
             message=message.text,
             language=user.language,
@@ -96,9 +91,7 @@ async def transfer_money_get_amount(message: Message, state: FSMContext):
 
 
 @router.message(TransferMoney.recipient_id)
-async def transfer_money_get_recipient_id(message: Message, state: FSMContext):
-    user = await get_user(message.from_user.id, message.from_user.username)
-
+async def transfer_money_get_recipient_id(message: Message, state: FSMContext, user: Users):
     if not await checking_correctness_number(
             message=message.text,
             language=user.language,
@@ -137,8 +130,7 @@ async def transfer_money_get_recipient_id(message: Message, state: FSMContext):
     )
 
 @router.callback_query(F.data == "confirm_transfer_money")
-async def confirm_transfer_money(callback: CallbackQuery, state: FSMContext):
-    user = await get_user(callback.from_user.id, callback.from_user.username)
+async def confirm_transfer_money(callback: CallbackQuery, state: FSMContext, user: Users):
     data = TransferData(**(await state.get_data()))
     await state.clear()
 
@@ -193,8 +185,7 @@ async def confirm_transfer_money(callback: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data == "create_voucher")
-async def create_voucher(callback: CallbackQuery, state: FSMContext):
-    user = await get_user(callback.from_user.id, callback.from_user.username)
+async def create_voucher(callback: CallbackQuery, state: FSMContext, user: Users):
     await state.clear()
 
     i18n = get_i18n(user.language, 'profile_messages')
@@ -209,9 +200,7 @@ async def create_voucher(callback: CallbackQuery, state: FSMContext):
     await state.set_state(CreateVoucher.amount)
 
 @router.message(CreateVoucher.amount)
-async def create_voucher_get_amount(message: Message, state: FSMContext):
-    user = await get_user(message.from_user.id, message.from_user.username)
-
+async def create_voucher_get_amount(message: Message, state: FSMContext, user: Users):
     if not await checking_correctness_number(
             message=message.text,
             language=user.language,
@@ -235,9 +224,7 @@ async def create_voucher_get_amount(message: Message, state: FSMContext):
     await state.set_state(CreateVoucher.number_of_activations)
 
 @router.message(CreateVoucher.number_of_activations)
-async def create_voucher_get_number_of_activations(message: Message, state: FSMContext):
-    user = await get_user(message.from_user.id, message.from_user.username)
-
+async def create_voucher_get_number_of_activations(message: Message, state: FSMContext, user: Users):
     if not await checking_correctness_number(
             message=message.text,
             language=user.language,
@@ -276,8 +263,7 @@ async def create_voucher_get_number_of_activations(message: Message, state: FSMC
     await state.set_state(CreateVoucher.amount)
 
 @router.callback_query(F.data == "confirm_create_voucher")
-async def confirm_create_voucher(callback: CallbackQuery, state: FSMContext):
-    user = await get_user(callback.from_user.id, callback.from_user.username)
+async def confirm_create_voucher(callback: CallbackQuery, state: FSMContext, user: Users):
     data = CreateVoucherData(**(await state.get_data()))
     await state.clear()
 
@@ -327,9 +313,8 @@ async def confirm_create_voucher(callback: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data.startswith("my_voucher:"))
-async def my_voucher(callback: CallbackQuery):
+async def my_voucher(callback: CallbackQuery, user: Users):
     current_page = callback.data.split(":")[1]
-    user = await get_user(callback.from_user.id, callback.from_user.username)
 
     i18n = get_i18n(user.language, 'profile_messages')
     text = i18n.gettext("All vouchers. To view a specific voucher, click on it")
@@ -343,11 +328,10 @@ async def my_voucher(callback: CallbackQuery):
     )
 
 @router.callback_query(F.data.startswith("show_voucher:"))
-async def show_voucher(callback: CallbackQuery):
+async def show_voucher(callback: CallbackQuery, user: Users):
     voucher_id = int(callback.data.split(":")[1])
     current_page = int(callback.data.split(':')[2])
 
-    user = await get_user(callback.from_user.id, callback.from_user.username)
     voucher = await get_voucher_by_id(voucher_id)
     i18n = get_i18n(user.language, 'profile_messages')
 
@@ -379,12 +363,11 @@ async def show_voucher(callback: CallbackQuery):
     )
 
 @router.callback_query(F.data.startswith("confirm_deactivate_voucher:"))
-async def confirm_deactivate_voucher(callback: CallbackQuery):
+async def confirm_deactivate_voucher(callback: CallbackQuery, user: Users):
     voucher_id = int(callback.data.split(":")[1])
     current_page = int(callback.data.split(':')[2])
 
     voucher = await get_voucher_by_id(voucher_id)
-    user = await get_user(callback.from_user.id, callback.from_user.username)
     i18n = get_i18n(user.language, 'profile_messages')
 
     if not voucher or not voucher.is_valid:
@@ -407,12 +390,11 @@ async def confirm_deactivate_voucher(callback: CallbackQuery):
     )
 
 @router.callback_query(F.data.startswith("deactivate_voucher:"))
-async def deactivate_voucher(callback: CallbackQuery):
+async def deactivate_voucher(callback: CallbackQuery, user: Users):
     voucher_id = int(callback.data.split(":")[1])
     current_page = int(callback.data.split(':')[2])
 
     voucher = await get_voucher_by_id(voucher_id)
-    user = await get_user(callback.from_user.id, callback.from_user.username)
     i18n = get_i18n(user.language, 'profile_messages')
 
     if not voucher or not voucher.is_valid:

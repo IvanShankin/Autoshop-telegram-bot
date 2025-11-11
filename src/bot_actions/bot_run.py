@@ -1,4 +1,4 @@
-from src.middlewares.aiogram_middleware import MaintenanceMiddleware
+from src.middlewares.aiogram_middleware import MaintenanceMiddleware, UserMiddleware
 from src.modules.profile.handlers import router_with_repl_kb as profile_router_with_repl_kb, router as profile_router
 from src.modules.catalog import router_with_repl_kb as catalog_router_with_repl_kb
 from src.modules.catalog import router as catalog_router
@@ -29,8 +29,10 @@ async def _including_router():
     admin_router.message.middleware(MaintenanceMiddleware())
     dp.include_router(admin_router)
 
-    admin_router_with_repl_kb.message.middleware(MaintenanceMiddleware())
+    admin_router_with_repl_kb.message.middleware(MaintenanceMiddleware(allow_admins=True))
     dp.include_router(admin_router_with_repl_kb)
+
+    dp.update.middleware(UserMiddleware())
 
 
 async def run_bot():

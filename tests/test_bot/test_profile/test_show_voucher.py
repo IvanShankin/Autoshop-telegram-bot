@@ -23,7 +23,7 @@ async def test_my_voucher_callback(
     cb = FakeCallbackQuery(data="my_voucher:1", chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=7)
 
-    await module.my_voucher(cb)
+    await module.my_voucher(cb, user)
 
     i18n = module.get_i18n(user.language, 'profile_messages')
     expected = i18n.gettext("All vouchers. To view a specific voucher, click on it")
@@ -50,7 +50,7 @@ async def test_show_voucher_inactive(
     cb = FakeCallbackQuery(data=f"show_voucher:{voucher.voucher_id}:1", chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=10)
 
-    await module.show_voucher(cb)
+    await module.show_voucher(cb, user)
 
     i18n = module.get_i18n(user.language, 'profile_messages')
     text = i18n.gettext('This voucher is currently inactive, please select another one')
@@ -62,17 +62,19 @@ async def test_show_voucher_active_success(
     patch_fake_aiogram,
     replacement_fake_bot,
     create_voucher,
+    create_new_user,
 ):
     """Callback 'show_voucher:<id>:<page>' — активный ваучер корректно отображается."""
     from src.modules.profile.handlers import transfer_balance_handler as module
 
     fake_bot = replacement_fake_bot
     voucher = await create_voucher()
+    user = await create_new_user()
 
     cb = FakeCallbackQuery(data=f"show_voucher:{voucher.voucher_id}:1", chat_id=voucher.creator_id)
     cb.message = SimpleNamespace(message_id=77)
 
-    await module.show_voucher(cb)
+    await module.show_voucher(cb, user)
 
     assert fake_bot.check_str_in_edited_messages(f"ID: {voucher.voucher_id}"), \
         "Не отобразилась информация об активном ваучере"
@@ -96,7 +98,7 @@ async def test_confirm_deactivate_voucher_inactive(
     cb = FakeCallbackQuery(data=f"confirm_deactivate_voucher:{voucher.voucher_id}:1", chat_id=user.user_id)
     cb.message = SimpleNamespace(message_id=88)
 
-    await module.confirm_deactivate_voucher(cb)
+    await module.confirm_deactivate_voucher(cb, user)
 
     i18n = module.get_i18n(user.language, 'profile_messages')
     text = i18n.gettext('This voucher is currently inactive')
@@ -109,17 +111,19 @@ async def test_confirm_deactivate_voucher_active_success(
     patch_fake_aiogram,
     replacement_fake_bot,
     create_voucher,
+    create_new_user,
 ):
     """Callback 'confirm_deactivate_voucher' — активный ваучер вызывает запрос подтверждения."""
     from src.modules.profile.handlers import transfer_balance_handler as module
 
     fake_bot = replacement_fake_bot
     voucher = await create_voucher()
+    user = await create_new_user()
 
     cb = FakeCallbackQuery(data=f"confirm_deactivate_voucher:{voucher.voucher_id}:1", chat_id=voucher.creator_id)
     cb.message = SimpleNamespace(message_id=44)
 
-    await module.confirm_deactivate_voucher(cb)
+    await module.confirm_deactivate_voucher(cb, user)
 
     i18n = module.get_i18n("ru", 'profile_messages')
     text_part = i18n.gettext("Are you sure you want to deactivate the voucher?")
@@ -144,7 +148,7 @@ async def test_deactivate_voucher_inactive(
     cb = FakeCallbackQuery(data=f"deactivate_voucher:{voucher.voucher_id}:1", chat_id=user.user_id)
     cb.message = SimpleNamespace(message_id=55)
 
-    await module.deactivate_voucher(cb)
+    await module.deactivate_voucher(cb, user)
 
     i18n = module.get_i18n(user.language, 'profile_messages')
     text = i18n.gettext('This voucher is currently inactive')
@@ -157,17 +161,19 @@ async def test_deactivate_voucher_success(
     patch_fake_aiogram,
     replacement_fake_bot,
     create_voucher,
+    create_new_user,
 ):
     """Callback 'deactivate_voucher' — успешная деактивация ваучера."""
     from src.modules.profile.handlers import transfer_balance_handler as module
 
+    user = await create_new_user()
     fake_bot = replacement_fake_bot
     voucher = await create_voucher()
 
     cb = FakeCallbackQuery(data=f"deactivate_voucher:{voucher.voucher_id}:1", chat_id=voucher.creator_id)
     cb.message = SimpleNamespace(message_id=66)
 
-    await module.deactivate_voucher(cb)
+    await module.deactivate_voucher(cb, user)
 
     i18n = module.get_i18n("en", 'profile_messages')
     text = i18n.gettext("The voucher has been successfully deactivated")

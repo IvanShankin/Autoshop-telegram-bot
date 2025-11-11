@@ -6,6 +6,7 @@ from src.config import DT_FORMAT
 from src.modules.profile.keyboard_profile import back_in_wallet_transactions_kb,  wallet_transactions_kb
 from src.services.database.users.actions import get_user
 from src.services.database.users.actions.action_other_with_user import get_wallet_transaction
+from src.services.database.users.models import Users
 from src.utils.i18n import get_i18n
 
 router = Router()
@@ -15,8 +16,7 @@ async def list_is_over(callback: CallbackQuery):
     await callback.answer("Список закончился")
 
 @router.callback_query(F.data.startswith("history_transaction:"))
-async def show_all_history_transaction(callback: CallbackQuery):
-    user = await get_user(callback.from_user.id, callback.from_user.username)
+async def show_all_history_transaction(callback: CallbackQuery, user: Users):
     current_page = callback.data.split(':')[1]
 
     i18n = get_i18n(user.language, "profile_messages")
@@ -31,9 +31,8 @@ async def show_all_history_transaction(callback: CallbackQuery):
     )
 
 @router.callback_query(F.data.startswith('show_transaction:'))
-async def show_transaction(callback: CallbackQuery):
+async def show_transaction(callback: CallbackQuery, user: Users):
     transaction_id = callback.data.split(':')[1]
-    user = await get_user(callback.from_user.id, callback.from_user.username)
     transaction = await get_wallet_transaction(int(transaction_id))
 
     if transaction is None:

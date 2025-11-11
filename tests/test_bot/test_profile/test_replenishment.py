@@ -22,7 +22,7 @@ async def test_show_type_replenishment(
     cb = FakeCallbackQuery(data=f"show_type_replenishment", chat_id=user.user_id)
     cb.message = SimpleNamespace(message_id=44)
 
-    await module.show_type_replenishment(cb, FakeFSMContext())
+    await module.show_type_replenishment(cb, FakeFSMContext(), user)
 
     i18n = get_i18n(user.language, 'profile_messages')
     text = i18n.gettext('Select the desired service for replenishment')
@@ -53,7 +53,7 @@ async def test_get_amount_inactive_type_payment(
 
     fsm = FakeFSMContext()
 
-    await module.get_amount(cb, fsm)
+    await module.get_amount(cb, fsm, user)
 
     i18n = get_i18n(user.language, 'profile_messages')
     text = i18n.gettext("This service is temporarily inactive")
@@ -84,7 +84,7 @@ async def test_get_amount_active_success(
     cb.message = SimpleNamespace(message_id=17)
     fsm = FakeFSMContext()
 
-    await module.get_amount(cb, fsm)
+    await module.get_amount(cb, fsm, user)
 
     i18n = get_i18n(user.language, 'profile_messages')
     expected_text = i18n.gettext('{name_payment}. Enter the top-up amount in rubles').format(name_payment='CryptoBot')
@@ -112,7 +112,7 @@ async def test_start_replenishment_invalid_number(
     fsm = FakeFSMContext()
     msg = FakeMessage(text="not_number", chat_id=user.user_id, username=user.username)
 
-    await module.start_replenishment(msg, fsm)
+    await module.start_replenishment(msg, fsm, user)
 
     # Проверим, что состояние не сменилось
     assert fsm.state == GetAmount.amount, "Состояние FSM должно остаться прежним при ошибочном вводе"
@@ -145,7 +145,7 @@ async def test_start_replenishment_crypto_bot_success(
     fsm.data = {"payment_id": 1}
 
     msg = FakeMessage(text="100", chat_id=user.user_id, username=user.username)
-    await module.start_replenishment(msg, fsm)
+    await module.start_replenishment(msg, fsm, user)
 
     i18n = get_i18n(user.language, 'profile_messages')
     text = i18n.ngettext(

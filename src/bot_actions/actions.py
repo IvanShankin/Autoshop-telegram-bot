@@ -389,27 +389,23 @@ async def send_log(text: str, channel_for_logging_id: int = None):
             await bot.send_message(int(channel_for_logging_id), message)
     except Exception as e:
         settings = await get_settings()
-        message_error = f"Не удалось отправить сообщение в канал с логами. \nОшибка: {str(e)}"
+        message_error = (
+            f"Не удалось отправить сообщение в канал с логами.\n"
+            f"ID используемого канала: {channel_for_logging_id} "
+            f"\n\nОшибка: {str(e)}"
+        )
         logger.error(message_error)
 
         try:
             if settings.support_username:
-                await bot.send_message(
-                    settings.support_username,
-                    f'Не удалось отправить лог в канал!\nID используемого канала: {channel_for_logging_id} '
-                    f'\n\nСообщение:'
-                )
+                await bot.send_message(settings.support_username, message_error)
                 for message in parts:
                     await bot.send_message(settings.support_username,message)
         except Exception as e:
             logger.error(f"Ошибка отправки сообщения support. Ошибка: {str(e)}")
 
         try:
-            await bot.send_message(
-                MAIN_ADMIN,
-                f'Не удалось отправить лог в канал!\nID используемого канала: {channel_for_logging_id} '
-                f'\n\nСообщение:\n{message_error}'
-            )
+            await bot.send_message(MAIN_ADMIN, message_error)
             for message in parts:
                 await bot.send_message(MAIN_ADMIN, message)
         except Exception as e:

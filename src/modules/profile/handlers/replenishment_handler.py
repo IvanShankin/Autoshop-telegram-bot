@@ -10,6 +10,7 @@ from src.modules.profile.schemas.replenishment import GetAmountData
 from src.modules.profile.state.replenishment import GetAmount
 from src.services.database.system.actions.actions import get_type_payment
 from src.services.database.users.actions import get_user
+from src.services.database.users.models import Users
 from src.services.payments.crypto_bot.client import crypto_bot
 from src.utils.i18n import get_i18n
 
@@ -18,9 +19,8 @@ router = Router()
 
 
 @router.callback_query(F.data == "show_type_replenishment")
-async def show_type_replenishment(callback: CallbackQuery, state: FSMContext):
+async def show_type_replenishment(callback: CallbackQuery, state: FSMContext, user: Users):
     await state.clear()
-    user = await get_user(callback.from_user.id, callback.from_user.username)
     i18n = get_i18n(user.language, 'profile_messages')
 
     text = i18n.gettext('Select the desired service for replenishment')
@@ -34,11 +34,10 @@ async def show_type_replenishment(callback: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data.startswith('replenishment:'))
-async def get_amount(callback: CallbackQuery, state: FSMContext):
+async def get_amount(callback: CallbackQuery, state: FSMContext, user: Users):
     payment_id = int(callback.data.split(':')[1])
     type_payment = await get_type_payment(payment_id)
     name_payment = callback.data.split(':')[2]
-    user = await get_user(callback.from_user.id, callback.from_user.username)
     i18n = get_i18n(user.language, 'profile_messages')
 
     if not type_payment or not type_payment.is_active:
@@ -66,8 +65,7 @@ async def get_amount(callback: CallbackQuery, state: FSMContext):
 
 
 @router.message(GetAmount.amount)
-async def start_replenishment(message: Message, state: FSMContext):
-    user = await get_user(message.from_user.id, message.from_user.username)
+async def start_replenishment(message: Message, state: FSMContext, user: Users):
     i18n = get_i18n(user.language, 'profile_messages')
     data_state = await state.get_data()
 

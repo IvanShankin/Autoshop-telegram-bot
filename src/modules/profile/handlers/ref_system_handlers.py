@@ -10,6 +10,7 @@ from src.modules.profile.keyboard_profile import ref_system_kb, accruals_history
 from src.services.database.referrals.actions.actions_ref import get_all_referrals, get_income_from_referral
 from src.services.database.referrals.reports import generate_referral_report_exel
 from src.services.database.users.actions import get_user
+from src.services.database.users.models import Users
 from src.utils.i18n import get_i18n
 
 router_with_repl_kb = Router()
@@ -17,10 +18,9 @@ router = Router()
 
 
 @router.callback_query(F.data == "referral_system")
-async def referral_system(callback: CallbackQuery):
+async def referral_system(callback: CallbackQuery, user: Users):
     bot = await get_bot()
     bot_me = await bot.me()
-    user = await get_user(callback.from_user.id, callback.from_user.username)
     referrals = await get_all_referrals(user.user_id)
     ref_first_lvl = 0
     ref_second_lvl = 0
@@ -59,8 +59,7 @@ async def referral_system(callback: CallbackQuery):
     await callback.answer("Список закончился")
 
 @router.callback_query(F.data.startswith('accrual_history:'))
-async def accrual_history(callback: CallbackQuery):
-    user = await get_user(callback.from_user.id, callback.from_user.username)
+async def accrual_history(callback: CallbackQuery, user: Users):
     current_page = callback.data.split(':')[1]
     i18n = get_i18n(user.language, 'profile_messages')
 
@@ -76,8 +75,7 @@ async def accrual_history(callback: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith('detail_income_from_ref:'))
-async def detail_income_from_ref(callback: CallbackQuery):
-    user = await get_user(callback.from_user.id, callback.from_user.username)
+async def detail_income_from_ref(callback: CallbackQuery, user: Users):
     income_from_ref_id = callback.data.split(':')[1]
     current_page = callback.data.split(':')[2]
     income = await get_income_from_referral(int(income_from_ref_id))
@@ -114,8 +112,7 @@ async def detail_income_from_ref(callback: CallbackQuery):
 
 
 @router.callback_query(F.data == "download_ref_list")
-async def download_ref_list(callback: CallbackQuery):
-    user = await get_user(callback.from_user.id, callback.from_user.username)
+async def download_ref_list(callback: CallbackQuery, user: Users):
     path = await generate_referral_report_exel(user.user_id, user.language)
 
     i18n = get_i18n(user.language, 'profile_messages')

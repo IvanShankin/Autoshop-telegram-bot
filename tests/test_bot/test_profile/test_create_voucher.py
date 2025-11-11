@@ -22,7 +22,7 @@ async def test_create_voucher_start_callback(
     fake_cb.message = SimpleNamespace(message_id=11)
 
     fsm = FakeFSMContext()
-    await module.create_voucher(fake_cb, fsm)
+    await module.create_voucher(fake_cb, fsm, user)
 
     i18n = module.get_i18n(user.language, 'profile_messages')
     text = i18n.gettext('Enter the amount')
@@ -50,7 +50,7 @@ async def test_create_voucher_invalid_amount(
     msg = FakeMessage(text="not_number", chat_id=user.user_id, username=user.username)
     fsm = FakeFSMContext()
 
-    await module.create_voucher_get_amount(msg, fsm)
+    await module.create_voucher_get_amount(msg, fsm, user)
 
     i18n = module.get_i18n(user.language, 'miscellaneous')
     text = i18n.gettext('Incorrect value entered')
@@ -77,7 +77,7 @@ async def test_create_voucher_valid_amount_prompts_for_activations(
     msg = FakeMessage(text="100", chat_id=user.user_id, username=user.username)
     fsm = FakeFSMContext()
 
-    await module.create_voucher_get_amount(msg, fsm)
+    await module.create_voucher_get_amount(msg, fsm, user)
 
     assert fsm.data.get("amount") == "100", "FSM не сохранил сумму"
     i18n = module.get_i18n(user.language, 'profile_messages')
@@ -105,7 +105,7 @@ async def test_create_voucher_not_enough_money(
     await fsm.update_data(amount=100)
 
     msg = FakeMessage(text="2", chat_id=user.user_id, username=user.username)
-    await module.create_voucher_get_number_of_activations(msg, fsm)
+    await module.create_voucher_get_number_of_activations(msg, fsm, user)
 
     i18n = module.get_i18n(user.language, 'miscellaneous')
     text = i18n.gettext('Insufficient funds: {amount}').format(amount=190)
@@ -134,7 +134,7 @@ async def test_confirm_create_voucher_not_enough_money_exception(
     cb = FakeCallbackQuery(data="confirm_create_voucher", chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=101)
 
-    await module.confirm_create_voucher(cb, fsm)
+    await module.confirm_create_voucher(cb, fsm, user)
 
     i18n = module.get_i18n(user.language, 'miscellaneous')
     text_1 = i18n.gettext('The funds have not been written off')
@@ -168,7 +168,7 @@ async def test_confirm_create_voucher_success(
     cb = FakeCallbackQuery(data="confirm_create_voucher", chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=55)
 
-    await module.confirm_create_voucher(cb, fsm)
+    await module.confirm_create_voucher(cb, fsm, user)
 
     vouchers = await get_valid_voucher_by_user_page(user.user_id)
 

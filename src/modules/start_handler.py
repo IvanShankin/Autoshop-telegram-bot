@@ -60,7 +60,7 @@ async def cmd_start(message: Message, command: CommandObject, state: FSMContext)
                 chat_id=message.from_user.id,
                 message=text,
                 image_key='welcome_message',
-                reply_markup=main_kb(language)
+                reply_markup=await main_kb(language, user.user_id)
             )
 
     else: # если пользователя нет
@@ -115,7 +115,7 @@ async def select_language(callback: CallbackQuery):
         chat_id=callback.from_user.id,
         message=text,
         image_key='welcome_message',
-        reply_markup=main_kb(selected_lang)
+        reply_markup=await main_kb(user.language, user.user_id)
     )
 
 

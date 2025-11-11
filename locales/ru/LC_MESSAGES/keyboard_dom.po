@@ -30,6 +30,9 @@ msgstr "Профиль"
 msgid "Information"
 msgstr "Информация"
 
+msgid "Admin panel"
+msgstr "Админ панель"
+
 msgid "Support"
 msgstr "Поддержка"
 
@@ -145,3 +148,11 @@ msgstr "Купить"
 
 msgid "Enter promo code"
 msgstr "Ввести промокод"
+
+
+# ---- Админ панель ----
+
+msgid "Category Editor"
+msgstr "Редактор категорий"
+
+

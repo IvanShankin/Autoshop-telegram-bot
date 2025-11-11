@@ -1,0 +1,52 @@
+from aiogram import Router, F
+from aiogram.fsm.context import FSMContext
+from aiogram.types import Message, CallbackQuery
+
+from src.bot_actions.actions import send_message, edit_message
+from src.middlewares.aiogram_middleware import I18nKeyFilter
+from src.modules.admin_actions.keyboard_admin import main_admin_kb
+from src.services.database.admins.actions import check_admin
+from src.services.database.users.actions import get_user
+
+router_with_repl_kb = Router()
+router = Router()
+
+async def handler_admin(
+    chat_id: int,
+    language: str,
+    send_new_message: bool = True,
+    message_id: int = None
+):
+    if send_new_message:
+        await send_message(
+            chat_id=chat_id,
+            image_key="admin_panel",
+            reply_markup=await main_admin_kb(language)
+        )
+    else:
+        await edit_message(
+            chat_id=chat_id,
+            message_id=message_id,
+            image_key="admin_panel",
+            reply_markup=await main_admin_kb(language)
+        )
+
+
+@router_with_repl_kb.message(I18nKeyFilter("Admin panel"))
+async def handle_profile_message(message: Message, state: FSMContext):
+    await state.clear()
+    user = await get_user(message.from_user.id)
+    if await check_admin(message.from_user.id):
+        await handler_admin(chat_id=message.from_user.id,language=user.language)
+
+
+@router.callback_query(F.data == "admin_panel")
+async def handle_profile_callback(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
+    user = await get_user(callback.from_user.id)
+    await handler_admin(
+        chat_id=callback.from_user.id,
+        language=user.language,
+        send_new_message=True,
+        message_id=callback.message.message_id
+    )

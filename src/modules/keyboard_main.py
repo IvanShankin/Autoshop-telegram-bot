@@ -1,6 +1,7 @@
 from aiogram.types import InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
+from src.services.database.admins.actions import check_admin
 from src.services.database.system.actions import get_settings
 from src.utils.i18n import get_i18n
 
@@ -12,16 +13,20 @@ selecting_language = InlineKeyboardMarkup(
         ],
 )
 
-def main_kb(language: str):
+async def main_kb(language: str, user_id: int):
     i18n = get_i18n(language, 'keyboard_dom')
-    return ReplyKeyboardMarkup(
-        keyboard = [
-            [KeyboardButton(text = i18n.gettext('Product catalog'))],
-            [KeyboardButton(text = i18n.gettext('Profile')), KeyboardButton(text = i18n.gettext('Information'))]
-        ],
-        resize_keyboard=True,
-        input_field_placeholder='Воспользуйтесь меню'
+    keyboard_builder = ReplyKeyboardBuilder()
+
+    # Добавление кнопок
+    keyboard_builder.row(KeyboardButton(text = i18n.gettext('Product catalog')))
+    keyboard_builder.row(
+        KeyboardButton(text = i18n.gettext('Profile')),
+        KeyboardButton(text = i18n.gettext('Information'))
     )
+    if await check_admin(user_id):
+        keyboard_builder.row(KeyboardButton(text=i18n.gettext('Admin panel')))
+
+    return keyboard_builder.as_markup(resize_keyboard=True)
 
 async def support_kb(language: str, support_username: str = None):
     if not support_username:

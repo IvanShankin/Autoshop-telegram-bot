@@ -3,6 +3,8 @@ from src.modules.profile.handlers import router_with_repl_kb as profile_router_w
 from src.modules.catalog import router_with_repl_kb as catalog_router_with_repl_kb
 from src.modules.catalog import router as catalog_router
 from src.modules.start_handler import router as start_router
+from src.modules.admin_actions.handlers import router as admin_router
+from src.modules.admin_actions.handlers import router_with_repl_kb as admin_router_with_repl_kb
 from src.bot_actions.bot_instance import get_bot, get_dispatcher
 
 
@@ -23,6 +25,12 @@ async def _including_router():
 
     profile_router.message.middleware(MaintenanceMiddleware())
     dp.include_router(profile_router)
+
+    admin_router.message.middleware(MaintenanceMiddleware())
+    dp.include_router(admin_router)
+
+    admin_router_with_repl_kb.message.middleware(MaintenanceMiddleware())
+    dp.include_router(admin_router_with_repl_kb)
 
 
 async def run_bot():

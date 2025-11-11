@@ -4,7 +4,7 @@ from src.services.database.admins.models import MessageForSending, Admins
 from src.services.database.core.database import get_db
 from src.services.redis.core_redis import get_redis
 
-async def check_admin(user_id) -> True | False:
+async def check_admin(user_id) -> bool:
     """Проверит наличие админа по данному ID"""
     async with get_redis() as session_redis:
         admin = await session_redis.get(f'admin:{user_id}')

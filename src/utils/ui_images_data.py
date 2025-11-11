@@ -78,4 +78,7 @@ UI_IMAGES = {
     # аккаунты
     "purchased_accounts": UI_SECTIONS / "purchased_accounts.png",
 
+    # админ панель
+    "admin_panel": UI_SECTIONS / "admin_panel.png",
+
 }

@@ -2,6 +2,7 @@ import pytest
 import orjson
 from sqlalchemy import select
 
+from src.exceptions.service_exceptions import ServiceContainsCategories
 from src.services.database.system.actions import get_ui_image
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
@@ -69,7 +70,7 @@ async def test_delete_account_service_error_when_has_categories(create_account_s
     # создаём категорию привязанную к svc
     cat = await create_account_category(filling_redis=False, account_service_id=svc.account_service_id)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ServiceContainsCategories):
         await delete_account_service(svc.account_service_id)
 
 

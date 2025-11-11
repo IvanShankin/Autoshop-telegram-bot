@@ -23,3 +23,9 @@ class UserNotFound(Exception):
 
 class TranslationAlreadyExists(Exception):
     pass
+
+class ServiceTypeBusy(Exception):
+    pass
+
+class ServiceContainsCategories(Exception):
+    pass

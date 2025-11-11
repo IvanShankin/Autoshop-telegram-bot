@@ -2,7 +2,7 @@ import pytest
 from orjson import orjson
 from sqlalchemy import select
 
-from src.exceptions.service_exceptions import TranslationAlreadyExists
+from src.exceptions.service_exceptions import TranslationAlreadyExists, ServiceTypeBusy
 from src.services.database.selling_accounts.models.models import TgAccountMedia
 from src.services.database.system.models import UiImages
 from src.services.redis.core_redis import get_redis
@@ -26,7 +26,7 @@ async def test_add_account_services(replacement_needed_modules, create_type_acco
         type_account_service_id=type_service_2.type_account_service_id
     )
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ServiceTypeBusy):
         await add_account_services(name="service_fail", type_account_service_id=type_service.type_account_service_id)
 
     async with get_db() as session_db:

@@ -1,6 +1,7 @@
 import orjson
 from sqlalchemy import select, delete, distinct, update
 
+from src.exceptions.service_exceptions import ServiceContainsCategories
 from src.services.database.system.actions import delete_ui_image
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_account_categories_by_service_id, \
@@ -28,7 +29,7 @@ async def delete_account_service(account_service_id: int):
         category = result_db.scalars().first()
 
         if category:
-            raise ValueError(f"У данного сервиса есть категории, сперва удалите их")
+            raise ServiceContainsCategories(f"У данного сервиса есть категории, сперва удалите их")
 
         # удаление
         await session_db.execute(delete(AccountServices).where(AccountServices.account_service_id == account_service_id))

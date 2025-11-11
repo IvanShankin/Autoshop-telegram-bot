@@ -4,7 +4,6 @@ from aiogram.types import CallbackQuery
 from src.bot_actions.actions import edit_message
 from src.config import DT_FORMAT
 from src.modules.profile.keyboard_profile import back_in_wallet_transactions_kb,  wallet_transactions_kb
-from src.services.database.users.actions import get_user
 from src.services.database.users.actions.action_other_with_user import get_wallet_transaction
 from src.services.database.users.models import Users
 from src.utils.i18n import get_i18n

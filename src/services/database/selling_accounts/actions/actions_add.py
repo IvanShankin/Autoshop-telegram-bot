@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.config import TYPE_ACCOUNT_SERVICES
-from src.exceptions.service_exceptions import TranslationAlreadyExists
+from src.exceptions.service_exceptions import TranslationAlreadyExists, ServiceTypeBusy
 from src.services.database.selling_accounts.models import AccountStorage
 from src.services.database.selling_accounts.models.models import TgAccountMedia
 from src.services.database.system.actions.actions import create_ui_image
@@ -31,7 +31,7 @@ async def add_account_services(name: str, type_account_service_id: int) -> Accou
 
     Будет установлен самый большой индекс + 1
     :return AccountServices: только что созданный
-    :exception ValueError: Если данный тип сервиса занят
+    :exception ServiceTypeBusy: Если данный тип сервиса занят
     """
 
     async with get_db() as session_db:
@@ -43,7 +43,7 @@ async def add_account_services(name: str, type_account_service_id: int) -> Accou
         account_service = result_db.scalar_one_or_none()
         if account_service:
             if not account_service.name == "other":
-                raise ValueError("Данный тип сервиса занят")
+                raise ServiceTypeBusy("Данный тип сервиса занят")
 
         result_db = await session_db.execute(select(AccountServices).order_by(AccountServices.index.asc()))
         all_services: list[AccountServices] = result_db.scalars().all() # тут уже отсортированный по index

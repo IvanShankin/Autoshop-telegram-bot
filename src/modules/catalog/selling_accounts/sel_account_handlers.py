@@ -20,7 +20,6 @@ from src.services.database.selling_accounts.actions import get_account_service, 
 from src.services.database.selling_accounts.actions.action_purchase import purchase_accounts
 from src.services.database.selling_accounts.models import AccountCategoryFull
 from src.services.database.system.actions import get_ui_image
-from src.services.database.users.actions import get_user
 from src.services.database.users.models import Users
 from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_i18n
@@ -61,7 +60,7 @@ async def show_catalog_services_accounts(callback: CallbackQuery, user: Users):
     )
 
 
-@router.callback_query(F.data.startswith("show_service_acc"))
+@router.callback_query(F.data.startswith("show_service_acc:"))
 async def show_service_acc(callback: CallbackQuery, user: Users):
     service_id = int(callback.data.split(':')[1])
     service = await get_account_service(service_id)
@@ -139,7 +138,7 @@ async def edit_message_account_category(
         )
     )
 
-@router.callback_query(F.data.startswith("show_account_category"))
+@router.callback_query(F.data.startswith("show_account_category:"))
 async def show_account_category(callback: CallbackQuery, state: FSMContext, user: Users):
     category_id = int(callback.data.split(':')[1])
     quantity_account = int(callback.data.split(':')[2]) # число аккаунтов на приобретение
@@ -235,7 +234,7 @@ async def set_quantity_accounts(message: Message, state: FSMContext, user: Users
 
 
 
-@router.callback_query(F.data.startswith('enter_promo'))
+@router.callback_query(F.data.startswith('enter_promo:'))
 async def enter_promo(callback: CallbackQuery, state: FSMContext, user: Users):
     category_id = int(callback.data.split(':')[1])
     quantity_account = int(callback.data.split(':')[2]) # число аккаунтов на приобретение
@@ -340,7 +339,7 @@ async def set_promo_code(message: Message, state: FSMContext, user: Users):
     return
 
 
-@router.callback_query(F.data.startswith('confirm_buy_acc'))
+@router.callback_query(F.data.startswith('confirm_buy_acc:'))
 async def confirm_buy_acc(callback: CallbackQuery, user: Users):
     category_id = int(callback.data.split(':')[1])
     quantity_account = int(callback.data.split(':')[2]) # число аккаунтов на приобретение

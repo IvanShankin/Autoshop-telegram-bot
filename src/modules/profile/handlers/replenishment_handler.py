@@ -9,7 +9,6 @@ from src.modules.profile.keyboard_profile import type_replenishment_kb, back_in_
 from src.modules.profile.schemas.replenishment import GetAmountData
 from src.modules.profile.state.replenishment import GetAmount
 from src.services.database.system.actions.actions import get_type_payment
-from src.services.database.users.actions import get_user
 from src.services.database.users.models import Users
 from src.services.payments.crypto_bot.client import crypto_bot
 from src.utils.i18n import get_i18n

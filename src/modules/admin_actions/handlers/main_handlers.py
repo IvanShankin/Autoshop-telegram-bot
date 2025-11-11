@@ -6,7 +6,6 @@ from src.bot_actions.actions import send_message, edit_message
 from src.middlewares.aiogram_middleware import I18nKeyFilter
 from src.modules.admin_actions.keyboard_admin import main_admin_kb
 from src.services.database.admins.actions import check_admin
-from src.services.database.users.actions import get_user
 from src.services.database.users.models import Users
 
 router_with_repl_kb = Router()
@@ -34,6 +33,8 @@ async def handler_admin(
 
 @router_with_repl_kb.message(I18nKeyFilter("Admin panel"))
 async def handle_profile_message(message: Message, state: FSMContext, user: Users):
+    if not await check_admin(message.from_user.id):
+        return
     await state.clear()
     if await check_admin(message.from_user.id):
         await handler_admin(user=user)
@@ -44,6 +45,9 @@ async def handle_profile_callback(callback: CallbackQuery, state: FSMContext, us
     await state.clear()
     await handler_admin(
         user=user,
-        send_new_message=True,
+        send_new_message=False,
         message_id=callback.message.message_id
     )
+
+
+

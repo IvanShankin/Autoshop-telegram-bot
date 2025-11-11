@@ -155,4 +155,24 @@ msgstr "Ввести промокод"
 msgid "Category Editor"
 msgstr "Редактор категорий"
 
+msgid "Add"
+msgstr "Добавить"
+
+msgid "To services"
+msgstr "К сервисам"
+
+msgid "Up index"
+msgstr "⬆️ Индекс"
+
+msgid "Down index"
+msgstr "⬇️ Индекс"
+
+msgid "{indicator} Show"
+msgstr "{indicator} Показывать"
+
+msgid "Rename"
+msgstr "Изменить имя"
+
+
+
 

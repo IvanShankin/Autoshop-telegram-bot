@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Literal, Any, List
 
 import orjson
-from sqlalchemy import select, update
+from sqlalchemy import select, update, func
 from sqlalchemy.orm import selectinload
 
 from src.services.database.selling_accounts.models.models import AccountStorage, TgAccountMedia
@@ -51,29 +51,63 @@ async def update_account_service(
             update_data["name"] = name
         if show is not None:
             update_data["show"] = show
-        if index is not None and index != service.index:
-            old_index = service.index or 0
-            new_index = index
+        if index is not None:
+            # нормализуем new_index — int, не меньше 0
+            try:
+                new_index = int(index)
+            except Exception:
+                raise ValueError("index должен быть целым числом")
+            if new_index < 0:
+                new_index = 0
 
-            # обновляем индексы
-            if new_index < old_index:
-                # сдвигаем все записи между new_index и old_index-1 вверх (+1)
-                await session.execute(
-                    update(AccountServices)
-                    .where(AccountServices.index >= new_index)
-                    .where(AccountServices.index < old_index)
-                    .values(index=AccountServices.index + 1)
-                )
-            elif new_index > old_index:
-                # сдвигаем все записи между old_index+1 и new_index вниз (-1)
-                await session.execute(
-                    update(AccountServices)
-                    .where(AccountServices.index <= new_index)
-                    .where(AccountServices.index > old_index)
-                    .values(index=AccountServices.index - 1)
-                )
+            # считаем сколько всего записей (чтобы определить максимальный индекс)
+            total_res = await session.execute(select(func.count()).select_from(AccountServices))
+            total_count = total_res.scalar_one()
+            # max_index — индекс последнего элемента в текущей коллекции
+            max_index = max(0, total_count - 1)
 
-            update_data["index"] = new_index
+            # если новый индекс больше максимального — помещаем в конец
+            if new_index > max_index:
+                new_index = max_index
+
+            # старый индекс — если None, считаем как "последний" (т.е. append)
+            old_index = service.index if service.index is not None else max_index
+
+            # если фактически ничего не меняется — пропускаем перестановки
+            if new_index != old_index:
+                # сдвиги других записей в зависимости от направления перемещения
+                if new_index < old_index:
+                    # перемещение влево (меньше): поднимаем (+1) все записи с индексом в [new_index, old_index-1]
+                    await session.execute(
+                        update(AccountServices)
+                        .where(AccountServices.index >= new_index)
+                        .where(AccountServices.index < old_index)
+                        .values(index=AccountServices.index + 1)
+                    )
+                else:  # new_index > old_index
+                    # перемещение вправо (больше): опускаем (-1) все записи с индексом в [old_index+1, new_index]
+                    await session.execute(
+                        update(AccountServices)
+                        .where(AccountServices.index <= new_index)
+                        .where(AccountServices.index > old_index)
+                        .values(index=AccountServices.index - 1)
+                    )
+
+                update_data["index"] = new_index
+            # else: new_index == old_index -> ничего не делаем по индексам
+
+        if update_data:
+            await session.execute(
+                update(AccountServices)
+                .where(AccountServices.account_service_id == account_service_id)
+                .values(**update_data)
+            )
+
+            await session.commit()
+
+            # обновляем объект в памяти (чтобы вернуть актуальные данные)
+            for key, value in update_data.items():
+                setattr(service, key, value)
 
         if update_data:
             await session.execute(
@@ -160,29 +194,48 @@ async def update_account_category(
                 show=category.ui_image.show if category.ui_image else True
             )
             update_data["ui_image_key"] = ui_image.key
-        if index is not None and index != category.index:
-            old_index = category.index or 0
-            new_index = index
+        if index is not None:
+            try:
+                new_index = int(index)
+            except Exception:
+                raise ValueError("index должен быть целым числом")
 
-            # обновляем индексы
-            if new_index < old_index:
-                # сдвигаем все записи между new_index и old_index-1 вверх (+1)
-                await session.execute(
-                    update(AccountCategories)
-                    .where(AccountCategories.index >= new_index)
-                    .where(AccountCategories.index < old_index)
-                    .values(index=AccountCategories.index + 1)
-                )
-            elif new_index > old_index:
-                # сдвигаем все записи между old_index+1 и new_index вниз (-1)
-                await session.execute(
-                    update(AccountCategories)
-                    .where(AccountCategories.index <= new_index)
-                    .where(AccountCategories.index > old_index)
-                    .values(index=AccountCategories.index - 1)
-                )
+            # индексы не могут быть отрицательными
+            if new_index < 0:
+                new_index = 0
 
-            update_data["index"] = new_index
+            # определяем общее количество категорий
+            total_res = await session.execute(select(func.count()).select_from(AccountCategories))
+            total_count = total_res.scalar_one()
+            max_index = max(0, total_count - 1)
+
+            # если новый индекс больше максимально допустимого — ставим в конец
+            if new_index > max_index:
+                new_index = max_index
+
+            # если старый индекс None — считаем, что был в конце
+            old_index = category.index if category.index is not None else max_index
+
+            # если индекс действительно меняется
+            if new_index != old_index:
+                if new_index < old_index:
+                    # Перемещение вверх: сдвигаем все записи между [new_index, old_index-1] вверх (+1)
+                    await session.execute(
+                        update(AccountCategories)
+                        .where(AccountCategories.index >= new_index)
+                        .where(AccountCategories.index < old_index)
+                        .values(index=AccountCategories.index + 1)
+                    )
+                else:
+                    # Перемещение вниз: сдвигаем все записи между [old_index+1, new_index] вниз (-1)
+                    await session.execute(
+                        update(AccountCategories)
+                        .where(AccountCategories.index <= new_index)
+                        .where(AccountCategories.index > old_index)
+                        .values(index=AccountCategories.index - 1)
+                    )
+
+                update_data["index"] = new_index
 
         if update_data:
             await session.execute(

@@ -18,5 +18,8 @@ class I18n:
 def get_i18n(lang: str, domain: str)->I18n:
     return I18n(lang, domain)
 
-def get_text(lang, key, domain):
+def get_text(lang: str, domain: str, key: str) -> str:
     return get_i18n(lang, domain).gettext(key)
+
+def n_get_text(lang: str, domain: str, msgid1: str,  msgid2: str, n: int) -> str:
+    return get_i18n(lang, domain).ngettext(msgid1, msgid2, n)

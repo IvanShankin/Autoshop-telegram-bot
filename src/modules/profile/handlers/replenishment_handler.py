@@ -11,7 +11,7 @@ from src.modules.profile.state.replenishment import GetAmount
 from src.services.database.system.actions.actions import get_type_payment
 from src.services.database.users.models import Users
 from src.services.payments.crypto_bot.client import crypto_bot
-from src.utils.i18n import get_i18n
+from src.utils.i18n import get_text, n_get_text
 
 router_with_repl_kb = Router()
 router = Router()
@@ -20,9 +20,7 @@ router = Router()
 @router.callback_query(F.data == "show_type_replenishment")
 async def show_type_replenishment(callback: CallbackQuery, state: FSMContext, user: Users):
     await state.clear()
-    i18n = get_i18n(user.language, 'profile_messages')
-
-    text = i18n.gettext('Select the desired service for replenishment')
+    text = get_text(user.language, 'profile_messages','Select the desired service for replenishment')
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
@@ -37,13 +35,12 @@ async def get_amount(callback: CallbackQuery, state: FSMContext, user: Users):
     payment_id = int(callback.data.split(':')[1])
     type_payment = await get_type_payment(payment_id)
     name_payment = callback.data.split(':')[2]
-    i18n = get_i18n(user.language, 'profile_messages')
 
     if not type_payment or not type_payment.is_active:
         await edit_message(
             chat_id=callback.from_user.id,
             message_id=callback.message.message_id,
-            message=i18n.gettext("This service is temporarily inactive"),
+            message=get_text(user.language, 'profile_messages',"This service is temporarily inactive"),
             image_key='incorrect_data_entered',
             reply_markup=await type_replenishment_kb(user.language)
         )
@@ -52,7 +49,7 @@ async def get_amount(callback: CallbackQuery, state: FSMContext, user: Users):
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
-        message=i18n.gettext('{name_payment}. Enter the top-up amount in rubles').format(name_payment=name_payment),
+        message=get_text(user.language, 'profile_messages','{name_payment}. Enter the top-up amount in rubles').format(name_payment=name_payment),
         image_key='request_enter_amount',
         reply_markup=back_in_type_replenishment_kb(user.language)
     )
@@ -65,7 +62,6 @@ async def get_amount(callback: CallbackQuery, state: FSMContext, user: Users):
 
 @router.message(GetAmount.amount)
 async def start_replenishment(message: Message, state: FSMContext, user: Users):
-    i18n = get_i18n(user.language, 'profile_messages')
     data_state = await state.get_data()
 
     if not await checking_correctness_number(
@@ -86,7 +82,7 @@ async def start_replenishment(message: Message, state: FSMContext, user: Users):
     if not type_payment or not type_payment.is_active:
         await send_message(
             chat_id=message.from_user.id,
-            message=i18n.gettext("This service is temporarily inactive"),
+            message=get_text(user.language, 'profile_messages',"This service is temporarily inactive"),
             image_key=None,
             reply_markup=await type_replenishment_kb(user.language)
         )
@@ -96,7 +92,9 @@ async def start_replenishment(message: Message, state: FSMContext, user: Users):
 
     if (MIN_MAX_REPLENISHMENT[type_payment.name_for_admin]['min'] > total_amount or
         MIN_MAX_REPLENISHMENT[type_payment.name_for_admin]['max'] < total_amount):
-        text = i18n.gettext(
+        text = get_text(
+            user.language,
+            'profile_messages',
             "Incorrect amount entered. \n\nMaximum: {amount_max} \nMinimum: {amount_min}"
         ).format(
             amount_max=MIN_MAX_REPLENISHMENT[type_payment.name_for_admin]['max'],
@@ -127,13 +125,15 @@ async def start_replenishment(message: Message, state: FSMContext, user: Users):
         else:
             await send_message(
                 chat_id=message.from_user.id,
-                message=i18n.gettext("This service is temporarily inactive"),
+                message=get_text(user.language, 'profile_messages',"This service is temporarily inactive"),
                 image_key=None,
                 reply_markup=await type_replenishment_kb(user.language)
             )
             return
 
-        text = i18n.ngettext(
+        text = n_get_text(
+            user.language,
+            'profile_messages',
             "{service_name}. Invoice successfully created. You have {minutes} minute to "
             "pay. After the time expires, the invoice will be canceled. \n\n"
             "Amount: {origin_sum}\n"
@@ -158,7 +158,7 @@ async def start_replenishment(message: Message, state: FSMContext, user: Users):
             reply_markup=payment_invoice(user.language, url)
         )
     except Exception:
-        text = i18n.gettext("An error occurred, please try again")
+        text = get_text(user.language, 'profile_messages', "An error occurred, please try again")
         await send_message(
             chat_id=message.from_user.id,
             message=text,

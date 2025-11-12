@@ -11,7 +11,7 @@ from src.services.database.referrals.actions.actions_ref import get_all_referral
 from src.services.database.referrals.reports import generate_referral_report_exel
 from src.services.database.users.actions import get_user
 from src.services.database.users.models import Users
-from src.utils.i18n import get_i18n
+from src.utils.i18n import get_text
 
 router_with_repl_kb = Router()
 router = Router()
@@ -31,8 +31,9 @@ async def referral_system(callback: CallbackQuery, user: Users):
         elif ref.level == 2:
             ref_second_lvl += 1
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext(
+    text = get_text(
+        user.language,
+        'profile_messages',
         "Your referral link: <a href='{ref_link}'>Link</a> \n\n"
         "Total earnings: {total_earnings} \n"
         "Number of total invited referrals: {total_number_ref} \n"
@@ -61,9 +62,12 @@ async def referral_system(callback: CallbackQuery):
 @router.callback_query(F.data.startswith('accrual_history:'))
 async def accrual_history(callback: CallbackQuery, user: Users):
     current_page = callback.data.split(':')[1]
-    i18n = get_i18n(user.language, 'profile_messages')
 
-    text = i18n.gettext('A history of all referral earnings. To view a specific transaction, click on it')
+    text = get_text(
+        user.language,
+        'profile_messages',
+        'A history of all referral earnings. To view a specific transaction, click on it'
+    )
 
     await edit_message(
         chat_id=callback.from_user.id,
@@ -81,14 +85,14 @@ async def detail_income_from_ref(callback: CallbackQuery, user: Users):
     income = await get_income_from_referral(int(income_from_ref_id))
 
     if income is None:
-        i18n = get_i18n(user.language, 'miscellaneous')
-        await callback.answer(text=i18n.gettext('Data not found'), show_alert=True)
+        await callback.answer(text=get_text(user.language, 'miscellaneous','Data not found'), show_alert=True)
 
     referral_user = await get_user(income.referral_id)
     username = f"@{referral_user.username}" if referral_user.username else 'None'
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext(
+    text = get_text(
+        user.language,
+        'profile_messages',
         "ID: {id}\n\n"
         "Referral Username: {username}\n"
         "Amount: {amount}\n"
@@ -115,8 +119,7 @@ async def detail_income_from_ref(callback: CallbackQuery, user: Users):
 async def download_ref_list(callback: CallbackQuery, user: Users):
     path = await generate_referral_report_exel(user.user_id, user.language)
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext('The file was successfully generated')
+    text = get_text(user.language, 'profile_messages','The file was successfully generated')
 
     await callback.message.answer_document(FSInputFile(path))
     await callback.answer(text)

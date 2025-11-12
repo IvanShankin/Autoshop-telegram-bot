@@ -4,7 +4,7 @@ import pytest
 
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery, FakeFSMContext
 from src.config import PAYMENT_LIFETIME_SECONDS
-from src.utils.i18n import get_i18n
+from src.utils.i18n import get_text, n_get_text
 
 
 @pytest.mark.asyncio
@@ -24,8 +24,7 @@ async def test_show_type_replenishment(
 
     await module.show_type_replenishment(cb, FakeFSMContext(), user)
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext('Select the desired service for replenishment')
+    text = get_text(user.language, 'profile_messages', 'Select the desired service for replenishment')
     assert fake_bot.get_edited_message( user_id = user.user_id, message_id = cb.message.message_id, message = text)
 
 
@@ -55,8 +54,7 @@ async def test_get_amount_inactive_type_payment(
 
     await module.get_amount(cb, fsm, user)
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext("This service is temporarily inactive")
+    text = get_text(user.language, 'profile_messages', "This service is temporarily inactive")
 
     assert fake_bot.get_edited_message(user.user_id, 7, text), "Не отредактировалось сообщение о неактивном способе пополнения"
 
@@ -86,8 +84,7 @@ async def test_get_amount_active_success(
 
     await module.get_amount(cb, fsm, user)
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    expected_text = i18n.gettext('{name_payment}. Enter the top-up amount in rubles').format(name_payment='CryptoBot')
+    expected_text = get_text(user.language, 'profile_messages', '{name_payment}. Enter the top-up amount in rubles').format(name_payment='CryptoBot')
 
     assert fake_bot.check_str_in_edited_messages(expected_text), "Не появилось сообщение о вводе суммы пополнения"
     assert fsm.data["payment_id"] == 1, "payment_id не записан в FSM"
@@ -147,8 +144,9 @@ async def test_start_replenishment_crypto_bot_success(
     msg = FakeMessage(text="100", chat_id=user.user_id, username=user.username)
     await module.start_replenishment(msg, fsm, user)
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.ngettext(
+    text = n_get_text(
+        user.language,
+        'profile_messages',
         "{service_name}. Invoice successfully created. You have {minutes} minute to "
         "pay. After the time expires, the invoice will be canceled. \n\n"
         "Amount: {origin_sum}\n"

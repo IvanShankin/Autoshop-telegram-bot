@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, UTC
 import pytest
 
 from src.config import DT_FORMAT
-from src.utils.i18n import get_i18n
+from src.utils.i18n import get_text
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
 
 
@@ -111,7 +111,6 @@ async def test_get_code_acc_returns_codes_and_sends_message(
 
     user = await create_new_user()
     sold_small, sold_full = await create_sold_account(owner_id=user.user_id)
-    i18n = get_i18n(user.language, 'profile_messages')
 
     now = datetime.now(UTC)
     # Мокаем только get_auth_codes
@@ -124,7 +123,9 @@ async def test_get_code_acc_returns_codes_and_sends_message(
 
     result_message = ''
     for date, code in sample:
-        result_message += i18n.gettext(
+        result_message += get_text(
+            user.language,
+            'profile_messages',
             "Date: {date} \nCode: <code>{code}</code>\n\n"
         ).format(date=date.strftime(DT_FORMAT), code=code)
 
@@ -153,7 +154,6 @@ async def test_get_code_acc_returns_false_shows_unable_to_retrieve(
 
     user = await create_new_user()
     sold_small, sold_full = await create_sold_account(owner_id=user.user_id)
-    i18n = get_i18n(user.language, 'profile_messages')
 
     async def fake_get_auth_codes(*_a, **_kw):
         return False
@@ -169,7 +169,7 @@ async def test_get_code_acc_returns_false_shows_unable_to_retrieve(
 
     cb.answer = fake_answer
     await get_code_acc(cb, user)
-    assert i18n.gettext("Unable to retrieve data") in answered["text"]
+    assert get_text(user.language, 'profile_messages', "Unable to retrieve data") in answered["text"]
 
 
 @pytest.mark.asyncio
@@ -187,7 +187,6 @@ async def test_get_code_acc_no_codes_found_alert(
 
     user = await create_new_user()
     sold_small, sold_full = await create_sold_account(owner_id=user.user_id)
-    i18n = get_i18n(user.language, 'profile_messages')
 
     async def fake_get_auth_codes(*_a, **_kw):
         return []
@@ -203,7 +202,7 @@ async def test_get_code_acc_no_codes_found_alert(
 
     cb.answer = fake_answer
     await get_code_acc(cb, user)
-    assert i18n.gettext("No codes found") in answered["text"]
+    assert get_text(user.language, 'profile_messages', "No codes found") in answered["text"]
 
 
 
@@ -242,8 +241,7 @@ async def test_chek_valid_acc_valid_true_no_change(
 
     await chek_valid_acc(cb, user)
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    assert i18n.gettext('The account is valid') in answered["text"]
+    assert get_text(user.language, 'profile_messages', 'The account is valid') in answered["text"]
 
 
 @pytest.mark.asyncio
@@ -286,8 +284,7 @@ async def test_chek_valid_acc_valid_false_updates_and_refreshes_card(
 
     await chek_valid_acc(cb, user)
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    assert i18n.gettext('The account is not valid') in answered["text"]
+    assert get_text(user.language, 'profile_messages', 'The account is not valid') in answered["text"]
     assert "show_sold_account" in called
 
 
@@ -314,8 +311,7 @@ async def test_confirm_del_acc_edits_message(
 
     await confirm_del_acc(cb, user)
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext(
+    text = get_text(user.language, 'profile_messages',
         "Confirm deletion of this account?\n\n"
         "Phone number: {phone_number}\n"
         "Name: {name}"
@@ -367,8 +363,7 @@ async def test_del_account_successful_flow(
 
     await del_account(cb, user)
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    assert i18n.gettext("The account has been successfully deleted") in answered["text"]
+    assert get_text(user.language, 'profile_messages', "The account has been successfully deleted") in answered["text"]
     assert "show_all_sold_account" in called
 
 
@@ -406,5 +401,4 @@ async def test_del_account_move_in_account_fails_shows_alert(
 
     await del_account(cb, user)
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    assert i18n.gettext("An error occurred, please try again") in answered["text"]
+    assert get_text(user.language, 'profile_messages', "An error occurred, please try again") in answered["text"]

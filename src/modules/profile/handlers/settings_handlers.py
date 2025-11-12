@@ -7,25 +7,23 @@ from src.modules.profile.keyboard_profile import profile_settings_kb, settings_l
 from src.services.database.users.actions import get_user, update_user
 from src.services.database.users.actions.action_other_with_user import get_notification, update_notification
 from src.services.database.users.models import NotificationSettings, Users
-from src.utils.i18n import get_i18n
+from src.utils.i18n import get_text
 
 router = Router()
 
 async def notification_settings(user_id: int, username: str, message_id: int, notification: NotificationSettings):
     user = await get_user(user_id, username)
-    i18n = get_i18n(user.language, 'profile_messages')
 
     await edit_message(
         chat_id=user_id,
         message_id=message_id,
-        message=i18n.gettext("Notification Settings"),
+        message=get_text(user.language, 'profile_messages', "Notification Settings"),
         image_key='selecting_language',
         reply_markup=setting_notification_kb(user.language, notification=notification)
     )
 
 async def language_settings(user_id: int, message_id: int, user: Users):
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext("Language in the bot")
+    text = get_text(user.language, 'profile_messages', "Language in the bot")
 
     await edit_message(
         chat_id=user_id,
@@ -37,9 +35,7 @@ async def language_settings(user_id: int, message_id: int, user: Users):
 
 @router.callback_query(F.data == "profile_settings")
 async def profile_settings(callback: CallbackQuery, user: Users):
-
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext("Select the settings item")
+    text = get_text(user.language, 'profile_messages', "Select the settings item")
 
     await edit_message(
         chat_id = callback.from_user.id,

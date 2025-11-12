@@ -9,7 +9,7 @@ from src.services.database.discounts.models import Vouchers, PromoCodes
 from src.services.database.discounts.utils.sending import send_set_not_valid_voucher
 from src.services.database.users.actions import get_user
 from src.utils.core_logger import logger
-from src.utils.i18n import get_i18n
+from src.utils.i18n import get_text
 from src.bot_actions.actions import send_log
 
 
@@ -32,9 +32,10 @@ async def _set_not_valid_promo_code() -> None:
         await session.commit()
 
         changed_promo_codes = result_db.scalars().all()
-        i18n = get_i18n('ru', "discount")
         for promo in changed_promo_codes:
-            message_log = i18n.gettext(
+            message_log = get_text(
+                'ru',
+                "discount",
                 "#Promo_code_expired \nID '{id}' \nCode '{code}'"
                 "\n\nThe promo code has expired due to reaching the number of activations or time limit. It is no longer possible to activate it"
             ).format(id=promo.promo_code_id, code=promo.activation_code)

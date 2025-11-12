@@ -11,7 +11,7 @@ from src.services.redis.core_redis import get_redis
 from src.services.database.discounts.models import SmallVoucher
 from src.services.database.users.actions import get_user
 from src.services.database.users.models import Users, WalletTransaction, UserAuditLogs
-from src.utils.i18n import get_i18n
+from src.utils.i18n import get_text
 
 from tests.helpers.helper_functions import comparison_models
 from tests.helpers.monkeypatch_data import fake_bot
@@ -164,7 +164,6 @@ class TestActivateVoucher:
         user = await create_new_user()
         origin_balance = user.balance
         voucher = await create_voucher()
-        i18n = get_i18n(user.language, "discount")
 
         result_message, success = await activate_voucher(user, voucher.activation_code, user.language)
 
@@ -175,7 +174,9 @@ class TestActivateVoucher:
             )
             assert result.scalar_one_or_none()
 
-        expected = i18n.gettext(
+        expected = get_text(
+            user.language,
+            'discount',
             "Voucher successfully activated! \n\nVoucher amount: {amount} \nCurrent balance: {new_balance}"
         ).format(amount=voucher.amount, new_balance= origin_balance + voucher.amount)
 
@@ -187,11 +188,13 @@ class TestActivateVoucher:
         from src.services.database.discounts.actions import activate_voucher
 
         user = await create_new_user()
-        i18n = get_i18n(user.language, "discount")
 
         result_message, success = await activate_voucher(user, "INVALIDCODE", user.language)
 
-        expected = i18n.gettext("Voucher with this code not found")
+        expected = get_text(
+            user.language,
+            'discount',
+            "Voucher with this code not found")
         assert result_message == expected
 
     async def test_voucher_already_activated(self, create_voucher, create_new_user):
@@ -200,7 +203,6 @@ class TestActivateVoucher:
 
         user = await create_new_user()
         voucher = await create_voucher()
-        i18n = get_i18n(user.language, "discount")
 
         async with get_db() as session_db:
             new_activate = VoucherActivations(
@@ -213,7 +215,11 @@ class TestActivateVoucher:
         # пробуем активировать ваучер который уже активирован ранее этим пользователем
         result_message, success = await activate_voucher(user, voucher.activation_code, user.language)
 
-        expected = i18n.gettext("You have already activated this voucher. It can only be activated once")
+        expected = get_text(
+            user.language,
+            'discount',
+            "You have already activated this voucher. It can only be activated once"
+        )
         assert result_message == expected
         assert success == False
 
@@ -222,7 +228,6 @@ class TestActivateVoucher:
         from src.services.database.discounts.actions import activate_voucher
         owner_voucher = await create_new_user()
         user = await create_new_user()
-        i18n = get_i18n(user.language, "discount")
 
         # создаём просроченный ваучер
         expired_voucher = Vouchers(
@@ -242,7 +247,9 @@ class TestActivateVoucher:
 
         result_message, success = await activate_voucher(user, expired_voucher.activation_code, user.language)
 
-        expected = i18n.gettext(
+        expected = get_text(
+            user.language,
+            'discount',
             "Voucher expired \n\nID '{id}' \nCode '{code}' \n\nVoucher expired due to time limit. It can no longer be activated"
         ).format(id=expired_voucher.voucher_id, code=expired_voucher.activation_code)
 
@@ -254,11 +261,13 @@ class TestActivateVoucher:
         from src.services.database.discounts.actions import activate_voucher
         voucher = await create_voucher()
         user = await get_user(voucher.creator_id)
-        i18n = get_i18n(user.language, "discount")
 
         result_message, success = await activate_voucher(user, voucher.activation_code, user.language)
 
-        expected = i18n.gettext("You cannot activate the voucher. You are its creator")
+        expected = get_text(
+            user.language,
+            'discount',
+            "You cannot activate the voucher. You are its creator")
         assert result_message == expected
         assert success == False
 
@@ -367,8 +376,9 @@ async def test_set_not_valid_promo_code(create_settings):
         assert active_from_db.is_valid is True
 
     # проверка лога (должен быть только при деактивации промокода)
-    i18n = get_i18n('ru', "discount")
-    message_log = i18n.gettext(
+    message_log = get_text(
+        'ru',
+        'discount',
         "#Promo_code_expired \nID '{id}' \nCode '{code}'"
         "\n\nThe promo code has expired due to reaching the number of activations or time limit. It is no longer possible to activate it"
     ).format(id=expired_promo.promo_code_id, code=expired_promo.activation_code)

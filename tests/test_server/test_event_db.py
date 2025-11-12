@@ -9,14 +9,14 @@ from sqlalchemy import select, update
 from sqlalchemy import MetaData, Table
 
 from src.broker.producer import publish_event
-from src.config import DT_FORMAT
+from src.config import DT_FORMAT, DEFAULT_LANG
 from src.services.database.discounts.models import Vouchers
 from src.services.database.selling_accounts.events.schemas import NewPurchaseAccount, AccountsData
 from src.services.database.system.actions import get_settings, update_settings
 from src.services.database.users.models import Replenishments, Users, WalletTransaction, UserAuditLogs
 from src.services.database.replenishments_event.schemas import ReplenishmentFailed, ReplenishmentCompleted, NewReplenishment
 from src.services.database.core.database import get_db
-from src.utils.i18n import get_i18n
+from src.utils.i18n import get_text, n_get_text
 from src.services.redis.core_redis import get_redis
 
 from tests.helpers.helper_functions import comparison_models
@@ -122,10 +122,11 @@ class TestHandlerNewReplenishment:
         await comparison_models(updated_user, result_redis)
 
         # проверяем, что ReplenishmentFailed отработал
-        i18n = get_i18n(user.language, "replenishment")
 
         # сообщение пользователю
-        message_for_user = i18n.ngettext(
+        message_for_user = n_get_text(
+            user.language,
+            "replenishment",
             "Balance successfully replenished by {sum} ruble.\nThank you for choosing us!",
             "Balance successfully replenished by {sum} rubles.\nThank you for choosing us!",
             replenishment.amount
@@ -171,10 +172,10 @@ class TestHandlerNewReplenishment:
         )
 
         # проверяем, что ReplenishmentFailed отработал
-        i18n = get_i18n(user.language, "replenishment")
-
         # сообщение пользователю
-        message_for_user = i18n.ngettext(
+        message_for_user = n_get_text(
+            user.language,
+            'replenishment',
             "Balance successfully replenished by {sum} ruble.\nThank you for choosing us!",
             "Balance successfully replenished by {sum} rubles.\nThank you for choosing us!",
             new_replenishment.amount
@@ -183,7 +184,9 @@ class TestHandlerNewReplenishment:
         assert fake_bot.get_message(user.user_id, message_for_user)
 
         # лог
-        message_log = i18n.gettext(
+        message_log = get_text(
+            DEFAULT_LANG,
+            'replenishment',
             "#Replenishment_error \n\nUser {username} Paid money, balance updated, but an error occurred inside the server. \n"
             "Replenishment ID: {replenishment_id}.\nError: {error} \n\nTime: {time}"
         ).format(
@@ -227,10 +230,10 @@ class TestHandlerNewReplenishment:
         await publish_event(event.model_dump(), 'replenishment.completed')  # публикация события
         await asyncio.wait_for(processed_replenishment.wait(), timeout=5.0)  # ожидание завершения события
 
-        i18n = get_i18n(user.language, "replenishment")
-
         # сообщение пользователю
-        message_success = i18n.ngettext(
+        message_success = n_get_text(
+            user.language,
+            "replenishment",
             "Balance successfully replenished by {sum} ruble.\nThank you for choosing us!",
             "Balance successfully replenished by {sum} rubles.\nThank you for choosing us!",
             amount
@@ -238,7 +241,9 @@ class TestHandlerNewReplenishment:
         assert fake_bot.get_message(user.user_id, message_success)
 
         # лог
-        message_log = i18n.ngettext(
+        message_log = n_get_text(
+            user.language,
+            "replenishment",
             "#Replenishment \n\nUser {username} successfully topped up the balance by {sum} ruble. \n"
             "Replenishment ID: {replenishment_id} \n\n"
             "Time: {time}",
@@ -285,17 +290,19 @@ class TestHandlerNewReplenishment:
         await publish_event(event.model_dump(), 'replenishment.failed')  # публикация события
         await asyncio.wait_for(processed_replenishment.wait(), timeout=5.0)  # ожидание завершения события
 
-        i18n = get_i18n(user.language, "replenishment")
-
         # сообщение пользователю
-        message_for_user = i18n.gettext(
+        message_for_user = get_text(
+            user.language,
+            "replenishment",
             "An error occurred while replenishing!\nReplenishment ID: {replenishment_id} "
             "\n\nWe apologize for the inconvenience. \nPlease contact support."
         ).format(replenishment_id=replenishment_id)
         assert fake_bot.get_message(user.user_id, message_for_user)
 
         # лог
-        message_log = i18n.gettext(
+        message_log = get_text(
+            user.language,
+            "replenishment",
             "#Replenishment_error \n\nUser {username} Paid money, but the balance was not updated. \n"
             "Replenishment ID: {replenishment_id}. \nError: {error} \n\nTime: {time}"
         ).format(
@@ -396,9 +403,9 @@ class TestHandlerNewIncomeRef:
             if updated_ref.level == lvl.level:
                 percent = lvl.percent
 
-        i18n = get_i18n(owner.language, "referral_messages")
-
-        expected_message = i18n.gettext(
+        expected_message = get_text(
+            owner.language,
+            "referral_messages",
             "Your referral has replenished their balance and increased the level of the referral system.\n"
             "Referral level: {last_lvl} {current_lvl}\n"
             "You have earned: {amount}₽ ({percent}%)\n\n"
@@ -420,8 +427,9 @@ class TestHandlerNewIncomeRef:
 
         await on_referral_income_completed(user_id, language, amount, last_lvl, current_lvl, percent)
 
-        i18n = get_i18n(language, "referral_messages")
-        message = i18n.gettext(
+        message = get_text(
+            language,
+            "referral_messages",
             "Your referral has replenished the balance. \nReferral level: {level} \nYou have earned {amount}₽ ({percent}%)\n\n"
             "Funds have been credited to your balance in your personal account."
         ).format(level=current_lvl, amount=amount, percent=percent)
@@ -442,8 +450,9 @@ class TestHandlerNewIncomeRef:
 
         await on_referral_income_completed(user_id, language, amount, last_lvl, current_lvl, percent)
 
-        i18n = get_i18n(language, "referral_messages")
-        message = i18n.gettext(
+        message = get_text(
+            language,
+            "referral_messages",
             "Your referral has replenished their balance and increased the level of the referral system.\n"
             "Referral level: {last_lvl} {current_lvl}\n"
             "You have earned: {amount}₽ ({percent}%)\n\n"
@@ -460,8 +469,9 @@ class TestHandlerNewIncomeRef:
         error_text = "Some referral error"
         await on_referral_income_failed(error_text)
 
-        i18n = get_i18n("ru", "referral_messages")
-        message_log = i18n.gettext(
+        message_log = get_text(
+            'ru',
+            "referral_messages",
             "#Replenishment_error \n\n"
             "An error occurred while sending a message about replenishing funds to the referral owner. \n"
             "Error: {error}. \n\n"
@@ -536,8 +546,9 @@ async def test_handler_new_activate_promo_code(
             else:
                 assert redis_result
 
-        i18n = get_i18n('ru', "discount")
-        message = i18n.gettext(
+        message = get_text(
+            'ru',
+            "discount",
             "#Promocode_activation \nID promo_code '{promo_code_id}' \nCode '{code}' \nID user '{user_id}'"
             "\n\nSuccessfully activated. \nActivations remaining: {number_of_activations}"
         ).format(
@@ -549,7 +560,9 @@ async def test_handler_new_activate_promo_code(
         assert fake_bot.get_message(settings.channel_for_logging_id, message)
 
         if should_become_inactive:
-            message = i18n.gettext(
+            message = get_text(
+                'ru',
+                "discount",
                 "#Promo_code_expired \nID '{id}' \nCode '{code}'"
                 "\n\nThe promo code has expired due to reaching the number of activations or time limit. It is no longer possible to activate it"
             ).format(id=old_promo.promo_code_id,code=old_promo.activation_code,)
@@ -630,8 +643,9 @@ class TestHandlerNewActivatedVoucher:
 
 
         owner = await get_user(voucher.creator_id)
-        i18n = get_i18n(owner.language, "discount")
-        message_for_user = i18n.gettext(
+        message_for_user = get_text(
+            owner.language,
+            "discount",
             "Voucher with code '{code}' has been activated! \n\nRemaining number of voucher activations: {number_activations}"
         ).format(code=updated_voucher.activation_code, number_activations=updated_voucher.number_of_activations - updated_voucher.activated_counter)
 
@@ -685,8 +699,9 @@ class TestHandlerNewActivatedVoucher:
                 assert not redis_result
 
         # Проверяем отправку сообщения об истечении ваучера
-        i18n = get_i18n('ru', "discount")
-        expected_user_message = i18n.gettext(
+        expected_user_message = get_text(
+            'ru',
+            "discount",
             "Voucher has reached its activation limit \n\nID: {id} \nCode: {code} \n\n"
                 "The voucher has expired due to the activation limit. It can no longer be activated"
         ).format(id=voucher.voucher_id, code=voucher.activation_code)
@@ -729,8 +744,9 @@ class TestHandlerNewActivatedVoucher:
         await asyncio.wait_for(processed_voucher.wait(), timeout=5.0)  # ожидание завершения события
 
         # Проверяем отправку лога об ошибке
-        i18n = get_i18n('ru', "discount")
-        expected_error_message = i18n.gettext(
+        expected_error_message = get_text(
+            'ru',
+            "discount",
             "Error_while_activating_voucher. \n\nVoucher ID '{id}' \nError: {error}"
         ).format(id=voucher.voucher_id, error="")
 
@@ -769,18 +785,20 @@ class TestHandlerNewActivatedVoucher:
 
         await send_set_not_valid_voucher(user.user_id, voucher, True, user.language)
 
-        i18n = get_i18n(user.language, "discount")
-
         if is_created_admin:
             # Проверяем лог в канале
-            expected_log_message = i18n.gettext(
+            expected_log_message = get_text(
+            user.language,
+            "discount",
                 "#Voucher_expired \nID '{id}' \nCode '{code}'"
                 "\n\nThe voucher has expired due to reaching the number of activations or time limit. It is no longer possible to activate it"
             ).format(id=voucher.voucher_id, code=voucher.activation_code)
             assert fake_bot.get_message(settings.channel_for_logging_id, expected_log_message)
         else:
             # Проверяем сообщение пользователю
-            expected_user_message = i18n.gettext(
+            expected_user_message = get_text(
+                user.language,
+                "discount",
                 "Voucher has reached its activation limit \n\nID: {id} \nCode: {code} \n\n"
                 "The voucher has expired due to the activation limit. It can no longer be activated"
             ).format(id=voucher.voucher_id, code=voucher.activation_code)
@@ -801,8 +819,9 @@ class TestHandlerNewActivatedVoucher:
 
         await send_failed(voucher_id, error_text)
 
-        i18n = get_i18n('ru', "discount")
-        expected_error_message = i18n.gettext(
+        expected_error_message = get_text(
+            'ru',
+            "discount",
             "Error_while_activating_voucher. \n\nVoucher ID '{id}' \nError: {error}"
         ).format(id=voucher_id, error=error_text)
 

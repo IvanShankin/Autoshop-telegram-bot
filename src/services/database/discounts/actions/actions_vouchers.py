@@ -18,7 +18,7 @@ from src.services.database.discounts.models import SmallVoucher
 from src.services.database.users.actions import update_user, get_user
 from src.services.database.users.models import WalletTransaction, UserAuditLogs, Users
 from src.utils.codes import generate_code
-from src.utils.i18n import get_i18n
+from src.utils.i18n import get_text
 from src.bot_actions.actions import send_log
 
 
@@ -294,8 +294,9 @@ async def deactivate_voucher(voucher_id: int) -> int:
 
             return refund_amount
     except Exception as e:
-        i18n = get_i18n('ru', 'discount')
-        log_message = i18n.gettext(
+        log_message = get_text(
+            user.language,
+            'discount',
             "#Error_refunding_money_from_voucher \n\nVoucher ID: {voucher_id} \nOwner ID: {owner_id} \nError: {error}"
         ).format(voucher_id=voucher_id, owner_id=owner_id, error=str(e))
 
@@ -316,21 +317,22 @@ async def activate_voucher(user: Users, code: str, language: str) -> Tuple[str, 
     :param language: Язык на котором будет возвращено сообщение.
     :return Tuple[str, bool]: Сообщение с результатом, успешность активации
     """
-    i18n = get_i18n(language, "discount")
     balance_before = user.balance
 
     voucher = await get_valid_voucher_by_code(code)
     if not voucher:
-        return i18n.gettext("Voucher with this code not found"), False
+        return get_text(language, 'discount', "Voucher with this code not found"), False
 
     # если кто пытается активировать ваучера является его создателем
     if voucher.creator_id == user.user_id:
-        return i18n.gettext("You cannot activate the voucher. You are its creator"), False
+        return get_text(language, 'discount', "You cannot activate the voucher. You are its creator"), False
 
     # если ваучер просрочен
     if voucher.expire_at and voucher.expire_at < datetime.now(timezone.utc):
         await deactivate_voucher(voucher.voucher_id)
-        return i18n.gettext(
+        return get_text(
+            language,
+            'discount',
             "Voucher expired \n\nID '{id}' \nCode '{code}' \n\nVoucher expired due to time limit. It can no longer be activated"
         ).format(id=voucher.voucher_id, code=voucher.activation_code), False
 
@@ -345,7 +347,7 @@ async def activate_voucher(user: Users, code: str, language: str) -> Tuple[str, 
         )
         log_activate = result_db.scalar_one_or_none()
         if log_activate:
-            return i18n.gettext("You have already activated this voucher. It can only be activated once"), False
+            return get_text(language, 'discount', "You have already activated this voucher. It can only be activated once"), False
 
     user.balance = user.balance + voucher.amount
     user = await update_user(user)
@@ -368,7 +370,7 @@ async def activate_voucher(user: Users, code: str, language: str) -> Tuple[str, 
     )
     await publish_event(new_event.model_dump(), "voucher.activated")
 
-    return i18n.gettext(
+    return get_text(language, 'discount',
         "Voucher successfully activated! \n\nVoucher amount: {amount} \nCurrent balance: {new_balance}"
     ).format(amount=voucher.amount, new_balance=user.balance), True
 

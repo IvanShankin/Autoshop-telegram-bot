@@ -2,7 +2,7 @@ import pytest
 from types import SimpleNamespace
 
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeFSMContext
-from src.utils.i18n import get_i18n
+from src.utils.i18n import get_text
 
 
 @pytest.mark.asyncio
@@ -33,8 +33,7 @@ async def test_transfer_amount_invalid_input(
     # предполагаю имя функции `transfer_money_get_amount`
     await module.transfer_money_get_amount(fake_msg, FakeFSMContext(), user)
 
-    i18n = get_i18n(user.language, 'miscellaneous')
-    text = i18n.gettext('Incorrect value entered')
+    text = get_text(user.language, 'miscellaneous', 'Incorrect value entered')
     assert fake_bot.get_message(chat_id=user.user_id, text=text)
 
 
@@ -59,8 +58,7 @@ async def test_transfer_amount_insufficient_funds(
 
     await module.transfer_money_get_amount(fake_msg, FakeFSMContext(), user)
 
-    i18n = get_i18n(user.language, 'miscellaneous')
-    text = i18n.gettext('Insufficient funds: {amount}').format(amount=990)
+    text = get_text(user.language, 'miscellaneous', 'Insufficient funds: {amount}').format(amount=990)
     assert fake_bot.get_message(chat_id=user.user_id, text=text)
 
 
@@ -94,8 +92,7 @@ async def test_transfer_amount_success_sets_state_and_prompts_recipient(
     assert fsm.state is not None, "Не установлен state после корректной суммы"
     # проверяем, что отправилось приглашение ввести ID
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext('Enter the recipients ID')
+    text = get_text(user.language, 'profile_messages', 'Enter the recipients ID')
     assert fake_bot.get_message(chat_id=user.user_id, text=text)
 
 
@@ -132,8 +129,7 @@ async def test_transfer_recipient_not_found(
     # FSM can be anything (we're not using stored data here)
     await module.transfer_money_get_recipient_id(fake_msg, FakeFSMContext(), user)
 
-    i18n = get_i18n(user.language, 'miscellaneous')
-    text = i18n.gettext('User not found')
+    text = get_text(user.language, 'miscellaneous', 'User not found')
     assert fake_bot.get_message(chat_id=user.user_id, text=text)
 
 
@@ -173,8 +169,7 @@ async def test_confirm_transfer_money_user_not_found_exception(
 
     await module.confirm_transfer_money(cb, fsm, user)
 
-    i18n = get_i18n(user.language, 'miscellaneous')
-    text = i18n.gettext('User not found')
+    text = get_text(user.language, 'miscellaneous', 'User not found')
 
     _, chat_id, message_id, text_answer, reply_markup = fake_bot.calls[0]
     assert chat_id == user.user_id
@@ -209,15 +204,16 @@ async def test_confirm_transfer_money_success(
 
     await module.confirm_transfer_money(cb, fsm, sender)
 
-    i18n = get_i18n(sender.language, 'profile_messages')
-    text = i18n.gettext('Funds have been successfully transferred')
+    text = get_text(sender.language, 'profile_messages', 'Funds have been successfully transferred')
 
     _, chat_id, message_id, text_answer, reply_markup = fake_bot.calls[0]
     assert chat_id == sender.user_id
     assert message_id == 99
     assert text == text_answer
 
-    text = i18n.gettext(
+    text = get_text(
+        sender.language,
+        'profile_messages',
         'Funds transferred to your balance: {amount} ₽ \n\nCurrent balance: {balance}'
     ).format(amount=100, balance=recipient.balance + 100)
     assert fake_bot.get_message(recipient.user_id, text)

@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.utils.i18n import get_i18n
+from src.utils.i18n import get_text
 from src.exceptions.service_exceptions import ServiceContainsCategories
 
 MODULE_PATH = "src.modules.admin_actions.handlers.editor_services_handlers"
@@ -42,9 +42,8 @@ async def test_show_service_service_not_found(monkeypatch, patch_fake_aiogram, r
     # Вызов
     await show_service(user=user, service_id=999, callback=fake_callback)
 
-    i18n = get_i18n(user.language, "admins")
     assert called["answer"] is not None
-    assert i18n.gettext("The service is no longer available") in called["answer"]
+    assert get_text(user.language, 'admins', "The service is no longer available") in called["answer"]
 
 
 @pytest.mark.asyncio
@@ -60,8 +59,9 @@ async def test_show_service_service_found_calls_edit_message(
 
     await show_service(user=user, service_id=service.account_service_id, send_new_message=False, message_id=123)
 
-    i18n = get_i18n(user.language, 'admins')
-    message = i18n.gettext(
+    message = get_text(
+        user.language,
+        'admins',
         "Name: {name}\nIndex: {index}\nShow: {show}"
     ).format(name=service.name, index=service.index, show=service.show)
 
@@ -93,8 +93,7 @@ async def test_delete_acc_service_success(
 
     await delete_acc_service(callback, user)
 
-    i18n = get_i18n(user.language, 'admins')
-    assert replacement_fake_bot.check_str_in_edited_messages(i18n.gettext("Service successfully removed"))
+    assert replacement_fake_bot.check_str_in_edited_messages(get_text(user.language, 'admins', "Service successfully removed"))
 
 
 @pytest.mark.asyncio
@@ -106,7 +105,6 @@ async def test_delete_acc_service_contains_categories(
     должно появиться сообщение 'The service has categories, delete them first'
     """
     from src.modules.admin_actions.handlers.editor_services_handlers import delete_acc_service
-    from src.utils.i18n import get_i18n
 
     service = await create_account_service()
     user = await create_new_user()
@@ -127,7 +125,6 @@ async def test_delete_acc_service_contains_categories(
 
     await delete_acc_service(callback, user)
 
-    i18n = get_i18n(user.language, 'admins')
-    text_expected = i18n.gettext("The service has categories, delete them first")
+    text_expected = get_text(user.language, 'admins', "The service has categories, delete them first")
 
     assert replacement_fake_bot.check_str_in_edited_messages(text_expected)

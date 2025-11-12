@@ -1,6 +1,7 @@
 from sqlalchemy import update
 
 from src.bot_actions.bot_instance import get_bot
+from src.config import DEFAULT_LANG
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
 from src.services.database.discounts.utils.sending import send_set_not_valid_voucher
@@ -8,7 +9,7 @@ from src.services.database.discounts.events.schemas import NewActivationVoucher
 from src.services.database.discounts.models import Vouchers
 from src.services.database.users.actions import get_user
 from src.services.database.users.models import UserAuditLogs, WalletTransaction
-from src.utils.i18n import get_i18n
+from src.utils.i18n import get_text
 from src.bot_actions.actions import send_log
 
 
@@ -78,8 +79,9 @@ async def handler_new_activated_voucher(new_activation_voucher: NewActivationVou
             if not voucher.is_created_admin:
                 bot = await get_bot()
                 owner = await get_user(voucher.creator_id)
-                i18n = get_i18n(owner.language, "discount")
-                message_for_user = i18n.gettext(
+                message_for_user = get_text(
+                    owner.language,
+                    "discount",
                     "Voucher with code '{code}' has been activated! \n\nRemaining number of voucher activations: {number_activations}"
                 ).format(code=voucher.activation_code, number_activations=voucher.number_of_activations - voucher.activated_counter)
 
@@ -90,8 +92,9 @@ async def handler_new_activated_voucher(new_activation_voucher: NewActivationVou
 
 
 async def send_failed(voucher_id: int, error: str):
-    i18n = get_i18n('ru', "discount")
-    message_log = i18n.gettext(
+    message_log = get_text(
+        DEFAULT_LANG,
+        "discount",
         "Error_while_activating_voucher. \n\nVoucher ID '{id}' \nError: {error}"
     ).format(id=voucher_id, error=error)
     await send_log(message_log)

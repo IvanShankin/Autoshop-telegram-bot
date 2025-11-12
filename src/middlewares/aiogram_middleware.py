@@ -8,8 +8,7 @@ from src.config import DEFAULT_LANG
 from src.services.database.admins.actions import check_admin
 from src.services.database.system.actions import get_settings
 from src.services.database.users.actions import get_user
-from src.utils.i18n import get_i18n
-
+from src.utils.i18n import get_text
 
 
 class UserMiddleware(BaseMiddleware):
@@ -64,10 +63,9 @@ class MaintenanceMiddleware(BaseMiddleware):
 
         user = await get_user(event.from_user.id)
         language = user.language if user else DEFAULT_LANG
-        i18n = get_i18n(language, 'start_message')
 
         await event.answer(
-            i18n.gettext("⚙️ The bot is temporarily unavailable due to maintenance. Please try again later.")
+            get_text(language, 'start_message', "⚙️ The bot is temporarily unavailable due to maintenance. Please try again later.")
         )
 
 class I18nKeyFilter(BaseFilter):
@@ -87,5 +85,4 @@ class I18nKeyFilter(BaseFilter):
         if not user:
             return False
 
-        i18n = get_i18n(user.language, "keyboard")
-        return message.text == i18n.gettext(self.key)
+        return message.text == get_text(user.language, "keyboard", self.key)

@@ -8,7 +8,7 @@ from src.middlewares.aiogram_middleware import I18nKeyFilter
 from src.modules.profile.keyboard_profile import profile_kb
 from src.services.database.discounts.actions import get_valid_voucher_by_user_page
 from src.services.database.users.actions import get_user
-from src.utils.i18n import get_i18n
+from src.utils.i18n import get_text
 
 router_with_repl_kb = Router()
 router = Router()
@@ -22,8 +22,7 @@ async def handler_profile(
         message_id: int = None
 ):
     user = await get_user(user_id, username)
-    i18n = get_i18n(user.language, 'profile_messages')
-    username = i18n.gettext('No') if  user.username is None else f'@{user.username}'
+    username = get_text(user.language, 'profile_messages','No') if  user.username is None else f'@{user.username}'
 
     bot = await get_bot()
     bot_me = await bot.me()
@@ -33,8 +32,9 @@ async def handler_profile(
     for voucher in vouchers:
         money_in_vouchers += voucher.amount * (voucher.number_of_activations - voucher.activated_counter)
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext(
+    text = get_text(
+        user.language,
+        'profile_messages',
         "Username: {username} \nID: {id} \nRef_link: {ref_link} \nTotal sum replenishment: {total_sum_replenishment}"
         "\nBalance: {balance}, \nMoney in vouchers {money_in_vouchers}"
     ).format(

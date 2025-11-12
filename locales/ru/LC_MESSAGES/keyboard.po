@@ -173,6 +173,8 @@ msgstr "{indicator} Показывать"
 msgid "Rename"
 msgstr "Изменить имя"
 
+msgid "Add Category"
+msgstr "Добавить категорию"
 
 
 

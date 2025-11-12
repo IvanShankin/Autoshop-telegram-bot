@@ -1,5 +1,5 @@
 from src.services.database.discounts.models import Vouchers
-from src.utils.i18n import get_i18n
+from src.utils.i18n import get_text
 from src.bot_actions.actions import send_log, send_message
 
 
@@ -13,22 +13,26 @@ async def send_set_not_valid_voucher(user_id: int, voucher: Vouchers, limit_reac
     :return:
     """
     if voucher.is_created_admin: # отсылка лога в канал
-        i18n = get_i18n('ru', "discount")
-        message_log = i18n.gettext(
+        message_log = get_text(
+            'ru',
+            "discount",
             "#Voucher_expired \nID '{id}' \nCode '{code}'"
             "\n\nThe voucher has expired due to reaching the number of activations or time limit. It is no longer possible to activate it"
         ).format(id=voucher.voucher_id, code=voucher.activation_code)
         await send_log(message_log)
 
     else:
-        i18n = get_i18n(language, "discount")
         if limit_reached: # если достигли лимита по активациям
-            message_user = i18n.gettext(
+            message_user = get_text(
+                language,
+                "discount",
                 "Voucher has reached its activation limit \n\nID: {id} \nCode: {code} \n\n"
                 "The voucher has expired due to the activation limit. It can no longer be activated"
             ).format(id=voucher.voucher_id, code=voucher.activation_code)
         else: # если достигли лимита по времени
-            message_user = i18n.gettext(
+            message_user = get_text(
+                language,
+                "discount",
                 "Voucher expired \n\nID '{id}' \nCode '{code}' \n\nVoucher expired due to time limit. It can no longer be activated"
             ).format(id=voucher.voucher_id, code=voucher.activation_code)
 

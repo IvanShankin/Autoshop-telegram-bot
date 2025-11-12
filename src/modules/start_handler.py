@@ -14,7 +14,7 @@ from src.services.database.users.actions import get_user
 from src.services.database.users.actions.action_other_with_user import add_new_user
 from src.services.database.users.actions.action_user import get_user_by_ref_code, update_user
 from src.services.database.users.models import Users
-from src.utils.i18n import get_i18n
+from src.utils.i18n import get_text
 
 router = Router()
 
@@ -42,7 +42,6 @@ async def cmd_start(message: Message, command: CommandObject, state: FSMContext)
             owner_user = await get_user_by_ref_code(params[1])
 
     if user: # если пользователь уже есть
-        i18n = get_i18n(language, 'start_message')
 
         if result_message_voucher: # если необходимо вернуть результат активации ваучера
             image_key = 'successfully_activate_voucher' if success_activate_voucher else 'unsuccessfully_activate_voucher'
@@ -53,7 +52,9 @@ async def cmd_start(message: Message, command: CommandObject, state: FSMContext)
             )
         else: # простое приветственное сообщение
             setting = await get_settings()
-            text = i18n.gettext(
+            text = get_text(
+                language,
+                'start_message',
                 'Welcome to {shop_name} SHOP! \nOur news channel: @{channel_name} \nHappy shopping!'
             ).format(shop_name=setting.shop_name, channel_name=setting.channel_name)
             await send_message(
@@ -82,8 +83,9 @@ async def cmd_start(message: Message, command: CommandObject, state: FSMContext)
         if owner_user: # если пользователь должен стать рефераллом
             await add_referral(referral_id=user.user_id, owner_id=owner_user.user_id)
 
-            i18n = get_i18n(owner_user.language, 'referral_messages')
-            text = i18n.gettext(
+            text = get_text(
+                language,
+                'referral_messages',
                 "You've invited a new referral!\n"
                 "Username: {username}\n\n"
                 "Thank you for using our service!"
@@ -106,8 +108,9 @@ async def select_language(callback: CallbackQuery, user: Users):
     user.language = selected_lang
     await update_user(user)
 
-    i18n = get_i18n(selected_lang, 'start_message')
-    text = i18n.gettext(
+    text = get_text(
+        selected_lang,
+        'start_message',
         'Welcome to {shop_name} SHOP! \nOur news channel: @{channel_name} \nHappy shopping!'
     ).format(shop_name=setting.shop_name, channel_name=setting.channel_name)
     await send_message(

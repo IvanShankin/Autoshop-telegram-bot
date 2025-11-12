@@ -1,5 +1,8 @@
 import pytest
 from types import SimpleNamespace
+
+from src.config import DEFAULT_LANG
+from src.utils.i18n import get_text
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
 
 
@@ -25,8 +28,7 @@ async def test_my_voucher_callback(
 
     await module.my_voucher(cb, user)
 
-    i18n = module.get_i18n(user.language, 'profile_messages')
-    expected = i18n.gettext("All vouchers. To view a specific voucher, click on it")
+    expected = get_text(user.language, 'profile_messages', "All vouchers. To view a specific voucher, click on it")
 
     assert fake_bot.get_edited_message(user.user_id, 7, expected), "Не отредактировалось сообщение о просмотре ваучеров"
 
@@ -52,8 +54,7 @@ async def test_show_voucher_inactive(
 
     await module.show_voucher(cb, user)
 
-    i18n = module.get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext('This voucher is currently inactive, please select another one')
+    text = get_text(user.language, 'profile_messages', 'This voucher is currently inactive, please select another one')
     assert fake_bot.get_edited_message(user.user_id, 10, text), "Не отправилось сообщение о неактивном ваучере"
 
 
@@ -100,8 +101,7 @@ async def test_confirm_deactivate_voucher_inactive(
 
     await module.confirm_deactivate_voucher(cb, user)
 
-    i18n = module.get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext('This voucher is currently inactive')
+    text = get_text(user.language, 'profile_messages', 'This voucher is currently inactive')
     assert fake_bot.get_edited_message(user.user_id, 88, text), \
         "Не отправилось сообщение о неактивном ваучере при подтверждении"
 
@@ -125,8 +125,7 @@ async def test_confirm_deactivate_voucher_active_success(
 
     await module.confirm_deactivate_voucher(cb, user)
 
-    i18n = module.get_i18n("ru", 'profile_messages')
-    text_part = i18n.gettext("Are you sure you want to deactivate the voucher?")
+    text_part = get_text('ru', 'profile_messages', "Are you sure you want to deactivate the voucher?")
     assert fake_bot.check_str_in_edited_messages(text_part), \
         "Не появилось сообщение о подтверждении деактивации ваучера"
 
@@ -150,8 +149,7 @@ async def test_deactivate_voucher_inactive(
 
     await module.deactivate_voucher(cb, user)
 
-    i18n = module.get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext('This voucher is currently inactive')
+    text = get_text(user.language, 'profile_messages', 'This voucher is currently inactive')
     assert fake_bot.get_edited_message(user.user_id, 55, text), \
         "Не отправилось сообщение о неактивном ваучере при деактивации"
 
@@ -175,7 +173,6 @@ async def test_deactivate_voucher_success(
 
     await module.deactivate_voucher(cb, user)
 
-    i18n = module.get_i18n("en", 'profile_messages')
-    text = i18n.gettext("The voucher has been successfully deactivated")
+    text = get_text('en', 'profile_messages', "The voucher has been successfully deactivated")
     assert fake_bot.check_str_in_edited_messages(text), \
         "Не отправилось сообщение об успешной деактивации ваучера"

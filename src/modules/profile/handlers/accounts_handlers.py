@@ -16,7 +16,7 @@ from src.services.database.users.models import Users
 from src.services.filesystem.account_actions import move_in_account, check_account_validity, get_tdata_tg_acc, \
     get_session_tg_acc, get_auth_codes
 from src.utils.core_logger import logger
-from src.utils.i18n import get_i18n
+from src.utils.i18n import get_text
 from src.utils.secret_data import decrypt_data
 
 router = Router()
@@ -43,11 +43,12 @@ async def show_sold_account(
     type_account_service_id: int
 ):
     """Отредактирует сообщение и покажет необходимое для аккаунта"""
-    i18n = get_i18n(language, 'profile_messages')
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
-        message=i18n.gettext(
+        message=get_text(
+            language,
+            'profile_messages',
             "Phone: {phone_number}\n\n"
             "Name: {name}\n"
             "Description: {description}\n\n"
@@ -57,7 +58,11 @@ async def show_sold_account(
             phone_number=account.account_storage.phone_number,
             name=account.name,
             description=account.description,
-            valid=i18n.gettext("Valid") if account.account_storage.is_valid else i18n.gettext("Not valid"),
+            valid=(
+                get_text(language, 'profile_messages',"Valid")
+                if account.account_storage.is_valid
+                else get_text(language, 'profile_messages',"Not valid")
+            ),
             sold_at=account.sold_at.strftime(DT_FORMAT),
         ),
         image_key='purchased_accounts',
@@ -78,10 +83,9 @@ async def cheek_sold_account(
     type_account_service_id: int
 ) -> SoldAccountFull | None:
     """Проверит наличие аккаунта, если нет, то выведет соответствующие сообщение и вернёт к выбору аккаунта"""
-    i18n = get_i18n(language, 'profile_messages')
     account = await get_sold_accounts_by_account_id(sold_account_id, language=language)
     if not account:
-        await callback.answer(i18n.gettext("Account not found"), show_alert=True)
+        await callback.answer(get_text(user.language, 'profile_messages', "Account not found"), show_alert=True)
         await show_all_sold_account(
             user_id=callback.from_user.id,
             language=language,
@@ -100,11 +104,10 @@ async def get_file_for_login(callback: CallbackQuery, func_get_file: Any, type_m
     """
     sold_account_id = int(callback.data.split(':')[1])
     user = await get_user(callback.from_user.id)
-    i18n = get_i18n(user.language, 'profile_messages')
 
     account = await get_sold_accounts_by_account_id(sold_account_id, language=user.language)
     if not account:
-        await callback.answer(i18n.gettext("Account not found"))
+        await callback.answer(get_text(user.language, 'profile_messages', "Account not found"))
         return
 
     tg_media = await get_tg_account_media(account.account_storage.account_storage_id)
@@ -118,7 +121,7 @@ async def get_file_for_login(callback: CallbackQuery, func_get_file: Any, type_m
             logger.warning(f"[get_file_for_login] {type_media} недействителен, он будет удалён")
             await update_tg_account_media(tg_media.tg_account_media_id, **{type_media: None}) # обнуляем затронутое поле
 
-    message_load = await send_message(user.user_id, i18n.gettext("Loading..."))
+    message_load = await send_message(user.user_id, get_text(user.language, 'profile_messages', "Loading..."))
 
     async for path in func_get_file(AccountStorage(**account.account_storage.model_dump())):
         if path:
@@ -127,7 +130,7 @@ async def get_file_for_login(callback: CallbackQuery, func_get_file: Any, type_m
             message = await bot.send_document(chat_id=user.user_id, document=archive)
             await update_tg_account_media(tg_media.tg_account_media_id, **{type_media: message.document.file_id})
         else:
-            await callback.answer(i18n.gettext("Unable to retrieve data"), show_alert=True)
+            await callback.answer(get_text(user.language, 'profile_messages', "Unable to retrieve data"), show_alert=True)
 
     try:
         await message_load.delete()
@@ -169,11 +172,10 @@ async def sold_account(callback: CallbackQuery, user: Users):
     sold_account_id = int(callback.data.split(':')[1])
     type_account_service_id = int(callback.data.split(':')[2])
     current_page = int(callback.data.split(':')[3])
-    i18n = get_i18n(user.language, 'profile_messages')
 
     account = await get_sold_accounts_by_account_id(sold_account_id, language=user.language)
     if not account:
-        await callback.answer(i18n.gettext("Account not found"))
+        await callback.answer(get_text(user.language, 'profile_messages', "Account not found"))
         return
 
     await show_sold_account(
@@ -189,11 +191,10 @@ async def login_details(callback: CallbackQuery, user: Users):
     sold_account_id = int(callback.data.split(':')[1])
     type_account_service_id = int(callback.data.split(':')[2])
     current_page = int(callback.data.split(':')[3])
-    i18n = get_i18n(user.language, 'profile_messages')
 
     account = await get_sold_accounts_by_account_id(sold_account_id, language=user.language)
     if not account:
-        await callback.answer(i18n.gettext("Account not found"))
+        await callback.answer(get_text(user.language, 'profile_messages', "Account not found"))
         return
 
     await edit_message(
@@ -212,14 +213,13 @@ async def login_details(callback: CallbackQuery, user: Users):
 @router.callback_query(F.data.startswith("get_code_acc:"))
 async def get_code_acc(callback: CallbackQuery, user: Users):
     sold_account_id = int(callback.data.split(':')[1])
-    i18n = get_i18n(user.language, 'profile_messages')
 
     account = await get_sold_accounts_by_account_id(sold_account_id, language=user.language)
     if not account:
-        await callback.answer(i18n.gettext("Account not found"))
+        await callback.answer(get_text(user.language, 'profile_messages', "Account not found"))
         return
 
-    message_search = await send_message(user.user_id, i18n.gettext('Search...'))
+    message_search = await send_message(user.user_id, get_text(user.language, 'profile_messages', 'Search...'))
 
     dt_and_code = await get_auth_codes(AccountStorage(**account.account_storage.model_dump()))
 
@@ -229,7 +229,7 @@ async def get_code_acc(callback: CallbackQuery, user: Users):
         pass
 
     if dt_and_code is False:
-        await callback.answer(i18n.gettext("Unable to retrieve data"), show_alert=True)
+        await callback.answer(get_text(user.language, 'profile_messages', "Unable to retrieve data"), show_alert=True)
         return
 
     dt_and_code = sorted(dt_and_code, key=lambda x: x[0])
@@ -238,12 +238,12 @@ async def get_code_acc(callback: CallbackQuery, user: Users):
         if i > 5: # 5 последних кодов
             break
         date, code = dt_and_code[i]
-        result_text += i18n.gettext(
+        result_text += get_text(user.language, 'profile_messages',
             "Date: {date} \nCode: <code>{code}</code>\n\n"
         ).format(date=date.strftime(DT_FORMAT), code=code)
 
     if not result_text:
-        await callback.answer(i18n.gettext("No codes found"), show_alert=True)
+        await callback.answer(get_text(user.language, 'profile_messages', "No codes found"), show_alert=True)
         return
 
     await send_message(user.user_id, message=result_text)
@@ -262,16 +262,15 @@ async def get_session_acc(callback: CallbackQuery):
 @router.callback_query(F.data.startswith("get_log_pas:"))
 async def get_log_pas(callback: CallbackQuery, user: Users):
     sold_account_id = int(callback.data.split(':')[1])
-    i18n = get_i18n(user.language, 'profile_messages')
 
     account = await get_sold_accounts_by_account_id(sold_account_id, language=user.language)
     if not account:
-        await callback.answer(i18n.gettext("Account not found"))
+        await callback.answer(get_text(user.language, 'profile_messages', "Account not found"))
         return
 
     await send_message(
         user.user_id,
-        i18n.gettext("Login: <code>{login}</code> \nPassword: <code>{password}</code>").format(
+        get_text(user.language, 'profile_messages', "Login: <code>{login}</code> \nPassword: <code>{password}</code>").format(
             login=decrypt_data(account.account_storage.login_encrypted),
             password=decrypt_data(account.account_storage.password_encrypted)
         )
@@ -284,7 +283,6 @@ async def chek_valid_acc(callback: CallbackQuery, user: Users):
     type_account_service_id = int(callback.data.split(':')[2])
     current_page = int(callback.data.split(':')[3])
     current_validity = bool(int(callback.data.split(':')[4]))
-    i18n = get_i18n(user.language, 'profile_messages')
 
     account = await cheek_sold_account(
         callback=callback,
@@ -298,7 +296,7 @@ async def chek_valid_acc(callback: CallbackQuery, user: Users):
 
     type_service = await get_type_account_service(type_account_service_id)
 
-    verification_message = await send_message(chat_id=user.user_id,message=i18n.gettext("Checking for validity..."))
+    verification_message = await send_message(chat_id=user.user_id,message=get_text(user.language, 'profile_messages', "Checking for validity..."))
 
     result = await check_account_validity(
         account_storage=AccountStorage(**account.account_storage.model_dump()),
@@ -311,9 +309,9 @@ async def chek_valid_acc(callback: CallbackQuery, user: Users):
         pass
 
     if result:
-        message = i18n.gettext('The account is valid')
+        message = get_text(user.language, 'profile_messages', 'The account is valid')
     else:
-        message = i18n.gettext('The account is not valid')
+        message = get_text(user.language, 'profile_messages', 'The account is not valid')
 
     await callback.answer(message, show_alert=True)
 
@@ -335,8 +333,6 @@ async def confirm_del_acc(callback: CallbackQuery, user: Users):
     type_account_service_id = int(callback.data.split(':')[2])
     current_page = int(callback.data.split(':')[3])
 
-    i18n = get_i18n(user.language, 'profile_messages')
-
     account = await cheek_sold_account(
         callback=callback,
         sold_account_id=sold_account_id,
@@ -350,7 +346,7 @@ async def confirm_del_acc(callback: CallbackQuery, user: Users):
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
-        message=i18n.gettext(
+        message=get_text(user.language, 'profile_messages',
             "Confirm deletion of this account?\n\n"
             "Phone number: {phone_number}\n"
             "Name: {name}"
@@ -374,8 +370,6 @@ async def del_account(callback: CallbackQuery, user: Users):
     type_account_service_id = int(callback.data.split(':')[2])
     current_page = int(callback.data.split(':')[3])
 
-    i18n = get_i18n(user.language, 'profile_messages')
-
     account = await cheek_sold_account(
         callback=callback,
         sold_account_id=sold_account_id,
@@ -390,7 +384,7 @@ async def del_account(callback: CallbackQuery, user: Users):
 
     result = await move_in_account(account=AccountStorage(**account.account_storage.model_dump()), type_service_name=type_service.name, status='deleted')
     if not result:
-        await callback.answer(i18n.gettext("An error occurred, please try again"), show_alert=True)
+        await callback.answer(get_text(user.language, 'profile_messages', "An error occurred, please try again"), show_alert=True)
         return
 
     await update_account_storage(
@@ -406,7 +400,7 @@ async def del_account(callback: CallbackQuery, user: Users):
         description=account.description
     )
 
-    await callback.answer(i18n.gettext("The account has been successfully deleted"), show_alert=True)
+    await callback.answer(get_text(user.language, 'profile_messages', "The account has been successfully deleted"), show_alert=True)
 
     await show_all_sold_account(
         user_id=callback.from_user.id,

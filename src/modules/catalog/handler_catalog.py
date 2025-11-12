@@ -7,7 +7,7 @@ from src.middlewares.aiogram_middleware import I18nKeyFilter
 from src.modules.catalog.keyboard_catalog import catalog_kb, subscription_prompt_kb
 from src.services.database.users.models import Users
 from src.services.redis.actions import get_subscription_prompt, delete_subscription_prompt
-from src.utils.i18n import get_i18n
+from src.utils.i18n import get_text
 
 router_with_repl_kb = Router()
 router = Router()
@@ -17,10 +17,11 @@ async def handle_catalog_message(message: Message, state: FSMContext, user: User
     await state.clear()
 
     if await get_subscription_prompt(user.user_id): # если пользователю ранее не предлагали подписаться
-        i18n = get_i18n(user.language, 'catalog')
         await send_message(
             chat_id=user.user_id,
-            message=i18n.gettext(
+            message=get_text(
+                user.language,
+                'catalog',
                 'Want to stay up-to-date on all the latest news? \n'
                 'Subscribe to our channel where we share news and special offers'
             ),

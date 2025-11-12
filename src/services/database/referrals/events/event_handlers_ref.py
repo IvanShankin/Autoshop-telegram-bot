@@ -4,11 +4,11 @@ from aiogram.exceptions import TelegramForbiddenError
 from sqlalchemy import update, select
 
 from src.bot_actions.bot_instance import get_bot_logger
-from src.config import DT_FORMAT
+from src.config import DT_FORMAT, DEFAULT_LANG
 from src.services.database.users.actions import get_user, update_user
 from src.services.database.users.models import UserAuditLogs, WalletTransaction, NotificationSettings
 from src.services.database.core.database import get_db
-from src.utils.i18n import get_i18n
+from src.utils.i18n import get_text
 from src.services.database.referrals.actions import get_referral_lvl
 from src.services.database.referrals.models.models_ref import Referrals, IncomeFromReferrals
 from src.services.database.replenishments_event.schemas import ReplenishmentCompleted
@@ -129,14 +129,17 @@ async def on_referral_income_completed(user_id: int, language: str,  amount: int
     bot = await get_bot_logger()
 
     try:
-        i18n = get_i18n(language, "referral_messages")
         if last_lvl == current_lvl:  # если уровень у реферала не обновился
-            message = i18n.gettext(
+            message = get_text(
+                language,
+                'referral_messages',
                 "Your referral has replenished the balance. \nReferral level: {level} \nYou have earned {amount}₽ ({percent}%)\n\n"
                 "Funds have been credited to your balance in your personal account."
             ).format(level=current_lvl, amount=amount, percent=percent)
         else:
-            message = i18n.gettext(
+            message = get_text(
+                language,
+                'referral_messages',
                 "Your referral has replenished their balance and increased the level of the referral system.\n"
                 "Referral level: {last_lvl} {current_lvl}\n"
                 "You have earned: {amount}₽ ({percent}%)\n\n"
@@ -152,8 +155,9 @@ async def on_referral_income_completed(user_id: int, language: str,  amount: int
             f"#Ошибка_пополнения. Произошла ошибка при отсылке сообщения о пополнении денег владельцу реферала. Ошибка: {str(e)}."
         )
 
-        i18n = get_i18n('ru', "referral_messages")
-        message_log = i18n.gettext(
+        message_log = get_text(
+            DEFAULT_LANG,
+            'referral_messages',
             "#Replenishment_error \n\n"
             "An error occurred while sending a message about replenishing funds to the referral owner. \n"
             "Error: {error}. \n\n"
@@ -163,8 +167,9 @@ async def on_referral_income_completed(user_id: int, language: str,  amount: int
 
 async def on_referral_income_failed(error: str):
     """Отсылает лог ошибки при пополнении баланса"""
-    i18n = get_i18n('ru', "referral_messages")
-    message_log = i18n.gettext(
+    message_log = get_text(
+        DEFAULT_LANG,
+        'referral_messages',
         "#Replenishment_error \n\n"
         "An error occurred while sending a message about replenishing funds to the referral owner. \n"
         "Error: {error}. \n\n"

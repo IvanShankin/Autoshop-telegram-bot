@@ -64,6 +64,6 @@ msgstr "Выберите хотя бы один аккаунт"
 msgid "There are not enough accounts on the server, please change the number of accounts to purchase"
 msgstr "На сервере недостаточно аккаунтов, пожалуйста измените их количество на приобретение"
 
-
-
+msgid "Test accounts..."
+msgstr "Проверка аккаунтов"
 

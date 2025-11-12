@@ -3,8 +3,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
 from src.services.database.admins.actions import check_admin
 from src.services.database.system.actions import get_settings
-from src.utils.i18n import get_i18n
-
+from src.utils.i18n import get_text
 
 selecting_language = InlineKeyboardMarkup(
     inline_keyboard = [
@@ -14,17 +13,16 @@ selecting_language = InlineKeyboardMarkup(
 )
 
 async def main_kb(language: str, user_id: int):
-    i18n = get_i18n(language, 'keyboard')
     keyboard_builder = ReplyKeyboardBuilder()
 
     # Добавление кнопок
-    keyboard_builder.row(KeyboardButton(text = i18n.gettext('Product catalog')))
+    keyboard_builder.row(KeyboardButton(text = get_text(language, 'keyboard', 'Product catalog')))
     keyboard_builder.row(
-        KeyboardButton(text = i18n.gettext('Profile')),
-        KeyboardButton(text = i18n.gettext('Information'))
+        KeyboardButton(text = get_text(language, 'keyboard', 'Profile')),
+        KeyboardButton(text = get_text(language, 'keyboard', 'Information'))
     )
     if await check_admin(user_id):
-        keyboard_builder.row(KeyboardButton(text=i18n.gettext('Admin panel')))
+        keyboard_builder.row(KeyboardButton(text=get_text(language, 'keyboard', 'Admin panel')))
 
     return keyboard_builder.as_markup(resize_keyboard=True)
 
@@ -33,8 +31,7 @@ async def support_kb(language: str, support_username: str = None):
         settings = await get_settings()
         support_username = settings.support_username
 
-    i18n = get_i18n(language, 'keyboard')
-    support_name = i18n.gettext('Support')
+    support_name = get_text(language, 'keyboard', 'Support')
 
     keyboard = InlineKeyboardBuilder()
     keyboard.add(InlineKeyboardButton(text=support_name, url=f"https://t.me/{support_username.lstrip()}"))

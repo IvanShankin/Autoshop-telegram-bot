@@ -1,6 +1,6 @@
 import pytest
 from types import SimpleNamespace
-from src.utils.i18n import get_i18n
+from src.utils.i18n import get_text
 from tests.helpers.fake_aiogram.fake_aiogram_module import (
     FakeCallbackQuery,
     FakeMessage,
@@ -115,8 +115,7 @@ async def test_set_quantity_accounts_invalid_and_exceeds_stock_behaviour(
     msg_bad = FakeMessage(text="not_a_number", chat_id=user.user_id, username=user.username)
     await module.set_quantity_accounts(msg_bad, fsm1, user)
 
-    i18n = get_i18n(user.language, 'catalog')
-    bad_text = i18n.gettext("Incorrect value entered")
+    bad_text = get_text(user.language, 'catalog', "Incorrect value entered")
     assert fake_bot.get_message(chat_id=user.user_id, text=bad_text), "Не отправилось сообщение об ошибочном вводе"
 
     # 2) ввод превышает склад
@@ -127,7 +126,7 @@ async def test_set_quantity_accounts_invalid_and_exceeds_stock_behaviour(
     msg_too_many = FakeMessage(text="5", chat_id=user.user_id, username=user.username)
     await module.set_quantity_accounts(msg_too_many, fsm2, user)
 
-    no_stock_text = i18n.gettext("No longer in stock")
+    no_stock_text = get_text(user.language, 'catalog', "No longer in stock")
     assert fake_bot.get_message(chat_id=user.user_id, text=no_stock_text), "Не отправилось сообщение о нехватке на складе"
 
 
@@ -204,8 +203,7 @@ async def test_enter_promo_sets_state_and_edits_message(
     data = await fsm.get_data()
     assert int(data.get("old_message_id")) == cb.message.message_id or data.get("old_message_id") == cb.message.message_id
 
-    i18n = get_i18n(user.language, 'catalog')
-    expected = i18n.gettext("Enter the activation code")
+    expected = get_text(user.language, 'catalog', "Enter the activation code")
 
     # проверяем, что сообщение редактировалось и содержало просьбу ввести код
     assert fake_bot.get_edited_message(user.user_id, cb.message.message_id, expected), "Не отредактировалось сообщение с просьбой ввести промокод"
@@ -242,8 +240,7 @@ async def test_set_promo_code_not_found_shows_error_and_keeps_state(
     # FSM должен остаться на шаге promo_code
     assert fsm.state is not None, "FSM state неожиданно очищен"
 
-    i18n = get_i18n(user.language, 'discount')
-    expected = i18n.gettext("A promo code with this code was not found/expired \n\nTry again")
+    expected = get_text(user.language, 'discount', "A promo code with this code was not found/expired \n\nTry again")
 
     # проверяем, что исходное сообщение (old_message_id) было отредактировано с текстом ошибки
     assert fake_bot.get_edited_message(user.user_id, 33, expected), "Не отправилось сообщение об отсутствии промокода"
@@ -345,9 +342,16 @@ async def test_confirm_buy_acc_with_promo_applies_discount_and_edits_message(
     await module.confirm_buy_acc(cb, user)
 
     # Проверим, что сообщение редактировалось и в нём указана верная сумма after discount (Due: 50)
-    i18n = get_i18n(user.language, 'catalog')
-    # Формат в коде: "... Due: {total_sum}"
-    assert fake_bot.check_str_in_edited_messages("Due: 50"), "Скидка не применена или сообщение не отредактировалось с ожидаемой суммой"
+    text = get_text(
+        user.language,
+        domain='catalog',
+        key="Confirm your purchase\n\n"
+        "{category_name}\n"
+        "Accounts will be received: {quantity_account}\n"
+        "Your balance: {balance}\n"
+        "Due: {total_sum}"
+    )
+    assert fake_bot.check_str_in_edited_messages(text[:15]), "Скидка не применена или сообщение не отредактировалось с ожидаемой суммой"
 
 
 @pytest.mark.asyncio
@@ -504,8 +508,7 @@ class TestBuyAccount:
 
         await module.buy_acc(cb, user)
 
-        i18n = get_i18n(user.language, 'miscellaneous')
-        expected_text = i18n.gettext("Insufficient funds: {amount}").format(amount=150)
+        expected_text = get_text(user.language, 'miscellaneous', "Insufficient funds: {amount}").format(amount=150)
 
         assert fake_bot.get_edited_message(user.user_id, cb.message.message_id, expected_text), \
             "Не отредактировалось сообщение о нехватке средств"

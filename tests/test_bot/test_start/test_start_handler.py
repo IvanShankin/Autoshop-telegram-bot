@@ -7,7 +7,8 @@ from src.services.database.core.database import get_db
 from src.services.database.referrals.models import Referrals
 from src.services.database.system.actions import get_settings, update_settings
 from src.services.database.users.actions import get_user
-from src.utils.i18n import get_i18n
+from src.utils.i18n import get_text
+
 
 @pytest.mark.asyncio
 async def test_start_non_existing_user(patch_fake_aiogram, replacement_fake_bot):
@@ -39,8 +40,9 @@ async def test_start_existing_user(patch_fake_aiogram, replacement_fake_bot, cre
 
     await start.cmd_start(msg, com, FakeFSMContext())
 
-    i18n = get_i18n(user.language, 'start_message')
-    text = i18n.gettext(
+    text = get_text(
+        user.language,
+        'start_message',
         'Welcome to {shop_name} SHOP! \nOur news channel: @{channel_name} \nHappy shopping!'
     ).format(shop_name=setting.shop_name, channel_name=setting.channel_name)
 
@@ -71,8 +73,9 @@ async def test_start_with_new_referral(patch_fake_aiogram, replacement_fake_bot,
 
 
     # сообщение для владельца рефералла
-    i18n = get_i18n(owner.language, 'referral_messages')
-    message = i18n.gettext(
+    message = get_text(
+        owner.language,
+        'referral_messages',
         "You've invited a new referral!\n"
         "Username: {username}\n\n"
         "Thank you for using our service!"
@@ -103,8 +106,9 @@ async def test_start_activate_voucher_existing_user(
     user = await get_user(user.user_id) # для обновления баланса
     assert user.balance == voucher.amount # т.к. у пользователя не было денег
 
-    i18n = get_i18n(user.language, 'discount')
-    text = i18n.gettext(
+    text = get_text(
+        user.language,
+        'discount',
         "Voucher successfully activated! \n\nVoucher amount: {amount} \nCurrent balance: {new_balance}"
     ).format(amount=voucher.amount, new_balance=user.balance)
 
@@ -145,8 +149,9 @@ async def test_start_activate_voucher_existing_user(
         )
         assert result_db.scalar_one_or_none()  # должна появиться запись о новом рефералле
 
-    i18n = get_i18n(user.language, 'discount')
-    text = i18n.gettext(
+    text = get_text(
+        user.language,
+        'discount',
         "Voucher successfully activated! \n\nVoucher amount: {amount} \nCurrent balance: {new_balance}"
     ).format(amount=voucher.amount, new_balance=user.balance)
 
@@ -168,8 +173,9 @@ async def test_select_language(patch_fake_aiogram, replacement_fake_bot, create_
     user = await get_user(user.user_id)
     assert user.language == 'en'
 
-    i18n = get_i18n(user.language, 'start_message')
-    text = i18n.gettext(
+    text = get_text(
+        user.language,
+        'start_message',
         'Welcome to {shop_name} SHOP! \nOur news channel: @{channel_name} \nHappy shopping!'
     ).format(shop_name=setting.shop_name, channel_name=setting.channel_name)
 

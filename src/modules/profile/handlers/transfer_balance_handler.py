@@ -19,7 +19,7 @@ from src.services.database.system.actions import get_settings
 from src.services.database.users.actions import get_user
 from src.services.database.users.actions.action_other_with_user import money_transfer
 from src.services.database.users.models import Users
-from src.utils.i18n import get_i18n
+from src.utils.i18n import get_text
 
 router = Router()
 
@@ -27,8 +27,7 @@ router = Router()
 async def balance_transfer(callback: CallbackQuery, state: FSMContext, user: Users):
     await state.clear()
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext('Select the desired action')
+    text = get_text(user.language, 'profile_messages', 'Select the desired action')
 
     await edit_message(
         chat_id=callback.from_user.id,
@@ -40,8 +39,7 @@ async def balance_transfer(callback: CallbackQuery, state: FSMContext, user: Use
 
 @router.callback_query(F.data == "transfer_money")
 async def transfer_money_start(callback: CallbackQuery, state: FSMContext, user: Users):
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext('Enter the amount')
+    text = get_text(user.language, 'profile_messages', 'Enter the amount')
 
     await edit_message(
         chat_id=callback.from_user.id,
@@ -77,8 +75,7 @@ async def transfer_money_get_amount(message: Message, state: FSMContext, user: U
 
     await state.update_data(amount=message.text)
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext('Enter the recipients ID')
+    text = get_text(user.language, 'profile_messages', 'Enter the recipients ID')
 
     await send_message(
         chat_id=message.from_user.id,
@@ -103,8 +100,7 @@ async def transfer_money_get_recipient_id(message: Message, state: FSMContext, u
         return
 
     if not await get_user(int(message.text)):
-        i18n = get_i18n(user.language, 'miscellaneous')
-        text = i18n.gettext('User not found')
+        text = get_text(user.language, 'miscellaneous', 'User not found')
         await send_message(
             chat_id=message.from_user.id,
             message=text,
@@ -117,8 +113,9 @@ async def transfer_money_get_recipient_id(message: Message, state: FSMContext, u
     await state.update_data(recipient_id=message.text)
     data = TransferData(**(await state.get_data()))
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext(
+    text = get_text(
+        user.language,
+        'profile_messages',
         "Check the data for accuracy \n\nAmount: {amount} \nID Recipient: {recipient}"
     ).format(amount=data.amount, recipient=data.recipient_id)
 
@@ -137,9 +134,8 @@ async def confirm_transfer_money(callback: CallbackQuery, state: FSMContext, use
     try:
         await money_transfer(sender_id=user.user_id, recipient_id=data.recipient_id, amount=data.amount)
     except UserNotFound:
-        i18n = get_i18n(user.language, 'miscellaneous')
-        text_1 = i18n.gettext('The funds have not been written off')
-        text_2 = i18n.gettext('User not found')
+        text_1 = get_text(user.language, 'miscellaneous', 'The funds have not been written off')
+        text_2 = get_text(user.language, 'miscellaneous', 'User not found')
         await edit_message(
             chat_id=callback.from_user.id,
             message_id=callback.message.message_id,
@@ -149,9 +145,8 @@ async def confirm_transfer_money(callback: CallbackQuery, state: FSMContext, use
         )
         return
     except NotEnoughMoney as e:
-        i18n = get_i18n(user.language, 'miscellaneous')
-        text_1 = i18n.gettext('The funds have not been written off')
-        text_2 = i18n.gettext('Insufficient funds: {amount}').format(amount=e.need_money)
+        text_1 = get_text(user.language, 'miscellaneous', 'The funds have not been written off')
+        text_2 = get_text(user.language, 'miscellaneous', 'Insufficient funds: {amount}').format(amount=e.need_money)
         await edit_message(
             chat_id=callback.from_user.id,
             message_id=callback.message.message_id,
@@ -161,8 +156,7 @@ async def confirm_transfer_money(callback: CallbackQuery, state: FSMContext, use
         )
         return
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext('Funds have been successfully transferred')
+    text = get_text(user.language, 'profile_messages', 'Funds have been successfully transferred')
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
@@ -172,8 +166,9 @@ async def confirm_transfer_money(callback: CallbackQuery, state: FSMContext, use
     )
 
     recipient = await get_user(data.recipient_id)
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext(
+    text = get_text(
+        user.language,
+        'profile_messages',
         'Funds transferred to your balance: {amount} ₽ \n\nCurrent balance: {balance}'
     ).format(amount=data.amount, balance=recipient.balance)
     await send_message(
@@ -188,8 +183,7 @@ async def confirm_transfer_money(callback: CallbackQuery, state: FSMContext, use
 async def create_voucher(callback: CallbackQuery, state: FSMContext, user: Users):
     await state.clear()
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext('Enter the amount')
+    text = get_text(user.language, 'profile_messages', 'Enter the amount')
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
@@ -213,8 +207,7 @@ async def create_voucher_get_amount(message: Message, state: FSMContext, user: U
 
     await state.update_data(amount=message.text)
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext('Enter the number of activations for the voucher')
+    text = get_text(user.language, 'profile_messages', 'Enter the number of activations for the voucher')
     await send_message(
         chat_id=message.from_user.id,
         message=text,
@@ -248,9 +241,9 @@ async def create_voucher_get_number_of_activations(message: Message, state: FSMC
         await state.set_state(CreateVoucher.number_of_activations)
         return
 
-
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext(
+    text = get_text(
+        user.language,
+        'profile_messages',
         "Check the data for accuracy \n\nTotal amount of funds required for activation: {total_sum}\n"
         "Amount of one voucher: {amount} \nNumber of activations: {number_activations}"
     ).format(total_sum=data.amount * data.number_of_activations, amount=data.amount, number_activations=data.number_of_activations)
@@ -275,9 +268,8 @@ async def confirm_create_voucher(callback: CallbackQuery, state: FSMContext, use
             number_of_activations=data.number_of_activations
         )
     except NotEnoughMoney as e:
-        i18n = get_i18n(user.language, 'miscellaneous')
-        text_1 = i18n.gettext('The funds have not been written off')
-        text_2 = i18n.gettext('Insufficient funds: {amount}').format(amount=e.need_money)
+        text_1 = get_text(user.language, 'miscellaneous', 'The funds have not been written off')
+        text_2 = get_text(user.language, 'miscellaneous', 'Insufficient funds: {amount}').format(amount=e.need_money)
         await edit_message(
             chat_id=callback.from_user.id,
             message_id=callback.message.message_id,
@@ -290,8 +282,9 @@ async def confirm_create_voucher(callback: CallbackQuery, state: FSMContext, use
     bot = await get_bot()
     bot_me = await bot.me()
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext(
+    text = get_text(
+        user.language,
+        'profile_messages',
         "Voucher successfully created. \n\nActivation link: <a href='{link}'>Ссылка</a> \nAmount: {amount} \n"
         "Number of activations: {number_activations} \nTotal amount spent on activation: {total_sum} \n"
         "Current balance: {balance} \n\nNote: One user can only activate one voucher"
@@ -316,8 +309,7 @@ async def confirm_create_voucher(callback: CallbackQuery, state: FSMContext, use
 async def my_voucher(callback: CallbackQuery, user: Users):
     current_page = callback.data.split(":")[1]
 
-    i18n = get_i18n(user.language, 'profile_messages')
-    text = i18n.gettext("All vouchers. To view a specific voucher, click on it")
+    text = get_text(user.language, 'profile_messages', "All vouchers. To view a specific voucher, click on it")
 
     await edit_message(
         chat_id=callback.from_user.id,
@@ -333,15 +325,14 @@ async def show_voucher(callback: CallbackQuery, user: Users):
     current_page = int(callback.data.split(':')[2])
 
     voucher = await get_voucher_by_id(voucher_id)
-    i18n = get_i18n(user.language, 'profile_messages')
 
     if not voucher or not voucher.is_valid:
-        text = i18n.gettext('This voucher is currently inactive, please select another one')
+        text = get_text(user.language, 'profile_messages', 'This voucher is currently inactive, please select another one')
         reply_markup=back_in_all_voucher_kb(user.language, current_page)
     else:
         bot = await get_bot()
         bot_me = await bot.me()
-        text = i18n.gettext(
+        text = get_text(user.language, 'profile_messages',
             "ID: {id} \n\nLink: <a href='{link}'>Copy</a> \nTotal spent: {total_amount} \nAmount: {amount} \n"
             "Allowed number of activations: {number_of_activations} \nNumber of activations: {activated_counter}"
         ).format(
@@ -368,14 +359,13 @@ async def confirm_deactivate_voucher(callback: CallbackQuery, user: Users):
     current_page = int(callback.data.split(':')[2])
 
     voucher = await get_voucher_by_id(voucher_id)
-    i18n = get_i18n(user.language, 'profile_messages')
 
     if not voucher or not voucher.is_valid:
-        text = i18n.gettext('This voucher is currently inactive')
+        text = get_text(user.language, 'profile_messages', 'This voucher is currently inactive')
         reply_markup = back_in_all_voucher_kb(user.language, current_page)
         image_key = 'viewing_vouchers'
     else:
-        text = i18n.gettext(
+        text = get_text(user.language, 'profile_messages',
             "Are you sure you want to deactivate the voucher? \nAmount to be refunded: {amount}"
         ).format(amount=voucher.amount * (voucher.number_of_activations - voucher.activated_counter))
         image_key = 'confirm_deactivate_voucher'
@@ -395,23 +385,22 @@ async def deactivate_voucher(callback: CallbackQuery, user: Users):
     current_page = int(callback.data.split(':')[2])
 
     voucher = await get_voucher_by_id(voucher_id)
-    i18n = get_i18n(user.language, 'profile_messages')
 
     if not voucher or not voucher.is_valid:
-        text = i18n.gettext('This voucher is currently inactive')
+        text = get_text(user.language, 'profile_messages', 'This voucher is currently inactive')
         image_key = 'voucher_successful_deactivate'
     else:
         try:
             await deactivate_voucher_server(voucher_id)
             user = await get_user(callback.from_user.id, callback.from_user.username)
-            text = i18n.gettext(
+            text = get_text(user.language, 'profile_messages',
                 "The voucher has been successfully deactivated \n\nYour account has been credited with: {amount} \nCurrent balance: {balance}"
             ).format(amount=voucher.amount * (voucher.number_of_activations - voucher.activated_counter), balance=user.balance)
             image_key = 'voucher_successful_deactivate'
         except Exception as e:
             settings = await get_settings()
 
-            text = i18n.gettext(
+            text = get_text(user.language, 'profile_messages',
                 'There was an error deactivating your voucher \n\nIf your funds have not been returned, please contact support: @{username_support}'
             ).format(username_support=settings.support_username)
             image_key = 'server_error'

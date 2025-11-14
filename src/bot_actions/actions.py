@@ -226,25 +226,32 @@ async def edit_message(
             )
             return
 
-        elif not ui_image and fallback_image_key:
-            text = f"#Не_найдено_фото [edit_message]. \nget_ui_image='{image_key}'"
-            logger.warning(text)
-            # если не нашли ui_image
+        # если не нашли ui_image или не надо отсылать его (not ui_image.show)
+        elif (not ui_image or ui_image and not ui_image.show) and fallback_image_key:
+            text = ''
+            if not ui_image:
+                text = f"#Не_найдено_фото [edit_message]. \nget_ui_image='{image_key}'"
+                logger.warning(text)
+
+            # если не нашли ui_image или не надо отсылать его
             ui_image = await get_ui_image(fallback_image_key)
             if ui_image:
                 if ui_image.file_id:
                     ok = await _try_edit_media_by_file_id(bot, chat_id, message_id, ui_image.file_id, message, reply_markup)
                     if ok:
-                        await send_log(text)
+                        if not ui_image:
+                            await send_log(text)
                         return  # успешно
                 else:
                     # пробуем редактировать media с загрузкой файла
                     ok = await _try_edit_media_by_file(bot, chat_id, message_id, ui_image, message, reply_markup)
                     if ok:
-                        await send_log(text)
+                        if not ui_image:
+                            await send_log(text)
                         return  # успешно
 
-                await send_log(text)  # лучше после отправки пользователю
+                if not ui_image:
+                    await send_log(text)  # лучше после отправки пользователю
         else:
             # если нет замены для фото
             text = f"#Не_найдено_фото_и_сообщение_пользователю_не_отправлено [edit_message]. \nget_ui_image='{image_key}'"
@@ -330,9 +337,13 @@ async def send_message(
 
             except Exception as e:
                 logger.exception(f"#Ошибка при отправке фото: {str(e)}")
-        elif fallback_image_key:
-            text = f"#Не_найдено_фото [send_message]. \nimage_key='{image_key}'"
-            logger.warning(text)
+
+        # если не нашли ui_image или не надо отсылать его (not ui_image.show)
+        elif (not ui_image or ui_image and not ui_image.show) and fallback_image_key:
+            text = ''
+            if not ui_image:
+                text = f"#Не_найдено_фото [send_message]. \nimage_key='{image_key}'"
+                logger.warning(text)
 
             ui_image = await get_ui_image(fallback_image_key)
             if ui_image:
@@ -352,11 +363,11 @@ async def send_message(
                     new_file_id = msg.photo[-1].file_id
                     await update_ui_image(key=ui_image.key, show=ui_image.show, file_id=new_file_id)
                     return msg
-
-            await send_log(text) # лучше после отправки пользователю
+            if not ui_image:
+                await send_log(text) # лучше после отправки пользователю
         else:
             # если нет замены для фото
-            text = f"#Не_найдено_фото_и_сообщение_пользователю_не_отправлено [edit_message]. \nget_ui_image='{image_key}'"
+            text = f"#Не_найдено_фото_и_сообщение_пользователю_не_отправлено [send_message]. \nget_ui_image='{image_key}'"
             logger.warning(text)
             await send_log(text)
 

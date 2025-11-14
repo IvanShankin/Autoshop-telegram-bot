@@ -75,7 +75,7 @@ async def show_sold_account(
         )
     )
 
-async def cheek_sold_account(
+async def check_sold_account(
     callback: CallbackQuery,
     sold_account_id: int,
     language: str,
@@ -284,7 +284,7 @@ async def chek_valid_acc(callback: CallbackQuery, user: Users):
     current_page = int(callback.data.split(':')[3])
     current_validity = bool(int(callback.data.split(':')[4]))
 
-    account = await cheek_sold_account(
+    account = await check_sold_account(
         callback=callback,
         sold_account_id=sold_account_id,
         language=user.language,
@@ -333,7 +333,7 @@ async def confirm_del_acc(callback: CallbackQuery, user: Users):
     type_account_service_id = int(callback.data.split(':')[2])
     current_page = int(callback.data.split(':')[3])
 
-    account = await cheek_sold_account(
+    account = await check_sold_account(
         callback=callback,
         sold_account_id=sold_account_id,
         language=user.language,
@@ -370,7 +370,7 @@ async def del_account(callback: CallbackQuery, user: Users):
     type_account_service_id = int(callback.data.split(':')[2])
     current_page = int(callback.data.split(':')[3])
 
-    account = await cheek_sold_account(
+    account = await check_sold_account(
         callback=callback,
         sold_account_id=sold_account_id,
         language=DEFAULT_LANG, # обязательно берём с таким языком, что бы в deleted_account записать с правильным значением

@@ -127,7 +127,7 @@ async def edit_message_account_category(
         chat_id=user.user_id,
         message_id=message_id,
         message=message,
-        image_key=category.ui_image_key if ui_image.show else 'default_catalog_account',
+        image_key=category.ui_image_key if (ui_image and ui_image.show) else 'default_catalog_account',
         reply_markup=await account_category_kb(
             user.language,
             category=category,

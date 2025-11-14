@@ -112,7 +112,7 @@ async def test_start_replenishment_invalid_number(
     await module.start_replenishment(msg, fsm, user)
 
     # Проверим, что состояние не сменилось
-    assert fsm.state == GetAmount.amount, "Состояние FSM должно остаться прежним при ошибочном вводе"
+    assert fsm.state == GetAmount.amount.state, "Состояние FSM должно остаться прежним при ошибочном вводе"
 
 
 @pytest.mark.asyncio
@@ -126,7 +126,6 @@ async def test_start_replenishment_crypto_bot_success(
     """Корректное создание инвойса через CryptoBot."""
     from src.modules.profile.handlers import replenishment_handler as module
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage
-    from src.services.database.users.actions import get_replenishment
 
     fake_bot = replacement_fake_bot
     user = await create_new_user()

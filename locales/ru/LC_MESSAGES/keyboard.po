@@ -19,6 +19,16 @@ msgstr "Подтвердить"
 msgid "Again"
 msgstr "Заново"
 
+
+# ---- Языка ----
+
+msgid "ru"
+msgstr "🇷🇺 Русский"
+
+msgid "en"
+msgstr "🇬🇧 Английский"
+
+
 # ---- Стартовая ----
 
 msgid "Product catalog"
@@ -161,6 +171,9 @@ msgstr "Добавить"
 msgid "To services"
 msgstr "К сервисам"
 
+msgid "In category"
+msgstr "В категорию"
+
 msgid "Up index"
 msgstr "⬆️ Индекс"
 
@@ -176,5 +189,47 @@ msgstr "Изменить имя"
 msgid "Add Category"
 msgstr "Добавить категорию"
 
+msgid "Add subcategory"
+msgstr "Добавить подкатегорию"
+
+msgid "Make storage"
+msgstr "Сделать хранилищем"
+
+msgid "Remove storage"
+msgstr "Убрать хранилище"
+
+msgid "Update data"
+msgstr "Изменить данные"
+
+msgid "Load accounts"
+msgstr "Загрузить аккаунты"
+
+
+msgid "Name / Description"
+msgstr "Имя / Описание"
+
+msgid "Name"
+msgstr "Имя"
+
+msgid "Description"
+msgstr "Описание"
+
+msgid "Image"
+msgstr "Фото"
+
+msgid "Price one account"
+msgstr "Цена одного аккаунта"
+
+msgid "Cost Price one account"
+msgstr "Себестоимость одного аккаунта"
+
+msgid "Number button in row"
+msgstr "Число кнопок в строке"
+
+msgid "{indicator} Show by default"
+msgstr "{indicator} Показывать по умолчанию"
+
+msgid "To the data"
+msgstr "К данным"
 
 

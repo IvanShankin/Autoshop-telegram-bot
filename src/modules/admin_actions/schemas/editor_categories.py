@@ -1,3 +1,5 @@
+from typing import Dict
+
 from pydantic import BaseModel
 
 
@@ -7,3 +9,24 @@ class GetServiceNameData(BaseModel):
 
 class RenameServiceData(BaseModel):
     service_id: int
+
+
+class GetDataForCategoryData(BaseModel):
+    service_id: int
+    parent_id: int | None
+    requested_language: str # входить в ALLOWED_LANGS
+    data_name: Dict[str, str] # код языка и по нему имя
+
+
+class UpdateNameForCategoryData(BaseModel):
+    category_id: int
+    language: str
+
+
+class UpdateDescriptionForCategoryData(BaseModel):
+    category_id: int
+    language: str
+
+
+class UpdateCategoryOnlyId(BaseModel):
+    category_id: int

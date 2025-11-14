@@ -2,6 +2,8 @@ import pytest
 import orjson
 from sqlalchemy import select
 
+from src.exceptions.service_exceptions import AccountCategoryNotFound, IncorrectedNumberButton, IncorrectedCostPrice, \
+    IncorrectedAmountSale, TheCategoryStorageAccount
 from src.services.database.selling_accounts.models.models import AccountStorage, TgAccountMedia
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
@@ -201,14 +203,14 @@ class TestUpdateAccountCategory:
         prod = await create_product_account(filling_redis=False, account_category_id=cat.account_category_id)
 
         # Попытка изменить is_accounts_storage -> должна вызвать ValueError, поскольку is_accounts_storage=True
-        with pytest.raises(ValueError):
+        with pytest.raises(TheCategoryStorageAccount):
             await update_account_category(cat.account_category_id, is_accounts_storage=False)
 
         # Проверка на нормальную цену
-        with pytest.raises(ValueError):
-            await update_account_category(cat.account_category_id, price_one_account=0)
+        with pytest.raises(IncorrectedAmountSale):
+            await update_account_category(cat.account_category_id, price_one_account=-1)
 
-        with pytest.raises(ValueError):
+        with pytest.raises(IncorrectedCostPrice):
             await update_account_category(cat.account_category_id, cost_price_one_account=-1)
 
         updated = await update_account_category(cat.account_category_id, show=False)
@@ -289,7 +291,7 @@ class TestUpdateAccountCategoryTranslation:
     async def test_update_account_category_translation_errors(self, create_account_category):
         from src.services.database.selling_accounts.actions import update_account_category_translation
         # несуществующая категория
-        with pytest.raises(ValueError):
+        with pytest.raises(AccountCategoryNotFound):
             await update_account_category_translation(account_category_id=999999, language="ru", name="x")
 
         # создаём реальную категорию с переводом "ru"

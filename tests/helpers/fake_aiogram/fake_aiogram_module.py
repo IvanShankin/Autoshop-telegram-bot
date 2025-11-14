@@ -41,9 +41,11 @@ class FakeState:
     """Простейшая заглушка State для тестов."""
     def __init__(self):
         self.name = None
+        self.state = None
 
     def __set_name__(self, owner, name):
         self.name = name
+        self.state = str(name)
 
     def __repr__(self):
         return f"<State {self.name}>"
@@ -110,6 +112,7 @@ class FakeMessage:
         self.chat = SimpleNamespace(id=chat_id)
         self.from_user = SimpleNamespace(id=chat_id, username=username)
         self.extra = extra
+        self.message_id = 0
         # storage for assertions
         self._last_answer = None
         self._last_reply = None
@@ -146,9 +149,17 @@ class FakeCallbackQuery:
         self.data = data
         self.from_user = SimpleNamespace(id=chat_id, username=username)
         self.message = None
+        self.deleted = False
+        self.answer = self.fun_answer
 
-    async def answer(self, *a, **kw):
+    async def fun_answer(self, *a, **kw):
         return None
+
+    async def fake_delete(self, *a, **kw):
+        self.deleted = True
+
+    async def fake_answer(self, text, **kwargs):
+        self.answer = text
 
 class FakeFSMContext:
     def __init__(self):
@@ -160,13 +171,17 @@ class FakeFSMContext:
         self.data = {}
 
     async def set_state(self, st):
-        self.state = st
+        self.state = st.state
 
     async def update_data(self, **kw):
         self.data.update(kw)
 
     async def get_data(self):
         return dict(self.data)
+
+    async def get_state(self):
+        return self.state
+
 
 # --- Router (реализует декораторы) ---
 class FakeRouter:
@@ -271,7 +286,7 @@ class FakeBot:
 
     async def send_photo(self, chat_id, photo, caption="", **kwargs):
         self.sent.append((chat_id, caption, photo))
-        return SimpleNamespace(chat=SimpleNamespace(id=chat_id), text=caption, photo=[SimpleNamespace(file_id=1)])
+        return SimpleNamespace(chat=SimpleNamespace(id=chat_id), text=caption, photo=[SimpleNamespace(file_id='1')])
 
     async def send_document(self, chat_id, document, caption="", **kwargs):
         self.sent.append((chat_id, caption, document))

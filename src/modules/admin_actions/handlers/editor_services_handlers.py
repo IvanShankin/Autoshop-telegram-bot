@@ -36,7 +36,7 @@ async def show_service(user: Users, service_id: int, send_new_message: bool = Fa
     message = get_text(
         user.language,
         'admins',
-        "Name: {name}\nIndex: {index}\nShow: {show}"
+        "Service \n\nName: {name}\nIndex: {index}\nShow: {show}"
     ).format(name=service.name, index=service.index, show=service.show)
     reply_markup = await show_service_acc_admin_kb(
         language=user.language,
@@ -127,6 +127,7 @@ async def service_update_index(callback: CallbackQuery, user: Users):
     await callback.answer(get_text(user.language, 'admins',"Successfully updated"))
     await show_service(user=user, callback=callback, message_id=callback.message.message_id, service_id=service_id)
 
+
 @router.callback_query(F.data.startswith("service_update_show:"))
 async def service_update_show(callback: CallbackQuery, user: Users):
     service_id = int(callback.data.split(':')[1])
@@ -136,8 +137,9 @@ async def service_update_show(callback: CallbackQuery, user: Users):
     await callback.answer(get_text(user.language, 'admins',"Successfully updated"))
     await show_service(user=user, callback=callback, message_id=callback.message.message_id, service_id=service_id)
 
+
 @router.callback_query(F.data.startswith("service_rename:"))
-async def service_update_show(callback: CallbackQuery, state: FSMContext, user: Users):
+async def service_rename(callback: CallbackQuery, state: FSMContext, user: Users):
     service_id = int(callback.data.split(':')[1])
 
     await edit_message(
@@ -184,7 +186,7 @@ async def service_confirm_delete(callback: CallbackQuery, user: Users):
         message=get_text(
             user.language,
             'admins',
-            "Are you sure you want to delete this service? \n"
+            "Are you sure you want to delete this service? \n\n"
             "Before deleting, make sure that this service does not contain categories!"
         ),
         reply_markup=delete_service_kb(user.language, service_id)

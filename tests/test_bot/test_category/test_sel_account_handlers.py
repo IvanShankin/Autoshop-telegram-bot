@@ -222,7 +222,6 @@ async def test_set_promo_code_not_found_shows_error_and_keeps_state(
       - FSM остаётся на BuyAccount.promo_code
     """
     from src.modules.catalog.selling_accounts import sel_account_handlers as module
-    from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage
 
     fake_bot = replacement_fake_bot
     user = await create_new_user()

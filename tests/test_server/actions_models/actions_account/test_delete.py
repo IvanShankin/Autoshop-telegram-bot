@@ -2,7 +2,8 @@ import pytest
 import orjson
 from sqlalchemy import select
 
-from src.exceptions.service_exceptions import ServiceContainsCategories
+from src.exceptions.service_exceptions import ServiceContainsCategories, TheCategoryStorageAccount, \
+    CategoryStoresSubcategories
 from src.services.database.system.actions import get_ui_image
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
@@ -137,14 +138,14 @@ async def test_delete_account_category_various_errors_and_index_shift(create_acc
     # добавим product в storage_cat
     prod, _ = await create_product_account(filling_redis=True, account_category_id=storage_cat.account_category_id)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TheCategoryStorageAccount):
         await delete_account_category(storage_cat.account_category_id)
 
     # создаём родительскую и дочернюю категорию
     parent = await create_account_category(filling_redis=False, account_service_id=svc.account_service_id, parent_id=None, language="ru", name="parent")
     child = await create_account_category(filling_redis=False, account_service_id=svc.account_service_id, parent_id=parent.account_category_id, language="ru", name="child")
     # попытка удалить parent — должен быть ValueError (есть дочерняя)
-    with pytest.raises(ValueError):
+    with pytest.raises(CategoryStoresSubcategories):
         await delete_account_category(parent.account_category_id)
 
     # успешное удаление middle (cat2) и проверка смещения индексов

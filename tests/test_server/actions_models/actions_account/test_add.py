@@ -2,7 +2,8 @@ import pytest
 from orjson import orjson
 from sqlalchemy import select
 
-from src.exceptions.service_exceptions import TranslationAlreadyExists, ServiceTypeBusy
+from src.exceptions.service_exceptions import TranslationAlreadyExists, ServiceTypeBusy, IncorrectedAmountSale, \
+    TheCategoryStorageAccount
 from src.services.database.selling_accounts.models.models import TgAccountMedia
 from src.services.database.system.models import UiImages
 from src.services.redis.core_redis import get_redis
@@ -131,7 +132,7 @@ async def test_add_account_category(replacement_needed_modules, create_account_s
         assert category_db is not None
 
     # Ошибка, если указать parent_id от категории-хранилища
-    with pytest.raises(ValueError):
+    with pytest.raises(TheCategoryStorageAccount):
         await add_account_category(
             account_service_id=service.account_service_id,
             language="ru",

@@ -30,7 +30,7 @@ async def test_purchase_accounts_success(
     create_product_account,
 ):
     """
-    Интеграционный тест: если все аккаунты валидны (_cheek_valid_accounts_telethon -> True),
+    Интеграционный тест: если все аккаунты валидны (_check_valid_accounts_telethon -> True),
     то purchase_accounts завершает процесс покупки:
       - создаются SoldAccounts / PurchasesAccounts,
       - PurchaseRequests.status -> 'completed', BalanceHolder.status -> 'used',
@@ -53,10 +53,10 @@ async def test_purchase_accounts_success(
         p, _ = await create_product_account(account_category_id=category_id)
         products.append(p)
 
-    # подменяем только _cheek_valid_accounts_telethon -> True
+    # подменяем только _check_valid_accounts_telethon -> True
     async def always_true(folder_path):
         return True
-    monkeypatch.setattr(account_actions, "_cheek_valid_accounts_telethon", always_true)
+    monkeypatch.setattr(account_actions, "_check_valid_accounts_telethon", always_true)
 
     # подавим publish_event, чтобы не посылать реальные события
     async def noop_publish(*a, **kw):
@@ -156,10 +156,10 @@ async def test_purchase_accounts_fail_no_replacement(
         p, _ = await create_product_account(account_category_id=category_id)
         products.append(p)
 
-    # подменим _cheek_valid_accounts_telethon -> False (все аккаунты окажутся "плохими")
+    # подменим _check_valid_accounts_telethon -> False (все аккаунты окажутся "плохими")
     async def always_false(folder_path):
         return False
-    monkeypatch.setattr(account_actions, "_cheek_valid_accounts_telethon", always_false)
+    monkeypatch.setattr(account_actions, "_check_valid_accounts_telethon", always_false)
 
     # подавим publish_event
     async def noop_publish(*a, **kw):
@@ -449,7 +449,7 @@ async def test__check_account_validity_async_success(
     """
     Unit: check_account_validity должен:
     - вызвать _decryption_tg_account (мы мокаем),
-    - вызвать _cheek_valid_accounts_telethon (мокаем) и вернуть True,
+    - вызвать _check_valid_accounts_telethon (мокаем) и вернуть True,
     - вызвать shutil.rmtree в finally (мокаем).
     """
     from src.services.database.selling_accounts.actions import action_purchase as action_mod
@@ -479,12 +479,12 @@ async def test__check_account_validity_async_success(
     monkeypatch.setattr(account_actions, "_decryption_tg_account", fake_decryption_tg_account)
 
     # Мокаем асинхронную проверку аккаунта — вернём True
-    async def fake_cheek_valid_accounts(folder_path):
+    async def fake_check_valid_accounts(folder_path):
         # folder_path теперь строка (temp_folder_path)
         assert folder_path == temp_folder_path
         return True
 
-    monkeypatch.setattr(account_actions, "_cheek_valid_accounts_telethon", fake_cheek_valid_accounts)
+    monkeypatch.setattr(account_actions, "_check_valid_accounts_telethon", fake_check_valid_accounts)
 
     # Сохраним оригинал rmtree и подменим на фейк, который вызовет оригинал
     orig_rmtree = shutil.rmtree

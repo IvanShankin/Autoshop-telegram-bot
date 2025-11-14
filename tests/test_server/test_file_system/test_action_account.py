@@ -143,10 +143,10 @@ def test_decryption_tg_account_calls_correct(monkeypatch):
     assert res == fake_folder
 
 
-class TestCheekValidAccounts:
+class TestCheckValidAccounts:
     @pytest.mark.asyncio
-    async def test_cheek_valid_accounts_success(self, monkeypatch, tmp_path):
-        from src.services.filesystem.account_actions import _cheek_valid_accounts_telethon
+    async def test_check_valid_accounts_success(self, monkeypatch, tmp_path):
+        from src.services.filesystem.account_actions import _check_valid_accounts_telethon
         tdata_path = tmp_path / "tdata"
         os.makedirs(tdata_path, exist_ok=True)
 
@@ -160,17 +160,17 @@ class TestCheekValidAccounts:
 
         monkeypatch.setattr("src.services.filesystem.account_actions.TDesktop", lambda path: fake_tdesk)
 
-        res = await _cheek_valid_accounts_telethon(str(tmp_path))
+        res = await _check_valid_accounts_telethon(str(tmp_path))
         assert res is True
 
 
     @pytest.mark.asyncio
-    async def test_cheek_valid_accounts_fail(self, monkeypatch, tmp_path):
-        from src.services.filesystem.account_actions import _cheek_valid_accounts_telethon
+    async def test_check_valid_accounts_fail(self, monkeypatch, tmp_path):
+        from src.services.filesystem.account_actions import _check_valid_accounts_telethon
         # выкидываем ошибку при инициализации
         monkeypatch.setattr("src.services.filesystem.account_actions.TDesktop", lambda path: (_ for _ in ()).throw(Exception("bad")))
 
-        res = await _cheek_valid_accounts_telethon(str(tmp_path))
+        res = await _check_valid_accounts_telethon(str(tmp_path))
         assert res is False
 
 

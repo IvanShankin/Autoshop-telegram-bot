@@ -120,7 +120,7 @@ def _decryption_tg_account(account_storage: AccountStorage):
 
 
 
-async def _cheek_valid_accounts_telethon(folder_path: str) -> bool:
+async def _check_valid_accounts_telethon(folder_path: str) -> bool:
     """
     Проверяет валидный ли аккаунт
     :param folder_path: путь к папке с данными для аккаунта. Внутри папки необходимо содержать папку tdata и файл .session
@@ -213,7 +213,7 @@ async def check_account_validity(account_storage: AccountStorage, type_service_n
         # decryption heavy IO в thread
         temp_folder = await asyncio.to_thread(_decryption_tg_account, account_storage)
         # проверка уже асинхронная
-        is_valid = await _cheek_valid_accounts_telethon(temp_folder)
+        is_valid = await _check_valid_accounts_telethon(temp_folder)
         return bool(is_valid)
     except Exception as e:
         logger.exception("Error while validating account %s: %s", getattr(account_storage, "account_storage_id", None), e)

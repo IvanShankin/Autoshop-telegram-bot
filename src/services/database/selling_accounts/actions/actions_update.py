@@ -6,6 +6,8 @@ import orjson
 from sqlalchemy import select, update, func
 from sqlalchemy.orm import selectinload
 
+from src.exceptions.service_exceptions import AccountCategoryNotFound, TheCategoryStorageAccount, \
+    IncorrectedNumberButton, IncorrectedCostPrice, IncorrectedAmountSale, CategoryStoresSubcategories
 from src.services.database.selling_accounts.models.models import AccountStorage, TgAccountMedia
 from src.services.database.system.actions import create_ui_image, delete_ui_image
 from src.services.redis.core_redis import get_redis
@@ -144,13 +146,22 @@ async def update_account_category(
         price_one_account: int = None,
         cost_price_one_account: int = None,
 ) -> AccountCategories:
-    """:param file_data: поток байтов для создания нового ui_image, старый будет удалён"""
+    """
+    :param file_data: поток байтов для создания нового ui_image, старый будет удалён
+    :except IncorrectedAmountSale: Цена аккаунтов должна быть положительным числом или равно 0
+    :except IncorrectedCostPrice: Себестоимость аккаунтов должна быть положительным числом
+    :except IncorrectedNumberButton: Количество кнопок в строке, должно быть в диапазоне от 1 до 8
+    :except AccountCategoryNotFound: Категория аккаунтов не найдена
+    :except TheCategoryStorageAccount: Категория хранит аккаунты.
+    :except CategoryStoresSubcategories: Категория хранит подкатегории.
+    Необходимо извлечь их для применения изменений
+    """
     if price_one_account is not None and price_one_account <= 0:
-        raise ValueError("Цена аккаунтов должна быть положительным числом")
-    if cost_price_one_account is not None  and cost_price_one_account < 0:
-        raise ValueError("Себестоимость аккаунтов должна быть положительным числом")
+        raise IncorrectedAmountSale("Цена аккаунтов должна быть положительным числом")
+    if cost_price_one_account is not None and cost_price_one_account < 0:
+        raise IncorrectedCostPrice("Себестоимость аккаунтов должна быть положительным числом")
     if number_buttons_in_row is not None and (number_buttons_in_row < 1 or number_buttons_in_row > 8):
-        raise ValueError("Количество кнопок в строке, должно быть в диапазоне от 1 до 8")
+        raise IncorrectedNumberButton("Количество кнопок в строке, должно быть в диапазоне от 1 до 8")
 
     async with get_db() as session:
         # загружаем текущий объект
@@ -162,21 +173,31 @@ async def update_account_category(
         category: AccountCategories = result.scalar_one_or_none()
         old_ui_image = category.ui_image_key
         if not category:
-            raise ValueError(f"Категория аккаунтов с id = {account_category_id} не найдена")
+            raise AccountCategoryNotFound(f"Категория аккаунтов с id = {account_category_id} не найдена")
 
         # собираем только те поля, которые реально переданы
         update_data = {}
         if is_accounts_storage is not None:
-            if category.is_accounts_storage:
+            if is_accounts_storage: # если хотим установить хранилище аккаунтов
+                result = await session.execute(
+                    select(AccountCategories).where(AccountCategories.parent_id == account_category_id)
+                )
+                subcategories: AccountCategories = result.scalars().first()
+                if subcategories:  # если данная категория хранит подкатегории
+                    raise CategoryStoresSubcategories(
+                        f"Категория с id = {account_category_id} хранит подкатегории. Сперва удалите их"
+                    )
+            else: # если хотим убрать хранилище аккаунтов
                 result = await session.execute(
                     select(ProductAccounts).where(ProductAccounts.account_category_id == account_category_id)
                 )
                 product_account: ProductAccounts = result.scalars().first()
                 if product_account: # если данная категория хранит аккаунты
-                    raise ValueError(
+                    raise TheCategoryStorageAccount(
                         f"Категория с id = {account_category_id} хранит аккаунты. "
                         f"Необходимо извлечь их для применения изменений"
                     )
+
 
             update_data["is_accounts_storage"] = is_accounts_storage
         if show is not None:
@@ -267,6 +288,9 @@ async def update_account_category_translation(
         name: str = None,
         description: str = None
 ) -> AccountCategoryFull:
+    """
+    :except AccountCategoryNotFound: Категория аккаунтов с id = {account_category_id} не найдена
+    """
     async with get_db() as session:
         # загружаем текущий объект
         result = await session.execute(
@@ -274,7 +298,7 @@ async def update_account_category_translation(
         )
         category: AccountCategories = result.scalar_one_or_none()
         if not category:
-            raise ValueError(f"Категория аккаунтов с id = {account_category_id} не найдена")
+            raise AccountCategoryNotFound(f"Категория аккаунтов с id = {account_category_id} не найдена")
 
         result = await session.execute(
             select(AccountCategoryTranslation)

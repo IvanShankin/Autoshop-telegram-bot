@@ -70,8 +70,8 @@ class AccountCategories(Base):
     is_accounts_storage = Column(Boolean, nullable=False, server_default=text('false')) # если это хранилище аккаунтов
 
     # только для тех категорий которые хранят аккаунты (is_accounts_storage == True)
-    price_one_account = Column(Integer, nullable=True) # цена продажи
-    cost_price_one_account = Column(Integer, nullable=True) # себестоимость
+    price_one_account = Column(Integer, nullable=True, server_default=text("0")) # цена продажи
+    cost_price_one_account = Column(Integer, nullable=True, server_default=text("0")) # себестоимость
 
     account_service = relationship("AccountServices", back_populates="account_categories")
     next_account_categories = relationship("AccountCategories",back_populates="parent",foreign_keys=[parent_id])

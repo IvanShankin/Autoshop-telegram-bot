@@ -134,7 +134,7 @@ async def get_all_ui_images() -> List[UiImages] | None:
         result_db = await session_db.execute(select(UiImages))
         return result_db.scalars().all()
 
-async def update_ui_image(key: str, show: bool, file_id: str | None) -> UiImages | None:
+async def update_ui_image(key: str, show: bool, file_id: str | None = None) -> UiImages | None:
     async with get_db() as session_db:
         result_db = await session_db.execute(
             update(UiImages)

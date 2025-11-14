@@ -7,7 +7,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.config import TYPE_ACCOUNT_SERVICES
-from src.exceptions.service_exceptions import TranslationAlreadyExists, ServiceTypeBusy
+from src.exceptions.service_exceptions import TranslationAlreadyExists, ServiceTypeBusy, AccountServiceNotFound, \
+    AccountCategoryNotFound, IncorrectedNumberButton, IncorrectedAmountSale, IncorrectedCostPrice, \
+    TheCategoryStorageAccount
 from src.services.database.selling_accounts.models import AccountStorage
 from src.services.database.selling_accounts.models.models import TgAccountMedia
 from src.services.database.system.actions.actions import create_ui_image
@@ -83,7 +85,8 @@ async def add_translation_in_account_category(
 ) -> AccountCategoryFull:
     """
     Добавит перевод для AccountCategories и закэширует.
-    :exception ValueError: Если account_category_id не найден. Если перевод по данному языку есть
+    :param language: Код языка ("ru","en"...)
+    :exception AccountCategoryNotFound: Если account_category_id не найден. Если перевод по данному языку есть
     """
     async with get_db() as session_db:
         result_db = await session_db.execute(
@@ -93,7 +96,7 @@ async def add_translation_in_account_category(
         category: AccountCategories = result_db.scalar_one_or_none()
 
         if not category:
-            raise ValueError(f"Категории с id = {account_category_id} не найдено")
+            raise AccountCategoryNotFound(f"Категории с id = {account_category_id} не найдено")
 
         result_db = await session_db.execute(
             select(AccountCategoryTranslation)
@@ -160,14 +163,15 @@ async def add_account_category(
         parent_id: int = None,
         number_buttons_in_row: int = 1,
         is_accounts_storage: bool = False,
-        price_one_account: int = None,
-        cost_price_one_account: int = None
+        price_one_account: int = 0,
+        cost_price_one_account: int = 0
 ) -> AccountCategoryFull:
     """
     Создаст новый AccountCategories и закэширует его.
 
 
     :param account_service_id: Сервис у данной категории.
+    :param language: Код языка ("ru","en"...)
     :param parent_id: ID другой категории для которой новая категория будет дочерней и тем самым будет находиться
     ниже по иерархии. Если не указывать, то будет категорией которая находится сразу после сервиса (главной).
     :param number_buttons_in_row: Количество кнопок для перехода в другую категорию на одну строку от 1 до 8.
@@ -175,23 +179,26 @@ async def add_account_category(
     :param price_one_account: Цена одного аккаунта.
     :param cost_price_one_account: Себестоимость аккаунта.
     :return: AccountCategories: только что созданный.
-    :exception ValueError: Если account_service_id не найден.
+    :exception AccountServiceNotFound: Если account_service_id не найден.
+    :exception TheCategoryStorageAccount: Если parent_id не является хранилищем аккаунтов.
     """
 
-    if price_one_account is not None and price_one_account <= 0:
-        raise ValueError("Цена аккаунтов должна быть положительным числом")
+    if price_one_account is not None and price_one_account < 0:
+        raise IncorrectedAmountSale("Цена аккаунтов должна быть положительным числом")
     if cost_price_one_account is not None and cost_price_one_account < 0:
-        raise ValueError("Себестоимость аккаунтов должна быть положительным числом")
+        raise IncorrectedCostPrice("Себестоимость аккаунтов должна быть положительным числом")
     if number_buttons_in_row is not None and (number_buttons_in_row < 1 or number_buttons_in_row > 8):
-        raise ValueError("Количество кнопок в строке, должно быть в диапазоне от 1 до 8")
+        raise IncorrectedNumberButton("Количество кнопок в строке, должно быть в диапазоне от 1 до 8")
 
     if not await get_account_service(account_service_id, return_not_show=True):
-        raise ValueError(f"Сервис для аккаунтов с id = {account_service_id} не найдена")
+        raise AccountServiceNotFound(f"Сервис для аккаунтов с id = {account_service_id} не найдена")
 
     if parent_id:
         parent_category = await get_account_categories_by_category_id(parent_id, return_not_show=True)
+        if not parent_category:
+            raise AccountCategoryNotFound()
         if parent_category.is_accounts_storage:
-            raise ValueError(
+            raise TheCategoryStorageAccount(
                 f"Родительский аккаунт (parent_id = {parent_id}) является хранилищем аккаунтов. "
                 f"К данной категории нельзя прикрепить другую категорию"
             )

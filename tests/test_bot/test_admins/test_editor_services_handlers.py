@@ -62,7 +62,7 @@ async def test_show_service_service_found_calls_edit_message(
     message = get_text(
         user.language,
         'admins',
-        "Name: {name}\nIndex: {index}\nShow: {show}"
+        "Service \n\nName: {name}\nIndex: {index}\nShow: {show}"
     ).format(name=service.name, index=service.index, show=service.show)
 
     assert replacement_fake_bot.get_edited_message(user.user_id, 123, message)

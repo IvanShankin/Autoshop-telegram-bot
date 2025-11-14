@@ -1,7 +1,8 @@
 import orjson
 from sqlalchemy import select, delete, distinct, update
 
-from src.exceptions.service_exceptions import ServiceContainsCategories
+from src.exceptions.service_exceptions import ServiceContainsCategories, CategoryStoresSubcategories, \
+    AccountCategoryNotFound, TheCategoryStorageAccount
 from src.services.database.system.actions import delete_ui_image
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_account_categories_by_service_id, \
@@ -88,24 +89,28 @@ async def delete_translate_category(account_category_id: int, language: str):
         async with get_redis() as session_redis:
             await session_redis.delete(f"account_categories_by_category_id:{account_category_id}:{language}")
 
-async def delete_account_category(account_category_id: int):
-    """Удалит категорию аккаунтов и связанную UiImage"""
+async def check_category_before_del(category_id: int) -> AccountCategories:
+    """
+    :except AccountCategoryNotFound: Категория с id = {category_id} не найдена
+    :except TheCategoryStorageAccount: Данная категория не должна хранить аккаунты
+    :except CategoryStoresSubcategories: У данной категории не должно быть подкатегорий (дочерних)
+    """
     async with get_db() as session_db:
         result_db = await session_db.execute(
             select(AccountCategories)
-            .where(AccountCategories.account_category_id == account_category_id)
+            .where(AccountCategories.account_category_id == category_id)
         )
         category: AccountCategories = result_db.scalar_one_or_none()
         if not category:
-            raise ValueError(f"Категория с id = {account_category_id} не найдена")
+            raise AccountCategoryNotFound(f"Категория с id = {category_id} не найдена")
 
         result_db = await session_db.execute(
             select(ProductAccounts)
-            .where(ProductAccounts.account_category_id == account_category_id)
+            .where(ProductAccounts.account_category_id == category.account_category_id)
         )
         account = result_db.scalars().first()
         if account or category.is_accounts_storage:
-            raise ValueError(f"Данная категория не должна хранить аккаунты")
+            raise TheCategoryStorageAccount(f"Данная категория не должна хранить аккаунты")
 
         result_db = await session_db.execute(
             select(AccountCategories)
@@ -113,7 +118,14 @@ async def delete_account_category(account_category_id: int):
         )
         subsidiary_category = result_db.scalars().first()
         if subsidiary_category:
-            raise ValueError(f"У данной категории не должно быть подкатегорий (дочерних)")
+            raise CategoryStoresSubcategories(f"У данной категории не должно быть подкатегорий (дочерних)")
+
+        return category
+
+async def delete_account_category(account_category_id: int):
+    """Удалит категорию аккаунтов и связанную UiImage"""
+    async with get_db() as session_db:
+        category = await check_category_before_del(account_category_id)
 
         # удаление
         deleted_result = await session_db.execute(

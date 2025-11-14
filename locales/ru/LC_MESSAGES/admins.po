@@ -9,6 +9,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 
 
+# ----- Сервисы -----
+
 msgid "Select service type"
 msgstr "Выберите тип сервиса"
 
@@ -21,8 +23,8 @@ msgstr "Невозможно создать. \nДанный тип сервис�
 msgid "Service successfully created"
 msgstr "Сервис успешно создан"
 
-msgid "Name: {name}\nIndex: {index}\nShow: {show}"
-msgstr "Имя: {name}\nИндекс: {index}\nПоказывать: {show}"
+msgid "Service \n\nName: {name}\nIndex: {index}\nShow: {show}"
+msgstr "Сервис \n\nИмя: {name}\nИндекс: {index}\nПоказывать: {show}"
 
 msgid "The service is no longer available"
 msgstr "Сервиса больше нет"
@@ -36,9 +38,9 @@ msgstr "Укажите новое имя"
 msgid "Name changed successfully"
 msgstr "Имя успешно изменено"
 
-msgid "Are you sure you want to delete this service? \n"
+msgid "Are you sure you want to delete this service? \n\n"
 "Before deleting, make sure that this service does not contain categories!"
-msgstr "Вы действительно хотите удалить этот сервис? \n"
+msgstr "Вы действительно хотите удалить этот сервис? \n\n"
 "⚠️ Перед удаление убедитесь что данный сервис не содержит в себе категории!"
 
 msgid "The service has categories, delete them first"
@@ -46,4 +48,98 @@ msgstr "Сервис имеет категории сперва удалите �
 
 msgid "Service successfully removed!"
 msgstr "Сервис успешно удалён!"
+
+
+# ----- Категории -----
+
+msgid "Specify the category name for this language: {language}"
+msgstr "Укажите имя категории для этого языка: {language}"
+
+msgid "Specify the category description for this language: {language}"
+msgstr "Укажите описание категории для этого языка: {language}"
+
+msgid "The category no longer exists"
+msgstr "Категории больше нет"
+
+
+msgid "Category \n\nName: {name}\nIndex: {index}\nShow: {show} \n\nStores accounts: {is_account_storage}"
+msgstr "Категория \n\nИмя: {name}\nИндекс: {index}\nПоказывать: {show} \n\nХранит аккаунты: {is_account_storage}"
+
+msgid "\n\nNumber of stored accounts: {total_quantity_acc}\n"
+"Sum of all stored accounts: {total_sum_acc}\n"
+"Cost of all stored accounts: {total_cost_price_acc}\n"
+"Expected profit: {total_profit}"
+msgstr "\n\nКоличество хранящихся аккаунтов: {total_quantity_acc} \n"
+"Сумма всех хранящихся аккаунтов: {total_sum_acc}\n"
+"Себестоимость всех хранящихся аккаунтов: {total_cost_price_acc}\n"
+"Ожидаемая прибыль: {total_profit}"
+
+
+msgid "Are you sure you want to delete this category? \n\n"
+"⚠️ Before deleting, make sure this category doesn't contain any subcategories or store accounts!"
+msgstr "Вы действительно хотите удалить эту категорию? \n\n"
+"⚠️ Перед удаление убедитесь что данная категория не содержит в себе подкатегорий и не хранит аккаунты!"
+
+msgid "The category stores accounts, please extract them first"
+msgstr "Категория хранит аккаунты, сперва извлеките их"
+
+msgid "The category stores subcategories, delete them first"
+msgstr "Категория хранит подкатегории, сперва удалите их"
+
+msgid "Category successfully removed!"
+msgstr "Категория успешно удалёна!"
+
+msgid "Category successfully created!"
+msgstr "Категория успешно создана!"
+
+
+msgid "Name: {name} \nDescription: {description} \n\n"
+msgstr "Имя: {name} \nОписание: {description} \n\n"
+
+msgid "Price per account: {account_price} \nCost per account: {cost_price}\n\n"
+msgstr "Цена одного аккаунта: {account_price} \nСебестоимость одного аккаунта: {cost_price}\n\n"
+
+msgid "Number of buttons per row: {number_button_in_row}\n\n"
+"👇 Select the item to edit"
+msgstr "Число кнопок в одной строке: {number_button_in_row}\n\n"
+"👇 Выберите пункт для изменения"
+
+msgid "Select the language to change"
+msgstr "Выберите язык для изменения"
+
+msgid "Select the desired section"
+msgstr "Выберите желаемый раздел"
+
+msgid "Enter a new name\n\nCurrent name: {name}"
+msgstr "Введите новое имя \n\nТекущее имя: {name}"
+
+msgid "Enter a new description \n\nCurrent description: {description}"
+msgstr "Введите новое описание \n\nТекущее описание: {description}"
+
+msgid "Name changed successfully"
+msgstr "Имя успешно изменено"
+
+msgid "Description changed successfully"
+msgstr "Описание успешно изменено"
+
+msgid "Send a photo. Be sure to include a document for greater image clarity!"
+msgstr "Пришлите фото \n\nОбязательно документом для большего чёткости изображения!"
+
+msgid "The file is too large — maximum {max_size_mb} MB. \n\nTry again"
+msgstr "Файл слишком большой — максимум {max_size_mb} МБ. \n\nПопробуйте ещё раз"
+
+msgid "This is not an image. Send it as a document"
+msgstr "Это не изображение. Отправь фото как документ"
+
+msgid "Image installed successfully"
+msgstr "Изображение успешно установленно"
+
+msgid "Please send an integer - the price per account"
+msgstr "Пришлите целое число - цену за один аккаунт"
+
+msgid "Please send an integer - the cost price per account"
+msgstr "Пришлите целое число - себестоимость за один аккаунт "
+
+msgid "Please send an integer - the number of buttons in one line for the category \n\nAllowed: from 1 to 8"
+msgstr "Пришлите целое число - количество кнопок в одной строке для категории \n\nРазрешено: от 1 до 8"
 

@@ -28,3 +28,9 @@ msgstr "Пользователь не найден"
 
 msgid "An error occurred, please try again"
 msgstr "Произошла ошибка, пожалуйста попробуйте ещё раз"
+
+msgid "Try again"
+msgstr "Попробуйте ещё раз"
+
+msgid "Data updated successfully"
+msgstr "Данные успешно обновлены"

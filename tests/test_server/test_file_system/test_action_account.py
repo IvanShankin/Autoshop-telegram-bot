@@ -146,7 +146,7 @@ def test_decryption_tg_account_calls_correct(monkeypatch):
 class TestCheckValidAccounts:
     @pytest.mark.asyncio
     async def test_check_valid_accounts_success(self, monkeypatch, tmp_path):
-        from src.services.filesystem.account_actions import _check_valid_accounts_telethon
+        from src.services.tg_accounts.actions import _check_valid_accounts_telethon
         tdata_path = tmp_path / "tdata"
         os.makedirs(tdata_path, exist_ok=True)
 
@@ -158,7 +158,7 @@ class TestCheckValidAccounts:
         fake_tdesk = MagicMock()
         fake_tdesk.ToTelethon = AsyncMock(return_value=fake_client)
 
-        monkeypatch.setattr("src.services.filesystem.account_actions.TDesktop", lambda path: fake_tdesk)
+        monkeypatch.setattr("src.services.tg_accounts.actions.TDesktop", lambda path: fake_tdesk)
 
         res = await _check_valid_accounts_telethon(str(tmp_path))
         assert res is True
@@ -166,9 +166,9 @@ class TestCheckValidAccounts:
 
     @pytest.mark.asyncio
     async def test_check_valid_accounts_fail(self, monkeypatch, tmp_path):
-        from src.services.filesystem.account_actions import _check_valid_accounts_telethon
+        from src.services.tg_accounts.actions import _check_valid_accounts_telethon
         # выкидываем ошибку при инициализации
-        monkeypatch.setattr("src.services.filesystem.account_actions.TDesktop", lambda path: (_ for _ in ()).throw(Exception("bad")))
+        monkeypatch.setattr("src.services.tg_accounts.actions.TDesktop", lambda path: (_ for _ in ()).throw(Exception("bad")))
 
         res = await _check_valid_accounts_telethon(str(tmp_path))
         assert res is False
@@ -271,7 +271,7 @@ async def test_check_account_validity_true(tmp_path, monkeypatch):
     """
     Проверяем связку дешифровки и проверки аккаунта: возвращает True.
     """
-    from src.services.filesystem.account_actions import check_account_validity
+    from src.services.tg_accounts.actions import check_account_validity
     folder_path = tmp_path / "decrypted"
     (folder_path / "tdata").mkdir(parents=True)
     (folder_path / "session.session").write_text("abc")
@@ -285,10 +285,10 @@ async def test_check_account_validity_true(tmp_path, monkeypatch):
     class FakeTDesktop:
         async def ToTelethon(self, *a, **kw): return FakeClient()
 
-    from src.services.filesystem import account_actions
-    monkeypatch.setattr(account_actions, "_decryption_tg_account", lambda a: folder_path)
-    monkeypatch.setattr(account_actions, "TDesktop", lambda path: FakeTDesktop())
-    monkeypatch.setattr(account_actions, "TYPE_ACCOUNT_SERVICES", ["telegram"])
+    from src.services.tg_accounts import actions
+    monkeypatch.setattr(actions, "_decryption_tg_account", lambda a: folder_path)
+    monkeypatch.setattr(actions, "TDesktop", lambda path: FakeTDesktop())
+    monkeypatch.setattr(actions, "TYPE_ACCOUNT_SERVICES", ["telegram"])
 
     acc = AccountStorage(account_storage_id=5)
     result = await check_account_validity(acc, "telegram")
@@ -300,7 +300,7 @@ async def test_check_account_validity_false(tmp_path, monkeypatch):
     """
     Проверка возвращает False, если Telethon возвращает None.id.
     """
-    from src.services.filesystem.account_actions import check_account_validity
+    from src.services.tg_accounts.actions import check_account_validity
     folder_path = tmp_path / "decrypted"
     (folder_path / "tdata").mkdir(parents=True)
     (folder_path / "session.session").write_text("abc")
@@ -313,10 +313,10 @@ async def test_check_account_validity_false(tmp_path, monkeypatch):
     class FakeTDesktop:
         async def ToTelethon(self, *a, **kw): return FakeClient()
 
-    from src.services.filesystem import account_actions
-    monkeypatch.setattr(account_actions, "_decryption_tg_account", lambda a: folder_path)
-    monkeypatch.setattr(account_actions, "TDesktop", lambda path: FakeTDesktop())
-    monkeypatch.setattr(account_actions, "TYPE_ACCOUNT_SERVICES", ["telegram"])
+    from src.services.tg_accounts import actions
+    monkeypatch.setattr(actions, "_decryption_tg_account", lambda a: folder_path)
+    monkeypatch.setattr(actions, "TDesktop", lambda path: FakeTDesktop())
+    monkeypatch.setattr(actions, "TYPE_ACCOUNT_SERVICES", ["telegram"])
 
     acc = AccountStorage(account_storage_id=6)
     result = await check_account_validity(acc, "telegram")
@@ -328,14 +328,14 @@ async def test_get_auth_codes_reads_codes(tmp_path, monkeypatch):
     """
     Интеграционный тест get_auth_codes — извлекает коды из сообщений.
     """
-    from src.services.filesystem.account_actions import get_auth_codes
+    from src.services.tg_accounts.actions import get_auth_codes
     folder_path = tmp_path / "dec"
     (folder_path / "tdata").mkdir(parents=True)
     (folder_path / "session.session").write_text("abc")
 
     # подменяем _decryption_tg_account, чтобы вернуть нашу папку
-    from src.services.filesystem import account_actions
-    monkeypatch.setattr(account_actions, "_decryption_tg_account", lambda a: folder_path)
+    from src.services.tg_accounts import actions
+    monkeypatch.setattr(actions, "_decryption_tg_account", lambda a: folder_path)
 
     fake_msg1 = type("Msg", (), {"message": "Your code: 12345", "date": datetime.now(timezone.utc)})
     fake_msg2 = type("Msg", (), {"message": "Code 67890!", "date": datetime.now(timezone.utc)})
@@ -348,7 +348,7 @@ async def test_get_auth_codes_reads_codes(tmp_path, monkeypatch):
     class FakeTDesktop:
         async def ToTelethon(self, *a, **kw): return FakeClient()
 
-    monkeypatch.setattr(account_actions, "TDesktop", lambda p: FakeTDesktop())
+    monkeypatch.setattr(actions, "TDesktop", lambda p: FakeTDesktop())
 
     acc = AccountStorage(account_storage_id=7)
     result = await get_auth_codes(acc)

@@ -39,7 +39,7 @@ async def test_purchase_accounts_success(
       - файлы переехали в финальный путь (create_path_account(...)).
     """
     from src.services.database.selling_accounts.actions import action_purchase as action_mod
-    from src.services.filesystem import account_actions
+    from src.services.tg_accounts import actions
     from src.services.filesystem.account_actions import create_path_account
 
     # подготовка: пользователь + категория + N аккаунтов
@@ -56,7 +56,7 @@ async def test_purchase_accounts_success(
     # подменяем только _check_valid_accounts_telethon -> True
     async def always_true(folder_path):
         return True
-    monkeypatch.setattr(account_actions, "_check_valid_accounts_telethon", always_true)
+    monkeypatch.setattr(actions, "_check_valid_accounts_telethon", always_true)
 
     # подавим publish_event, чтобы не посылать реальные события
     async def noop_publish(*a, **kw):
@@ -142,7 +142,7 @@ async def test_purchase_accounts_fail_no_replacement(
       - баланс пользователя восстановлен
     """
     from src.services.database.selling_accounts.actions import action_purchase as action_mod
-    from src.services.filesystem import account_actions
+    from src.services.tg_accounts import actions
     from src.services.filesystem.account_actions import create_path_account
 
     # подготовка: пользователь + категория + N аккаунтов
@@ -159,7 +159,7 @@ async def test_purchase_accounts_fail_no_replacement(
     # подменим _check_valid_accounts_telethon -> False (все аккаунты окажутся "плохими")
     async def always_false(folder_path):
         return False
-    monkeypatch.setattr(account_actions, "_check_valid_accounts_telethon", always_false)
+    monkeypatch.setattr(actions, "_check_valid_accounts_telethon", always_false)
 
     # подавим publish_event
     async def noop_publish(*a, **kw):
@@ -453,7 +453,7 @@ async def test__check_account_validity_async_success(
     - вызвать shutil.rmtree в finally (мокаем).
     """
     from src.services.database.selling_accounts.actions import action_purchase as action_mod
-    from src.services.filesystem import account_actions
+    from src.services.tg_accounts import actions
 
     # создаём тестовую категорию и продукт (этот шаг даёт нам AccountStorage)
     cat = await create_account_category()
@@ -462,7 +462,7 @@ async def test__check_account_validity_async_success(
     account_storage = prod_obj.account_storage
 
     # Подменим TYPE_ACCOUNT_SERVICES чтобы наш type_service_name считался валидным
-    monkeypatch.setattr(account_actions, "TYPE_ACCOUNT_SERVICES", {"test_service": True})
+    monkeypatch.setattr(actions, "TYPE_ACCOUNT_SERVICES", {"test_service": True})
 
     # СДЕЛАЕМ decryption синхронным (то, что ожидает asyncio.to_thread)
     temp_folder_path = Path.cwd() / "tmp_test_account_folder"
@@ -476,7 +476,7 @@ async def test__check_account_validity_async_success(
         os.makedirs(tdata_dir, exist_ok=True)
         return temp_folder_path
 
-    monkeypatch.setattr(account_actions, "_decryption_tg_account", fake_decryption_tg_account)
+    monkeypatch.setattr(actions, "_decryption_tg_account", fake_decryption_tg_account)
 
     # Мокаем асинхронную проверку аккаунта — вернём True
     async def fake_check_valid_accounts(folder_path):
@@ -484,7 +484,7 @@ async def test__check_account_validity_async_success(
         assert folder_path == temp_folder_path
         return True
 
-    monkeypatch.setattr(account_actions, "_check_valid_accounts_telethon", fake_check_valid_accounts)
+    monkeypatch.setattr(actions, "_check_valid_accounts_telethon", fake_check_valid_accounts)
 
     # Сохраним оригинал rmtree и подменим на фейк, который вызовет оригинал
     orig_rmtree = shutil.rmtree

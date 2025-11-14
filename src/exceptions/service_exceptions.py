@@ -56,3 +56,11 @@ class AccountServiceNotFound(Exception):
 
 class AccountCategoryNotFound(Exception):
     pass
+
+class SettingsNotFilled(Exception):
+    """Настройки не заполнены"""
+    pass
+
+class TelegramError(Exception):
+    """Любая ошибка связанная с Telethon"""
+    pass

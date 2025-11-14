@@ -160,9 +160,7 @@ class TestHandlerNewReplenishment:
             )
 
         # перенастроим канал логов (иначе send_log ничего не отправит)
-        settings = await get_settings()
-        settings.channel_for_logging_id = 123456789
-        await update_settings(settings)
+        await update_settings(channel_for_logging_id = 123456789)
 
         # создаём пополнение → переводим в processing → триггерим handler_new_replenishment
         new_replenishment = await self.create_and_update_replenishment(
@@ -736,9 +734,7 @@ class TestHandlerNewActivatedVoucher:
         )
 
         # Настраиваем канал для логов
-        settings = await get_settings()
-        settings.channel_for_logging_id = 123456789
-        await update_settings(settings)
+        await update_settings(channel_for_logging_id = 123456789)
 
         await publish_event(event.model_dump(), 'voucher.activated')  # публикация события
         await asyncio.wait_for(processed_voucher.wait(), timeout=5.0)  # ожидание завершения события
@@ -780,8 +776,7 @@ class TestHandlerNewActivatedVoucher:
         # Настраиваем канал для логов если ваучер создан админом
         if is_created_admin:
             settings = await get_settings()
-            settings.channel_for_logging_id = 123456789
-            await update_settings(settings)
+            await update_settings(channel_for_logging_id=123456789)
 
         await send_set_not_valid_voucher(user.user_id, voucher, True, user.language)
 
@@ -813,9 +808,7 @@ class TestHandlerNewActivatedVoucher:
         error_text = "Test error message"
 
         # Настраиваем канал для логов
-        settings = await get_settings()
-        settings.channel_for_logging_id = 123456789
-        await update_settings(settings)
+        await update_settings(channel_for_logging_id=123456789)
 
         await send_failed(voucher_id, error_text)
 

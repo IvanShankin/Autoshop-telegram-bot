@@ -187,9 +187,7 @@ async def test_maintenance_blocks_normal_user(patch_fake_aiogram, replacement_fa
     from src.middlewares.aiogram_middleware import MaintenanceMiddleware
     user = await create_new_user()
 
-    setting = await get_settings()
-    setting.maintenance_mode = True
-    await update_settings(setting)
+    await update_settings(maintenance_mode = True)
 
     bot = replacement_fake_bot
     msg = FakeMessage(chat_id=user.user_id, username="user")

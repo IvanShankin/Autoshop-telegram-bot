@@ -41,7 +41,7 @@ async def test_update_settings(create_settings):
     settings = create_settings
     settings.FAQ = "new FAQ"
 
-    updated_settings = await update_settings(settings) # проверяемый метод
+    updated_settings = await update_settings(faq=settings.FAQ) # проверяемый метод
 
     async with get_db() as session_db:
         settings_db = (await session_db.execute(select(Settings))).scalars().first()

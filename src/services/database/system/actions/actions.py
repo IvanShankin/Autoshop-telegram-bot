@@ -40,36 +40,59 @@ async def get_settings() -> Settings:
                 await filling_settings()
                 return await get_settings()
 
-async def update_settings(settings: Settings) -> Settings:
+async def update_settings(
+    maintenance_mode: bool = None,
+    support_username: str = None,
+    channel_for_logging_id: int = None,
+    channel_for_subscription_id: int = None,
+    shop_name: str = None,
+    channel_name: str = None,
+    linc_info_ref_system: str = None,
+    api_id: int = None,
+    api_hash: str = None,
+    faq: str = None,
+) -> Settings | None:
     """
     Обновляет настройки в БД и Redis.
-    :param Settings Объект настроек с обновленными данными
     """
-    # Обновляем в БД
-    async with get_db() as session_db:
-        # Выполняем обновление
-        await session_db.execute(
-            update(Settings)
-            .values(
-                support_username=settings.support_username,
-                maintenance_mode =settings.maintenance_mode ,
-                channel_for_logging_id=settings.channel_for_logging_id,
-                channel_for_subscription_id=settings.channel_for_subscription_id,
-                shop_name=settings.shop_name,
-                channel_name=settings.channel_name,
-                linc_info_ref_system=settings.linc_info_ref_system,
-                FAQ=settings.FAQ,
-            )
-        )
-        await session_db.commit()
+    update_data = {}
+    if maintenance_mode is not None:
+        update_data["maintenance_mode"] = maintenance_mode
+    if support_username is not None:
+        update_data["support_username"] = support_username
+    if channel_for_logging_id is not None:
+        update_data["channel_for_logging_id"] = channel_for_logging_id
+    if channel_for_subscription_id is not None:
+        update_data["channel_for_subscription_id"] = channel_for_subscription_id
+    if shop_name is not None:
+        update_data["shop_name"] = shop_name
+    if channel_name is not None:
+        update_data["channel_name"] = channel_name
+    if linc_info_ref_system is not None:
+        update_data["linc_info_ref_system"] = linc_info_ref_system
+    if api_id is not None:
+        update_data["api_id"] = api_id
+    if api_hash is not None:
+        update_data["api_hash"] = api_hash
+    if faq is not None:
+        update_data["FAQ"] = faq
 
-    # Обновляем в Redis
-    async with get_redis() as session_redis:
-        await session_redis.set(
-            f'settings',
-            orjson.dumps(settings.to_dict())
-        )
-    return settings
+    if update_data:
+        # Обновляем в БД
+        async with get_db() as session_db:
+            # Выполняем обновление
+            result_db = await session_db.execute(update(Settings).values(**update_data).returning(Settings))
+            settings = result_db.scalars().first()
+            await session_db.commit()
+
+        # Обновляем в Redis
+        async with get_redis() as session_redis:
+            await session_redis.set(
+                f'settings',
+                orjson.dumps(settings.to_dict())
+            )
+        return settings
+    return None
 
 async def create_ui_image(key: str, file_data: bytes, show: bool = True) -> UiImages:
     """

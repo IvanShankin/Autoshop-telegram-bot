@@ -1,6 +1,18 @@
 class CategoryNotFound(Exception):
     pass
 
+class TypeAccountServiceNotFound(Exception):
+    pass
+
+class AccountServiceNotFound(Exception):
+    pass
+
+class UserNotFound(Exception):
+    pass
+
+class AccountCategoryNotFound(Exception):
+    pass
+
 class NotEnoughAccounts(Exception):
     """Если пользователь пытается приобрести аккаунтов больше чем имеется"""
     pass
@@ -16,9 +28,6 @@ class InvalidPromoCode(Exception):
     pass
 
 class PromoCodeAlreadyActivated(Exception):
-    pass
-
-class UserNotFound(Exception):
     pass
 
 class TranslationAlreadyExists(Exception):
@@ -51,16 +60,18 @@ class IncorrectedCostPrice(Exception):
     """Некорректная себестоимость аккаунта"""
     pass
 
-class AccountServiceNotFound(Exception):
-    pass
-
-class AccountCategoryNotFound(Exception):
-    pass
-
 class SettingsNotFilled(Exception):
     """Настройки не заполнены"""
     pass
 
 class TelegramError(Exception):
     """Любая ошибка связанная с Telethon"""
+    pass
+
+class ArchiveNotFount(Exception):
+    """Архив не найден"""
+    pass
+
+class DirNotFount(Exception):
+    """Архив не найден"""
     pass

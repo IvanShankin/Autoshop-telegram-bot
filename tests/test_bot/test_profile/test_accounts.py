@@ -4,6 +4,7 @@ import pytest
 
 from src.config import DT_FORMAT
 from src.utils.i18n import get_text
+from src.utils.pars_number import e164_to_pretty
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
 
 
@@ -316,7 +317,7 @@ async def test_confirm_del_acc_edits_message(
         "Phone number: {phone_number}\n"
         "Name: {name}"
     ).format(
-        phone_number=sold_full.account_storage.phone_number,
+        phone_number=e164_to_pretty(sold_full.account_storage.phone_number),
         name=sold_full.name,
     )
     assert replacement_fake_bot.get_edited_message(user.user_id, message_id=20, message=text)

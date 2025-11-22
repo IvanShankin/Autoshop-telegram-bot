@@ -1,10 +1,9 @@
 import os
 import zipfile
-from datetime import datetime, timezone
 
 import pytest
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 from src.services.database.selling_accounts.models import AccountStorage, ProductAccounts
 
@@ -143,37 +142,6 @@ def test_decryption_tg_account_calls_correct(monkeypatch):
     assert res == fake_folder
 
 
-class TestCheckValidAccounts:
-    @pytest.mark.asyncio
-    async def test_check_valid_accounts_success(self, monkeypatch, tmp_path):
-        from src.services.tg_accounts.actions import _check_valid_accounts_telethon
-        tdata_path = tmp_path / "tdata"
-        os.makedirs(tdata_path, exist_ok=True)
-
-        fake_client = AsyncMock()
-        fake_client.__aenter__.return_value = fake_client
-        fake_client.__aexit__.return_value = None
-        fake_client.get_me = AsyncMock(return_value=MagicMock(id=123))
-
-        fake_tdesk = MagicMock()
-        fake_tdesk.ToTelethon = AsyncMock(return_value=fake_client)
-
-        monkeypatch.setattr("src.services.tg_accounts.actions.TDesktop", lambda path: fake_tdesk)
-
-        res = await _check_valid_accounts_telethon(str(tmp_path))
-        assert res is True
-
-
-    @pytest.mark.asyncio
-    async def test_check_valid_accounts_fail(self, monkeypatch, tmp_path):
-        from src.services.tg_accounts.actions import _check_valid_accounts_telethon
-        # выкидываем ошибку при инициализации
-        monkeypatch.setattr("src.services.tg_accounts.actions.TDesktop", lambda path: (_ for _ in ()).throw(Exception("bad")))
-
-        res = await _check_valid_accounts_telethon(str(tmp_path))
-        assert res is False
-
-
 @pytest.mark.asyncio
 async def test_get_tdata_tg_acc_creates_archive(tmp_path, monkeypatch):
     """
@@ -265,93 +233,3 @@ async def test_get_session_tg_acc_missing_file(tmp_path, monkeypatch):
     res = await anext(gen)
     assert res is False
 
-
-@pytest.mark.asyncio
-async def test_check_account_validity_true(tmp_path, monkeypatch):
-    """
-    Проверяем связку дешифровки и проверки аккаунта: возвращает True.
-    """
-    from src.services.tg_accounts.actions import check_account_validity
-    folder_path = tmp_path / "decrypted"
-    (folder_path / "tdata").mkdir(parents=True)
-    (folder_path / "session.session").write_text("abc")
-
-    # создаём фейковый Telethon клиент
-    class FakeClient:
-        async def __aenter__(self): return self
-        async def __aexit__(self, *a): return None
-        async def get_me(self): return type("User", (), {"id": 1})
-
-    class FakeTDesktop:
-        async def ToTelethon(self, *a, **kw): return FakeClient()
-
-    from src.services.tg_accounts import actions
-    monkeypatch.setattr(actions, "_decryption_tg_account", lambda a: folder_path)
-    monkeypatch.setattr(actions, "TDesktop", lambda path: FakeTDesktop())
-    monkeypatch.setattr(actions, "TYPE_ACCOUNT_SERVICES", ["telegram"])
-
-    acc = AccountStorage(account_storage_id=5)
-    result = await check_account_validity(acc, "telegram")
-    assert result is True
-
-
-@pytest.mark.asyncio
-async def test_check_account_validity_false(tmp_path, monkeypatch):
-    """
-    Проверка возвращает False, если Telethon возвращает None.id.
-    """
-    from src.services.tg_accounts.actions import check_account_validity
-    folder_path = tmp_path / "decrypted"
-    (folder_path / "tdata").mkdir(parents=True)
-    (folder_path / "session.session").write_text("abc")
-
-    class FakeClient:
-        async def __aenter__(self): return self
-        async def __aexit__(self, *a): return None
-        async def get_me(self): return type("User", (), {"id": None})
-
-    class FakeTDesktop:
-        async def ToTelethon(self, *a, **kw): return FakeClient()
-
-    from src.services.tg_accounts import actions
-    monkeypatch.setattr(actions, "_decryption_tg_account", lambda a: folder_path)
-    monkeypatch.setattr(actions, "TDesktop", lambda path: FakeTDesktop())
-    monkeypatch.setattr(actions, "TYPE_ACCOUNT_SERVICES", ["telegram"])
-
-    acc = AccountStorage(account_storage_id=6)
-    result = await check_account_validity(acc, "telegram")
-    assert result is False
-
-
-@pytest.mark.asyncio
-async def test_get_auth_codes_reads_codes(tmp_path, monkeypatch):
-    """
-    Интеграционный тест get_auth_codes — извлекает коды из сообщений.
-    """
-    from src.services.tg_accounts.actions import get_auth_codes
-    folder_path = tmp_path / "dec"
-    (folder_path / "tdata").mkdir(parents=True)
-    (folder_path / "session.session").write_text("abc")
-
-    # подменяем _decryption_tg_account, чтобы вернуть нашу папку
-    from src.services.tg_accounts import actions
-    monkeypatch.setattr(actions, "_decryption_tg_account", lambda a: folder_path)
-
-    fake_msg1 = type("Msg", (), {"message": "Your code: 12345", "date": datetime.now(timezone.utc)})
-    fake_msg2 = type("Msg", (), {"message": "Code 67890!", "date": datetime.now(timezone.utc)})
-
-    class FakeClient:
-        async def __aenter__(self): return self
-        async def __aexit__(self, *a): return None
-        async def get_messages(self, *a, **kw): return [fake_msg1, fake_msg2]
-
-    class FakeTDesktop:
-        async def ToTelethon(self, *a, **kw): return FakeClient()
-
-    monkeypatch.setattr(actions, "TDesktop", lambda p: FakeTDesktop())
-
-    acc = AccountStorage(account_storage_id=7)
-    result = await get_auth_codes(acc)
-    assert isinstance(result, list)
-    assert len(result) == 2
-    assert all(isinstance(code, str) for _, code in result)

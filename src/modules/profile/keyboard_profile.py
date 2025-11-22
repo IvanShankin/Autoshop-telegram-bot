@@ -17,6 +17,7 @@ from src.services.database.users.actions.action_other_with_user import get_walle
     get_count_wallet_transaction
 from src.services.database.users.models import NotificationSettings
 from src.utils.i18n import get_text
+from src.utils.pars_number import e164_to_pretty
 
 
 def profile_kb(language: str):
@@ -133,7 +134,7 @@ async def sold_accounts_kb(language: str, current_page: int, type_account_servic
 
     for account in records:
         keyboard.row(InlineKeyboardButton(
-            text=account.phone_number if account.phone_number else account.name,
+            text=e164_to_pretty(account.phone_number )if account.phone_number else account.name,
             callback_data=f'sold_account:{account.sold_account_id}:{type_account_service_id}:{current_page}')
         )
 

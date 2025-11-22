@@ -2,7 +2,7 @@ import asyncio
 import os
 import shutil
 from pathlib import Path
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Tuple
 
 from src.bot_actions.actions import send_log
 from src.config import ACCOUNTS_DIR
@@ -30,8 +30,10 @@ def move_file_sync(src: str, dst: str) -> bool:
     except Exception:
         return False
 
+
 async def move_file(src: str, dst: str) -> bool:
     return await asyncio.to_thread(move_file_sync, src, dst)
+
 
 async def move_in_account(account: AccountStorage, type_service_name: str, status: str) -> bool:
     """
@@ -72,6 +74,7 @@ async def move_in_account(account: AccountStorage, type_service_name: str, statu
         await send_log(text)
         return False
 
+
 # helper: rename temp -> final (atomic)
 def rename_sync(src: str, dst: str) -> bool:
     try:
@@ -80,6 +83,7 @@ def rename_sync(src: str, dst: str) -> bool:
         return True
     except Exception:
         return False
+
 
 async def rename_file(src: str, dst: str) -> bool:
     return await asyncio.to_thread(rename_sync, src, dst)
@@ -95,10 +99,11 @@ def create_path_account(status: str, type_account_service: str, uuid: str) -> st
     """
     return str(Path(ACCOUNTS_DIR) / status / type_account_service / uuid / 'account.enc')
 
+
 def _decryption_tg_account(account_storage: AccountStorage):
     """
     Расшифровывает файлы для телеграмм аккаунтов и записывает на диск расшифрованные данные во временную директорию (Temp)
-    :return: путь к расшифрованным данным от аккаунта
+    :return: путь к расшифрованным данным от аккаунта: Временная папка с .session и tdata (директория)
     """
     master_key = derive_master_key()
     account_key = unwrap_account_key(account_storage.encrypted_key, master_key)
@@ -106,7 +111,7 @@ def _decryption_tg_account(account_storage: AccountStorage):
     abs_path = ACCOUNTS_DIR / Path(account_storage.file_path)
     abs_path = abs_path.resolve()
     folder_path = decrypt_folder(abs_path, account_key)
-    return folder_path  # Временная папка с .session и tdata
+    return folder_path
 
 
 async def get_tdata_tg_acc(account_storage: AccountStorage) -> AsyncGenerator[str | bool, None]:

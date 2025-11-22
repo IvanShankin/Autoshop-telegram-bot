@@ -78,6 +78,22 @@ async def test_get_account_categories_by_category_id(use_redis, create_account_c
 
     assert category_1 == result_category
 
+
+@pytest.mark.asyncio
+async def test_get_all_phone_in_account_storage(create_account_service, create_product_account, create_sold_account):
+    from src.services.database.selling_accounts.actions import get_all_phone_in_account_storage
+
+    service = await create_account_service()
+    _, account_1 = await create_product_account(type_account_service_id=service.type_account_service_id)
+    account_2, _ = await create_sold_account(type_account_service_id=service.type_account_service_id, phone_number = "+7 32949 543543")
+
+    all_phones = await get_all_phone_in_account_storage(service.type_account_service_id)
+
+    assert account_1.account_storage.phone_number in all_phones
+    assert account_2.phone_number in all_phones
+
+
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_account_categories_by_parent_id(use_redis, create_account_category, create_account_service, create_product_account):

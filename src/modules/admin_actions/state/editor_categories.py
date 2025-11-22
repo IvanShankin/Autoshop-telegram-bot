@@ -30,3 +30,6 @@ class UpdateNumberInCategory(StatesGroup):
     price = State()
     cost_price = State()
     number_button = State()
+
+class ImportTgAccounts(StatesGroup):
+    archive = State()

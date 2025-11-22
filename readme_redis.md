@@ -207,7 +207,7 @@
 ```
 **TTL:** Навсегда
 
-### 15. Категории аккаунтов по id категории(AccountCategories)
+### 15. Категории аккаунтов по id категории (AccountCategories)
 **Ключ:** `account_categories_by_category_id:{account_category_id}:{language}`  
 **Значение:** 
 ``` json

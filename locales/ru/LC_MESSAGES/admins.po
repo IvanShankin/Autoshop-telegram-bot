@@ -9,6 +9,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 
 
+msgid "File loading"
+msgstr "Файл загружается"
+
 # ----- Сервисы -----
 
 msgid "Select service type"
@@ -142,4 +145,49 @@ msgstr "Пришлите целое число - себестоимость за
 
 msgid "Please send an integer - the number of buttons in one line for the category \n\nAllowed: from 1 to 8"
 msgstr "Пришлите целое число - количество кнопок в одной строке для категории \n\nРазрешено: от 1 до 8"
+
+
+msgid "Send the archive with the exact folder and archive structure as shown in the photo"
+msgstr "Пришлите архив строго с такой структурой папок и архивов как на фото"
+
+msgid "This service no longer exists, please choose another one"
+msgstr "Данного сервиса больше не существует, пожалуйста выберите другой"
+
+msgid "A file with this extension is not supported, please send a file with one of these extensions: {extensions_list}"
+msgstr "Файл с таким расширением не поддерживается, пожалуйста пришлите файл с одним из этих расширений: {extensions_list}"
+
+msgid "The file is too large. The maximum size is {max_size_file} MB. \n\nPlease send a different file"
+msgstr "Файл слишком большой. Максимальный размер — {max_size_file} МБ. \n\nПожалуйста отошлите другой файл"
+
+msgid "Please wait for the accounts to load and don't touch anything!"
+msgstr "⚠️ Пожалуйста дождитесь загрузки аккаунтов и ничего не трогайте! ⚠️"
+
+msgid "The file is uploaded to the server"
+msgstr "Файл загружается на сервер"
+
+msgid "The file has been successfully uploaded. The accounts are currently being checked for validity and integrated into the bot"
+msgstr "Файл успешно загружен. В данный момент происходит проверка аккаунтов на валидность и их интеграция в бота"
+
+msgid "First, make this category an account storage"
+msgstr "Сперва сделайте данную категорию хранилищем аккаунтов"
+
+msgid "Account integration was successful. \n\nSuccessfully added: {successfully_added} \nTotal processed: {total_processed}"
+msgstr "Интеграция аккаунтов прошла успешно. \n\nУспешно добавлено: {successfully_added} \nВсего обработано: {total_processed}"
+
+msgid "\n\nWe couldn't extract the account from some files(either the structure is broken or the account is invalid); "
+"they were downloaded as a separate file"
+msgstr "\n\nИз некоторых файлов не удалось извлечь аккаунт (либо нарушена структура, либо аккаунт не валидный), ""
+"они были выгружены отдельным файлом 👇"
+
+msgid "\n\nSome accounts are already in the bot; they were downloaded as a separate file"
+msgstr "\n\nНекоторые аккаунты уже имеются в боте, они были выгружены отдельным файлом 👇"
+
+msgid "An error occurred inside the server, see the logs!"
+msgstr "⚠️ Внутри сервера произошла ошибка, смотри логи! ⚠️"
+
+msgid "Failed account extraction"
+msgstr "НЕ удалось извлечь аккаунты"
+
+msgid "Duplicate accounts"
+msgstr "Аккаунты дубликаты"
 

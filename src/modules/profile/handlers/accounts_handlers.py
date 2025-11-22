@@ -17,6 +17,7 @@ from src.services.filesystem.account_actions import move_in_account, get_tdata_t
 from src.services.tg_accounts.actions import check_account_validity, get_auth_codes
 from src.utils.core_logger import logger
 from src.utils.i18n import get_text
+from src.utils.pars_number import e164_to_pretty
 from src.utils.secret_data import decrypt_data
 
 router = Router()
@@ -55,7 +56,7 @@ async def show_sold_account(
             "{valid}\n"
             "Purchased: {sold_at}"
         ).format(
-            phone_number=account.account_storage.phone_number,
+            phone_number=e164_to_pretty(account.account_storage.phone_number),
             name=account.name,
             description=account.description,
             valid=(
@@ -351,7 +352,7 @@ async def confirm_del_acc(callback: CallbackQuery, user: Users):
             "Phone number: {phone_number}\n"
             "Name: {name}"
         ).format(
-            phone_number=account.account_storage.phone_number,
+            phone_number=e164_to_pretty(account.account_storage.phone_number),
             name=account.name,
         ),
         image_key='purchased_accounts',

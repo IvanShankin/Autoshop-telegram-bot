@@ -7,7 +7,7 @@ from typing import List, Tuple
 
 from opentele.api import UseCurrentSession
 from opentele.td import TDesktop
-from telethon.tl.types import Message
+from telethon.tl.types import Message, User
 
 from src.config import TYPE_ACCOUNT_SERVICES
 from src.services.database.selling_accounts.models import AccountStorage
@@ -18,10 +18,10 @@ CODE_PATTERN = [
         r"\b\d{5}\b",  # например: 56741
 ]
 
-async def _check_valid_accounts_telethon(folder_path: str) -> bool:
+async def check_valid_accounts_telethon(folder_path: str) -> User | bool:
     """
-    Проверяет валидный ли аккаунт
-    :param folder_path: путь к папке с данными для аккаунта. Внутри папки необходимо содержать папку tdata и файл .session
+    Проверяет валидный ли аккаунт. Если аккаунт валиден, то в указанной директории будет создан файл session.session
+    :param folder_path: путь к папке с данными для аккаунта. Внутри папки необходимо содержать папку tdata
     :return: результат проверки. True - если валидный
     """
     try:
@@ -35,10 +35,12 @@ async def _check_valid_accounts_telethon(folder_path: str) -> bool:
         async with client:# вход в аккаунт
             me = await client.get_me()
             # бывают ситуации когда можно войти в аккаунт, но он не действителен (данной проверкой покрываем такие случаи)
-            if me.id is None:
-                return False
+            if me.id is not None:
+                logger.info("[check_valid_accounts_telethon] - валидный аккаунт")
+                return me
 
-        return True
+        logger.info("[check_valid_accounts_telethon] - НЕ валидный аккаунт")
+        return False
     except:
         return False
 
@@ -55,7 +57,7 @@ async def check_account_validity(account_storage: AccountStorage, type_service_n
         # decryption heavy IO в thread
         temp_folder = await asyncio.to_thread(_decryption_tg_account, account_storage)
         # проверка уже асинхронная
-        is_valid = await _check_valid_accounts_telethon(temp_folder)
+        is_valid = await check_valid_accounts_telethon(temp_folder)
         return bool(is_valid)
     except Exception as e:
         logger.exception("Error while validating account %s: %s", getattr(account_storage, "account_storage_id", None), e)

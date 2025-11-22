@@ -80,5 +80,6 @@ UI_IMAGES = {
 
     # админ панель
     "admin_panel": UI_SECTIONS / "admin_panel.png",
+    "info_add_accounts": UI_SECTIONS / "info_add_accounts.png",
 
 }

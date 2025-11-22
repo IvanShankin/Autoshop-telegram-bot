@@ -30,3 +30,8 @@ class UpdateDescriptionForCategoryData(BaseModel):
 
 class UpdateCategoryOnlyId(BaseModel):
     category_id: int
+
+
+class ImportTgAccountsData(BaseModel):
+    category_id: int
+    type_account_service: str

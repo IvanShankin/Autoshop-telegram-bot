@@ -1,6 +1,6 @@
 from datetime import datetime
 from functools import lru_cache
-from typing import List, Any, Callable, Awaitable
+from typing import List, Any, Callable, Awaitable, Set
 import inspect as inspect_python
 import orjson
 
@@ -282,6 +282,27 @@ async def get_account_categories_by_category_id(
     else:
         return category if category and category.show == True else None
 
+
+async def get_all_phone_in_account_storage(type_account_service_id: int) -> Set[str]:
+    """Вернёт все номера телефонов которые хранятся в БД у определённого типа сервиса"""
+    async with get_db() as session_db:
+        # получение данных с БД
+        stmt = (
+            select(AccountStorage.phone_number)
+            .select_from(AccountStorage)
+            .join(ProductAccounts, ProductAccounts.account_storage_id == AccountStorage.account_storage_id)
+            .where(ProductAccounts.type_account_service_id == type_account_service_id)
+        ).union(
+            select(AccountStorage.phone_number)
+            .select_from(AccountStorage)
+            .join(SoldAccounts, SoldAccounts.account_storage_id == AccountStorage.account_storage_id)
+            .where(SoldAccounts.type_account_service_id == type_account_service_id)
+        )
+
+        result = await session_db.execute(stmt)
+        return (result.scalars().all())
+
+
 async def get_account_categories_by_parent_id(
         account_service_id: int,
         parent_id: int = None,
@@ -402,7 +423,6 @@ async def get_sold_account_by_page(
         )
         await filling_sold_accounts_by_owner_id(user_id)
         account_list = result_db.scalars().all()
-        print("1", account_list)
 
         return [SoldAccountSmall.from_orm_with_translation(account, lang=language) for account in account_list]
 

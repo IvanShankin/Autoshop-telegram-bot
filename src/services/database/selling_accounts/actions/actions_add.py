@@ -22,7 +22,9 @@ from src.services.database.selling_accounts.models import AccountServices, Accou
     ProductAccounts, SoldAccounts, SoldAccountsTranslation, DeletedAccounts, AccountCategoryFull, SoldAccountSmall
 from src.services.database.users.actions import get_user
 from src.services.redis.filling_redis import filling_product_account_by_account_id, \
-    filling_product_accounts_by_category_id, filling_sold_accounts_by_owner_id, filling_sold_account_by_account_id
+    filling_product_accounts_by_category_id, filling_sold_accounts_by_owner_id, filling_sold_account_by_account_id, \
+    filling_account_categories_by_service_id, filling_account_categories_by_category_id
+from src.utils.pars_number import phone_in_e164
 from src.utils.ui_images_data import get_default_image_bytes
 
 
@@ -266,7 +268,8 @@ async def add_account_storage(
     password_encrypted: str = None,
 ) -> AccountStorage:
     """
-    Путь сформируется только для аккаунтов телеграмма т.к. только их данные хранятся в файле
+    Путь сформируется только для аккаунтов телеграмма т.к. только их данные хранятся в файле.
+     Преобразует номер телефона в необходимый формат для хранения (E164)
     :param type_service_name: Имя сервиса необходимо для формирования пути (должен иметься в TYPE_ACCOUNT_SERVICES)
     :param checksum: Контроль целостности (SHA256 зашифрованного файла)
     :param encrypted_key: Персональный ключ аккаунта, зашифрованный мастер-ключом (base64)
@@ -283,20 +286,21 @@ async def add_account_storage(
 
     # только для аккаунтов телеграмм формируем путь
     storage_uuid = str(uuid.uuid4()) if type_service_name == 'telegram' else None
-    file_path = Path(f'status') / type_service_name / str(storage_uuid) / 'account.zip.enc' if type_service_name == 'telegram' else None
+    file_path = Path(status) / type_service_name / str(storage_uuid) / 'account.zip.enc' if type_service_name == 'telegram' else None
+
     if type_service_name != 'telegram' and (login_encrypted is None or password_encrypted is None):
         raise ValueError(f"Необходимо указать login_encrypted и password_encrypted")
 
     new_account_storage = AccountStorage(
         storage_uuid = storage_uuid,
-        file_path =file_path, # относительный путь к зашифрованному файлу (относительно accounts/)
+        file_path = str(file_path), # относительный путь к зашифрованному файлу (относительно accounts/)
         checksum = checksum,
         status = status,
         encrypted_key = encrypted_key,
         encrypted_key_nonce = encrypted_key_nonce,
         key_version = key_version,
         encryption_algo = encryption_algo,
-        phone_number = phone_number,
+        phone_number = phone_in_e164(phone_number),
         login_encrypted = login_encrypted,
         password_encrypted = password_encrypted
     )
@@ -353,9 +357,13 @@ async def add_product_account(
         new_list_accounts.append(account.to_dict())
 
     # заполнение redis
+    # конкретно аккаунты
     await filling_product_account_by_account_id(new_product_account.account_id)
     await filling_product_accounts_by_category_id()
 
+    # категории
+    await filling_account_categories_by_service_id()
+    await filling_account_categories_by_category_id()
     return new_product_account
 
 

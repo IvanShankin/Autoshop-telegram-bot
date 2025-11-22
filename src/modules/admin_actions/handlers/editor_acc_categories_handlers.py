@@ -1,38 +1,41 @@
 import asyncio
 import io
+import os
+from pathlib import Path
+from typing import Optional
 
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message,  FSInputFile
 
 from src.bot_actions.actions import edit_message, send_message
-from src.config import ALLOWED_LANGS, EMOJI_LANGS, NAME_LANGS, DEFAULT_LANG
+from src.bot_actions.bot_instance import get_bot
+from src.config import ALLOWED_LANGS, EMOJI_LANGS, NAME_LANGS, DEFAULT_LANG, SUPPORTED_ARCHIVE_EXTENSIONS, \
+    TEMP_FILE_DIR, MAX_SIZE_MB, MAX_SIZE_BYTES, MAX_DOWNLOAD_SIZE
 from src.exceptions.service_exceptions import AccountCategoryNotFound, \
     TheCategoryStorageAccount, CategoryStoresSubcategories, IncorrectedAmountSale, IncorrectedCostPrice, \
-    IncorrectedNumberButton
+    IncorrectedNumberButton, TypeAccountServiceNotFound
 from src.modules.admin_actions.keyboard_admin import to_services_kb, back_in_service_kb, show_account_category_admin_kb, \
     delete_category_kb, back_in_category_kb, change_category_data_kb, select_lang_category_kb, name_or_description_kb, \
     back_in_category_update_data_kb
 from src.modules.admin_actions.schemas.editor_categories import GetDataForCategoryData, UpdateNameForCategoryData, \
-    UpdateDescriptionForCategoryData, UpdateCategoryOnlyId
+    UpdateDescriptionForCategoryData, UpdateCategoryOnlyId, ImportTgAccountsData
 from src.modules.admin_actions.state.editor_categories import GetDataForCategory, UpdateNameForCategory, \
-    UpdateDescriptionForCategory, UpdateCategoryImage, UpdateNumberInCategory
+    UpdateDescriptionForCategory, UpdateCategoryImage, UpdateNumberInCategory, ImportTgAccounts
 from src.services.database.selling_accounts.actions import add_account_category, \
     add_translation_in_account_category, get_account_categories_by_category_id, update_account_category, \
-    update_account_category_translation
+    update_account_category_translation, get_account_service, get_type_account_service
 from src.services.database.selling_accounts.actions.actions_delete import delete_account_category
 from src.services.database.selling_accounts.models import AccountCategoryFull
 from src.services.database.system.actions import get_ui_image, update_ui_image
 from src.services.database.users.models import Users
+from src.services.tg_accounts.input_account import import_telegram_accounts_from_archive
 from src.utils.converter import safe_int_conversion
+from src.utils.core_logger import logger
 from src.utils.i18n import get_text
 
 router = Router()
-
-
-MAX_SIZE_MB = 10
-MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024  # 10 мегабайт = 10 * 1024 * 1024
 
 
 async def safe_get_category(category_id: int, user: Users, callback: CallbackQuery | None = None) -> AccountCategoryFull | None:
@@ -273,6 +276,20 @@ async def update_data(message: Message, state: FSMContext, user: Users):
     except Exception:
         pass
 
+
+async def service_not_found(user: Users, message_id_delete: Optional[int] = None):
+    if message_id_delete:
+        try:
+            bot = await get_bot()
+            await bot.delete_message(user.user_id, message_id_delete)
+        except Exception:
+            pass
+
+    await send_message(
+        chat_id=user.user_id,
+        message=get_text(user.language, "admins", "This service no longer exists, please choose another one"),
+        reply_markup=to_services_kb(language=user.language)
+    )
 
 @router.callback_query(F.data.startswith("add_main_acc_category:"))
 async def add_main_acc_category(callback: CallbackQuery, state: FSMContext, user: Users):
@@ -680,10 +697,200 @@ async def acc_category_update_number_button(callback: CallbackQuery, state: FSMC
 async def acc_category_update_price(message: Message, state: FSMContext, user: Users):
     await update_data(message, state, user)
 
+
 @router.message(UpdateNumberInCategory.cost_price)
 async def acc_category_update_price(message: Message, state: FSMContext, user: Users):
     await update_data(message, state, user)
 
+
 @router.message(UpdateNumberInCategory.number_button)
 async def acc_category_update_price(message: Message, state: FSMContext, user: Users):
     await update_data(message, state, user)
+
+
+@router.callback_query(F.data.startswith("acc_category_load_acc:"))
+async def acc_category_load_acc(callback: CallbackQuery, state: FSMContext, user: Users):
+    category_id = int(callback.data.split(':')[1])
+    category = await safe_get_category(category_id, user=user, callback=None)
+    if not category:
+        return
+
+    service_name = None
+    service = await get_account_service(category.account_service_id, return_not_show=True)
+    if service:
+        type_service = await get_type_account_service(service.type_account_service_id)
+        if type_service:
+            service_name = type_service.name
+
+    if not service_name:
+        await service_not_found(user, callback.message.message_id)
+
+    if service_name == "telegram":
+        await edit_message(
+            chat_id=user.user_id,
+            message_id=callback.message.message_id,
+            message=get_text(
+                user.language,
+                'admins',
+                "Send the archive with the exact folder and archive structure as shown in the photo"
+            ),
+            image_key="info_add_accounts",
+            reply_markup=back_in_category_kb(user.language, category_id)
+        )
+        await state.set_state(ImportTgAccounts.archive)
+        await state.update_data(category_id=category_id, type_account_service=service_name)
+    elif service_name ==  "other":
+        pass
+        # логика получение файла для его расшифровки по паролям и логинам
+        # логика получение файла для его расшифровки по паролям и логинам
+        # логика получение файла для его расшифровки по паролям и логинам
+    else:
+        await service_not_found(user, callback.message.message_id)
+
+
+
+@router.message(ImportTgAccounts.archive, F.document)
+async def import_tg_account(message: Message, state: FSMContext, user: Users):
+    async def load_file(file_path: str, caption: str):
+        try:
+            message_loading = await send_message(
+                message.from_user.id, get_text(user.language, "admins", "File loading")
+            )
+            bot = await get_bot()
+            file = FSInputFile(file_path)
+            await bot.send_document(message.from_user.id, document=file, caption=caption)
+            await message_loading.delete()
+        except Exception as e:
+            logger.warning(f"[import_tg_account.load_file] - ошибка: {str(e)}")
+            pass
+
+
+    data = ImportTgAccountsData(**(await state.get_data()))
+    category = await safe_get_category(data.category_id, user=user, callback=None)
+    if not category:
+        return
+
+    if not category.is_accounts_storage:
+        await send_message(
+            message.from_user.id,
+            get_text(user.language,"admins","First, make this category an account storage"),
+            reply_markup=back_in_category_kb(
+                language=user.language,
+                category_id=data.category_id,
+                i18n_key = "In category"
+            )
+        )
+        return
+
+
+    doc = message.document
+    file_name = doc.file_name
+    extension = file_name.split('.')[-1].lower() # пример: "zip"
+    if extension not in SUPPORTED_ARCHIVE_EXTENSIONS:
+        await send_message(
+            message.from_user.id,
+            get_text(
+                user.language,
+                "admins",
+                "This file format is not supported, please send a file with one of these extensions: {extensions_list}"
+            ).format(extensions_list=SUPPORTED_ARCHIVE_EXTENSIONS)
+        )
+        await state.set_state(ImportTgAccounts.archive)
+        return
+
+    if doc.file_size > MAX_DOWNLOAD_SIZE:
+        await send_message(
+            message.from_user.id,
+            get_text(
+                user.language,
+                "admins",
+                "The file is too large. The maximum size is {max_size_file} MB. \n\nPlease send a different file"
+            ).format(extensions_list=MAX_DOWNLOAD_SIZE)
+        )
+        await state.set_state(ImportTgAccounts.archive)
+        return
+
+
+    save_path = str(Path(TEMP_FILE_DIR) / file_name)
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+
+    file = await message.bot.get_file(doc.file_id) # Получаем объект файла
+
+    await send_message(
+        message.from_user.id,
+        get_text(
+            user.language,
+            "admins",
+            "Please wait for the accounts to load and don't touch anything!"
+        )
+    )
+    message_info = await send_message(
+        message.from_user.id,
+        get_text(user.language,"admins","The file is uploaded to the server")
+    )
+    await message.bot.download_file(file.file_path, destination=save_path) # Скачиваем файл на диск
+    await edit_message(
+        message.from_user.id,
+        message_info.message_id,
+        get_text(
+            user.language,
+            "admins",
+            "The file has been successfully uploaded. The accounts are currently being checked for validity and integrated into the bot"
+        )
+    )
+
+    try:
+        second_passage = None
+        async for result in import_telegram_accounts_from_archive(
+            archive_path=save_path,
+            account_category_id=data.category_id,
+            type_account_service=data.type_account_service
+        ):
+            if second_passage:
+                break
+
+            result_message = get_text(
+                user.language,
+                "admins",
+                "Account integration was successful. \n\nSuccessfully added: {successfully_added} \nTotal processed: {total_processed}"
+            ).format(successfully_added=result.successfully_added, total_processed=result.total_processed)
+            if result.invalid_archive_path:
+                result_message += get_text(
+                    user.language,
+                    "admins",
+                    "\n\nWe couldn't extract the account from some files(either the structure is broken or the account is invalid); "
+                    "they were downloaded as a separate file"
+                )
+            if result.duplicate_archive_path:
+                result_message += get_text(
+                    user.language,
+                    "admins",
+                    "\n\nSome accounts are already in the bot; they were downloaded as a separate file"
+                )
+
+            await edit_message(message.from_user.id, message_info.message_id, result_message)
+
+
+            if result.invalid_archive_path:
+                await load_file(
+                    result.invalid_archive_path,
+                    caption=get_text(user.language,"admins", "Failed account extraction")
+                )
+
+            if result.duplicate_archive_path:
+                await load_file(
+                    result.duplicate_archive_path,
+                    caption=get_text(user.language, "admins", "Duplicate accounts")
+                )
+
+            second_passage = True
+    except TypeAccountServiceNotFound:
+        await service_not_found(user)
+    except Exception:
+        await send_message(
+            message.from_user.id,
+            get_text(user.language,"admins", "An error occurred inside the server, see the logs!")
+        )
+
+
+

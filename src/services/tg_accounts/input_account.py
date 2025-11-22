@@ -1,0 +1,339 @@
+import asyncio
+import shutil
+import tempfile
+from pathlib import Path
+from typing import List, AsyncGenerator, Any, Tuple
+
+from src.config import ACCOUNTS_DIR
+from src.exceptions.service_exceptions import ArchiveNotFount, DirNotFount, TypeAccountServiceNotFound
+from src.services.database.selling_accounts.actions import add_account_storage, add_product_account, \
+    update_account_storage, get_all_types_account_service, get_all_phone_in_account_storage
+from src.services.filesystem.input_account import extract_archive_to_temp, encrypted_tg_account, make_archive, \
+    cleanup_used_data, archive_if_not_empty
+from src.services.tg_accounts.actions import check_valid_accounts_telethon
+from src.services.tg_accounts.shemas import ArchiveProcessingResult, ArchivesBatchResult, BaseAccountProcessingResult, \
+     DirsBatchResult, ImportResult
+from src.utils.core_logger import logger
+from src.utils.pars_number import phone_in_e164
+
+# ограничиваем число параллельных обработок
+SEM = asyncio.Semaphore(7)
+
+
+async def import_telegram_accounts_from_archive(
+    archive_path: str,
+    account_category_id: int,
+    type_account_service: str
+) -> AsyncGenerator[ImportResult, Any]:
+    """
+    При первом вызове интегрирует аккаунты в бота,
+    при втором удалит все созданные временные файлы, так же и архивы с невалидными/дублирующими аккаунтами
+    """
+
+    if not archive_path.lower().endswith(".zip"):
+        raise ArchiveNotFount()
+
+    base_dir = await extract_archive_to_temp(archive_path)
+
+    invalid_dir = tempfile.mkdtemp()
+    duplicate_dir = tempfile.mkdtemp()
+
+    try:
+        archives_result = await process_archives_batch(base_dir)
+    except ArchiveNotFount:
+        archives_result = None
+
+    try:
+        dirs_result = await process_dirs_batch(base_dir)
+    except DirNotFount:
+        dirs_result = None
+
+    # собираем все результаты вместе
+    all_items = []
+    if archives_result:
+        all_items.extend(archives_result.items)
+    if dirs_result:
+        all_items.extend(dirs_result.items)
+
+    unique_items, duplicate_items, invalid_items = await split_unique_and_duplicates(all_items, type_account_service)
+
+    # Архивируем повторяющиеся аккаунты
+    await process_inappropriate_acc(duplicate_items, duplicate_dir)
+    await process_inappropriate_acc(invalid_items, invalid_dir)
+
+    # Грузим уникальные в БД
+    successfully_added = await import_in_db(unique_items, type_account_service, invalid_dir, account_category_id)
+
+    invalid_archive = await archive_if_not_empty(invalid_dir)
+    duplicate_archive = await archive_if_not_empty(duplicate_dir)
+
+    result = ImportResult(
+        successfully_added=successfully_added,
+        total_processed=len(all_items),
+        invalid_archive_path=invalid_archive,
+        duplicate_archive_path=duplicate_archive,
+    )
+
+    # отдаём результат пользователю
+    yield result
+
+    # затем асинхронно чистим всё в thread (без блокирования loop)
+    await cleanup_used_data(
+        archive_path=archive_path,  # входный .zip (если нужно удалять)
+        base_dir=base_dir,
+        invalid_dir=invalid_dir,
+        duplicate_dir=duplicate_dir,
+        invalid_archive=invalid_archive,
+        duplicate_archive=duplicate_archive,
+        all_items=all_items,
+    )
+
+
+async def import_in_db(
+    all_items: List[BaseAccountProcessingResult],
+    type_account_service: str,
+    invalid_dir: str,
+    account_category_id: int
+) -> int:
+    """
+    Импортирует аккаунты в БД
+    :param all_items: все уникальные данные об аккаунтах
+    :param type_account_service: тип сервиса куда добавляем
+    :param invalid_dir: путь к директории с невалидными аккаунтами
+    :param account_category_id: категория куда необходимо добавить
+    :return: успешное количество добавленных аккаунтов
+    """
+    successfully_added = 0
+    for item in all_items:
+        if not item.valid:
+            continue
+
+        user = item.user
+        phone = user.phone
+
+        #  создаём запись в БД
+        acc = await add_account_storage(
+            type_service_name=type_account_service,
+            checksum="",  # пока пусто
+            encrypted_key="",  # пока пусто
+            encrypted_key_nonce="",  # пока пусто
+            phone_number=phone,
+        )
+
+        # Полный путь к будущему зашифрованному файлу
+        dest_path = ACCOUNTS_DIR / acc.file_path
+
+        #  шифруем
+        enc = await encrypted_tg_account(
+            src_directory=item.dir_path,
+            dest_encrypted_path=str(dest_path)
+        )
+
+        if not enc.result:
+            # Архив битый → перемещаем в invalid
+            dst = Path(invalid_dir) / Path(item.dir_path).name
+            shutil.copytree(item.dir_path, dst) # копируем к невалидным
+            await make_archive(str(dst), str(dst.with_suffix(".zip")))
+            continue
+
+        # обновляем запись в БД после успешного шифрования
+        acc = await update_account_storage(
+            account_storage_id=acc.account_storage_id,
+            checksum=enc.checksum,
+            encrypted_key=enc.encrypted_key_b64,
+            encrypted_key_nonce=enc.encrypted_key_nonce,
+        )
+
+        await add_product_account(account_category_id, acc.account_storage_id)
+        successfully_added += 1
+
+    return successfully_added
+
+
+async def split_unique_and_duplicates(
+    items: List[BaseAccountProcessingResult],
+    type_account_service: str
+) -> Tuple[List[BaseAccountProcessingResult], List[BaseAccountProcessingResult], List[BaseAccountProcessingResult] ]:
+    """
+    Отберёт уникальные аккаунты
+    :return: Tuple[Уникальные аккаунты, Дубликаты, Невалидные аккаунты]
+    """
+    unique_items = []
+    duplicate_items = []
+    invalid_item = []
+
+    seen_ids = set()
+    seen_phones = set()
+
+    for item in items:
+        if not item.valid or not item.user:
+            invalid_item.append(item)
+            continue
+
+        user = item.user
+        tg_id = user.id
+        phone = user.phone.strip() if user.phone else None
+
+        duplicate = (
+            tg_id in seen_ids or
+            (phone and phone in seen_phones)
+        )
+
+        if duplicate:
+            logger.info(f"[split_unique_and_duplicates] - Найдено дублик аккаунта: {item.dir_path}")
+            duplicate_items.append(item)
+            continue
+
+        seen_ids.add(tg_id)
+        if phone:
+            seen_phones.add(phone)
+
+        unique_items.append(item)
+
+    unique_items, duplicate_items_2 = await get_unique_among_db(unique_items, type_account_service)
+
+    return unique_items, duplicate_items + duplicate_items_2, invalid_item
+
+
+async def get_unique_among_db(
+    items: List[BaseAccountProcessingResult],
+    type_account_service: str
+) -> Tuple[List[BaseAccountProcessingResult], List[BaseAccountProcessingResult]]:
+    """
+    Отберёт уникальные аккаунты среди БД
+    :return: Tuple[Уникальные аккаунты, Дубликаты]
+    """
+    unique_items = []
+    duplicate_items = []
+
+    types_account_service = await get_all_types_account_service()
+    type_account_service_id = None
+    for type_service in types_account_service:
+        if type_account_service == type_service.name:
+            type_account_service_id = type_service.type_account_service_id
+
+    # если не нашли полученный сервис
+    if type_account_service_id is None:
+        raise TypeAccountServiceNotFound()
+
+    numbers_in_db = await get_all_phone_in_account_storage(type_account_service_id)
+
+    for item in items:
+        if phone_in_e164(item.user.phone) in numbers_in_db: # преобразовываем номер т.к. такой формат хранится в БД
+            logger.info(f"[get_unique_among_db] - Найдено дублик аккаунта: {item.dir_path}")
+            duplicate_items.append(item)
+        else:
+            unique_items.append(item)
+
+    return unique_items, duplicate_items
+
+
+async def process_inappropriate_acc(inappropriate_items, archive_dir):
+    """Архивирует неподходящие аккаунты (дубликаты/невалидные)"""
+    for item in inappropriate_items:
+        try:
+            # создаём папку для конкретного аккаунта
+            dst = Path(archive_dir) / Path(item.dir_path).name
+
+            # копируем к себе
+            shutil.copytree(item.dir_path, dst)
+
+            # теперь архивируем ЭТУ копию
+            await make_archive(str(dst), str(dst.with_suffix(".zip")))
+        except Exception as e:
+            logger.exception("Ошибка при архивировании неподходящего аккаунта", exc_info=e)
+
+
+async def process_archives_batch(directory: str) -> ArchivesBatchResult:
+    archives = [str(p) for p in Path(directory).glob("*.zip")]
+    if not archives:
+        raise ArchiveNotFount()
+
+    logger.info(f"Найдено архивов: {len(archives)}")
+
+    tasks = [asyncio.create_task(process_single_archive(path)) for path in archives]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    fixed: List[ArchiveProcessingResult] = []
+    for r in results:
+        if isinstance(r, Exception):
+            logger.exception("Ошибка при обработке архива", exc_info=r)
+        else:
+            fixed.append(r)
+
+    return ArchivesBatchResult(items=fixed, total=len(archives))
+
+
+def get_subdirectories(path: str) -> List[str]:
+    return [str(p) for p in Path(path).iterdir() if p.is_dir()]
+
+
+async def process_dirs_batch(directory: str) -> DirsBatchResult:
+    dirs = get_subdirectories(directory)
+    if not dirs:
+        raise DirNotFount()
+
+    tasks = [asyncio.create_task(process_single_dir(d)) for d in dirs]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    fixed: List[BaseAccountProcessingResult] = []
+    for r in results:
+        if isinstance(r, Exception):
+            logger.exception("Ошибка при обработке директории", exc_info=r)
+        else:
+            fixed.append(r)
+
+    return DirsBatchResult(items=fixed, total=len(dirs))
+
+
+async def process_single_dir(directory: str) -> BaseAccountProcessingResult:
+    result = BaseAccountProcessingResult(valid=False, dir_path=directory)
+
+    try:
+        user = await check_valid_accounts_telethon(directory)
+        if user:
+            logger.info(f"Аккаунт валиден: {directory}")
+            result.valid = True
+            result.user = user
+        else:
+            logger.warning(f"Аккаунт НЕ валиден: {directory}")
+
+    except Exception as e:
+        logger.exception(f"Ошибка при обработке директории: {directory}", exc_info=e)
+
+    return result
+
+
+async def process_single_archive(archive_path: str) -> ArchiveProcessingResult:
+    result = ArchiveProcessingResult(
+        valid=False,
+        archive_path=archive_path,
+        user=None,
+        dir_path=None
+    )
+
+    temp_dir = None
+
+    async with SEM:
+        try:
+            logger.info(f"Обработка архива: {archive_path}")
+
+            temp_dir = await extract_archive_to_temp(archive_path)
+            result.dir_path = temp_dir
+
+            user = await check_valid_accounts_telethon(temp_dir)
+
+            if user:
+                result.valid = True
+                result.user = user
+                logger.info(f"Аккаунт валиден: {archive_path}")
+            else:
+                logger.warning(f"Невалидный аккаунт: {archive_path}")
+
+        except Exception as e:
+            logger.exception(f"Ошибка в архиве {archive_path}", exc_info=e)
+            if temp_dir:
+                shutil.rmtree(temp_dir)
+
+    return result
+

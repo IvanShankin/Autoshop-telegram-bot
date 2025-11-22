@@ -138,7 +138,7 @@ class AccountStorage(Base):
     storage_uuid = Column(String(36), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
 
     # === Основные поля ===
-    file_path = Column(Text, nullable=False)     # относительный путь к зашифрованному файлу (относительно accounts/)
+    file_path = Column(Text, nullable=True)     # относительный путь к зашифрованному файлу (относительно accounts/)
     checksum = Column(String(64), nullable=False) # Контроль целостности (SHA256 зашифрованного файла)
     status = Column(Enum('for_sale', 'reserved', 'bought', 'deleted', name='account_status'), server_default='for_sale')
 

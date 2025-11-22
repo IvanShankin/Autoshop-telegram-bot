@@ -33,8 +33,14 @@ EMOJI_LANGS = {"ru": "🇷🇺", "en": "🇬🇧", } # эмодзи по код�
 NAME_LANGS = {"ru": "Русский", "en": "English", } # название языка по коду
 DEFAULT_LANG = "ru"
 
+SUPPORTED_ARCHIVE_EXTENSIONS = ["zip"]
+
 DT_FORMAT = "%Y-%m-%d %H:%M:%S"
 PAYMENT_LIFETIME_SECONDS = 1200 # 20 минут
 FETCH_INTERVAL = 7200 # 2 часа (для обновления курса доллара)
 
 PAGE_SIZE = 6
+
+MAX_SIZE_MB = 10
+MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024  # 10 мегабайт = 10 * 1024 * 1024
+MAX_DOWNLOAD_SIZE = 20 * 1024 * 1024  # 20 MB

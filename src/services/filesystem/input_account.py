@@ -1,12 +1,14 @@
 import asyncio
+import csv
+import io
 import os
 import shutil
 import tempfile
 import zipfile
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Sequence, Dict
 
-from src.services.tg_accounts.shemas import CreatedEncryptedArchive, BaseAccountProcessingResult
+from src.services.accounts.tg.shemas import CreatedEncryptedArchive, BaseAccountProcessingResult
 from src.utils.core_logger import logger
 from src.utils.secret_data import encrypt_folder, make_account_key, sha256_file
 
@@ -227,3 +229,35 @@ async def cleanup_used_data(
         duplicate_archive,
         item_dirs
     )
+
+
+def make_csv_bytes(
+    data: Sequence[Dict[str, str]],
+    headers: Sequence[str],
+    *,
+    excel_compatible: bool = True,
+    encoding: str = "utf-8"
+) -> bytes:
+    """
+    Создаёт CSV в памяти и возвращает bytes.
+    По умолчанию делает excel_compatible CSV (delimiter=';' + BOM),
+    чтобы Excel корректно открыл файл в большинстве локалей.
+    """
+    if not data or not headers:
+        raise ValueError("Data is empty")
+
+    # text stream для csv.writer (работаем с текстом)
+    stream = io.StringIO()
+    delimiter = ";" if excel_compatible else ","
+
+    writer = csv.DictWriter(stream, fieldnames=list(headers), delimiter=delimiter, extrasaction="ignore")
+    writer.writeheader()
+    writer.writerows(data)
+
+    text = stream.getvalue()
+
+    # Для Excel лучше отдавать BOM (utf-8-sig)
+    if excel_compatible:
+        return text.encode("utf-8-sig")
+    else:
+        return text.encode(encoding)

@@ -150,6 +150,17 @@ msgstr "Пришлите целое число - количество кнопо
 msgid "Send the archive with the exact folder and archive structure as shown in the photo"
 msgstr "Пришлите архив строго с такой структурой папок и архивов как на фото"
 
+msgid "Send a file with the '.csv' extension.\n\n"
+"It must have the structure shown in the photo.\n"
+"Please pay attention to the headers; they must be strictly followed!\n\n"
+"Required Headers (can be copied):\n'<code>phone</code>', '<code>login</code>', '<code>password</code>'\n\n"
+"Note: To create a '.csv' file, create an exal workbook and save it as '.csv'"
+msgstr "Пришлите файл с расширением '.csv'\n\n "
+"Он должен содержать структуру как на фото. \n"
+"Обрати внимание на заголовки, их следует строго соблюдать!\n\n"
+"Необходимые Заголовки(можно скопировать): \n'<code>phone</code>', '<code>login</code>', '<code>password</code>'\n\n"
+"Примечание: для создания файла '.csv' Создайте exal книгу и сохраните как '.csv'"
+
 msgid "This service no longer exists, please choose another one"
 msgstr "Данного сервиса больше не существует, пожалуйста выберите другой"
 
@@ -168,16 +179,29 @@ msgstr "Файл загружается на сервер"
 msgid "The file has been successfully uploaded. The accounts are currently being checked for validity and integrated into the bot"
 msgstr "Файл успешно загружен. В данный момент происходит проверка аккаунтов на валидность и их интеграция в бота"
 
+msgid "The resulting file has incorrect header formatting. \n"
+"Carefully examine the attached photo and try again \n\n"
+"Required Headers (can be copied):\n'<code>phone</code>', '<code>login</code>', '<code>password</code>'"
+msgstr "В полученном файле некорректный формат заголовков. \n"
+"Внимательно изучите прикреплённое фото и попытайтесь ещё разn \n\n"
+"Необходимые Заголовки(можно скопировать): \n'<code>phone</code>', '<code>login</code>', '<code>password</code>'"
+
 msgid "First, make this category an account storage"
 msgstr "Сперва сделайте данную категорию хранилищем аккаунтов"
 
 msgid "Account integration was successful. \n\nSuccessfully added: {successfully_added} \nTotal processed: {total_processed}"
 msgstr "Интеграция аккаунтов прошла успешно. \n\nУспешно добавлено: {successfully_added} \nВсего обработано: {total_processed}"
 
-msgid "\n\nWe couldn't extract the account from some files(either the structure is broken or the account is invalid); "
+msgid "\n\nWe couldn't extract the account from some {acc_from}(either the structure is broken or the account is invalid); "
 "they were downloaded as a separate file"
-msgstr "\n\nИз некоторых файлов не удалось извлечь аккаунт (либо нарушена структура, либо аккаунт не валидный), ""
+msgstr "\n\nИз некоторых {acc_from} не удалось извлечь аккаунт (либо нарушена структура хранения, либо аккаунт не валидный), "
 "они были выгружены отдельным файлом 👇"
+
+msgid "files"
+msgstr "Файлов"
+
+msgid "lines"
+msgstr "Строк"
 
 msgid "\n\nSome accounts are already in the bot; they were downloaded as a separate file"
 msgstr "\n\nНекоторые аккаунты уже имеются в боте, они были выгружены отдельным файлом 👇"

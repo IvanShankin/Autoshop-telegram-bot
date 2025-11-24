@@ -540,7 +540,8 @@ async def create_product_account_factory(
         type_account_service_id: int = None,
         account_category_id: int = None,
         account_storage_id: int = None,
-        status: str = 'for_sale'
+        status: str = 'for_sale',
+        phone_number: str = '+7 920 107-42-12'
 ) -> (ProductAccounts, ProductAccountFull):
     async with get_db() as session_db:
         if type_account_service_id is None:
@@ -550,7 +551,7 @@ async def create_product_account_factory(
             category = await create_account_category_factory(filling_redis=filling_redis)
             account_category_id = category.account_category_id
         if account_storage_id is None:
-            account_storage = await create_account_storage_factory(status=status)
+            account_storage = await create_account_storage_factory(status=status, phone_number=phone_number)
             account_storage_id = account_storage.account_storage_id
         else:
             account_storage = None

@@ -5,16 +5,16 @@ from pathlib import Path
 from typing import List, AsyncGenerator, Any, Tuple
 
 from src.config import ACCOUNTS_DIR
-from src.exceptions.service_exceptions import ArchiveNotFount, DirNotFount, TypeAccountServiceNotFound
+from src.exceptions.service_exceptions import ArchiveNotFount, DirNotFount
+from src.services.accounts.utils.helper_imports import get_unique_among_db
 from src.services.database.selling_accounts.actions import add_account_storage, add_product_account, \
-    update_account_storage, get_all_types_account_service, get_all_phone_in_account_storage
+    update_account_storage
 from src.services.filesystem.input_account import extract_archive_to_temp, encrypted_tg_account, make_archive, \
     cleanup_used_data, archive_if_not_empty
-from src.services.tg_accounts.actions import check_valid_accounts_telethon
-from src.services.tg_accounts.shemas import ArchiveProcessingResult, ArchivesBatchResult, BaseAccountProcessingResult, \
+from src.services.accounts.tg.actions import check_valid_accounts_telethon
+from src.services.accounts.tg.shemas import ArchiveProcessingResult, ArchivesBatchResult, BaseAccountProcessingResult, \
      DirsBatchResult, ImportResult
 from src.utils.core_logger import logger
-from src.utils.pars_number import phone_in_e164
 
 # ограничиваем число параллельных обработок
 SEM = asyncio.Semaphore(7)
@@ -180,7 +180,7 @@ async def split_unique_and_duplicates(
         )
 
         if duplicate:
-            logger.info(f"[split_unique_and_duplicates] - Найдено дублик аккаунта: {item.dir_path}")
+            logger.info(f"[split_unique_and_duplicates] - Найден дубликат аккаунта: {item.dir_path}")
             duplicate_items.append(item)
             continue
 
@@ -193,39 +193,6 @@ async def split_unique_and_duplicates(
     unique_items, duplicate_items_2 = await get_unique_among_db(unique_items, type_account_service)
 
     return unique_items, duplicate_items + duplicate_items_2, invalid_item
-
-
-async def get_unique_among_db(
-    items: List[BaseAccountProcessingResult],
-    type_account_service: str
-) -> Tuple[List[BaseAccountProcessingResult], List[BaseAccountProcessingResult]]:
-    """
-    Отберёт уникальные аккаунты среди БД
-    :return: Tuple[Уникальные аккаунты, Дубликаты]
-    """
-    unique_items = []
-    duplicate_items = []
-
-    types_account_service = await get_all_types_account_service()
-    type_account_service_id = None
-    for type_service in types_account_service:
-        if type_account_service == type_service.name:
-            type_account_service_id = type_service.type_account_service_id
-
-    # если не нашли полученный сервис
-    if type_account_service_id is None:
-        raise TypeAccountServiceNotFound()
-
-    numbers_in_db = await get_all_phone_in_account_storage(type_account_service_id)
-
-    for item in items:
-        if phone_in_e164(item.user.phone) in numbers_in_db: # преобразовываем номер т.к. такой формат хранится в БД
-            logger.info(f"[get_unique_among_db] - Найдено дублик аккаунта: {item.dir_path}")
-            duplicate_items.append(item)
-        else:
-            unique_items.append(item)
-
-    return unique_items, duplicate_items
 
 
 async def process_inappropriate_acc(inappropriate_items, archive_dir):
@@ -292,9 +259,10 @@ async def process_single_dir(directory: str) -> BaseAccountProcessingResult:
     try:
         user = await check_valid_accounts_telethon(directory)
         if user:
-            logger.info(f"Аккаунт валиден: {directory}")
             result.valid = True
             result.user = user
+            result.phone = user.phone
+            logger.info(f"Аккаунт валиден: {directory}")
         else:
             logger.warning(f"Аккаунт НЕ валиден: {directory}")
 
@@ -326,6 +294,7 @@ async def process_single_archive(archive_path: str) -> ArchiveProcessingResult:
             if user:
                 result.valid = True
                 result.user = user
+                result.phone = user.phone
                 logger.info(f"Аккаунт валиден: {archive_path}")
             else:
                 logger.warning(f"Невалидный аккаунт: {archive_path}")

@@ -39,7 +39,7 @@ async def test_purchase_accounts_success(
       - файлы переехали в финальный путь (create_path_account(...)).
     """
     from src.services.database.selling_accounts.actions import action_purchase as action_mod
-    from src.services.tg_accounts import actions
+    from src.services.accounts.tg import actions
     from src.services.filesystem.account_actions import create_path_account
 
     # подготовка: пользователь + категория + N аккаунтов
@@ -142,7 +142,7 @@ async def test_purchase_accounts_fail_no_replacement(
       - баланс пользователя восстановлен
     """
     from src.services.database.selling_accounts.actions import action_purchase as action_mod
-    from src.services.tg_accounts import actions
+    from src.services.accounts.tg import actions
     from src.services.filesystem.account_actions import create_path_account
 
     # подготовка: пользователь + категория + N аккаунтов
@@ -453,7 +453,7 @@ async def test__check_account_validity_async_success(
     - вызвать shutil.rmtree в finally (мокаем).
     """
     from src.services.database.selling_accounts.actions import action_purchase as action_mod
-    from src.services.tg_accounts import actions
+    from src.services.accounts.tg import actions
 
     # создаём тестовую категорию и продукт (этот шаг даёт нам AccountStorage)
     cat = await create_account_category()
@@ -749,7 +749,6 @@ class TestVerifyReservedAccounts:
         Ожидаем: возвращается 1 аккаунт (замена), остальные невалидные удалены.
         """
         from src.services.database.selling_accounts.actions import action_purchase as action_mod
-        from src.services.filesystem import account_actions
 
         user = await create_new_user()
         cat = await create_account_category()

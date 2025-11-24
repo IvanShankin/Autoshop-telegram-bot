@@ -48,6 +48,10 @@ class TheCategoryStorageAccount(Exception):
     """Категория хранит аккаунты"""
     pass
 
+class TheCategoryNotStorageAccount(Exception):
+    """Категория НЕ хранит аккаунты"""
+    pass
+
 class IncorrectedNumberButton(Exception):
     """Некорректное число кнопок в одной строке. Ограничение: от 1 до 8 """
     pass
@@ -74,4 +78,8 @@ class ArchiveNotFount(Exception):
 
 class DirNotFount(Exception):
     """Архив не найден"""
+    pass
+
+class InvalidFormatRows(Exception):
+    """При распаковке csv файла, если у него не верный формат"""
     pass

@@ -106,6 +106,23 @@ class FakeTelegramObject:
         """Возвращает копию объекта"""
         return self.__class__(**self.__dict__)
 
+
+class FakeDocument:
+    def __init__(self):
+        pass
+
+
+class FakeBufferedInputFile:
+    def __init__(
+        self,
+        file: bytes,
+        filename: str,
+        chunk_size: int = 0
+    ):
+        pass
+
+
+
 class FakeMessage:
     def __init__(self, text="/start", chat_id: int = 1, username: str = "test_user", **extra):
         self.text = text

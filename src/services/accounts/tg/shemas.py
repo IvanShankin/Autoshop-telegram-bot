@@ -6,6 +6,7 @@ from telethon.tl.types import User
 class BaseAccountProcessingResult(BaseModel):
     valid: bool
     user: Optional[User] = None
+    phone: Optional[str] = None
     dir_path: Optional[str] = None
 
     model_config = {

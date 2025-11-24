@@ -7,7 +7,8 @@ from tests.helpers.fake_aiogram.fake_aiogram_module import (
     FakeInlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton,
     ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply, FakeInlineKeyboardBuilder,
     BaseMiddleware, FakeTelegramForbiddenError, FakeTelegramBadRequest, FakeInputMediaPhoto, FakeFSInputFile,
-    FakeBaseFilter, FakeState, FakeStatesGroup, FakeCommandObject, FakeTelegramObject, FakeReplyKeyboardBuilder
+    FakeBaseFilter, FakeState, FakeStatesGroup, FakeCommandObject, FakeTelegramObject, FakeReplyKeyboardBuilder,
+    FakeDocument, FakeBufferedInputFile
 )
 
 @pytest.fixture(scope="session")
@@ -54,6 +55,8 @@ def patch_fake_aiogram():
     sys.modules["aiogram.types"].FSInputFile = FakeFSInputFile
     sys.modules["aiogram.types"].InputMediaPhoto = FakeInputMediaPhoto
     sys.modules["aiogram.types"].TelegramObject = FakeTelegramObject
+    sys.modules["aiogram.types"].Document = FakeDocument
+    sys.modules["aiogram.types"].BufferedInputFile = FakeBufferedInputFile
 
     sys.modules["aiogram.utils"] = ModuleType("aiogram.utils")
     sys.modules["aiogram.utils.keyboard"] = ModuleType("aiogram.utils.keyboard")

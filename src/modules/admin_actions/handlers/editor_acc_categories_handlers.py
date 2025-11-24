@@ -2,27 +2,28 @@ import asyncio
 import io
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Any, AsyncGenerator
 
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
-from aiogram.types import CallbackQuery, Message,  FSInputFile
+from aiogram.types import CallbackQuery, Message, FSInputFile, Document, BufferedInputFile
 
-from src.bot_actions.actions import edit_message, send_message
+from src.bot_actions.actions import edit_message, send_message, send_log
 from src.bot_actions.bot_instance import get_bot
 from src.config import ALLOWED_LANGS, EMOJI_LANGS, NAME_LANGS, DEFAULT_LANG, SUPPORTED_ARCHIVE_EXTENSIONS, \
     TEMP_FILE_DIR, MAX_SIZE_MB, MAX_SIZE_BYTES, MAX_DOWNLOAD_SIZE
 from src.exceptions.service_exceptions import AccountCategoryNotFound, \
     TheCategoryStorageAccount, CategoryStoresSubcategories, IncorrectedAmountSale, IncorrectedCostPrice, \
-    IncorrectedNumberButton, TypeAccountServiceNotFound
+    IncorrectedNumberButton, TypeAccountServiceNotFound, InvalidFormatRows
 from src.modules.admin_actions.keyboard_admin import to_services_kb, back_in_service_kb, show_account_category_admin_kb, \
     delete_category_kb, back_in_category_kb, change_category_data_kb, select_lang_category_kb, name_or_description_kb, \
     back_in_category_update_data_kb
 from src.modules.admin_actions.schemas.editor_categories import GetDataForCategoryData, UpdateNameForCategoryData, \
-    UpdateDescriptionForCategoryData, UpdateCategoryOnlyId, ImportTgAccountsData
+    UpdateDescriptionForCategoryData, UpdateCategoryOnlyId, ImportAccountsData
 from src.modules.admin_actions.state.editor_categories import GetDataForCategory, UpdateNameForCategory, \
-    UpdateDescriptionForCategory, UpdateCategoryImage, UpdateNumberInCategory, ImportTgAccounts
+    UpdateDescriptionForCategory, UpdateCategoryImage, UpdateNumberInCategory, ImportTgAccounts, ImportOtherAccounts
+from src.services.accounts.other.input_account import input_other_account
 from src.services.database.selling_accounts.actions import add_account_category, \
     add_translation_in_account_category, get_account_categories_by_category_id, update_account_category, \
     update_account_category_translation, get_account_service, get_type_account_service
@@ -30,7 +31,7 @@ from src.services.database.selling_accounts.actions.actions_delete import delete
 from src.services.database.selling_accounts.models import AccountCategoryFull
 from src.services.database.system.actions import get_ui_image, update_ui_image
 from src.services.database.users.models import Users
-from src.services.tg_accounts.input_account import import_telegram_accounts_from_archive
+from src.services.accounts.tg.input_account import import_telegram_accounts_from_archive
 from src.utils.converter import safe_int_conversion
 from src.utils.core_logger import logger
 from src.utils.i18n import get_text
@@ -291,6 +292,7 @@ async def service_not_found(user: Users, message_id_delete: Optional[int] = None
         reply_markup=to_services_kb(language=user.language)
     )
 
+
 @router.callback_query(F.data.startswith("add_main_acc_category:"))
 async def add_main_acc_category(callback: CallbackQuery, state: FSMContext, user: Users):
     service_id = int(callback.data.split(':')[1])
@@ -368,7 +370,8 @@ async def add_acc_category_name(message: Message, state: FSMContext, user: Users
 
 
 @router.callback_query(F.data.startswith("show_acc_category_admin:"))
-async def show_acc_category_admin(callback: CallbackQuery, user: Users):
+async def show_acc_category_admin(callback: CallbackQuery, state: FSMContext, user: Users):
+    await state.clear()
     category_id = int(callback.data.split(':')[1])
     await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
 
@@ -708,6 +711,124 @@ async def acc_category_update_price(message: Message, state: FSMContext, user: U
     await update_data(message, state, user)
 
 
+
+async def check_valid_file(doc: Document, user: Users, state: FSMContext, expected_formats: List[str], set_state: State):
+    """Проверит файл на валидный формат и на необходимый размер,
+    если один из этих условий не будет выполнено,
+    то отошлёт соответствующие сообщение, установит состояние 'set_state' и вернёт False"""
+    file_name = doc.file_name
+    extension = file_name.split('.')[-1].lower()  # пример: "zip"
+    if extension not in expected_formats:
+        await send_message(
+            user.user_id,
+            get_text(
+                user.language,
+                "admins",
+                "This file format is not supported, please send a file with one of these extensions: {extensions_list}"
+            ).format(extensions_list=".csv")
+        )
+        await state.set_state(set_state)
+        return False
+
+    if doc.file_size > MAX_DOWNLOAD_SIZE:
+        await send_message(
+            user.user_id,
+            get_text(
+                user.language,
+                "admins",
+                "The file is too large. The maximum size is {max_size_file} MB. \n\nPlease send a different file"
+            ).format(extensions_list=MAX_DOWNLOAD_SIZE)
+        )
+        await state.set_state(set_state)
+        return False
+
+    return True
+
+
+async def message_info_load_file(user: Users) -> AsyncGenerator[Message, None]:
+    """Первый вызов: сообщение о скачивание файла. Второй вызов: сообщение об обработке файла"""
+    await send_message(
+        user.user_id,
+        get_text(
+            user.language,
+            "admins",
+            "Please wait for the accounts to load and don't touch anything!"
+        )
+    )
+    message_info = await send_message(
+        user.user_id,
+        get_text(user.language, "admins", "The file is uploaded to the server")
+    )
+
+    yield message_info
+
+    await edit_message(
+        user.user_id,
+        message_info.message_id,
+        get_text(
+            user.language,
+            "admins",
+            "The file has been successfully uploaded. The accounts are currently being checked for validity and integrated into the bot"
+        )
+    )
+
+    yield message_info
+
+
+async def check_category_is_acc_storage(category: AccountCategoryFull, user: Users) -> bool:
+    """
+    Проверит что категория - хранилище аккаунтов. Еслине хранит, то отправит сообщение, что необходимо сделать хранилищем
+    :return bool: True если хранит, иначе False
+    """
+    if not category.is_accounts_storage:
+        await send_message(
+            user.user_id,
+            get_text(user.language,"admins","First, make this category an account storage"),
+            reply_markup=back_in_category_kb(
+                language=user.language,
+                category_id=category.category_id,
+                i18n_key = "In category"
+            )
+        )
+        return False
+    return True
+
+
+def make_result_msg(
+        user: Users,
+        successfully_added: int,
+        total_processed: int,
+        mark_invalid_acc:  Any,
+        mark_duplicate_acc: Any,
+        tg_acc: bool = False
+) -> str:
+    result_message = get_text(
+        user.language,
+        "admins",
+        "Account integration was successful. \n\nSuccessfully added: {successfully_added} \nTotal processed: {total_processed}"
+    ).format(successfully_added=successfully_added, total_processed=total_processed)
+    if mark_invalid_acc:
+        result_message += get_text(
+            user.language,
+            "admins",
+            "\n\nWe couldn't extract the account from some {acc_from}(either the structure is broken or the account is invalid); "
+            "they were downloaded as a separate file"
+        ).format(
+            acc_from=  get_text(
+                user.language,
+                "admins",
+                "files" if tg_acc else "lines"
+            )
+        )
+    if mark_duplicate_acc:
+        result_message += get_text(
+            user.language,
+            "admins",
+            "\n\nSome accounts are already in the bot; they were downloaded as a separate file"
+        )
+    return result_message
+
+
 @router.callback_query(F.data.startswith("acc_category_load_acc:"))
 async def acc_category_load_acc(callback: CallbackQuery, state: FSMContext, user: Users):
     category_id = int(callback.data.split(':')[1])
@@ -740,13 +861,25 @@ async def acc_category_load_acc(callback: CallbackQuery, state: FSMContext, user
         await state.set_state(ImportTgAccounts.archive)
         await state.update_data(category_id=category_id, type_account_service=service_name)
     elif service_name ==  "other":
-        pass
-        # логика получение файла для его расшифровки по паролям и логинам
-        # логика получение файла для его расшифровки по паролям и логинам
-        # логика получение файла для его расшифровки по паролям и логинам
+        await edit_message(
+            chat_id=user.user_id,
+            message_id=callback.message.message_id,
+            message=get_text(
+                user.language,
+                'admins',
+                "Send a file with the '.csv' extension.\n\n"
+                "It must have the structure shown in the photo.\n"
+                "Please pay attention to the headers; they must be strictly followed!\n\n"
+                "Required Headers (can be copied):\n'<code>phone</code>', '<code>login</code>', '<code>password</code>'\n\n"
+                "Note: To create a '.csv' file, create an exal workbook and save it as '.csv'"
+            ),
+            image_key="example_csv",
+            reply_markup=back_in_category_kb(user.language, category_id)
+        )
+        await state.set_state(ImportOtherAccounts.csv_file)
+        await state.update_data(category_id=category_id, type_account_service=service_name)
     else:
         await service_not_found(user, callback.message.message_id)
-
 
 
 @router.message(ImportTgAccounts.archive, F.document)
@@ -761,136 +894,169 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
             await bot.send_document(message.from_user.id, document=file, caption=caption)
             await message_loading.delete()
         except Exception as e:
-            logger.warning(f"[import_tg_account.load_file] - ошибка: {str(e)}")
+            logger.warning(f"[import_tg_account.load_file] - ошибка: '{str(e)}'")
             pass
 
 
-    data = ImportTgAccountsData(**(await state.get_data()))
+    data = ImportAccountsData(**(await state.get_data()))
     category = await safe_get_category(data.category_id, user=user, callback=None)
     if not category:
         return
 
-    if not category.is_accounts_storage:
-        await send_message(
-            message.from_user.id,
-            get_text(user.language,"admins","First, make this category an account storage"),
-            reply_markup=back_in_category_kb(
-                language=user.language,
-                category_id=data.category_id,
-                i18n_key = "In category"
-            )
-        )
-        return
-
+    await check_category_is_acc_storage(category, user)
 
     doc = message.document
-    file_name = doc.file_name
-    extension = file_name.split('.')[-1].lower() # пример: "zip"
-    if extension not in SUPPORTED_ARCHIVE_EXTENSIONS:
-        await send_message(
-            message.from_user.id,
-            get_text(
-                user.language,
-                "admins",
-                "This file format is not supported, please send a file with one of these extensions: {extensions_list}"
-            ).format(extensions_list=SUPPORTED_ARCHIVE_EXTENSIONS)
-        )
-        await state.set_state(ImportTgAccounts.archive)
-        return
-
-    if doc.file_size > MAX_DOWNLOAD_SIZE:
-        await send_message(
-            message.from_user.id,
-            get_text(
-                user.language,
-                "admins",
-                "The file is too large. The maximum size is {max_size_file} MB. \n\nPlease send a different file"
-            ).format(extensions_list=MAX_DOWNLOAD_SIZE)
-        )
-        await state.set_state(ImportTgAccounts.archive)
+    valid_file = await check_valid_file(
+        doc=doc,
+        user=user,
+        state=state,
+        expected_formats=SUPPORTED_ARCHIVE_EXTENSIONS,
+        set_state=ImportTgAccounts.archive
+    )
+    if not valid_file:
         return
 
 
-    save_path = str(Path(TEMP_FILE_DIR) / file_name)
+    save_path = str(Path(TEMP_FILE_DIR) / doc.file_name)
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
-
     file = await message.bot.get_file(doc.file_id) # Получаем объект файла
 
-    await send_message(
-        message.from_user.id,
-        get_text(
-            user.language,
-            "admins",
-            "Please wait for the accounts to load and don't touch anything!"
-        )
-    )
-    message_info = await send_message(
-        message.from_user.id,
-        get_text(user.language,"admins","The file is uploaded to the server")
-    )
+    gen_mes_info = message_info_load_file(user)
+    await gen_mes_info.__anext__()
     await message.bot.download_file(file.file_path, destination=save_path) # Скачиваем файл на диск
-    await edit_message(
-        message.from_user.id,
-        message_info.message_id,
-        get_text(
-            user.language,
-            "admins",
-            "The file has been successfully uploaded. The accounts are currently being checked for validity and integrated into the bot"
-        )
-    )
+    message_info = await gen_mes_info.__anext__()
 
     try:
-        second_passage = None
-        async for result in import_telegram_accounts_from_archive(
+        gen_import_acc = import_telegram_accounts_from_archive(
             archive_path=save_path,
             account_category_id=data.category_id,
             type_account_service=data.type_account_service
-        ):
-            if second_passage:
-                break
+        )
+        result = await gen_import_acc.__anext__()
 
-            result_message = get_text(
-                user.language,
-                "admins",
-                "Account integration was successful. \n\nSuccessfully added: {successfully_added} \nTotal processed: {total_processed}"
-            ).format(successfully_added=result.successfully_added, total_processed=result.total_processed)
-            if result.invalid_archive_path:
-                result_message += get_text(
-                    user.language,
-                    "admins",
-                    "\n\nWe couldn't extract the account from some files(either the structure is broken or the account is invalid); "
-                    "they were downloaded as a separate file"
-                )
-            if result.duplicate_archive_path:
-                result_message += get_text(
-                    user.language,
-                    "admins",
-                    "\n\nSome accounts are already in the bot; they were downloaded as a separate file"
-                )
+        result_message = make_result_msg(
+            user=user,
+            successfully_added=result.successfully_added,
+            total_processed=result.total_processed,
+            mark_invalid_acc=result.invalid_archive_path,
+            mark_duplicate_acc=result.duplicate_archive_path,
+            tg_acc=True
+        )
 
-            await edit_message(message.from_user.id, message_info.message_id, result_message)
+        await edit_message(
+            message.from_user.id,
+            message_info.message_id,
+            result_message,
+            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="In category")
+        )
 
+        if result.invalid_archive_path:
+            await load_file(
+                result.invalid_archive_path,
+                caption=get_text(user.language,"admins", "Failed account extraction")
+            )
 
-            if result.invalid_archive_path:
-                await load_file(
-                    result.invalid_archive_path,
-                    caption=get_text(user.language,"admins", "Failed account extraction")
-                )
+        if result.duplicate_archive_path:
+            await load_file(
+                result.duplicate_archive_path,
+                caption=get_text(user.language, "admins", "Duplicate accounts")
+            )
 
-            if result.duplicate_archive_path:
-                await load_file(
-                    result.duplicate_archive_path,
-                    caption=get_text(user.language, "admins", "Duplicate accounts")
-                )
-
-            second_passage = True
     except TypeAccountServiceNotFound:
         await service_not_found(user)
-    except Exception:
+    except Exception as e:
+        text = f"#Ошибка_при_добавлении_аккаунтов  [import_tg_account]. \nОшибка='{str(e)}'"
+        logger.exception(text)
+        await send_log(text)
         await send_message(
             message.from_user.id,
             get_text(user.language,"admins", "An error occurred inside the server, see the logs!")
         )
 
 
+@router.message(ImportOtherAccounts.csv_file, F.document)
+async def import_other_account(message: Message, state: FSMContext, user: Users):
+    data = ImportAccountsData(**(await state.get_data()))
+    category = await safe_get_category(data.category_id, user=user, callback=None)
+    if not category:
+        return
 
+    await check_category_is_acc_storage(category, user)
+
+    doc = message.document
+    valid_file = await check_valid_file(
+        doc=doc,
+        user=user,
+        state=state,
+        expected_formats=["csv"],
+        set_state=ImportOtherAccounts.csv_file
+    )
+    if not valid_file:
+        return
+
+
+    gen_mes_info = message_info_load_file(user)
+    await gen_mes_info.__anext__()
+
+    file = await message.bot.get_file(doc.file_id)
+    stream = io.BytesIO()
+    await message.bot.download_file(file.file_path, stream)
+    stream.seek(0)
+
+    message_info = await gen_mes_info.__anext__()
+
+    try:
+        result = await input_other_account(stream, data.category_id, data.type_account_service)
+        result_message = make_result_msg(
+            user=user,
+            successfully_added=result.successfully_added,
+            total_processed=result.total_processed,
+            mark_invalid_acc=result.errors_csv_bytes,
+            mark_duplicate_acc=result.duplicates_csv_bytes
+        )
+        await edit_message(
+            message.from_user.id,
+            message_info.message_id,
+            result_message,
+            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="In category")
+        )
+        if result.errors_csv_bytes:
+            await message.answer_document(
+                BufferedInputFile(
+                    result.errors_csv_bytes,
+                    filename=get_text(user.language,"admins", "Failed account extraction") + '.csv'
+                )
+            )
+        if result.duplicates_csv_bytes:
+            await message.answer_document(
+                BufferedInputFile(
+                    result.duplicates_csv_bytes,
+                    filename=get_text(user.language, "admins", "Duplicate accounts") + '.csv'
+                )
+            )
+
+    except InvalidFormatRows:
+        await edit_message(
+            chat_id=user.user_id,
+            message_id=message_info.message_id,
+            message=get_text(
+                user.language,
+                'admins',
+                "The resulting file has incorrect header formatting. \n"
+            "Carefully examine the attached photo and try again \n\n"
+            "Required Headers (can be copied):\n'<code>phone</code>', '<code>login</code>', '<code>password</code>'"
+            ),
+            image_key="example_csv",
+            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="In category")
+        )
+        await state.set_state(ImportOtherAccounts.csv_file)
+    except TypeAccountServiceNotFound:
+        await service_not_found(user)
+    except Exception as e:
+        text = f"#Ошибка_при_добавлении_аккаунтов  [import_other_account]. \nОшибка='{str(e)}'"
+        logger.exception(text)
+        await send_log(text)
+        await send_message(
+            message.from_user.id,
+            get_text(user.language,"admins", "An error occurred inside the server, see the logs!")
+        )

@@ -9,7 +9,7 @@ from sqlalchemy.orm import selectinload
 from src.config import TYPE_ACCOUNT_SERVICES
 from src.exceptions.service_exceptions import TranslationAlreadyExists, ServiceTypeBusy, AccountServiceNotFound, \
     AccountCategoryNotFound, IncorrectedNumberButton, IncorrectedAmountSale, IncorrectedCostPrice, \
-    TheCategoryStorageAccount
+    TheCategoryStorageAccount, CategoryNotFound, TheCategoryNotStorageAccount
 from src.services.database.selling_accounts.models import AccountStorage
 from src.services.database.selling_accounts.models.models import TgAccountMedia
 from src.services.database.system.actions.actions import create_ui_image
@@ -332,9 +332,9 @@ async def add_product_account(
 
     category = await get_account_categories_by_category_id(account_category_id, return_not_show=True)
     if not category:
-        raise ValueError(f"Категория аккаунтов с id = {account_category_id} не найдена")
+        raise CategoryNotFound(f"Категория аккаунтов с id = {account_category_id} не найдена")
     elif not category.is_accounts_storage:
-        raise ValueError(
+        raise TheCategoryNotStorageAccount(
             f"Категория аккаунтов с id = {account_category_id} не является хранилищем аккаунтов. "
             f"для добавления аккаунтов необходимо сделать хранилищем"
         )

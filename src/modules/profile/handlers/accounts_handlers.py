@@ -14,7 +14,7 @@ from src.services.database.selling_accounts.models import SoldAccountFull, Accou
 from src.services.database.users.actions import get_user
 from src.services.database.users.models import Users
 from src.services.filesystem.account_actions import move_in_account, get_tdata_tg_acc, get_session_tg_acc
-from src.services.tg_accounts.actions import check_account_validity, get_auth_codes
+from src.services.accounts.tg.actions import check_account_validity, get_auth_codes
 from src.utils.core_logger import logger
 from src.utils.i18n import get_text
 from src.utils.pars_number import e164_to_pretty

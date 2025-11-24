@@ -6,6 +6,8 @@ import zipfile
 import os
 from unittest.mock import patch
 
+
+
 @pytest.mark.asyncio
 async def test_extract_archive_to_temp_success():
     from src.services.filesystem.input_account import extract_archive_to_temp
@@ -137,3 +139,28 @@ async def test_cleanup_used_data(tmp_path):
     assert not invalid_dir.exists()
     assert not duplicate_dir.exists()
     assert not archive_path.exists()
+
+
+
+def test_make_csv_bytes_happy_path():
+    from src.services.filesystem.input_account import make_csv_bytes
+    data = [
+        {"phone": "+79991234567", "login": "user1", "password": "p1"},
+        {"phone": "+380501234567", "login": "user2", "password": "p2"},
+    ]
+
+    b = make_csv_bytes(data, ['phone', 'login', 'password'])
+    assert isinstance(b, (bytes, bytearray))
+
+    text = b.decode("utf-8")
+    # Заголовки должны быть в тексте
+    assert "phone" in text and "login" in text and "password" in text
+    # Данные также должны присутствовать
+    assert "+79991234567" in text
+    assert "user2" in text
+
+
+def test_make_csv_bytes_empty_raises():
+    from src.services.filesystem.input_account import make_csv_bytes
+    with pytest.raises(ValueError):
+        make_csv_bytes([], [])

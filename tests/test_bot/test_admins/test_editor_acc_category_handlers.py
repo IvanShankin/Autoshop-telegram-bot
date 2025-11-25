@@ -16,12 +16,12 @@ async def test_safe_get_category_not_found_with_callback(
     """
     Если категория не найдена — handler должен удалить сообщение, отправить сообщение об этом и ничего не вернуть.
     """
-    from src.modules.admin_actions.handlers.editor.editor_acc_categories_handlers import safe_get_category
+    from src.modules.admin_actions.handlers.editor.category.import_handlers import safe_get_category
 
     async def fake_get(*args, **kwargs):
         return None
 
-    monkeypatch.setattr("src.modules.admin_actions.handlers.editor_acc_categories_handlers",fake_get)
+    monkeypatch.setattr("src.modules.admin_actions.handlers.editor.category.import_handlers",fake_get)
 
     user = await create_new_user()
     result = await safe_get_category(1, user)
@@ -39,7 +39,7 @@ async def test_show_category_sends_new_message(
         monkeypatch, patch_fake_aiogram, replacement_fake_bot,
         create_new_user, create_account_category
 ):
-    from src.modules.admin_actions.handlers.editor.editor_acc_categories_handlers import show_category
+    from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category
 
     category = await create_account_category(is_accounts_storage=False)
     user = await create_new_user()
@@ -53,7 +53,7 @@ async def test_show_category_update_data_edit(
         monkeypatch, patch_fake_aiogram, replacement_fake_bot,
         create_new_user, create_account_category
 ):
-    from src.modules.admin_actions.handlers.editor.editor_acc_categories_handlers import show_category_update_data
+    from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category_update_data
 
     category = await create_account_category()
     user = await create_new_user()
@@ -70,7 +70,7 @@ async def test_update_data_incorrect_value(
         monkeypatch, patch_fake_aiogram, replacement_fake_bot,
         create_new_user, create_account_category
 ):
-    from src.modules.admin_actions.handlers.editor.editor_acc_categories_handlers import update_data
+    from src.modules.admin_actions.handlers.editor.category.update_handlers import update_data
     from src.modules.admin_actions.state.editor_categories import UpdateNumberInCategory
 
     category = await create_account_category()
@@ -94,7 +94,7 @@ async def test_update_data_valid_price(
         monkeypatch, patch_fake_aiogram, replacement_fake_bot,
         create_new_user, create_account_category
 ):
-    from src.modules.admin_actions.handlers.editor.editor_acc_categories_handlers import update_data
+    from src.modules.admin_actions.handlers.editor.category.update_handlers import update_data
     from src.modules.admin_actions.state.editor_categories import UpdateNumberInCategory
 
     category = await create_account_category()
@@ -124,7 +124,7 @@ async def test_add_acc_category_name_prompts_next_language(
       - отправить сообщение с просьбой указать имя для следующего языка
       - установить state в GetDataForCategory.category_name
     """
-    from src.modules.admin_actions.handlers.editor.editor_acc_categories_handlers import add_acc_category_name
+    from src.modules.admin_actions.handlers.editor.category.create_handlers import add_acc_category_name
     from src.modules.admin_actions.state.editor_categories import GetDataForCategory
 
     user = await create_new_user()
@@ -169,7 +169,7 @@ async def test_service_update_index_updates_storage_flag(
     Если update_account_category проходит успешно, то флаг is_accounts_storage должен измениться в БД.
     Мы проверяем изменение напрямую через фабрику/базу данных.
     """
-    from src.modules.admin_actions.handlers.editor.editor_acc_categories_handlers import acc_category_update_storage
+    from src.modules.admin_actions.handlers.editor.category.update_handlers import acc_category_update_storage
     from src.services.database.selling_accounts.actions import get_account_categories_by_category_id
 
     # создаём категорию (по умолчанию фабрика возвращает is_accounts_storage=False)
@@ -206,7 +206,7 @@ async def test_delete_acc_category_success_edit_message(
     Успешное удаление категории должно привести к вызову edit_message
     с текстом 'Category successfully removed!'.
     """
-    from src.modules.admin_actions.handlers.editor.editor_acc_categories_handlers import delete_acc_category
+    from src.modules.admin_actions.handlers.editor.category.delete_handlers import delete_acc_category
 
     category = await create_account_category()
     user = await create_new_user()
@@ -235,7 +235,7 @@ async def test_update_category_image_non_image_document(
     Если прислали документ с mime_type, который не начинается на 'image/',
     handler должен отправить пользователю сообщение с подсказкой.
     """
-    from src.modules.admin_actions.handlers.editor.editor_acc_categories_handlers import update_category_image
+    from src.modules.admin_actions.handlers.editor.category.update_handlers import update_category_image
 
     category = await create_account_category()
     user = await create_new_user()

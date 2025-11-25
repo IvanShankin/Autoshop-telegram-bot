@@ -20,7 +20,7 @@ async def test_upload_tg_account_chunks(monkeypatch, create_product_account, tmp
     def fake_get_dir_size(path: str):
         return 20 * 1024 * 1024 # 20 мб
 
-    monkeypatch.setattr("src.services.accounts.tg.upload_account.get_account_storage",fake_get_storage)
+    monkeypatch.setattr("src.services.accounts.tg.upload_account.get_account_storage_by_category_id",fake_get_storage)
     monkeypatch.setattr("src.services.accounts.tg.upload_account.get_dir_size",fake_get_dir_size)
 
     # запускаем функцию и анализируем выходные ZIP-файлы

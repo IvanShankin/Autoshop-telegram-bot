@@ -1,0 +1,67 @@
+from typing import List
+
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State
+from aiogram.types import Document
+
+from src.bot_actions.actions import send_message
+from src.config import MAX_DOWNLOAD_SIZE
+from src.modules.admin_actions.keyboard_admin import back_in_category_kb
+from src.services.database.selling_accounts.models import AccountCategoryFull
+from src.services.database.users.models import Users
+from src.utils.i18n import get_text
+
+
+async def check_valid_file(doc: Document, user: Users, state: FSMContext, expected_formats: List[str], set_state: State):
+    """Проверит файл на валидный формат и на необходимый размер,
+    если один из этих условий не будет выполнено,
+    то отошлёт соответствующие сообщение, установит состояние 'set_state' и вернёт False"""
+    file_name = doc.file_name
+    extension = file_name.split('.')[-1].lower()  # пример: "zip"
+    if extension not in expected_formats:
+        await send_message(
+            user.user_id,
+            get_text(
+                user.language,
+                "admins",
+                "This file format is not supported, please send a file with one of these extensions: {extensions_list}"
+            ).format(extensions_list=".csv")
+        )
+        await state.set_state(set_state)
+        return False
+
+    if doc.file_size > MAX_DOWNLOAD_SIZE:
+        await send_message(
+            user.user_id,
+            get_text(
+                user.language,
+                "admins",
+                "The file is too large. The maximum size is {max_size_file} MB. \n\nPlease send a different file"
+            ).format(extensions_list=MAX_DOWNLOAD_SIZE)
+        )
+        await state.set_state(set_state)
+        return False
+
+    return True
+
+
+
+async def check_category_is_acc_storage(category: AccountCategoryFull, user: Users) -> bool:
+    """
+    Проверит что категория - хранилище аккаунтов. Еслине хранит, то отправит сообщение, что необходимо сделать хранилищем
+    :return bool: True если хранит, иначе False
+    """
+    if not category.is_accounts_storage:
+        await send_message(
+            user.user_id,
+            get_text(user.language,"admins","First, make this category an account storage"),
+            reply_markup=back_in_category_kb(
+                language=user.language,
+                category_id=category.category_id,
+                i18n_key = "In category"
+            )
+        )
+        return False
+    return True
+
+

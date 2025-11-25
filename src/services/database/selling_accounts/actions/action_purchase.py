@@ -17,7 +17,8 @@ from src.services.database.discounts.utils.calculation import discount_calculati
 from src.services.database.selling_accounts.events.schemas import NewPurchaseAccount, AccountsData
 from src.services.database.selling_accounts.models.models import PurchaseRequests, PurchaseRequestAccount
 from src.services.database.users.models.models_users import BalanceHolder
-from src.services.filesystem.account_actions import create_path_account, move_file, rename_file, move_in_account
+from src.services.filesystem.account_actions import create_path_account, rename_file, move_in_account
+from src.services.filesystem.actions import move_file
 from src.services.accounts.tg.actions import check_account_validity
 from src.services.redis.filling_redis import filling_product_accounts_by_category_id, \
     filling_product_account_by_account_id, filling_sold_accounts_by_owner_id, filling_sold_account_by_account_id, \

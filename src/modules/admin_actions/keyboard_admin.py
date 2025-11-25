@@ -134,6 +134,14 @@ async def show_account_category_admin_kb(
 
     if is_account_storage:
         keyboard.row(InlineKeyboardButton(
+            text=get_text(language, 'keyboard', "Delete all accounts"),
+            callback_data=f'acc_category_del_all_acc:{category_id}')
+        )
+        keyboard.row(InlineKeyboardButton(
+            text=get_text(language, 'keyboard', "Unload all accounts"),
+            callback_data=f'acc_category_upload_acc:{category_id}')
+        )
+        keyboard.row(InlineKeyboardButton(
             text=get_text(language, 'keyboard', "Load accounts"),
             callback_data=f'acc_category_load_acc:{category_id}')
         )

@@ -141,6 +141,7 @@ async def test_get_account_categories_by_parent_id(use_redis, create_account_cat
     assert category_2.model_dump() == list_category[1]
     assert category_3.model_dump() == list_category[2]
 
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_product_account_by_category_id(use_redis, create_account_category, create_product_account):
@@ -157,6 +158,24 @@ async def test_get_product_account_by_category_id(use_redis, create_account_cate
     assert len(list_account) == 2
     assert account_1.to_dict() in list_account
     assert account_2.to_dict() in list_account
+
+
+@pytest.mark.asyncio
+async def test_get_full_product_account_by_category_id(create_account_category, create_product_account):
+    from src.services.database.selling_accounts.actions import get_product_account_by_category_id
+
+    category = await create_account_category()
+    _, account_1 = await create_product_account(account_category_id=category.account_category_id)
+    _, account_2 = await create_product_account(account_category_id=category.account_category_id)
+    _, account_other = await create_product_account()
+
+    list_account = await get_product_account_by_category_id(category.account_category_id, get_full=True)
+    list_account = [account.model_dump() for account in list_account]
+
+    assert len(list_account) == 2
+    assert account_1.model_dump() in list_account
+    assert account_2.model_dump() in list_account
+
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))

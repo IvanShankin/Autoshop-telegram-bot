@@ -13,6 +13,11 @@ class UserNotFound(Exception):
 class AccountCategoryNotFound(Exception):
     pass
 
+class ProductAccountNotFound(Exception):
+    pass
+
+
+
 class NotEnoughAccounts(Exception):
     """Если пользователь пытается приобрести аккаунтов больше чем имеется"""
     pass
@@ -24,11 +29,15 @@ class NotEnoughMoney(Exception):
         self.need_money = need_money
         super().__init__(self.message)
 
+
+
 class InvalidPromoCode(Exception):
     pass
 
 class PromoCodeAlreadyActivated(Exception):
     pass
+
+
 
 class TranslationAlreadyExists(Exception):
     pass

@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 @pytest.mark.asyncio
 async def test_extract_archive_to_temp_success():
-    from src.services.filesystem.input_account import extract_archive_to_temp
+    from src.services.filesystem.actions import extract_archive_to_temp
     # создаём временный zip
     with tempfile.TemporaryDirectory() as tmpdir:
         zip_path = os.path.join(tmpdir, "test.zip")
@@ -26,7 +26,7 @@ async def test_extract_archive_to_temp_success():
 
 @pytest.mark.asyncio
 async def test_extract_archive_to_temp_invalid_zip():
-    from src.services.filesystem.input_account import extract_archive_to_temp
+    from src.services.filesystem.actions import extract_archive_to_temp
     with tempfile.TemporaryDirectory() as tmpdir:
         bad_zip = os.path.join(tmpdir, "bad.zip")
         with open(bad_zip, "w") as f:
@@ -37,7 +37,7 @@ async def test_extract_archive_to_temp_invalid_zip():
 
 @pytest.mark.asyncio
 async def test_make_archive_success():
-    from src.services.filesystem.input_account import make_archive
+    from src.services.filesystem.actions import make_archive
     with tempfile.TemporaryDirectory() as tmpdir:
         file_path = os.path.join(tmpdir, "file.txt")
         with open(file_path, "w") as f:
@@ -50,7 +50,7 @@ async def test_make_archive_success():
 
 @pytest.mark.asyncio
 async def test_make_archive_nonexistent_source():
-    from src.services.filesystem.input_account import make_archive
+    from src.services.filesystem.actions import make_archive
     with tempfile.TemporaryDirectory() as tmpdir:
         archive_path = os.path.join(tmpdir, "out.zip")
         result = await make_archive("/nonexistent/path", archive_path)

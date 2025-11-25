@@ -1,6 +1,11 @@
 from pydantic import BaseModel
 
 
+
+REQUIRED_HEADERS = ["phone", "login", "password"]
+HEADERS_DICT = {"phone": "phone", "login": "login", "password": "password"}
+
+
 class ImportResult(BaseModel):
     successfully_added: int
     total_processed: int

@@ -215,3 +215,11 @@ msgstr "НЕ удалось извлечь аккаунты"
 msgid "Duplicate accounts"
 msgstr "Аккаунты дубликаты"
 
+msgid "Account upload has begun. Wait for the message about the completion of the upload"
+msgstr "Выгрузка аккаунтов начата. Дождитесь сообщения об окончании выгрузке"
+
+msgid "Account upload complete"
+msgstr "Выгрузка аккаунтов закончена"
+
+msgid "Account not found!"
+msgstr "Аккаунты не найдены!"

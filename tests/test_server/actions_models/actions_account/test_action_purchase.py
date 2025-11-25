@@ -448,7 +448,7 @@ async def test__check_account_validity_async_success(
 ):
     """
     Unit: check_account_validity должен:
-    - вызвать _decryption_tg_account (мы мокаем),
+    - вызвать decryption_tg_account (мы мокаем),
     - вызвать check_valid_accounts_telethon (мокаем) и вернуть True,
     - вызвать shutil.rmtree в finally (мокаем).
     """
@@ -476,7 +476,7 @@ async def test__check_account_validity_async_success(
         os.makedirs(tdata_dir, exist_ok=True)
         return temp_folder_path
 
-    monkeypatch.setattr(actions, "_decryption_tg_account", fake_decryption_tg_account)
+    monkeypatch.setattr(actions, "decryption_tg_account", fake_decryption_tg_account)
 
     # Мокаем асинхронную проверку аккаунта — вернём True
     async def fake_check_valid_accounts(folder_path):

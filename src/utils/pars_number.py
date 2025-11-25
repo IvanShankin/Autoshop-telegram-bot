@@ -1,11 +1,13 @@
 import phonenumbers
+from phonenumbers import PhoneNumberFormat
+
 
 def phone_in_e164(phone: str) -> str:
     # пробуем как международный номер
     try:
         num = phonenumbers.parse(phone, None)
         if phonenumbers.is_valid_number(num):
-            return phonenumbers.format_number(num, phonenumbers.PhoneNumberFormat.E164)
+            return phonenumbers.format_number(num, PhoneNumberFormat.E164)
     except:
         pass
 
@@ -14,7 +16,7 @@ def phone_in_e164(phone: str) -> str:
         try:
             num = phonenumbers.parse(phone, region)
             if phonenumbers.is_valid_number(num):
-                return phonenumbers.format_number(num, phonenumbers.PhoneNumberFormat.E164)
+                return phonenumbers.format_number(num, PhoneNumberFormat.E164)
         except:
             continue
 
@@ -25,20 +27,23 @@ def e164_to_pretty(phone: str) -> str | None:
     """
     Преобразует номер E.164 (+79991234567)
     в формат +7 (999) 123-45-67.
-    Если регион не указан — берётся из номера автоматически.
     """
     try:
         num = phonenumbers.parse(phone, None)
         if not phonenumbers.is_valid_number(num):
             return None
 
-        # NATIONAL → 8 (999) 123-45-67
-        national = phonenumbers.format_number(num, phonenumbers.PhoneNumberFormat.NATIONAL)
+        # INTERNATIONAL → "+7 999 123-45-67"
+        intl = phonenumbers.format_number(num, PhoneNumberFormat.INTERNATIONAL)
 
-        # Приводим NATIONAL к красивому виду с +<код страны>
-        country_code = f"+{num.country_code}"
+        # Разбиваем: "+7 999 123-45-67"
+        country, rest = intl.split(" ", 1)
 
-        # NATIONAL содержит только последнюю часть, например: 999 123-45-67
-        return f"{country_code} {national}"
+        # rest = "999 123-45-67" → делаем (999) 123-45-67
+        parts = rest.split(" ", 1)
+        area = parts[0]              # 999
+        tail = parts[1] if len(parts) > 1 else ""
+
+        return f"{country} ({area}) {tail}"
     except:
         return None

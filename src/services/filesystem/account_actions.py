@@ -2,37 +2,14 @@ import asyncio
 import os
 import shutil
 from pathlib import Path
-from typing import AsyncGenerator, Tuple
+from typing import AsyncGenerator
 
 from src.bot_actions.actions import send_log
 from src.config import ACCOUNTS_DIR
-from src.services.database.selling_accounts.models import AccountStorage
+from src.services.database.selling_accounts.models import AccountStorage, AccountStoragePydentic
+from src.services.filesystem.actions import move_file
 from src.utils.core_logger import logger
 from src.utils.secret_data import unwrap_account_key, decrypt_folder, derive_master_key
-
-
-# helper: передвигает файлы в потоке, возвращает True если всё успешно
-def move_file_sync(src: str, dst: str) -> bool:
-    """
-        Перемещение аккаунтов
-
-        Если путь к src не будет найден, то вернёт False
-        :param src: путь к зашифрованному файл.
-        :param dst: Путь к новому месту (Директория).
-        :return: Bool результат
-    """
-    try:
-        if not os.path.isfile(src) and not os.path.isdir(src) :
-            return False
-        os.makedirs(os.path.dirname(dst), exist_ok=True)
-        shutil.move(src, dst)
-        return True
-    except Exception:
-        return False
-
-
-async def move_file(src: str, dst: str) -> bool:
-    return await asyncio.to_thread(move_file_sync, src, dst)
 
 
 async def move_in_account(account: AccountStorage, type_service_name: str, status: str) -> bool:
@@ -100,7 +77,7 @@ def create_path_account(status: str, type_account_service: str, uuid: str) -> st
     return str(Path(ACCOUNTS_DIR) / status / type_account_service / uuid / 'account.enc')
 
 
-def _decryption_tg_account(account_storage: AccountStorage):
+def decryption_tg_account(account_storage: AccountStorage | AccountStoragePydentic):
     """
     Расшифровывает файлы для телеграмм аккаунтов и записывает на диск расшифрованные данные во временную директорию (Temp)
     :return: путь к расшифрованным данным от аккаунта: Временная папка с .session и tdata (директория)
@@ -121,7 +98,7 @@ async def get_tdata_tg_acc(account_storage: AccountStorage) -> AsyncGenerator[st
     """
     folder_path = None
     try:
-        folder_path = _decryption_tg_account(account_storage)
+        folder_path = decryption_tg_account(account_storage)
         dir_for_tdata = Path(folder_path) / f'{account_storage.account_storage_id}_tdata'
         dir_for_tdata.mkdir(exist_ok=True)
         result = await move_file(str(Path(folder_path) / 'tdata'), str(dir_for_tdata))
@@ -151,7 +128,7 @@ async def get_session_tg_acc(account_storage: AccountStorage) -> AsyncGenerator[
     """
     folder_path = None
     try:
-        folder_path = _decryption_tg_account(account_storage)
+        folder_path = decryption_tg_account(account_storage)
         session_path = str(Path(folder_path) / 'session.session')
         if os.path.isfile(session_path):
             yield session_path

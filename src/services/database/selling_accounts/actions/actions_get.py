@@ -326,7 +326,22 @@ async def get_account_categories_by_parent_id(
 
     return sorted(unsorted_list, key=lambda category: category.index)
 
-async def get_product_account_by_category_id(category_id: int) -> List[ProductAccounts]:
+async def get_product_account_by_category_id(
+    category_id: int,
+    get_full: bool = False
+) -> List[ProductAccounts | ProductAccountFull]:
+    if get_full:
+        async with get_db() as session_db:
+            result_db = await session_db.execute(
+                select(ProductAccounts)
+                .options(selectinload(ProductAccounts.account_storage))
+                .where(ProductAccounts.account_category_id == category_id)
+            )
+            accounts: List[ProductAccounts] = result_db.scalars().all()
+
+            return [ProductAccountFull.from_orm_model(acc, acc.account_storage) for acc in accounts]
+
+
     return await _get_grouped_objects(
         model_db=ProductAccounts,
         redis_key=f'product_accounts_by_category_id:{category_id}',

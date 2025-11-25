@@ -232,4 +232,10 @@ msgstr "{indicator} Показывать по умолчанию"
 msgid "To the data"
 msgstr "К данным"
 
+msgid "Delete all accounts"
+msgstr "Удалить все аккаунты"
+
+msgid "Unload all accounts"
+msgstr "Выгрузить все аккаунты"
+
 

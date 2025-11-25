@@ -19,20 +19,22 @@ def make_account_key() -> tuple[str, bytes, str]:
     """
     Создаёт случайный account_key и его зашифрованную master_key версию.
     Возвращает:
-        encrypted_key_b64 — base64 шифроблок (AES-GCM)
-        account_key — байты
-        nonce_b64 — base64 nonce для восстановления
+        encrypted_key_b64 — base64(wrapped = nonce + ciphertext) (AES-GCM)
+        account_key — байты (ключ для шифрования архива)
+        nonce_b64 — base64(nonce) для совместимости (не обязательно)
     """
+    # master_key должен быть 32 байта
     master_key = base64.b64decode(SECRET_KEY)
     account_key = os.urandom(32)
 
     aesgcm = AESGCM(master_key)
     nonce = os.urandom(12)
 
-    encrypted = aesgcm.encrypt(nonce, account_key, None)
+    ciphertext = aesgcm.encrypt(nonce, account_key, None)  # ciphertext includes tag
+    wrapped = nonce + ciphertext  # формат, ожидаемый decrypt_bytes_with_key
 
     # храним в B64 — запись в БД/файлы удобнее
-    encrypted_key_b64 = base64.b64encode(encrypted).decode()
+    encrypted_key_b64 = base64.b64encode(wrapped).decode()
     nonce_b64 = base64.b64encode(nonce).decode()
 
     return encrypted_key_b64, account_key, nonce_b64
@@ -50,13 +52,6 @@ def decrypt_data(text_encrypted: str) -> str:
 
 def derive_master_key() -> bytes:
     return base64.b64decode(SECRET_KEY)
-
-
-def decrypt_bytes_with_key(nonce_and_ct: bytes, key: bytes) -> bytes:
-    nonce = nonce_and_ct[:12]
-    ct = nonce_and_ct[12:]
-    aesgcm = AESGCM(key)
-    return aesgcm.decrypt(nonce, ct, associated_data=None)
 
 
 def unwrap_account_key(wrapped_b64: str, master_key: bytes) -> bytes:
@@ -80,6 +75,13 @@ def encrypt_bytes_with_key(plaintext: bytes, key: bytes) -> bytes:
     nonce = os.urandom(12)
     ciphertext = aesgcm.encrypt(nonce, plaintext, None)
     return nonce + ciphertext
+
+
+def decrypt_bytes_with_key(nonce_and_ct: bytes, key: bytes) -> bytes:
+    nonce = nonce_and_ct[:12]
+    ct = nonce_and_ct[12:]
+    aesgcm = AESGCM(key)
+    return aesgcm.decrypt(nonce, ct, associated_data=None)
 
 
 def encrypt_folder(folder_path: str, encrypted_path: str, key: bytes):

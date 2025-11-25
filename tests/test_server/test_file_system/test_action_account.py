@@ -12,7 +12,7 @@ from src.services.database.selling_accounts.models import AccountStorage, Produc
 
 
 def test_move_file_sync_success(tmp_path):
-    from src.services.filesystem.account_actions import move_file_sync
+    from src.services.filesystem.actions import move_file_sync
     src = tmp_path / "file.txt"
     dst = tmp_path / "dest" / "file.txt"
     src.write_text("data")
@@ -25,7 +25,7 @@ def test_move_file_sync_success(tmp_path):
 
 
 def test_move_file_sync_not_found(tmp_path):
-    from src.services.filesystem.account_actions import move_file_sync
+    from src.services.filesystem.actions import move_file_sync
     src = tmp_path / "no_file.txt"
     dst = tmp_path / "dest" / "file.txt"
     result = move_file_sync(str(src), str(dst))
@@ -34,7 +34,7 @@ def test_move_file_sync_not_found(tmp_path):
 
 @pytest.mark.asyncio
 async def test_move_file_async(tmp_path):
-    from src.services.filesystem.account_actions import move_file
+    from src.services.filesystem.actions import move_file
     src = tmp_path / "src.txt"
     dst = tmp_path / "dst" / "src.txt"
     src.write_text("abc")
@@ -124,7 +124,7 @@ async def test_move_in_account_fail(monkeypatch):
 
 
 def test_decryption_tg_account_calls_correct(monkeypatch):
-    from src.services.filesystem.account_actions import _decryption_tg_account
+    from src.services.filesystem.account_actions import decryption_tg_account
     acc_storage = AccountStorage()
     acc_storage.encrypted_key = "encrypted"
     acc_storage.file_path = "telegram/account.enc"
@@ -138,7 +138,7 @@ def test_decryption_tg_account_calls_correct(monkeypatch):
     monkeypatch.setattr("src.services.filesystem.account_actions.decrypt_folder", lambda path, key: fake_folder)
     monkeypatch.setattr("src.services.filesystem.account_actions.ACCOUNTS_DIR", "/root/accounts")
 
-    res = _decryption_tg_account(acc_storage)
+    res = decryption_tg_account(acc_storage)
     assert res == fake_folder
 
 
@@ -154,9 +154,9 @@ async def test_get_tdata_tg_acc_creates_archive(tmp_path, monkeypatch):
     tdata_dir.mkdir(parents=True)
     (tdata_dir / "data.txt").write_text("hello")
 
-    # переопределяем _decryption_tg_account, чтобы вернуть этот путь
+    # переопределяем decryption_tg_account, чтобы вернуть этот путь
     from src.services.filesystem import account_actions
-    monkeypatch.setattr(account_actions, "_decryption_tg_account", lambda a: folder_path)
+    monkeypatch.setattr(account_actions, "decryption_tg_account", lambda a: folder_path)
 
     # создаём объект AccountStorage
     acc = AccountStorage(account_storage_id=1)
@@ -186,7 +186,7 @@ async def test_get_tdata_tg_acc_handles_missing_tdata(tmp_path, monkeypatch):
     folder_path.mkdir()
 
     from src.services.filesystem import account_actions
-    monkeypatch.setattr(account_actions, "_decryption_tg_account", lambda a: folder_path)
+    monkeypatch.setattr(account_actions, "decryption_tg_account", lambda a: folder_path)
 
     acc = AccountStorage(account_storage_id=2)
 
@@ -206,7 +206,7 @@ async def test_get_session_tg_acc_reads_existing_file(tmp_path, monkeypatch):
     (folder_path / "session.session").write_text("data")
 
     from src.services.filesystem import account_actions
-    monkeypatch.setattr(account_actions, "_decryption_tg_account", lambda a: folder_path)
+    monkeypatch.setattr(account_actions, "decryption_tg_account", lambda a: folder_path)
 
     acc = AccountStorage(account_storage_id=3)
     gen = get_session_tg_acc(acc)
@@ -226,7 +226,7 @@ async def test_get_session_tg_acc_missing_file(tmp_path, monkeypatch):
     folder_path.mkdir()
 
     from src.services.filesystem import account_actions
-    monkeypatch.setattr(account_actions, "_decryption_tg_account", lambda a: folder_path)
+    monkeypatch.setattr(account_actions, "decryption_tg_account", lambda a: folder_path)
 
     acc = AccountStorage(account_storage_id=4)
     gen = get_session_tg_acc(acc)

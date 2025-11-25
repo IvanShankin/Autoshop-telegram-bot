@@ -15,7 +15,7 @@ async def test_show_service_service_not_found(monkeypatch, patch_fake_aiogram, r
     Если get_account_service возвращает None — show_service должен ответить пользователю
     текстом 'The service is no longer available' (через callback.answer or send_message branch).
     """
-    from src.modules.admin_actions.handlers.editor_services_handlers import show_service
+    from src.modules.admin_actions.handlers.editor.editor_services_handlers import show_service
 
     user = SimpleNamespace(user_id=1111, language="ru")
 
@@ -53,7 +53,7 @@ async def test_show_service_service_found_calls_edit_message(
     """
     При наличии сервиса show_service должен вызвать edit_message/send_message с текстом, содержащим имя сервиса.
     """
-    from src.modules.admin_actions.handlers.editor_services_handlers import show_service
+    from src.modules.admin_actions.handlers.editor.editor_services_handlers import show_service
     service = await create_account_service(name="TelegramServiceX", index=7, show=True)
     user = await create_new_user()
 
@@ -75,7 +75,7 @@ async def test_delete_acc_service_success(
     """
     Проверяет успешное удаление сервиса — сообщение 'Service successfully removed!'
     """
-    from src.modules.admin_actions.handlers.editor_services_handlers import delete_acc_service
+    from src.modules.admin_actions.handlers.editor.editor_services_handlers import delete_acc_service
 
     service = await create_account_service()
     user = await create_new_user()
@@ -104,7 +104,7 @@ async def test_delete_acc_service_contains_categories(
     Проверяет случай, когда при удалении выбрасывается ServiceContainsCategories —
     должно появиться сообщение 'The service has categories, delete them first'
     """
-    from src.modules.admin_actions.handlers.editor_services_handlers import delete_acc_service
+    from src.modules.admin_actions.handlers.editor.editor_services_handlers import delete_acc_service
 
     service = await create_account_service()
     user = await create_new_user()

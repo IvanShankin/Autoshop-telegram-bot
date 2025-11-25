@@ -4,16 +4,13 @@ from typing import List, Tuple
 
 from src.bot_actions.actions import send_log
 from src.exceptions.service_exceptions import InvalidFormatRows, CategoryNotFound, TheCategoryNotStorageAccount
-from src.services.accounts.other.shemas import AccountImportData, ImportResult
+from src.services.accounts.other.shemas import AccountImportData, ImportResult, REQUIRED_HEADERS
 from src.services.accounts.utils.helper_imports import get_unique_among_db
 from src.services.database.selling_accounts.actions import add_account_storage, add_product_account
 from src.services.filesystem.input_account import make_csv_bytes
 from src.utils.core_logger import logger
 from src.utils.secret_data import encrypt_data
 
-
-REQUIRED_HEADERS = ["phone", "login", "password"]
-HEADERS_DICT = {"phone": "phone", "login": "login", "password": "password"}
 
 async def input_other_account(stream: io.BytesIO, account_category_id: int, type_account_service: str) -> ImportResult:
     """

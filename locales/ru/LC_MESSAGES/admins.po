@@ -223,3 +223,11 @@ msgstr "Выгрузка аккаунтов закончена"
 
 msgid "Account not found!"
 msgstr "Аккаунты не найдены!"
+
+msgid "Are you sure you want to permanently delete all accounts currently for sale?"
+"\n\nNote: They will be uploaded to this chat before deletion"
+msgstr "Вы действительно хотите удалить безвозвратно все акаунты стоящие на продаже?"
+"\n\nПримечание: перед удалением они будут выгружены в этот чат"
+
+msgid "Accounts successfully deleted"
+msgstr "Аккаунты успешно удалены"

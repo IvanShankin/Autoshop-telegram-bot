@@ -1,16 +1,21 @@
+import shutil
+from pathlib import Path
+from typing import List
+
 import orjson
 from sqlalchemy import select, delete, distinct, update
 
+from src.config import ACCOUNTS_DIR
 from src.exceptions.service_exceptions import ServiceContainsCategories, CategoryStoresSubcategories, \
     AccountCategoryNotFound, TheCategoryStorageAccount
 from src.services.database.system.actions import delete_ui_image
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_account_categories_by_service_id, \
     filling_account_categories_by_category_id, filling_product_accounts_by_category_id, \
-    filling_sold_accounts_by_owner_id
+    filling_sold_accounts_by_owner_id, filling_product_account_by_account_id
 from src.services.database.core.database import get_db
 from src.services.database.selling_accounts.models import AccountServices, AccountCategories, ProductAccounts, \
-    AccountCategoryTranslation, SoldAccounts, SoldAccountsTranslation
+    AccountCategoryTranslation, SoldAccounts, SoldAccountsTranslation, AccountStorage
 
 
 async def delete_account_service(account_service_id: int):
@@ -199,3 +204,44 @@ async def delete_sold_account(account_id: int):
             for language in all_lang:
                 await filling_sold_accounts_by_owner_id(account.owner_id)
                 await session_redis.delete(f'sold_accounts_by_accounts_id:{account.sold_account_id}:{language}')
+
+
+async def delete_product_accounts_by_category(category_id: int):
+    """Удалит аккаунты в БД и на диске(если имеется)"""
+    async with get_db() as session_db:
+        product_ids_result = await session_db.execute(
+            select(ProductAccounts.account_id)
+            .where(ProductAccounts.account_category_id == category_id)
+        )
+        product_ids: List[int] = product_ids_result.scalars().all()
+
+        result_db = await session_db.execute(
+            delete(AccountStorage)
+            .where(
+                AccountStorage.account_storage_id.in_(
+                    select(ProductAccounts.account_storage_id)
+                    .where(ProductAccounts.account_category_id == category_id)
+                )
+            )
+            .returning(AccountStorage)
+        )
+        delete_acc: List[AccountStorage] = result_db.scalars().all()
+        await session_db.commit()
+
+        for acc in delete_acc:
+
+            if not acc.file_path: # если нет путь значит у всех остальных аккаунтов тоже нет
+                continue
+
+            folder = ACCOUNTS_DIR / Path(acc.file_path).parent
+
+            # удаляем каталог со всем содержимым
+            shutil.rmtree(folder, ignore_errors=True)
+
+        if delete_acc:
+            await filling_account_categories_by_service_id()
+            await filling_account_categories_by_category_id()
+            await filling_product_accounts_by_category_id()
+
+            for acc_id in product_ids:
+                await filling_product_account_by_account_id(acc_id)

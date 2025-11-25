@@ -162,12 +162,12 @@ class AccountStorage(Base):
     last_check_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())  # последняя проверка
 
     # связи
-    product_account = relationship("ProductAccounts", back_populates="account_storage", uselist=False)
-    sold_account = relationship("SoldAccounts", back_populates="account_storage", uselist=False)
-    deleted_account = relationship("DeletedAccounts", back_populates="account_storage", uselist=False)
+    product_account = relationship("ProductAccounts", back_populates="account_storage", cascade="all, delete-orphan", uselist=False)
+    sold_account = relationship("SoldAccounts", back_populates="account_storage", cascade="all, delete-orphan", uselist=False)
+    deleted_account = relationship("DeletedAccounts", back_populates="account_storage", cascade="all, delete-orphan", uselist=False)
     purchase_request_accounts = relationship("PurchaseRequestAccount", back_populates="account_storage", uselist=False)
     purchase = relationship("PurchasesAccounts", back_populates="account_storage", uselist=False)
-    tg_account_media = relationship("TgAccountMedia", back_populates="account_storage", uselist=False)
+    tg_account_media = relationship("TgAccountMedia", back_populates="account_storage", cascade="all, delete-orphan", uselist=False)
 
 
 class TgAccountMedia(Base):
@@ -179,7 +179,7 @@ class TgAccountMedia(Base):
     __tablename__ = "tg_account_media"
 
     tg_account_media_id = Column(Integer, primary_key=True, autoincrement=True)
-    account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id"), nullable=False)
+    account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id", ondelete="CASCADE"), nullable=False)
     tdata_tg_id = Column(String(500), nullable=True)
     session_tg_id = Column(String(500), nullable=True)
 
@@ -193,7 +193,7 @@ class ProductAccounts(Base):
     account_id = Column(Integer, primary_key=True, autoincrement=True)
     type_account_service_id = Column(Integer, ForeignKey("type_account_services.type_account_service_id"), nullable=False, index=True)
     account_category_id = Column(Integer, ForeignKey("account_categories.account_category_id"), nullable=False, index=True)
-    account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id"), nullable=False)
+    account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id", ondelete="CASCADE"), nullable=False)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -211,7 +211,7 @@ class SoldAccounts(Base):
 
     sold_account_id = Column(Integer, primary_key=True, autoincrement=True)
     owner_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=True)
-    account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id"), nullable=False)
+    account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id", ondelete="CASCADE"), nullable=False)
     type_account_service_id = Column(Integer, ForeignKey("type_account_services.type_account_service_id"), nullable=False)
 
     sold_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -275,7 +275,7 @@ class PurchasesAccounts(Base):
 
     purchase_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
-    account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id"), nullable=False)
+    account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id", ondelete="CASCADE"), nullable=False)
 
     original_price = Column(Integer, nullable=False)  # Цена на момент покупки (без учёта промокода)
     purchase_price = Column(Integer, nullable=False)  # Цена на момент покупки (с учётом промокода)
@@ -294,7 +294,7 @@ class DeletedAccounts(Base):
     __tablename__ = "deleted_accounts"
 
     deleted_account_id = Column(Integer, primary_key=True, autoincrement=True)
-    account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id"), nullable=False)
+    account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id", ondelete="CASCADE"), nullable=False)
     type_account_service_id = Column(Integer, ForeignKey("type_account_services.type_account_service_id"), nullable=False)
     category_name = Column(Text, nullable=False)
     description = Column(Text, nullable=False)
@@ -326,7 +326,7 @@ class PurchaseRequestAccount(Base):
 
     purchase_request_accounts_id = Column(Integer, primary_key=True)
     purchase_request_id = Column(ForeignKey("purchase_requests.purchase_request_id"), nullable=False)
-    account_storage_id = Column(ForeignKey("account_storage.account_storage_id"), nullable=False)
+    account_storage_id = Column(ForeignKey("account_storage.account_storage_id", ondelete="CASCADE"), nullable=False)
 
     purchase_request = relationship("PurchaseRequests", back_populates="purchase_request_accounts")
     account_storage = relationship("AccountStorage", back_populates="purchase_request_accounts")

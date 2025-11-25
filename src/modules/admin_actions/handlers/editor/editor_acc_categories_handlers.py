@@ -17,9 +17,10 @@ from src.modules.admin_actions.handlers.editor.category_validator import safe_ge
     name_input_prompt_by_language, show_category, show_category_update_data, update_data, service_not_found, \
     update_message_query_data, safe_get_service_name, check_category_is_acc_storage, check_valid_file, make_result_msg, \
     message_info_load_file
+from src.modules.admin_actions.handlers.editor.upload_accounts import upload_account
 from src.modules.admin_actions.keyboard_admin import to_services_kb, delete_category_kb, back_in_category_kb, \
     select_lang_category_kb, name_or_description_kb, \
-    back_in_category_update_data_kb
+    back_in_category_update_data_kb, delete_accounts_kb
 from src.modules.admin_actions.schemas.editor_categories import GetDataForCategoryData, UpdateNameForCategoryData, \
     UpdateDescriptionForCategoryData, UpdateCategoryOnlyId, ImportAccountsData
 from src.modules.admin_actions.state.editor_categories import GetDataForCategory, UpdateNameForCategory, \
@@ -31,7 +32,8 @@ from src.services.accounts.tg.upload_account import upload_tg_account
 from src.services.database.selling_accounts.actions import add_account_category, \
     add_translation_in_account_category, update_account_category, \
     update_account_category_translation
-from src.services.database.selling_accounts.actions.actions_delete import delete_account_category
+from src.services.database.selling_accounts.actions.actions_delete import delete_account_category, \
+    delete_product_accounts_by_category
 from src.services.database.system.actions import update_ui_image
 from src.services.database.users.models import Users
 from src.utils.core_logger import logger
@@ -458,60 +460,44 @@ async def acc_category_number_button(message: Message, state: FSMContext, user: 
     await update_data(message, state, user)
 
 
+@router.callback_query(F.data.startswith("confirm_del_all_acc:"))
+async def confirm_del_all_acc(callback: CallbackQuery, user: Users):
+    category_id = int(callback.data.split(':')[1])
+    await edit_message(
+        chat_id=user.user_id,
+        message_id=callback.message.message_id,
+        message=get_text(
+            user.language,
+            'admins',
+            "Are you sure you want to permanently delete all accounts currently for sale?"
+            "\n\nNote: They will be uploaded to this chat before deletion"
+        ),
+        reply_markup=delete_accounts_kb(user.language, category_id)
+    )
 
 
-@router.callback_query(F.data.startswith("acc_category_upload_acc:"))
-async def acc_category_upload_acc(callback: CallbackQuery, state: FSMContext, user: Users):
+@router.callback_query(F.data.startswith("delete_all_account:"))
+async def delete_all_account(callback: CallbackQuery, user: Users):
     category_id = int(callback.data.split(':')[1])
     category = await safe_get_category(category_id, user=user, callback=None)
     if not category:
         return
 
-    service_name = await safe_get_service_name(category, user, callback.message.message_id)
-    bot = await get_bot()
+    await upload_account(category, user, callback)
+    await delete_product_accounts_by_category(category_id)
 
-    await send_message(
-        user.user_id,
-        get_text(
-            user.language,
-            "admins",
-            "Account upload has begun. Wait for the message about the completion of the upload"
-        )
-    )
+    await callback.answer("Accounts successfully deleted", show_alert=True)
+    await show_category(user, category_id, send_new_message=True)
 
-    try:
-        if service_name == "telegram":
-            async for archive_path in upload_tg_account(category_id):
-                file = FSInputFile(archive_path)
-                await bot.send_document(callback.from_user.id, document=file)
-        elif service_name == "other":
-            stream_csv = await upload_other_account(category_id)
-            await bot.send_document(
-                user.user_id,
-                document=BufferedInputFile(
-                    stream_csv,
-                    filename=get_text(user.language, "admins", "Accounts") + '.csv'
-                )
-            )
-        else:
-            await service_not_found(user, callback.message.message_id)
-            return
-    except ProductAccountNotFound:
-        await send_message(user.user_id, get_text(user.language, "admins", "Account not found!"))
 
-    await send_message(
-        user.user_id,
-        get_text(
-            user.language,
-            "admins",
-            "Account upload complete"
-        ),
-        reply_markup=back_in_category_kb(
-            language=user.language,
-            category_id=category.account_category_id,
-            i18n_key="In category"
-        )
-    )
+@router.callback_query(F.data.startswith("acc_category_upload_acc:"))
+async def acc_category_upload_acc(callback: CallbackQuery, user: Users):
+    category_id = int(callback.data.split(':')[1])
+    category = await safe_get_category(category_id, user=user, callback=None)
+    if not category:
+        return
+
+    await upload_account(category, user, callback)
 
 @router.callback_query(F.data.startswith("acc_category_load_acc:"))
 async def acc_category_load_acc(callback: CallbackQuery, state: FSMContext, user: Users):

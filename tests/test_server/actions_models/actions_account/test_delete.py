@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 import orjson
 from sqlalchemy import select
@@ -5,6 +7,7 @@ from sqlalchemy import select
 from src.exceptions.service_exceptions import ServiceContainsCategories, TheCategoryStorageAccount, \
     CategoryStoresSubcategories
 from src.services.database.system.actions import get_ui_image
+from src.services.filesystem.account_actions import create_path_account
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
 from src.services.database.selling_accounts.actions import (
@@ -13,11 +16,11 @@ from src.services.database.selling_accounts.actions import (
     delete_account_category,
     delete_product_account,
     delete_sold_account,
-    add_translation_in_account_category,  # используется в тестах
+    add_translation_in_account_category, get_type_account_service,  # используется в тестах
 )
 from src.services.database.selling_accounts.models import (
     AccountServices, AccountCategories, AccountCategoryTranslation,
-    ProductAccounts, SoldAccounts, SoldAccountsTranslation
+    ProductAccounts, SoldAccounts, SoldAccountsTranslation, AccountStorage
 )
 
 
@@ -248,3 +251,75 @@ async def test_delete_sold_account_success_and_redis_update(create_new_user, cre
     # попытка удалить несуществующий -> ValueError
     with pytest.raises(ValueError):
         await delete_sold_account(9999999)
+
+
+
+@pytest.mark.asyncio
+async def test_delete_product_accounts_by_category_success(
+        monkeypatch,
+        tmp_path,
+        create_product_account,
+        create_account_category,
+):
+    """
+    Базовый позитивный сценарий:
+    - удаляются AccountStorage связанные с category_id
+    - удаляются каталоги на диске
+    - вызываются filling_* функции
+    - очищается product_accounts_by_account_id
+    """
+    from src.services.database.selling_accounts.actions.actions_delete import delete_product_accounts_by_category
+    # Мокаем ACCOUNTS_DIR → временная директория
+    monkeypatch.setattr(
+        "src.services.database.selling_accounts.actions.actions_delete.ACCOUNTS_DIR",
+        tmp_path,
+    )
+
+    # Создаём категорию
+    category = await create_account_category(filling_redis=True)
+
+    # Создаём 2 product аккаунта
+    prod1, acc1 = await create_product_account(
+        filling_redis=True,
+        account_category_id=category.account_category_id
+    )
+    prod2, acc2 = await create_product_account(
+        filling_redis=True,
+        account_category_id=category.account_category_id
+    )
+
+    # Выполняем
+    await delete_product_accounts_by_category(category.account_category_id)
+
+    #  Проверка БД
+    async with get_db() as s:
+        res = await s.execute(
+            select(AccountStorage).where(
+                AccountStorage.account_storage_id.in_(
+                    [acc1.account_storage.account_storage_id, acc2.account_storage.account_storage_id]
+                )
+            )
+        )
+        assert res.scalars().all() == []
+
+        res_prod = await s.execute(
+            select(ProductAccounts).where(
+                ProductAccounts.account_id.in_([prod1.account_id, prod2.account_id])
+            )
+        )
+        assert res_prod.scalars().all() == []
+
+    type_service = await get_type_account_service(acc1.type_account_service_id)
+
+    # Проверка удаления с диска
+    assert not Path(
+        create_path_account(acc1.account_storage.status, type_service.name, acc1.account_storage.storage_uuid)
+    ).exists()
+    assert not Path(
+        create_path_account(acc2.account_storage.status, type_service.name, acc2.account_storage.storage_uuid)
+    ).exists()
+
+    # Проверка Redis
+    async with get_redis() as r:
+        assert await r.get(f"product_accounts_by_account_id:{prod1.account_id}") is None
+        assert await r.get(f"product_accounts_by_account_id:{prod2.account_id}") is None

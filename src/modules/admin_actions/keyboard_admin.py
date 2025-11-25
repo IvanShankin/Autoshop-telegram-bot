@@ -135,7 +135,7 @@ async def show_account_category_admin_kb(
     if is_account_storage:
         keyboard.row(InlineKeyboardButton(
             text=get_text(language, 'keyboard', "Delete all accounts"),
-            callback_data=f'acc_category_del_all_acc:{category_id}')
+            callback_data=f'confirm_del_all_acc:{category_id}')
         )
         keyboard.row(InlineKeyboardButton(
             text=get_text(language, 'keyboard', "Unload all accounts"),
@@ -248,6 +248,17 @@ def name_or_description_kb(language: str, category_id: int, lang: str):
         )]
     ])
 
+def delete_accounts_kb(language: str, category_id: int):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text=get_text(language, 'keyboard', 'Confirm'),
+            callback_data=f'delete_all_account:{category_id}'
+        )],
+        [InlineKeyboardButton(
+            text=get_text(language, 'keyboard', 'Back'),
+            callback_data=f'show_acc_category_admin:{category_id}'
+        )]
+    ])
 
 def delete_category_kb(language: str, category_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[

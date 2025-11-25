@@ -57,7 +57,8 @@ class TestSendMessage:
         async def fake_update_ui_image(**kwargs):
             updated.update(kwargs)
 
-        monkeypatch.setattr("src.bot_actions.actions.update_ui_image", fake_update_ui_image)
+        from src.bot_actions import actions as modul
+        monkeypatch.setattr(modul, "update_ui_image", fake_update_ui_image)
 
         # --- Запуск ---
         await send_message(chat_id=321, message="Reupload test", image_key="error_case", fallback_image_key=None)
@@ -102,7 +103,8 @@ class TestSendMessage:
         async def fake_get_ui_image(key: str):
             return None
 
-        monkeypatch.setattr("src.bot_actions.actions.get_ui_image", fake_get_ui_image)
+        from src.bot_actions import actions as modul
+        monkeypatch.setattr(modul, "get_ui_image", fake_get_ui_image)
 
         await send_message(chat_id=555, message="Plain text", image_key="missing")
 

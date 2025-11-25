@@ -79,10 +79,8 @@ async def test_delete_acc_service_success(
     service = await create_account_service()
     user = await create_new_user()
 
-    monkeypatch.setattr(
-        "src.services.database.selling_accounts.actions.actions_delete.delete_account_service",
-        lambda sid: asyncio.sleep(0),
-    )
+    from src.services.database.selling_accounts.actions import actions_delete as modul
+    monkeypatch.setattr(modul,"delete_account_service", lambda sid: asyncio.sleep(0))
 
     callback = SimpleNamespace(
         data=f"delete_acc_service:{service.account_service_id}",
@@ -111,10 +109,8 @@ async def test_delete_acc_service_contains_categories(
     async def raise_contains(*_):
         raise ServiceContainsCategories()
 
-    monkeypatch.setattr(
-        "src.services.database.selling_accounts.actions.actions_delete.delete_account_service",
-        raise_contains,
-    )
+    from src.services.database.selling_accounts.actions import actions_delete as modul
+    monkeypatch.setattr(modul,"delete_account_service",raise_contains,)
 
     callback = SimpleNamespace(
         data=f"delete_acc_service:{service.account_service_id}",

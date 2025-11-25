@@ -134,7 +134,8 @@ async def test_start_replenishment_crypto_bot_success(
     async def fake_create_invoice(**kwargs):
         return "https://test-invoice"
 
-    monkeypatch.setattr("src.modules.profile.handlers.replenishment_handler.crypto_bot.create_invoice", fake_create_invoice)
+    from src.modules.profile.handlers.replenishment_handler import crypto_bot as modul
+    monkeypatch.setattr(modul,"create_invoice", fake_create_invoice)
 
     # FSM с заранее записанным payment_id
     fsm = FakeFSMContext()

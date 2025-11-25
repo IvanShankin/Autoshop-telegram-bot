@@ -21,7 +21,8 @@ async def test_safe_get_category_not_found_with_callback(
     async def fake_get(*args, **kwargs):
         return None
 
-    monkeypatch.setattr("src.modules.admin_actions.handlers.editor.category.import_handlers",fake_get)
+    from src.modules.admin_actions.handlers.editor import category as modul
+    monkeypatch.setattr(modul, "import_handlers",fake_get)
 
     user = await create_new_user()
     result = await safe_get_category(1, user)

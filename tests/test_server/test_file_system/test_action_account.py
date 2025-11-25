@@ -74,7 +74,8 @@ async def test_rename_file_async(tmp_path):
 
 def test_create_path_account_builds_correct_path(tmp_path, monkeypatch):
     from src.services.filesystem.account_actions import create_path_account
-    monkeypatch.setattr("src.services.filesystem.account_actions.ACCOUNTS_DIR", tmp_path)
+    from src.services.filesystem import account_actions
+    monkeypatch.setattr(account_actions,"ACCOUNTS_DIR", tmp_path)
     result = create_path_account("sold", "telegram", "1234")
     expected = tmp_path / "sold" / "telegram" / "1234" / "account.enc"
     assert Path(result) == expected
@@ -84,7 +85,8 @@ def test_create_path_account_builds_correct_path(tmp_path, monkeypatch):
 async def test_move_in_account_success(tmp_path, monkeypatch):
     from src.services.filesystem.account_actions import move_in_account
     # patch ACCOUNTS_DIR
-    monkeypatch.setattr("src.services.filesystem.account_actions.ACCOUNTS_DIR", tmp_path)
+    from src.services.filesystem import account_actions
+    monkeypatch.setattr(account_actions, "ACCOUNTS_DIR", tmp_path)
 
     # создаём src файл
     uuid = "abcd"
@@ -111,7 +113,8 @@ async def test_move_in_account_fail(monkeypatch):
     from src.services.filesystem.account_actions import move_in_account
     # имитируем ошибку при move_file
     fake_move = AsyncMock(return_value=False)
-    monkeypatch.setattr("src.services.filesystem.account_actions.move_file", fake_move)
+    from src.services.filesystem import account_actions
+    monkeypatch.setattr(account_actions, "move_file", fake_move)
 
     acc_storage = AccountStorage()
     acc_storage.file_path = "fake/file"
@@ -133,10 +136,11 @@ def test_decryption_tg_account_calls_correct(monkeypatch):
     fake_unwrap = b"key"
     fake_folder = "/tmp/folder"
 
-    monkeypatch.setattr("src.services.filesystem.account_actions.derive_master_key", lambda: fake_master)
-    monkeypatch.setattr("src.services.filesystem.account_actions.unwrap_account_key", lambda enc, key: fake_unwrap)
-    monkeypatch.setattr("src.services.filesystem.account_actions.decrypt_folder", lambda path, key: fake_folder)
-    monkeypatch.setattr("src.services.filesystem.account_actions.ACCOUNTS_DIR", "/root/accounts")
+    from src.services.filesystem import account_actions
+    monkeypatch.setattr(account_actions, "derive_master_key", lambda: fake_master)
+    monkeypatch.setattr(account_actions, "unwrap_account_key", lambda enc, key: fake_unwrap)
+    monkeypatch.setattr(account_actions, "decrypt_folder", lambda path, key: fake_folder)
+    monkeypatch.setattr(account_actions, "ACCOUNTS_DIR", "/root/accounts")
 
     res = decryption_tg_account(acc_storage)
     assert res == fake_folder

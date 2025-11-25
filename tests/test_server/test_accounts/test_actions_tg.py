@@ -23,7 +23,8 @@ class TestCheckValidAccounts:
         fake_tdesk = MagicMock()
         fake_tdesk.ToTelethon = AsyncMock(return_value=fake_client)
 
-        monkeypatch.setattr("src.services.accounts.tg.actions.TDesktop", lambda path: fake_tdesk)
+        from src.services.accounts.tg import actions
+        monkeypatch.setattr(actions, "TDesktop", lambda path: fake_tdesk)
 
         res = bool(await check_valid_accounts_telethon(str(tmp_path)))
         assert res is True
@@ -33,7 +34,8 @@ class TestCheckValidAccounts:
     async def test_check_valid_accounts_fail(self, monkeypatch, tmp_path):
         from src.services.accounts.tg.actions import check_valid_accounts_telethon
         # выкидываем ошибку при инициализации
-        monkeypatch.setattr("src.services.accounts.tg.actions.TDesktop", lambda path: (_ for _ in ()).throw(Exception("bad")))
+        from src.services.accounts.tg import actions
+        monkeypatch.setattr(actions, "TDesktop", lambda path: (_ for _ in ()).throw(Exception("bad")))
 
         res = bool(await check_valid_accounts_telethon(str(tmp_path)))
         assert res is False

@@ -130,7 +130,8 @@ async def test_get_code_acc_returns_codes_and_sends_message(
             "Date: {date} \nCode: <code>{code}</code>\n\n"
         ).format(date=date.strftime(DT_FORMAT), code=code)
 
-    monkeypatch.setattr("src.modules.profile.handlers.accounts_handlers.get_auth_codes", fake_get_auth_codes)
+    from src.modules.profile.handlers import accounts_handlers as modul
+    monkeypatch.setattr(modul, "get_auth_codes", fake_get_auth_codes)
 
     cb = FakeCallbackQuery(data=f"get_code_acc:{sold_full.sold_account_id}", chat_id=user.user_id)
     cb.message = SimpleNamespace(message_id=1)
@@ -158,7 +159,8 @@ async def test_get_code_acc_returns_false_shows_unable_to_retrieve(
 
     async def fake_get_auth_codes(*_a, **_kw):
         return False
-    monkeypatch.setattr("src.modules.profile.handlers.accounts_handlers.get_auth_codes", fake_get_auth_codes)
+    from src.modules.profile.handlers import accounts_handlers as modul
+    monkeypatch.setattr(modul, "get_auth_codes", fake_get_auth_codes)
 
     cb = FakeCallbackQuery(data=f"get_code_acc:{sold_full.sold_account_id}", chat_id=user.user_id)
     cb.message = SimpleNamespace(message_id=2)
@@ -191,7 +193,8 @@ async def test_get_code_acc_no_codes_found_alert(
 
     async def fake_get_auth_codes(*_a, **_kw):
         return []
-    monkeypatch.setattr("src.modules.profile.handlers.accounts_handlers.get_auth_codes", fake_get_auth_codes)
+    from src.modules.profile.handlers import accounts_handlers as modul
+    monkeypatch.setattr(modul,"get_auth_codes", fake_get_auth_codes)
 
     cb = FakeCallbackQuery(data=f"get_code_acc:{sold_full.sold_account_id}", chat_id=user.user_id)
     cb.message = SimpleNamespace(message_id=3)
@@ -226,7 +229,9 @@ async def test_chek_valid_acc_valid_true_no_change(
     # мокаем check_account_validity
     async def fake_check_account_validity(*_a, **_kw):
         return True
-    monkeypatch.setattr("src.modules.profile.handlers.accounts_handlers.check_account_validity", fake_check_account_validity)
+
+    from src.modules.profile.handlers import accounts_handlers as modul
+    monkeypatch.setattr(modul,"check_account_validity", fake_check_account_validity)
 
     cb = FakeCallbackQuery(
         data=f"chek_valid_acc:{sold_full.sold_account_id}:{sold_full.type_account_service_id}:1:1",
@@ -265,11 +270,13 @@ async def test_chek_valid_acc_valid_false_updates_and_refreshes_card(
 
     async def fake_check_account_validity(*_a, **_kw):
         return False
-    monkeypatch.setattr("src.modules.profile.handlers.accounts_handlers.check_account_validity", fake_check_account_validity)
+
+    from src.modules.profile.handlers import accounts_handlers as modul
+    monkeypatch.setattr(modul, "check_account_validity", fake_check_account_validity)
 
     async def fake_show_sold_account(**kw):
         called["show_sold_account"] = kw
-    monkeypatch.setattr("src.modules.profile.handlers.accounts_handlers.show_sold_account", fake_show_sold_account)
+    monkeypatch.setattr(modul, "show_sold_account", fake_show_sold_account)
 
     cb = FakeCallbackQuery(
         data=f"chek_valid_acc:{sold_full.sold_account_id}:{sold_full.type_account_service_id}:1:1",
@@ -344,11 +351,13 @@ async def test_del_account_successful_flow(
 
     async def fake_move_in_account(*_a, **_kw):
         return True
-    monkeypatch.setattr("src.modules.profile.handlers.accounts_handlers.move_in_account", fake_move_in_account)
+
+    from src.modules.profile.handlers import accounts_handlers as modul
+    monkeypatch.setattr(modul, "move_in_account", fake_move_in_account)
 
     async def fake_show_all_sold_account(**kw):
         called["show_all_sold_account"] = kw
-    monkeypatch.setattr("src.modules.profile.handlers.accounts_handlers.show_all_sold_account", fake_show_all_sold_account)
+    monkeypatch.setattr(modul,"show_all_sold_account", fake_show_all_sold_account)
 
     cb = FakeCallbackQuery(
         data=f"del_account:{sold_full.sold_account_id}:{sold_full.type_account_service_id}:3",
@@ -386,7 +395,9 @@ async def test_del_account_move_in_account_fails_shows_alert(
 
     async def fake_move_in_account(*_a, **_kw):
         return False
-    monkeypatch.setattr("src.modules.profile.handlers.accounts_handlers.move_in_account", fake_move_in_account)
+
+    from src.modules.profile.handlers import accounts_handlers as modul
+    monkeypatch.setattr(modul, "move_in_account", fake_move_in_account)
 
     cb = FakeCallbackQuery(
         data=f"del_account:{sold_full.sold_account_id}:{sold_full.type_account_service_id}:5",

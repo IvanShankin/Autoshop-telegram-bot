@@ -377,7 +377,8 @@ async def test_confirm_buy_acc_invalid_promo_alerts_user(
     async def fake_discount_calculation(amount, promo_code_id=None):
         raise InvalidPromoCode()
 
-    monkeypatch.setattr("src.services.database.discounts.utils.calculation.discount_calculation", fake_discount_calculation)
+    from src.services.database.discounts.utils import calculation
+    monkeypatch.setattr(calculation, "discount_calculation", fake_discount_calculation)
 
     cb = FakeCallbackQuery(data=f"confirm_buy_acc:{category.account_category_id}:1:9999", chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=55)
@@ -470,8 +471,8 @@ class TestBuyAccount:
         async def fake_discount_calculation(amount, promo_code_id=None):
             raise InvalidPromoCode()
 
-        monkeypatch.setattr("src.services.database.discounts.utils.calculation.discount_calculation",
-                            fake_discount_calculation)
+        from src.services.database.discounts.utils import calculation
+        monkeypatch.setattr(calculation, "discount_calculation", fake_discount_calculation)
 
         cb = FakeCallbackQuery(data=f"buy_acc:{category.account_category_id}:1:9999",
                                chat_id=user.user_id, username=user.username)
@@ -535,7 +536,8 @@ class TestBuyAccount:
         async def fake_purchase_accounts(**kwargs):
             return True
 
-        monkeypatch.setattr("src.modules.catalog.selling_accounts", fake_purchase_accounts)
+        from src.modules import catalog
+        monkeypatch.setattr(catalog, "selling_accounts", fake_purchase_accounts)
 
         cb = FakeCallbackQuery(data=f"buy_acc:{category.account_category_id}:1:None",
                                chat_id=user.user_id, username=user.username)
@@ -570,7 +572,8 @@ class TestBuyAccount:
         async def fake_purchase_accounts(**kwargs):
             return False
 
-        monkeypatch.setattr("src.modules.catalog.selling_accounts", fake_purchase_accounts)
+        from src.modules import catalog
+        monkeypatch.setattr(catalog, "selling_accounts", fake_purchase_accounts)
 
         cb = FakeCallbackQuery(data=f"buy_acc:{category.account_category_id}:1:None",
                                chat_id=user.user_id, username=user.username)

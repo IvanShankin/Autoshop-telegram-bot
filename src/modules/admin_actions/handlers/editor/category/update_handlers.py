@@ -35,17 +35,17 @@ async def acc_category_update_storage(callback: CallbackQuery, user: Users):
 
     try:
         await update_account_category(category_id, is_accounts_storage=is_storage)
-        message = get_text(user.language, 'admins', "Successfully updated")
+        message = get_text(user.language, "admins_editor", "Successfully updated")
     except AccountCategoryNotFound:
         try:
             await callback.message.delete()
         except Exception:
             pass
-        message = get_text(user.language, 'admins', "The category no longer exists")
+        message = get_text(user.language, "admins_editor", "The category no longer exists")
     except TheCategoryStorageAccount:
-        message = get_text(user.language, 'admins', "The category stores accounts, please extract them first")
+        message = get_text(user.language, "admins_editor", "The category stores accounts, please extract them first")
     except CategoryStoresSubcategories:
-        message = get_text(user.language, 'admins',"The category stores subcategories, delete them first")
+        message = get_text(user.language, "admins_editor","The category stores subcategories, delete them first")
 
     await callback.answer(message, show_alert=True)
     await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
@@ -58,7 +58,7 @@ async def service_update_index(callback: CallbackQuery, user: Users):
 
     if new_index >= 0:
         await update_account_category(category_id, index=new_index)
-    await callback.answer(get_text(user.language, 'admins',"Successfully updated"))
+    await callback.answer(get_text(user.language, "admins_editor","Successfully updated"))
     await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
 
 
@@ -68,7 +68,7 @@ async def service_update_show(callback: CallbackQuery, user: Users):
     show = bool(int(callback.data.split(':')[2]))
 
     await update_account_category(category_id, show=show)
-    await callback.answer(get_text(user.language, 'admins',"Successfully updated"))
+    await callback.answer(get_text(user.language, "admins_editor","Successfully updated"))
     await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
 
 
@@ -88,7 +88,7 @@ async def acc_category_update_name_or_des(callback: CallbackQuery, user: Users):
         message_id=callback.message.message_id,
         message=get_text(
             user.language,
-            'admins',
+            "admins_editor",
             "Select the language to change"
         ),
         reply_markup=select_lang_category_kb(user.language, category_id)
@@ -108,7 +108,7 @@ async def acc_category_update_name(callback: CallbackQuery, state: FSMContext, u
         message_id=callback.message.message_id,
         message=get_text(
             user.language,
-            'admins',
+            "admins_editor",
             "Enter a new name\n\nCurrent name: {name}"
         ).format(name=category.name),
         reply_markup=back_in_category_update_data_kb(user.language, category_id)
@@ -127,10 +127,10 @@ async def get_name_for_update(message: Message, state: FSMContext, user: Users):
             language=data.language,
             name=message.text,
         )
-        message = get_text(user.language, 'admins', "Name changed successfully")
+        message = get_text(user.language, "admins_editor", "Name changed successfully")
         reply_markup = back_in_category_update_data_kb(user.language, data.category_id)
     except AccountCategoryNotFound:
-        message = get_text(user.language, 'admins',"The category no longer exists")
+        message = get_text(user.language, "admins_editor","The category no longer exists")
         reply_markup=to_services_kb(user.language)
 
     await send_message(
@@ -153,7 +153,7 @@ async def acc_category_update_descr(callback: CallbackQuery, state: FSMContext, 
         message_id=callback.message.message_id,
         message=get_text(
             user.language,
-            'admins',
+            "admins_editor",
             "Enter a new description \n\nCurrent description: {description}"
         ).format(description=category.description),
         reply_markup=back_in_category_update_data_kb(user.language, category_id)
@@ -172,10 +172,10 @@ async def get_description_for_update(message: Message, state: FSMContext, user: 
             language=data.language,
             description=message.text,
         )
-        message = get_text(user.language, 'admins', "Description changed successfully")
+        message = get_text(user.language, "admins_editor", "Description changed successfully")
         reply_markup = back_in_category_update_data_kb(user.language, data.category_id)
     except AccountCategoryNotFound:
-        message = get_text(user.language, 'admins',"The category no longer exists")
+        message = get_text(user.language, "admins_editor","The category no longer exists")
         reply_markup=to_services_kb(user.language)
 
     await send_message(
@@ -205,7 +205,7 @@ async def acc_category_update_image(callback: CallbackQuery, state: FSMContext, 
         message_id=callback.message.message_id,
         message=get_text(
             user.language,
-            'admins',
+            "admins_editor",
             "Send a photo. Be sure to include a document for greater image clarity!"
         ),
         reply_markup=back_in_category_update_data_kb(user.language, category_id)
@@ -225,12 +225,12 @@ async def update_category_image(message: Message, state: FSMContext, user: Users
     reply_markup = None
 
     if not doc.mime_type.startswith("image/"): # Проверяем, что это действительно изображение
-        text = get_text(user.language,'admins', "This is not an image. Send it as a document")
+        text = get_text(user.language,"admins_editor", "This is not an image. Send it as a document")
         reply_markup = back_in_category_update_data_kb(user.language, category.account_category_id)
     elif doc.file_size > MAX_SIZE_BYTES: # Проверяем размер, известный Telegram (без скачивания)
         text = get_text(
             user.language,
-            'admins',
+            "admins_editor",
             "The file is too large — maximum {max_size_mb} MB. \n\nTry again"
         ).format(max_size_mb=MAX_SIZE_MB)
         reply_markup = back_in_category_update_data_kb(user.language, category.account_category_id)
@@ -246,10 +246,10 @@ async def update_category_image(message: Message, state: FSMContext, user: Users
         file_bytes = byte_stream.getvalue()
         try:
             await update_account_category(data.category_id, file_data=file_bytes)
-            text = get_text(user.language, 'admins', "Image installed successfully")
+            text = get_text(user.language, "admins_editor", "Image installed successfully")
             reply_markup = back_in_category_update_data_kb(user.language, category.account_category_id)
         except AccountCategoryNotFound:
-            text = get_text(user.language, 'admins', "The category no longer exists")
+            text = get_text(user.language, "admins_editor", "The category no longer exists")
 
     await send_message(
         chat_id=user.user_id,

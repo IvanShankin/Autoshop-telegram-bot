@@ -15,7 +15,7 @@ async def name_input_prompt_by_language(user: Users, service_id: int, lang_code:
         chat_id=user.user_id,
         message=get_text(
             user.language,
-            "admins",
+            "admins_editor",
             "Specify the category name for this language: {language}"
         ).format(language=f'{EMOJI_LANGS[lang_code]} {NAME_LANGS[lang_code]}'),
         reply_markup=back_in_service_kb(user.language, service_id)
@@ -47,7 +47,7 @@ async def update_message_query_data(callback: CallbackQuery, state: FSMContext, 
     await edit_message(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
-        message=get_text(user.language, 'admins',i18n_key),
+        message=get_text(user.language, "admins_editor",i18n_key),
         reply_markup=back_in_category_update_data_kb(user.language, category_id)
     )
     await state.update_data(category_id=category_id)

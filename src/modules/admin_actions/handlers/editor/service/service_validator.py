@@ -14,15 +14,15 @@ async def show_service(user: Users, service_id: int, send_new_message: bool = Fa
                 await callback.message.delete()
             except Exception:
                 pass
-            await callback.answer(get_text(user.language, 'admins',"The service is no longer available"), show_alert=True)
+            await callback.answer(get_text(user.language, "admins_editor","The service is no longer available"), show_alert=True)
             return
 
-        await send_message(chat_id=user.user_id, message=get_text(user.language, 'admins',"The service is no longer available"))
+        await send_message(chat_id=user.user_id, message=get_text(user.language, "admins_editor","The service is no longer available"))
         return
 
     message = get_text(
         user.language,
-        'admins',
+        "admins_editor",
         "Service \n\nName: {name}\nIndex: {index}\nShow: {show}"
     ).format(name=service.name, index=service.index, show=service.show)
     reply_markup = await show_service_acc_admin_kb(

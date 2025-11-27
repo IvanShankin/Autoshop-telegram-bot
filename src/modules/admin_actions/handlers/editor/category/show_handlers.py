@@ -25,7 +25,7 @@ async def show_category(
 
     message = get_text(
         user.language,
-        'admins',
+        "admins_editor",
         "Category \n\nName: {name}\nIndex: {index}\nShow: {show} \n\nStores accounts: {is_account_storage}"
     ).format(name=category.name, index=category.index, show=category.show, is_account_storage=category.is_accounts_storage)
     if category.is_accounts_storage:
@@ -37,7 +37,7 @@ async def show_category(
 
         message += get_text(
             user.language,
-            'admins',
+            "admins_editor",
             "\n\nNumber of stored accounts: {total_quantity_acc}\n"
             "Sum of all stored accounts: {total_sum_acc}\n"
             "Cost of all stored accounts: {total_cost_price_acc}\n"
@@ -91,20 +91,20 @@ async def show_category_update_data(
 
     message = get_text(
         user.language,
-        'admins',
+        "admins_editor",
         "Name: {name} \nDescription: {description} \n\n"
     ).format(name=category.name,description=category.description)
 
     if category.is_accounts_storage:
         message += get_text(
             user.language,
-            'admins',
+            "admins_editor",
             "Price per account: {account_price} \nCost per account: {cost_price}\n\n"
         ).format(account_price=category.price_one_account, cost_price=category.cost_price_one_account)
 
     message += get_text(
         user.language,
-        'admins',
+        "admins_editor",
         "Number of buttons per row: {number_button_in_row}\n\n"
         "👇 Select the item to edit"
     ).format(number_button_in_row=category.number_buttons_in_row)

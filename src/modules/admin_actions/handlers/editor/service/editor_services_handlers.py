@@ -35,7 +35,7 @@ async def add_account_service(callback: CallbackQuery, user: Users):
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
-        message=get_text(user.language, 'admins',"Select service type"),
+        message=get_text(user.language, "admins_editor","Select service type"),
         reply_markup=await all_services_types_kb(user.language)
     )
 
@@ -46,7 +46,7 @@ async def select_type_service(callback: CallbackQuery, state: FSMContext, user: 
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
-        message=get_text(user.language, 'admins','Enter a name for the new service')
+        message=get_text(user.language, "admins_editor",'Enter a name for the new service')
     )
     await state.set_state(GetServiceName.service_name)
     await state.update_data(
@@ -60,10 +60,10 @@ async def get_service_name(message: Message, state: FSMContext, user: Users):
     try:
         await add_account_services(message.text, data.service_type_id)
     except ServiceTypeBusy:
-        await send_message(user.user_id, get_text(user.language, 'admins',"Unable to create. This service type is in use"))
+        await send_message(user.user_id, get_text(user.language, "admins_editor","Unable to create. This service type is in use"))
         return
 
-    await send_message(user.user_id, get_text(user.language, 'admins',"Service successfully created"), reply_markup=to_services_kb(user.language))
+    await send_message(user.user_id, get_text(user.language, "admins_editor","Service successfully created"), reply_markup=to_services_kb(user.language))
 
 
 @router.callback_query(F.data.startswith("show_service_acc_admin:"))
@@ -80,7 +80,7 @@ async def service_update_index(callback: CallbackQuery, user: Users):
 
     if new_index >= 0:
         await update_account_service(service_id, index=new_index)
-    await callback.answer(get_text(user.language, 'admins',"Successfully updated"))
+    await callback.answer(get_text(user.language, "admins_editor","Successfully updated"))
     await show_service(user=user, callback=callback, message_id=callback.message.message_id, service_id=service_id)
 
 
@@ -90,7 +90,7 @@ async def service_update_show(callback: CallbackQuery, user: Users):
     show = bool(int(callback.data.split(':')[2]))
 
     await update_account_service(service_id, show=show)
-    await callback.answer(get_text(user.language, 'admins',"Successfully updated"))
+    await callback.answer(get_text(user.language, "admins_editor","Successfully updated"))
     await show_service(user=user, callback=callback, message_id=callback.message.message_id, service_id=service_id)
 
 
@@ -101,7 +101,7 @@ async def service_rename(callback: CallbackQuery, state: FSMContext, user: Users
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
-        message=get_text(user.language, 'admins',"Please enter a new name"),
+        message=get_text(user.language, "admins_editor","Please enter a new name"),
         reply_markup=back_in_service_kb(user.language, service_id)
     )
 
@@ -122,7 +122,7 @@ async def update_service_name(message: Message, state: FSMContext, user: Users):
         await update_account_service(data.service_id, name=message.text)
 
         await show_service(user=user, service_id=data.service_id, send_new_message=True)
-        info_message = await send_message(user.user_id, get_text(user.language, 'admins',"Name changed successfully"))
+        info_message = await send_message(user.user_id, get_text(user.language, "admins_editor","Name changed successfully"))
         await asyncio.sleep(3)
         try:
             await info_message.delete()
@@ -141,7 +141,7 @@ async def service_confirm_delete(callback: CallbackQuery, user: Users):
         message_id=callback.message.message_id,
         message=get_text(
             user.language,
-            'admins',
+            "admins_editor",
             "Are you sure you want to delete this service? \n\n"
             "Before deleting, make sure that this service does not contain categories!"
         ),
@@ -158,7 +158,7 @@ async def delete_acc_service(callback: CallbackQuery, user: Users):
         message = "Service successfully removed!"
         reply_markup = to_services_kb(user.language)
     except ServiceContainsCategories:
-        message = get_text(user.language, 'admins',"The service has categories, delete them first")
+        message = get_text(user.language, "admins_editor","The service has categories, delete them first")
         reply_markup = back_in_service_kb(user.language, service_id)
 
     await edit_message(

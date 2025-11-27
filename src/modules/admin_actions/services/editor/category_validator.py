@@ -23,7 +23,7 @@ async def check_valid_file(doc: Document, user: Users, state: FSMContext, expect
             user.user_id,
             get_text(
                 user.language,
-                "admins",
+                "admins_editor",
                 "This file format is not supported, please send a file with one of these extensions: {extensions_list}"
             ).format(extensions_list=".csv")
         )
@@ -35,7 +35,7 @@ async def check_valid_file(doc: Document, user: Users, state: FSMContext, expect
             user.user_id,
             get_text(
                 user.language,
-                "admins",
+                "admins_editor",
                 "The file is too large. The maximum size is {max_size_file} MB. \n\nPlease send a different file"
             ).format(extensions_list=MAX_DOWNLOAD_SIZE)
         )
@@ -54,7 +54,7 @@ async def check_category_is_acc_storage(category: AccountCategoryFull, user: Use
     if not category.is_accounts_storage:
         await send_message(
             user.user_id,
-            get_text(user.language,"admins","First, make this category an account storage"),
+            get_text(user.language,"admins_editor","First, make this category an account storage"),
             reply_markup=back_in_category_kb(
                 language=user.language,
                 category_id=category.category_id,

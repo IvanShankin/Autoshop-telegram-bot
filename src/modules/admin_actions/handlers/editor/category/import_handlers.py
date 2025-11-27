@@ -38,7 +38,7 @@ async def choice_lang_category_data(callback: CallbackQuery, user: Users):
         message_id=callback.message.message_id,
         message=get_text(
             user.language,
-            'admins',
+            "admins_editor",
             "Select the desired section"
         ),
         reply_markup=name_or_description_kb(user.language, category_id, lang)
@@ -50,7 +50,7 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
     async def load_file(file_path: str, caption: str):
         try:
             message_loading = await send_message(
-                message.from_user.id, get_text(user.language, "admins", "File loading")
+                message.from_user.id, get_text(user.language, "admins_editor", "File loading")
             )
             bot = await get_bot()
             file = FSInputFile(file_path)
@@ -116,13 +116,13 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
         if result.invalid_archive_path:
             await load_file(
                 result.invalid_archive_path,
-                caption=get_text(user.language,"admins", "Failed account extraction")
+                caption=get_text(user.language,"admins_editor", "Failed account extraction")
             )
 
         if result.duplicate_archive_path:
             await load_file(
                 result.duplicate_archive_path,
-                caption=get_text(user.language, "admins", "Duplicate accounts")
+                caption=get_text(user.language, "admins_editor", "Duplicate accounts")
             )
 
     except TypeAccountServiceNotFound:
@@ -133,7 +133,7 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
         await send_log(text)
         await send_message(
             message.from_user.id,
-            get_text(user.language,"admins", "An error occurred inside the server, see the logs!")
+            get_text(user.language,"admins_editor", "An error occurred inside the server, see the logs!")
         )
 
 
@@ -187,14 +187,14 @@ async def import_other_account(message: Message, state: FSMContext, user: Users)
             await message.answer_document(
                 BufferedInputFile(
                     result.errors_csv_bytes,
-                    filename=get_text(user.language,"admins", "Failed account extraction") + '.csv'
+                    filename=get_text(user.language,"admins_editor", "Failed account extraction") + '.csv'
                 )
             )
         if result.duplicates_csv_bytes:
             await message.answer_document(
                 BufferedInputFile(
                     result.duplicates_csv_bytes,
-                    filename=get_text(user.language, "admins", "Duplicate accounts") + '.csv'
+                    filename=get_text(user.language, "admins_editor", "Duplicate accounts") + '.csv'
                 )
             )
 
@@ -204,7 +204,7 @@ async def import_other_account(message: Message, state: FSMContext, user: Users)
             message_id=message_info.message_id,
             message=get_text(
                 user.language,
-                'admins',
+                "admins_editor",
                 "The resulting file has incorrect header formatting. \n"
             "Carefully examine the attached photo and try again \n\n"
             "Required Headers (can be copied):\n'<code>phone</code>', '<code>login</code>', '<code>password</code>'"
@@ -221,5 +221,5 @@ async def import_other_account(message: Message, state: FSMContext, user: Users)
         await send_log(text)
         await send_message(
             message.from_user.id,
-            get_text(user.language,"admins", "An error occurred inside the server, see the logs!")
+            get_text(user.language,"admins_editor", "An error occurred inside the server, see the logs!")
         )

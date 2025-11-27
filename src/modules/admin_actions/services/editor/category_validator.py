@@ -6,7 +6,7 @@ from aiogram.types import Document
 
 from src.bot_actions.actions import send_message
 from src.config import MAX_DOWNLOAD_SIZE
-from src.modules.admin_actions.keyboard_admin import back_in_category_kb
+from src.modules.admin_actions.handlers.editor.keyboard import back_in_category_kb
 from src.services.database.selling_accounts.models import AccountCategoryFull
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text

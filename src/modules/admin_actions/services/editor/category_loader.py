@@ -4,7 +4,7 @@ from aiogram.types import CallbackQuery
 
 from src.bot_actions.actions import send_message
 from src.bot_actions.bot_instance import get_bot
-from src.modules.admin_actions.keyboard_admin import to_services_kb
+from src.modules.admin_actions.handlers.editor.keyboard import to_services_kb
 from src.services.database.selling_accounts.actions import get_account_categories_by_category_id, \
     get_account_service, get_type_account_service
 from src.services.database.selling_accounts.models import AccountCategoryFull

@@ -4,7 +4,7 @@ from aiogram.types import Message, CallbackQuery
 
 from src.bot_actions.actions import send_message, edit_message
 from src.middlewares.aiogram_middleware import I18nKeyFilter
-from src.modules.admin_actions.keyboard_admin import main_admin_kb
+from src.modules.admin_actions.keyboard_main import main_admin_kb
 from src.services.database.admins.actions import check_admin
 from src.services.database.users.models import Users
 

@@ -9,7 +9,7 @@ from src.config import MAX_SIZE_MB, MAX_SIZE_BYTES
 from src.exceptions.service_exceptions import AccountCategoryNotFound, \
     TheCategoryStorageAccount, CategoryStoresSubcategories
 from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category, show_category_update_data
-from src.modules.admin_actions.keyboard_admin import to_services_kb, select_lang_category_kb, \
+from src.modules.admin_actions.handlers.editor.keyboard import to_services_kb, select_lang_category_kb, \
     back_in_category_update_data_kb
 from src.modules.admin_actions.schemas.editor_categories import UpdateNameForCategoryData, \
     UpdateDescriptionForCategoryData, UpdateCategoryOnlyId

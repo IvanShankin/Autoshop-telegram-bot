@@ -4,7 +4,7 @@ from aiogram.types import CallbackQuery
 
 from src.bot_actions.actions import edit_message, send_message
 from src.config import EMOJI_LANGS, NAME_LANGS, DEFAULT_LANG
-from src.modules.admin_actions.keyboard_admin import back_in_service_kb, back_in_category_update_data_kb
+from src.modules.admin_actions.handlers.editor.keyboard import back_in_service_kb, back_in_category_update_data_kb
 from src.modules.admin_actions.state.editor_categories import GetDataForCategory
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text

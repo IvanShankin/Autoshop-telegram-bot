@@ -56,7 +56,11 @@ async def handler_new_replenishment(new_replenishment: NewReplenishment):
         username = get_text(language, 'profile_messages', 'No') if user.username is None else f'@{user.username}'
         total_sum_replenishment = user.total_sum_replenishment
 
-        updated_user = await update_user(user)
+        updated_user = await update_user(
+            user_id=user.user_id,
+            balance=user.balance,
+            total_sum_replenishment=user.total_sum_replenishment
+        )
         money_credited = True
 
         async with get_db() as session_db:

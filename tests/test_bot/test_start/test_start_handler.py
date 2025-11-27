@@ -78,7 +78,7 @@ async def test_start_with_new_referral(patch_fake_aiogram, replacement_fake_bot,
         'referral_messages',
         "You've invited a new referral!\n"
         "Username: {username}\n\n"
-        "Thank you for using our service!"
+        "Thank you for using our services!"
     ).format(username= f'@{user.username}' if user.username else 'None')
     assert fake_bot.get_message(owner.user_id, message), "Не отправилось сообщение о новом рефералле"
 
@@ -86,7 +86,7 @@ async def test_start_with_new_referral(patch_fake_aiogram, replacement_fake_bot,
     assert fake_bot.check_str_in_messages("Select language"), "Не отправилось приветственное сообщение"
 
 @pytest.mark.asyncio
-async def test_start_activate_voucher_existing_user(
+async def test_start_activate_voucher_existing_user_1(
         patch_fake_aiogram,
         replacement_fake_bot,
         create_new_user,
@@ -117,7 +117,7 @@ async def test_start_activate_voucher_existing_user(
 
 
 @pytest.mark.asyncio
-async def test_start_activate_voucher_existing_user(
+async def test_start_activate_voucher_existing_user_2(
         patch_fake_aiogram,
         replacement_fake_bot,
         create_new_user,

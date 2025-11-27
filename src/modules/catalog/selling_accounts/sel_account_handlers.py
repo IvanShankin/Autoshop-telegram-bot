@@ -65,7 +65,7 @@ async def show_service_acc(callback: CallbackQuery, user: Users):
     service = await get_account_service(service_id)
 
     if not service:
-        await callback.message.answer(get_text(user.language, 'catalog',"The service is temporarily unavailable"))
+        await callback.message.answer(get_text(user.language, 'catalog',"The services is temporarily unavailable"))
 
     await edit_message(
         chat_id=callback.from_user.id,

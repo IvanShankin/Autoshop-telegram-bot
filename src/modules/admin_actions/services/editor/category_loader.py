@@ -59,6 +59,6 @@ async def service_not_found(user: Users, message_id_delete: Optional[int] = None
 
     await send_message(
         chat_id=user.user_id,
-        message=get_text(user.language, "admins_editor", "This service no longer exists, please choose another one"),
+        message=get_text(user.language, "admins_editor", "This services no longer exists, please choose another one"),
         reply_markup=to_services_kb(language=user.language)
     )

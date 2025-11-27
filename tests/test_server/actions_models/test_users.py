@@ -62,11 +62,13 @@ async def test_update_user(create_new_user):
     from src.services.database.users.actions import update_user
     # изменяем данные пользователя
     user = await create_new_user()
-    user.username = "updated_username"
-    user.balance = 500
-    user.total_profit_from_referrals = 50
 
-    updated_user = await update_user(user)
+    updated_user = await update_user(
+        user_id=user.user_id,
+        username="updated_username",
+        balance=500,
+        total_profit_from_referrals=50,
+    )
 
     async with get_db() as session_db:
         db_user = await session_db.get(Users, user.user_id)

@@ -57,8 +57,7 @@ async def open_language_settings(callback: CallbackQuery, user: Users):
 async def update_language(callback: CallbackQuery, user: Users):
     new_lang = callback.data.split(':')[1]
 
-    user.language = new_lang
-    user = await update_user(user)
+    user = await update_user(user_id=user.user_id, language=new_lang)
 
     await language_settings(
         user_id=callback.from_user.id,

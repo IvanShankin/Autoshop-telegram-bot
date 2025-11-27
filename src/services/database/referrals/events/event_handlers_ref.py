@@ -70,10 +70,11 @@ async def handler_new_income_referral(new_replenishment: ReplenishmentCompleted)
         if not income_amount:
             return
 
-        owner.balance = owner.balance + income_amount
-        owner.total_profit_from_referrals = owner.total_profit_from_referrals + income_amount
-
-        await update_user(owner)
+        owner = await update_user(
+            user_id=owner.user_id,
+            balance=owner.balance + income_amount,
+            total_profit_from_referrals=owner.total_profit_from_referrals + income_amount,
+        )
 
         # --- Создаём запись о доходе ---
         async with get_db() as session_db:

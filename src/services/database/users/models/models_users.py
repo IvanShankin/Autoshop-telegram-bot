@@ -20,6 +20,7 @@ class Users(Base):
     total_sum_replenishment = Column(Integer, nullable=False, default=0)
     total_profit_from_referrals = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    last_used = Column(DateTime(timezone=True), server_default=func.now())
 
     # связи
     admin = relationship("Admins", back_populates="user")

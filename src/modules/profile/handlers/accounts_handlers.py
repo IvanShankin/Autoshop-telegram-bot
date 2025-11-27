@@ -86,7 +86,7 @@ async def check_sold_account(
     """Проверит наличие аккаунта, если нет, то выведет соответствующие сообщение и вернёт к выбору аккаунта"""
     account = await get_sold_accounts_by_account_id(sold_account_id, language=language)
     if not account:
-        await callback.answer(get_text(user.language, 'profile_messages', "Account not found"), show_alert=True)
+        await callback.answer(get_text(language, 'profile_messages', "Account not found"), show_alert=True)
         await show_all_sold_account(
             user_id=callback.from_user.id,
             language=language,

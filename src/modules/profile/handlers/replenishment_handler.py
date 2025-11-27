@@ -20,7 +20,7 @@ router = Router()
 @router.callback_query(F.data == "show_type_replenishment")
 async def show_type_replenishment(callback: CallbackQuery, state: FSMContext, user: Users):
     await state.clear()
-    text = get_text(user.language, 'profile_messages','Select the desired service for replenishment')
+    text = get_text(user.language, 'profile_messages','Select the desired services for replenishment')
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
@@ -40,7 +40,7 @@ async def get_amount(callback: CallbackQuery, state: FSMContext, user: Users):
         await edit_message(
             chat_id=callback.from_user.id,
             message_id=callback.message.message_id,
-            message=get_text(user.language, 'profile_messages',"This service is temporarily inactive"),
+            message=get_text(user.language, 'profile_messages',"This services is temporarily inactive"),
             image_key='incorrect_data_entered',
             reply_markup=await type_replenishment_kb(user.language)
         )
@@ -82,7 +82,7 @@ async def start_replenishment(message: Message, state: FSMContext, user: Users):
     if not type_payment or not type_payment.is_active:
         await send_message(
             chat_id=message.from_user.id,
-            message=get_text(user.language, 'profile_messages',"This service is temporarily inactive"),
+            message=get_text(user.language, 'profile_messages',"This services is temporarily inactive"),
             image_key=None,
             reply_markup=await type_replenishment_kb(user.language)
         )
@@ -125,7 +125,7 @@ async def start_replenishment(message: Message, state: FSMContext, user: Users):
         else:
             await send_message(
                 chat_id=message.from_user.id,
-                message=get_text(user.language, 'profile_messages',"This service is temporarily inactive"),
+                message=get_text(user.language, 'profile_messages',"This services is temporarily inactive"),
                 image_key=None,
                 reply_markup=await type_replenishment_kb(user.language)
             )

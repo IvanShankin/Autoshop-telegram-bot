@@ -88,7 +88,7 @@ async def cmd_start(message: Message, command: CommandObject, state: FSMContext)
                 'referral_messages',
                 "You've invited a new referral!\n"
                 "Username: {username}\n\n"
-                "Thank you for using our service!"
+                "Thank you for using our services!"
             ).format(username= f'@{user.username}' if user.username else 'None')
             await send_message(chat_id=owner_user.user_id, message=text, image_key='new_referral')
 
@@ -105,8 +105,7 @@ async def select_language(callback: CallbackQuery, user: Users):
     selected_lang = callback.data.split(':')[1]
     setting = await get_settings()
 
-    user.language = selected_lang
-    await update_user(user)
+    await update_user(user_id=user.user_id, language=selected_lang)
 
     text = get_text(
         selected_lang,

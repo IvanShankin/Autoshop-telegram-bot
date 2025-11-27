@@ -24,7 +24,7 @@ async def test_show_type_replenishment(
 
     await module.show_type_replenishment(cb, FakeFSMContext(), user)
 
-    text = get_text(user.language, 'profile_messages', 'Select the desired service for replenishment')
+    text = get_text(user.language, 'profile_messages', 'Select the desired services for replenishment')
     assert fake_bot.get_edited_message( user_id = user.user_id, message_id = cb.message.message_id, message = text)
 
 
@@ -54,7 +54,7 @@ async def test_get_amount_inactive_type_payment(
 
     await module.get_amount(cb, fsm, user)
 
-    text = get_text(user.language, 'profile_messages', "This service is temporarily inactive")
+    text = get_text(user.language, 'profile_messages', "This services is temporarily inactive")
 
     assert fake_bot.get_edited_message(user.user_id, 7, text), "Не отредактировалось сообщение о неактивном способе пополнения"
 

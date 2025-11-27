@@ -255,8 +255,7 @@ async def deactivate_voucher(voucher_id: int) -> int:
             # обновление баланса у пользователя
             user = await get_user(voucher.creator_id)
             balance_before = user.balance
-            user.balance = user.balance + refund_amount
-            await update_user(user)
+            await update_user(user_id=user.user_id, balance=user.balance + refund_amount)
 
             new_wallet_transaction = WalletTransaction(
                 user_id=user.user_id,
@@ -349,8 +348,7 @@ async def activate_voucher(user: Users, code: str, language: str) -> Tuple[str, 
         if log_activate:
             return get_text(language, 'discount', "You have already activated this voucher. It can only be activated once"), False
 
-    user.balance = user.balance + voucher.amount
-    user = await update_user(user)
+    user = await update_user(user_id=user.user_id, balance=user.balance + voucher.amount)
 
     async with get_db() as session_db:
         new_activated = VoucherActivations(

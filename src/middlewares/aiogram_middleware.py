@@ -31,7 +31,7 @@ class UserMiddleware(BaseMiddleware):
             username = event_user.username
 
             # Получаем или создаём пользователя
-            user = await get_user(user_id, username)
+            user = await get_user(user_id, username, update_last_used=True)
             data["user"] = user
 
         # даже если from_user нет, не ломаем обработку
@@ -61,7 +61,7 @@ class MaintenanceMiddleware(BaseMiddleware):
         if self.allow_admins and await check_admin(event.from_user.id):
             return await handler(event, data)
 
-        user = await get_user(event.from_user.id)
+        user = await get_user(event.from_user.id, update_last_used=True)
         language = user.language if user else DEFAULT_LANG
 
         await event.answer(
@@ -78,7 +78,7 @@ class I18nKeyFilter(BaseFilter):
         if not getattr(message, "text", None):
             return False
         try:
-            user = await get_user(message.from_user.id)
+            user = await get_user(message.from_user.id, update_last_used=True)
         except Exception:
             return False
 

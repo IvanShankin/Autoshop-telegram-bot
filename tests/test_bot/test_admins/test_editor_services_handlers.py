@@ -11,7 +11,7 @@ from src.exceptions.service_exceptions import ServiceContainsCategories
 async def test_show_service_service_not_found(monkeypatch, patch_fake_aiogram, replacement_fake_bot):
     """
     Если get_account_service возвращает None — show_service должен ответить пользователю
-    текстом 'The service is no longer available' (через callback.answer or send_message branch).
+    текстом 'The services is no longer available' (через callback.answer or send_message branch).
     """
     from src.modules.admin_actions.handlers.editor.service.editor_services_handlers import show_service
 
@@ -42,7 +42,7 @@ async def test_show_service_service_not_found(monkeypatch, patch_fake_aiogram, r
     await show_service(user=user, service_id=999, callback=fake_callback)
 
     assert called["answer"] is not None
-    assert get_text(user.language, "admins_editor", "The service is no longer available") in called["answer"]
+    assert get_text(user.language, "admins_editor", "The services is no longer available") in called["answer"]
 
 
 @pytest.mark.asyncio
@@ -99,7 +99,7 @@ async def test_delete_acc_service_contains_categories(
 ):
     """
     Проверяет случай, когда при удалении выбрасывается ServiceContainsCategories —
-    должно появиться сообщение 'The service has categories, delete them first'
+    должно появиться сообщение 'The services has categories, delete them first'
     """
     from src.modules.admin_actions.handlers.editor.service.editor_services_handlers import delete_acc_service
 
@@ -120,6 +120,6 @@ async def test_delete_acc_service_contains_categories(
 
     await delete_acc_service(callback, user)
 
-    text_expected = get_text(user.language, "admins_editor", "The service has categories, delete them first")
+    text_expected = get_text(user.language, "admins_editor", "The services has categories, delete them first")
 
     assert replacement_fake_bot.check_str_in_edited_messages(text_expected)

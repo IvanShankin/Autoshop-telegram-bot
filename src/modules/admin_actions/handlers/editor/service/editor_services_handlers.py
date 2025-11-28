@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.actions import edit_message, send_message
 from src.exceptions.service_exceptions import ServiceTypeBusy, ServiceContainsCategories
-from src.modules.admin_actions.handlers.editor.service.service_validator import show_service
+from src.modules.admin_actions.services.editor.service_validator import show_service
 from src.modules.admin_actions.handlers.editor.keyboard import all_services_account_admin_kb, all_services_types_kb, \
     to_services_kb,  back_in_service_kb, delete_service_kb
 from src.modules.admin_actions.schemas.editor_categories import GetServiceNameData, RenameServiceData

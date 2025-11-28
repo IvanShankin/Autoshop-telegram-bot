@@ -5,6 +5,8 @@ import zipfile
 from pathlib import Path
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+from tests.helpers.func_fabric import create_income_from_referral_fabric
 from src.utils.secret_data import encrypt_data
 from tests.helpers.func_fabric import create_sold_account_factory, create_account_storage_factory
 from tests.helpers.func_fabric import create_product_account_factory
@@ -62,13 +64,8 @@ async def create_need_model():
         acc = await create_product_account_factory(account_category_id = cat.account_category_id)
 
 async def create_acc():
-    pass
-    # await create_account_storage_factory()
-    # for i in range(2):
-    #     acc = await create_product_account_factory(type_account_service_id=1,account_category_id=4)
-    # await create_promo_code(123456789, 'f', 0,100,None, 100,)
-    # for i in range(1):
-    #     await create_sold_account_factory(owner_id=1028495731, type_account_service_id=1, name='test')
+    for i in range(10):
+        await create_income_from_referral_fabric(1028495731, 7869052488)
 
 
 

@@ -28,5 +28,8 @@ msgstr "Перевод"
 msgid "voucher"
 msgstr "Ваучер"
 
+msgid "admin_actions"
+msgstr "Действия Администрации"
+
 msgid "other"
 msgstr "Другое"

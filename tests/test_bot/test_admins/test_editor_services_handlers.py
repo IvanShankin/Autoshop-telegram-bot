@@ -35,8 +35,8 @@ async def test_show_service_service_not_found(monkeypatch, patch_fake_aiogram, r
     async def fake_get_account_service(*args, **kwargs):
         return None
 
-    from src.modules.admin_actions.handlers.editor.service import service_validator
-    monkeypatch.setattr(service_validator, "get_account_service",  fake_get_account_service)
+    from src.modules.admin_actions.services.editor import service_validator
+    monkeypatch.setattr(service_validator, "get_account_service", fake_get_account_service)
 
     # Вызов
     await show_service(user=user, service_id=999, callback=fake_callback)

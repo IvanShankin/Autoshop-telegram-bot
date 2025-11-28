@@ -1,0 +1,13 @@
+from src.services.database.users.actions.action_other_with_user import get_all_user_audit_logs
+from src.services.filesystem.input_account import make_csv_bytes
+
+
+async def get_user_audit_log_bites(user_id: int) -> bytes:
+    logs = await get_all_user_audit_logs(user_id)
+    ready_logs = []
+    for log in logs:
+        need_dict = log.to_dict()
+        need_dict['message'] = log.details['message'] if log.details and 'message' in log.details else None
+        ready_logs.append(need_dict)
+
+    return make_csv_bytes(ready_logs, ["user_audit_log_id", "user_id", "action_type", "message", "details", "created_at"])

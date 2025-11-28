@@ -14,7 +14,7 @@ async def test_create_voucher_start_callback(
     """
     При callback 'create_voucher' — бот очищает state, редактирует сообщение с просьбой ввести сумму.
     """
-    from src.modules.profile.handlers import transfer_balance_handler as module
+    from src.modules.profile.handlers.vouchers_handlers import create_voucher
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
 
     fake_bot = replacement_fake_bot
@@ -24,7 +24,7 @@ async def test_create_voucher_start_callback(
     fake_cb.message = SimpleNamespace(message_id=11)
 
     fsm = FakeFSMContext()
-    await module.create_voucher(fake_cb, fsm, user)
+    await create_voucher(fake_cb, fsm, user)
 
     text = get_text(user.language, 'profile_messages', 'Enter the amount')
 
@@ -42,7 +42,7 @@ async def test_create_voucher_invalid_amount(
     """
     Невалидное значение суммы (например, строка) — бот сообщает об ошибке и не меняет state.
     """
-    from src.modules.profile.handlers import transfer_balance_handler as module
+    from src.modules.profile.handlers.vouchers_handlers import create_voucher_get_amount
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage
 
     fake_bot = replacement_fake_bot
@@ -51,7 +51,7 @@ async def test_create_voucher_invalid_amount(
     msg = FakeMessage(text="not_number", chat_id=user.user_id, username=user.username)
     fsm = FakeFSMContext()
 
-    await module.create_voucher_get_amount(msg, fsm, user)
+    await create_voucher_get_amount(msg, fsm, user)
 
     text = get_text(user.language, 'miscellaneous', 'Incorrect value entered')
 
@@ -68,7 +68,7 @@ async def test_create_voucher_valid_amount_prompts_for_activations(
     """
     Корректная сумма — сохраняется в FSM, бот просит ввести число активаций.
     """
-    from src.modules.profile.handlers import transfer_balance_handler as module
+    from src.modules.profile.handlers.vouchers_handlers import create_voucher_get_amount
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage
 
     fake_bot = replacement_fake_bot
@@ -77,7 +77,7 @@ async def test_create_voucher_valid_amount_prompts_for_activations(
     msg = FakeMessage(text="100", chat_id=user.user_id, username=user.username)
     fsm = FakeFSMContext()
 
-    await module.create_voucher_get_amount(msg, fsm, user)
+    await create_voucher_get_amount(msg, fsm, user)
 
     assert fsm.data.get("amount") == "100", "FSM не сохранил сумму"
     text = get_text(user.language, 'profile_messages', 'Enter the number of activations for the voucher')
@@ -94,7 +94,7 @@ async def test_create_voucher_not_enough_money(
     """
     Пользователь вводит корректное число активаций, но не хватает средств — бот сообщает об этом.
     """
-    from src.modules.profile.handlers import transfer_balance_handler as module
+    from src.modules.profile.handlers.vouchers_handlers import create_voucher_get_number_of_activations
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage
 
     fake_bot = replacement_fake_bot
@@ -104,7 +104,7 @@ async def test_create_voucher_not_enough_money(
     await fsm.update_data(amount=100)
 
     msg = FakeMessage(text="2", chat_id=user.user_id, username=user.username)
-    await module.create_voucher_get_number_of_activations(msg, fsm, user)
+    await create_voucher_get_number_of_activations(msg, fsm, user)
 
     text = get_text(user.language, 'miscellaneous', 'Insufficient funds: {amount}').format(amount=190)
     assert fake_bot.get_message(user.user_id, text), "Не отправилось сообщение о нехватке средств"
@@ -120,7 +120,7 @@ async def test_confirm_create_voucher_not_enough_money_exception(
     """
     confirm_create_voucher — при NotEnoughMoney редактируется сообщение с текстом об ошибке.
     """
-    from src.modules.profile.handlers import transfer_balance_handler as module
+    from src.modules.profile.handlers.vouchers_handlers import confirm_create_voucher
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
 
     fake_bot = replacement_fake_bot
@@ -132,7 +132,7 @@ async def test_confirm_create_voucher_not_enough_money_exception(
     cb = FakeCallbackQuery(data="confirm_create_voucher", chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=101)
 
-    await module.confirm_create_voucher(cb, fsm, user)
+    await confirm_create_voucher(cb, fsm, user)
 
     text_1 = get_text(user.language, 'miscellaneous', 'The funds have not been written off')
     text_2 = get_text(user.language, 'miscellaneous', 'Insufficient funds: {amount}').format(amount=500)
@@ -151,7 +151,7 @@ async def test_confirm_create_voucher_success(
     """
     Успешное создание ваучера — бот отправляет сообщение об успешном создании.
     """
-    from src.modules.profile.handlers import transfer_balance_handler as module
+    from src.modules.profile.handlers.vouchers_handlers import confirm_create_voucher
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
     from src.services.database.discounts.actions import get_valid_voucher_by_user_page
 
@@ -165,7 +165,7 @@ async def test_confirm_create_voucher_success(
     cb = FakeCallbackQuery(data="confirm_create_voucher", chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=55)
 
-    await module.confirm_create_voucher(cb, fsm, user)
+    await confirm_create_voucher(cb, fsm, user)
 
     vouchers = await get_valid_voucher_by_user_page(user.user_id)
 

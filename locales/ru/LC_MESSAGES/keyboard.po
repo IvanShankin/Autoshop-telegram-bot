@@ -238,4 +238,32 @@ msgstr "Удалить все аккаунты"
 msgid "Unload all accounts"
 msgstr "Выгрузить все аккаунты"
 
+# выгрузка пользователя
+
+msgid "User management"
+msgstr "Управление пользователями"
+
+msgid "Change Balance"
+msgstr "Изменить баланс"
+
+msgid "Issue a ban"
+msgstr "Выдать бан"
+
+msgid "Remove the ban"
+msgstr "Убрать бан"
+
+msgid "Unload All Actions"
+msgstr "Выгрузить все действия"
+
+msgid "Transaction History"
+msgstr "История операции"
+
+msgid "Unload Referral List"
+msgstr "Выгрузить список рефералов"
+
+msgid "Referral Credit History"
+msgstr "История начисления рефералов"
+
+msgid "Active vouchers"
+msgstr "Активные ваучеры"
 

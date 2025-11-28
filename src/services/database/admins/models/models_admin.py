@@ -14,6 +14,7 @@ class Admins(Base):
 
     user = relationship("Users", back_populates="admin")
 
+
 class AdminActions(Base):
     __tablename__ = "admin_actions"
 

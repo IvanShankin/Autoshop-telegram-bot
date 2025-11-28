@@ -1,0 +1,24 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: autoshop 1.0\n"
+"PO-Revision-Date: 2025-09-04 00:00+0000\n"
+"Last-Translator: Ivan \n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "Send the user ID/username \n\nNote: It is preferable to use ID, it is more secure"
+msgstr "Send the user ID/username \n\nNote: It is preferable to use ID, it is more secure"
+
+msgid "User with this ID/Username not found, try again"
+msgstr "User with this ID/Username not found, try again"
+
+msgid "Multiple users with this username were found, please search by ID"
+msgstr "Multiple users with this username were found, please search by ID"
+
+msgid "Enter a new balance for the user \n\nCurrent: {balance} ₽"
+msgstr "Enter a new balance for the user \n\nCurrent: {balance} ₽"
+
+msgid "\n\nReason for ban: {reason}"
+msgstr "\n\nReason for ban: {reason}"

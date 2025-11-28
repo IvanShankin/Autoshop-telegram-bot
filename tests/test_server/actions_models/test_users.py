@@ -463,3 +463,29 @@ async def test_update_replenishment(replacement_fake_bot, create_new_user, creat
         replenishment_db = result.scalar_one()
 
     await comparison_models(replenishment, replenishment_db)
+
+
+@pytest.mark.asyncio
+async def test_admin_update_user_balance(replacement_fake_bot, create_new_user, create_admin_fix):
+    from src.services.database.users.actions import admin_update_user_balance
+    user = await create_new_user()
+    admin = await create_admin_fix()
+
+    await admin_update_user_balance(
+        admin_id=admin.user_id,
+        target_user_id=user.user_id,
+        new_balance=100
+    )
+
+    async with get_db() as session_db:
+        user_db = await session_db.execute(select(Users).where(Users.user_id == user.user_id))
+        user = user_db.scalar()
+        assert user.balance == 100
+
+        trans_db = await session_db.execute(select(WalletTransaction).where(WalletTransaction.user_id == user.user_id))
+        trans = trans_db.scalar()
+        assert trans
+
+        log_db = await session_db.execute(select(UserAuditLogs).where(UserAuditLogs.user_id == user.user_id))
+        log = log_db.scalar()
+        assert log

@@ -5,11 +5,10 @@ from aiogram.types import CallbackQuery, FSInputFile
 
 from src.bot_actions.actions import edit_message
 from src.bot_actions.bot_instance import get_bot
-from src.config import DT_FORMAT
-from src.modules.profile.keyboard_profile import ref_system_kb, accruals_history_kb, back_in_accrual_history_kb
+from src.modules.profile.keyboard_profile import ref_system_kb, accrual_ref_list_kb
+from src.modules.profile.services.profile_message import message_income_ref
 from src.services.database.referrals.actions.actions_ref import get_all_referrals, get_income_from_referral
 from src.services.database.referrals.reports import generate_referral_report_exel
-from src.services.database.users.actions import get_user
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
 
@@ -52,16 +51,13 @@ async def referral_system(callback: CallbackQuery, user: Users):
         message_id=callback.message.message_id,
         message=text,
         image_key='ref_system',
-        reply_markup=await ref_system_kb(user.language)
+        reply_markup=await ref_system_kb(user.language, user.user_id)
     )
 
-@router.callback_query(F.data == "accrual_history_none")
-async def referral_system(callback: CallbackQuery):
-    await callback.answer("Список закончился")
 
-@router.callback_query(F.data.startswith('accrual_history:'))
-async def accrual_history(callback: CallbackQuery, user: Users):
-    current_page = callback.data.split(':')[1]
+@router.callback_query(F.data.startswith('accrual_ref_list:'))
+async def accrual_ref_list(callback: CallbackQuery, user: Users):
+    _,  target_user_id,  current_page = callback.data.split(':')
 
     text = get_text(
         user.language,
@@ -74,50 +70,31 @@ async def accrual_history(callback: CallbackQuery, user: Users):
         message_id=callback.message.message_id,
         message=text,
         image_key='history_income_from_referrals',
-        reply_markup= await accruals_history_kb(user.language, int(current_page), user.user_id)
+        reply_markup= await accrual_ref_list_kb(user.language, int(current_page), int(target_user_id), user.user_id)
     )
 
 
 @router.callback_query(F.data.startswith('detail_income_from_ref:'))
 async def detail_income_from_ref(callback: CallbackQuery, user: Users):
     income_from_ref_id = callback.data.split(':')[1]
-    current_page = callback.data.split(':')[2]
+    current_page = int(callback.data.split(':')[2])
     income = await get_income_from_referral(int(income_from_ref_id))
 
     if income is None:
         await callback.answer(text=get_text(user.language, 'miscellaneous','Data not found'), show_alert=True)
 
-    referral_user = await get_user(income.referral_id)
-    username = f"@{referral_user.username}" if referral_user.username else 'None'
-
-    text = get_text(
-        user.language,
-        'profile_messages',
-        "ID: {id}\n\n"
-        "Referral Username: {username}\n"
-        "Amount: {amount}\n"
-        "Percentage of Replenishment: {percentage_of_replenishment}\n"
-        "Date: {date}\n"
-    ).format(
-        id=income.income_from_referral_id,
-        username=username,
-        amount=income.amount,
-        percentage_of_replenishment=income.percentage_of_replenishment,
-        date=income.created_at.strftime(DT_FORMAT),
-    )
-
-    await edit_message(
-        chat_id=callback.from_user.id,
-        message_id=callback.message.message_id,
-        message=text,
-        image_key='history_income_from_referrals',
-        reply_markup= await back_in_accrual_history_kb(user.language, int(current_page))
+    await message_income_ref(
+        income=income,
+        callback=callback,
+        language=user.language,
+        current_page=current_page,
     )
 
 
-@router.callback_query(F.data == "download_ref_list")
+@router.callback_query(F.data.startswith("download_ref_list:"))
 async def download_ref_list(callback: CallbackQuery, user: Users):
-    path = await generate_referral_report_exel(user.user_id, user.language)
+    user_id = int(callback.data.split(':')[1])
+    path = await generate_referral_report_exel(user_id, user.language)
 
     text = get_text(user.language, 'profile_messages','The file was successfully generated')
 

@@ -81,7 +81,7 @@ async def update_notification(
 
 async def get_banned_account(user_id: int) -> str | None:
     """
-    Проверит только в redis
+    Проверит только в redis (в нём сохраняется навсегда)
     :return: Причина бана, если забанен иначе None
     """
     async with get_redis() as session_redis:
@@ -343,3 +343,9 @@ async def update_replenishment(
         replenishment = result.scalar_one()
         await session_db.commit()
     return replenishment
+
+
+async def get_all_user_audit_logs(user_id: int) -> List[UserAuditLogs]:
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(UserAuditLogs).where(UserAuditLogs.user_id == user_id))
+        return result_db.scalars().all()

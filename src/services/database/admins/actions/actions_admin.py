@@ -1,8 +1,9 @@
 from sqlalchemy import select
 
-from src.services.database.admins.models import MessageForSending, Admins
+from src.services.database.admins.models import MessageForSending, Admins, AdminActions
 from src.services.database.core.database import get_db
 from src.services.redis.core_redis import get_redis
+
 
 async def check_admin(user_id) -> bool:
     """Проверит наличие админа по данному ID"""
@@ -10,6 +11,7 @@ async def check_admin(user_id) -> bool:
         admin = await session_redis.get(f'admin:{user_id}')
 
     return True if admin else False
+
 
 async def create_admin(user_id: int) -> Admins:
     async with get_db() as session_db:
@@ -52,6 +54,7 @@ async def get_message_for_sending(admin_id: int) -> MessageForSending | None:
                 await session_db.refresh(new_message_for_sending)
                 return new_message_for_sending
 
+
 async def update_message_for_sending(
     user_id: int,
     content: str = None,
@@ -79,3 +82,14 @@ async def update_message_for_sending(
         await session_db.refresh(new_message_for_sending)
 
     return new_message_for_sending
+
+
+async def add_admin_action(user_id: int, action_type: str, details: dict) -> AdminActions:
+    new_action = AdminActions(user_id=user_id, action_type=action_type, details=details)
+
+    async with get_db() as session_db:
+        session_db.add(new_action)
+        await session_db.commit()
+
+    return new_action
+

@@ -147,7 +147,10 @@ class WalletTransaction(Base):
 
     wallet_transaction_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
-    type = Column(Enum('replenish', 'referral', 'purchase','refund','transfer','voucher', 'other', name='wallet_tx_type'), nullable=False)
+    type = Column(
+        Enum('replenish', 'referral', 'purchase','refund','transfer','voucher', 'admin_actions', 'other', name='wallet_tx_type'),
+        nullable=False
+    )
     amount = Column(Integer, nullable=False)
     balance_before = Column(Integer, nullable=False)
     balance_after = Column(Integer, nullable=False)

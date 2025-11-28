@@ -2,7 +2,7 @@
 def safe_int_conversion(value, default=None, positive=False) -> int:
     try:
         value_in_int = int(value)
-        if value_in_int > 2147483646: # если больше int
+        if value_in_int > 123456789012345678901234567890: # если больше BigInt
             return default
         if positive:
             return value_in_int if value_in_int > 0 else default

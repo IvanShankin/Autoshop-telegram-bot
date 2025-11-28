@@ -20,14 +20,14 @@ async def handler_admin(
         await send_message(
             chat_id=user.user_id,
             image_key="admin_panel",
-            reply_markup=await main_admin_kb(user.language)
+            reply_markup=main_admin_kb(user.language)
         )
     else:
         await edit_message(
             chat_id=user.user_id,
             message_id=message_id,
             image_key="admin_panel",
-            reply_markup=await main_admin_kb(user.language)
+            reply_markup=main_admin_kb(user.language)
         )
 
 

@@ -5,6 +5,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.bot_actions.bot_instance import get_bot
 from src.config import ALLOWED_LANGS, NAME_LANGS, EMOJI_LANGS, PAGE_SIZE
+from src.modules.profile.services.keyboard_with_pages import pagination_keyboard
 from src.services.database.discounts.actions import get_valid_voucher_by_user_page
 from src.services.database.discounts.actions import get_count_voucher
 from src.services.database.referrals.actions.actions_ref import get_referral_income_page, get_count_referral_income
@@ -20,13 +21,13 @@ from src.utils.i18n import get_text
 from src.utils.pars_number import e164_to_pretty
 
 
-def profile_kb(language: str):
+def profile_kb(language: str, user_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Top up your balance'), callback_data='show_type_replenishment')],
         [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Purchased accounts'), callback_data='services_sold_accounts')],
         [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Balance transfer'), callback_data='balance_transfer')],
         [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Referral system'), callback_data='referral_system')],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'History transfer'), callback_data='history_transaction:1')],
+        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'History transfer'), callback_data=f'transaction_list:{user_id}:1')],
         [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Settings'), callback_data='profile_settings')]
     ])
 
@@ -130,36 +131,23 @@ async def sold_accounts_kb(language: str, current_page: int, type_account_servic
     total = await get_count_sold_account(user_id, type_account_service_id)
     total_pages = max(ceil(total / PAGE_SIZE), 1)
 
-    keyboard = InlineKeyboardBuilder()
-
-    for account in records:
-        keyboard.row(InlineKeyboardButton(
-            text=e164_to_pretty(account.phone_number )if account.phone_number else account.name,
-            callback_data=f'sold_account:{account.sold_account_id}:{type_account_service_id}:{current_page}')
+    def item_button(acc):
+        text = e164_to_pretty(acc.phone_number) if acc.phone_number else acc.name
+        return InlineKeyboardButton(
+            text=text,
+            callback_data=f"sold_account:{acc.sold_account_id}:{type_account_service_id}:{current_page}"
         )
 
-    if records and total_pages > 1:
-        left_button = f"all_sold_accounts_none"
-        right_button = f"all_sold_accounts_none"
-        if current_page > 1 and total_pages > current_page:  # если есть куда двинуться направо и налево
-            left_button = f"all_sold_accounts:{current_page - 1}:{type_account_service_id}"
-            right_button = f"all_sold_accounts:{current_page + 1}:{type_account_service_id}"
-        elif current_page == 1:  # если есть записи только впереди
-            right_button = f"all_sold_accounts:{current_page + 1}:{type_account_service_id}"
-        elif current_page > 1:  # если есть записи только позади
-            left_button = f"all_sold_accounts:{current_page - 1}:{type_account_service_id}"
-
-        keyboard.row(
-            InlineKeyboardButton(text="⬅️", callback_data=left_button),
-            InlineKeyboardButton(text=f"{current_page}/{total_pages}", callback_data=f"none"),
-            InlineKeyboardButton(text="➡️", callback_data=right_button)
-        )
-
-    keyboard.row(
-        InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data=f'services_sold_accounts'),
+    return pagination_keyboard(
+        records=records,
+        current_page=current_page,
+        total_pages=total_pages,
+        item_button_func=item_button,
+        left_prefix=f"all_sold_accounts:{type_account_service_id}",
+        right_prefix=f"all_sold_accounts:{type_account_service_id}",
+        back_text=get_text(language, 'keyboard', 'Back'),
+        back_callback="services_sold_accounts",
     )
-
-    return keyboard.as_markup()
 
 
 def account_kb(language: str, sold_account_id: int, type_account_service_id: int, current_page: int, current_validity: bool):
@@ -280,51 +268,46 @@ def setting_notification_kb(language: str, notification: NotificationSettings):
 
 # ---- Транзакции ----
 
-async def wallet_transactions_kb(language: str, current_page: int, user_id: int):
-    records = await get_wallet_transaction_page(user_id, current_page, PAGE_SIZE)
-    total = await get_count_wallet_transaction(user_id)
+async def wallet_transactions_kb(language: str, current_page: int, target_user_id: int, user_id: int):
+    """
+    :param target_user_id: Пользователь по которому будем искать.
+    :param user_id: Пользователь, которому выведутся данные
+    """
+    records = await get_wallet_transaction_page(target_user_id, current_page, PAGE_SIZE)
+    total = await get_count_wallet_transaction(target_user_id)
     total_pages = max(ceil(total / PAGE_SIZE), 1)
 
-    keyboard = InlineKeyboardBuilder()
-
-    for transaction in records:
-        keyboard.row(InlineKeyboardButton(
-            text=f"{transaction.amount} ₽   {get_text(language, 'keyboard', transaction.type)}",
-            callback_data=f'show_transaction:{transaction.wallet_transaction_id}')
+    def item_button(t):
+        return InlineKeyboardButton(
+            text=f"{t.amount} ₽   {get_text(language, 'type_wallet_transaction', t.type)}",
+            callback_data=f"transaction_show:{target_user_id}:{t.wallet_transaction_id}:{current_page}"
         )
 
-    if records and total_pages > 1:
-        left_button = f"history_transaction_none"
-        right_button = f"history_transaction_none"
-        if current_page > 1 and total_pages > current_page:  # если есть куда двинуться направо и налево
-            left_button = f"history_transaction:{current_page - 1}"
-            right_button = f"history_transaction:{current_page + 1}"
-        elif current_page == 1:  # если есть записи только впереди
-            right_button = f"history_transaction:{current_page + 1}"
-        elif current_page > 1:  # если есть записи только позади
-            left_button = f"history_transaction:{current_page - 1}"
-
-        keyboard.row(
-            InlineKeyboardButton(text="⬅️", callback_data=left_button),
-            InlineKeyboardButton(text=f"{current_page}/{total_pages}", callback_data=f"none"),
-            InlineKeyboardButton(text="➡️", callback_data=right_button)
-        )
-
-    keyboard.row(
-        InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data=f'profile'),
+    return pagination_keyboard(
+        records=records,
+        current_page=current_page,
+        total_pages=total_pages,
+        item_button_func=item_button,
+        left_prefix=f"transaction_list:{target_user_id}",
+        right_prefix=f"transaction_list:{target_user_id}",
+        back_text=get_text(language, 'keyboard', 'Back'),
+        back_callback=f"profile" if target_user_id == user_id else f"user_management:{target_user_id}"
     )
 
-    return keyboard.as_markup()
 
-def back_in_wallet_transactions_kb(language: str):
-    return InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data='history_transaction:1')]
-        ])
+def back_in_wallet_transactions_kb(language: str, target_user_id: int, currant_page: int):
+    return InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(
+            text=get_text(language, 'keyboard', 'Back'),
+            callback_data=f"transaction_list:{target_user_id}:{currant_page}"
+        )
+    ]])
+
 
 
 # ---- Реферальная система ----
 
-async def ref_system_kb(language: str):
+async def ref_system_kb(language: str, user_id: int):
     settings = await get_settings()
 
     if not settings.linc_info_ref_system:
@@ -336,61 +319,62 @@ async def ref_system_kb(language: str):
 
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Information'), url=url)],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Accrual history'), callback_data='accrual_history:1')],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Download a list of referrals'), callback_data='download_ref_list')],
+        [InlineKeyboardButton(
+                text=get_text(language, 'keyboard', 'Accrual history'),
+                callback_data=f'accrual_ref_list:{user_id}:1'
+            )
+        ],
+        [InlineKeyboardButton(
+                text=get_text(language, 'keyboard', 'Download a list of referrals'),
+                callback_data=f'download_ref_list:{user_id}'
+            )
+        ],
         [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data=f'profile')],
     ])
 
 
-async def accruals_history_kb(language: str, current_page: int, user_id: int):
-    records = await get_referral_income_page(user_id, current_page, PAGE_SIZE)
-    total = await get_count_referral_income(user_id)
+async def accrual_ref_list_kb(language: str, current_page: int, target_user_id: int, user_id: int):
+    """
+    :param target_user_id: Пользователь по которому будем искать.
+    :param user_id: Пользователь, которому выведутся данные
+    """
+    records = await get_referral_income_page(target_user_id, current_page, PAGE_SIZE)
+    total = await get_count_referral_income(target_user_id)
     total_pages = max(ceil(total / PAGE_SIZE), 1)
 
-    keyboard = InlineKeyboardBuilder()
-
-    for income in records:
-        keyboard.row(InlineKeyboardButton(
-            text=f"{income.amount} ₽",
-            callback_data=f'detail_income_from_ref:{income.income_from_referral_id}:{current_page}')
+    def item_button(inc):
+        return InlineKeyboardButton(
+            text=f"{inc.amount} ₽",
+            callback_data=f"detail_income_from_ref:{inc.income_from_referral_id}:{current_page}"
         )
 
-    if records and total_pages > 1:
-        left_button = f"accrual_history_none"
-        right_button = f"accrual_history_none"
-        if current_page > 1 and total_pages > current_page: # если есть куда двинуться направо и налево
-            left_button = f"accrual_history:{current_page - 1}"
-            right_button = f"accrual_history:{current_page + 1}"
-        elif current_page == 1: # если есть записи только впереди
-            right_button = f"accrual_history:{current_page + 1}"
-        elif current_page > 1: # если есть записи только позади
-            left_button = f"accrual_history:{current_page - 1}"
-
-        keyboard.row(
-            InlineKeyboardButton(text="⬅️", callback_data=left_button),
-            InlineKeyboardButton(text=f"{current_page}/{total_pages}", callback_data=f"none"),
-            InlineKeyboardButton(text="➡️", callback_data=right_button)
-        )
-
-    keyboard.row(
-        InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data=f'referral_system'),
+    return pagination_keyboard(
+        records,
+        current_page,
+        total_pages,
+        item_button,
+        left_prefix=f"accrual_ref_list:{target_user_id}",
+        right_prefix=f"accrual_ref_list:{target_user_id}",
+        back_text=get_text(language, 'keyboard', 'Back'),
+        back_callback=f"referral_system" if target_user_id == user_id else f"user_management:{target_user_id}",
     )
 
-    return keyboard.as_markup()
-
-async def back_in_accrual_history_kb(language: str, current_page_id: int):
+async def back_in_accrual_ref_list_kb(language: str, current_page_id: int, target_user_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data=f'accrual_history:{current_page_id}')]
+        [InlineKeyboardButton(
+            text=get_text(language, 'keyboard', 'Back'),
+            callback_data=f'accrual_ref_list:{target_user_id}:{current_page_id}'
+        )]
     ])
 
 
 # ---- Передача баланса ----
 
-def balance_transfer_kb(language: str):
+def balance_transfer_kb(language: str, user_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Transfer by id'), callback_data='transfer_money')],
         [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Create voucher'), callback_data='create_voucher')],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'My vouchers'), callback_data=f'my_voucher:1')],
+        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'My vouchers'), callback_data=f'voucher_list:{user_id}:1')],
         [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data=f'profile')],
     ])
 
@@ -413,72 +397,71 @@ def back_in_balance_transfer_kb(language: str):
         [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data=f'balance_transfer')],
     ])
 
+
 def replenishment_and_back_in_transfer_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Top up your balance'), callback_data='show_type_replenishment')],
         [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data='balance_transfer')]
     ])
 
-async def all_vouchers_kb(user_id: int, current_page: int, language: str):
+
+async def all_vouchers_kb(current_page: int, target_user_id: int, user_id: int, language: str):
     """Клавиатура со списком только активных ваучеров у данного пользователя"""
-    records = await get_valid_voucher_by_user_page(user_id, current_page, PAGE_SIZE)
-    total = await get_count_voucher(user_id)
+    records = await get_valid_voucher_by_user_page(target_user_id, current_page, PAGE_SIZE)
+    total = await get_count_voucher(target_user_id)
     total_pages = max(ceil(total / PAGE_SIZE), 1)
 
-    keyboard = InlineKeyboardBuilder()
-
-    for voucher in records:
-        keyboard.row(InlineKeyboardButton(
+    def item_button(voucher):
+        return InlineKeyboardButton(
             text=f"{voucher.amount} ₽   {voucher.activation_code}",
-            callback_data=f'show_voucher:{voucher.voucher_id}:{current_page}')
+            callback_data=f"show_voucher:{target_user_id}:{current_page}:{voucher.voucher_id}"
         )
 
-    if records and total_pages > 1:
-        left_button = f"my_voucher_none"
-        right_button = f"my_voucher_none"
-        if current_page > 1 and total_pages > current_page:  # если есть куда двинуться направо и налево
-            left_button = f"my_voucher:{current_page - 1}"
-            right_button = f"my_voucher:{current_page + 1}"
-        elif current_page == 1:  # если есть записи только впереди
-            right_button = f"my_voucher:{current_page + 1}"
-        elif current_page > 1:  # если есть записи только позади
-            left_button = f"my_voucher:{current_page - 1}"
-
-        keyboard.row(
-            InlineKeyboardButton(text="⬅️", callback_data=left_button),
-            InlineKeyboardButton(text=f"{current_page}/{total_pages}", callback_data=f"none"),
-            InlineKeyboardButton(text="➡️", callback_data=right_button)
-        )
-
-    keyboard.row(
-        InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data=f'profile'),
+    return pagination_keyboard(
+        records,
+        current_page,
+        total_pages,
+        item_button,
+        left_prefix=f"voucher_list:{target_user_id}",
+        right_prefix=f"voucher_list:{target_user_id}",
+        back_text=get_text(language, 'keyboard', 'Back'),
+        back_callback="transfer_money" if target_user_id == user_id else f"user_management:{target_user_id}",
     )
 
-    return keyboard.as_markup()
-
-def show_voucher_kb(language: str, current_page: int, voucher_id: int):
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [
+def show_voucher_kb(language: str, current_page: int, target_user_id: int, user_id: int, voucher_id: int):
+    keyboard = InlineKeyboardBuilder()
+    if target_user_id == user_id:
+        keyboard.row(
             InlineKeyboardButton(
                 text=get_text(language, 'keyboard', 'Deactivate'),
                 callback_data=f'confirm_deactivate_voucher:{voucher_id}:{current_page}'
-            )
-        ],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data=f'my_voucher:{current_page}')]
-    ])
+            ),
+        )
 
-def confirm_deactivate_voucher_kb(language: str, current_page: int, voucher_id: int):
+    keyboard.row(
+        InlineKeyboardButton(
+            text=get_text(language, 'keyboard', 'Back'),
+            callback_data=f'voucher_list:{target_user_id}:{current_page}'
+        ),
+    )
+    return keyboard.as_markup()
+
+def confirm_deactivate_voucher_kb(language: str, current_page: int, target_user_id: int, voucher_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(
+        [InlineKeyboardButton(
                 text=get_text(language, 'keyboard', 'Confirm'),
                 callback_data=f'deactivate_voucher:{voucher_id}:{current_page}'
-            )
-        ],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data=f'my_voucher:{current_page}')]
+        )],
+        [InlineKeyboardButton(
+            text=get_text(language, 'keyboard', 'Back'),
+            callback_data=f'voucher_list:{target_user_id}:{current_page}'
+        )]
     ])
 
-def back_in_all_voucher_kb(language: str, current_page: int):
+def back_in_all_voucher_kb(language: str, current_page: int, target_user_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data=f'my_voucher:{current_page}')]
+        [InlineKeyboardButton(
+            text=get_text(language, 'keyboard', 'Back'),
+            callback_data=f'voucher_list:{target_user_id}:{current_page}'
+        )]
     ])

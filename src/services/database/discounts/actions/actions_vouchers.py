@@ -65,6 +65,7 @@ async def get_count_voucher(user_id: int) -> int:
         )
         return result.scalar()
 
+
 async def get_valid_voucher_by_code(
     code: str
 ) -> Vouchers | None:
@@ -111,6 +112,7 @@ async def get_voucher_by_id(
         result = await session_db.execute(query)
         return result.scalar_one_or_none()
 
+
 async def create_voucher(
         user_id: int,
         is_created_admin: bool,
@@ -147,7 +149,9 @@ async def create_voucher(
                 update(Users)
                 .where(Users.user_id == user.user_id)
                 .values(balance=user.balance - required_amount)
+                .returning(Users)
             )
+            user.balance = user.balance - required_amount
 
             new_voucher = Vouchers(
                 creator_id=user_id,
@@ -184,9 +188,9 @@ async def create_voucher(
             wallet_transaction = WalletTransaction(
                 user_id = user.user_id,
                 type = 'voucher',
-                amount = required_amount * -1,
-                balance_before = user.balance, # тут старые данные
-                balance_after = user.balance + required_amount
+                amount = required_amount * -1, # переводим в минусовое значение
+                balance_before = user.balance + required_amount,
+                balance_after = user.balance
             )
             session_db.add(new_user_log)
             session_db.add(wallet_transaction)
@@ -301,7 +305,6 @@ async def deactivate_voucher(voucher_id: int) -> int:
 
         await send_log(log_message)
         raise e
-
 
 
 async def activate_voucher(user: Users, code: str, language: str) -> Tuple[str, bool]:

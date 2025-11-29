@@ -14,8 +14,6 @@
     "channel_for_subscription_id": int,
     "shop_name": str,
     "channel_name": str,
-    "api_id": int,
-    "api_hash": str,
     "FAQ": str,
 }
 ```
@@ -87,7 +85,7 @@
 ```
 **TTL:** 6 часов
 
-### 6. Пользователь (Users)
+### 6. Просьба подписаться на канал (Users)
 **Ключ:** `subscription_prompt:{user_id}`
 **Значение:** `_` выступает в роли метки  
 **TTL:** 15 дней

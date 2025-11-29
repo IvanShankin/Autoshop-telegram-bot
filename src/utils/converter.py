@@ -10,3 +10,15 @@ def safe_int_conversion(value, default=None, positive=False) -> int:
         return value_in_int
     except (ValueError, TypeError):
         return default
+
+def safe_float_conversion(value, default=None, positive=False) -> float:
+    try:
+        value_in_float = float(value)
+        if value_in_float > 123456789012345678901234567890: # если больше BigInt
+            return default
+        if positive:
+            return value_in_float if value_in_float > 0 else default
+
+        return value_in_float
+    except (ValueError, TypeError):
+        return default

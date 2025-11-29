@@ -1,4 +1,4 @@
-from src.modules.admin_actions.keyboards.editor_kb import choice_editor_kb
+from src.modules.admin_actions.keyboards.editor_kb import choice_editor_kb, back_in_choice_editor_kb
 from src.modules.admin_actions.keyboards.keyboard_main import main_admin_kb, back_in_main_admin_kb
 from src.modules.admin_actions.keyboards.service_kb import all_services_account_admin_kb, show_service_acc_admin_kb, \
     all_services_types_kb, to_services_kb, delete_service_kb, back_in_service_kb
@@ -26,6 +26,7 @@ __all__ = [
     "back_in_category_kb",
     "back_in_admin_set_kb",
     "choice_editor_kb",
+    "back_in_choice_editor_kb",
     "user_management_kb",
     "back_in_user_management_kb",
     "confirm_remove_ban_kb",

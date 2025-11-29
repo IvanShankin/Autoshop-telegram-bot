@@ -162,8 +162,17 @@ msgstr "Ввести промокод"
 
 # ---- Админ панель ----
 
-msgid "Category Editor"
-msgstr "Редактор категорий"
+msgid "Editors"
+msgstr "Редакторы"
+
+msgid "Services and Categories"
+msgstr "Сервисы и категории"
+
+msgid "Services replenishments"
+msgstr "Сервисы пополнения"
+
+msgid "Images"
+msgstr "Изображения"
 
 msgid "Add"
 msgstr "Добавить"
@@ -238,7 +247,11 @@ msgstr "Удалить все аккаунты"
 msgid "Unload all accounts"
 msgstr "Выгрузить все аккаунты"
 
-# выгрузка пользователя
+
+msgid "Edit commission"
+msgstr "Изменить комиссию"
+
+# Управление пользователем
 
 msgid "User management"
 msgstr "Управление пользователями"
@@ -270,13 +283,6 @@ msgstr "Активные ваучеры"
 msgid "{indicator} maintenance mode"
 msgstr "{indicator} Технические работы"
 
-msgstr "Images"
-msgstr "Изображения"
 
-msgstr "Services and Categories"
-msgstr "Сервисы и категории"
-
-msgstr "Replenishments"
-msgstr "Пополнения"
 
 

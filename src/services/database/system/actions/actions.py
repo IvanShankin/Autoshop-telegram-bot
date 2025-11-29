@@ -5,7 +5,7 @@ from typing import List
 
 import aiofiles
 import orjson
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, update, delete, func
 
 from src.services.redis.filling_redis import filling_types_payments_by_id, filling_all_types_payments, \
     filling_ui_image
@@ -198,6 +198,7 @@ async def get_all_types_payments() -> List[TypePayments]:
 
     async with get_db() as session_db:
         result_db = await session_db.execute(select(TypePayments).order_by(TypePayments.index.asc()))
+        await filling_all_types_payments()
         return result_db.scalars().all()
 
 
@@ -220,76 +221,95 @@ async def get_type_payment(type_payment_id: int) -> TypePayments | None:
         return type_payment
 
 async def update_type_payment(
-        type_payment_id: int,
-        name_for_user: str = None,
-        is_active: bool = None,
-        commission: float = None,
-        index: int = None,
-        extra_data: dict = None
+    type_payment_id: int,
+    name_for_user: str = None,
+    is_active: bool = None,
+    commission: float = None,
+    index: int = None,
+    extra_data: dict = None
 ) -> TypePayments:
     type_payment = await get_type_payment(type_payment_id)
     if not type_payment:
         raise ValueError("Тип оплаты не найден")
 
-    if name_for_user is None:
-        name_for_user = type_payment.name_for_user
-    if is_active is None:
-        is_active = type_payment.is_active
-    if commission is None:
-        commission = type_payment.commission
-    if index is None:
-        index = type_payment.index
-    else: # если необходимо изменить индекс
-        async with get_db() as session_db:
-            new_index = index
-            old_index = type_payment.index
+    update_data = {}
 
-            # обновляем индексы
-            if new_index < old_index:
-                # сдвигаем все записи между new_index и old_index-1 вверх (+1)
-                await session_db.execute(
-                    update(TypePayments)
-                    .where(TypePayments.index >= new_index)
-                    .where(TypePayments.index < old_index)
-                    .values(index=TypePayments.index + 1)
-                )
-            elif new_index > old_index:
-                # сдвигаем все записи между old_index+1 и new_index вниз (-1)
-                await session_db.execute(
-                    update(TypePayments)
-                    .where(TypePayments.index <= new_index)
-                    .where(TypePayments.index > old_index)
-                    .values(index=TypePayments.index - 1)
-                )
+    if name_for_user is not None:
+        update_data['name_for_user'] = name_for_user
+    if is_active is not None:
+        update_data['is_active'] = is_active
+    if commission is not None:
+        update_data['commission'] = commission
+    if index is not None:
+        async with get_db() as session_db:
+            # нормализуем new_index — int, не меньше 0
+            try:
+                new_index = int(index)
+            except Exception:
+                raise ValueError("index должен быть целым числом")
+            if new_index < 0:
+                new_index = 0
+
+            # считаем сколько всего записей (чтобы определить максимальный индекс)
+            total_res = await session_db.execute(select(func.count()).select_from(TypePayments))
+            total_count = total_res.scalar_one()
+            # max_index — индекс последнего элемента в текущей коллекции
+            max_index = max(0, total_count - 1)
+
+            # если новый индекс больше максимального — помещаем в конец
+            if new_index > max_index:
+                new_index = max_index
+
+            # старый индекс — если None, считаем как "последний" (т.е. append)
+            old_index = type_payment.index if type_payment.index is not None else max_index
+
+            # если фактически ничего не меняется — пропускаем перестановки
+            if new_index != old_index:
+                # сдвиги других записей в зависимости от направления перемещения
+                if new_index < old_index:
+                    # перемещение влево (меньше): поднимаем (+1) все записи с индексом в [new_index, old_index-1]
+                    await session_db.execute(
+                        update(TypePayments)
+                        .where(TypePayments.index >= new_index)
+                        .where(TypePayments.index < old_index)
+                        .values(index=TypePayments.index + 1)
+                    )
+                else:  # new_index > old_index
+                    # перемещение вправо (больше): опускаем (-1) все записи с индексом в [old_index+1, new_index]
+                    await session_db.execute(
+                        update(TypePayments)
+                        .where(TypePayments.index <= new_index)
+                        .where(TypePayments.index > old_index)
+                        .values(index=TypePayments.index - 1)
+                    )
+
+                await session_db.commit()
+
+                update_data["index"] = new_index
+            # else: new_index == old_index -> ничего не делаем по индексам
+
+    if extra_data is not None:
+        update_data["extra_data"] = extra_data
+
+    if update_data:
+        async with get_db() as session_db:
+            result_db = await session_db.execute(
+                update(TypePayments)
+                .where(TypePayments.type_payment_id==type_payment_id)
+                .values(**update_data)
+                .returning(TypePayments)
+            )
+
+            type_payment = result_db.scalar_one_or_none()
             await session_db.commit()
 
-    if extra_data is None:
-        extra_data = type_payment.extra_data
+            # обновление redis
+            await filling_all_types_payments()
 
-    async with get_db() as session_db:
-        result_db = await session_db.execute(
-            update(TypePayments)
-            .where(TypePayments.type_payment_id==type_payment_id)
-            .values(
-                name_for_user=name_for_user,
-                is_active=is_active,
-                commission=commission,
-                index=index,
-                extra_data=extra_data
-            )
-            .returning(TypePayments)
-        )
-
-        type_payment = result_db.scalar_one_or_none()
-        await session_db.commit()
-
-        # обновление redis
-        await filling_all_types_payments()
-
-        result_db = await session_db.execute(select(TypePayments))
-        types_payments = result_db.scalars().all()
-        for type_payment in types_payments:
-            await filling_types_payments_by_id(type_payment.type_payment_id)
+            result_db = await session_db.execute(select(TypePayments))
+            types_payments = result_db.scalars().all()
+            for type_payment in types_payments:
+                await filling_types_payments_by_id(type_payment.type_payment_id)
 
     return type_payment
 

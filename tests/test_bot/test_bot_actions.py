@@ -57,8 +57,10 @@ class TestSendMessage:
         async def fake_update_ui_image(**kwargs):
             updated.update(kwargs)
 
-        from src.bot_actions.messages import edit as modul
-        monkeypatch.setattr(modul, "update_ui_image", fake_update_ui_image)
+        from src.bot_actions.messages import edit as modul_1
+        from src.bot_actions.messages import send as modul_2
+        monkeypatch.setattr(modul_1, "update_ui_image", fake_update_ui_image)
+        monkeypatch.setattr(modul_2, "update_ui_image", fake_update_ui_image)
 
         # --- Запуск ---
         await send_message(chat_id=321, message="Reupload test", image_key="error_case", fallback_image_key=None)

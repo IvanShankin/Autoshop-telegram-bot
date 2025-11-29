@@ -6,7 +6,7 @@ from src.utils.i18n import get_text
 def main_admin_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', "Category Editor"),
+            text=get_text(language, 'keyboard', "Editors"),
             callback_data='editors'
         )],
         [InlineKeyboardButton(

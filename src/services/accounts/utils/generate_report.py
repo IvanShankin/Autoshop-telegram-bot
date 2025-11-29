@@ -4,6 +4,10 @@ from src.services.filesystem.input_account import make_csv_bytes
 
 
 async def get_user_audit_log_bites(user_id: int) -> bytes:
+    """
+    :return: поток байтов для формирования excel файла
+    :except ValueError: Если нет логов
+    """
     logs = await get_all_user_audit_logs(user_id)
     ready_logs = []
     for log in logs:

@@ -38,5 +38,6 @@ msgstr "Пользователь успешно забанен"
 msgid "The user has been successfully unbanned"
 msgstr "Пользователь успешно разбанен"
 
-
+msgid "The user has no log entries"
+msgstr "У пользователя нет ни одной записи в логах"
 

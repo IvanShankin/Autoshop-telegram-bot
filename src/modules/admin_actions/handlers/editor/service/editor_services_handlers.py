@@ -4,7 +4,7 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src.bot_actions.actions import edit_message, send_message
+from src.bot_actions.messages import edit_message, send_message
 from src.exceptions.service_exceptions import ServiceTypeBusy, ServiceContainsCategories
 from src.modules.admin_actions.services.editor.service_validator import show_service
 from src.modules.admin_actions.handlers.editor.keyboard import all_services_account_admin_kb, all_services_types_kb, \

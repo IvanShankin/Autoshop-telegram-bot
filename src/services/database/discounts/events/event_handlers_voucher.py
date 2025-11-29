@@ -10,7 +10,7 @@ from src.services.database.discounts.models import Vouchers
 from src.services.database.users.actions import get_user
 from src.services.database.users.models import UserAuditLogs, WalletTransaction
 from src.utils.i18n import get_text
-from src.bot_actions.actions import send_log
+from src.bot_actions.messages import send_log
 
 
 async def voucher_event_handler(event):

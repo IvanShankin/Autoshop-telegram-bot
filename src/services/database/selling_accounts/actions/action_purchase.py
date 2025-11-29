@@ -33,7 +33,7 @@ from src.services.database.selling_accounts.models.schemas import StartPurchaseA
 from src.services.database.users.actions import get_user
 from src.services.database.users.models import Users
 from src.utils.core_logger import logger
-from src.bot_actions.actions import send_log
+from src.bot_actions.messages import send_log
 
 
 SEMAPHORE_LIMIT = 12

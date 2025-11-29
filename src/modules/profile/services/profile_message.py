@@ -1,6 +1,6 @@
 from aiogram.types import CallbackQuery
 
-from src.bot_actions.actions import edit_message
+from src.bot_actions.messages import edit_message
 from src.bot_actions.bot_instance import get_bot
 from src.config import DT_FORMAT
 from src.modules.profile.keyboard_profile import back_in_wallet_transactions_kb, back_in_accrual_ref_list_kb

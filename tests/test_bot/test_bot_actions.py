@@ -8,7 +8,7 @@ class TestSendMessage:
     @pytest.mark.asyncio
     async def test_send_message_with_valid_file_id(self, patch_fake_aiogram, replacement_fake_bot, create_ui_image, monkeypatch):
         """Валидный file_id: отправляется фото без загрузки"""
-        from src.bot_actions.actions import send_message
+        from src.bot_actions.messages import send_message
         fake_bot = replacement_fake_bot
         ui_image, _ = await create_ui_image(key="welcome", file_id='existing_file_id')
 
@@ -25,7 +25,7 @@ class TestSendMessage:
         self, patch_fake_aiogram, replacement_fake_bot, create_ui_image, monkeypatch, tmp_path
     ):
         """Недействительный file_id — fallback на загрузку файла с диска"""
-        from src.bot_actions.actions import send_message
+        from src.bot_actions.messages import send_message
         fake_bot = replacement_fake_bot
 
         # Подготовим подмену MEDIA_DIR, чтобы send_message открыл файл по правильному пути
@@ -57,7 +57,7 @@ class TestSendMessage:
         async def fake_update_ui_image(**kwargs):
             updated.update(kwargs)
 
-        from src.bot_actions import actions as modul
+        from src.bot_actions.messages import edit as modul
         monkeypatch.setattr(modul, "update_ui_image", fake_update_ui_image)
 
         # --- Запуск ---
@@ -78,7 +78,7 @@ class TestSendMessage:
         self, patch_fake_aiogram, replacement_fake_bot, create_ui_image
     ):
         """ show=False — фото не отправляется, только текст"""
-        from src.bot_actions.actions import send_message
+        from src.bot_actions.messages import send_message
 
         fake_bot = replacement_fake_bot
         ui_image, _ = await create_ui_image(key="hidden_img", show=False, file_id="file123")
@@ -96,14 +96,14 @@ class TestSendMessage:
         self, patch_fake_aiogram, replacement_fake_bot, monkeypatch
     ):
         """ Нет изображения по ключу — отправляется обычный текст"""
-        from src.bot_actions.actions import send_message
+        from src.bot_actions.messages import send_message
 
         fake_bot = replacement_fake_bot
 
         async def fake_get_ui_image(key: str):
             return None
 
-        from src.bot_actions import actions as modul
+        from src.bot_actions.messages import edit as modul
         monkeypatch.setattr(modul, "get_ui_image", fake_get_ui_image)
 
         await send_message(chat_id=555, message="Plain text", image_key="missing")
@@ -119,7 +119,7 @@ class TestSendMessage:
         self, patch_fake_aiogram, replacement_fake_bot
     ):
         """Без image_key — просто сообщение"""
-        from src.bot_actions.actions import send_message
+        from src.bot_actions.messages import send_message
 
         fake_bot = replacement_fake_bot
 
@@ -138,7 +138,7 @@ class TestEditMessage:
         Если ui_image.file_id есть и bot.edit_message_media по file_id проходит успешно,
         то edit_message должен успешно завершиться и НЕ вызывать send_message.
         """
-        from src.bot_actions import actions as bot_actions
+        from src.bot_actions.messages import edit as bot_actions
 
         ui_image, _ = await create_ui_image(key="test_key", show=True, file_id="existing_file_id")
         bot = replacement_fake_bot
@@ -170,7 +170,7 @@ class TestEditMessage:
         то сначала будет попытка _try_edit_media_by_file_id (упадёт), затем upload (успех),
         и update_ui_image должен быть вызван с новым file_id.
         """
-        from src.bot_actions import actions as bot_actions
+        from src.bot_actions.messages import edit as bot_actions
         ui_image, _ = await create_ui_image(key="upl_key", show=True, file_id="invalid_file_id")
 
         bot = replacement_fake_bot
@@ -216,7 +216,7 @@ class TestEditMessage:
         Если edit_message_text бросает TelegramBadRequest('message is not modified') —
         это не ошибка: send_message не вызывается.
         """
-        from src.bot_actions import actions as bot_actions
+        from src.bot_actions.messages import edit as bot_actions
         from aiogram import exceptions as aiogram_excs
         not_modified_exc = aiogram_excs.TelegramBadRequest("message is not modified")
 
@@ -245,7 +245,7 @@ class TestEditMessage:
         Если edit_message_text бросает TelegramBadRequest('message not found'),
         то должно произойти fallback-отправление через send_message.
         """
-        from src.bot_actions import actions as bot_actions
+        from src.bot_actions.messages import edit as bot_actions
         from aiogram import exceptions as aiogram_excs
 
         not_found_exc = aiogram_excs.TelegramBadRequest("message not found")
@@ -279,7 +279,7 @@ class TestEditMessage:
         Симулируем отсутствие локального файла (FileNotFoundError при создании FSInputFile)
         и убеждаемся, что происходит fallback: send_message вызывается.
         """
-        from src.bot_actions import actions as bot_actions
+        from src.bot_actions.messages import edit as bot_actions
         ui_image, _ = await create_ui_image(key="missing_local", show=True, file_id=None)
         # делаем несуществующий путь
         ui_image.file_path = str(tmp_path / "no_such_file.png")

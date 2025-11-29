@@ -10,7 +10,7 @@ from src.services.database.core.database import get_db
 from src.services.database.users.models import UserAuditLogs
 from src.utils.core_logger import logger
 from src.utils.i18n import get_text
-from src.bot_actions.actions import send_log
+from src.bot_actions.messages import send_log
 
 
 async def promo_code_event_handler(event):

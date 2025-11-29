@@ -1,8 +1,7 @@
-from src.services.redis.filling_redis import filling_sold_accounts_by_owner_id, filling_sold_account_by_account_id
 from src.services.database.core.database import get_db
 from src.services.database.selling_accounts.events.schemas import NewPurchaseAccount
 from src.services.database.users.models import UserAuditLogs, WalletTransaction
-from src.bot_actions.actions import send_log
+from src.bot_actions.messages import send_log
 
 async def account_purchase_event_handler(event):
     payload = event["payload"]

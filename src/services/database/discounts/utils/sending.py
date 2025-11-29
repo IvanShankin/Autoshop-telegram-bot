@@ -1,6 +1,6 @@
 from src.services.database.discounts.models import Vouchers
 from src.utils.i18n import get_text
-from src.bot_actions.actions import send_log, send_message
+from src.bot_actions.messages import send_log, send_message
 
 
 async def send_set_not_valid_voucher(user_id: int, voucher: Vouchers, limit_reached: bool, language: str):

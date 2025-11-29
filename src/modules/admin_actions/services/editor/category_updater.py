@@ -3,7 +3,7 @@ import asyncio
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from src.bot_actions.actions import send_message
+from src.bot_actions.messages import send_message
 from src.exceptions.service_exceptions import IncorrectedAmountSale, IncorrectedCostPrice, \
     IncorrectedNumberButton
 from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category_update_data

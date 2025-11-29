@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 
-from src.bot_actions.actions import send_message, edit_message
+from src.bot_actions.messages import send_message, edit_message
 from src.middlewares.aiogram_middleware import I18nKeyFilter
 from src.modules.admin_actions.keyboard_main import main_admin_kb
 from src.services.database.admins.actions import check_admin

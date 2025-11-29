@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
 
-from src.bot_actions.actions import edit_message
+from src.bot_actions.messages import edit_message
 from src.modules.profile.keyboard_profile import wallet_transactions_kb
 from src.modules.profile.services.profile_message import message_show_transaction
 from src.services.database.users.models import Users

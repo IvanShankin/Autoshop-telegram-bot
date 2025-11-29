@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src.bot_actions.actions import edit_message, send_message
+from src.bot_actions.messages import edit_message, send_message
 from src.bot_actions.checking_data import checking_availability_money, checking_correctness_number
 from src.exceptions.service_exceptions import UserNotFound, NotEnoughMoney
 from src.modules.profile.keyboard_profile import balance_transfer_kb, \

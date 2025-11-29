@@ -19,7 +19,7 @@ from src.services.database.users.actions import update_user, get_user
 from src.services.database.users.models import WalletTransaction, UserAuditLogs, Users
 from src.utils.codes import generate_code
 from src.utils.i18n import get_text
-from src.bot_actions.actions import send_log
+from src.bot_actions.messages import send_log
 
 
 async def get_valid_voucher_by_user_page(user_id: int, page: int = None, page_size: int = PAGE_SIZE) -> List[SmallVoucher]:

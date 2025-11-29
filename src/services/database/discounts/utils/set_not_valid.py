@@ -10,7 +10,7 @@ from src.services.database.discounts.utils.sending import send_set_not_valid_vou
 from src.services.database.users.actions import get_user
 from src.utils.core_logger import logger
 from src.utils.i18n import get_text
-from src.bot_actions.actions import send_log
+from src.bot_actions.messages import send_log
 
 
 async def _set_not_valid_promo_code() -> None:

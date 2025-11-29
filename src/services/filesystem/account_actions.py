@@ -4,7 +4,7 @@ import shutil
 from pathlib import Path
 from typing import AsyncGenerator
 
-from src.bot_actions.actions import send_log
+from src.bot_actions.messages import send_log
 from src.config import ACCOUNTS_DIR
 from src.services.database.selling_accounts.models import AccountStorage, AccountStoragePydentic
 from src.services.filesystem.actions import move_file

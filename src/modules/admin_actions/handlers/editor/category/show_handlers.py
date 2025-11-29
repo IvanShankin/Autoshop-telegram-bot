@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from src.bot_actions.actions import edit_message, send_message
+from src.bot_actions.messages import edit_message, send_message
 from src.modules.admin_actions.handlers.editor.keyboard import show_account_category_admin_kb, change_category_data_kb
 from src.modules.admin_actions.services.editor.category_loader import safe_get_category
 from src.services.database.system.actions import get_ui_image

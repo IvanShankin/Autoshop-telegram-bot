@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src.bot_actions.actions import send_message
+from src.bot_actions.messages import send_message
 from src.config import ALLOWED_LANGS, DEFAULT_LANG
 from src.exceptions.service_exceptions import AccountCategoryNotFound, \
     TheCategoryStorageAccount

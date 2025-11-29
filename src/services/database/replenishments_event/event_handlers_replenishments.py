@@ -1,5 +1,4 @@
 from datetime import datetime
-from aiogram.exceptions import TelegramForbiddenError
 from sqlalchemy import update, select
 
 from src.broker.producer import publish_event
@@ -12,7 +11,7 @@ from src.utils.i18n import  get_text, n_get_text
 from src.modules.keyboard_main import support_kb
 from src.services.database.replenishments_event.schemas import ReplenishmentCompleted, ReplenishmentFailed
 from src.utils.core_logger import logger
-from src.bot_actions.actions import send_log, send_message
+from src.bot_actions.messages import send_log, send_message
 
 
 async def replenishment_event_handler(event):

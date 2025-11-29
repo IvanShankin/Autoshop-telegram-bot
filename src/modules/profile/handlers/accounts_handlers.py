@@ -3,7 +3,7 @@ from typing import Any, Literal
 from aiogram import Router, F
 from aiogram.types import CallbackQuery, FSInputFile
 
-from src.bot_actions.actions import edit_message, send_message
+from src.bot_actions.messages import edit_message, send_message
 from src.bot_actions.bot_instance import get_bot
 from src.config import DT_FORMAT, DEFAULT_LANG
 from src.modules.profile.keyboard_profile import services_sold_accounts_kb, sold_accounts_kb, account_kb, \

@@ -1,10 +1,7 @@
-import io
-import os
-
 from aiogram import Router, F
-from aiogram.types import CallbackQuery, FSInputFile, BufferedInputFile
+from aiogram.types import CallbackQuery, BufferedInputFile
 
-from src.bot_actions.actions import edit_message
+from src.bot_actions.messages import edit_message
 from src.bot_actions.bot_instance import get_bot
 from src.modules.profile.keyboard_profile import ref_system_kb, accrual_ref_list_kb
 from src.modules.profile.services.profile_message import message_income_ref

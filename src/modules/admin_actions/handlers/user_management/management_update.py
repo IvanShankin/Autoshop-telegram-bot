@@ -2,7 +2,7 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src.bot_actions.actions import send_message, edit_message
+from src.bot_actions.messages import send_message, edit_message
 from src.modules.admin_actions.handlers.user_management.keyboard import back_in_user_management_kb, \
     confirm_remove_ban_kb
 from src.modules.admin_actions.schemas.user_management import SetNewBalanceData, IssueBanData

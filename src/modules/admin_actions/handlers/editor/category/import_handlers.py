@@ -6,7 +6,7 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, FSInputFile, BufferedInputFile
 
-from src.bot_actions.actions import edit_message, send_message, send_log
+from src.bot_actions.messages import edit_message, send_message, send_log
 from src.bot_actions.bot_instance import get_bot
 from src.config import SUPPORTED_ARCHIVE_EXTENSIONS, \
     TEMP_FILE_DIR

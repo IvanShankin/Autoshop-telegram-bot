@@ -1,6 +1,5 @@
 import importlib
 import os
-import pathlib
 import shutil
 import sys
 import types
@@ -68,8 +67,10 @@ async def replacement_fake_bot(monkeypatch):
     # Подменяем модуль в sys.modules
     monkeypatch.setitem(sys.modules, "src.bot_actions.bot_instance", fake_module)
 
-    import src.bot_actions.actions
-    importlib.reload(src.bot_actions.actions)
+    import src.bot_actions.messages
+    importlib.reload(src.bot_actions.messages)
+    importlib.reload(src.bot_actions.messages.edit)
+    importlib.reload(src.bot_actions.messages.send)
 
     # Очищаем сообщения перед каждым тестом
     fake_bot.sent.clear()

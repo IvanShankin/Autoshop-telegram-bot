@@ -1,4 +1,4 @@
-from src.bot_actions.actions import send_message
+from src.bot_actions.messages import send_message
 from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_text
 

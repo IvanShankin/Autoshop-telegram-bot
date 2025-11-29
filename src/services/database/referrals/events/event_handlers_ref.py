@@ -13,7 +13,7 @@ from src.services.database.referrals.actions import get_referral_lvl
 from src.services.database.referrals.models.models_ref import Referrals, IncomeFromReferrals
 from src.services.database.replenishments_event.schemas import ReplenishmentCompleted
 from src.utils.core_logger import logger
-from src.bot_actions.actions import send_log
+from src.bot_actions.messages import send_log
 
 async def referral_event_handler(event):
     payload = event["payload"]

@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src.bot_actions.actions import edit_message, send_message
+from src.bot_actions.messages import edit_message, send_message
 from src.bot_actions.checking_data import checking_correctness_number
 from src.config import PAYMENT_LIFETIME_SECONDS, MIN_MAX_REPLENISHMENT
 from src.modules.profile.keyboard_profile import type_replenishment_kb, back_in_type_replenishment_kb, payment_invoice

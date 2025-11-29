@@ -2,7 +2,7 @@ from typing import Any, AsyncGenerator
 
 from aiogram.types import Message
 
-from src.bot_actions.actions import edit_message, send_message
+from src.bot_actions.messages import edit_message, send_message
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
 

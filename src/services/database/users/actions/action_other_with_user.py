@@ -17,7 +17,7 @@ from src.services.database.users.models import Users, NotificationSettings, Bann
 from src.services.database.core.database import get_db
 from src.services.redis.core_redis import get_redis
 from src.services.redis.time_storage import TIME_USER, TIME_SUBSCRIPTION_PROMPT
-from src.bot_actions.actions import send_log
+from src.bot_actions.messages import send_log
 from src.utils.core_logger import logger
 
 

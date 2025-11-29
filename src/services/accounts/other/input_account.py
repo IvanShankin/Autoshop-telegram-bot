@@ -2,7 +2,7 @@ import csv
 import io
 from typing import List, Tuple
 
-from src.bot_actions.actions import send_log
+from src.bot_actions.messages import send_log
 from src.exceptions.service_exceptions import InvalidFormatRows, CategoryNotFound, TheCategoryNotStorageAccount
 from src.services.accounts.other.shemas import AccountImportData, ImportResult, REQUIRED_HEADERS
 from src.services.accounts.utils.helper_imports import get_unique_among_db

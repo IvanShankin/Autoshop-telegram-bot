@@ -85,8 +85,8 @@ async def handler_new_activate_promo_code(new_activate: NewActivatePromoCode):
             new_user_log= UserAuditLogs(
                 user_id=new_activate.user_id,
                 action_type="new_activate_promo_code",
+                message='Пользователь активировал промокод',
                 details={
-                    "message": 'Пользователь активировал промокод',
                     "promo_code_id": new_activate.promo_code_id,
                 },
             )

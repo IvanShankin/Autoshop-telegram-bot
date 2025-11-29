@@ -134,8 +134,8 @@ async def admin_update_user_balance(admin_id: int, target_user_id: int, new_bala
         new_log = UserAuditLogs(
             user_id=target_user_id,
             action_type="admin_update_balance",
+            message="Админ изменил баланс пользователю",
             details={
-                "message": "Админ изменил баланс пользователю",
                 "wallet_transaction_id": new_transaction.wallet_transaction_id,
                 "admin_action_id": new_admin_action.admin_action_id,
             }

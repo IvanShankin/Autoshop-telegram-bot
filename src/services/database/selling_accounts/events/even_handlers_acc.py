@@ -31,6 +31,7 @@ async def handler_new_purchase(new_purchase: NewPurchaseAccount):
         new_log = UserAuditLogs(
             user_id= new_purchase.user_id,
             action_type = "purchase_account",
+            message="Пользователь купил аккаунт",
             details = {
                 "id_account_storage": account_data.id_account_storage,
                 "id_new_sold_account": account_data.id_new_sold_account,

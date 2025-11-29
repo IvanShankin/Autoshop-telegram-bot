@@ -180,8 +180,8 @@ async def create_voucher(
             new_user_log = UserAuditLogs(
                 user_id=user.user_id,
                 action_type="create_voucher",
+                message='Пользователь создал ваучер',
                 details={
-                    "message": 'Пользователь создал ваучер',
                     "voucher_id": new_voucher.voucher_id,
                 },
             )
@@ -275,16 +275,16 @@ async def deactivate_voucher(voucher_id: int) -> int:
             new_user_log_1 = UserAuditLogs(
                 user_id=user.user_id,
                 action_type="deactivate_voucher",
+                message="Ваучер деактивировался",
                 details={
-                    'message': "Ваучер деактивировался",
                     'voucher_id': voucher_id,
                 },
             )
             new_user_log_2 = UserAuditLogs(
                 user_id=user.user_id,
                 action_type="return_money_from_vouchers",
+                message='Пользователю вернулись деньги за ваучер который деактивировался',
                 details={
-                    "message": 'Пользователю вернулись деньги за ваучер который деактивировался',
                     "amount": refund_amount,
                     'voucher_id': voucher_id,
                     "transaction_id": new_wallet_transaction.wallet_transaction_id

@@ -38,7 +38,8 @@ async def add_new_user(user_id: int, username: str, language: str = 'ru') -> Use
     )
     new_log = UserAuditLogs(
         user_id=user_id,
-        action_type = "new_user"
+        action_type="new_user",
+        message="Пользователь зарегистрировался в боте"
     )
     async with get_db() as session_db:
         session_db.add(user)
@@ -248,8 +249,8 @@ async def money_transfer(sender_id: int, recipient_id: int, amount: int):
             log_sender = UserAuditLogs(
                 user_id = sender_id,
                 action_type = "transfer",
-                details = {
-                    'message': 'Пользователь отправил средства',
+                message='Пользователь отправил средства',
+                details={
                     'transfer_money_id': transfer.transfer_money_id,
                     "recipient_id": recipient_id,
                     'amount': amount
@@ -258,8 +259,8 @@ async def money_transfer(sender_id: int, recipient_id: int, amount: int):
             log_recipient = UserAuditLogs(
                 user_id=recipient_id,
                 action_type="transfer",
+                message='Пользователь получил средства',
                 details={
-                    'message': 'Пользователь получил средства',
                     'transfer_money_id': transfer.transfer_money_id,
                     "sender_id": sender_id,
                     'amount': amount
@@ -347,5 +348,9 @@ async def update_replenishment(
 
 async def get_all_user_audit_logs(user_id: int) -> List[UserAuditLogs]:
     async with get_db() as session_db:
-        result_db = await session_db.execute(select(UserAuditLogs).where(UserAuditLogs.user_id == user_id))
+        result_db = await session_db.execute(
+            select(UserAuditLogs)
+            .where(UserAuditLogs.user_id == user_id)
+            .order_by(UserAuditLogs.created_at.desc())
+        )
         return result_db.scalars().all()

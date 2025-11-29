@@ -87,16 +87,16 @@ async def add_referral(referral_id: int, owner_id: int):
     new_log_1 = UserAuditLogs(
         user_id = owner_id,
         action_type = 'new_referral',
-        details = {
-            'message': 'У пользователя новый реферал',
+        message='У пользователя новый реферал',
+        details={
             'referral_id': referral_id,
         }
     )
     new_log_2 = UserAuditLogs(
         user_id=referral_id,
         action_type='became_referral',
+        message='Пользователь стал рефералом',
         details={
-            'message': 'Пользователь стал рефералом',
             'owner_id': owner_id,
         }
     )

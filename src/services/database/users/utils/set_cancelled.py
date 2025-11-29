@@ -26,8 +26,8 @@ async def _set_cancelled_replenishment():
             log = UserAuditLogs(
                 user_id=rep.user_id,
                 action_type="deactivate_replenishment",
+                message='Счёт для пополнения автоматически отменён из-за истечения его срока годности',
                 details={
-                    "message": 'Счёт для пополнения автоматически отменён из-за истечения его срока годности',
                     "amount": rep.amount,
                     "replenishments_id": rep.replenishment_id,
                 },

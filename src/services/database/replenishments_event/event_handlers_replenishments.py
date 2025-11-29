@@ -72,16 +72,22 @@ async def handler_new_replenishment(new_replenishment: NewReplenishment):
 
             # обновление связанных таблиц
             new_wallet_transaction = WalletTransaction(
-                user_id = new_replenishment.user_id,
-                type = 'replenish',
-                amount = new_replenishment.amount,
-                balance_before = updated_user.balance - new_replenishment.amount,
-                balance_after = updated_user.balance ,
+                user_id=new_replenishment.user_id,
+                type='replenish',
+                amount=new_replenishment.amount,
+                balance_before=updated_user.balance - new_replenishment.amount,
+                balance_after=updated_user.balance ,
             )
             new_log = UserAuditLogs(
-                user_id = new_replenishment.user_id,
-                action_type = 'replenish',
-                details = {'amount': new_replenishment.amount,'new_balance': updated_user.balance }
+                user_id=new_replenishment.user_id,
+                action_type='replenish',
+                message="Пользователь пополнили баланс",
+                details={
+                    "replenishment_id": new_replenishment.replenishment_id,
+                    "wallet_transaction_id": new_wallet_transaction.wallet_transaction_id,
+                    "amount": new_replenishment.amount,
+                    "new_balance": updated_user.balance
+                }
             )
 
             session_db.add(new_wallet_transaction)

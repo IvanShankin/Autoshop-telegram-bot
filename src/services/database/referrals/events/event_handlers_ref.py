@@ -85,6 +85,7 @@ async def handler_new_income_referral(new_replenishment: ReplenishmentCompleted)
                 amount=income_amount,
                 percentage_of_replenishment=percent_current_lvl,
             )
+            session_db.add(new_income)
 
             new_trans = WalletTransaction(
                 user_id=owner.user_id,
@@ -93,13 +94,18 @@ async def handler_new_income_referral(new_replenishment: ReplenishmentCompleted)
                 balance_before=owner.balance - income_amount,
                 balance_after=owner.balance
             )
+            session_db.add(new_trans)
 
+            await session_db.flush()
             new_log = UserAuditLogs(
                 user_id=owner.user_id,
-                action_type = 'profit from referral'
+                action_type = 'profit from referral',
+                message="Пользователь получил средства за пополнения от своего реферала",
+                details={
+                    "income_from_referral_id": new_income.income_from_referral_id,
+                    "wallet_transaction_id": new_trans.wallet_transaction_id
+                }
             )
-            session_db.add(new_income)
-            session_db.add(new_trans)
             session_db.add(new_log)
             await session_db.commit()
 

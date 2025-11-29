@@ -64,8 +64,8 @@ async def handler_new_activated_voucher(new_activation_voucher: NewActivationVou
             new_user_log = UserAuditLogs(
                 user_id=new_activation_voucher.user_id,
                 action_type="activated_voucher",
+                message="Ваучер активирован",
                 details= {
-                    "message": "Ваучер активирован",
                     "voucher_id": voucher.voucher_id,
                     "amount": new_activation_voucher.amount
                 }

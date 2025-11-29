@@ -136,6 +136,7 @@ class UserAuditLogs(Base):
     user_audit_log_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)  # Кто совершил действие
     action_type = Column(String(200), nullable=False)  # Тип действия (может быть любое)
+    message = Column(String(500), nullable=False) # сообщение о том что произошло
     details = Column(JSON, nullable=True)  # Гибкое поле для любых деталей
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

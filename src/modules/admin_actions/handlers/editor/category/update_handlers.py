@@ -13,10 +13,10 @@ from src.modules.admin_actions.keyboards import to_services_kb, select_lang_cate
     back_in_category_update_data_kb
 from src.modules.admin_actions.schemas.editor_categories import UpdateNameForCategoryData, \
     UpdateDescriptionForCategoryData, UpdateCategoryOnlyId
-from src.modules.admin_actions.services.editor.category_loader import safe_get_category
-from src.modules.admin_actions.services.editor.category_updater import update_data
-from src.modules.admin_actions.services.editor.category_utils import update_message_query_data
-from src.modules.admin_actions.services.editor.upload_accounts import upload_account
+from src.modules.admin_actions.services import safe_get_category
+from src.modules.admin_actions.services import update_data
+from src.modules.admin_actions.services import update_message_query_data
+from src.modules.admin_actions.services import upload_account
 from src.modules.admin_actions.state.editor_categories import UpdateNameForCategory, \
     UpdateDescriptionForCategory, UpdateCategoryImage, UpdateNumberInCategory
 from src.services.database.selling_accounts.actions import update_account_category, \

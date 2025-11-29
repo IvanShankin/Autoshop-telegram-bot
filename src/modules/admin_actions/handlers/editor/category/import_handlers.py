@@ -14,10 +14,10 @@ from src.exceptions.service_exceptions import TypeAccountServiceNotFound, Invali
 from src.modules.admin_actions.keyboards import back_in_category_kb, \
     name_or_description_kb
 from src.modules.admin_actions.schemas.editor_categories import ImportAccountsData
-from src.modules.admin_actions.services.editor.category_loader import safe_get_category, service_not_found, \
+from src.modules.admin_actions.services import safe_get_category, service_not_found, \
     safe_get_service_name
-from src.modules.admin_actions.services.editor.category_messages import message_info_load_file, make_result_msg
-from src.modules.admin_actions.services.editor.category_validator import check_valid_file, check_category_is_acc_storage
+from src.modules.admin_actions.services import message_info_load_file, make_result_msg
+from src.modules.admin_actions.services import check_valid_file, check_category_is_acc_storage
 from src.modules.admin_actions.state.editor_categories import ImportTgAccounts, ImportOtherAccounts
 from src.services.accounts.other.input_account import input_other_account
 from src.services.accounts.tg.input_account import import_telegram_accounts_from_archive

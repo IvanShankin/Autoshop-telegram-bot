@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.messages import edit_message, send_message
 from src.exceptions.service_exceptions import ServiceTypeBusy, ServiceContainsCategories
-from src.modules.admin_actions.services.editor.service_validator import show_service
+from src.modules.admin_actions.services import show_service
 from src.modules.admin_actions.keyboards import all_services_account_admin_kb, all_services_types_kb, \
     to_services_kb,  back_in_service_kb, delete_service_kb
 from src.modules.admin_actions.schemas.editor_categories import GetServiceNameData, RenameServiceData
@@ -35,7 +35,7 @@ async def add_account_service(callback: CallbackQuery, user: Users):
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
-        message=get_text(user.language, "admins_editor","Select service type"),
+        message=get_text(user.language, "admins_editor","Select service_acc type"),
         reply_markup=await all_services_types_kb(user.language)
     )
 
@@ -46,7 +46,7 @@ async def select_type_service(callback: CallbackQuery, state: FSMContext, user: 
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
-        message=get_text(user.language, "admins_editor",'Enter a name for the new service')
+        message=get_text(user.language, "admins_editor",'Enter a name for the new service_acc')
     )
     await state.set_state(GetServiceName.service_name)
     await state.update_data(
@@ -60,7 +60,7 @@ async def get_service_name(message: Message, state: FSMContext, user: Users):
     try:
         await add_account_services(message.text, data.service_type_id)
     except ServiceTypeBusy:
-        await send_message(user.user_id, get_text(user.language, "admins_editor","Unable to create. This service type is in use"))
+        await send_message(user.user_id, get_text(user.language, "admins_editor","Unable to create. This service_acc type is in use"))
         return
 
     await send_message(user.user_id, get_text(user.language, "admins_editor","Service successfully created"), reply_markup=to_services_kb(user.language))
@@ -142,8 +142,8 @@ async def service_confirm_delete(callback: CallbackQuery, user: Users):
         message=get_text(
             user.language,
             "admins_editor",
-            "Are you sure you want to delete this service? \n\n"
-            "Before deleting, make sure that this service does not contain categories!"
+            "Are you sure you want to delete this service_acc? \n\n"
+            "Before deleting, make sure that this service_acc does not contain categories!"
         ),
         reply_markup=delete_service_kb(user.language, service_id)
     )
@@ -158,7 +158,7 @@ async def delete_acc_service(callback: CallbackQuery, user: Users):
         message = get_text(user.language, "admins_editor","Service successfully removed!")
         reply_markup = to_services_kb(user.language)
     except ServiceContainsCategories:
-        message = get_text(user.language, "admins_editor","The service has categories, delete them first")
+        message = get_text(user.language, "admins_editor","The service_acc has categories, delete them first")
         reply_markup = back_in_service_kb(user.language, service_id)
 
     await edit_message(

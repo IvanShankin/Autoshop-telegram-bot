@@ -119,7 +119,7 @@ async def message_ref_system(language: str) -> str:
         language,
         'referral_messages',
         "<b>1. How does the referral system work?\n</b>"
-        "When you invite a friend (your referral) to our service, you receive a percentage of each deposit.\n"
+        "When you invite a friend (your referral) to our service_acc, you receive a percentage of each deposit.\n"
         "The more your referral deposits, the higher their «level» becomes, and the higher the percentage you receive.\n\n"
         "<b>2. How do I invite a friend?\n</b>"
         "Go to the «Profile» section and find your unique referral link there. Simply share it with your friends.\n"

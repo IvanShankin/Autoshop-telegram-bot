@@ -7,8 +7,8 @@ from src.exceptions.service_exceptions import AccountCategoryNotFound, \
 from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category
 from src.modules.admin_actions.keyboards import to_services_kb, delete_category_kb, back_in_category_kb, \
     delete_accounts_kb
-from src.modules.admin_actions.services.editor.category_loader import safe_get_category
-from src.modules.admin_actions.services.editor.upload_accounts import upload_account
+from src.modules.admin_actions.services import safe_get_category
+from src.modules.admin_actions.services import upload_account
 from src.services.database.selling_accounts.actions.actions_delete import delete_account_category, \
     delete_product_accounts_by_category
 from src.services.database.users.models import Users

@@ -8,9 +8,8 @@ from src.exceptions.service_exceptions import AccountCategoryNotFound, \
     TheCategoryStorageAccount
 from src.modules.admin_actions.keyboards import to_services_kb, back_in_category_kb
 from src.modules.admin_actions.schemas.editor_categories import GetDataForCategoryData
-from src.modules.admin_actions.services.editor.category_loader import safe_get_category
-from src.modules.admin_actions.services.editor.category_utils import set_state_create_category, \
-    name_input_prompt_by_language
+from src.modules.admin_actions.services import safe_get_category
+from src.modules.admin_actions.services import set_state_create_category, name_input_prompt_by_language
 from src.modules.admin_actions.state.editor_categories import GetDataForCategory
 from src.services.database.selling_accounts.actions import add_account_category, \
     add_translation_in_account_category

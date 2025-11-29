@@ -21,6 +21,7 @@ from src.utils.ui_images_data import UI_SECTIONS
 def _check_file_exists(ui_image: UiImages) -> UiImages | None:
     return ui_image if os.path.exists(ui_image.file_path) else None
 
+
 async def get_settings() -> Settings:
     async with get_redis() as session_redis:
         redis_data = await session_redis.get(f'settings')
@@ -39,6 +40,7 @@ async def get_settings() -> Settings:
             else:
                 await filling_settings()
                 return await get_settings()
+
 
 async def update_settings(
     maintenance_mode: bool = None,
@@ -84,6 +86,7 @@ async def update_settings(
             )
         return settings
     return None
+
 
 async def create_ui_image(key: str, file_data: bytes, show: bool = True) -> UiImages:
     """
@@ -142,11 +145,13 @@ async def get_ui_image(key: str) -> UiImages | None:
             return _check_file_exists(ui_image)
         return None
 
+
 async def get_all_ui_images() -> List[UiImages] | None:
     """Вернёт все записи в таблице UiImage"""
     async with get_db() as session_db:
         result_db = await session_db.execute(select(UiImages))
         return result_db.scalars().all()
+
 
 async def update_ui_image(key: str, show: bool, file_id: str | None = None) -> UiImages | None:
     async with get_db() as session_db:
@@ -161,6 +166,7 @@ async def update_ui_image(key: str, show: bool, file_id: str | None = None) -> U
         if result:
             await filling_ui_image(key) # обновление redis
         return result
+
 
 async def delete_ui_image(key: str) -> UiImages | None:
     """
@@ -184,7 +190,6 @@ async def delete_ui_image(key: str) -> UiImages | None:
         await session_redis.delete(f'ui_image:{key}')
 
     return deleted_ui_image
-
 
 
 async def get_all_types_payments() -> List[TypePayments]:
@@ -219,6 +224,7 @@ async def get_type_payment(type_payment_id: int) -> TypePayments | None:
         if type_payment:
             await filling_types_payments_by_id(type_payment_id)
         return type_payment
+
 
 async def update_type_payment(
     type_payment_id: int,

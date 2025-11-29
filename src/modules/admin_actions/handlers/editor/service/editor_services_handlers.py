@@ -7,7 +7,7 @@ from aiogram.types import CallbackQuery, Message
 from src.bot_actions.messages import edit_message, send_message
 from src.exceptions.service_exceptions import ServiceTypeBusy, ServiceContainsCategories
 from src.modules.admin_actions.services.editor.service_validator import show_service
-from src.modules.admin_actions.handlers.editor.keyboard import all_services_account_admin_kb, all_services_types_kb, \
+from src.modules.admin_actions.keyboards import all_services_account_admin_kb, all_services_types_kb, \
     to_services_kb,  back_in_service_kb, delete_service_kb
 from src.modules.admin_actions.schemas.editor_categories import GetServiceNameData, RenameServiceData
 from src.modules.admin_actions.state.editor_categories import GetServiceName, RenameService
@@ -20,7 +20,7 @@ from src.utils.i18n import  get_text
 router = Router()
 
 
-@router.callback_query(F.data == "category_editor")
+@router.callback_query(F.data == "services_editor")
 async def show_catalog_services_accounts(callback: CallbackQuery, user: Users):
     await edit_message(
         chat_id=callback.from_user.id,

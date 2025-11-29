@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.messages import send_message, edit_message
-from src.modules.admin_actions.handlers.user_management.keyboard import back_in_user_management_kb, \
+from src.modules.admin_actions.keyboards import back_in_user_management_kb, \
     confirm_remove_ban_kb
 from src.modules.admin_actions.schemas.user_management import SetNewBalanceData, IssueBanData
 from src.modules.admin_actions.state.user_management import SetNewBalance, IssueBan

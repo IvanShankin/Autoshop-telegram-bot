@@ -267,3 +267,16 @@ msgstr "История начисления рефералов"
 msgid "Active vouchers"
 msgstr "Активные ваучеры"
 
+msgid "{indicator} maintenance mode"
+msgstr "{indicator} Технические работы"
+
+msgstr "Images"
+msgstr "Изображения"
+
+msgstr "Services and Categories"
+msgstr "Сервисы и категории"
+
+msgstr "Replenishments"
+msgstr "Пополнения"
+
+

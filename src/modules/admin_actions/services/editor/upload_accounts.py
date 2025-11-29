@@ -5,7 +5,7 @@ from src.bot_actions.bot_instance import get_bot
 from src.exceptions.service_exceptions import ProductAccountNotFound
 from src.modules.admin_actions.services.editor.category_loader import service_not_found, \
     safe_get_service_name
-from src.modules.admin_actions.handlers.editor.keyboard import back_in_category_kb
+from src.modules.admin_actions.keyboards import back_in_category_kb
 from src.services.accounts.other.upload_account import upload_other_account
 from src.services.accounts.tg.upload_account import upload_tg_account
 from src.services.database.selling_accounts.models import AccountCategoryFull

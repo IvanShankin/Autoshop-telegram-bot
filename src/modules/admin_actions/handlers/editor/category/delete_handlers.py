@@ -5,7 +5,7 @@ from src.bot_actions.messages import edit_message
 from src.exceptions.service_exceptions import AccountCategoryNotFound, \
     TheCategoryStorageAccount, CategoryStoresSubcategories
 from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category
-from src.modules.admin_actions.handlers.editor.keyboard import to_services_kb, delete_category_kb, back_in_category_kb, \
+from src.modules.admin_actions.keyboards import to_services_kb, delete_category_kb, back_in_category_kb, \
     delete_accounts_kb
 from src.modules.admin_actions.services.editor.category_loader import safe_get_category
 from src.modules.admin_actions.services.editor.upload_accounts import upload_account

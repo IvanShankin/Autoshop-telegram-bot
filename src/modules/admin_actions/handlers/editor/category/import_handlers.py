@@ -11,7 +11,7 @@ from src.bot_actions.bot_instance import get_bot
 from src.config import SUPPORTED_ARCHIVE_EXTENSIONS, \
     TEMP_FILE_DIR
 from src.exceptions.service_exceptions import TypeAccountServiceNotFound, InvalidFormatRows
-from src.modules.admin_actions.handlers.editor.keyboard import back_in_category_kb, \
+from src.modules.admin_actions.keyboards import back_in_category_kb, \
     name_or_description_kb
 from src.modules.admin_actions.schemas.editor_categories import ImportAccountsData
 from src.modules.admin_actions.services.editor.category_loader import safe_get_category, service_not_found, \

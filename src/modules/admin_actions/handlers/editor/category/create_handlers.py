@@ -6,7 +6,7 @@ from src.bot_actions.messages import send_message
 from src.config import ALLOWED_LANGS, DEFAULT_LANG
 from src.exceptions.service_exceptions import AccountCategoryNotFound, \
     TheCategoryStorageAccount
-from src.modules.admin_actions.handlers.editor.keyboard import to_services_kb, back_in_category_kb
+from src.modules.admin_actions.keyboards import to_services_kb, back_in_category_kb
 from src.modules.admin_actions.schemas.editor_categories import GetDataForCategoryData
 from src.modules.admin_actions.services.editor.category_loader import safe_get_category
 from src.modules.admin_actions.services.editor.category_utils import set_state_create_category, \

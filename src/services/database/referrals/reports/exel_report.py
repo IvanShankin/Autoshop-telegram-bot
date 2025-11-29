@@ -1,8 +1,8 @@
-import os
+import io
 from datetime import datetime
 import pandas as pd
 
-from src.config import DT_FORMAT, TEMP_FILE_DIR
+from src.config import DT_FORMAT
 from src.services.database.referrals.actions.actions_ref import get_all_referrals, get_referral_income_page
 from src.services.database.users.actions import get_user
 from src.utils.i18n import get_text
@@ -14,15 +14,17 @@ def _strip_tz(value: datetime) -> str:
         value = value.replace(tzinfo=None)
     return value.strftime(DT_FORMAT)
 
-async def generate_referral_report_exel(owner_user_id: int, language: str) -> str:
+
+async def generate_referral_report_excel(owner_user_id: int, language: str) -> bytes:
     """
-    Формирует файл с данными о рефералах. Файл не удаляется после создания.
-    :return Путь к файлу
+    Формирует Excel-отчёт в ОЗУ и возвращает байты файла.
     """
 
+    # Получаем данные
     referrals_orm = await get_all_referrals(owner_user_id)
     incomes_orm = await get_referral_income_page(owner_user_id)
 
+    # Подготовка списка рефералов
     referrals: list[dict] = []
     for referral in referrals_orm:
         referral_user = await get_user(referral.referral_id)
@@ -40,6 +42,7 @@ async def generate_referral_report_exel(owner_user_id: int, language: str) -> st
         new_dict[get_text(language, 'referral_report', 'Total brought')] = total_income
         referrals.append(new_dict)
 
+    # Подготовка списка доходов
     incomes: list[dict] = []
     for income in incomes_orm:
         new_dict = {}
@@ -58,51 +61,51 @@ async def generate_referral_report_exel(owner_user_id: int, language: str) -> st
     level2 = len([r for r in referrals_orm if r.level == 2])
 
     # Формируем excel
-    os.makedirs(TEMP_FILE_DIR, exist_ok=True)
-    temp_path = TEMP_FILE_DIR /  f"referrals_report_{owner_user_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    buffer = io.BytesIO()
 
-    with pd.ExcelWriter(temp_path, engine="openpyxl") as writer:
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         # блок 1 - служебная информация
         info_df = pd.DataFrame([
             [get_text(language, 'referral_report', 'Export date'), datetime.now().strftime(DT_FORMAT)],
-            [get_text(language, 'profile_messages', 'Owner ID'), owner_user_id],
-            [get_text(language, 'profile_messages', 'Total referrals'), total_referrals],
-            [get_text(language, 'profile_messages', 'Total income'), total_income],
-        ], columns=[get_text(language, 'profile_messages', 'Parameter'), get_text(language, 'profile_messages', 'Parameter')])
+            [get_text(language, 'referral_report', 'Owner ID'), owner_user_id],
+            [get_text(language, 'referral_report', 'Total referrals'), total_referrals],
+            [get_text(language, 'referral_report', 'Total income'), total_income],
+        ], columns=[get_text(language, 'referral_report', 'Parameter'), get_text(language, 'referral_report', 'Parameter')])
         info_df.to_excel(writer, index=False, sheet_name="referrals_report", startrow=0)
 
         startrow = len(info_df) + 2
 
         # блок 2 - список рефералов
         pd.DataFrame(referrals, columns=[
-            get_text(language, 'profile_messages', 'Referral ID'),
-            get_text(language, 'profile_messages', 'Referral username'),
-            get_text(language, 'profile_messages', 'Level'),
-            get_text(language, 'profile_messages', 'Join date'),
-            get_text(language, 'profile_messages', 'Total brought')
+            get_text(language, 'referral_report', 'Referral ID'),
+            get_text(language, 'referral_report', 'Referral username'),
+            get_text(language, 'referral_report', 'Level'),
+            get_text(language, 'referral_report', 'Join date'),
+            get_text(language, 'referral_report', 'Total brought')
         ]).to_excel(writer, index=False, sheet_name="referrals_report", startrow=startrow)
 
         startrow += len(referrals) + 3
 
         # блок 3 - детали начислений
         pd.DataFrame(incomes, columns=[
-            get_text(language, 'profile_messages', 'Deposit ID'),
-            get_text(language, 'profile_messages', 'Referral ID'),
-            get_text(language, 'profile_messages', 'Amount'),
-            get_text(language, 'profile_messages', 'Referral deposit percentage'),
-            get_text(language, 'profile_messages', 'Deposit date')
+            get_text(language, 'referral_report', 'Deposit ID'),
+            get_text(language, 'referral_report', 'Referral ID'),
+            get_text(language, 'referral_report', 'Amount'),
+            get_text(language, 'referral_report', 'Referral deposit percentage'),
+            get_text(language, 'referral_report', 'Deposit date')
         ]).to_excel(writer, index=False, sheet_name="referrals_report", startrow=startrow)
 
         startrow += len(incomes) + 3
 
         # блок 4 - статистика
         stats_df = pd.DataFrame([
-            [get_text(language, 'profile_messages', 'Total referrals'), total_referrals],
-            [get_text(language, 'profile_messages', 'Total income'), total_income],
-            [get_text(language, 'profile_messages', 'Level 1 referrals'), level1],
-            [get_text(language, 'profile_messages', 'Level 2 referrals'), level2],
-        ], columns=[get_text(language, 'profile_messages', 'Metric'), get_text(language, 'profile_messages', 'Value')])
+            [get_text(language, 'referral_report', 'Total referrals'), total_referrals],
+            [get_text(language, 'referral_report', 'Total income'), total_income],
+            [get_text(language, 'referral_report', 'Level 1 referrals'), level1],
+            [get_text(language, 'referral_report', 'Level 2 referrals'), level2],
+        ], columns=[get_text(language, 'referral_report', 'Metric'), get_text(language, 'referral_report', 'Value')])
         stats_df.to_excel(writer, index=False, sheet_name="referrals_report", startrow=startrow)
 
-    return temp_path
+    buffer.seek(0)
+    return buffer.getvalue()
 

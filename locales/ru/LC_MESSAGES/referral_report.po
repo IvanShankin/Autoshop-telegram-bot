@@ -23,23 +23,11 @@ msgstr "Дата выгрузки"
 msgid "Owner ID"
 msgstr "ID владельца"
 
-msgid "Total referrals"
-msgstr "Всего рефералов"
-
-msgid "Total income"
-msgstr "Всего дохода"
-
 
 # ---- Данные о рефералах ----
 
-msgid "Referral ID"
-msgstr "ID реферала"
-
 msgid "Referral username"
 msgstr "Юзернейм реферала"
-
-msgid "Level"
-msgstr "Уровень"
 
 msgid "Join date"
 msgstr "Дата прихода"
@@ -47,6 +35,8 @@ msgstr "Дата прихода"
 msgid "Total brought"
 msgstr "Всего принёс"
 
+msgid "Level"
+msgstr "Уровень"
 
 # ---- Данные о пополнениях ----
 
@@ -70,9 +60,6 @@ msgstr "Дата пополнения"
 
 msgid "Metric"
 msgstr "Метрика"
-
-msgid "Value"
-msgstr "Значение"
 
 msgid "Total referrals"
 msgstr "Рефералов всего"

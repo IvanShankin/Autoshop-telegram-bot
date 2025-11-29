@@ -1,14 +1,15 @@
+import io
 import os
 
 from aiogram import Router, F
-from aiogram.types import CallbackQuery, FSInputFile
+from aiogram.types import CallbackQuery, FSInputFile, BufferedInputFile
 
 from src.bot_actions.actions import edit_message
 from src.bot_actions.bot_instance import get_bot
 from src.modules.profile.keyboard_profile import ref_system_kb, accrual_ref_list_kb
 from src.modules.profile.services.profile_message import message_income_ref
 from src.services.database.referrals.actions.actions_ref import get_all_referrals, get_income_from_referral
-from src.services.database.referrals.reports import generate_referral_report_exel
+from src.services.database.referrals.reports import generate_referral_report_excel
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
 
@@ -94,12 +95,15 @@ async def detail_income_from_ref(callback: CallbackQuery, user: Users):
 @router.callback_query(F.data.startswith("download_ref_list:"))
 async def download_ref_list(callback: CallbackQuery, user: Users):
     user_id = int(callback.data.split(':')[1])
-    path = await generate_referral_report_exel(user_id, user.language)
+
+    bytes_data = await generate_referral_report_excel(user_id, user.language)
+    filename = f"referrals_{user_id}.xlsx"
 
     text = get_text(user.language, 'profile_messages','The file was successfully generated')
 
-    await callback.message.answer_document(FSInputFile(path))
+    await callback.message.answer_document(
+        document=BufferedInputFile(bytes_data, filename=filename)
+    )
     await callback.answer(text)
 
-    os.remove(path)
 

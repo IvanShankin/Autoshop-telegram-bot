@@ -308,17 +308,11 @@ def back_in_wallet_transactions_kb(language: str, target_user_id: int, currant_p
 # ---- Реферальная система ----
 
 async def ref_system_kb(language: str, user_id: int):
-    settings = await get_settings()
-
-    if not settings.linc_info_ref_system:
-        bot = await get_bot()
-        bot_me = await bot.me()
-        url = f'https://web.telegram.org/k/#@{bot_me.username}'
-    else:
-        url = settings.linc_info_ref_system
-
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Information'), url=url)],
+        [InlineKeyboardButton(
+            text=get_text(language, 'keyboard', 'Information'),
+            callback_data=f'ref_system_info',
+        )],
         [InlineKeyboardButton(
                 text=get_text(language, 'keyboard', 'Accrual history'),
                 callback_data=f'accrual_ref_list:{user_id}:1'
@@ -359,7 +353,7 @@ async def accrual_ref_list_kb(language: str, current_page: int, target_user_id: 
         back_callback=f"referral_system" if target_user_id == user_id else f"user_management:{target_user_id}",
     )
 
-async def back_in_accrual_ref_list_kb(language: str, current_page_id: int, target_user_id: int):
+def back_in_accrual_ref_list_kb(language: str, current_page_id: int, target_user_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
             text=get_text(language, 'keyboard', 'Back'),
@@ -367,6 +361,14 @@ async def back_in_accrual_ref_list_kb(language: str, current_page_id: int, targe
         )]
     ])
 
+
+def back_in_ref_system_kb(language: str):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text=get_text(language, 'keyboard', 'Back'),
+            callback_data=f'referral_system'
+        )]
+    ])
 
 # ---- Передача баланса ----
 

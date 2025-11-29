@@ -47,7 +47,6 @@ async def update_settings(
     channel_for_subscription_id: int = None,
     shop_name: str = None,
     channel_name: str = None,
-    linc_info_ref_system: str = None,
     api_id: int = None,
     api_hash: str = None,
     faq: str = None,
@@ -68,8 +67,6 @@ async def update_settings(
         update_data["shop_name"] = shop_name
     if channel_name is not None:
         update_data["channel_name"] = channel_name
-    if linc_info_ref_system is not None:
-        update_data["linc_info_ref_system"] = linc_info_ref_system
     if api_id is not None:
         update_data["api_id"] = api_id
     if api_hash is not None:

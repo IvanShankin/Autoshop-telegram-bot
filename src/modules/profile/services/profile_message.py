@@ -5,6 +5,7 @@ from src.bot_actions.bot_instance import get_bot
 from src.config import DT_FORMAT
 from src.modules.profile.keyboard_profile import back_in_wallet_transactions_kb, back_in_accrual_ref_list_kb
 from src.services.database.discounts.actions import get_valid_voucher_by_user_page
+from src.services.database.referrals.actions import get_referral_lvl
 from src.services.database.referrals.models import IncomeFromReferrals
 from src.services.database.users.actions import get_wallet_transaction, get_user
 from src.services.database.users.models import Users
@@ -109,5 +110,63 @@ async def message_income_ref(
         message_id=callback.message.message_id,
         message=text,
         image_key='history_income_from_referrals',
-        reply_markup= await back_in_accrual_ref_list_kb(language, current_page, income.owner_user_id)
+        reply_markup= back_in_accrual_ref_list_kb(language, current_page, income.owner_user_id)
     )
+
+
+async def message_ref_system(language: str) -> str:
+    text = get_text(
+        language,
+        'referral_messages',
+        "<b>1. How does the referral system work?\n</b>"
+        "When you invite a friend (your referral) to our service, you receive a percentage of each deposit.\n"
+        "The more your referral deposits, the higher their «level» becomes, and the higher the percentage you receive.\n\n"
+        "<b>2. How do I invite a friend?\n</b>"
+        "Go to the «Profile» section and find your unique referral link there. Simply share it with your friends.\n"
+        "As soon as the person who followed your link registers and makes their first deposit, they become your referral.\n\n"
+        "<b>3. How are rewards calculated?\n</b>"
+        "Rewards are calculated automatically for each deposit your referral makes.\n"
+        "The percentage you receive depends on the total amount accumulated by your referral.\n\n"
+        "<b>4. What are the levels and percentages?\n</b>"
+        "We've created a level system so you can earn more from your most active friends!\n"
+    )
+
+
+    ref_lvls = await get_referral_lvl()
+    length_list = len(ref_lvls)
+    for i in range(len(ref_lvls)):
+        if i == 0: # если это первый уровень
+            text += get_text(
+                language,
+                'referral_messages',
+                "\nLevel {number_lvl} (up to {amount_up_to}₽) → {percent}%% from top-ups"
+            ).format(
+                number_lvl=ref_lvls[i].level,
+                amount_up_to=ref_lvls[i + 1].amount_of_achievement,
+                percent=ref_lvls[i].percent
+            )
+
+        if i + 1 > length_list: # если есть после данного уровня ещё уровни
+            text += get_text(
+                language,
+                'referral_messages',
+                "\nLevel {number_lvl} (from {amount_from}₽ to {amount_up_to}₽) → {percent}%% of top-ups"
+            ).format(
+                number_lvl=ref_lvls[i].level,
+                amount_from=ref_lvls[i].amount_of_achievement,
+                amount_up_to=ref_lvls[i + 1].amount_of_achievement,
+                percent=ref_lvls[i].percent
+            )
+
+        if i + 1 == length_list: # если данный уровень последний
+            text += get_text(
+                language,
+                'referral_messages',
+                "\nLevel {number_lvl} (from {amount_from}₽) → {percent}%% of top-ups"
+            ).format(
+                number_lvl=ref_lvls[i].level,
+                amount_from=ref_lvls[i].amount_of_achievement,
+                percent=ref_lvls[i].percent
+            )
+
+    return text

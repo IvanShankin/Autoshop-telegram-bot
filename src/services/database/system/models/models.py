@@ -15,7 +15,6 @@ class Settings(Base):
     channel_for_subscription_url = Column(String(300), nullable=True) # опционально
     shop_name = Column(Text, nullable=True)
     channel_name = Column(Text, nullable=True)
-    linc_info_ref_system = Column(Text, nullable=True) # ссылка
     api_id = Column(Integer, nullable=True)
     api_hash = Column(Text, nullable=True)
     FAQ = Column(Text, nullable=True) # ссылка

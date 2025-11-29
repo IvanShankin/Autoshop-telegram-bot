@@ -14,7 +14,6 @@
     "channel_for_subscription_id": int,
     "shop_name": str,
     "channel_name": str,
-    "linc_info_ref_system": str,
     "api_id": int,
     "api_hash": str,
     "FAQ": str,

@@ -88,7 +88,7 @@ async def start_replenishment(message: Message, state: FSMContext, user: Users):
         )
         return
 
-    total_amount = user_data.amount * type_payment.commission // 100 if type_payment.commission else user_data.amount
+    total_amount = user_data.amount + (user_data.amount * type_payment.commission // 100) if type_payment.commission else user_data.amount
 
     if (MIN_MAX_REPLENISHMENT[type_payment.name_for_admin]['min'] > total_amount or
         MIN_MAX_REPLENISHMENT[type_payment.name_for_admin]['max'] < total_amount):
@@ -165,5 +165,7 @@ async def start_replenishment(message: Message, state: FSMContext, user: Users):
             image_key='server_error',
             reply_markup=back_in_type_replenishment_kb(user.language)
         )
+
+    await state.clear()
 
 

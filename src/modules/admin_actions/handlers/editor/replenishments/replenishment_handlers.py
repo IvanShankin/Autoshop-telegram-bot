@@ -73,7 +73,7 @@ async def edit_type_payment(callback: CallbackQuery, state: FSMContext, user: Us
 
 
 @router.callback_query(F.data.startswith("type_payment_rename:"))
-async def edit_type_payment(callback: CallbackQuery, state: FSMContext, user: Users):
+async def type_payment_rename(callback: CallbackQuery, state: FSMContext, user: Users):
     type_payment_id = int(callback.data.split(':')[1])
     await edit_message(
         chat_id=user.user_id,

@@ -6,7 +6,8 @@ def choice_editor_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=get_text(language, 'keyboard','Services and Categories'), callback_data=f'services_editor'),],
         [InlineKeyboardButton(text=get_text(language, 'keyboard',"Services replenishments"), callback_data=f'replenishment_editor'),],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard','Images'), callback_data=f'images_editor'),]
+        [InlineKeyboardButton(text=get_text(language, 'keyboard','Images'), callback_data=f'images_editor_list:1'),],
+        [InlineKeyboardButton(text=get_text(language, 'keyboard','Back'), callback_data=f'admin_panel'),]
     ])
 
 def back_in_choice_editor_kb(language: str):

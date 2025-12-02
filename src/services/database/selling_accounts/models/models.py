@@ -262,7 +262,7 @@ class SoldAccountsTranslation(Base):
     lang = Column(String(8), nullable=False)  # 'ru', 'en'
 
     name = Column(Text, nullable=False) # берётся с AccountCategories
-    description = Column(Text, nullable=False) # берётся с AccountCategories
+    description = Column(Text, nullable=True) # берётся с AccountCategories
 
     sold_account = relationship("SoldAccounts", back_populates="translations")
 
@@ -297,7 +297,7 @@ class DeletedAccounts(Base):
     account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id", ondelete="CASCADE"), nullable=False)
     type_account_service_id = Column(Integer, ForeignKey("type_account_services.type_account_service_id"), nullable=False)
     category_name = Column(Text, nullable=False)
-    description = Column(Text, nullable=False)
+    description = Column(Text, nullable=True)
 
     create_at = Column(DateTime(timezone=True), server_default=func.now())
 

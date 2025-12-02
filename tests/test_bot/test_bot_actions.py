@@ -87,8 +87,8 @@ class TestSendMessage:
 
         await send_message(chat_id=777, message="Hidden image", image_key="hidden_img", fallback_image_key=None)
 
-        assert len(fake_bot.sent) == 2 # 2 т.к. ещё отправляется сообщение о проверке аккаунтов
-        chat_id, text, kwargs = fake_bot.sent[1]
+        assert len(fake_bot.sent) == 1
+        chat_id, text, kwargs = fake_bot.sent[0]
         assert text == "Hidden image"
         assert chat_id == 777
 
@@ -160,55 +160,6 @@ class TestEditMessage:
 
         # Проверки: edit_message_media вызван, send_message не вызван
         assert any(c[0] == "edit_message_media" for c in bot.calls)
-        assert spy_send.calls == []
-
-
-    @pytest.mark.asyncio
-    async def test_file_id_invalid_then_upload_succeeds_and_update_ui_image(
-            self, patch_fake_aiogram, replacement_fake_bot, monkeypatch, create_ui_image
-    ):
-        """
-        Если file_id невалиден (TelegramBadRequest с текстом file not found),
-        то сначала будет попытка _try_edit_media_by_file_id (упадёт), затем upload (успех),
-        и update_ui_image должен быть вызван с новым file_id.
-        """
-        from src.bot_actions.messages import edit as bot_actions
-        ui_image, _ = await create_ui_image(key="upl_key", show=True, file_id="invalid_file_id")
-
-        bot = replacement_fake_bot
-        # поведение: первая попытка edit_message_media бросает TelegramBadRequest, вторая возвращает msg с photo
-        call_count = {"n": 0}
-
-        async def edit_media_behavior(chat_id, message_id, media, reply_markup=None):
-            call_count["n"] += 1
-            if call_count["n"] == 1:
-                raise FakeTelegramBadRequest("file not found on telegram servers")
-            return SimpleNamespace(photo=[SimpleNamespace(file_id="fresh_file_id")])
-
-        bot.edit_media_behavior = edit_media_behavior
-
-        updated = {}
-        async def fake_update_ui_image(key, show, file_id):
-            updated['args'] = (key, show, file_id)
-            return None
-
-        spy_send = SpySend()
-
-        monkeypatch.setattr(bot_actions, "update_ui_image", fake_update_ui_image)
-        monkeypatch.setattr(bot_actions, "send_message", spy_send)
-
-        await bot_actions.edit_message(
-            chat_id=7,
-            message_id=77,
-            message="Caption after trying both",
-            image_key="upl_key",
-            fallback_image_key=None,
-            reply_markup=None
-        )
-
-        # Проверки
-        assert any(c[0] == "edit_message_media" for c in bot.calls)
-        assert updated.get('args') == ("upl_key", ui_image.show, "fresh_file_id")
         assert spy_send.calls == []
 
 

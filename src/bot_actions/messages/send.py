@@ -6,15 +6,17 @@ from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboa
 from src.bot_actions.bot_instance import get_bot
 from src.services.database.system.actions import get_ui_image, update_ui_image
 from src.services.database.system.actions import get_settings
+from src.services.filesystem.actions import check_file_exists
 from src.utils.core_logger import logger
 
 
 async def send_message(
-        chat_id: int,
-        message: str = None,
-        image_key: str = None,
-        fallback_image_key: str = None,
-        reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | None = None
+    chat_id: int,
+    message: str = None,
+    image_key: str = None,
+    fallback_image_key: str = None,
+    reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | None = None,
+    always_show_photos: bool = False
 ) -> Message | None:
     """
     Отправит сообщение по-указанному chat_id, если есть image_key, то отправит фото с сообщением.
@@ -27,7 +29,7 @@ async def send_message(
     bot = await get_bot()
     if image_key:
         ui_image = await get_ui_image(image_key)
-        if ui_image and ui_image.show: # если есть изображение по данному пути и его можно показывать
+        if ui_image and (ui_image.show or always_show_photos): # если есть изображение по данному пути и его можно показывать
             try:
                 # Если уже есть file_id — отправляем без загрузки
                 if ui_image.file_id:
@@ -44,21 +46,43 @@ async def send_message(
                         if "file" in str(e).lower() or "not found" in str(e).lower():
                             logger.warning(f"[send_message] file_id недействителен для {ui_image.key}, переотправляем файл.")
 
-                # Иначе — отправляем файл с диска
-                photo = FSInputFile(ui_image.file_path)
-                msg = await bot.send_photo(
-                    chat_id=chat_id,
-                    photo=photo,
-                    caption=message,
-                    parse_mode="HTML",
-                    reply_markup=reply_markup
-                )
+                        if check_file_exists(ui_image.file_path):
+                            # отправляем файл с диска
+                            photo = FSInputFile(ui_image.file_path)
+                            msg = await bot.send_photo(
+                                chat_id=chat_id,
+                                photo=photo,
+                                caption=message,
+                                parse_mode="HTML",
+                                reply_markup=reply_markup
+                            )
 
-                # Сохраняем file_id для будущего использования
-                new_file_id = msg.photo[-1].file_id
-                await update_ui_image(key=ui_image.key, show=ui_image.show, file_id=new_file_id)
+                            # Сохраняем file_id для будущего использования
+                            new_file_id = msg.photo[-1].file_id
+                            await update_ui_image(key=ui_image.key, show=ui_image.show, file_id=new_file_id)
 
-                return msg
+                            return msg
+
+                elif check_file_exists(ui_image.file_path):
+                    # Иначе — отправляем файл с диска
+                    photo = FSInputFile(ui_image.file_path)
+                    msg = await bot.send_photo(
+                        chat_id=chat_id,
+                        photo=photo,
+                        caption=message,
+                        parse_mode="HTML",
+                        reply_markup=reply_markup
+                    )
+
+                    # Сохраняем file_id для будущего использования
+                    new_file_id = msg.photo[-1].file_id
+                    await update_ui_image(key=ui_image.key, show=ui_image.show, file_id=new_file_id)
+
+                    return msg
+                else:
+                    text = f"#Не_найдено_фото [edit_message]. \nget_ui_image='{image_key}'"
+                    logger.warning(text)
+                    await send_log(text)
 
             except Exception as e:
                 logger.exception(f"#Ошибка при отправке фото: {str(e)}")
@@ -80,7 +104,7 @@ async def send_message(
                         parse_mode="HTML",
                         reply_markup=reply_markup
                     )
-                else:
+                elif check_file_exists(ui_image.file_path):
                     photo = FSInputFile(ui_image.file_path)
                     msg = await bot.send_photo(chat_id, photo=photo, caption=message, parse_mode="HTML", reply_markup=reply_markup)
 
@@ -88,17 +112,25 @@ async def send_message(
                     new_file_id = msg.photo[-1].file_id
                     await update_ui_image(key=ui_image.key, show=ui_image.show, file_id=new_file_id)
                     return msg
+                else:
+                    text = f"#Не_найдено_фото [edit_message]. \nget_ui_image='{fallback_image_key}'"
+                    logger.warning(text)
+                    await send_log(text)
+
             if not ui_image:
                 await send_log(text) # лучше после отправки пользователю
-        else:
+        elif not ui_image:
             # если нет замены для фото
             text = f"#Не_найдено_фото [send_message]. \nget_ui_image='{image_key}'"
             logger.warning(text)
             await send_log(text)
 
     try:
-        if message:
-            return await bot.send_message(chat_id, text=message, parse_mode="HTML", reply_markup=reply_markup)
+        if not message:
+            message = "None"
+
+        return await bot.send_message(chat_id, text=message, parse_mode="HTML", reply_markup=reply_markup)
+
     except Exception as e:
         logger.exception(f"#Ошибка при отправке сообщения. Ошибка: {str(e)}")
 

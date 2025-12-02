@@ -10,6 +10,7 @@ from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboa
 from src.bot_actions.bot_instance import get_bot
 from src.bot_actions.messages import send_log, send_message
 from src.services.database.system.actions import get_ui_image, update_ui_image
+from src.services.filesystem.actions import check_file_exists
 from src.utils.core_logger import logger
 
 
@@ -111,6 +112,7 @@ async def _try_edit_media_by_file(
                         return True # успешно
 
         return False
+
     try:
         media = InputMediaPhoto(media=photo, caption=caption, parse_mode="HTML")
         msg = await bot.edit_message_media(chat_id=chat_id, message_id=message_id, media=media, reply_markup=reply_markup)
@@ -151,6 +153,9 @@ async def _try_edit_text(bot: Bot, chat_id: int, message_id: int, text: str, rep
       - None  => сообщение не изменилось (message is not modified) — это не ошибка, но менять не нужно
     """
     try:
+        if not text:
+            text = "None"
+
         await bot.edit_message_text(
             text=text,
             chat_id=chat_id,
@@ -186,44 +191,69 @@ async def edit_message(
     message: str = None,
     image_key: Optional[str] = None,
     fallback_image_key:  Optional[str] = None,
-    reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | None = None
+    reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | None = None,
+    always_show_photos: bool = False
 ):
     """
     Попытаться отредактировать сообщение. Если редактирование невозможно — отправить новое (через send_message).
+    :param always_show_photos: Будет показывать фото даже если стоит флаг Show == False
     """
     bot = await get_bot()
 
     # Если есть image_key — пробуем редактировать/заменить media
     if image_key:
         ui_image = await get_ui_image(image_key)
-        if ui_image and ui_image.show:
+        if ui_image and (ui_image.show or always_show_photos):
             # сначала file_id
             if ui_image.file_id:
                 ok = await _try_edit_media_by_file_id(bot, chat_id, message_id, ui_image.file_id, message, reply_markup)
                 if ok:
                     return  # успешно
+                # пробуем редактировать media с загрузкой файла
+                ok = await _try_edit_media_by_file(bot, chat_id, message_id, ui_image, message, reply_markup)
+                if ok:
+                    return  # успешно
+                # не удалось отредактировать — пробуем удалить старое и отправить новое
+                try:
+                    await bot.delete_message(chat_id=chat_id, message_id=message_id)
+                    logger.info(f"[edit_message] Deleted old message with media chat={chat_id} id={message_id}")
+                except Exception as e:
+                    logger.warning(f"[edit_message] Failed to delete old message before resend: {e}")
 
-            # пробуем редактировать media с загрузкой файла
-            ok = await _try_edit_media_by_file(bot, chat_id, message_id, ui_image, message, reply_markup)
-            if ok:
-                return  # успешно
-            # не удалось отредактировать — пробуем удалить старое и отправить новое
-            try:
-                await bot.delete_message(chat_id=chat_id, message_id=message_id)
-                logger.info(f"[edit_message] Deleted old message with media chat={chat_id} id={message_id}")
-            except Exception as e:
-                logger.warning(f"[edit_message] Failed to delete old message before resend: {e}")
+                await send_message(
+                    chat_id=chat_id,
+                    message=message,
+                    image_key=image_key,
+                    fallback_image_key=fallback_image_key,
+                    reply_markup=reply_markup
+                )
+                return
+            elif check_file_exists(ui_image.file_path):
+                # пробуем редактировать media с загрузкой файла
+                ok = await _try_edit_media_by_file(bot, chat_id, message_id, ui_image, message, reply_markup)
+                if ok:
+                    return  # успешно
+                # не удалось отредактировать — пробуем удалить старое и отправить новое
+                try:
+                    await bot.delete_message(chat_id=chat_id, message_id=message_id)
+                    logger.info(f"[edit_message] Deleted old message with media chat={chat_id} id={message_id}")
+                except Exception as e:
+                    logger.warning(f"[edit_message] Failed to delete old message before resend: {e}")
 
-            await send_message(
-                chat_id=chat_id,
-                message=message,
-                image_key=image_key,
-                fallback_image_key=fallback_image_key,
-                reply_markup=reply_markup
-            )
-            return
+                await send_message(
+                    chat_id=chat_id,
+                    message=message,
+                    image_key=image_key,
+                    fallback_image_key=fallback_image_key,
+                    reply_markup=reply_markup
+                )
+                return
+            else:
+                text = f"#Не_найдено_фото [edit_message]. \nget_ui_image='{image_key}'"
+                logger.warning(text)
+                await send_log(text)
 
-        # если не нашли ui_image или не надо отсылать его (not ui_image.show)
+                # если не нашли ui_image или не надо отсылать его (not ui_image.show)
         elif (not ui_image or ui_image and not ui_image.show) and fallback_image_key:
             text = ''
             if not ui_image:
@@ -239,17 +269,21 @@ async def edit_message(
                         if not ui_image:
                             await send_log(text)
                         return  # успешно
-                else:
+                elif check_file_exists(ui_image.file_path):
                     # пробуем редактировать media с загрузкой файла
                     ok = await _try_edit_media_by_file(bot, chat_id, message_id, ui_image, message, reply_markup)
                     if ok:
                         if not ui_image:
                             await send_log(text)
                         return  # успешно
+                else:
+                    text = f"#Не_найдено_фото [edit_message]. \nget_ui_image='{fallback_image_key}'"
+                    logger.warning(text)
+                    await send_log(text)
 
-                if not ui_image:
-                    await send_log(text)  # лучше после отправки пользователю
-        else:
+            else:
+                await send_log(text)
+        elif not ui_image:
             # если нет замены для фото
             text = f"#Не_найдено_фото [edit_message]. \nget_ui_image='{image_key}'"
             logger.warning(text)

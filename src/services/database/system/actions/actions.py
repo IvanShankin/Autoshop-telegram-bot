@@ -129,23 +129,6 @@ async def create_ui_image(key: str, file_data: bytes, show: bool = True) -> UiIm
         return ui_image
 
 
-async def get_ui_image(key: str) -> UiImages | None:
-    """Если есть файл по данному ключу, то вернёт UiImages по данному ключу, если нет или он невалидный, то вернёт None"""
-    async with get_redis() as session_redis:
-        result_redis = await session_redis.get(f'ui_image:{key}')
-        if result_redis:
-            ui_image_dict = orjson.loads(result_redis)
-            ui_image = UiImages(**ui_image_dict)
-            return _check_file_exists(ui_image)
-
-    async with get_db() as session_db:
-        result_db = await session_db.execute(select(UiImages).where(UiImages.key == key))
-        ui_image = result_db.scalar_one_or_none()
-        if ui_image:
-            return _check_file_exists(ui_image)
-        return None
-
-
 async def get_all_ui_images() -> List[UiImages] | None:
     """Вернёт все записи в таблице UiImage"""
     async with get_db() as session_db:
@@ -153,19 +136,41 @@ async def get_all_ui_images() -> List[UiImages] | None:
         return result_db.scalars().all()
 
 
-async def update_ui_image(key: str, show: bool, file_id: str | None = None) -> UiImages | None:
+async def get_ui_image(key: str) -> UiImages | None:
+    """Если есть файл по данному ключу, то вернёт UiImages по данному ключу, если нет или он невалидный, то вернёт None"""
+    async with get_redis() as session_redis:
+        result_redis = await session_redis.get(f'ui_image:{key}')
+        if result_redis:
+            ui_image_dict = orjson.loads(result_redis)
+            return UiImages(**ui_image_dict)
+
     async with get_db() as session_db:
-        result_db = await session_db.execute(
-            update(UiImages)
-            .where(UiImages.key == key)
-            .values(show=show, file_id=file_id)
-            .returning(UiImages)
-        )
-        result = result_db.scalar_one_or_none()
-        await session_db.commit()
-        if result:
-            await filling_ui_image(key) # обновление redis
-        return result
+        result_db = await session_db.execute(select(UiImages).where(UiImages.key == key))
+        ui_image = result_db.scalar_one_or_none()
+        return ui_image
+
+
+async def update_ui_image(key: str, show: bool, file_id: str | None = None) -> UiImages | None:
+    update_data = {}
+    if show is not None:
+        update_data["show"] = show
+    if file_id is not None:
+        update_data["file_id"] = file_id
+
+    if update_data:
+        async with get_db() as session_db:
+            result_db = await session_db.execute(
+                update(UiImages)
+                .where(UiImages.key == key)
+                .values(**update_data)
+                .returning(UiImages)
+            )
+            result = result_db.scalar_one_or_none()
+            await session_db.commit()
+            if result:
+                await filling_ui_image(key) # обновление redis
+            return result
+    return None
 
 
 async def delete_ui_image(key: str) -> UiImages | None:

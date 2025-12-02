@@ -259,3 +259,15 @@ msgstr "Новое имя слишком длинное. Попробуйте е
 
 msgid "Enter a new commission"
 msgstr "Введите новую комиссию"
+
+
+# ---- Редактор изображений ----
+
+msgid "This photo no longer exists"
+msgstr "Данного фото больше не существует"
+
+msgid "Where is it used: {where} \nShow: {show}"
+msgstr "Где используется: {where} \nПоказывать: {show}"
+
+msgid "Send a new image. \n\nNote: Please provide a document for best photo quality"
+msgstr "Пришлите новое изображение. \n\nПримечание: обязательно документом для лучшего качества фото"

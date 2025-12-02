@@ -1,0 +1,122 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: autoshop 1.0\n"
+"PO-Revision-Date: 2025-09-04 00:00+0000\n"
+"Last-Translator: Ivan \n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+
+
+msgid "welcome_message"
+msgstr "Приветственное сообщение при вводе команды /start"
+
+msgid "selecting_language"
+msgstr "Выбор языка при первом запуске и в настройках"
+
+msgid "subscription_prompt"
+msgstr "Просьба подписаться на канал"
+
+msgid "profile"
+msgstr "Главное изображение в профиле "
+
+msgid "profile_settings"
+msgstr "В общем экране настроек"
+
+msgid "notification_settings"
+msgstr "В настройках уведомлений"
+
+msgid "history_transections"
+msgstr "При просмотре истории транзакций"
+
+msgid "history_income_from_referrals"
+msgstr "При просмотре истории пополнения от рефералов"
+
+msgid "ref_system"
+msgstr "При меню с информацией о реферальной системе"
+
+msgid "new_referral"
+msgstr "При поступлении нового реферала"
+
+msgid "balance_transfer"
+msgstr "В общем экране при выборе "
+
+msgid "enter_amount"
+msgstr "При просьбе ввести сумму"
+
+msgid "enter_user_id"
+msgstr "При просьбе ввести ID пользователя"
+
+msgid "confirm_the_data"
+msgstr "При подтверждение данных"
+
+msgid "successful_transfer"
+msgstr "При успешном переводе средст"
+
+msgid "receiving_funds_from_transfer"
+msgstr "При получении средств от перевода"
+
+msgid "enter_number_activations_for_voucher"
+msgstr "Просьба ввести число активаций для ваучера"
+
+msgid "successful_create_voucher"
+msgstr "При успехе создания ваучера"
+
+msgid "successfully_activate_voucher"
+msgstr "При успехе активации ваучера"
+
+msgid "unsuccessfully_activate_voucher"
+msgstr "При неуспехе активации ваучере"
+
+msgid "viewing_vouchers"
+msgstr "При просмотре ваучеров (список или отдельный ваучер)"
+
+msgid "confirm_deactivate_voucher"
+msgstr "При подтверждении удаления ваучера"
+
+msgid "voucher_successful_deactivate"
+msgstr "При успешной деактивации ваучера"
+
+msgid "insufficient_funds"
+msgstr "При недостатке средств у пользователя"
+
+msgid "incorrect_data_entered"
+msgstr "При вводе некорректных данных"
+
+msgid "user_no_found"
+msgstr "Если пользователь не найден. При переводе средств"
+
+msgid "server_error"
+msgstr "При ошибки внутри сервера"
+
+msgid "show_all_services_replenishments"
+msgstr "При показе всех сервисов пополнения"
+
+msgid "request_enter_amount"
+msgstr "При просьбе ввести сумму пополнения"
+
+msgid "pay"
+msgstr "При представлении счёта на оплату"
+
+msgid "main_catalog"
+msgstr "При показе главного каталога со всеми товарами"
+
+msgid "account_catalog"
+msgstr "При показе каталога с аккаунтами"
+
+msgid "confirm_purchase"
+msgstr "При подтверждении покупки"
+
+msgid "successful_purchase"
+msgstr "При успешной покупке"
+
+msgid "entering_promo_code"
+msgstr "При вводе промокода"
+
+msgid "purchased_accounts"
+msgstr "При показе купленных аккаунтов"
+
+msgid "admin_panel"
+msgstr "Панель админа"

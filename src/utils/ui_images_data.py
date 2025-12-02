@@ -1,4 +1,6 @@
-from src.config import MEDIA_DIR
+from typing import List
+
+from src.config import MEDIA_DIR, PAGE_SIZE
 from io import BytesIO
 from PIL import Image
 
@@ -16,10 +18,22 @@ def get_default_image_bytes(color: str = "white", size: tuple[int, int] = (500, 
     return buf.getvalue()
 
 
-UI_IMAGES = {
-    # дефолтный путь к изображению заглушки
-    "default_catalog_account": UI_SECTIONS / "default_catalog_account.png",
+def get_ui_images_by_page(page: int, page_size: int = PAGE_SIZE) -> List[str]:
+    # Получаем все ключи, исключив админские
+    filtered_keys = [
+        key for key in UI_IMAGES.keys()
+        if key not in UI_IMAGES_IGNORE_ADMIN
+    ]
 
+    # Считаем границы страницы
+    start = (page - 1) * page_size
+    end = start + page_size
+
+    # Возвращаем ключи нужной страницы
+    return filtered_keys[start:end]
+
+
+UI_IMAGES = {
     # Начальные экраны
     "welcome_message": UI_SECTIONS / "welcome_message.png",
     "selecting_language": UI_SECTIONS / "selecting_language.png",
@@ -29,6 +43,9 @@ UI_IMAGES = {
     "profile": UI_SECTIONS / "profile.png",
     "profile_settings": UI_SECTIONS / "profile_settings.png",
     "notification_settings": UI_SECTIONS / "notification_settings.png",
+
+    # аккаунты (профиль)
+    "purchased_accounts": UI_SECTIONS / "purchased_accounts.png",
 
     # История операций
     "history_transections": UI_SECTIONS / "history_transections.png",
@@ -68,6 +85,7 @@ UI_IMAGES = {
 
     # каталог
     "main_catalog": UI_SECTIONS / "main_catalog.png",
+    "default_catalog_account": UI_SECTIONS / "default_catalog_account.png",
     "account_catalog": UI_SECTIONS / "account_catalog.png",
     "confirm_purchase": UI_SECTIONS / "confirm_purchase.png",
     "successful_purchase": UI_SECTIONS / "successful_purchase.png",
@@ -75,12 +93,11 @@ UI_IMAGES = {
     # промокод
     "entering_promo_code": UI_SECTIONS / "entering_promo_code.png",
 
-    # аккаунты
-    "purchased_accounts": UI_SECTIONS / "purchased_accounts.png",
-
     # админ панель
     "admin_panel": UI_SECTIONS / "admin_panel.png",
     "info_add_accounts": UI_SECTIONS / "info_add_accounts.png",
     "example_csv": UI_SECTIONS / "example_csv.png",
 
 }
+
+UI_IMAGES_IGNORE_ADMIN = ["info_add_accounts", "example_csv"]

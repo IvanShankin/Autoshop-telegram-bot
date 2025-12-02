@@ -141,16 +141,6 @@ async def test_get_ui_image_from_db(create_ui_image, replacement_redis):
 
 
 @pytest.mark.asyncio
-async def test_get_ui_image_file_not_exists(create_ui_image, replacement_redis):
-    """Проверяет, что при отсутствии файла возвращает None"""
-    ui_image, abs_path = await create_ui_image(key="ghost")
-    abs_path.unlink()  # удаляем файл
-
-    result = await get_ui_image(ui_image.key)
-    assert result is None
-
-
-@pytest.mark.asyncio
 async def test_get_all_ui_images(create_ui_image):
     """Проверяет, что возвращает все записи"""
     await create_ui_image(key="main_menu")

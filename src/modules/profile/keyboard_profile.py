@@ -3,16 +3,14 @@ from math import ceil
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.bot_actions.bot_instance import get_bot
 from src.config import ALLOWED_LANGS, NAME_LANGS, EMOJI_LANGS, PAGE_SIZE
-from src.modules.profile.services.keyboard_with_pages import pagination_keyboard
+from src.services.keyboards.keyboard_with_pages import pagination_keyboard
 from src.services.database.discounts.actions import get_valid_voucher_by_user_page
 from src.services.database.discounts.actions import get_count_voucher
 from src.services.database.referrals.actions.actions_ref import get_referral_income_page, get_count_referral_income
 from src.services.database.selling_accounts.actions import get_sold_account_by_page
 from src.services.database.selling_accounts.actions.actions_get import get_count_sold_account, \
     get_union_type_account_service_id, get_all_account_services, get_all_types_account_service, get_type_account_service
-from src.services.database.system.actions import get_settings
 from src.services.database.system.actions.actions import get_all_types_payments
 from src.services.database.users.actions.action_other_with_user import get_wallet_transaction_page, \
     get_count_wallet_transaction

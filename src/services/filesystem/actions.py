@@ -84,6 +84,9 @@ def _sync_cleanup_used_data(
         _rm_path(d)
 
 
+def check_file_exists(file_path: str) -> bool:
+    return True if os.path.exists(file_path) else False
+
 
 async def extract_archive_to_temp(archive_path: str) -> str:
     """

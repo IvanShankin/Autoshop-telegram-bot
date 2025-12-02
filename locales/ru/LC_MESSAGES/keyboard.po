@@ -283,6 +283,6 @@ msgstr "Активные ваучеры"
 msgid "{indicator} maintenance mode"
 msgstr "{indicator} Технические работы"
 
-
-
+msgid "Change image"
+msgstr "Изменить изображение"
 

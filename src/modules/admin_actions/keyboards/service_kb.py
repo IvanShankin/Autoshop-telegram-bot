@@ -88,3 +88,9 @@ def back_in_service_kb(language: str, service_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=get_text(language, 'keyboard','Back'), callback_data=f'show_service_acc_admin:{service_id}')]
     ])
+
+
+def back_in_all_type_service_kb(language: str):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=get_text(language, 'keyboard','Back'), callback_data=f'add_account_service')]
+    ])

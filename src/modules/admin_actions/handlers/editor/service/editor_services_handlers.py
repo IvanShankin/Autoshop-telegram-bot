@@ -6,6 +6,7 @@ from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.messages import edit_message, send_message
 from src.exceptions.service_exceptions import ServiceTypeBusy, ServiceContainsCategories
+from src.modules.admin_actions.keyboards.service_kb import back_in_all_type_service_kb
 from src.modules.admin_actions.services import show_service
 from src.modules.admin_actions.keyboards import all_services_account_admin_kb, all_services_types_kb, \
     to_services_kb,  back_in_service_kb, delete_service_kb
@@ -21,7 +22,8 @@ router = Router()
 
 
 @router.callback_query(F.data == "services_editor")
-async def show_catalog_services_accounts(callback: CallbackQuery, user: Users):
+async def show_catalog_services_accounts(callback: CallbackQuery, state: FSMContext, user: Users):
+    await state.clear()
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
@@ -35,7 +37,7 @@ async def add_account_service(callback: CallbackQuery, user: Users):
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
-        message=get_text(user.language, "admins_editor","Select service_acc type"),
+        message=get_text(user.language, "admins_editor","Select service type"),
         reply_markup=await all_services_types_kb(user.language)
     )
 
@@ -46,7 +48,8 @@ async def select_type_service(callback: CallbackQuery, state: FSMContext, user: 
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
-        message=get_text(user.language, "admins_editor",'Enter a name for the new service_acc')
+        message=get_text(user.language, "admins_editor","Enter a name for the new service"),
+        reply_markup=back_in_all_type_service_kb(user.language)
     )
     await state.set_state(GetServiceName.service_name)
     await state.update_data(

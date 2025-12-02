@@ -1,3 +1,6 @@
+from typing import Optional
+
+
 class CategoryNotFound(Exception):
     pass
 
@@ -91,4 +94,22 @@ class DirNotFount(Exception):
 
 class InvalidFormatRows(Exception):
     """При распаковке csv файла, если у него не верный формат"""
+    pass
+
+class InvalidAmountOfAchievement(Exception):
+    """
+    Неверный amount_of_achievement при установках его в ReferralLevels.
+
+    Он должен быть не меньше или равным прошлому уровню и не больше или равным следующему уровню
+    """
+    def __init__(
+        self,
+        amount_of_achievement_previous_lvl: Optional[int] = None,
+        amount_of_achievement_next_lvl: Optional[int] = None
+    ):
+        self.amount_of_achievement_previous_lvl: int | None = amount_of_achievement_previous_lvl
+        self.amount_of_achievement_next_lvl: int | None = amount_of_achievement_next_lvl
+
+class InvalidSelectedLevel(Exception):
+    """Первый уровень в реферальной системе нельзя удалять или менять сумму постижения его (всегда должна быть 0)"""
     pass

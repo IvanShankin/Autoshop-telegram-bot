@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, DateTime, BigInteger
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, BigInteger, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -23,7 +23,7 @@ class ReferralLevels(Base):
     referral_level_id = Column(Integer, primary_key=True, autoincrement=True)
     level = Column(Integer, nullable=False, unique=True)
     amount_of_achievement = Column(Integer, nullable=False) # сумма с которой достигается
-    percent = Column(Integer, nullable=False)
+    percent = Column(Float, nullable=False)
 
 class IncomeFromReferrals(Base):
     __tablename__ = "income_from_referrals"

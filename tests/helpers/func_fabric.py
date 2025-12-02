@@ -109,7 +109,12 @@ def make_fake_encrypted_archive_for_test(account_key: bytes, status: str = "for_
 
 
 
-async def create_new_user_fabric(user_name: str = "test_username", union_ref_code: str = None, balance: int = 0) -> Users:
+async def create_new_user_fabric(
+        user_name: str = "test_username",
+        union_ref_code: str = None,
+        balance: int = 0,
+        total_sum_replenishment: int = 0
+) -> Users:
     """ Создаст нового пользователя в БД"""
     if union_ref_code is None:
         union_ref_code = await create_unique_referral_code()
@@ -126,6 +131,7 @@ async def create_new_user_fabric(user_name: str = "test_username", union_ref_cod
             username=user_name,
             balance=balance,
             unique_referral_code=union_ref_code,
+            total_sum_replenishment=total_sum_replenishment,
         )
 
         session_db.add(new_user)
@@ -162,13 +168,17 @@ async def create_admin_fabric(filling_redis: bool = True, user_id: int = None) -
 
 
 
-async def create_referral_fabric(owner_id: int = None) -> (Referrals, Users, Users):
+async def create_referral_fabric(owner_id: int = None, referral_id: int = None) -> (Referrals, Users, Users):
     """
        Создаёт тестовый реферала (у нового пользователя появляется владелец)
        :return Реферал(Referrals), Владельца(Users) и Реферала(Users)
     """
     async with get_db() as session_db:
-        user = await create_new_user_fabric() # новый реферал
+        if referral_id is None:
+            user = await create_new_user_fabric() # новый реферал
+        else:
+            result_db = await session_db.execute(select(Users).where(Users.user_id == referral_id))
+            user = result_db.scalar()
 
         if owner_id is None: # создаём владельца
             owner = await create_new_user_fabric(user_name='owner_user')

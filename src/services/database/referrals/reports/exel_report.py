@@ -3,7 +3,7 @@ from datetime import datetime
 import pandas as pd
 
 from src.config import DT_FORMAT
-from src.services.database.referrals.actions.actions_ref import get_all_referrals, get_referral_income_page
+from src.services.database.referrals.actions import get_all_referrals, get_referral_income_page
 from src.services.database.users.actions import get_user
 from src.utils.i18n import get_text
 

@@ -115,7 +115,7 @@ async def test_set_quantity_accounts_invalid_and_exceeds_stock_behaviour(
     msg_bad = FakeMessage(text="not_a_number", chat_id=user.user_id, username=user.username)
     await module.set_quantity_accounts(msg_bad, fsm1, user)
 
-    bad_text = get_text(user.language, 'catalog', "Incorrect value entered")
+    bad_text = get_text(user.language, 'miscellaneous',"Incorrect value entered")
     assert fake_bot.get_message(chat_id=user.user_id, text=bad_text), "Не отправилось сообщение об ошибочном вводе"
 
     # 2) ввод превышает склад

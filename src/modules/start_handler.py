@@ -8,7 +8,7 @@ from src.bot_actions.messages import send_message
 from src.services.database.admins.actions import check_admin
 from src.services.database.discounts.actions import get_valid_voucher_by_code, activate_voucher
 from src.services.database.discounts.models import Vouchers
-from src.services.database.referrals.actions.actions_ref import add_referral
+from src.services.database.referrals.actions import add_referral
 from src.services.database.system.actions import get_settings
 from src.services.database.users.actions import get_user
 from src.services.database.users.actions.action_other_with_user import add_new_user

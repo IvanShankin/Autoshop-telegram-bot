@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from orjson import orjson
 from sqlalchemy import select, update, delete
@@ -34,6 +34,27 @@ async def get_referral_lvl() -> List[ReferralLevels]:
         else:
             await filling_referral_lvl_in_db()
             return await get_referral_lvl()
+
+
+async def get_levels_nearby(ref_lvl_id: int) -> Tuple[ReferralLevels | None, ReferralLevels | None, ReferralLevels | None]:
+    """
+    :return: Tuple[Уровень перед искомым, искомый уровень, уровень за искомым]
+    """
+    ref_lvls = await get_referral_lvl()
+    previous_lvl = None
+    ref_lvl = None
+    next_lvl = None
+    for lvl in ref_lvls:
+        if ref_lvl:
+            next_lvl = lvl  # это будет следующий уровень, что следует за искомым
+            break
+
+        if lvl.referral_level_id == ref_lvl_id:
+            ref_lvl = lvl
+        else:
+            previous_lvl = lvl
+
+    return previous_lvl, ref_lvl, next_lvl
 
 
 async def add_referral_lvl(amount_of_achievement: int, percent: float) -> ReferralLevels:
@@ -153,6 +174,13 @@ async def update_referral_lvl(
 
 
 async def delete_referral_lvl(ref_lvl_id: int):
+    """
+    :except InvalidSelectedLevel: При попытке удалить первый уровень
+    """
+    previous_lvl, ref_lvl, next_lvl = await get_levels_nearby(ref_lvl_id)
+    if previous_lvl is None: # есили пытаемся удалить первый уровень
+        raise InvalidSelectedLevel()
+
     async with get_db() as session_db:
         await session_db.execute(delete(ReferralLevels).where(ReferralLevels.referral_level_id == ref_lvl_id))
         await session_db.commit()

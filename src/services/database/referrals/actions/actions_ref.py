@@ -1,13 +1,10 @@
 from typing import List
-
-from orjson import orjson
 from sqlalchemy import select, func
 
 from src.config import PAGE_SIZE
 from src.services.database.core.database import get_db
-from src.services.database.core.filling_database import filling_referral_lvl
-from src.services.database.referrals.models import ReferralLevels, Referrals, IncomeFromReferrals
-from src.services.redis.core_redis import get_redis
+from src.services.database.referrals.actions.actions_ref_lvls import get_referral_lvl
+from src.services.database.referrals.models import Referrals, IncomeFromReferrals
 from src.services.database.users.models import UserAuditLogs
 
 
@@ -51,29 +48,6 @@ async def get_income_from_referral(income_from_referral_id: int) -> IncomeFromRe
         )
         return result.scalar_one_or_none()
 
-
-async def get_referral_lvl()->List[ReferralLevels]:
-    """Вернёт ReferralLevels отсортированный по возрастанию level"""
-    async with get_redis() as session_redis:
-        lvl_redis = await session_redis.get(f'referral_levels')
-        if lvl_redis:
-            # Десериализуем данные из Redis
-            levels_data = orjson.loads(lvl_redis)
-            # Создаем список объектов
-            list_referrals_lvl = [ReferralLevels(**level) for level in levels_data]
-
-            return sorted(list_referrals_lvl, key=lambda x: x.level)
-
-    async with get_db() as session_db:
-        result_db = await session_db.execute(select(ReferralLevels))
-        lvl_db = result_db.scalars().all()
-        if lvl_db:
-            async with get_redis() as session_redis:
-                await session_redis.set(f'referral_levels', orjson.dumps([lvl.to_dict() for lvl in lvl_db]))
-            return sorted(lvl_db, key=lambda x: x.level)
-        else:
-            await filling_referral_lvl()
-            return await get_referral_lvl()
 
 async def add_referral(referral_id: int, owner_id: int):
     referral_lvls = await get_referral_lvl()

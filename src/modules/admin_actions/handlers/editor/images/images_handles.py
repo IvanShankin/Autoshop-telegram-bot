@@ -105,10 +105,10 @@ async def change_ui_image(callback: CallbackQuery, state: FSMContext, user: User
         reply_markup=await back_in_image_editor(user.language, ui_image_key, current_page)
     )
     await state.update_data(ui_image_key=ui_image_key, current_page=current_page)
-    await state.set_state(GetNewImage.get_mew_image)
+    await state.set_state(GetNewImage.get_new_image)
 
 
-@router.message(GetNewImage.get_mew_image, F.document)
+@router.message(GetNewImage.get_new_image, F.document)
 async def change_ui_image_result(message: Message, state: FSMContext, user: Users):
     doc = message.document
     data = GetNewImageData(**(await state.get_data()))

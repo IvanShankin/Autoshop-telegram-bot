@@ -160,7 +160,7 @@ async def test_start_replenishment_crypto_bot_success(
         service_name=type_payment.name_for_user,
         minutes=PAYMENT_LIFETIME_SECONDS // 60,
         origin_sum=100,
-        total_sum=100 * type_payment.commission // 100 if type_payment.commission else 100,
+        total_sum=100 + (100 * type_payment.commission // 100) if type_payment.commission else 100,
         percent=type_payment.commission
     )
 

@@ -11,6 +11,7 @@ from src.modules.admin_actions.handlers.user_management.management_upload import
 from src.modules.admin_actions.handlers.editor.navigator_handler import router as navigator_router
 from src.modules.admin_actions.handlers.editor.replenishments.replenishment_handlers import router as replenishment_router
 from src.modules.admin_actions.handlers.editor.images.images_handles import router as image_router
+from src.modules.admin_actions.handlers.editor.ref_system.ref_system_handlers import router as ref_system_router
 
 router = Router()
 router.include_router(main_router)
@@ -22,6 +23,7 @@ router.include_router(management_upload_router)
 router.include_router(navigator_router)
 router.include_router(replenishment_router)
 router.include_router(image_router)
+router.include_router(ref_system_router)
 
 __all__ = [
     'router',

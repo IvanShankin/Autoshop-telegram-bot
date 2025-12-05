@@ -18,7 +18,7 @@ from src.services.redis.filling_redis import filling_sold_accounts_by_owner_id, 
     filling_product_account_by_account_id, filling_product_accounts_by_category_id, filling_all_types_payments, \
     filling_types_payments_by_id
 from src.services.database.admins.models import Admins
-from src.services.database.discounts.models import Vouchers
+from src.services.database.discounts.models import Vouchers, PromoCodes
 from src.services.database.referrals.utils import create_unique_referral_code
 from src.services.database.selling_accounts.models import SoldAccounts, TypeAccountServices, SoldAccountsTranslation, \
     AccountServices, AccountCategories, AccountCategoryTranslation, ProductAccounts, \
@@ -732,3 +732,35 @@ async def create_wallet_transaction_fabric(user_id: int, type: str = 'replenish'
         await session.commit()
         await session.refresh(transaction)
         return transaction
+
+
+async def create_promo_codes_fabric(
+    activation_code: str = "TESTCODE",
+    min_order_amount: int = 100,
+    amount: int = 100,
+    discount_percentage: int = None,
+    number_of_activations: int = 5,
+    expire_at: datetime = datetime.now(timezone.utc) + timedelta(days=1),
+    is_valid: bool = True,
+) -> PromoCodes:
+    promo = PromoCodes(
+        activation_code=activation_code,
+        min_order_amount=min_order_amount,
+        amount=amount,
+        discount_percentage=discount_percentage,
+        number_of_activations=number_of_activations,
+        expire_at=expire_at,
+        is_valid=is_valid,
+    )
+
+    async with get_db() as session_db:
+        session_db.add(promo)
+        await session_db.commit()
+        await session_db.refresh(promo)
+
+    async with get_redis() as session_redis:
+        promo_dict = promo.to_dict()
+        await session_redis.set(f'promo_code:{promo.activation_code}', orjson.dumps(promo_dict))
+
+    return promo
+

@@ -1,14 +1,43 @@
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, List
 
 import orjson
-from sqlalchemy import select
+from sqlalchemy import select, func
 
+from src.config import PAGE_SIZE
 from src.services.redis.core_redis import get_redis
 from src.services.database.admins.models import AdminActions
 from src.services.database.core.database import get_db
 from src.services.database.discounts.models import PromoCodes, ActivatedPromoCodes
 from src.utils.codes import generate_code
+
+
+
+async def get_promo_code_by_page(
+    page: int = None,
+    page_size: int = PAGE_SIZE,
+    show_not_valid: bool = False
+) -> List[PromoCodes]:
+    async with get_db() as session_db:
+        query = select(PromoCodes)
+        if page:
+            offset = (page - 1) * page_size
+            query = query.limit(page_size).offset(offset)
+        if not show_not_valid:
+            query = query.where(PromoCodes.is_valid == True)
+
+        result_db = await session_db.execute(query)
+        return result_db.scalars().all()
+
+
+async def get_count_promo_codes(consider_invalid: bool = False) -> int:
+    async with get_db() as session_db:
+        query = select(func.count()).select_from(PromoCodes)
+        if not consider_invalid:
+            query = query.where(PromoCodes.is_valid == True)
+
+        result_db = await session_db.execute(query)
+        return result_db.scalar()
 
 
 async def get_valid_promo_code(
@@ -42,13 +71,13 @@ async def get_valid_promo_code(
             return promo_code
 
 async def create_promo_code(
-        creator_id: int,
-        code: Optional[str] = None,
-        min_order_amount: int = 0,
-        amount: int = None,
-        discount_percentage: int = None,
-        number_of_activations: int = 1,
-        expire_at: datetime = None
+    creator_id: int,
+    code: Optional[str] = None,
+    min_order_amount: int = 0,
+    amount: int = None,
+    discount_percentage: int = None,
+    number_of_activations: int = 1,
+    expire_at: datetime = None
 ) -> PromoCodes:
     """
     Создаст промокод с уникальным activation_code
@@ -128,7 +157,6 @@ async def create_promo_code(
     return new_promo_code
 
 
-
 async def check_activate_promo_code(promo_code_id: int, user_id: int) -> bool:
     """
     Проверит, активировал ли пользователь этот.
@@ -147,3 +175,8 @@ async def check_activate_promo_code(promo_code_id: int, user_id: int) -> bool:
 
 
 
+# написать функцию для деактивации промокода
+# написать функцию для деактивации промокода
+# написать функцию для деактивации промокода
+# написать функцию для деактивации промокода
+# написать функцию для деактивации промокода

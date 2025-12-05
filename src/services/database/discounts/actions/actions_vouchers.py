@@ -32,17 +32,19 @@ async def get_valid_voucher_by_page(
     :param user_id: необходим если получаем по пользователю, а не по админам
     Если не указывать page, то вернётся весь список. Отсортирован по дате (desc)
     """
-    async with get_redis() as session_redis:
-        vouchers_json = await session_redis.get(f"voucher_by_user:{user_id}")
-        if vouchers_json is not None:
-            vouchers = [SmallVoucher(**voucher) for voucher in orjson.loads(vouchers_json)]
+    # необходимое условие, что бы админ получил все ваучеры
+    if not only_created_admin:
+        async with get_redis() as session_redis:
+            vouchers_json = await session_redis.get(f"voucher_by_user:{user_id}")
+            if vouchers_json is not None:
+                vouchers = [SmallVoucher(**voucher) for voucher in orjson.loads(vouchers_json)]
 
-            # аналог постраничного вывода как в БД
-            if page:
-                start = (page - 1) * page_size
-                end = start + page_size
-                return vouchers[start:end]
-            return vouchers
+                # аналог постраничного вывода как в БД
+                if page:
+                    start = (page - 1) * page_size
+                    end = start + page_size
+                    return vouchers[start:end]
+                return vouchers
 
     async with (get_db() as session_db):
 

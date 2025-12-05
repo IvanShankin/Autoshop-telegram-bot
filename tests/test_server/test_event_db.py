@@ -493,18 +493,18 @@ async def test_handler_new_activate_promo_code(
 ):
     from src.services.database.discounts.events.schemas import NewActivatePromoCode
     from src.services.database.discounts.models import PromoCodes, ActivatedPromoCodes
-
+    promo_code = await create_promo_code()
     if should_become_inactive: # сделаем поромокод на одну активацию
         async with get_db() as session_db:
             await session_db.execute(
                 update(PromoCodes)
-                .where(PromoCodes.promo_code_id == create_promo_code.promo_code_id)
+                .where(PromoCodes.promo_code_id == promo_code.promo_code_id)
                 .values(number_of_activations=1)
             )
             await session_db.commit()
-            create_promo_code.number_of_activations = 1
+            promo_code.number_of_activations = 1
 
-    old_promo = create_promo_code
+    old_promo = await create_promo_code()
     user = await create_new_user()
     settings = create_settings
 
@@ -527,7 +527,7 @@ async def test_handler_new_activate_promo_code(
         activate = result.scalar_one_or_none()
         assert activate
 
-        result = await session_db.execute(select(PromoCodes).where(PromoCodes.promo_code_id == create_promo_code.promo_code_id))
+        result = await session_db.execute(select(PromoCodes).where(PromoCodes.promo_code_id == promo_code.promo_code_id))
         promo = result.scalar_one_or_none()
 
         assert promo.activated_counter == old_promo.activated_counter + 1

@@ -156,7 +156,7 @@ class TestFillRedisSingleObjects():
 
     @pytest.mark.asyncio
     async def test_filling_promo_code(self, create_promo_code):
-        promo_code = create_promo_code
+        promo_code = await create_promo_code()
 
         await filling.filling_promo_code()
 

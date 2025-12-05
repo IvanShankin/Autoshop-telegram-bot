@@ -265,7 +265,7 @@ async def test_set_promo_code_success_updates_state_and_notifies_user(
     fake_bot = replacement_fake_bot
     user = await create_new_user()
     category = await create_account_category(is_accounts_storage=True)
-    promo = create_promo_code  # фикстура создаёт promo в БД и redis (activation_code = "TESTCODE")
+    promo = await create_promo_code()  # фикстура создаёт promo в БД и redis (activation_code = "TESTCODE")
 
     # подготовим state like user opened promo input
     fsm = FakeFSMContext()
@@ -331,7 +331,7 @@ async def test_confirm_buy_acc_with_promo_applies_discount_and_edits_message(
     user = await create_new_user(balance=1000)
     # категоря с price_one_account по умолчанию 150 в фабрике — убедимся что она достаточна
     category = await create_account_category(price_one_account=150, is_accounts_storage=True)
-    promo = create_promo_code # amount=100
+    promo = await create_promo_code() # amount=100
 
     quantity = 1
     # total_sum before discount = 150, discount = 100 => due = 50
@@ -435,7 +435,7 @@ class TestBuyAccount:
         fake_bot = replacement_fake_bot
         user = await create_new_user(balance=10000)
         category = await create_account_category(price_one_account=50, is_accounts_storage=True)
-        promo = create_promo_code  # min_order_amount=100
+        promo = await create_promo_code()  # min_order_amount=100
 
         # quantity_account = 1 => total_sum = 50 < 100
         cb = FakeCallbackQuery(data=f"buy_acc:{category.account_category_id}:1:{promo.promo_code_id}",

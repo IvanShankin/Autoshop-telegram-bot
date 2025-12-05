@@ -347,7 +347,7 @@ class TestStartPurchaseRequest:
         # подготовка данных
         user = await create_new_user(balance=10_000)
         category = await create_account_category(price_one_account=500)
-        promo = create_promo_code
+        promo = await create_promo_code()
 
         quantity = 2
         for _ in range(quantity):
@@ -1151,7 +1151,7 @@ class TestFinalizePurchase:
         # подготовка: пользователь, категория, продукт
         user = await create_new_user(balance=1000)
         cat = await create_account_category()
-        promo = create_promo_code
+        promo = await create_promo_code()
         prod, prod_full = await create_product_account(account_category_id=cat.account_category_id)
 
         # создаём PurchaseRequests и BalanceHolder (их код ожидает существование)

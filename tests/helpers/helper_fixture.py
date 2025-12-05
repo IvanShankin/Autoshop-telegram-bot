@@ -1,15 +1,10 @@
-from datetime import datetime, timezone, timedelta
-
-import orjson
 import pytest_asyncio
 from tests.helpers.func_fabric import create_new_user_fabric, create_admin_fabric, create_referral_fabric, \
     create_income_from_referral_fabric, create_replenishment_fabric, create_type_payment_factory, \
     create_voucher_factory, create_type_account_service_factory, create_account_service_factory, \
     create_translate_account_category_factory, create_account_category_factory, create_account_storage_factory, \
     create_product_account_factory, create_sold_account_factory, create_ui_image_factory, \
-    create_wallet_transaction_fabric, create_tg_account_media_factory
-from src.services.redis.core_redis import get_redis
-from src.services.database.discounts.models import PromoCodes
+    create_wallet_transaction_fabric, create_tg_account_media_factory, create_promo_codes_fabric
 from src.services.database.system.models import  Settings
 from src.services.database.core.database import get_db
 
@@ -68,28 +63,10 @@ async def create_settings() -> Settings:
 
 
 @pytest_asyncio.fixture
-async def create_promo_code() -> PromoCodes:
+async def create_promo_code():
     """Создаст новый промокод в БД и в redis."""
-    promo = PromoCodes(
-        activation_code="TESTCODE",
-        min_order_amount=100,
-        amount=100,
-        discount_percentage=None,
-        number_of_activations=5,
-        expire_at=datetime.now(timezone.utc) + timedelta(days=1),
-        is_valid=True,
-    )
+    return create_promo_codes_fabric
 
-    async with get_db() as session_db:
-        session_db.add(promo)
-        await session_db.commit()
-        await session_db.refresh(promo)
-
-    async with get_redis() as session_redis:
-        promo_dict = promo.to_dict()
-        await session_redis.set(f'promo_code:{promo.activation_code}', orjson.dumps(promo_dict))
-
-    return promo
 
 @pytest_asyncio.fixture
 async def create_voucher(create_new_user):

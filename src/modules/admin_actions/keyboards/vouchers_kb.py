@@ -12,7 +12,7 @@ from src.utils.i18n import get_text
 def admin_vouchers_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=get_text(language, 'keyboard',"Create voucher"), callback_data=f'admin_create_voucher'),],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard',"Active vouchers"), callback_data=f'admin_voucher_list:1'),],
+        [InlineKeyboardButton(text=get_text(language, 'keyboard',"Vouchers"), callback_data=f'admin_voucher_list:1'),],
         [InlineKeyboardButton(text=get_text(language, 'keyboard','Back'), callback_data=f'editors'),]
     ])
 
@@ -86,17 +86,19 @@ def back_in_all_admin_voucher_kb(language: str, current_page: int):
         )]
     ])
 
-def confirm_deactivate_admin_voucher_kb(language: str, current_page: int, voucher_id: int):
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(
-                text=get_text(language, 'keyboard', 'Confirm'),
-                callback_data=f'deactivate_admin_voucher:{voucher_id}:{current_page}'
-        )],
-        [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'),
-            callback_data=f'admin_voucher_list:{current_page}'
-        )]
-    ])
+def confirm_deactivate_admin_voucher_kb(language: str, current_page: int, voucher_id: int, is_valid: bool):
+    keyboard = InlineKeyboardBuilder()
+
+    if is_valid:
+        keyboard.row(InlineKeyboardButton(
+            text=get_text(language, 'keyboard', "Deactivate"),
+            callback_data=f'deactivate_admin_voucher:{voucher_id}:{current_page}'
+        ))
+    keyboard.row(InlineKeyboardButton(
+        text=get_text(language, 'keyboard', "Back"),
+        callback_data=f'admin_voucher_list:{current_page}'
+    ))
+    return keyboard.as_markup()
 
 
 def back_in_admin_vouchers_kb(language: str):

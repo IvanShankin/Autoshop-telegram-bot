@@ -1,3 +1,5 @@
+from typing import Optional
+
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import InlineKeyboardButton
 
@@ -11,6 +13,8 @@ def pagination_keyboard(
         right_prefix: str,
         back_text: str,
         back_callback: str,
+        helpers_text: Optional[str] = None,
+        helpers_callback: Optional[str] = None
 ):
     """
     Универсальный конструктор пагинационных клавиатур.
@@ -23,6 +27,8 @@ def pagination_keyboard(
     :param right_prefix: callback prefix для кнопки 'вправо'
     :param back_text: текст кнопки Назад
     :param back_callback: callback кнопки Назад
+    :param helpers_text: текст помогающей кнопки
+    :param helpers_callback: callback помогающей кнопки
     """
 
     keyboard = InlineKeyboardBuilder()
@@ -49,6 +55,11 @@ def pagination_keyboard(
             InlineKeyboardButton(text="⬅️", callback_data=left_button),
             InlineKeyboardButton(text=f"{current_page}/{total_pages}", callback_data="none"),
             InlineKeyboardButton(text="➡️", callback_data=right_button),
+        )
+
+    if helpers_text is not None and helpers_callback is not None:
+        keyboard.row(
+            InlineKeyboardButton(text=helpers_text, callback_data=helpers_callback)
         )
 
     # --- Кнопка Назад ---

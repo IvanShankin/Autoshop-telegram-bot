@@ -13,7 +13,7 @@ from src.modules.catalog.selling_accounts.keyboard_sell_acc import all_services_
 from src.modules.catalog.selling_accounts.schemas import BuyAccountsData
 from src.modules.catalog.selling_accounts.state_sell_acc import BuyAccount
 from src.modules.profile.keyboard_profile import in_profile_kb
-from src.services.database.discounts.actions import get_valid_promo_code
+from src.services.database.discounts.actions import get_promo_code
 from src.services.database.discounts.actions.actions_promo import check_activate_promo_code
 from src.services.database.discounts.utils.calculation import discount_calculation
 from src.services.database.selling_accounts.actions import get_account_service, get_account_categories_by_category_id
@@ -267,7 +267,7 @@ async def set_promo_code(message: Message, state: FSMContext, user: Users):
     except Exception:
         pass
 
-    promo = await get_valid_promo_code(message.text)
+    promo = await get_promo_code(message.text)
     data = BuyAccountsData(**(await state.get_data()))
 
     category = await _check_category(

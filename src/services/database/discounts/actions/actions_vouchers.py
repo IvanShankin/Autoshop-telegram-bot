@@ -248,7 +248,9 @@ async def create_voucher(
                 orjson.dumps(new_voucher.to_dict())
             )
 
-        await filling_voucher_by_user_id(user.user_id)
+        # админам по этому ключу не надо хранить ничего
+        if not is_created_admin:
+            await filling_voucher_by_user_id(user.user_id)
 
     return new_voucher
 

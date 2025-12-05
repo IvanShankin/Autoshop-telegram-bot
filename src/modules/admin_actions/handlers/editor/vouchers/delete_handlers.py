@@ -1,10 +1,8 @@
 from aiogram import Router, F
-from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
 from src.bot_actions.messages import edit_message
-from src.modules.admin_actions.keyboards.vouchers_kb import back_in_all_admin_voucher_kb, \
-    confirm_deactivate_admin_voucher_kb
+from src.modules.admin_actions.keyboards import back_in_all_admin_voucher_kb, confirm_deactivate_admin_voucher_kb
 from src.services.database.discounts.actions import get_voucher_by_id, deactivate_voucher
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
@@ -30,7 +28,7 @@ async def confirm_deactivate_admin_voucher(callback: CallbackQuery, user: Users)
             "Are you sure you want to delete the voucher?"
         )
         image_key = None
-        reply_markup = confirm_deactivate_admin_voucher_kb(user.language, current_page, voucher_id)
+        reply_markup = confirm_deactivate_admin_voucher_kb(user.language, current_page, voucher_id, voucher.is_valid)
 
     await edit_message(
         chat_id=callback.from_user.id,

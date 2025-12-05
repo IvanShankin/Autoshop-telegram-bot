@@ -10,6 +10,11 @@ from src.modules.admin_actions.keyboards.settings_kb import admin_settings_kb, b
 from src.modules.admin_actions.keyboards.user_management_kb import user_management_kb, back_in_user_management_kb, \
     confirm_remove_ban_kb
 
+from src.modules.admin_actions.keyboards.vouchers_kb import admin_vouchers_kb, skip_expire_at_or_back_kb, \
+    all_admin_vouchers_kb, skip_number_activations_or_back_kb, in_admin_voucher_kb, show_admin_voucher_kb, \
+    back_in_all_admin_voucher_kb, confirm_deactivate_admin_voucher_kb, back_in_admin_vouchers_kb, \
+    back_in_start_creating_admin_vouchers_kb
+
 __all__ = [
     "all_services_account_admin_kb",
     "show_service_acc_admin_kb",
@@ -36,4 +41,16 @@ __all__ = [
     "images_list_kb",
     "image_editor",
     "back_in_image_editor",
+
+    # ваучеры
+    "admin_vouchers_kb",
+    "skip_number_activations_or_back_kb",
+    "skip_expire_at_or_back_kb",
+    "all_admin_vouchers_kb",
+    "show_admin_voucher_kb",
+    "in_admin_voucher_kb",
+    "back_in_all_admin_voucher_kb",
+    "confirm_deactivate_admin_voucher_kb",
+    "back_in_admin_vouchers_kb",
+    "back_in_start_creating_admin_vouchers_kb",
 ]

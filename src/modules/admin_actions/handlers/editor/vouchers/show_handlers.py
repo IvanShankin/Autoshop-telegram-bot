@@ -5,7 +5,7 @@ from aiogram.types import CallbackQuery
 from src.bot_actions.bot_instance import get_bot
 from src.bot_actions.messages import edit_message
 from src.config import DT_FORMAT
-from src.modules.admin_actions.keyboards.vouchers_kb import admin_vouchers_kb, all_admin_vouchers_kb, \
+from src.modules.admin_actions.keyboards import admin_vouchers_kb, all_admin_vouchers_kb, \
     back_in_all_admin_voucher_kb, show_admin_voucher_kb
 from src.services.database.discounts.actions import get_voucher_by_id
 from src.services.database.users.models import Users
@@ -62,6 +62,7 @@ async def show_admin_voucher(callback: CallbackQuery, user: Users):
             "Amount: {amount} \n"
             "Allowed number of activations: {number_of_activations} \n"
             "Number of activations: {activated_counter} \n"
+            "Created at: {start_at}"
             "Valid until: {expire_at}"
         ).format(
             id=voucher_id,
@@ -72,6 +73,7 @@ async def show_admin_voucher(callback: CallbackQuery, user: Users):
             number_of_activations=(voucher.number_of_activations if voucher.number_of_activations  else
                                    get_text(user.language, "admins_editor_vouchers", "unlimited")),
             activated_counter=voucher.activated_counter,
+            start_at=voucher.start_at.strftime(DT_FORMAT),
             expire_at= (voucher.expire_at.strftime(DT_FORMAT) if voucher.expire_at else
                         get_text(user.language, "admins_editor_vouchers", "endlessly"))
         )

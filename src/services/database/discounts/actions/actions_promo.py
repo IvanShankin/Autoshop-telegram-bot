@@ -2,8 +2,9 @@ from datetime import datetime, timezone
 from typing import Optional, List
 
 import orjson
-from sqlalchemy import select, func
+from sqlalchemy import select, func, update
 
+from src.bot_actions.messages import send_log
 from src.config import PAGE_SIZE
 from src.services.redis.core_redis import get_redis
 from src.services.database.admins.models import AdminActions
@@ -26,11 +27,14 @@ async def get_promo_code_by_page(
         if not show_not_valid:
             query = query.where(PromoCodes.is_valid == True)
 
-        result_db = await session_db.execute(query)
+        result_db = await session_db.execute(query.order_by(PromoCodes.start_at.desc()))
         return result_db.scalars().all()
 
 
 async def get_count_promo_codes(consider_invalid: bool = False) -> int:
+    """
+    :param consider_invalid: считать невалидные.
+    """
     async with get_db() as session_db:
         query = select(func.count()).select_from(PromoCodes)
         if not consider_invalid:
@@ -40,11 +44,12 @@ async def get_count_promo_codes(consider_invalid: bool = False) -> int:
         return result_db.scalar()
 
 
-async def get_valid_promo_code(
+async def get_promo_code(
     code: str | None = None,
-    promo_code_id: int | None = None
+    promo_code_id: int | None = None,
+    get_only_valid: bool = True
 ) -> PromoCodes | None:
-    if code:
+    if code and get_only_valid: # в redis хранятся только валидные
         async with get_redis() as session_redis:
             promo_code_json = await session_redis.get(f"promo_code:{code}")
             if promo_code_json:
@@ -55,20 +60,23 @@ async def get_valid_promo_code(
         query = select(PromoCodes)
         if code:
             query = query.where(
-                (PromoCodes.activation_code == code) &
-                (PromoCodes.is_valid == True)
+                (PromoCodes.activation_code == code)
             )
         elif promo_code_id:
             query = query.where(
-                (PromoCodes.promo_code_id == promo_code_id) &
-                (PromoCodes.is_valid == True)
+                (PromoCodes.promo_code_id == promo_code_id)
             )
         else:
             raise ValueError("Необходимо указать хотя бы 'code' или 'promo_code_id'")
 
+        if get_only_valid:
+            query = query.where(
+                (PromoCodes.is_valid == True)
+            )
+
         promo_code = (await session_db.execute(query)).scalars().first()
-        if promo_code:
-            return promo_code
+
+        return promo_code if promo_code else None
 
 async def create_promo_code(
     creator_id: int,
@@ -154,6 +162,19 @@ async def create_promo_code(
                 orjson.dumps(new_promo_code.to_dict())
             )
 
+    sale = f"Скидка от: {new_promo_code.min_order_amount} ₽\n"
+    if new_promo_code.amount:
+        sale += f"Сумма скидки: {new_promo_code.amount} ₽"
+    elif new_promo_code.discount_percentage:
+        sale += f"Процент скидки: {new_promo_code.discount_percentage} %"
+
+    await send_log(
+        f"#Админ_создал_новый_промокод \n\n"
+        f"ID: {new_promo_code.promo_code_id}\n"
+        f"Код активации: {new_promo_code.activation_code}\n"
+        f"{sale}"
+    )
+
     return new_promo_code
 
 
@@ -175,8 +196,38 @@ async def check_activate_promo_code(promo_code_id: int, user_id: int) -> bool:
 
 
 
-# написать функцию для деактивации промокода
-# написать функцию для деактивации промокода
-# написать функцию для деактивации промокода
-# написать функцию для деактивации промокода
-# написать функцию для деактивации промокода
+async def deactivate_promo_code(user_id: int, promo_code_id: int):
+    """
+    :param user_id: ID админа
+    :param promo_code_id: ID промокода
+    """
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            update(PromoCodes)
+            .where(PromoCodes.promo_code_id == promo_code_id)
+            .values(is_valid=False)
+            .returning(PromoCodes)
+        )
+        promo_code: PromoCodes = result_db.scalar_one_or_none()
+
+        new_admin_actions = AdminActions(
+            user_id=user_id,
+            action_type='deactivate_promo_code',
+            details={
+                "message": "Администрация деактивировала промокод",
+                "promo_code_id": promo_code_id
+            }
+        )
+        session_db.add(new_admin_actions)
+        await session_db.commit()
+
+        await send_log(
+            f"#Администрация_деактивировала_промокод \n\n"
+            f"promo_code_id: {promo_code_id}\n"
+            f"Код промокода: {promo_code.activation_code}\n"
+            f"admin_id: {user_id}"
+        )
+
+    async with get_redis() as session_redis:
+        if promo_code and promo_code.activation_code:
+            await session_redis.delete(f"promo_code:{promo_code.activation_code}")

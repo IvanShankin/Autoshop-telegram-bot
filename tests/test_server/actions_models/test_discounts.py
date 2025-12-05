@@ -6,7 +6,8 @@ from sqlalchemy import delete, select, update
 
 from src.config import PAGE_SIZE
 from src.services.database.admins.models import AdminActions
-from src.services.database.discounts.actions.actions_promo import get_promo_code_by_page, get_count_promo_codes
+from src.services.database.discounts.actions.actions_promo import get_promo_code_by_page, get_count_promo_codes, \
+    deactivate_promo_code
 from src.services.database.discounts.models import PromoCodes, Vouchers, VoucherActivations, ActivatedPromoCodes
 from src.services.database.core.database import get_db
 from src.services.redis.core_redis import get_redis
@@ -20,8 +21,8 @@ from tests.helpers.monkeypatch_data import fake_bot
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("use_redis", [True, False])
-async def test_get_valid_promo_code(use_redis, create_promo_code):
-    from src.services.database.discounts.actions import get_valid_promo_code
+async def test_get_promo_code(use_redis, create_promo_code):
+    from src.services.database.discounts.actions import get_promo_code
     if use_redis:
         async with get_db() as session_db:
             await session_db.execute(delete(PromoCodes))
@@ -31,15 +32,15 @@ async def test_get_valid_promo_code(use_redis, create_promo_code):
             await session_redis.flushdb()
 
     promo_code = await create_promo_code()
-    promo = await get_valid_promo_code(promo_code.activation_code)
+    promo = await get_promo_code(promo_code.activation_code)
 
     await comparison_models(promo_code, promo)
 
 @pytest.mark.asyncio
-async def test_get_valid_promo_code_by_id(create_promo_code):
-    from src.services.database.discounts.actions import get_valid_promo_code
+async def test_get_promo_code_by_id(create_promo_code):
+    from src.services.database.discounts.actions import get_promo_code
     promo_code = await create_promo_code()
-    promo = await get_valid_promo_code(promo_code_id=promo_code.promo_code_id)
+    promo = await get_promo_code(promo_code_id=promo_code.promo_code_id)
     await comparison_models(promo_code, promo)
 
 
@@ -297,8 +298,6 @@ class TestDeactivateVoucher:
             result_redis = await session_redis.get(f"voucher:{voucher.activation_code}")
             assert not result_redis
 
-            result_redis = await session_redis.get(f"voucher_by_user:{voucher.creator_id}")
-            assert not orjson.loads(result_redis)
 
         assert result == 0 # не должны вернутся деньги
 
@@ -339,12 +338,12 @@ class TestDeactivateVoucher:
 async def test_get_promo_code_by_page(create_promo_code):
     promo_codes = []
     for i in range(10):
-        promo_codes.append(await create_promo_code())
+        promo_codes.append((await create_promo_code()).to_dict())
 
     result_pomo_code = await get_promo_code_by_page(page=1)
 
     for i in range(PAGE_SIZE):
-        await comparison_models(promo_codes[i], result_pomo_code[i])
+        assert result_pomo_code[i].to_dict() in  promo_codes
 
 
 @pytest.mark.asyncio
@@ -424,4 +423,22 @@ async def test_check_activate_promo_code(create_promo_code, create_new_user):
 
     assert  await check_activate_promo_code(promo_code.promo_code_id, user.user_id)
 
+
+@pytest.mark.asyncio
+async def test_deactivate_promo_code(create_promo_code, create_new_user):
+    user = await create_new_user()
+    promo = await create_promo_code()
+
+    await deactivate_promo_code(user.user_id, promo.promo_code_id)
+
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            select(PromoCodes)
+            .where(PromoCodes.promo_code_id == promo.promo_code_id)
+        )
+        update_promo = result_db.scalar_one_or_none()
+        assert update_promo.is_valid == False
+
+    async with get_redis() as session_redis:
+        assert not await session_redis.get(f"promo_code:{promo.promo_code_id}")
 

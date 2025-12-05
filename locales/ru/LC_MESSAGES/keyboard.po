@@ -177,7 +177,7 @@ msgstr "Изображения"
 msgid "Vouchers"
 msgstr "Ваучеры"
 
-msgid "Promo Codes"
+msgid "Promo codes"
 msgstr "Промокоды"
 
 msgid "Add"
@@ -314,3 +314,19 @@ msgstr "Валидный"
 
 msgid "Not valid"
 msgstr "Не валидный"
+
+
+msgid "Create promo code"
+msgstr "Создать промокод"
+
+msgid "In promo code"
+msgstr "В промокод"
+
+msgid "Show not valid {indicator}"
+msgstr "Показывать невалидные {indicator}"
+
+msgid "With percentage"
+msgstr "С процентом"
+
+msgid "With a fixed amount"
+msgstr "С фиксированной суммой"

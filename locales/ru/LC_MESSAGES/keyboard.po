@@ -174,8 +174,11 @@ msgstr "Сервисы пополнения"
 msgid "Images"
 msgstr "Изображения"
 
-msgid "Referral system"
-msgstr "Реферальная система"
+msgid "Vouchers"
+msgstr "Ваучеры"
+
+msgid "Promo Codes"
+msgstr "Промокоды"
 
 msgid "Add"
 msgstr "Добавить"
@@ -298,3 +301,16 @@ msgstr "Изменить процент"
 
 msgid "Change achievement Amount"
 msgstr "Изменить сумму достижения"
+
+
+msgid "In start"
+msgstr "В начало"
+
+msgid "In voucher"
+msgstr "В ваучер"
+
+msgid "Valid"
+msgstr "Валидный"
+
+msgid "Not valid"
+msgstr "Не валидный"

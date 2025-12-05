@@ -1,5 +1,3 @@
-from typing import Tuple
-
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
@@ -8,20 +6,12 @@ from src.bot_actions.messages import edit_message, send_message
 from src.exceptions.service_exceptions import InvalidAmountOfAchievement, InvalidSelectedLevel
 from src.modules.admin_actions.keyboards.ref_system_kb import lvl_list_ref_system_kb, ref_lvl_editor_kb, \
     back_in_lvl_list_ref_system_kb, back_in_ref_lvl_editor_kb, confirm_del_lvl_kb
-from src.modules.admin_actions.keyboards.replenishment_kb import edit_type_payments_list_kb, edit_type_payment_kb, \
-    back_in_edit_type_payment_kb
 from src.modules.admin_actions.schemas.editor_ref_system import GetNewPersentData, GetAchievementAmountData, \
     CreateRefLevelData
-from src.modules.admin_actions.schemas.editor_replenishment import GetTypePaymentNameData, GetTypePaymentCommissionData
-from src.modules.admin_actions.services import safe_get_type_payment
-from src.modules.admin_actions.services import message_type_payment
 from src.modules.admin_actions.state.editor_ref_system import GetNewPersent, GetAchievementAmount, CreateRefLevel
-from src.modules.admin_actions.state.editor_replenishment import GetTypePaymentName, GetTypePaymentCommission
 from src.services.database.referrals.actions import get_referral_lvl, update_referral_lvl
 from src.services.database.referrals.actions.actions_ref_lvls import get_levels_nearby, delete_referral_lvl, \
     add_referral_lvl
-from src.services.database.referrals.models import ReferralLevels
-from src.services.database.system.actions.actions import update_type_payment
 from src.services.database.users.models import Users
 from src.utils.converter import safe_float_conversion, safe_int_conversion
 from src.utils.i18n import get_text

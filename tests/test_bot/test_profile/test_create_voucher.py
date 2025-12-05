@@ -153,7 +153,7 @@ async def test_confirm_create_voucher_success(
     """
     from src.modules.profile.handlers.vouchers_handlers import confirm_create_voucher
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
-    from src.services.database.discounts.actions import get_valid_voucher_by_user_page
+    from src.services.database.discounts.actions import get_valid_voucher_by_page
 
     fake_bot = replacement_fake_bot
     bot_me = await fake_bot.me()
@@ -167,7 +167,7 @@ async def test_confirm_create_voucher_success(
 
     await confirm_create_voucher(cb, fsm, user)
 
-    vouchers = await get_valid_voucher_by_user_page(user.user_id)
+    vouchers = await get_valid_voucher_by_page(user.user_id)
 
     text = get_text(user.language, 'profile_messages',
         "Voucher successfully created. \n\nActivation link: <a href='{link}'>Ссылка</a> \nAmount: {amount} \n"

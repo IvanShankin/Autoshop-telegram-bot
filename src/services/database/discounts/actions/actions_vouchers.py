@@ -22,8 +22,16 @@ from src.utils.i18n import get_text
 from src.bot_actions.messages import send_log
 
 
-async def get_valid_voucher_by_user_page(user_id: int, page: int = None, page_size: int = PAGE_SIZE) -> List[SmallVoucher]:
-    """Если не указывать page, то вернётся весь список. Отсортирован по дате (desc)"""
+async def get_valid_voucher_by_page(
+    user_id: Optional[int] = None,
+    page: int = None,
+    page_size: int = PAGE_SIZE,
+    only_created_admin: bool = False
+) -> List[SmallVoucher]:
+    """
+    :param user_id: необходим если получаем по пользователю, а не по админам
+    Если не указывать page, то вернётся весь список. Отсортирован по дате (desc)
+    """
     async with get_redis() as session_redis:
         vouchers_json = await session_redis.get(f"voucher_by_user:{user_id}")
         if vouchers_json is not None:
@@ -37,13 +45,23 @@ async def get_valid_voucher_by_user_page(user_id: int, page: int = None, page_si
             return vouchers
 
     async with (get_db() as session_db):
-        query = select(
-            Vouchers
-        ).where(
-            (Vouchers.creator_id == user_id) &
-            (Vouchers.is_valid == True) &
-            (Vouchers.is_created_admin == False)
-        ).order_by(Vouchers.start_at.desc())
+
+        conditions = []
+        if only_created_admin:
+            conditions.append(Vouchers.is_created_admin.is_(True))
+        else:
+            conditions += [
+                Vouchers.creator_id == user_id,
+                Vouchers.is_valid.is_(True),
+                Vouchers.is_created_admin.is_(False)
+            ]
+
+        query = (
+            select(Vouchers)
+            .where(*conditions)
+            .order_by(Vouchers.start_at.desc())
+        )
+
 
         if page:
             offset = (page - 1) * page_size
@@ -53,16 +71,26 @@ async def get_valid_voucher_by_user_page(user_id: int, page: int = None, page_si
         vouchers = result_db.scalars().all()
         return [SmallVoucher.from_orm_model(voucher) for voucher in vouchers]
 
-async def get_count_voucher(user_id: int) -> int:
+async def get_count_voucher(user_id: Optional[int] = None, by_admins: Optional[bool] = False) -> int:
     async with get_redis() as session_redis:
         vouchers_json = await session_redis.get(f"voucher_by_user:{user_id}")
         if vouchers_json is not None:
             return len(orjson.loads(vouchers_json))
 
     async with get_db() as session_db:
-        result = await session_db.execute(
-            select(func.count()).where((Vouchers.creator_id == user_id) &(Vouchers.is_valid == True))
-        )
+        conditions = []
+        if by_admins:
+            conditions += [
+                Vouchers.is_created_admin.is_(True),
+                Vouchers.is_valid == True
+            ]
+        else:
+            conditions += [
+                Vouchers.creator_id == user_id,
+                Vouchers.is_valid == True
+            ]
+
+        result = await session_db.execute(select(func.count()).where(*conditions))
         return result.scalar()
 
 
@@ -117,7 +145,7 @@ async def create_voucher(
         user_id: int,
         is_created_admin: bool,
         amount: int,
-        number_of_activations: int,
+        number_of_activations: Optional[int],
         expire_at: Optional[datetime] = None,
 ) -> Vouchers:
     """
@@ -132,7 +160,7 @@ async def create_voucher(
     """
 
     user = await get_user(user_id)
-    required_amount = amount * number_of_activations
+    required_amount = amount * number_of_activations if number_of_activations else 0
 
     if user.balance < required_amount and is_created_admin == False:
         raise NotEnoughMoney("У пользователя недостаточно денег", required_amount - user.balance)
@@ -228,7 +256,7 @@ async def deactivate_voucher(voucher_id: int) -> int:
     Сделает ваучер невалидным в БД (is_valid = False), вернёт деньги пользователю и удалит ваучер с redis.
     Сообщение пользователю НЕ будет отправлено!
     :return Возвращённая сумма пользователю
-    :except Exception вызовет ошибку если есть
+    :except Exception вызовет ошибку если произойдёт
     """
     owner_id = None
     try:
@@ -247,13 +275,17 @@ async def deactivate_voucher(voucher_id: int) -> int:
             async with get_redis() as session_redis:
                 await session_redis.delete(f"voucher:{voucher.activation_code}")
 
+            # если создатель ваучера админ
+            if voucher.is_created_admin:
+                await send_log(f"#Деактивация_ваучера_созданным_админом \n\nID: {voucher.voucher_id}")
+                return 0
+
             await filling_voucher_by_user_id(owner_id)
 
             # сумма возврата = количество неактивированных ваучеров * сумму одного ваучера
             refund_amount = (voucher.number_of_activations - voucher.activated_counter) * voucher.amount
 
-            # если создатель ваучера админ или сумма для возврата <= нуля
-            if voucher.is_created_admin or refund_amount <= 0:
+            if refund_amount <= 0:
                 return 0
 
             # обновление баланса у пользователя
@@ -298,7 +330,7 @@ async def deactivate_voucher(voucher_id: int) -> int:
             return refund_amount
     except Exception as e:
         log_message = get_text(
-            user.language,
+            "ru",
             'discount',
             "#Error_refunding_money_from_voucher \n\nVoucher ID: {voucher_id} \nOwner ID: {owner_id} \nError: {error}"
         ).format(voucher_id=voucher_id, owner_id=owner_id, error=str(e))

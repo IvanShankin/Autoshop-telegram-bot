@@ -5,7 +5,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.config import ALLOWED_LANGS, NAME_LANGS, EMOJI_LANGS, PAGE_SIZE
 from src.services.keyboards.keyboard_with_pages import pagination_keyboard
-from src.services.database.discounts.actions import get_valid_voucher_by_user_page
+from src.services.database.discounts.actions import get_valid_voucher_by_page
 from src.services.database.discounts.actions import get_count_voucher
 from src.services.database.referrals.actions import get_referral_income_page, get_count_referral_income
 from src.services.database.selling_accounts.actions import get_sold_account_by_page
@@ -407,7 +407,7 @@ def replenishment_and_back_in_transfer_kb(language: str):
 
 async def all_vouchers_kb(current_page: int, target_user_id: int, user_id: int, language: str):
     """Клавиатура со списком только активных ваучеров у данного пользователя"""
-    records = await get_valid_voucher_by_user_page(target_user_id, current_page, PAGE_SIZE)
+    records = await get_valid_voucher_by_page(target_user_id, current_page, PAGE_SIZE)
     total = await get_count_voucher(target_user_id)
     total_pages = max(ceil(total / PAGE_SIZE), 1)
 

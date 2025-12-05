@@ -10,7 +10,8 @@ class SmallVoucher(BaseModel):
     amount: int
     activation_code: str
     activated_counter: int
-    number_of_activations: int
+    number_of_activations: int | None
+    is_valid: bool
 
     @classmethod
     def from_orm_model(cls, voucher: "Vouchers"):
@@ -21,5 +22,6 @@ class SmallVoucher(BaseModel):
             amount=voucher.amount,
             activation_code=voucher.activation_code,
             activated_counter=voucher.activated_counter,
-            number_of_activations=voucher.number_of_activations
+            number_of_activations=voucher.number_of_activations,
+            is_valid=voucher.is_valid
         )

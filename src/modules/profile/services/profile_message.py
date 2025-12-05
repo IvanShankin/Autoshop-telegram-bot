@@ -4,7 +4,7 @@ from src.bot_actions.messages import edit_message
 from src.bot_actions.bot_instance import get_bot
 from src.config import DT_FORMAT
 from src.modules.profile.keyboard_profile import back_in_wallet_transactions_kb, back_in_accrual_ref_list_kb
-from src.services.database.discounts.actions import get_valid_voucher_by_user_page
+from src.services.database.discounts.actions import get_valid_voucher_by_page
 from src.services.database.referrals.actions import get_referral_lvl
 from src.services.database.referrals.models import IncomeFromReferrals
 from src.services.database.users.actions import get_wallet_transaction, get_user
@@ -22,7 +22,7 @@ async def get_main_message_profile(user: Users, language: str) -> str:
 
     bot = await get_bot()
     bot_me = await bot.me()
-    vouchers = await get_valid_voucher_by_user_page(user.user_id)
+    vouchers = await get_valid_voucher_by_page(user.user_id)
 
     money_in_vouchers = 0
     for voucher in vouchers:

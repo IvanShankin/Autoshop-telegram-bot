@@ -386,7 +386,8 @@
         creator_id: int
         amount: int
         activation_code: str
-        number_of_activations: int
+        number_of_activations: int | None
+        is_valid: bool
     }
     .....
 ]
@@ -409,7 +410,7 @@
     "number_of_activations": int or None, # разрешённое количество активаций (если нет, то бесконечное)
 
     "start_at": datetime,
-    "expire_at": datetime,
+    "expire_at": datetime | None, 
     "is_valid": bool,
 }
 ```

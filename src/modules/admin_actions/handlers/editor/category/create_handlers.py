@@ -76,13 +76,13 @@ async def add_acc_category_name(message: Message, state: FSMContext, user: Users
                 language=lang_code,
                 name=data.data_name[lang_code]
             )
-        message = get_text(user.language, "admins_editor", "Category successfully created!")
+        message = get_text(user.language, "admins_editor_category", "Category successfully created!")
         reply_markup = back_in_category_kb(user.language, category.account_category_id, i18n_key="In category")
     except AccountCategoryNotFound:
-        message = get_text(user.language, "admins_editor","The category no longer exists")
+        message = get_text(user.language, "admins_editor_category","The category no longer exists")
         reply_markup = to_services_kb(user.language)
     except TheCategoryStorageAccount:
-        message = get_text(user.language, "admins_editor", "The category stores accounts, please extract them first")
+        message = get_text(user.language, "admins_editor_category", "The category stores accounts, please extract them first")
         if data.parent_id:
             reply_markup = back_in_category_kb(user.language, data.parent_id)
         else:

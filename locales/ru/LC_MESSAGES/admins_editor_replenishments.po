@@ -1,0 +1,34 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: autoshop 1.0\n"
+"PO-Revision-Date: 2025-09-04 00:00+0000\n"
+"Last-Translator: Ivan \n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+
+
+msgid "Top-up service: {name_for_admin}\n\n"
+"ID: {ID}\n"
+"Username: {name_for_user}\n"
+"Index: {index}\n"
+"Show: {show}\n"
+"Commission: {commission}%%"
+msgstr "Сервис пополнения: {name_for_admin}\n\n"
+"ID: {ID}\n"
+"Имя для пользователя: {name_for_user}\n"
+"Индекс: {index}\n"
+"Показывать: {show}\n"
+"Комиссия: {commission}%"
+
+msgid "Enter a new name\n\nNote: The name must not exceed 200 characters"
+msgstr "Введите новое имя\n\n Примечание: имя не должно превышать 200 символов"
+
+msgid "The new name is too long. Please try again"
+msgstr "Новое имя слишком длинное. Попробуйте ещё раз"
+
+msgid "Enter a new commission"
+msgstr "Введите новую комиссию"
+

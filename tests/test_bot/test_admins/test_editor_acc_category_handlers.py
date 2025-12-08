@@ -32,7 +32,7 @@ async def test_safe_get_category_not_found_with_callback(
 
     assert replacement_fake_bot.get_message(
         user.user_id,
-        get_text(user.language, "admins_editor", "The category no longer exists")
+        get_text(user.language, "admins_editor_category", "The category no longer exists")
     )
 
 @pytest.mark.asyncio
@@ -152,7 +152,7 @@ async def test_add_acc_category_name_prompts_next_language(
     assert replacement_fake_bot.check_str_in_messages(
         get_text(
             user.language,
-            "admins_editor",
+            "admins_editor_category",
             "Specify the category name for this language: {language}"
         ).format(language="none")[:35]
     )
@@ -220,7 +220,7 @@ async def test_delete_acc_category_success_edit_message(
 
     # edit_message вызывается — ищем строку подтверждения
     assert replacement_fake_bot.check_str_in_edited_messages(
-        get_text(user.language, "admins_editor", "Category successfully removed!")
+        get_text(user.language, "admins_editor_category", "Category successfully removed!")
     )
 
 
@@ -254,5 +254,5 @@ async def test_update_category_image_non_image_document(
     await update_category_image(msg, state, user)
 
     # проверяем, что юзеру отправили подсказку о том, что это не изображение
-    expected = get_text(user.language, "admins_editor", "This is not an image. Send it as a document")
+    expected = get_text(user.language, "admins_editor_category", "This is not an image. Send it as a document")
     assert replacement_fake_bot.get_message(user.user_id, expected)

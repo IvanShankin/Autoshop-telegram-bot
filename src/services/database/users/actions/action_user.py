@@ -114,8 +114,8 @@ async def admin_update_user_balance(admin_id: int, target_user_id: int, new_bala
     new_admin_action = await add_admin_action(
         admin_id,
         action_type="update_user_balance",
+        message = "Изменил баланс пользователя",
         details={
-            "message": "Изменил баланс пользователя",
             "target_user_id": target_user_id,
             "balance_before": target_user.balance,
             "balance_after": new_balance,

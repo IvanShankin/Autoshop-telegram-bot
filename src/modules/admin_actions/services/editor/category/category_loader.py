@@ -25,11 +25,11 @@ async def safe_get_category(category_id: int, user: Users, callback: CallbackQue
                 await callback.message.delete()
             except Exception:
                 pass
-            await callback.answer(get_text(user.language, "admins_editor", "The category no longer exists"), show_alert=True)
+            await callback.answer(get_text(user.language, "admins_editor_category", "The category no longer exists"), show_alert=True)
             return
 
         await send_message(chat_id=user.user_id,
-                           message=get_text(user.language, "admins_editor", "The category no longer exists"))
+                           message=get_text(user.language, "admins_editor_category", "The category no longer exists"))
         return
     return category
 
@@ -59,6 +59,6 @@ async def service_not_found(user: Users, message_id_delete: Optional[int] = None
 
     await send_message(
         chat_id=user.user_id,
-        message=get_text(user.language, "admins_editor", "This services no longer exists, please choose another one"),
+        message=get_text(user.language, "admins_editor_category", "This services no longer exists, please choose another one"),
         reply_markup=to_services_kb(language=user.language)
     )

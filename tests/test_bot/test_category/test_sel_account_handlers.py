@@ -98,7 +98,7 @@ async def test_set_quantity_accounts_invalid_and_exceeds_stock_behaviour(
 ):
     """
     Проверяем два кейса для set_quantity_accounts:
-      1) нечисловой ввод -> отправляется "Incorrect value entered" и state остаётся на том же шаге
+      1) нечисловой ввод -> отправляется "Incorrect value entered. Please try again" и state остаётся на том же шаге
       2) ввод больше чем есть на складе -> отправляется "No longer in stock"
     """
     from src.modules.catalog.selling_accounts import sel_account_handlers as module
@@ -115,7 +115,7 @@ async def test_set_quantity_accounts_invalid_and_exceeds_stock_behaviour(
     msg_bad = FakeMessage(text="not_a_number", chat_id=user.user_id, username=user.username)
     await module.set_quantity_accounts(msg_bad, fsm1, user)
 
-    bad_text = get_text(user.language, 'miscellaneous',"Incorrect value entered")
+    bad_text = get_text(user.language, 'miscellaneous',"Incorrect value entered. Please try again")
     assert fake_bot.get_message(chat_id=user.user_id, text=bad_text), "Не отправилось сообщение об ошибочном вводе"
 
     # 2) ввод превышает склад

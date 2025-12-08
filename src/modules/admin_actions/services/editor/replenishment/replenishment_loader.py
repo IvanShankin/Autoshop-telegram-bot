@@ -15,14 +15,14 @@ async def safe_get_type_payment(type_payment_id: int, user: Users, callback: Cal
             except Exception:
                 pass
             await callback.answer(
-                get_text(user.language, "admins_editor", "There is no longer a payment method"),
+                get_text(user.language, "admins_editor_replenishments", "There is no longer a payment method"),
                 show_alert=True
             )
             return
 
         await send_message(
             chat_id=user.user_id,
-            message=get_text(user.language, "admins_editor", "There is no longer a payment method"
+            message=get_text(user.language, "admins_editor_replenishments", "There is no longer a payment method"
         ))
         return
     return type_payment

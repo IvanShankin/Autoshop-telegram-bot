@@ -30,7 +30,7 @@ async def test_transfer_amount_invalid_input(
     # предполагаю имя функции `transfer_money_get_amount`
     await module.transfer_money_get_amount(fake_msg, FakeFSMContext(), user)
 
-    text = get_text(user.language, 'miscellaneous', 'Incorrect value entered')
+    text = get_text(user.language, 'miscellaneous', "Incorrect value entered. Please try again")
     assert fake_bot.get_message(chat_id=user.user_id, text=text)
 
 

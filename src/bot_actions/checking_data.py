@@ -9,7 +9,7 @@ async def checking_correctness_number(message: str, language: str, user_id: int,
     :return Результат (Корректное число = True)
     """
     if not safe_int_conversion(message, positive=positive):
-        text = get_text(language, 'miscellaneous', 'Incorrect value entered')
+        text = get_text(language, 'miscellaneous', "Incorrect value entered. Please try again")
         await send_message(
             chat_id=user_id,
             message=text,

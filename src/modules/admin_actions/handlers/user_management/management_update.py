@@ -56,7 +56,7 @@ async def set_new_balance(message: Message, state: FSMContext, user: Users):
 
     await send_message(
         user.user_id,
-        get_text(user.language,"miscellaneous","Incorrect value entered"),
+        get_text(user.language,"miscellaneous","Incorrect value entered. Please try again"),
         reply_markup=back_in_user_management_kb(user.language, data.target_user_id)
     )
 

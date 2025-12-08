@@ -19,7 +19,7 @@ router = Router()
 async def show_incorrect_data(user: Users):
     await send_message(
         user.user_id,
-        get_text(user.language, 'miscellaneous',"Incorrect value entered"),
+        get_text(user.language, 'miscellaneous',"Incorrect value entered. Please try again"),
         reply_markup=back_in_start_creating_promo_code_kb(user.language)
     )
     return

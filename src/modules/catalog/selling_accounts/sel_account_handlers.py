@@ -203,7 +203,7 @@ async def set_quantity_accounts(message: Message, state: FSMContext, user: Users
     new_quantity_accounts = safe_int_conversion(value=message.text, default=None, positive=True)
     sent_message = None
     if new_quantity_accounts is None:
-        sent_message = await send_message(user.user_id, get_text(user.language, 'miscellaneous',"Incorrect value entered"))
+        sent_message = await send_message(user.user_id, get_text(user.language, 'miscellaneous',"Incorrect value entered. Please try again"))
     elif new_quantity_accounts > category.quantity_product_account:
         sent_message = await send_message(user.user_id, get_text(user.language, 'catalog',"No longer in stock"))
     else:

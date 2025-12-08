@@ -27,7 +27,7 @@ async def acc_category_confirm_delete(callback: CallbackQuery, user: Users):
         message_id=callback.message.message_id,
         message=get_text(
             user.language,
-            "admins_editor",
+            "admins_editor_category",
             "Are you sure you want to delete this category? \n\n"
             "⚠️ Before deleting, make sure this category doesn't contain any subcategories or store accounts!"
         ),
@@ -42,14 +42,14 @@ async def delete_acc_category(callback: CallbackQuery, user: Users):
 
     try:
         await delete_account_category(category_id)
-        message = get_text(user.language, "admins_editor","Category successfully removed!")
+        message = get_text(user.language, "admins_editor_category","Category successfully removed!")
         reply_markup = to_services_kb(user.language)
     except AccountCategoryNotFound:
-        message = get_text(user.language, "admins_editor","The category no longer exists")
+        message = get_text(user.language, "admins_editor_category","The category no longer exists")
     except TheCategoryStorageAccount:
-        message = get_text(user.language, "admins_editor","The category stores accounts, please extract them first")
+        message = get_text(user.language, "admins_editor_category","The category stores accounts, please extract them first")
     except CategoryStoresSubcategories:
-        message = get_text(user.language, "admins_editor","The category stores subcategories, delete them first")
+        message = get_text(user.language, "admins_editor_category","The category stores subcategories, delete them first")
 
     # если попали в except
     if not reply_markup:
@@ -71,7 +71,7 @@ async def confirm_del_all_acc(callback: CallbackQuery, user: Users):
         message_id=callback.message.message_id,
         message=get_text(
             user.language,
-            "admins_editor",
+            "admins_editor_category",
             "Are you sure you want to permanently delete all accounts currently for sale?"
             "\n\nNote: They will be uploaded to this chat before deletion"
         ),

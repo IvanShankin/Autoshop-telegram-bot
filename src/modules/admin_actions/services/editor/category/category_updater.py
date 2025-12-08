@@ -27,7 +27,7 @@ async def update_data(message: Message, state: FSMContext, user: Users):
         pass
 
     if new_number is None:
-        message_error = get_text(user.language, 'miscellaneous', "Incorrect value entered")
+        message_error = get_text(user.language, 'miscellaneous', "Incorrect value entered. Please try again")
     else:
         try:
             if await state.get_state() == UpdateNumberInCategory.price.state:
@@ -37,7 +37,7 @@ async def update_data(message: Message, state: FSMContext, user: Users):
             elif await state.get_state() == UpdateNumberInCategory.number_button.state:
                 await update_account_category(data.category_id, number_buttons_in_row=new_number)
         except (IncorrectedAmountSale, IncorrectedCostPrice, IncorrectedNumberButton):
-            message_error = get_text(user.language, 'miscellaneous', "Incorrect value entered")
+            message_error = get_text(user.language, 'miscellaneous', "Incorrect value entered. Please try again")
 
     if message_error:
         message_error += '\n\n'

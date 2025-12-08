@@ -68,7 +68,7 @@ async def get_number_of_activations(message: Message, state: FSMContext, user: U
     if not number_of_activations:
         await send_message(
             user.user_id,
-            get_text(user.language, 'miscellaneous',"Incorrect value entered"),
+            get_text(user.language, 'miscellaneous',"Incorrect value entered. Please try again"),
             reply_markup=back_in_start_creating_admin_vouchers_kb(user.language)
         )
         return
@@ -90,7 +90,7 @@ async def get_expire_at(message: Message, state: FSMContext, user: Users):
     if not expire_at:
         await send_message(
             user.user_id,
-            get_text(user.language, 'miscellaneous', "Incorrect value entered"),
+            get_text(user.language, 'miscellaneous', "Incorrect value entered. Please try again"),
             reply_markup=back_in_start_creating_admin_vouchers_kb(user.language)
         )
         return
@@ -111,7 +111,7 @@ async def get_amount(message: Message, state: FSMContext, user: Users):
     if not amount:
         await send_message(
             user.user_id,
-            get_text(user.language, 'miscellaneous',"Incorrect value entered"),
+            get_text(user.language, 'miscellaneous',"Incorrect value entered. Please try again"),
             reply_markup=back_in_start_creating_admin_vouchers_kb(user.language)
         )
         return

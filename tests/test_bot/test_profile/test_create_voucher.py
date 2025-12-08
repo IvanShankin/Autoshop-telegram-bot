@@ -53,7 +53,7 @@ async def test_create_voucher_invalid_amount(
 
     await create_voucher_get_amount(msg, fsm, user)
 
-    text = get_text(user.language, 'miscellaneous', 'Incorrect value entered')
+    text = get_text(user.language, 'miscellaneous', "Incorrect value entered. Please try again")
 
     assert fake_bot.get_message(user.user_id, text), "Не отправилось сообщение об ошибке"
 

@@ -27,7 +27,7 @@ async def show_image_editor(
     ui_image = await get_ui_image(ui_image_key)
 
     if not ui_image:
-        text = get_text(user.language, "admins_editor", "This photo no longer exists")
+        text = get_text(user.language, "admins_editor_images", "This photo no longer exists")
         if callback:
             await callback.answer(text, show_alert=True)
         else:
@@ -35,7 +35,7 @@ async def show_image_editor(
         return
 
     message = get_text(
-        user.language, "admins_editor", "Where is it used: {where} \nShow: {show}"
+        user.language, "admins_editor_images", "Where is it used: {where} \nShow: {show}"
     ).format(where=get_text(user.language, "ui_images_description", ui_image_key), show=ui_image.show)
 
     reply_markup = image_editor(user.language, ui_image_key, current_show=ui_image.show,current_page=current_page)
@@ -84,7 +84,7 @@ async def ui_image_update_show(callback: CallbackQuery, user: Users):
     new_show = bool(int(callback.data.split(':')[2]))
     current_page = int(callback.data.split(':')[3])
     await update_ui_image(ui_image_key, show=new_show)
-    await callback.answer(get_text(user.language, "admins_editor", "Successfully updated"), show_alert=True)
+    await callback.answer(get_text(user.language, "admins_editor_images", "Successfully updated"), show_alert=True)
     await show_image_editor(
         ui_image_key=ui_image_key,
         current_page=current_page,
@@ -115,11 +115,11 @@ async def change_ui_image_result(message: Message, state: FSMContext, user: User
     # обновляем и выводим сообщение
 
     if not doc.mime_type.startswith("image/"): # Проверяем, что это действительно изображение
-        text = get_text(user.language,"admins_editor", "This is not an image. Send it as a document")
+        text = get_text(user.language,"admins_editor_images", "This is not an image. Send it as a document")
     elif doc.file_size > MAX_SIZE_BYTES: # Проверяем размер, известный Telegram (без скачивания)
         text = get_text(
             user.language,
-            "admins_editor",
+            "admins_editor_category",
             "The file is too large — maximum {max_size_mb} MB. \n\nTry again"
         ).format(max_size_mb=MAX_SIZE_MB)
     else:

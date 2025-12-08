@@ -21,7 +21,7 @@ async def upload_account(category: AccountCategoryFull, user: Users, callback: C
         user.user_id,
         get_text(
             user.language,
-            "admins_editor",
+            "admins_editor_category",
             "Account upload has begun. Wait for the message about the completion of the upload"
         )
     )
@@ -37,20 +37,20 @@ async def upload_account(category: AccountCategoryFull, user: Users, callback: C
                 user.user_id,
                 document=BufferedInputFile(
                     stream_csv,
-                    filename=get_text(user.language, "admins_editor", "Accounts") + '.csv'
+                    filename=get_text(user.language, "admins_editor_category", "Accounts") + '.csv'
                 )
             )
         else:
             await service_not_found(user, callback.message.message_id)
             return
     except ProductAccountNotFound:
-        await send_message(user.user_id, get_text(user.language, "admins_editor", "Account not found!"))
+        await send_message(user.user_id, get_text(user.language, "admins_editor_category", "Account not found!"))
 
     await send_message(
         user.user_id,
         get_text(
             user.language,
-            "admins_editor",
+            "admins_editor_category",
             "Account upload complete"
         ),
         reply_markup=back_in_category_kb(

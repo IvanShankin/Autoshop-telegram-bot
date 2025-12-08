@@ -84,8 +84,8 @@ async def update_message_for_sending(
     return new_message_for_sending
 
 
-async def add_admin_action(user_id: int, action_type: str, details: dict) -> AdminActions:
-    new_action = AdminActions(user_id=user_id, action_type=action_type, details=details)
+async def add_admin_action(user_id: int, action_type: str, message: str, details: dict) -> AdminActions:
+    new_action = AdminActions(user_id=user_id, action_type=action_type, message=message, details=details)
 
     async with get_db() as session_db:
         session_db.add(new_action)

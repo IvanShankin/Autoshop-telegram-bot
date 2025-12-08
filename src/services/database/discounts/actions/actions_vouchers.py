@@ -199,7 +199,8 @@ async def create_voucher(
             new_admin_actions = AdminActions(
                 user_id = user.user_id,
                 action_type = 'create_voucher',
-                details = {'message': "Админ создал ваучер", "voucher_id": new_voucher.voucher_id}
+                message = "Админ создал ваучер",
+                details = {"voucher_id": new_voucher.voucher_id}
             )
             session_db.add(new_admin_actions)
             await session_db.commit()

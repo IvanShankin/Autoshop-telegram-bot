@@ -109,7 +109,8 @@ async def add_banned_account(admin_id: int, user_id: int, reason: str):
     new_admin_log = AdminActions(
         user_id=admin_id,
         action_type = "added ban account",
-        details = {'message': "Добавил аккаунт в забаненные", "user_id": user_id }
+        message = "Добавил аккаунт в забаненные",
+        details = {"user_id": user_id }
     )
     async with get_db() as session_db:
         session_db.add(new_ban)
@@ -134,7 +135,8 @@ async def delete_banned_account(admin_id: int, user_id: int):
     new_admin_log = AdminActions(
         user_id=admin_id,
         action_type="deleted ban account",
-        details={'message': "Удалил аккаунт из забаненных", "user_id": user_id}
+        message="Удалил аккаунт из забаненных",
+        details={"user_id": user_id}
     )
 
     async with get_db() as session_db:

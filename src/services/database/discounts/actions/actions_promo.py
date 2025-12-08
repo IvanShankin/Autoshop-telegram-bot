@@ -134,8 +134,8 @@ async def create_promo_code(
         new_admin_actions = AdminActions(
             user_id= creator_id,
             action_type = 'create_promo_code',
+            message = "Администрация создала новый промокод",
             details = {
-                "message": "Администрация создала новый промокод",
                 "promo_code_id": new_promo_code.promo_code_id
             }
         )
@@ -213,8 +213,8 @@ async def deactivate_promo_code(user_id: int, promo_code_id: int):
         new_admin_actions = AdminActions(
             user_id=user_id,
             action_type='deactivate_promo_code',
+            message = "Администрация деактивировала промокод",
             details={
-                "message": "Администрация деактивировала промокод",
                 "promo_code_id": promo_code_id
             }
         )

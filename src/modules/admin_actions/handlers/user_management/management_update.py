@@ -5,8 +5,8 @@ from aiogram.types import CallbackQuery, Message
 from src.bot_actions.messages import send_message, edit_message
 from src.modules.admin_actions.keyboards import back_in_user_management_kb, \
     confirm_remove_ban_kb
-from src.modules.admin_actions.schemas.user_management import SetNewBalanceData, IssueBanData
-from src.modules.admin_actions.state.user_management import SetNewBalance, IssueBan
+from src.modules.admin_actions.schemas import SetNewBalanceData, IssueBanData
+from src.modules.admin_actions.state import SetNewBalance, IssueBan
 from src.services.database.users.actions import get_user, add_banned_account, delete_banned_account
 from src.services.database.users.actions.action_user import admin_update_user_balance
 from src.services.database.users.models import Users

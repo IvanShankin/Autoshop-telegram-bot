@@ -6,8 +6,8 @@ from src.bot_actions.bot_instance import get_bot
 from src.bot_actions.messages import edit_message, send_message
 from src.modules.admin_actions.keyboards import skip_number_activations_or_back_kb, \
     back_in_start_creating_admin_vouchers_kb, skip_expire_at_or_back_kb, in_admin_voucher_kb
-from src.modules.admin_actions.schemas.editor_vouchers import CreateAdminVoucherData
-from src.modules.admin_actions.state.editor_vouchers import CreateAdminVoucher
+from src.modules.admin_actions.schemas import CreateAdminVoucherData
+from src.modules.admin_actions.state import CreateAdminVoucher
 from src.services.database.discounts.actions import create_voucher
 from src.services.database.users.models import Users
 from src.utils.converter import safe_int_conversion, safe_parse_datetime

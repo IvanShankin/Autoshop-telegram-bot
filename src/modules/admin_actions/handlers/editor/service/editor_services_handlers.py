@@ -6,12 +6,12 @@ from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.messages import edit_message, send_message
 from src.exceptions.service_exceptions import ServiceTypeBusy, ServiceContainsCategories
-from src.modules.admin_actions.keyboards.service_kb import back_in_all_type_service_kb
+from src.modules.admin_actions.keyboards.editors.service_kb import back_in_all_type_service_kb
 from src.modules.admin_actions.services import show_service
 from src.modules.admin_actions.keyboards import all_services_account_admin_kb, all_services_types_kb, \
     to_services_kb,  back_in_service_kb, delete_service_kb
-from src.modules.admin_actions.schemas.editor_categories import GetServiceNameData, RenameServiceData
-from src.modules.admin_actions.state.editor_categories import GetServiceName, RenameService
+from src.modules.admin_actions.schemas import GetServiceNameData, RenameServiceData
+from src.modules.admin_actions.state import GetServiceName, RenameService
 from src.services.database.selling_accounts.actions import add_account_services, update_account_service, \
     delete_account_service
 from src.services.database.users.models import Users

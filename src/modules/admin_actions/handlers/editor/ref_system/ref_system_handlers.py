@@ -4,11 +4,11 @@ from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.messages import edit_message, send_message
 from src.exceptions.service_exceptions import InvalidAmountOfAchievement, InvalidSelectedLevel
-from src.modules.admin_actions.keyboards.ref_system_kb import lvl_list_ref_system_kb, ref_lvl_editor_kb, \
+from src.modules.admin_actions.keyboards.editors.ref_system_kb import lvl_list_ref_system_kb, ref_lvl_editor_kb, \
     back_in_lvl_list_ref_system_kb, back_in_ref_lvl_editor_kb, confirm_del_lvl_kb
-from src.modules.admin_actions.schemas.editor_ref_system import GetNewPersentData, GetAchievementAmountData, \
+from src.modules.admin_actions.schemas import GetNewPersentData, GetAchievementAmountData, \
     CreateRefLevelData
-from src.modules.admin_actions.state.editor_ref_system import GetNewPersent, GetAchievementAmount, CreateRefLevel
+from src.modules.admin_actions.state import GetNewPersent, GetAchievementAmount, CreateRefLevel
 from src.services.database.referrals.actions import get_referral_lvl, update_referral_lvl
 from src.services.database.referrals.actions.actions_ref_lvls import get_levels_nearby, delete_referral_lvl, \
     add_referral_lvl

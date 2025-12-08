@@ -7,8 +7,8 @@ from aiogram.types import CallbackQuery, Message
 from src.bot_actions.messages import edit_message, send_message
 from src.config import MAX_SIZE_BYTES, MAX_SIZE_MB
 from src.modules.admin_actions.keyboards import images_list_kb, image_editor, back_in_image_editor
-from src.modules.admin_actions.schemas.editor_images import GetNewImageData
-from src.modules.admin_actions.state.editor_images import GetNewImage
+from src.modules.admin_actions.schemas import GetNewImageData
+from src.modules.admin_actions.state import GetNewImage
 from src.services.database.system.actions.actions import  update_ui_image, get_ui_image, \
     delete_ui_image, create_ui_image
 from src.services.database.users.models import Users

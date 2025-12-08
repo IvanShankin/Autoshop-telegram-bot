@@ -4,7 +4,7 @@ from aiogram.types import CallbackQuery
 
 from src.bot_actions.messages import edit_message
 from src.config import DT_FORMAT
-from src.modules.admin_actions.keyboards.promo_codes_kb import admin_promo_kb, all_admin_promo_kb, \
+from src.modules.admin_actions.keyboards import admin_promo_kb, all_admin_promo_kb, \
     back_in_all_admin_promo_kb, show_admin_promo_kb
 from src.services.database.discounts.actions import get_promo_code
 from src.services.database.users.models import Users

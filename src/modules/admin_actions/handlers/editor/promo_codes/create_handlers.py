@@ -3,11 +3,11 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.messages import edit_message, send_message
-from src.modules.admin_actions.keyboards.promo_codes_kb import select_promo_code_type_kb, \
+from src.modules.admin_actions.keyboards import select_promo_code_type_kb, \
     back_in_start_creating_promo_code_kb, skip_number_activations_promo_or_in_start_kb, \
     skip_expire_at_promo_or_in_start_kb, in_show_admin_promo_kb
-from src.modules.admin_actions.schemas.editor_promo_code import CreatePromoCodeData
-from src.modules.admin_actions.state.editor_promo_code import CreatePromoCode
+from src.modules.admin_actions.schemas import CreatePromoCodeData
+from src.modules.admin_actions.state import CreatePromoCode
 from src.services.database.discounts.actions import get_promo_code, create_promo_code
 from src.services.database.users.models import Users
 from src.utils.converter import safe_int_conversion, safe_parse_datetime

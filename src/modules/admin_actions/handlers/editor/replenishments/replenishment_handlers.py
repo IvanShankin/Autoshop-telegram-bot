@@ -3,12 +3,12 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.messages import edit_message, send_message
-from src.modules.admin_actions.keyboards.replenishment_kb import edit_type_payments_list_kb, edit_type_payment_kb, \
+from src.modules.admin_actions.keyboards.editors.replenishment_kb import edit_type_payments_list_kb, edit_type_payment_kb, \
     back_in_edit_type_payment_kb
-from src.modules.admin_actions.schemas.editor_replenishment import GetTypePaymentNameData, GetTypePaymentCommissionData
+from src.modules.admin_actions.schemas import GetTypePaymentNameData, GetTypePaymentCommissionData
 from src.modules.admin_actions.services import safe_get_type_payment
 from src.modules.admin_actions.services import message_type_payment
-from src.modules.admin_actions.state.editor_replenishment import GetTypePaymentName, GetTypePaymentCommission
+from src.modules.admin_actions.state import GetTypePaymentName, GetTypePaymentCommission
 from src.services.database.system.actions.actions import update_type_payment
 from src.services.database.users.models import Users
 from src.utils.converter import safe_float_conversion

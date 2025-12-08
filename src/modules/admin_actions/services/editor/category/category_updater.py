@@ -7,8 +7,8 @@ from src.bot_actions.messages import send_message
 from src.exceptions.service_exceptions import IncorrectedAmountSale, IncorrectedCostPrice, \
     IncorrectedNumberButton
 from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category_update_data
-from src.modules.admin_actions.schemas.editor_categories import UpdateCategoryOnlyId
-from src.modules.admin_actions.state.editor_categories import UpdateNumberInCategory
+from src.modules.admin_actions.schemas import UpdateCategoryOnlyId
+from src.modules.admin_actions.state import UpdateNumberInCategory
 from src.services.database.selling_accounts.actions import update_account_category
 from src.services.database.users.models import Users
 from src.utils.converter import safe_int_conversion

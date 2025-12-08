@@ -72,7 +72,7 @@ async def test_update_data_incorrect_value(
         create_new_user, create_account_category
 ):
     from src.modules.admin_actions.handlers.editor.category.update_handlers import update_data
-    from src.modules.admin_actions.state.editor_categories import UpdateNumberInCategory
+    from src.modules.admin_actions.state import UpdateNumberInCategory
 
     category = await create_account_category()
     user = await create_new_user()
@@ -96,7 +96,7 @@ async def test_update_data_valid_price(
         create_new_user, create_account_category
 ):
     from src.modules.admin_actions.handlers.editor.category.update_handlers import update_data
-    from src.modules.admin_actions.state.editor_categories import UpdateNumberInCategory
+    from src.modules.admin_actions.state import UpdateNumberInCategory
 
     category = await create_account_category()
     user = await create_new_user()
@@ -126,7 +126,7 @@ async def test_add_acc_category_name_prompts_next_language(
       - установить state в GetDataForCategory.category_name
     """
     from src.modules.admin_actions.handlers.editor.category.create_handlers import add_acc_category_name
-    from src.modules.admin_actions.state.editor_categories import GetDataForCategory
+    from src.modules.admin_actions.state import GetDataForCategory
 
     user = await create_new_user()
 

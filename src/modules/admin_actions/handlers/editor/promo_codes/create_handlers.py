@@ -176,6 +176,10 @@ async def create_promo_get_number_of_activations(message: Message, state: FSMCon
 @router.callback_query(F.data == "set_expire_at_promo")
 async def set_expire_at_promo(callback: CallbackQuery, state: FSMContext, user: Users):
     """Если попали в такой handler, значит пользователь пропустил число активаций"""
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
     await send_message_get_expire_at_date(state, user)
 
 
@@ -193,6 +197,10 @@ async def get_expire_at(message: Message, state: FSMContext, user: Users):
 @router.callback_query(F.data == "set_min_order_amount_promo")
 async def set_min_order_amount_promo(callback: CallbackQuery, state: FSMContext, user: Users):
     """Если попали в такой handler, значит пользователь пропустил срок годности промокода"""
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
     await send_message_get_min_order_amount(state, user)
 
 

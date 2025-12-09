@@ -80,6 +80,11 @@ async def get_number_of_activations(message: Message, state: FSMContext, user: U
 @router.callback_query(F.data == "set_expire_at")
 async def set_expire_at(callback: CallbackQuery, state: FSMContext, user: Users):
     """Если попали в такой handler, значит пользователь пропустил число активаций"""
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
+
     await state.clear()
     await send_message_get_expire_at_date(state, user)
 
@@ -102,6 +107,11 @@ async def get_expire_at(message: Message, state: FSMContext, user: Users):
 @router.callback_query(F.data == "set_amount_admin_voucher")
 async def set_amount_admin_voucher(callback: CallbackQuery, state: FSMContext, user: Users):
     """Если попали в такой handler, значит пользователь пропустил срок годности ваучера"""
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
+
     await send_message_get_amount(state, user)
 
 

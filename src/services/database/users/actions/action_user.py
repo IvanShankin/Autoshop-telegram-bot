@@ -3,7 +3,7 @@ from typing import List
 
 from dateutil.parser import parse
 from orjson import orjson
-from sqlalchemy import select, update
+from sqlalchemy import select, update, func
 
 from src.bot_actions.messages import send_log
 from src.services.database.admins.actions.actions_admin import add_admin_action
@@ -63,6 +63,12 @@ async def get_user_by_username(username: str) -> List[Users]:
     async with get_db() as session_db:
         result_db = await session_db.execute(select(Users).where(Users.username == username))
         return result_db.scalars().all()
+
+
+async def get_quantity_users() -> int:
+    async with get_db() as session_db:
+        result = await session_db.execute(select(func.count()).select_from(Users))
+        return result.scalar()
 
 
 async def update_user(

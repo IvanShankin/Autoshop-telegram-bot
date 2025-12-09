@@ -450,6 +450,12 @@ class FakeTelegramForbiddenError(Exception):
 class FakeTelegramBadRequest(Exception):
     message="error"
 
+class FakeTelegramNotFound(Exception):
+    message="error"
+
+class FakeTelegramRetryAfter(Exception):
+    message="error"
+
 
 class FakeFSInputFile:
     """
@@ -458,7 +464,7 @@ class FakeFSInputFile:
     """
     def __init__(self, path: str, filename: str | None = None):
         self.path = path
-        self.filename = filename or path.split("/")[-1]
+        self.filename = filename or path.split("/")[-1] if filename else None
 
     def read(self):
         return b"fake-bytes"

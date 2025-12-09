@@ -8,7 +8,7 @@ from tests.helpers.fake_aiogram.fake_aiogram_module import (
     ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply, FakeInlineKeyboardBuilder,
     BaseMiddleware, FakeTelegramForbiddenError, FakeTelegramBadRequest, FakeInputMediaPhoto, FakeFSInputFile,
     FakeBaseFilter, FakeState, FakeStatesGroup, FakeCommandObject, FakeTelegramObject, FakeReplyKeyboardBuilder,
-    FakeDocument, FakeBufferedInputFile
+    FakeDocument, FakeBufferedInputFile, FakeTelegramNotFound, FakeTelegramRetryAfter
 )
 
 @pytest.fixture(scope="session")
@@ -73,6 +73,8 @@ def patch_fake_aiogram():
     sys.modules["aiogram.exceptions"] = ModuleType("aiogram.exceptions")
     sys.modules["aiogram.exceptions"].TelegramForbiddenError = FakeTelegramForbiddenError
     sys.modules["aiogram.exceptions"].TelegramBadRequest = FakeTelegramBadRequest
+    sys.modules["aiogram.exceptions"].TelegramNotFound = FakeTelegramNotFound
+    sys.modules["aiogram.exceptions"].TelegramRetryAfter = FakeTelegramRetryAfter
 
     yield
 

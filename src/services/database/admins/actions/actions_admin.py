@@ -46,42 +46,46 @@ async def get_message_for_sending(admin_id: int) -> MessageForSending | None:
         message_for_sending = result_db.scalar_one_or_none()
         if message_for_sending:
             return message_for_sending
-        else:
-            if await check_admin(admin_id): # если пользователь с данным id реально админ
-                new_message_for_sending = MessageForSending(user_id=admin_id)
-                session_db.add(new_message_for_sending)
-                await session_db.commit()
-                await session_db.refresh(new_message_for_sending)
-                return new_message_for_sending
+        return None
 
 
 async def update_message_for_sending(
     user_id: int,
     content: str = None,
-    photo_path: str = None,
-    button_url: str = None,
+    photo_path: str = False,
+    button_url: str = False,
 ) -> MessageForSending | None:
     """
     Обновит данные для массовой рассылки.
     Если нет такого админа, то ничего не произойдёт
+    :param user_id: ID админа
+    :param content: текс у будущего сообщения
+    :param photo_path: можно передать None
+    :param button_url: можно передать None
     """
     is_admin = await check_admin(user_id)
     if not is_admin:
         return
 
-    new_message_for_sending = MessageForSending(
-        user_id=user_id,
-        content=content,
-        photo_path=photo_path,
-        button_url=button_url,
-    )
+    update_data = {}
+    if content is not None:
+        update_data["content"] = content
+    if photo_path is not False: # именно такое условие
+        update_data["photo_path"] = photo_path
+    if button_url is not False: # именно такое условие
+        update_data["button_url"] = button_url
 
-    async with get_db() as session_db:
-        session_db.add(new_message_for_sending)
-        await session_db.commit()
-        await session_db.refresh(new_message_for_sending)
+    if update_data:
+        update_data["user_id"] = user_id
+        new_message_for_sending = MessageForSending(**update_data)
 
-    return new_message_for_sending
+        async with get_db() as session_db:
+            session_db.add(new_message_for_sending)
+            await session_db.commit()
+            await session_db.refresh(new_message_for_sending)
+
+        return new_message_for_sending
+    return None
 
 
 async def add_admin_action(user_id: int, action_type: str, message: str, details: dict) -> AdminActions:

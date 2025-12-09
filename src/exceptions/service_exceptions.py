@@ -19,6 +19,13 @@ class AccountCategoryNotFound(Exception):
 class ProductAccountNotFound(Exception):
     pass
 
+class ArchiveNotFount(Exception):
+    """Архив не найден"""
+    pass
+
+class DirNotFount(Exception):
+    """Архив не найден"""
+    pass
 
 
 class NotEnoughAccounts(Exception):
@@ -84,14 +91,6 @@ class TelegramError(Exception):
     """Любая ошибка связанная с Telethon"""
     pass
 
-class ArchiveNotFount(Exception):
-    """Архив не найден"""
-    pass
-
-class DirNotFount(Exception):
-    """Архив не найден"""
-    pass
-
 class InvalidFormatRows(Exception):
     """При распаковке csv файла, если у него не верный формат"""
     pass
@@ -112,4 +111,12 @@ class InvalidAmountOfAchievement(Exception):
 
 class InvalidSelectedLevel(Exception):
     """Первый уровень в реферальной системе нельзя удалять или менять сумму постижения его (всегда должна быть 0)"""
+    pass
+
+class TextTooLong(Exception):
+    """При массовой рассылке, если текст для ОДНОГО сообщения слишком большой"""
+    pass
+
+class TextNotLinc(Exception):
+    """Указанный текст не является ссылкой"""
     pass

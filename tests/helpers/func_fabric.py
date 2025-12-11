@@ -3,6 +3,7 @@ import uuid
 import zipfile
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+from typing import Tuple
 
 import orjson
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -17,7 +18,7 @@ from src.services.redis.filling_redis import filling_sold_accounts_by_owner_id, 
     filling_account_categories_by_category_id, filling_all_account_services, filling_account_services, \
     filling_product_account_by_account_id, filling_product_accounts_by_category_id, filling_all_types_payments, \
     filling_types_payments_by_id
-from src.services.database.admins.models import Admins
+from src.services.database.admins.models import Admins, SentMasMessages, MessageForSending
 from src.services.database.discounts.models import Vouchers, PromoCodes
 from src.services.database.referrals.utils import create_unique_referral_code
 from src.services.database.selling_accounts.models import SoldAccounts, TypeAccountServices, SoldAccountsTranslation, \
@@ -154,8 +155,13 @@ async def create_admin_fabric(filling_redis: bool = True, user_id: int = None) -
         user_id = user.user_id
 
     async with get_db() as session_db:
-        new_admin = Admins(user_id = user_id)
+        new_admin = Admins(user_id=user_id)
+
+        ui_image, _ = await create_ui_image_factory(str(uuid.uuid4()))
+        new_message = MessageForSending(user_id=user_id, ui_image_key=ui_image.key)
+
         session_db.add(new_admin)
+        session_db.add(new_message)
         await session_db.commit()
         await session_db.refresh(new_admin)
 
@@ -686,7 +692,7 @@ async def create_tg_account_media_factory(
 
 
 
-async def create_ui_image_factory(key: str = "main_menu", show: bool = True, file_id: str = None):
+async def create_ui_image_factory(key: str = "main_menu", show: bool = True, file_id: str = None) -> Tuple[UiImages, str]:
     """
        сохраняет запись UiImages в БД и возвращает (ui_image, abs_path).
     """
@@ -764,3 +770,31 @@ async def create_promo_codes_fabric(
 
     return promo
 
+
+async def create_sent_mass_message_fabric(
+    admin_id: int = None,
+    content: str = "content",
+    photo_path: str = "photo_path",
+    button_url: str = "https://example.com",
+    number_received: int = 10,
+    number_sent: int = 10,
+) -> SentMasMessages:
+    if not admin_id:
+        admin = await create_admin_fabric() 
+        admin_id = admin.user_id
+        
+    async with get_db() as session_db: 
+        sent_message = SentMasMessages(
+            user_id = admin_id,
+            content = content,
+            photo_path = photo_path,
+            button_url = button_url,
+            number_received = number_received,
+            number_sent = number_sent
+        )
+        session_db.add(sent_message)
+        await session_db.commit()
+        await session_db.refresh(sent_message)
+
+    return sent_message
+        

@@ -23,7 +23,7 @@ async def test_validate_inputs_success_without_photo(monkeypatch):
     from src.bot_actions.messages.mass_tg_mailing import validate_broadcast_inputs
 
     async def fake_get_photo(bot, admin_chat_id, photo_path):
-        return None
+        return None, None
 
     from src.bot_actions.messages import mass_tg_mailing as modul
     monkeypatch.setattr(
@@ -32,7 +32,7 @@ async def test_validate_inputs_success_without_photo(monkeypatch):
         fake_get_photo
     )
 
-    text, photo_id, kb = await validate_broadcast_inputs(
+    text, photo_id, photo_path, kb = await validate_broadcast_inputs(
         bot=None,
         admin_chat_id=1,
         text="Hello world",
@@ -71,7 +71,7 @@ async def test_validate_inputs_button_valid_url(monkeypatch):
     from src.bot_actions.messages.mass_tg_mailing import validate_broadcast_inputs
 
     async def fake_get_photo(bot, admin_chat_id, photo_path):
-        return None
+        return None, None
 
     from src.bot_actions.messages import mass_tg_mailing as modul
     monkeypatch.setattr(
@@ -80,7 +80,7 @@ async def test_validate_inputs_button_valid_url(monkeypatch):
         fake_get_photo,
     )
 
-    text, photo_id, kb = await validate_broadcast_inputs(
+    text, photo_id, photo_path, kb = await validate_broadcast_inputs(
         bot=None,
         admin_chat_id=1,
         text="hello",
@@ -115,14 +115,13 @@ async def test_photo_id_success(monkeypatch, replacement_fake_bot):
     replacement_fake_bot.send_photo = fake_send_photo
     replacement_fake_bot.delete_message = fake_delete
 
-    file_id = await get_photo_identifier(
+    file_id, new_path = await get_photo_identifier(
         bot=replacement_fake_bot,
         admin_chat_id=1,
         photo_path=tmp.name
     )
 
     assert file_id == "FILE123"
-
 
 
 @pytest.mark.asyncio

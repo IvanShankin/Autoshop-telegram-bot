@@ -3,13 +3,14 @@ from math import ceil
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from src.config import PAGE_SIZE
+from src.services.database.system.actions.actions import get_ui_images_by_page
 from src.services.keyboards.keyboard_with_pages import pagination_keyboard
 from src.utils.i18n import get_text
-from src.utils.ui_images_data import UI_IMAGES, get_ui_images_by_page
+from src.utils.ui_images_data import UI_IMAGES
 
 
 async def images_list_kb(language: str, current_page: int):
-    images = get_ui_images_by_page(current_page)
+    images = await get_ui_images_by_page(current_page)
     total_pages = max(ceil(len(UI_IMAGES) / PAGE_SIZE), 1)
 
     def item_button(img_key):

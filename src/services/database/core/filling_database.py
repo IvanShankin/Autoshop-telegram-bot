@@ -4,16 +4,14 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from src.config import MAIN_ADMIN, TYPE_PAYMENTS, TYPE_ACCOUNT_SERVICES
+from src.services.database.admins.actions import create_admin
 from src.utils.ui_images_data import UI_IMAGES
-from src.services.database.system.models import UiImages
 from src.services.database.users.models import Users, NotificationSettings
-from src.services.database.system.models import Settings, TypePayments
-from src.services.database.core.database import Base
-from src.services.database.core.database import get_db, SQL_DB_URL, DB_NAME, POSTGRES_SERVER_URL
+from src.services.database.system.models import Settings, TypePayments, UiImages
+from src.services.database.core.database import get_db, SQL_DB_URL, DB_NAME, POSTGRES_SERVER_URL, Base
 from src.services.database.referrals.utils import create_unique_referral_code
-from src.services.database.admins.models import MessageForSending
-from src.services.database.admins.models import Admins
 from src.services.database.referrals.models import ReferralLevels
+from src.services.database.admins.models import MessageForSending, Admins
 from src.services.database.selling_accounts.models import TypeAccountServices
 
 
@@ -119,17 +117,12 @@ async def filling_admins(admin_id: int):
             code = await create_unique_referral_code()
             new_user = Users(user_id=admin_id, unique_referral_code=code)
             new_notification_settings = NotificationSettings(user_id=admin_id)
-            new_message_for_sending = MessageForSending(user_id=admin_id)
             async with get_db() as session_db:
                 session_db.add(new_user)
                 session_db.add(new_notification_settings)
-                session_db.add(new_message_for_sending)
                 await session_db.commit()
 
-        async with get_db() as session_db:
-            new_admin = Admins(user_id=admin_id)
-            session_db.add(new_admin)
-            await session_db.commit()
+        await create_admin(admin_id)
 
 async def filling_type_payment(type_payments: str):
     async with get_db() as session_db:

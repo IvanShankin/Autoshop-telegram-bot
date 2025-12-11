@@ -6,6 +6,7 @@ import zipfile
 from pathlib import Path
 from typing import Optional, List
 
+from src.config import SENT_MASS_MSG_IMAGE_DIR
 from src.utils.core_logger import logger
 
 
@@ -195,3 +196,23 @@ def get_dir_size(path: str) -> int:
             except OSError:
                 pass  # например, если файл недоступен
     return total
+
+
+def copy_file(src: str, dst_dir: str) -> str:
+    """
+    Копирует файл в указанную директорию.
+    Создаёт директорию, если её нет.
+    Возвращает путь к новому файлу.
+    """
+    if not os.path.isfile(src):
+        raise FileNotFoundError(f"Файл не найден: {src}")
+
+    os.makedirs(dst_dir, exist_ok=True)
+
+    # Имя файла сохраняем
+    filename = os.path.basename(src)
+    dst_path = os.path.join(dst_dir, filename)
+
+    shutil.copy2(src, dst_path)
+
+    return dst_path

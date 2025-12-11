@@ -53,11 +53,18 @@ def _is_file_id_invalid_error(exc: Exception) -> bool:
     return any(p in text for p in phrases)
 
 
-async def _try_edit_media_by_file_id(bot: Bot, chat_id: int, message_id: int, file_id: str,
-                                     caption: str, reply_markup) -> bool:
+async def _try_edit_media_by_file_id(
+        bot: Bot,
+        chat_id: int,
+        message_id: int,
+        file_id: str,
+        caption: str,
+        reply_markup,
+        parse_mode: Optional[str] = "HTML"
+) -> bool:
     """Пробуем заменить media по существующему file_id. Возвращаем True при успехе."""
     try:
-        media = InputMediaPhoto(media=file_id, caption=caption, parse_mode="HTML")
+        media = InputMediaPhoto(media=file_id, caption=caption, parse_mode=parse_mode)
         await bot.edit_message_media(chat_id=chat_id, message_id=message_id, media=media, reply_markup=reply_markup)
         return True
     except ValidationError: # если текс не передан
@@ -88,6 +95,7 @@ async def _try_edit_media_by_file(
         ui_image,
         caption: str,
         reply_markup,
+        parse_mode: Optional[str] = "HTML",
         fallback_image_key:  Optional[str] = None,
     ) -> bool:
     """Пробуем заменить media, загрузив файл с диска. При успехе сохраняем новый file_id (если есть)."""
@@ -114,7 +122,7 @@ async def _try_edit_media_by_file(
         return False
 
     try:
-        media = InputMediaPhoto(media=photo, caption=caption, parse_mode="HTML")
+        media = InputMediaPhoto(media=photo, caption=caption, parse_mode=parse_mode)
         msg = await bot.edit_message_media(chat_id=chat_id, message_id=message_id, media=media, reply_markup=reply_markup)
         # извлекаем новый file_id если он есть
         try:
@@ -145,7 +153,14 @@ async def _try_edit_media_by_file(
         return False
 
 
-async def _try_edit_text(bot: Bot, chat_id: int, message_id: int, text: str, reply_markup) -> Optional[bool]:
+async def _try_edit_text(
+        bot: Bot,
+        chat_id: int,
+        message_id: int,
+        text: str,
+        reply_markup,
+        parse_mode: Optional[str] = "HTML"
+) -> Optional[bool]:
     """
     Пробуем отредактировать текст. Возвращает:
       - True  => успешно отредактировали
@@ -160,7 +175,7 @@ async def _try_edit_text(bot: Bot, chat_id: int, message_id: int, text: str, rep
             text=text,
             chat_id=chat_id,
             message_id=message_id,
-            parse_mode="HTML",
+            parse_mode=parse_mode,
             reply_markup=reply_markup
         )
         return True
@@ -192,6 +207,7 @@ async def edit_message(
     image_key: Optional[str] = None,
     fallback_image_key:  Optional[str] = None,
     reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | None = None,
+    parse_mode: Optional[str] = "HTML",
     always_show_photos: bool = False
 ):
     """
@@ -206,11 +222,11 @@ async def edit_message(
         if ui_image and (ui_image.show or always_show_photos):
             # сначала file_id
             if ui_image.file_id:
-                ok = await _try_edit_media_by_file_id(bot, chat_id, message_id, ui_image.file_id, message, reply_markup)
+                ok = await _try_edit_media_by_file_id(bot, chat_id, message_id, ui_image.file_id, message, reply_markup, parse_mode)
                 if ok:
                     return  # успешно
                 # пробуем редактировать media с загрузкой файла
-                ok = await _try_edit_media_by_file(bot, chat_id, message_id, ui_image, message, reply_markup)
+                ok = await _try_edit_media_by_file(bot, chat_id, message_id, ui_image, message, reply_markup, parse_mode)
                 if ok:
                     return  # успешно
                 # не удалось отредактировать — пробуем удалить старое и отправить новое
@@ -230,7 +246,7 @@ async def edit_message(
                 return
             elif check_file_exists(ui_image.file_path):
                 # пробуем редактировать media с загрузкой файла
-                ok = await _try_edit_media_by_file(bot, chat_id, message_id, ui_image, message, reply_markup)
+                ok = await _try_edit_media_by_file(bot, chat_id, message_id, ui_image, message, reply_markup, parse_mode)
                 if ok:
                     return  # успешно
                 # не удалось отредактировать — пробуем удалить старое и отправить новое
@@ -264,14 +280,14 @@ async def edit_message(
             ui_image = await get_ui_image(fallback_image_key)
             if ui_image:
                 if ui_image.file_id:
-                    ok = await _try_edit_media_by_file_id(bot, chat_id, message_id, ui_image.file_id, message, reply_markup)
+                    ok = await _try_edit_media_by_file_id(bot, chat_id, message_id, ui_image.file_id, message, reply_markup, parse_mode)
                     if ok:
                         if not ui_image:
                             await send_log(text)
                         return  # успешно
                 elif check_file_exists(ui_image.file_path):
                     # пробуем редактировать media с загрузкой файла
-                    ok = await _try_edit_media_by_file(bot, chat_id, message_id, ui_image, message, reply_markup)
+                    ok = await _try_edit_media_by_file(bot, chat_id, message_id, ui_image, message, reply_markup, parse_mode)
                     if ok:
                         if not ui_image:
                             await send_log(text)
@@ -294,7 +310,7 @@ async def edit_message(
     # --- Новое сообщение без фото ---
     # если старое было с фото — нужно удалить и отправить новое, т.к. нельзя удалить фото редактированием
     # попробуем сначала отредактировать текст; если ошибка "there is no text in the message to edit" → значит было фото
-    text_result = await _try_edit_text(bot, chat_id, message_id, message, reply_markup)
+    text_result = await _try_edit_text(bot, chat_id, message_id, message, reply_markup, parse_mode)
 
     if text_result is True or text_result is None:
         return  # успешно отредактировали текст
@@ -311,6 +327,7 @@ async def edit_message(
         message=message,
         image_key=image_key,
         fallback_image_key=fallback_image_key,
-        reply_markup=reply_markup
+        reply_markup=reply_markup,
+        parse_mode=parse_mode
     )
     return

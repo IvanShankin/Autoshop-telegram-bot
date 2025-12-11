@@ -10,10 +10,11 @@ class MessageForSending(Base):
 
     user_id = Column(BigInteger, ForeignKey("users.user_id"), primary_key=True)
     content = Column(Text, nullable=True)
-    photo_path = Column(String(700), nullable=True)
+    ui_image_key = Column(String, ForeignKey("ui_images.key"), nullable=False)
     button_url = Column(String(500), nullable=True)
 
     user = relationship("Users", back_populates="message_for_sending")
+    ui_image = relationship("UiImages", back_populates="message_for_sending")
 
 class SentMasMessages(Base):
     __tablename__ = "sent_mas_messages"

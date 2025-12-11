@@ -330,3 +330,35 @@ msgstr "С процентом"
 
 msgid "With a fixed amount"
 msgstr "С фиксированной суммой"
+
+
+msgid "Mailing"
+msgstr "Рассылка"
+
+msgid "Editor"
+msgstr "Редактор"
+
+msgid "History"
+msgstr "История"
+
+msgid "Start mailing"
+msgstr "Начать рассылку"
+
+msgid "Change Photo"
+msgstr "Изменить фото"
+
+msgid "Change text"
+msgstr "Изменить текст"
+
+msgid "Change button url"
+msgstr "Изменить url кнопки"
+
+msgid "Hints to the text"
+msgstr "Подсказки к тексту"
+
+
+
+
+
+
+

@@ -1,11 +1,10 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.config import ALLOWED_LANGS
+from src.config import ALLOWED_LANGS, SOLID_LINE
 from src.services.database.selling_accounts.actions import get_account_categories_by_parent_id
 from src.utils.i18n import get_text
 
-SOLID_LINE = '―――――――――――――――――――――――――――'
 
 
 async def show_account_category_admin_kb(

@@ -4,7 +4,8 @@ from tests.helpers.func_fabric import create_new_user_fabric, create_admin_fabri
     create_voucher_factory, create_type_account_service_factory, create_account_service_factory, \
     create_translate_account_category_factory, create_account_category_factory, create_account_storage_factory, \
     create_product_account_factory, create_sold_account_factory, create_ui_image_factory, \
-    create_wallet_transaction_fabric, create_tg_account_media_factory, create_promo_codes_fabric
+    create_wallet_transaction_fabric, create_tg_account_media_factory, create_promo_codes_fabric, \
+    create_sent_mass_message_fabric
 from src.services.database.system.models import  Settings
 from src.services.database.core.database import get_db
 
@@ -14,9 +15,16 @@ async def create_new_user():
     """ Создаст нового пользователя в БД"""
     return create_new_user_fabric
 
+
 @pytest_asyncio.fixture
 async def create_admin_fix(create_new_user):
     return create_admin_fabric
+
+
+@pytest_asyncio.fixture
+async def create_sent_mass_message():
+    return create_sent_mass_message_fabric
+
 
 @pytest_asyncio.fixture
 async def create_referral(create_new_user):
@@ -26,6 +34,7 @@ async def create_referral(create_new_user):
     """
     return create_referral_fabric
 
+
 @pytest_asyncio.fixture
 async def create_income_from_referral(create_new_user, create_replenishment):
     """
@@ -33,6 +42,7 @@ async def create_income_from_referral(create_new_user, create_replenishment):
     :return Доход(IncomeFromReferrals), Реферал(Users), Владелец(Users)
     """
     return create_income_from_referral_fabric
+
 
 @pytest_asyncio.fixture
 async def create_replenishment(create_new_user):

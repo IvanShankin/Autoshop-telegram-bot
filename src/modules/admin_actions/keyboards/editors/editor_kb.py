@@ -10,6 +10,7 @@ def choice_editor_kb(language: str):
         [InlineKeyboardButton(text=get_text(language, 'keyboard',"Referral system"), callback_data=f"lvl_list_ref_system"),],
         [InlineKeyboardButton(text=get_text(language, 'keyboard',"Vouchers"), callback_data=f"admin_vouchers"),],
         [InlineKeyboardButton(text=get_text(language, 'keyboard',"Promo codes"), callback_data=f"admin_promo"),],
+        [InlineKeyboardButton(text=get_text(language, 'keyboard',"Mailing"), callback_data=f"admin_mailing"),],
         [InlineKeyboardButton(text=get_text(language, 'keyboard','Back'), callback_data=f'admin_panel'),]
     ])
 

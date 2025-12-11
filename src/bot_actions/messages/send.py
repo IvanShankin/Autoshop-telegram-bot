@@ -1,4 +1,6 @@
-from src.bot_actions.bot_instance import get_bot_logger
+from typing import Optional
+
+from src.bot_actions.bot_instance import get_bot_logger, GLOBAL_RATE_LIMITER
 from src.config import MAIN_ADMIN
 from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply, FSInputFile, \
     Message
@@ -16,15 +18,16 @@ async def send_message(
     image_key: str = None,
     fallback_image_key: str = None,
     reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | None = None,
+    parse_mode: Optional[str] = "HTML",
     always_show_photos: bool = False
 ) -> Message | None:
     """
     Отправит сообщение по-указанному chat_id, если есть image_key, то отправит фото с сообщением.
-
-    В обоих случаях parse_mode="HTML"
     """
     if not message and not image_key:
         raise ValueError("При отсылке нового сообщения необходимо указать хотя бы 'message' или 'image_key'")
+
+    await GLOBAL_RATE_LIMITER.acquire()
 
     bot = await get_bot()
     if image_key:
@@ -38,7 +41,7 @@ async def send_message(
                             chat_id=chat_id,
                             photo=ui_image.file_id,
                             caption=message,
-                            parse_mode="HTML",
+                            parse_mode=parse_mode,
                             reply_markup=reply_markup
                         )
                     except Exception as e:
@@ -53,7 +56,7 @@ async def send_message(
                                 chat_id=chat_id,
                                 photo=photo,
                                 caption=message,
-                                parse_mode="HTML",
+                                parse_mode=parse_mode,
                                 reply_markup=reply_markup
                             )
 
@@ -70,7 +73,7 @@ async def send_message(
                         chat_id=chat_id,
                         photo=photo,
                         caption=message,
-                        parse_mode="HTML",
+                        parse_mode=parse_mode,
                         reply_markup=reply_markup
                     )
 
@@ -101,12 +104,12 @@ async def send_message(
                         chat_id=chat_id,
                         photo=ui_image.file_id,
                         caption=message,
-                        parse_mode="HTML",
+                        parse_mode=parse_mode,
                         reply_markup=reply_markup
                     )
                 elif check_file_exists(ui_image.file_path):
                     photo = FSInputFile(ui_image.file_path)
-                    msg = await bot.send_photo(chat_id, photo=photo, caption=message, parse_mode="HTML", reply_markup=reply_markup)
+                    msg = await bot.send_photo(chat_id, photo=photo, caption=message, parse_mode=parse_mode, reply_markup=reply_markup)
 
                     # Сохраняем file_id для будущего использования
                     new_file_id = msg.photo[-1].file_id
@@ -129,7 +132,7 @@ async def send_message(
         if not message:
             message = "None"
 
-        return await bot.send_message(chat_id, text=message, parse_mode="HTML", reply_markup=reply_markup)
+        return await bot.send_message(chat_id, text=message, parse_mode=parse_mode, reply_markup=reply_markup)
 
     except Exception as e:
         logger.exception(f"#Ошибка при отправке сообщения. Ошибка: {str(e)}")

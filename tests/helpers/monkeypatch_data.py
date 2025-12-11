@@ -8,6 +8,8 @@ from contextlib import asynccontextmanager
 import fakeredis
 import pytest_asyncio
 
+from src.bot_actions.throttler import RateLimiter
+from src.config import RATE_SEND_MSG_LIMIT
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeBot
 from src.services.redis import core_redis
 
@@ -51,6 +53,8 @@ async def replacement_fake_bot(monkeypatch):
 
     async def run_bot():
         return fake_bot, None
+
+    fake_module.GLOBAL_RATE_LIMITER = RateLimiter(max_calls=RATE_SEND_MSG_LIMIT, period=1.0)
 
     fake_module.get_bot = fake_get_bot
     fake_module.get_dispatcher = get_dispatcher

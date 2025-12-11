@@ -1,11 +1,10 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from src.config import SOLID_LINE
 from src.services.database.referrals.actions import get_referral_lvl
 from src.utils.i18n import get_text
 
-
-SOLID_LINE = '―――――――――――――――――――――――――――'
 
 async def lvl_list_ref_system_kb(language: str):
     ref_lvls = await get_referral_lvl()

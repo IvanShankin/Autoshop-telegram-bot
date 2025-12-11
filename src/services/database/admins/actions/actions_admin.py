@@ -1,8 +1,15 @@
-from sqlalchemy import select
+import uuid
+from typing import List, Optional
 
-from src.services.database.admins.models import MessageForSending, Admins, AdminActions
+from sqlalchemy import select, func, update
+from sqlalchemy.orm import selectinload
+
+from src.config import PAGE_SIZE
+from src.services.database.admins.models import MessageForSending, Admins, AdminActions, SentMasMessages
 from src.services.database.core.database import get_db
+from src.services.database.system.actions import get_ui_image, create_ui_image, delete_ui_image, update_ui_image
 from src.services.redis.core_redis import get_redis
+from src.utils.ui_images_data import get_default_image_bytes
 
 
 async def check_admin(user_id) -> bool:
@@ -23,9 +30,14 @@ async def create_admin(user_id: int) -> Admins:
 
         # создание
         new_admin = Admins(user_id=user_id)
-        new_message_for_sending = MessageForSending(user_id=user_id)
         session_db.add(new_admin)
-        session_db.add(new_message_for_sending)
+
+        ui_image = await create_ui_image(str(uuid.uuid4()), get_default_image_bytes(), show=False)
+
+        if not await get_message_for_sending(user_id):
+            new_message_for_sending = MessageForSending(user_id=user_id,  ui_image_key=ui_image.key)
+            session_db.add(new_message_for_sending)
+
         await session_db.commit()
         await session_db.refresh(new_admin)
 
@@ -37,12 +49,17 @@ async def create_admin(user_id: int) -> Admins:
 
 async def get_message_for_sending(admin_id: int) -> MessageForSending | None:
     """
-    Вёрнёт MessageForSending, для данного админа.
+    Вёрнёт MessageForSending, для данного админа с подгруженным ui_image.
+
     Если админа нет по такому id, то ничего не вернёт.
     Если у админа нет записи в БД, создаст её
     """
     async with get_db() as session_db:
-        result_db = await session_db.execute(select(MessageForSending).where(MessageForSending.user_id == admin_id))
+        result_db = await session_db.execute(
+            select(MessageForSending)
+            .options(selectinload(MessageForSending.ui_image))
+            .where(MessageForSending.user_id == admin_id)
+        )
         message_for_sending = result_db.scalar_one_or_none()
         if message_for_sending:
             return message_for_sending
@@ -51,40 +68,57 @@ async def get_message_for_sending(admin_id: int) -> MessageForSending | None:
 
 async def update_message_for_sending(
     user_id: int,
-    content: str = None,
-    photo_path: str = False,
-    button_url: str = False,
+    content: Optional[str] = None,
+    file_bytes: Optional[bytes] = None,
+    show_image: Optional[bool] = None,
+    button_url: Optional[str] = False,
 ) -> MessageForSending | None:
     """
     Обновит данные для массовой рассылки.
     Если нет такого админа, то ничего не произойдёт
     :param user_id: ID админа
     :param content: текс у будущего сообщения
-    :param photo_path: можно передать None
+    :param file_bytes: Поток байт для создания фото
     :param button_url: можно передать None
     """
     is_admin = await check_admin(user_id)
     if not is_admin:
         return
 
+    message_data = None
+    old_ui_image_key = None
     update_data = {}
     if content is not None:
         update_data["content"] = content
-    if photo_path is not False: # именно такое условие
-        update_data["photo_path"] = photo_path
+    if file_bytes is not None:
+        message_data = await get_message_for_sending(user_id)
+        new_ui_image = await create_ui_image(str(uuid.uuid4()), file_data=file_bytes, show=True)
+        old_ui_image_key = message_data.ui_image_key
+        update_data["ui_image_key"] = new_ui_image.key
+
+    if show_image is not None:
+        if not message_data:
+            message_data =  await get_message_for_sending(user_id)
+
+        await update_ui_image(key=message_data.ui_image_key, show=show_image)
     if button_url is not False: # именно такое условие
         update_data["button_url"] = button_url
 
     if update_data:
-        update_data["user_id"] = user_id
-        new_message_for_sending = MessageForSending(**update_data)
-
         async with get_db() as session_db:
-            session_db.add(new_message_for_sending)
+            result_db = await session_db.execute(
+                update(MessageForSending)
+                .where(MessageForSending.user_id == user_id)
+                .values(**update_data)
+                .returning(MessageForSending)
+            )
+            msg = result_db.scalar_one_or_none()
             await session_db.commit()
-            await session_db.refresh(new_message_for_sending)
 
-        return new_message_for_sending
+        if file_bytes is not None:
+            await delete_ui_image(old_ui_image_key)
+
+        return msg
     return None
 
 
@@ -97,3 +131,22 @@ async def add_admin_action(user_id: int, action_type: str, message: str, details
 
     return new_action
 
+
+async def get_sent_mass_messages_by_page(
+    page: int = None,
+    page_size: int = PAGE_SIZE,
+) -> List[SentMasMessages]:
+    async with get_db() as session_db:
+        query = select(SentMasMessages)
+        if page:
+            offset = (page - 1) * page_size
+            query = query.limit(page_size).offset(offset)
+
+        result_db = await session_db.execute(query.order_by(SentMasMessages.created_at.desc()))
+        return result_db.scalars().all()
+
+
+async def get_count_sent_messages() -> int:
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(func.count()).select_from(SentMasMessages))
+        return result_db.scalar()

@@ -1,5 +1,8 @@
 from src.modules.admin_actions.keyboards.editors.editor_kb import choice_editor_kb, back_in_choice_editor_kb
 from src.modules.admin_actions.keyboards.editors.images_kb import images_list_kb, image_editor, back_in_image_editor
+from src.modules.admin_actions.keyboards.editors.mass_mailing_kb import admin_mailing_kb, back_in_admin_mailing_kb, \
+    editor_message_mailing_kb, change_mailing_photo_kb, change_mailing_text_kb, change_mailing_btn_url_kb, \
+    all_admin_mass_mailing_kb, show_sent_mass_message_kb, back_in_editor_mes_mailing_kb
 from src.modules.admin_actions.keyboards.keyboard_main import main_admin_kb, back_in_main_admin_kb
 from src.modules.admin_actions.keyboards.editors.promo_codes_kb import admin_promo_kb, all_admin_promo_kb, \
     select_promo_code_type_kb, skip_number_activations_promo_or_in_start_kb, skip_expire_at_promo_or_in_start_kb, \
@@ -70,4 +73,15 @@ __all__ = [
     "back_in_all_admin_promo_kb",
     "back_in_admin_promo_kb",
     "back_in_start_creating_promo_code_kb",
+
+    # массовая рассылка
+    "admin_mailing_kb",
+    "editor_message_mailing_kb",
+    "change_mailing_photo_kb",
+    "change_mailing_text_kb",
+    "change_mailing_btn_url_kb",
+    "all_admin_mass_mailing_kb",
+    "show_sent_mass_message_kb",
+    "back_in_editor_mes_mailing_kb",
+    "back_in_admin_mailing_kb",
 ]

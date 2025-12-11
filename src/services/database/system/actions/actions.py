@@ -1,5 +1,4 @@
 import os
-import shutil
 from pathlib import Path
 from typing import List
 
@@ -7,15 +6,15 @@ import aiofiles
 import orjson
 from sqlalchemy import select, update, delete, func
 
+from src.config import PAGE_SIZE
 from src.services.redis.filling_redis import filling_types_payments_by_id, filling_all_types_payments, \
     filling_ui_image
 from src.services.redis.time_storage import TIME_SETTINGS
 from src.services.database.system.models import Settings, TypePayments, BackupLogs
 from src.services.database.core.database import get_db
-from src.services.database.core.filling_database import filling_settings
 from src.services.redis.core_redis import get_redis
 from src.services.database.system.models import UiImages
-from src.utils.ui_images_data import UI_SECTIONS
+from src.utils.ui_images_data import UI_SECTIONS, UI_IMAGES, UI_IMAGES_IGNORE_ADMIN
 
 
 def _check_file_exists(ui_image: UiImages) -> UiImages | None:
@@ -37,9 +36,7 @@ async def get_settings() -> Settings:
                 async with get_redis() as session_redis:
                     await session_redis.setex(f'settings', TIME_SETTINGS, orjson.dumps(settings_db.to_dict()))
                 return settings_db
-            else:
-                await filling_settings()
-                return await get_settings()
+            return None
 
 
 async def update_settings(
@@ -86,6 +83,21 @@ async def update_settings(
             )
         return settings
     return None
+
+
+async def get_ui_images_by_page(page: int, page_size: int = PAGE_SIZE) -> List[str]:
+    # Получаем все ключи, исключив админские
+    filtered_keys = [
+        key for key in UI_IMAGES.keys()
+        if key not in UI_IMAGES_IGNORE_ADMIN
+    ]
+
+    # Считаем границы страницы
+    start = (page - 1) * page_size
+    end = start + page_size
+
+    # Возвращаем ключи нужной страницы
+    return filtered_keys[start:end]
 
 
 async def create_ui_image(key: str, file_data: bytes, show: bool = True) -> UiImages:
@@ -137,7 +149,7 @@ async def get_all_ui_images() -> List[UiImages] | None:
 
 
 async def get_ui_image(key: str) -> UiImages | None:
-    """Если есть файл по данному ключу, то вернёт UiImages по данному ключу, если нет или он невалидный, то вернёт None"""
+    """Если есть данные по данному ключу, то вернёт UiImages по данному ключу, если нет, то вернёт None"""
     async with get_redis() as session_redis:
         result_redis = await session_redis.get(f'ui_image:{key}')
         if result_redis:
@@ -150,7 +162,7 @@ async def get_ui_image(key: str) -> UiImages | None:
         return ui_image
 
 
-async def update_ui_image(key: str, show: bool, file_id: str | None = None) -> UiImages | None:
+async def update_ui_image(key: str, show: bool = None, file_id: str | None = None) -> UiImages | None:
     update_data = {}
     if show is not None:
         update_data["show"] = show

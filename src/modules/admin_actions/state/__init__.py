@@ -2,6 +2,7 @@ from src.modules.admin_actions.state.editors.editor_categories import GetService
     UpdateNameForCategory, RenameService, UpdateDescriptionForCategory, UpdateCategoryImage, ImportTgAccounts, \
     UpdateNumberInCategory, ImportOtherAccounts
 from src.modules.admin_actions.state.editors.editor_images import GetNewImage
+from src.modules.admin_actions.state.editors.editor_mass_mailing import GetImageMassMailing, GetTextMassMailing
 from src.modules.admin_actions.state.editors.editor_promo_code import CreatePromoCode
 from src.modules.admin_actions.state.editors.editor_ref_system import GetNewPersent, GetAchievementAmount, \
     CreateRefLevel
@@ -44,4 +45,8 @@ __all__ = [
     "GetUserIdOrUsername",
     "SetNewBalance",
     "IssueBan",
+
+    # массовая рассылка
+    "GetImageMassMailing",
+    "GetTextMassMailing",
 ]

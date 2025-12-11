@@ -1,8 +1,7 @@
-from typing import List
-
-from src.config import MEDIA_DIR, PAGE_SIZE
+from src.config import MEDIA_DIR
 from io import BytesIO
 from PIL import Image
+
 
 UI_SECTIONS = MEDIA_DIR / "ui_sections"
 
@@ -16,21 +15,6 @@ def get_default_image_bytes(color: str = "white", size: tuple[int, int] = (500, 
     buf = BytesIO()
     img.save(buf, format="PNG")
     return buf.getvalue()
-
-
-def get_ui_images_by_page(page: int, page_size: int = PAGE_SIZE) -> List[str]:
-    # Получаем все ключи, исключив админские
-    filtered_keys = [
-        key for key in UI_IMAGES.keys()
-        if key not in UI_IMAGES_IGNORE_ADMIN
-    ]
-
-    # Считаем границы страницы
-    start = (page - 1) * page_size
-    end = start + page_size
-
-    # Возвращаем ключи нужной страницы
-    return filtered_keys[start:end]
 
 
 UI_IMAGES = {

@@ -23,6 +23,7 @@ LOG_DIR =  BASE_DIR / 'logs'
 MEDIA_DIR = BASE_DIR / "media"
 ACCOUNTS_DIR = MEDIA_DIR / "accounts"
 TEMP_FILE_DIR = MEDIA_DIR / "temp"
+SENT_MASS_MSG_IMAGE_DIR = MEDIA_DIR / "sent_mass_msg_image"
 
 TYPE_PAYMENTS = ['crypto_bot', 'zelenka'] # отображают в типах оплаты для админа
 MIN_MAX_REPLENISHMENT = {'crypto_bot': {"min": 1, "max": 99999999}}
@@ -35,9 +36,14 @@ DEFAULT_LANG = "ru"
 
 SUPPORTED_ARCHIVE_EXTENSIONS = ["zip"]
 
+SOLID_LINE = '―――――――――――――――――――――――――――' # для клавиатуры
+
 DT_FORMAT = "%Y-%m-%d %H:%M:%S"
 PAYMENT_LIFETIME_SECONDS = 1200 # 20 минут
 FETCH_INTERVAL = 7200 # 2 часа (для обновления курса доллара)
+
+SEMAPHORE_MAILING_LIMIT = 15
+RATE_SEND_MSG_LIMIT = 25
 
 PAGE_SIZE = 6
 

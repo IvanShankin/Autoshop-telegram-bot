@@ -1,24 +1,25 @@
 import asyncio
 import re
 import html
-from pathlib import Path
 from typing import Optional, Tuple, AsyncGenerator
 
+import validators
 from aiogram import Bot
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, FSInputFile
 from aiogram.exceptions import TelegramForbiddenError, TelegramNotFound, TelegramRetryAfter
 from sqlalchemy import select
 
-from src.bot_actions.bot_instance import get_bot
+from src.bot_actions.bot_instance import get_bot, GLOBAL_RATE_LIMITER
+from src.config import SEMAPHORE_MAILING_LIMIT, SENT_MASS_MSG_IMAGE_DIR
 from src.exceptions.service_exceptions import TextTooLong, TextNotLinc
 from src.services.database.core.database import get_db
 from src.services.database.users.models import Users
 from src.services.database.admins.models import SentMasMessages
+from src.services.filesystem.actions import copy_file
 from src.utils.core_logger import logger
 
 
-SEMAPHORE_LIMIT = 15
-semaphore = asyncio.Semaphore(SEMAPHORE_LIMIT)
+semaphore = asyncio.Semaphore(SEMAPHORE_MAILING_LIMIT)
 
 MAX_CHARS_WITH_PHOTO = 1024
 MAX_CHARS_WITHOUT_PHOTO = 4096
@@ -46,10 +47,10 @@ async def validate_broadcast_inputs(
     text: str,
     photo_path: Optional[str] = None,
     button_url: Optional[str] = None,
-) -> Tuple[str, Optional[str], Optional[InlineKeyboardMarkup]]:
+) -> Tuple[str, Optional[str],  Optional[str], Optional[InlineKeyboardMarkup]]:
     """
     Проверяет входные данные и возвращает кортеж
-    :return tuple: (text, photo_id_or_None, inline_kb_or_None)
+    :return: Tuple (text, photo_id_or_None, new_photo_path_or_None, inline_kb_or_None)
     :except TextTooLong: текст слишком длинный
     :except TextNotLinc: текст в кнопке не является ссылкой
     :except FileNotFoundError: фото не найдено
@@ -71,47 +72,42 @@ async def validate_broadcast_inputs(
 
     inline_kb = None
     if button_url:
-        from urllib.parse import urlparse
-
-        parsed = urlparse(button_url)
-        if parsed.scheme not in ("http", "https") or not parsed.netloc:
+        if not validators.url(button_url):
             raise TextNotLinc()
 
         inline_kb = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="Open", url=button_url)]
         ])
 
-    photo_id = await get_photo_identifier(bot, admin_chat_id, photo_path)
+    photo_id, new_file_path = await get_photo_identifier(bot, admin_chat_id, photo_path)
 
-    return text, photo_id, inline_kb
+    return text, photo_id, new_file_path, inline_kb
 
 
 async def get_photo_identifier(
     bot: Bot,
     admin_chat_id: int,
     photo_path: Optional[str] = None,
-) -> str | None:
+) -> Tuple[str | None, str | None] | None :
     """
     Если есть photo_path, то получит file_id и удалить сообщение у админа.
-    :return str: file_id,
+    :return: Tuple (file_id, new_image_path)
     :except FileNotFoundError: фото не найдено
     """
     if photo_path is None:
-        return None
+        return None, None
 
-    path = Path(photo_path)
-    if not path.exists() or not path.is_file():
-        raise FileNotFoundError(f"Фото не найдено: {photo_path}")
+    new_file_path = copy_file(src=photo_path, dst_dir=SENT_MASS_MSG_IMAGE_DIR)
 
     # Заливаем временно админу, получить file_id и удалить сообщение
-    sent_msg = await bot.send_photo(admin_chat_id, photo=FSInputFile(path), caption="(temp upload to get file_id)")
+    sent_msg = await bot.send_photo(admin_chat_id, photo=FSInputFile(new_file_path), caption="(temp upload to get file_id)")
     file_id = sent_msg.photo[-1].file_id
 
     try:
         await bot.delete_message(admin_chat_id, sent_msg.message_id)
     except Exception:
         pass
-    return file_id
+    return file_id, new_file_path
 
 
 async def _send_single(
@@ -128,6 +124,8 @@ async def _send_single(
     :return: Tuple(user_id, success, exception)
     """
     async with semaphore:
+        await GLOBAL_RATE_LIMITER.acquire()
+
         try:
             if photo_id:
                 await bot.send_photo(user_id, photo=photo_id, caption=text, reply_markup=inline_kb, parse_mode="HTML")
@@ -151,11 +149,19 @@ async def broadcast_message_generator(
     admin_id: int,
     photo_path: Optional[str] = None,
     button_url: Optional[str] = None,
-    concurrency: int = SEMAPHORE_LIMIT,
+    concurrency: int = SEMAPHORE_MAILING_LIMIT,
 ) -> AsyncGenerator[Tuple[int, bool, Optional[Exception]], None]:
     """
-    Асинхронный генератор, который после отправки сообщения возвращает кортеж:
+    Асинхронный генератор, который после отправки сообщения возвращает кортеж
+
+    Файл копируется на сервер и новый путь присваивается в SentMasMessages,
+    что бы в дальнейшем админ не мог изменить фото
+
     :return: AsyncGenerator[Tuple(user_id, success: bool, error_or_none)]
+
+    :except TextTooLong: текст слишком длинный
+    :except TextNotLinc: текст в кнопке не является ссылкой
+    :except FileNotFoundError: фото не найдено
     """
     # обновим semaphore по concurrency
     global semaphore
@@ -163,7 +169,7 @@ async def broadcast_message_generator(
 
     bot = await get_bot()
 
-    text, photo_id, inline_kb = await validate_broadcast_inputs(bot, admin_id, text, photo_path, button_url)
+    text, photo_id, new_photo_path, inline_kb = await validate_broadcast_inputs(bot, admin_id, text, photo_path, button_url)
 
     # получаем user_ids стримом и запускаем пул задач
     async def gen_user_ids():
@@ -208,7 +214,7 @@ async def broadcast_message_generator(
         session.add(SentMasMessages(
             content=text,
             user_id=admin_id,
-            photo_path=photo_path,
+            photo_path=new_photo_path,
             button_url=button_url,
             number_received=success,
             number_sent=failed + success

@@ -21,6 +21,10 @@ from src.modules.admin_actions.handlers.editor.promo_codes.create_handlers impor
 from src.modules.admin_actions.handlers.editor.promo_codes.show_handlers import router as show_promo_codes_router
 from src.modules.admin_actions.handlers.editor.promo_codes.delete_handlers import router as delete_promo_codes_router
 
+from src.modules.admin_actions.handlers.editor.mass_mailing.editor_handlers import router as editor_mass_mailing_router
+from src.modules.admin_actions.handlers.editor.mass_mailing.show_handlers import router as show_mass_mailing_router
+
+
 router = Router()
 router.include_router(main_router)
 router.include_router(editor_categories_router)
@@ -41,6 +45,9 @@ router.include_router(delete_vouchers_router)
 router.include_router(create_promo_codes_router)
 router.include_router(show_promo_codes_router)
 router.include_router(delete_promo_codes_router)
+
+router.include_router(editor_mass_mailing_router)
+router.include_router(show_mass_mailing_router)
 
 __all__ = [
     'router',

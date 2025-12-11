@@ -1,11 +1,12 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from src.config import SOLID_LINE
 from src.services.database.selling_accounts.actions import get_all_account_services, get_all_types_account_service, \
     get_account_categories_by_parent_id
 from src.utils.i18n import get_text
 
-SOLID_LINE = '―――――――――――――――――――――――――――'
+
 
 async def all_services_account_admin_kb(language: str):
     services = await get_all_account_services(return_not_show = True)

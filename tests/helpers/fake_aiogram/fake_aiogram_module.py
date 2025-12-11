@@ -361,7 +361,7 @@ class SpySend:
     def __init__(self):
         self.calls = []
 
-    async def __call__(self, chat_id, message, image_key=None, fallback_image_key=None, reply_markup=None):
+    async def __call__(self, chat_id, message, image_key=None, fallback_image_key=None, reply_markup=None, parse_mode=None):
         self.calls.append((chat_id, message, image_key, reply_markup))
         return SimpleNamespace(chat=SimpleNamespace(id=chat_id), text=message)
 

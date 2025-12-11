@@ -1,0 +1,92 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: autoshop 1.0\n"
+"PO-Revision-Date: 2025-09-04 00:00+0000\n"
+"Last-Translator: Ivan \n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+
+
+msgid "Sent successfully: {quantity_successfully} \n"
+"Total sent: {quantity_sent_total} \n"
+"Total users: {quantity_users}"
+msgstr "Отослано успешных: {quantity_successfully}  \n"
+"Отослано всего: {quantity_sent_total}  \n"
+"Всего пользователей: {quantity_users} "
+
+msgid "Mailing completed \n\n{result}"
+msgstr "Рассылка завершена \n\n{result}"
+
+msgid "The photo could not be found. Please re-attach it"
+msgstr "Не удалось найти фото. Пожалуйста прикрепите его заново "
+
+
+msgid "There will be a message here"
+msgstr "Тут будет сообщение"
+
+msgid "Warning! \nThe message is too long. \n\n"
+"For a message with a photo, please attach a text <b>no more than 1024</b> characters long \n"
+"For a message without a photo, please attach a text <b>no more than 4096</b> characters long"
+msgstr "Внимание! \nСообщение слишком длинное. \n\n"
+"Для сообщения с фото прикрепите текст длинной <b>не более 1024</b> символов \n"
+"Для сообщения без фото прикрепите текст длинной <b>не более 4096</b> символов"
+
+
+msgid "Are you sure you want to broadcast this message to all users? \n\n"
+"This will take approximately: {need_seconds} seconds"
+msgstr "Вы действительно хотите запустить рассылку данного сообщения всем пользователям? \n\n"
+"Это займёт приблизительно: {need_seconds} секунд"
+
+
+msgid "Send a photo as a document"
+msgstr "Пришлите фото документом"
+
+msgid "Send the text that will be used to send the message.\n\n"
+"To apply text formatting, use HTML markup by placing the desired text in tags.\n"
+"Example: <b>Desired text.</b> \n"
+"- This text will be bold.\n"
+"See the tooltip for tag options\n\n"
+"For a message with a photo, attach a text no more than 1024 characters long.\n"
+"For a message without a photo, attach a text no more than 4096 characters long."
+msgstr "Пришлите текст, который будет использоваться для отправки сообщения. \n\n"
+"Что бы применить форматирование текста используете HTML разметку помещая в теги желаемый текст для форматирования.\n"
+"Пример: <b>Желаемый текст.</b> \n"
+"- Данный текст будет жирным.\n"
+"Варианты тегов смотри в подсказке\n\n"
+"Для сообщения с фото прикрепите текст длинной не более 1024 символов \n"
+"Для сообщения без фото прикрепите текст длинной не более 4096 символов"
+
+msgid ""
+"Basic formatting tags: \n"
+"<b> bold text </b> \n"
+"<i> italic </i> \n"
+"<u> underlined text </u> \n"
+"<s> ~~strikethrough text~~ </s> \n"
+"<code> monospace code </code> \n"
+"<pre> preformatted text block </pre> \n"
+"<tg-spoiler> spoiler (hidden text) </tg-spoiler> \n\n"
+"Links: \n"
+"<a href="URL">link text</a> - regular link\n"
+"<a href="tg://user?id=123456">user mention</a> - user mention"
+msgstr ""
+"Основные теги форматирования: \n"
+"<b> жирный текст </b> \n"
+"<i> курсив </i> \n"
+"<u> подчеркнутый текст </u> \n"
+"<s> ~~зачеркнутый текст~~ </s> \n"
+"<code> моноширинный код </code> \n"
+"<pre> блок предварительно форматированного текста </pre> \n"
+"<tg-spoiler> спойлер (скрытый текст) </tg-spoiler> \n\n"
+"Ссылки: \n"
+"<a href="URL">текст ссылки</a> - обычная ссылка\n"
+"<a href="tg://user?id=123456">упоминание пользователя</a> - упоминание пользователя"
+
+
+msgid "Current link: \n<code>{url}</code>"
+msgstr "Текущая ссылка: \n<code>{url}</code>"
+
+msgid "The URL you entered is incorrect. Please try again"
+msgstr "Введён некорректный url. Попробуйте ещё раз"

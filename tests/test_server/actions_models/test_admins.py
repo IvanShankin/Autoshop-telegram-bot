@@ -1,6 +1,8 @@
 import pytest
 from sqlalchemy import select
 
+from src.services.database.admins.actions.actions_admin import get_sent_mass_messages_by_page
+from src.services.database.system.models import UiImages
 from src.services.redis.core_redis import get_redis
 from src.services.database.admins.actions import check_admin, create_admin as create_admin_fun, get_message_for_sending, \
     update_message_for_sending
@@ -31,6 +33,12 @@ async def test_create_admin_creates_new_admin_and_message(create_new_user):
         message = result.scalar_one_or_none()
         assert message is not None
 
+        result = await session_db.execute(
+            select(UiImages).where(UiImages.key == message.ui_image_key)
+        )
+        ui_image = result.scalar_one_or_none()
+        assert ui_image is not None
+
     # проверяем, что в redis появился ключ
     async with get_redis() as session_redis:
         redis_value = await session_redis.get(f"admin:{user.user_id}")
@@ -43,6 +51,7 @@ async def test_create_admin_returns_existing_admin(create_admin_fix):
     admin_2 = await create_admin_fun(admin_1.user_id)
 
     assert admin_1.user_id == admin_2.user_id
+
 
 @pytest.mark.asyncio
 async def test_get_message_for_sending_returns_existing(create_admin_fix):
@@ -57,33 +66,29 @@ async def test_get_message_for_sending_returns_existing(create_admin_fix):
 
 
 @pytest.mark.asyncio
-async def test_get_message_for_sending_creates_if_missing(create_admin_fix):
-    # удаляем все записи MessageForSending из БД
-    from src.services.database.core.database import get_db
-
-    admin = await create_admin_fix()
-    async with get_db() as session_db:
-        await session_db.execute(
-            MessageForSending.__table__.delete().where(MessageForSending.user_id == admin.user_id)
-        )
-        await session_db.commit()
-
-    message = await get_message_for_sending(admin.user_id)
-    assert message is not None
-    assert message.user_id == admin.user_id
-
-@pytest.mark.asyncio
 async def test_update_message_for_sending_updates_data(create_admin_fix):
     admin = await create_admin_fix()
     updated = await update_message_for_sending(
         user_id=admin.user_id,
         content="Hello World",
-        photo_path="photo.png",
         button_url="https://example.com"
     )
 
     assert isinstance(updated, MessageForSending)
     assert updated.content == "Hello World"
-    assert updated.photo_path == "photo.png"
     assert updated.button_url == "https://example.com"
 
+@pytest.mark.asyncio
+async def test_get_sent_mass_messages_by_page(create_sent_mass_message):
+    mass_msg_1 = await create_sent_mass_message()
+    mass_msg_2 = await create_sent_mass_message()
+    mass_msg_3 = await create_sent_mass_message()
+
+    list_msg = await get_sent_mass_messages_by_page(1)
+    list_msg = [msg.to_dict() for msg in list_msg]
+
+    # должен быть отсортирован по возрастанию даты
+    assert len(list_msg) == 3
+    assert mass_msg_3.to_dict() == list_msg[0]
+    assert mass_msg_2.to_dict() == list_msg[1]
+    assert mass_msg_1.to_dict() == list_msg[2]

@@ -1,4 +1,5 @@
 from aiogram import Router, F
+from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
@@ -42,19 +43,9 @@ async def update_support_username(callback: CallbackQuery, state: FSMContext, us
     await message_request_new_data(callback, state, user, UpdateAdminSettings.support_username)
 
 
-@router.message(UpdateAdminSettings.support_username)
-async def get_support_username(message: Message, state: FSMContext, user: Users):
-    await update_admin_settings(message, state, user)
-
-
 @router.callback_query(F.data == "update_channel_for_logging_id")
 async def update_channel_for_logging_id(callback: CallbackQuery, state: FSMContext, user: Users):
     await message_request_new_data(callback, state, user, UpdateAdminSettings.channel_for_logging_id)
-
-
-@router.message(UpdateAdminSettings.channel_for_logging_id)
-async def get_channel_for_logging_id(message: Message, state: FSMContext, user: Users):
-    await update_admin_settings(message, state, user)
 
 
 @router.callback_query(F.data == "update_channel_for_subscription_id")
@@ -62,19 +53,9 @@ async def update_channel_for_subscription_id(callback: CallbackQuery, state: FSM
     await message_request_new_data(callback, state, user, UpdateAdminSettings.channel_for_subscription_id)
 
 
-@router.message(UpdateAdminSettings.channel_for_subscription_id)
-async def get_channel_for_subscription_id(message: Message, state: FSMContext, user: Users):
-    await update_admin_settings(message, state, user)
-
-
 @router.callback_query(F.data  ==  "update_channel_for_subscription_url")
 async def update_channel_for_subscription_url(callback: CallbackQuery, state: FSMContext, user: Users):
     await message_request_new_data(callback, state, user, UpdateAdminSettings.channel_for_subscription_url)
-
-
-@router.message(UpdateAdminSettings.channel_for_subscription_url)
-async def get_channel_for_subscription_url(message: Message, state: FSMContext, user: Users):
-    await update_admin_settings(message, state, user)
 
 
 @router.callback_query(F.data == "update_channel_name")
@@ -82,19 +63,9 @@ async def update_channel_name(callback: CallbackQuery, state: FSMContext, user: 
     await message_request_new_data(callback, state, user, UpdateAdminSettings.channel_name)
 
 
-@router.message(UpdateAdminSettings.channel_name)
-async def get_channel_name(message: Message, state: FSMContext, user: Users):
-    await update_admin_settings(message, state, user)
-
-
 @router.callback_query(F.data == "update_shop_name")
 async def update_shop_name(callback: CallbackQuery, state: FSMContext, user: Users):
     await message_request_new_data(callback, state, user, UpdateAdminSettings.shop_name)
-
-
-@router.message(UpdateAdminSettings.shop_name)
-async def get_shop_name(message: Message, state: FSMContext, user: Users):
-    await update_admin_settings(message, state, user)
 
 
 @router.callback_query(F.data == "update_faq")
@@ -102,6 +73,16 @@ async def update_faq(callback: CallbackQuery, state: FSMContext, user: Users):
     await message_request_new_data(callback, state, user, UpdateAdminSettings.faq_url)
 
 
-@router.message(UpdateAdminSettings.faq_url)
-async def get_faq_url(message: Message, state: FSMContext, user: Users):
+@router.message(
+    StateFilter(
+        UpdateAdminSettings.support_username,
+        UpdateAdminSettings.channel_for_logging_id,
+        UpdateAdminSettings.channel_for_subscription_id,
+        UpdateAdminSettings.channel_for_subscription_url,
+        UpdateAdminSettings.channel_name,
+        UpdateAdminSettings.shop_name,
+        UpdateAdminSettings.faq_url,
+    )
+)
+async def update_admin_settings_handler(message: Message, state: FSMContext, user: Users):
     await update_admin_settings(message, state, user)

@@ -356,8 +356,8 @@ msgstr "Изменить url кнопки"
 msgid "Hints to the text"
 msgstr "Подсказки к тексту"
 
-
-
+msgid "Detail"
+msgstr "Детали"
 
 
 

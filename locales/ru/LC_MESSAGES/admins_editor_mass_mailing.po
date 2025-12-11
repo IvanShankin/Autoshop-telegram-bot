@@ -90,3 +90,20 @@ msgstr "Текущая ссылка: \n<code>{url}</code>"
 
 msgid "The URL you entered is incorrect. Please try again"
 msgstr "Введён некорректный url. Попробуйте ещё раз"
+
+
+msgid "Message not found"
+msgstr "Сообщение не найдено"
+
+msgid ""
+"Message ID: {message_id} \n\n"
+"Admin ID who sent the mailing: {admin_id} \n"
+"Number of users who received messages: {number_received} \n"
+"Number of messages sent: {number_sent} \n"
+"Date of the event: {created_at} \n"
+msgstr ""
+"ID сообщения: <b>{message_id}</b> \n\n"
+"ID админа производивший рассылку: <b>{admin_id}</b> \n"
+"Число пользователей получивших сообщений: <b>{number_received}</b> \n"
+"Число отправленных сообщений: <b>{number_sent}</b> \n"
+"Дата проведения: <b>{created_at}</b> \n"

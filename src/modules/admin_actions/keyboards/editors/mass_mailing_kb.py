@@ -13,7 +13,9 @@ from src.utils.i18n import get_text
 def admin_mailing_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=get_text(language, 'keyboard',"Editor"), callback_data=f"editor_mes_mailing"),],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard',"History"), callback_data=f"sent_message_list:1"),]
+        [InlineKeyboardButton(text=get_text(language, 'keyboard',"History"), callback_data=f"sent_message_list:1"),],
+        [InlineKeyboardButton(text=get_text(language, 'keyboard',"Back"), callback_data=f"editors"),]
+
     ])
 
 
@@ -88,16 +90,32 @@ async def all_admin_mass_mailing_kb(language: str, current_page: int):
     )
 
 
-def show_sent_mass_message_kb(language: str, current_page: int, button_url: str | None = None):
+def show_sent_mass_message_kb(language: str, current_page: int, message_id: int, button_url: str | None = None):
     keyboard = InlineKeyboardBuilder()
 
     if button_url:
-        keyboard.add(InlineKeyboardButton(text="Open", url=button_url))
-        keyboard.add(InlineKeyboardButton(text=SOLID_LINE, callback_data="none"))
+        keyboard.row(InlineKeyboardButton(text="Open", url=button_url))
+        keyboard.row(InlineKeyboardButton(text=SOLID_LINE, callback_data="none"))
 
-    keyboard.add(InlineKeyboardButton(text=get_text(language, 'keyboard','Back'), callback_data=f'sent_message_list:{current_page}'))
+    keyboard.row(InlineKeyboardButton(
+        text=get_text(language, 'keyboard','Detail'),
+        callback_data=f'detail_mass_msg:{current_page}:{message_id}'
+    ))
+    keyboard.row(InlineKeyboardButton(
+        text=get_text(language, 'keyboard','Back'),
+        callback_data=f'sent_message_list:{current_page}'
+    ))
 
     return keyboard.as_markup()
+
+
+def back_in_show_sent_mass_message_kb(language: str, current_page: int, message_id: int, button_url: str | None = None):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text=get_text(language, 'keyboard', 'Back'),
+            callback_data=f'show_sent_mass_message:{current_page}:{message_id}'
+        ), ]
+    ])
 
 
 def back_in_change_mailing_text_kb(language: str):

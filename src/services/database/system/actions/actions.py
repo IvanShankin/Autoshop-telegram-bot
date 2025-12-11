@@ -100,13 +100,14 @@ async def get_ui_images_by_page(page: int, page_size: int = PAGE_SIZE) -> List[s
     return filtered_keys[start:end]
 
 
-async def create_ui_image(key: str, file_data: bytes, show: bool = True) -> UiImages:
+async def create_ui_image(key: str, file_data: bytes, show: bool = True, file_id: str = None) -> UiImages:
     """
     Сохраняет файл локально с именем в аргументе "key" и создаёт запись в БД UiImages.
 
     :param key: Уникальный ключ изображения (например: 'main_menu_banner')
     :param file_data: Содержимое файла в виде байтов
     :param show: Флаг отображения
+    :param file_id: id в телеграмме
     :return:
     """
     new_path = UI_SECTIONS / f"{key}.png"
@@ -122,7 +123,7 @@ async def create_ui_image(key: str, file_data: bytes, show: bool = True) -> UiIm
                 await f.write(file_data)
             ui_image.file_path = str(new_path)
             await session_db.commit()
-            await update_ui_image(key=key, show=ui_image.show, file_id=None)
+            await update_ui_image(key=key, show=ui_image.show, file_id=file_id)
             return ui_image
         else:
             # Иначе создаём новую запись
@@ -132,6 +133,7 @@ async def create_ui_image(key: str, file_data: bytes, show: bool = True) -> UiIm
             ui_image = UiImages(
                 key=key,
                 file_path=str(new_path),
+                file_id=file_id,
                 show=show,
             )
             session_db.add(ui_image)

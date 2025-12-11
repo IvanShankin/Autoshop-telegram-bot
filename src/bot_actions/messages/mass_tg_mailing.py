@@ -215,6 +215,7 @@ async def broadcast_message_generator(
             content=text,
             user_id=admin_id,
             photo_path=new_photo_path,
+            photo_id=photo_id,
             button_url=button_url,
             number_received=success,
             number_sent=failed + success

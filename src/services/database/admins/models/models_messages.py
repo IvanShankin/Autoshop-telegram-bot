@@ -23,6 +23,7 @@ class SentMasMessages(Base):
     user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False) # это id админа (напрямую не надо т.к. админ может удалиться)
     content = Column(Text, nullable=True)
     photo_path = Column(String(700), nullable=True)
+    photo_id = Column(String(700), nullable=True)
     button_url = Column(String(500), nullable=True)
     number_received = Column(Integer, nullable=False) # число полученных сообщений (те которые фактически дошли до пользователя)
     number_sent = Column(Integer, nullable=False) # число отправленных сообщений

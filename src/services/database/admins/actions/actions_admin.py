@@ -132,6 +132,12 @@ async def add_admin_action(user_id: int, action_type: str, message: str, details
     return new_action
 
 
+async def get_sent_mass_messages(message_id: int) -> SentMasMessages | None:
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(SentMasMessages).where(SentMasMessages.message_id == message_id))
+        return result_db.scalar_one_or_none()
+
+
 async def get_sent_mass_messages_by_page(
     page: int = None,
     page_size: int = PAGE_SIZE,

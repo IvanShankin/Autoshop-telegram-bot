@@ -82,6 +82,9 @@ UI_IMAGES = {
     "info_add_accounts": UI_SECTIONS / "info_add_accounts.png",
     "example_csv": UI_SECTIONS / "example_csv.png",
 
+    # тех работы
+    "technical_work": UI_SECTIONS / "technical_work.png",
+
 }
 
 UI_IMAGES_IGNORE_ADMIN = ["info_add_accounts", "example_csv"]

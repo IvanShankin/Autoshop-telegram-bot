@@ -44,6 +44,7 @@ async def update_settings(
     support_username: str = None,
     channel_for_logging_id: int = None,
     channel_for_subscription_id: int = None,
+    channel_for_subscription_url: str = None,
     shop_name: str = None,
     channel_name: str = None,
     faq: str = None,
@@ -60,6 +61,8 @@ async def update_settings(
         update_data["channel_for_logging_id"] = channel_for_logging_id
     if channel_for_subscription_id is not None:
         update_data["channel_for_subscription_id"] = channel_for_subscription_id
+    if channel_for_subscription_url is not None:
+        update_data["channel_for_subscription_url"] = channel_for_subscription_url
     if shop_name is not None:
         update_data["shop_name"] = shop_name
     if channel_name is not None:

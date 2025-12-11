@@ -11,28 +11,16 @@ from src.bot_actions.bot_instance import get_bot, get_dispatcher
 async def _including_router():
     dp = await get_dispatcher()
 
-    start_router.message.middleware(MaintenanceMiddleware(allow_admins=True))
     dp.include_router(start_router)
-
-    catalog_router_with_repl_kb.message.middleware(MaintenanceMiddleware())
     dp.include_router(catalog_router_with_repl_kb)
-
-    catalog_router.message.middleware(MaintenanceMiddleware())
     dp.include_router(catalog_router)
-
-    profile_router_with_repl_kb.message.middleware(MaintenanceMiddleware())
     dp.include_router(profile_router_with_repl_kb)
-
-    profile_router.message.middleware(MaintenanceMiddleware())
     dp.include_router(profile_router)
-
-    admin_router.message.middleware(MaintenanceMiddleware())
     dp.include_router(admin_router)
-
-    admin_router_with_repl_kb.message.middleware(MaintenanceMiddleware(allow_admins=True))
     dp.include_router(admin_router_with_repl_kb)
 
     dp.update.middleware(UserMiddleware())
+    dp.update.middleware(MaintenanceMiddleware())
 
 
 async def run_bot():

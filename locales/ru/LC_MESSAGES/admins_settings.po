@@ -1,0 +1,46 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: autoshop 1.0\n"
+"PO-Revision-Date: 2025-09-04 00:00+0000\n"
+"Last-Translator: Ivan \n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+
+
+msgid ""
+"Maintenance: {maintenance_mode} \n"
+"Support Username: @{support_username} \n"
+"Chat ID for logging: {channel_for_logging_id} \n"
+"Channel ID for subscription: {channel_for_subscription_id} \n"
+"Channel URL for subscription: {channel_for_subscription_url} \n"
+"Channel Name: {channel_name} \n"
+"Store Name: {shop_name} \n"
+"FAQ URL: {FAQ}"
+msgstr ""
+"├ Тех работы: <b>{maintenance_mode}</b> \n"
+"├ Username поддержки: @{support_username} \n"
+"├ ID чата для логирования: <b>{channel_for_logging_id}</b> \n"
+"├ ID канала для подписки: <b>{channel_for_subscription_id}</b> \n"
+"├ URL канала для подписки: <a href="{channel_for_subscription_url}">{channel_for_subscription_url}</a> \n"
+"├ Имя канала: <b>{channel_name}</b> \n"
+"├ Имя магазина: <b>{shop_name}</b> \n"
+"╰ URL на FAQ: <a href="{FAQ}">{FAQ}</a>"
+
+
+msgid "First, please specify a chat/channel for logs"
+msgstr "Сперва укажите чат/канал для логов"
+
+msgid "Enter new data"
+msgstr "Введите новые данные"
+
+msgid "The text is too long. Please try again"
+msgstr "Слишком длинный текст. Попробуйте ещё раз"
+
+msgid "This text is not a link. Try again"
+msgstr "Данный текст не является ссылкой. Попробуйте ещё раз"
+
+msgid "Incorrect values entered. Please try again"
+msgstr "Введены некорректные значения. Попробуйте ещё раз"

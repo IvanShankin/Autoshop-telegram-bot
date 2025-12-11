@@ -4,6 +4,7 @@ from aiogram.types import Message, TelegramObject
 
 from typing import Callable, Dict, Any, Awaitable
 
+from src.bot_actions.messages import send_message
 from src.config import DEFAULT_LANG
 from src.services.database.admins.actions import check_admin
 from src.services.database.system.actions import get_settings
@@ -37,36 +38,43 @@ class UserMiddleware(BaseMiddleware):
         # даже если from_user нет, не ломаем обработку
         return await handler(event, data)
 
+
 class MaintenanceMiddleware(BaseMiddleware):
     """
-    Middleware для режима обслуживания (maintenance mode). Запрещает отправку сообщений от бота если идут тех работы
-
-    :param allow_admins: Если True — администраторы смогут пользоваться ботом даже при техработах.
+    Middleware для режима обслуживания (maintenance mode). Запрещает отправку сообщений от бота если идут тех работы.
+    Администраторы смогут пользоваться ботом даже при техработах.
     """
-    def __init__(self, allow_admins: bool = False):
-        self.allow_admins = allow_admins
-
     async def __call__(
         self,
-        handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
-        event: Message,
+        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
         data: Dict[str, Any]
     ) -> Any:
+        event_user = data.get("event_from_user")
+
+        user_id = event_user.id
+
         # Проверяем режим обслуживания
         settings = await get_settings()
         if not settings.maintenance_mode:
             return await handler(event, data)
 
-        # если разрешено и пользователь — админ
-        if self.allow_admins and await check_admin(event.from_user.id):
+        if await check_admin(user_id):
             return await handler(event, data)
 
-        user = await get_user(event.from_user.id, update_last_used=True)
+        user = await get_user(user_id, update_last_used=True)
         language = user.language if user else DEFAULT_LANG
 
-        await event.answer(
-            get_text(language, 'start_message', "⚙️ The bot is temporarily unavailable due to maintenance. Please try again later.")
+        await send_message(
+            user_id,
+            message=get_text(
+                language,
+                'start_message',
+                "The bot is temporarily unavailable due to maintenance. Please try again later"
+            ),
+            image_key="technical_work"
         )
+
 
 class I18nKeyFilter(BaseFilter):
     """Извлечёт i18n_key из I18nKeyResolverMiddleware"""

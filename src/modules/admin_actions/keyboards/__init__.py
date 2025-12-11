@@ -13,7 +13,8 @@ from src.modules.admin_actions.keyboards.editors.service_kb import all_services_
 from src.modules.admin_actions.keyboards.editors.category_kb import show_account_category_admin_kb, change_category_data_kb, \
     select_lang_category_kb, name_or_description_kb, delete_accounts_kb, delete_category_kb, back_in_category_update_data_kb, \
     back_in_category_kb
-from src.modules.admin_actions.keyboards.settings_kb import admin_settings_kb, back_in_admin_set_kb
+from src.modules.admin_actions.keyboards.settings_kb import admin_settings_kb, back_in_admin_settings_kb, \
+    change_admin_settings_kb, back_in_change_admin_settings_kb
 from src.modules.admin_actions.keyboards.user_management_kb import user_management_kb, back_in_user_management_kb, \
     confirm_remove_ban_kb
 
@@ -37,7 +38,6 @@ __all__ = [
     "delete_category_kb",
     "back_in_category_update_data_kb",
     "back_in_category_kb",
-    "back_in_admin_set_kb",
     "choice_editor_kb",
     "back_in_choice_editor_kb",
     "user_management_kb",
@@ -84,4 +84,10 @@ __all__ = [
     "show_sent_mass_message_kb",
     "back_in_editor_mes_mailing_kb",
     "back_in_admin_mailing_kb",
+
+    # настройки
+    "admin_settings_kb",
+    "change_admin_settings_kb",
+    "back_in_change_admin_settings_kb",
+    "back_in_admin_settings_kb",
 ]

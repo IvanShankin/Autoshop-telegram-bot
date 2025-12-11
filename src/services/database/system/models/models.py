@@ -8,13 +8,13 @@ class Settings(Base):
     __tablename__ = "settings"
 
     settings_id = Column(Integer, primary_key=True, autoincrement=True)
-    maintenance_mode  = Column(Boolean, nullable=True, server_default=text("false"))
-    support_username = Column(String(200), nullable=True)
-    channel_for_logging_id = Column(BigInteger, nullable=True)   # ID канала для логирования
-    channel_for_subscription_id = Column(BigInteger, nullable=True)   # ID канала для подписки пользователя
+    maintenance_mode = Column(Boolean, nullable=True, server_default=text("false"))
+    support_username = Column(String(200), nullable=True)           # хранит просто текст, без @
+    channel_for_logging_id = Column(BigInteger, nullable=True)      # ID канала для логирования
+    channel_for_subscription_id = Column(BigInteger, nullable=True) # ID канала для подписки пользователя
     channel_for_subscription_url = Column(String(300), nullable=True) # опционально
-    shop_name = Column(Text, nullable=True)
     channel_name = Column(Text, nullable=True)
+    shop_name = Column(Text, nullable=True)
     FAQ = Column(Text, nullable=True) # ссылка
 
 class UiImages(Base):

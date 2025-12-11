@@ -160,7 +160,7 @@ msgid "Enter promo code"
 msgstr "Ввести промокод"
 
 
-# ---- Админ панель ----
+# ------------ Админ панель ------------
 
 msgid "Editors"
 msgstr "Редакторы"
@@ -286,9 +286,6 @@ msgstr "История начисления рефералов"
 msgid "Active vouchers"
 msgstr "Активные ваучеры"
 
-msgid "{indicator} maintenance mode"
-msgstr "{indicator} Технические работы"
-
 msgid "Change image"
 msgstr "Изменить изображение"
 
@@ -360,5 +357,41 @@ msgid "Detail"
 msgstr "Детали"
 
 
+# настройки
+
+msgid "Change"
+msgstr "Изменение"
+
+msgid "Add admin"
+msgstr "Добавить админа"
+
+msgid "Delete admin"
+msgstr "Удалить админа"
+
+msgid "Download logs"
+msgstr "Выгрузить логи"
 
 
+msgid "{indicator} maintenance mode"
+msgstr "{indicator} Технические работы"
+
+msgid "Support username"
+msgstr "Username поддержки"
+
+msgid "Chat ID for logging"
+msgstr "ID чата для логирования"
+
+msgid "Channel ID to subscribe to"
+msgstr "ID канала для подписки"
+
+msgid "URL channel for subscription"
+msgstr "URL канала для подписки"
+
+msgid "Channel name"
+msgstr "Имя канала"
+
+msgid "Shop name"
+msgstr "Имя Магазина"
+
+msgid "URL to FAQ"
+msgstr "URL на FAQ"

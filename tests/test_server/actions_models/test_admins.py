@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy import select
 
-from src.services.database.admins.actions.actions_admin import get_sent_mass_messages_by_page
+from src.services.database.admins.actions.actions_admin import get_sent_mass_messages_by_page, delete_admin
 from src.services.database.system.models import UiImages
 from src.services.redis.core_redis import get_redis
 from src.services.database.admins.actions import check_admin, create_admin as create_admin_fun, get_message_for_sending, \
@@ -44,6 +44,7 @@ async def test_create_admin_creates_new_admin_and_message(create_new_user):
         redis_value = await session_redis.get(f"admin:{user.user_id}")
         assert redis_value == b'_'
 
+
 @pytest.mark.asyncio
 async def test_create_admin_returns_existing_admin(create_admin_fix):
     # вызываем повторно для уже существующего админа
@@ -51,6 +52,23 @@ async def test_create_admin_returns_existing_admin(create_admin_fix):
     admin_2 = await create_admin_fun(admin_1.user_id)
 
     assert admin_1.user_id == admin_2.user_id
+
+
+@pytest.mark.asyncio
+async def test_delete_admin(create_admin_fix):
+    admin = await create_admin_fix()
+
+    await delete_admin(admin.user_id)
+
+    async with get_db() as session_db:
+        result_message = await session_db.execute(select(MessageForSending).where(MessageForSending.user_id == admin.user_id))
+        assert not result_message.scalar_one_or_none()
+
+        result_admin = await session_db.execute(select(Admins).where(Admins.user_id == admin.user_id))
+        assert not result_admin.scalar_one_or_none()
+
+    async with get_redis() as session_redis:
+        assert not await session_redis.get(f"admin:{admin.user_id}")
 
 
 @pytest.mark.asyncio

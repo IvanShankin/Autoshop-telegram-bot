@@ -13,6 +13,9 @@ class AccountServiceNotFound(Exception):
 class UserNotFound(Exception):
     pass
 
+class AdminNotFound(Exception):
+    pass
+
 class AccountCategoryNotFound(Exception):
     pass
 
@@ -40,6 +43,8 @@ class NotEnoughMoney(Exception):
         super().__init__(self.message)
 
 
+class UnableRemoveMainAdmin(Exception):
+    pass
 
 class InvalidPromoCode(Exception):
     pass

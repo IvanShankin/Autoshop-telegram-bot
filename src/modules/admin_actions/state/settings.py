@@ -9,3 +9,11 @@ class UpdateAdminSettings(StatesGroup):
     channel_name = State()
     shop_name = State()
     faq_url = State()
+
+
+class AddAdmin(StatesGroup):
+    user_id = State()
+
+
+class DeleteAdmin(StatesGroup):
+    user_id = State()

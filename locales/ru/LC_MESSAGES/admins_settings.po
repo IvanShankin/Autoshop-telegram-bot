@@ -44,3 +44,26 @@ msgstr "Данный текст не является ссылкой. Попро
 
 msgid "Incorrect values entered. Please try again"
 msgstr "Введены некорректные значения. Попробуйте ещё раз"
+
+
+msgid "Enter user ID"
+msgstr "Введите ID пользователя"
+
+msgid "Enter admin ID"
+msgstr "Введите ID админа"
+
+msgid "User not found. Please try again"
+msgstr "Пользователь не найден. Попробуйте ещё раз"
+
+msgid "Admin created successfully"
+msgstr "Админ успешно создан"
+
+
+msgid "Admin not found. Try again"
+msgstr "Админ не найден. Попробуйте ещё раз"
+
+msgid "Admin successfully deleted"
+msgstr "Админ успешно удалён"
+
+msgid "Unable to remove main admin"
+msgstr "Невозможно удалить главного админа"

@@ -3,11 +3,14 @@ from typing import List, Optional
 
 from sqlalchemy import select, func, update
 from sqlalchemy.orm import selectinload
+from sqlalchemy.sql.expression import delete
 
-from src.config import PAGE_SIZE
+from src.config import PAGE_SIZE, MAIN_ADMIN
+from src.exceptions.service_exceptions import UserNotFound, AdminNotFound, UnableRemoveMainAdmin
 from src.services.database.admins.models import MessageForSending, Admins, AdminActions, SentMasMessages
 from src.services.database.core.database import get_db
-from src.services.database.system.actions import get_ui_image, create_ui_image, delete_ui_image, update_ui_image
+from src.services.database.system.actions import create_ui_image, delete_ui_image, update_ui_image
+from src.services.database.users.models import Users
 from src.services.redis.core_redis import get_redis
 from src.utils.ui_images_data import get_default_image_bytes
 
@@ -21,8 +24,15 @@ async def check_admin(user_id) -> bool:
 
 
 async def create_admin(user_id: int) -> Admins:
+    """
+    :except UserNotFound
+    """
     async with get_db() as session_db:
-        # проверка на наличие такого админа
+        result_db = await session_db.execute(select(Users).where(Users.user_id == user_id))
+        user = result_db.scalar_one_or_none()
+        if not user:
+            raise UserNotFound()
+
         result_db = await session_db.execute(select(Admins).where(Admins.user_id == user_id))
         admin = result_db.scalar_one_or_none()
         if admin:
@@ -45,6 +55,30 @@ async def create_admin(user_id: int) -> Admins:
             await session_redis.set(f"admin:{user_id}", '_')
 
         return new_admin
+
+
+async def delete_admin(user_id: int):
+    """
+    :except AdminNotFound
+    """
+    if not await check_admin(user_id):
+        raise AdminNotFound()
+
+    if user_id == MAIN_ADMIN:
+        raise UnableRemoveMainAdmin()
+
+    async with get_db() as session_db:
+        result_message = await session_db.execute(select(MessageForSending).where(MessageForSending.user_id == user_id))
+        mass_message: MessageForSending = result_message.scalar_one_or_none()
+
+        await session_db.execute(delete(MessageForSending).where(MessageForSending.user_id == user_id))
+        await session_db.execute(delete(Admins).where(Admins.user_id == user_id))
+        await session_db.commit()
+
+    await delete_ui_image(mass_message.ui_image_key)
+
+    async with get_redis() as session_redis:
+        await session_redis.delete(f"admin:{user_id}")
 
 
 async def get_message_for_sending(admin_id: int) -> MessageForSending | None:

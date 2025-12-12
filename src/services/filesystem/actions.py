@@ -4,9 +4,9 @@ import shutil
 import tempfile
 import zipfile
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, AsyncGenerator
 
-from src.config import SENT_MASS_MSG_IMAGE_DIR
+from src.config import SENT_MASS_MSG_IMAGE_DIR, MAX_UPLOAD_FILE, TEMP_FILE_DIR
 from src.utils.core_logger import logger
 
 
@@ -216,3 +216,26 @@ def copy_file(src: str, dst_dir: str) -> str:
     shutil.copy2(src, dst_path)
 
     return dst_path
+
+
+async def split_file_on_chunk(file_path: str) -> AsyncGenerator[str, None]:
+    """
+    Поделит файл на части по максимальному допустимому размеру для выгрузки в ТГ
+    :return: Путь к части файла
+    """
+    part = 1
+
+    with open(file_path, "rb") as f:
+        while True:
+            chunk = f.read(MAX_UPLOAD_FILE)
+            if not chunk:
+                break
+
+            temp_path = TEMP_FILE_DIR / f"log_file_part_{part}.log"
+            with open(temp_path, "wb") as out:
+                out.write(chunk)
+
+            yield temp_path
+
+            os.remove(temp_path)
+            part += 1

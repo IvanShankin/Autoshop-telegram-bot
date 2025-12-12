@@ -67,3 +67,10 @@ msgstr "Админ успешно удалён"
 
 msgid "Unable to remove main admin"
 msgstr "Невозможно удалить главного админа"
+
+
+msgid "Log upload has begun"
+msgstr "Начата выгрузка логов"
+
+msgid "Log upload complete"
+msgstr "Выгрузка логов закончена"

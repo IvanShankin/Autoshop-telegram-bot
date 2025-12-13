@@ -19,13 +19,14 @@ from src.services.redis.filling_redis import filling_sold_accounts_by_owner_id, 
     filling_product_account_by_account_id, filling_product_accounts_by_category_id, filling_all_types_payments, \
     filling_types_payments_by_id
 from src.services.database.admins.models import Admins, SentMasMessages, MessageForSending
-from src.services.database.discounts.models import Vouchers, PromoCodes
+from src.services.database.discounts.models import Vouchers, PromoCodes, ActivatedPromoCodes
 from src.services.database.referrals.utils import create_unique_referral_code
 from src.services.database.selling_accounts.models import SoldAccounts, TypeAccountServices, SoldAccountsTranslation, \
     AccountServices, AccountCategories, AccountCategoryTranslation, ProductAccounts, \
-    SoldAccountFull, AccountCategoryFull, SoldAccountSmall, ProductAccountFull
+    SoldAccountFull, AccountCategoryFull, SoldAccountSmall, ProductAccountFull, PurchasesAccounts
 from src.services.database.system.models import UiImages
-from src.services.database.users.models import Users, Replenishments, NotificationSettings, WalletTransaction
+from src.services.database.users.models import Users, Replenishments, NotificationSettings, WalletTransaction, \
+    TransferMoneys
 from src.services.database.system.models import TypePayments
 from src.services.database.core.database import get_db
 from src.services.database.referrals.models import Referrals, IncomeFromReferrals
@@ -213,7 +214,7 @@ async def create_income_from_referral_fabric(
         replenishment_id: int = None,
         amount: int = 100,
         percentage_of_replenishment: int = 5,
-) -> (IncomeFromReferrals, Users):
+) -> (IncomeFromReferrals, Users, Users):
     """
         Создаёт доход от реферала, если не указать реферала, то создаст нового, если не указать владельца, то создаст нового.
         :return Доход(IncomeFromReferrals), Реферал(Users), Владелец(Users)
@@ -690,6 +691,37 @@ async def create_tg_account_media_factory(
         return new_tg_media
 
 
+async def create_purchase_account_fabric(
+    user_id: int = None,
+    account_storage_id: int = None,
+    original_price: int = 110,
+    purchase_price: int = 100,
+    cost_price: int = 50,
+    net_profit: int = 50,
+) -> PurchasesAccounts:
+    if user_id is None:
+        user = await create_new_user_fabric()
+        user_id = user.user_id
+
+    if account_storage_id is None:
+        acc_storage = await create_account_storage_factory()
+        account_storage_id = acc_storage.account_storage_id
+
+    async with get_db() as session_db:
+        new_purchase_account = PurchasesAccounts(
+            user_id = user_id,
+            account_storage_id = account_storage_id,
+            original_price = original_price,
+            purchase_price = purchase_price,
+            cost_price = cost_price,
+            net_profit = net_profit
+        )
+
+        session_db.add(new_purchase_account)
+        await session_db.commit()
+        await session_db.refresh(new_purchase_account)
+
+        return new_purchase_account
 
 
 async def create_ui_image_factory(key: str = "main_menu", show: bool = True, file_id: str = None) -> Tuple[UiImages, str]:
@@ -718,6 +750,32 @@ async def create_ui_image_factory(key: str = "main_menu", show: bool = True, fil
     # Вернём модель и абсолютный путь к файлу (для assert'ов)
     return ui_image, file_abs
 
+
+async def create_transfer_moneys_fabric(
+    user_from_id: int = None,
+    user_where_id: int = None,
+    amount: int = 100,
+) -> TransferMoneys:
+    if user_from_id is None:
+        user = await create_new_user_fabric()
+        user_from_id = user.user_id
+
+    if user_where_id is None:
+        user = await create_new_user_fabric()
+        user_where_id = user.user_id
+
+    async with get_db() as session_db:
+        new_transfer = TransferMoneys(
+            user_from_id = user_from_id,
+            user_where_id = user_where_id,
+            amount = amount
+        )
+
+        session_db.add(new_transfer)
+        await session_db.commit()
+        await session_db.refresh(new_transfer)
+
+        return new_transfer
 
 
 async def create_wallet_transaction_fabric(user_id: int, type: str = 'replenish', amount: int = 100) -> WalletTransaction:
@@ -769,6 +827,31 @@ async def create_promo_codes_fabric(
         await session_redis.set(f'promo_code:{promo.activation_code}', orjson.dumps(promo_dict))
 
     return promo
+
+
+async def create_promo_code_activation_fabric(
+    promo_code_id: int = None,
+    user_id: int = None,
+) -> ActivatedPromoCodes:
+    if promo_code_id is None:
+        promo = await create_promo_codes_fabric()
+        promo_code_id = promo.promo_code_id
+
+    if user_id is None:
+        user = await create_new_user_fabric()
+        user_id = user.user_id
+
+    async with get_db() as session_db:
+        new_activated_promo_codes = ActivatedPromoCodes(
+            promo_code_id=promo_code_id,
+            user_id=user_id
+        )
+
+        session_db.add(new_activated_promo_codes)
+        await session_db.commit()
+        await session_db.refresh(new_activated_promo_codes)
+
+        return new_activated_promo_codes
 
 
 async def create_sent_mass_message_fabric(

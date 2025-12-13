@@ -1,4 +1,6 @@
 import asyncio
+import os
+import shutil
 from contextlib import suppress
 
 import aio_pika
@@ -29,19 +31,54 @@ consumer_started = False
 if "aiogram" in sys.modules:
     raise RuntimeError("aiogram был импортирован слишком рано! Используй локальный импорт в функции/фикстуре.")
 
+# регистрируем фикстуры из другого файла
+pytest_plugins = [
+    "tests.helpers.monkeypatch_data",
+]
 
 # ---------- фикстуры ----------
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def replacement_needed_modules(
-        replacement_redis,
-        replacement_fake_bot,
+        replacement_redis_fix,
+        replacement_fake_bot_fix,
         patch_fake_aiogram,
-        replacement_pyth_account,
-        replacement_pyth_ui_image,
+        replacement_pyth_ui_image_fix,
+        replacement_pyth_sent_mass_msg_image_fix,
 ):
     """Заменит все необходимые модули"""
     yield
+
+
+
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def replacement_redis_fix(monkeypatch):
+    async for _ in replacement_redis(monkeypatch):
+        yield
+
+
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def replacement_fake_bot_fix(monkeypatch, replacement_pyth_ui_image_fix):
+    return replacement_fake_bot(monkeypatch)
+
+
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def replacement_pyth_account_fix(monkeypatch, replacement_pyth_ui_image_fix):
+    for _ in replacement_pyth_account(monkeypatch):
+        yield
+
+
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def replacement_pyth_ui_image_fix(monkeypatch, tmp_path):
+    for _ in replacement_pyth_ui_image(monkeypatch, tmp_path):
+        yield
+
+
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def replacement_pyth_sent_mass_msg_image_fix(monkeypatch, tmp_path):
+    for _ in replacement_pyth_sent_mass_msg_image(monkeypatch, tmp_path):
+        yield
+
 
 
 @pytest_asyncio.fixture(scope='function', autouse=True)
@@ -72,7 +109,7 @@ async def clean_db(monkeypatch):
     await test_engine.dispose()
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
-async def clean_redis(replacement_redis):
+async def clean_redis(replacement_redis_fix):
     async with get_redis() as session_redis:
         await session_redis.flushdb()
 

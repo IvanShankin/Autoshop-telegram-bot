@@ -5,7 +5,8 @@ from tests.helpers.func_fabric import create_new_user_fabric, create_admin_fabri
     create_translate_account_category_factory, create_account_category_factory, create_account_storage_factory, \
     create_product_account_factory, create_sold_account_factory, create_ui_image_factory, \
     create_wallet_transaction_fabric, create_tg_account_media_factory, create_promo_codes_fabric, \
-    create_sent_mass_message_fabric
+    create_sent_mass_message_fabric, create_purchase_account_fabric, create_transfer_moneys_fabric, \
+    create_promo_code_activation_fabric
 from src.services.database.system.models import  Settings
 from src.services.database.core.database import get_db
 
@@ -79,6 +80,12 @@ async def create_promo_code():
 
 
 @pytest_asyncio.fixture
+async def create_promo_code_activation():
+    """Создаст новый промокод в БД и в redis."""
+    return create_promo_code_activation_fabric
+
+
+@pytest_asyncio.fixture
 async def create_voucher(create_new_user):
     return create_voucher_factory
 
@@ -114,6 +121,11 @@ async def create_product_account(create_type_account_service, create_account_cat
 
 
 @pytest_asyncio.fixture
+async def create_purchase_account():
+    return create_purchase_account_fabric
+
+
+@pytest_asyncio.fixture
 async def create_sold_account(create_new_user, create_type_account_service, create_account_storage):
     return create_sold_account_factory
 
@@ -129,6 +141,11 @@ async def create_ui_image(tmp_path, monkeypatch):
     сохраняет запись UiImages в БД и возвращает (ui_image, abs_path).
     """
     return create_ui_image_factory
+
+
+@pytest_asyncio.fixture
+async def create_transfer_moneys(create_new_user):
+    return create_transfer_moneys_fabric
 
 
 @pytest_asyncio.fixture

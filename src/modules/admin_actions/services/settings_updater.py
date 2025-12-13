@@ -98,7 +98,7 @@ async def cheek_valid_data(state: str, message_text: str, user: Users) -> bool:
              or state == UpdateAdminSettings.channel_for_subscription_id.state)
             and not safe_int_conversion(message_text, positive=False)
     ):
-        error_msg = get_text(user.language, "admins_settings", "Incorrect values entered. Please try again")
+        error_msg = get_text(user.language, "miscellaneous", "Incorrect values entered. Please try again")
 
     if error_msg:
         await send_message(

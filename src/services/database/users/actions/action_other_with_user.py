@@ -356,3 +356,12 @@ async def get_all_user_audit_logs(user_id: int) -> List[UserAuditLogs]:
             .order_by(UserAuditLogs.created_at.desc())
         )
         return result_db.scalars().all()
+
+
+async def get_transfer_money(transfer_money_id: int) -> TransferMoneys:
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            select(TransferMoneys)
+            .where(TransferMoneys.transfer_money_id == transfer_money_id)
+        )
+        return result_db.scalar_one_or_none()

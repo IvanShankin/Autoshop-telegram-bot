@@ -133,7 +133,7 @@ async def get_voucher_by_id(
     voucher_id: int,
     check_on_valid: bool = True
 ) -> Vouchers | None:
-    """Если есть флаг check_on_valid, то при запросе к БД буде доп проверка на валидность"""
+    """Если есть флаг check_on_valid, то при запросе к БД буде доп проверка на валидность и вернёт только валидный"""
     async with get_db() as session_db:
         query = select(Vouchers).where((Vouchers.voucher_id == voucher_id))
         if check_on_valid:
@@ -413,5 +413,12 @@ async def activate_voucher(user: Users, code: str, language: str) -> Tuple[str, 
     ).format(amount=voucher.amount, new_balance=user.balance), True
 
 
+async def get_activate_voucher(voucher_activation_id: int) -> VoucherActivations | None:
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            select(VoucherActivations)
+            .where(VoucherActivations.voucher_activation_id == voucher_activation_id)
+        )
+        return result_db.scalar_one_or_none()
 
 

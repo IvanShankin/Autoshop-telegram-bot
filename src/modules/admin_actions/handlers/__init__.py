@@ -29,6 +29,8 @@ from src.modules.admin_actions.handlers.settings.main_settings_handlers import r
 from src.modules.admin_actions.handlers.settings.change_settings_handlers import router as change_settings_router
 from src.modules.admin_actions.handlers.settings.change_admins_handlers import router as change_admins_router
 
+from src.modules.admin_actions.handlers.show_data_by_id import router as show_data_by_id_router
+
 
 router = Router()
 router_logger = Router()
@@ -59,6 +61,8 @@ router.include_router(show_mass_mailing_router)
 router.include_router(main_settings_router)
 router.include_router(change_settings_router)
 router.include_router(change_admins_router)
+
+router.include_router(show_data_by_id_router)
 
 router_logger.include_router(logger_router)
 

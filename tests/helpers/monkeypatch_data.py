@@ -6,7 +6,6 @@ import types
 from contextlib import asynccontextmanager
 
 import fakeredis
-import pytest_asyncio
 
 from src.bot_actions.throttler import RateLimiter
 from src.config import RATE_SEND_MSG_LIMIT
@@ -15,7 +14,7 @@ from src.services.redis import core_redis
 
 fake_bot = FakeBot()
 
-@pytest_asyncio.fixture(scope="function", autouse=True)
+
 async def replacement_redis(monkeypatch):
     redis = fakeredis.aioredis.FakeRedis()
 
@@ -34,8 +33,8 @@ async def replacement_redis(monkeypatch):
     yield redis
     await redis.aclose()
 
-@pytest_asyncio.fixture(scope="function", autouse=True)
-async def replacement_fake_bot(monkeypatch):
+
+def replacement_fake_bot(monkeypatch):
     # очищаем бота
     fake_bot.clear()
 
@@ -82,8 +81,7 @@ async def replacement_fake_bot(monkeypatch):
     return fake_bot
 
 
-@pytest_asyncio.fixture(scope="function", autouse=True)
-async def replacement_pyth_account(monkeypatch, replacement_pyth_ui_image):
+def replacement_pyth_account(monkeypatch):
     from src import config
     from src.services.database.selling_accounts.actions import action_purchase
     from src.services.filesystem import account_actions
@@ -100,8 +98,7 @@ async def replacement_pyth_account(monkeypatch, replacement_pyth_ui_image):
         shutil.rmtree(new_account_dir) # удаляет директорию созданную для тестов
 
 
-@pytest_asyncio.fixture(scope="function", autouse=True)
-async def replacement_pyth_ui_image(monkeypatch, tmp_path):
+def replacement_pyth_ui_image(monkeypatch, tmp_path):
     from src.services.database.system.actions import actions as actions_modul
     from src.utils import ui_images_data
 
@@ -115,8 +112,7 @@ async def replacement_pyth_ui_image(monkeypatch, tmp_path):
         shutil.rmtree(new_ui_section_dir)  # удаляет директорию созданную для тестов
 
 
-@pytest_asyncio.fixture(scope="function", autouse=True)
-async def replacement_pyth_ui_image(monkeypatch, tmp_path):
+def replacement_pyth_sent_mass_msg_image(monkeypatch, tmp_path):
     from src.bot_actions.messages import mass_tg_mailing as messages_modul
 
     new_sent_mass_msg_dir = tmp_path / "sent_mass_msg_image_test"

@@ -42,10 +42,6 @@ msgstr "Слишком длинный текст. Попробуйте ещё р
 msgid "This text is not a link. Try again"
 msgstr "Данный текст не является ссылкой. Попробуйте ещё раз"
 
-msgid "Incorrect values entered. Please try again"
-msgstr "Введены некорректные значения. Попробуйте ещё раз"
-
-
 msgid "Enter user ID"
 msgstr "Введите ID пользователя"
 

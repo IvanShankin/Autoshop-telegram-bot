@@ -231,3 +231,12 @@ async def deactivate_promo_code(user_id: int, promo_code_id: int):
     async with get_redis() as session_redis:
         if promo_code and promo_code.activation_code:
             await session_redis.delete(f"promo_code:{promo_code.activation_code}")
+
+
+async def get_activated_promo_code(activate_promo_code_id: int) -> ActivatedPromoCodes | None:
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            select(ActivatedPromoCodes)
+            .where(ActivatedPromoCodes.activated_promo_code_id == activate_promo_code_id)
+        )
+        return result_db.scalar_one_or_none()

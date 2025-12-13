@@ -17,7 +17,7 @@ msgstr "Данные не найдены"
 msgid "The funds have not been written off"
 msgstr "Средства не списаны"
 
-msgid "Incorrect value entered. Please try again"
+msgid "Incorrect values entered. Please try again"
 msgstr "Введено некорректное значение. Попробуйте ещё раз"
 
 msgid "Insufficient funds: {amount}"

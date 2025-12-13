@@ -15,6 +15,7 @@ from src.modules.admin_actions.keyboards.editors.category_kb import show_account
     back_in_category_kb
 from src.modules.admin_actions.keyboards.settings_kb import admin_settings_kb, back_in_admin_settings_kb, \
     change_admin_settings_kb, back_in_change_admin_settings_kb
+from src.modules.admin_actions.keyboards.show_data_kb import data_by_id_by_page_kb, back_in_show_data_by_id_kb
 from src.modules.admin_actions.keyboards.user_management_kb import user_management_kb, back_in_user_management_kb, \
     confirm_remove_ban_kb
 
@@ -84,6 +85,10 @@ __all__ = [
     "show_sent_mass_message_kb",
     "back_in_editor_mes_mailing_kb",
     "back_in_admin_mailing_kb",
+
+    # просмотр по ID
+    "data_by_id_by_page_kb",
+    "back_in_show_data_by_id_kb",
 
     # настройки
     "admin_settings_kb",

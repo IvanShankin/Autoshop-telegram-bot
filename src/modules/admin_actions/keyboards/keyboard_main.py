@@ -15,7 +15,7 @@ def main_admin_kb(language: str):
         )],
         [InlineKeyboardButton(
             text=get_text(language, "kb_admin_panel", "Showing data by ID"),
-            callback_data="show_data_by_id"
+            callback_data="data_by_id:1"
         )],
         [InlineKeyboardButton(
             text=get_text(language, 'kb_profile', 'Settings'),

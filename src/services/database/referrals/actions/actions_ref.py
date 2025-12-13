@@ -33,12 +33,14 @@ async def get_referral_income_page(user_id: int, page: int = None, page_size: in
         result_db = await session_db.execute(query)
         return result_db.scalars().all()
 
+
 async def get_count_referral_income(user_id: int) -> int:
     async with get_db() as session_db:
         result = await session_db.execute(
             select(func.count()).where(IncomeFromReferrals.owner_user_id == user_id)
         )
         return result.scalar()
+
 
 async def get_income_from_referral(income_from_referral_id: int) -> IncomeFromReferrals | None:
     async with get_db() as session_db:
@@ -81,3 +83,11 @@ async def add_referral(referral_id: int, owner_id: int):
         session_db.add(new_log_2)
         await session_db.commit()
 
+
+async def get_referral(referral_id: int) -> Referrals | None:
+    async with get_db() as session_db:
+        result = await session_db.execute(
+            select(Referrals)
+            .where(Referrals.referral_id == referral_id)
+        )
+        return result.scalar_one_or_none()

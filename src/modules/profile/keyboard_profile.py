@@ -21,22 +21,22 @@ from src.utils.pars_number import e164_to_pretty
 
 def profile_kb(language: str, user_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Top up your balance'), callback_data='show_type_replenishment')],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Purchased accounts'), callback_data='services_sold_accounts')],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Balance transfer'), callback_data='balance_transfer')],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Referral system'), callback_data='referral_system')],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'History transfer'), callback_data=f'transaction_list:{user_id}:1')],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Settings'), callback_data='profile_settings')]
+        [InlineKeyboardButton(text=get_text(language, 'kb_profile', 'Top up your balance'), callback_data='show_type_replenishment')],
+        [InlineKeyboardButton(text=get_text(language, 'kb_profile', 'Purchased accounts'), callback_data='services_sold_accounts')],
+        [InlineKeyboardButton(text=get_text(language, 'kb_profile', 'Balance transfer'), callback_data='balance_transfer')],
+        [InlineKeyboardButton(text=get_text(language, 'kb_profile', 'Referral system'), callback_data='referral_system')],
+        [InlineKeyboardButton(text=get_text(language, 'kb_profile', 'History transfer'), callback_data=f'transaction_list:{user_id}:1')],
+        [InlineKeyboardButton(text=get_text(language, 'kb_profile', 'Settings'), callback_data='profile_settings')]
     ])
 
 def back_in_profile_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data='profile')]
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data='profile')]
     ])
 
 def in_profile_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'In profile'), callback_data='profile')]
+        [InlineKeyboardButton(text=get_text(language, 'kb_profile', 'In profile'), callback_data='profile')]
     ])
 
 
@@ -53,19 +53,19 @@ async def type_replenishment_kb(language: str):
                 callback_data=f'replenishment:{type_payment.type_payment_id}:{type_payment.name_for_user}')
             )
 
-    keyboard.row(InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data='profile'))
+    keyboard.row(InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data='profile'))
     keyboard.adjust(1)
     return keyboard.as_markup()
 
 def payment_invoice(language: str, url: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Pay'), url=url)],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data='show_type_replenishment')]
+        [InlineKeyboardButton(text=get_text(language, 'kb_general', 'Pay'), url=url)],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data='show_type_replenishment')]
     ])
 
 def back_in_type_replenishment_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data='show_type_replenishment')]
+            [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data='show_type_replenishment')]
         ])
 
 # ---- Аккаунты ----
@@ -113,12 +113,12 @@ async def services_sold_accounts_kb(language: str, user_id: int):
     # тип сервиса "other" должен быть всегда последним
     if type_service_other_id in union_type_service_ids:
         keyboard.row(InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Others'),
+            text=get_text(language, 'kb_profile', 'Others'),
             callback_data=f'all_sold_accounts:1:{type_service_other_id}')
         )
 
     keyboard.row(
-        InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data=f'profile'),
+        InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'profile'),
     )
 
     return keyboard.as_markup()
@@ -143,7 +143,7 @@ async def sold_accounts_kb(language: str, current_page: int, type_account_servic
         item_button_func=item_button,
         left_prefix=f"all_sold_accounts:{type_account_service_id}",
         right_prefix=f"all_sold_accounts:{type_account_service_id}",
-        back_text=get_text(language, 'keyboard', 'Back'),
+        back_text=get_text(language, "kb_general", "Back"),
         back_callback="services_sold_accounts",
     )
 
@@ -151,20 +151,20 @@ async def sold_accounts_kb(language: str, current_page: int, type_account_servic
 def account_kb(language: str, sold_account_id: int, type_account_service_id: int, current_page: int, current_validity: bool):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Login details'),
+            text=get_text(language, 'kb_profile', 'Login details'),
             callback_data=f'login_details:{sold_account_id}:{type_account_service_id}:{current_page}')
         ],
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Check for validity'),
+            text=get_text(language, 'kb_profile', 'Check for validity'),
             # current_validity преобразовал в int что бы занимал меньше места
             callback_data=f'chek_valid_acc:{sold_account_id}:{type_account_service_id}:{current_page}:{int(current_validity)}')
         ],
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Delete'),
+            text=get_text(language, "kb_admin_panel", 'Delete'),
             callback_data=f'confirm_del_acc:{sold_account_id}:{type_account_service_id}:{current_page}')
         ],
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'),
+            text=get_text(language, "kb_general", "Back"),
             callback_data=f'all_sold_accounts:{current_page}:{type_account_service_id}')
         ]
     ])
@@ -176,7 +176,7 @@ async def login_details_kb(language: str, sold_account_id: int, type_account_ser
     if type_service.name == "telegram":
         keyboard.row(
             InlineKeyboardButton(
-                text=get_text(language, 'keyboard', 'Get code'),
+                text=get_text(language, 'kb_profile', 'Get code'),
                 callback_data=f'get_code_acc:{sold_account_id}'
             ),
         )
@@ -196,14 +196,14 @@ async def login_details_kb(language: str, sold_account_id: int, type_account_ser
     else:
         keyboard.row(
             InlineKeyboardButton(
-                text=get_text(language, 'keyboard', 'Login and Password'),
+                text=get_text(language, 'kb_profile', 'Login and Password'),
                 callback_data=f'get_log_pas:{sold_account_id}'
             ),
         )
 
     keyboard.row(
         InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'),
+            text=get_text(language, "kb_general", "Back"),
             callback_data=f'sold_account:{sold_account_id}:{type_account_service_id}:{current_page}'
         ),
     )
@@ -213,11 +213,11 @@ async def login_details_kb(language: str, sold_account_id: int, type_account_ser
 def confirm_del_acc_kb(language: str, sold_account_id: int, type_account_service_id: int, current_page: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Confirm'),
+            text=get_text(language, "kb_general", "Confirm"),
             callback_data=f'del_account:{sold_account_id}:{type_account_service_id}:{current_page}')
         ],
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'),
+            text=get_text(language, "kb_general", "Back"),
             callback_data=f'sold_account:{sold_account_id}:{type_account_service_id}:{current_page}')
         ]
     ])
@@ -229,9 +229,9 @@ def confirm_del_acc_kb(language: str, sold_account_id: int, type_account_service
 
 def profile_settings_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Language'), callback_data='selecting_language')],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Notification'), callback_data='notification_settings')],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data='profile')]
+        [InlineKeyboardButton(text=get_text(language, 'kb_profile', 'Language'), callback_data='selecting_language')],
+        [InlineKeyboardButton(text=get_text(language, 'kb_profile', 'Notification'), callback_data='notification_settings')],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data='profile')]
     ])
 
 def settings_language_kb(language: str):
@@ -245,22 +245,22 @@ def settings_language_kb(language: str):
     keyboard.adjust(2)
 
     # добавляем кнопку "Назад" отдельной строкой
-    keyboard.row(InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data='profile_settings'))
+    keyboard.row(InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data='profile_settings'))
     return keyboard.as_markup()
 
 def setting_notification_kb(language: str, notification: NotificationSettings):
     return InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(
-                text=f'{"✔️ " if notification.referral_invitation else ''}{get_text(language, 'keyboard', "New referral")}',
+                text=f'{"✔️ " if notification.referral_invitation else ''}{get_text(language, 'kb_profile', "New referral")}',
                 callback_data=f'update_notif:invitation:{"False" if notification.referral_invitation else 'True'}')
             ],
             [
                 InlineKeyboardButton(
-                    text=f'{"✔️ " if notification.referral_replenishment else ''}{get_text(language, 'keyboard', "Replenishment referral")}',
+                    text=f'{"✔️ " if notification.referral_replenishment else ''}{get_text(language, 'kb_profile', "Replenishment referral")}',
                     callback_data=f'update_notif:replenishment:{"False" if notification.referral_replenishment else 'True'}')
             ],
-            [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data='profile_settings')]
+            [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data='profile_settings')]
         ])
 
 
@@ -288,7 +288,7 @@ async def wallet_transactions_kb(language: str, current_page: int, target_user_i
         item_button_func=item_button,
         left_prefix=f"transaction_list:{target_user_id}",
         right_prefix=f"transaction_list:{target_user_id}",
-        back_text=get_text(language, 'keyboard', 'Back'),
+        back_text=get_text(language, "kb_general", "Back"),
         back_callback=f"profile" if target_user_id == user_id else f"user_management:{target_user_id}"
     )
 
@@ -296,7 +296,7 @@ async def wallet_transactions_kb(language: str, current_page: int, target_user_i
 def back_in_wallet_transactions_kb(language: str, target_user_id: int, currant_page: int):
     return InlineKeyboardMarkup(inline_keyboard=[[
         InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'),
+            text=get_text(language, "kb_general", "Back"),
             callback_data=f"transaction_list:{target_user_id}:{currant_page}"
         )
     ]])
@@ -308,20 +308,20 @@ def back_in_wallet_transactions_kb(language: str, target_user_id: int, currant_p
 async def ref_system_kb(language: str, user_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Information'),
+            text=get_text(language, 'kb_profile', 'Information'),
             callback_data=f'ref_system_info',
         )],
         [InlineKeyboardButton(
-                text=get_text(language, 'keyboard', 'Accrual history'),
+                text=get_text(language, 'kb_profile', 'Accrual history'),
                 callback_data=f'accrual_ref_list:{user_id}:1'
             )
         ],
         [InlineKeyboardButton(
-                text=get_text(language, 'keyboard', 'Download a list of referrals'),
+                text=get_text(language, 'kb_profile', 'Download a list of referrals'),
                 callback_data=f'download_ref_list:{user_id}'
             )
         ],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data=f'profile')],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'profile')],
     ])
 
 
@@ -347,14 +347,14 @@ async def accrual_ref_list_kb(language: str, current_page: int, target_user_id: 
         item_button,
         left_prefix=f"accrual_ref_list:{target_user_id}",
         right_prefix=f"accrual_ref_list:{target_user_id}",
-        back_text=get_text(language, 'keyboard', 'Back'),
+        back_text=get_text(language, "kb_general", "Back"),
         back_callback=f"referral_system" if target_user_id == user_id else f"user_management:{target_user_id}",
     )
 
 def back_in_accrual_ref_list_kb(language: str, current_page_id: int, target_user_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'),
+            text=get_text(language, "kb_general", "Back"),
             callback_data=f'accrual_ref_list:{target_user_id}:{current_page_id}'
         )]
     ])
@@ -363,7 +363,7 @@ def back_in_accrual_ref_list_kb(language: str, current_page_id: int, target_user
 def back_in_ref_system_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'),
+            text=get_text(language, "kb_general", "Back"),
             callback_data=f'referral_system'
         )]
     ])
@@ -372,36 +372,36 @@ def back_in_ref_system_kb(language: str):
 
 def balance_transfer_kb(language: str, user_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Transfer by id'), callback_data='transfer_money')],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Create voucher'), callback_data='create_voucher')],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'My vouchers'), callback_data=f'voucher_list:{user_id}:1')],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data=f'profile')],
+        [InlineKeyboardButton(text=get_text(language, 'kb_profile', 'Transfer by id'), callback_data='transfer_money')],
+        [InlineKeyboardButton(text=get_text(language, 'kb_profile', 'Create voucher'), callback_data='create_voucher')],
+        [InlineKeyboardButton(text=get_text(language, 'kb_profile', 'My vouchers'), callback_data=f'voucher_list:{user_id}:1')],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'profile')],
     ])
 
 def confirmation_transfer_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Confirm'), callback_data='confirm_transfer_money'),
-         InlineKeyboardButton(text=get_text(language, 'keyboard', 'Again'), callback_data='transfer_money')],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data=f'balance_transfer')],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "Confirm"), callback_data='confirm_transfer_money'),
+         InlineKeyboardButton(text=get_text(language, "kb_general", "Again"), callback_data='transfer_money')],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'balance_transfer')],
     ])
 
 def confirmation_voucher_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Confirm'), callback_data='confirm_create_voucher'),
-         InlineKeyboardButton(text=get_text(language, 'keyboard', 'Again'), callback_data='create_voucher')],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data=f'balance_transfer')],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "Confirm"), callback_data='confirm_create_voucher'),
+         InlineKeyboardButton(text=get_text(language, "kb_general", "Again"), callback_data='create_voucher')],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'balance_transfer')],
     ])
 
 def back_in_balance_transfer_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data=f'balance_transfer')],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'balance_transfer')],
     ])
 
 
 def replenishment_and_back_in_transfer_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Top up your balance'), callback_data='show_type_replenishment')],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data='balance_transfer')]
+        [InlineKeyboardButton(text=get_text(language, 'kb_profile', 'Top up your balance'), callback_data='show_type_replenishment')],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data='balance_transfer')]
     ])
 
 
@@ -424,7 +424,7 @@ async def all_vouchers_kb(current_page: int, target_user_id: int, user_id: int, 
         item_button,
         left_prefix=f"voucher_list:{target_user_id}",
         right_prefix=f"voucher_list:{target_user_id}",
-        back_text=get_text(language, 'keyboard', 'Back'),
+        back_text=get_text(language, "kb_general", "Back"),
         back_callback="transfer_money" if target_user_id == user_id else f"user_management:{target_user_id}",
     )
 
@@ -433,14 +433,14 @@ def show_voucher_kb(language: str, current_page: int, target_user_id: int, user_
     if target_user_id == user_id:
         keyboard.row(
             InlineKeyboardButton(
-                text=get_text(language, 'keyboard', 'Deactivate'),
+                text=get_text(language, 'kb_profile', 'Deactivate'),
                 callback_data=f'confirm_deactivate_voucher:{voucher_id}:{current_page}'
             ),
         )
 
     keyboard.row(
         InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'),
+            text=get_text(language, "kb_general", "Back"),
             callback_data=f'voucher_list:{target_user_id}:{current_page}'
         ),
     )
@@ -449,11 +449,11 @@ def show_voucher_kb(language: str, current_page: int, target_user_id: int, user_
 def confirm_deactivate_voucher_kb(language: str, current_page: int, target_user_id: int, voucher_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-                text=get_text(language, 'keyboard', 'Confirm'),
+                text=get_text(language, "kb_general", "Confirm"),
                 callback_data=f'deactivate_voucher:{voucher_id}:{current_page}'
         )],
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'),
+            text=get_text(language, "kb_general", "Back"),
             callback_data=f'voucher_list:{target_user_id}:{current_page}'
         )]
     ])
@@ -461,7 +461,7 @@ def confirm_deactivate_voucher_kb(language: str, current_page: int, target_user_
 def back_in_all_voucher_kb(language: str, current_page: int, target_user_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'),
+            text=get_text(language, "kb_general", "Back"),
             callback_data=f'voucher_list:{target_user_id}:{current_page}'
         )]
     ])

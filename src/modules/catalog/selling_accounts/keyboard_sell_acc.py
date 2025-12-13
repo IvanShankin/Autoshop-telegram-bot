@@ -14,7 +14,7 @@ async def all_services_account_kb(language: str):
     for ser in services:
         keyboard.add(InlineKeyboardButton(text=ser.name, callback_data=f'show_service_acc:{ser.account_service_id}'))
 
-    keyboard.add(InlineKeyboardButton(text=get_text(language, 'keyboard','Back'), callback_data=f'catalog'))
+    keyboard.add(InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'catalog'))
     keyboard.adjust(1)
     return keyboard.as_markup()
 
@@ -26,7 +26,7 @@ async def main_catalog_account_by_service_kb(language: str, service_id: int):
     for cat in categories:
         keyboard.add(InlineKeyboardButton(text=cat.name, callback_data=f'show_account_category:{cat.account_category_id}:0'))
 
-    keyboard.add(InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data=f'show_catalog_services_accounts'))
+    keyboard.add(InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'show_catalog_services_accounts'))
     keyboard.adjust(1)
     return keyboard.as_markup()
 
@@ -53,12 +53,12 @@ async def account_category_kb(
         )
 
         keyboard.row(InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Buy'),
+            text=get_text(language, 'kb_catalog', 'Buy'),
             # callback_data - "confirm_buy_acc:{id категории}:{количество аккаунтов}:{id промокода(если есть)}"
             callback_data=f'confirm_buy_acc:{current_category_id}:{quantity_for_buying}:{promo_code_id}')
         )
         keyboard.row(InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Enter promo code'),
+            text=get_text(language, 'kb_catalog', 'Enter promo code'),
             # callback_data - "enter_promo:{id категории}:{количество аккаунтов}"
             callback_data=f'enter_promo:{current_category_id}:{quantity_for_buying}')
         )
@@ -85,10 +85,10 @@ async def account_category_kb(
             keyboard.row(*buttons[i:i + buttons_in_row])
 
     if parent_category.is_main: # если это главная категория, то вернём в выбор сервиса
-        keyboard.row(InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data=f'show_catalog_services_accounts'))
+        keyboard.row(InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'show_catalog_services_accounts'))
     else:
         keyboard.row(InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'),
+            text=get_text(language, "kb_general", "Back"),
             callback_data=f'show_account_category:{parent_category.parent_id}:0')
         )
 
@@ -100,10 +100,10 @@ def confirm_buy_acc_kb(language: str, category_id: int, quantity_for_buying: int
         [
             InlineKeyboardButton(
             # callback_data - "buy_acc:{id категории}:{количество аккаунтов}:{id промокода(если есть)}"
-            text=get_text(language, 'keyboard', 'Confirm'), callback_data=f'buy_acc:{category_id}:{quantity_for_buying}:{promo_code_id}'
+            text=get_text(language, "kb_general", "Confirm"), callback_data=f'buy_acc:{category_id}:{quantity_for_buying}:{promo_code_id}'
             ),
             InlineKeyboardButton(
-                text=get_text(language, 'keyboard', 'Back'), callback_data=f'show_account_category:{category_id}:{quantity_for_buying}'
+                text=get_text(language, "kb_general", "Back"), callback_data=f'show_account_category:{category_id}:{quantity_for_buying}'
             ),
         ]
     ])
@@ -112,14 +112,14 @@ def confirm_buy_acc_kb(language: str, category_id: int, quantity_for_buying: int
 def back_in_account_category_kb(language: str, category_id: int, quantity_for_buying: int = 0):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'), callback_data=f'show_account_category:{category_id}:{quantity_for_buying}'
+            text=get_text(language, "kb_general", "Back"), callback_data=f'show_account_category:{category_id}:{quantity_for_buying}'
         )]
     ])
 
 
 def replenishment_and_back_in_cat(language: str, category_id: int, quantity_for_buying: int = 0):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Top up your balance'), callback_data='show_type_replenishment')],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data=f'show_account_category:{category_id}:{quantity_for_buying}')]
+        [InlineKeyboardButton(text=get_text(language, 'kb_profile', 'Top up your balance'), callback_data='show_type_replenishment')],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'show_account_category:{category_id}:{quantity_for_buying}')]
     ])
 

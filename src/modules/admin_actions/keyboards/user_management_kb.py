@@ -10,13 +10,13 @@ def user_management_kb(language: str, user_id: int, is_ban: bool):
     :param is_ban: флаг бана аккаунта
     """
     if is_ban:
-        ban_text = get_text(language, 'keyboard', 'Remove the ban')
+        ban_text = get_text(language, "kb_admin_panel", 'Remove the ban')
     else:
-        ban_text = get_text(language, 'keyboard', 'Issue a ban')
+        ban_text = get_text(language, "kb_admin_panel", 'Issue a ban')
 
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard','Change Balance'),
+            text=get_text(language, "kb_admin_panel",'Change Balance'),
             callback_data=f"change_user_bal:{user_id}"
         )],
         [InlineKeyboardButton(
@@ -24,27 +24,27 @@ def user_management_kb(language: str, user_id: int, is_ban: bool):
             callback_data=f"confirm_remove_ban:{user_id}" if is_ban else f'issue_ban:{user_id}'
         )],
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Unload All Actions'),
+            text=get_text(language, "kb_admin_panel", 'Unload All Actions'),
             callback_data=f"unload_action_user:{user_id}"
         )],
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Transaction History'),
+            text=get_text(language, "kb_admin_panel", 'Transaction History'),
             callback_data=f"transaction_list:{user_id}:1"
         )],
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Unload Referral List'),
+            text=get_text(language, "kb_admin_panel", 'Unload Referral List'),
             callback_data=f'download_ref_list:{user_id}'
         )],
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Referral Credit History'),
+            text=get_text(language, "kb_admin_panel", 'Referral Credit History'),
             callback_data=f"accrual_ref_list:{user_id}:1"
         )],
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Active vouchers'),
+            text=get_text(language, "kb_admin_panel", 'Active vouchers'),
             callback_data=f"voucher_list:{user_id}:1"
         )],
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'),
+            text=get_text(language, "kb_general", "Back"),
             callback_data=f"admin_panel"
         )],
     ])
@@ -56,7 +56,7 @@ def back_in_user_management_kb(language: str, user_id: int):
     """
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'),
+            text=get_text(language, "kb_general", "Back"),
             callback_data=f"user_management:{user_id}"
         )],
     ])
@@ -65,11 +65,11 @@ def back_in_user_management_kb(language: str, user_id: int):
 def confirm_remove_ban_kb(language: str, user_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Confirm'),
+            text=get_text(language, "kb_general", "Confirm"),
             callback_data=f"remove_ban:{user_id}"
         )],
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'),
+            text=get_text(language, "kb_general", "Back"),
             callback_data=f"user_management:{user_id}"
         )],
     ])

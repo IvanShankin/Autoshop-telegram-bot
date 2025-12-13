@@ -11,23 +11,23 @@ from src.utils.i18n import get_text
 
 def admin_vouchers_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard',"Create voucher"), callback_data=f'admin_create_voucher'),],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard',"Vouchers"), callback_data=f'admin_voucher_list:1'),],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard','Back'), callback_data=f'editors'),]
+        [InlineKeyboardButton(text=get_text(language, 'kb_profile',"Create voucher"), callback_data=f'admin_create_voucher'),],
+        [InlineKeyboardButton(text=get_text(language, "kb_admin_panel","Vouchers"), callback_data=f'admin_voucher_list:1'),],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'editors'),]
     ])
 
 
 def skip_number_activations_or_back_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', "Skip"), callback_data=f"set_expire_at"), ],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', "Back"), callback_data=f"admin_vouchers"), ],
+        [InlineKeyboardButton(text=get_text(language, 'kb_general', "Skip"), callback_data=f"set_expire_at"), ],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f"admin_vouchers"), ],
     ])
 
 
 def skip_expire_at_or_back_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', "Skip"), callback_data=f"set_amount_admin_voucher"), ],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', "Back"), callback_data=f"admin_vouchers"), ],
+        [InlineKeyboardButton(text=get_text(language, 'kb_general', "Skip"), callback_data=f"set_amount_admin_voucher"), ],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f"admin_vouchers"), ],
     ])
 
 
@@ -38,7 +38,7 @@ async def all_admin_vouchers_kb(current_page: int, language: str):
     total_pages = max(ceil(total / PAGE_SIZE), 1)
 
     def item_button(voucher):
-        valid = get_text(language, "keyboard", "Valid" if voucher.is_valid else "Not valid")
+        valid = get_text(language, "kb_admin_panel", "Valid" if voucher.is_valid else "Not valid")
         return InlineKeyboardButton(
             text=f"{valid}   {voucher.amount} ₽   {voucher.activation_code}",
             callback_data=f"show_admin_voucher:{current_page}:{voucher.voucher_id}"
@@ -51,7 +51,7 @@ async def all_admin_vouchers_kb(current_page: int, language: str):
         item_button,
         left_prefix=f"admin_voucher_list",
         right_prefix=f"admin_voucher_list",
-        back_text=get_text(language, 'keyboard', 'Back'),
+        back_text=get_text(language, "kb_general", "Back"),
         back_callback="admin_vouchers",
     )
 
@@ -59,11 +59,11 @@ async def all_admin_vouchers_kb(current_page: int, language: str):
 def show_admin_voucher_kb(language: str, current_page: int, voucher_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Deactivate'),
+            text=get_text(language, 'kb_profile', 'Deactivate'),
             callback_data=f'confirm_deactivate_admin_voucher:{voucher_id}:{current_page}'
         ),],
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'),
+            text=get_text(language, "kb_general", "Back"),
             callback_data=f'admin_voucher_list:{current_page}'
         ),],
     ])
@@ -72,7 +72,7 @@ def show_admin_voucher_kb(language: str, current_page: int, voucher_id: int):
 def in_admin_voucher_kb(language: str, current_page: int, voucher_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', "In voucher"),
+            text=get_text(language, "kb_admin_panel", "In voucher"),
             callback_data=f"show_admin_voucher:{current_page}:{voucher_id}"
         ), ],
     ])
@@ -81,7 +81,7 @@ def in_admin_voucher_kb(language: str, current_page: int, voucher_id: int):
 def back_in_all_admin_voucher_kb(language: str, current_page: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'),
+            text=get_text(language, "kb_general", "Back"),
             callback_data=f'admin_voucher_list:{current_page}'
         )]
     ])
@@ -91,11 +91,11 @@ def confirm_deactivate_admin_voucher_kb(language: str, current_page: int, vouche
 
     if is_valid:
         keyboard.row(InlineKeyboardButton(
-            text=get_text(language, 'keyboard', "Deactivate"),
+            text=get_text(language, 'kb_profile', "Deactivate"),
             callback_data=f'deactivate_admin_voucher:{voucher_id}:{current_page}'
         ))
     keyboard.row(InlineKeyboardButton(
-        text=get_text(language, 'keyboard', "Back"),
+        text=get_text(language, "kb_general", "Back"),
         callback_data=f'admin_voucher_list:{current_page}'
     ))
     return keyboard.as_markup()
@@ -103,13 +103,13 @@ def confirm_deactivate_admin_voucher_kb(language: str, current_page: int, vouche
 
 def back_in_admin_vouchers_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', "Back"), callback_data=f"admin_vouchers"),],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f"admin_vouchers"),],
     ])
 
 
 def back_in_start_creating_admin_vouchers_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', "In start"), callback_data=f"admin_create_voucher"),],
+        [InlineKeyboardButton(text=get_text(language, "kb_admin_panel", "In start"), callback_data=f"admin_create_voucher"),],
     ])
 
 

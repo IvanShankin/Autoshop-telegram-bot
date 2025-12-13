@@ -9,5 +9,16 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 
 
-msgid "Welcome to {shop_name} SHOP! \nOur news channel: @{channel_name} \nHappy shopping!"
-msgstr "Welcome to {shop_name} SHOP! \nOur news channel: @{channel_name} \nHappy shopping!"
+
+
+msgid "Channel"
+msgstr "Канал"
+
+msgid "Accounts"
+msgstr "Аккаунты"
+
+msgid "Buy"
+msgstr "Купить"
+
+msgid "Enter promo code"
+msgstr "Ввести промокод"

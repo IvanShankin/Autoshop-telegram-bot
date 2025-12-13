@@ -8,7 +8,7 @@ from src.utils.i18n import get_text
 
 def catalog_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Accounts'), callback_data='show_catalog_services_accounts')],
+        [InlineKeyboardButton(text=get_text(language, 'kb_catalog', 'Accounts'), callback_data='show_catalog_services_accounts')],
     ])
 
 async def subscription_prompt_kb(language: str):
@@ -25,8 +25,8 @@ async def subscription_prompt_kb(language: str):
 
     keyboard = InlineKeyboardBuilder()
     if url:
-        keyboard.row(InlineKeyboardButton(text=get_text(language, 'keyboard','Channel'),url=url))
-    keyboard.row(InlineKeyboardButton(text=get_text(language, 'keyboard','Skip'),callback_data='skip_subscription'))
+        keyboard.row(InlineKeyboardButton(text=get_text(language, 'kb_catalog','Channel'),url=url))
+    keyboard.row(InlineKeyboardButton(text=get_text(language, 'kb_general','Skip'),callback_data='skip_subscription'))
 
     keyboard.adjust(1)
 

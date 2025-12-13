@@ -12,9 +12,9 @@ from src.utils.i18n import get_text
 
 def admin_promo_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard',"Create promo code"), callback_data=f'admin_create_promo'),],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard',"Promo codes"), callback_data=f'admin_promo_list:1:0'),],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard','Back'), callback_data=f'editors'),]
+        [InlineKeyboardButton(text=get_text(language, "kb_admin_panel","Create promo code"), callback_data=f'admin_create_promo'),],
+        [InlineKeyboardButton(text=get_text(language, "kb_admin_panel","Promo codes"), callback_data=f'admin_promo_list:1:0'),],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'editors'),]
     ])
 
 
@@ -25,7 +25,7 @@ async def all_admin_promo_kb(current_page: int, language: str, show_not_valid: b
     total_pages = max(ceil(total / PAGE_SIZE), 1)
 
     def item_button(promo_code: PromoCodes):
-        valid = get_text(language, "keyboard", "Valid" if promo_code.is_valid else "Not valid")
+        valid = get_text(language, "kb_admin_panel", "Valid" if promo_code.is_valid else "Not valid")
         return InlineKeyboardButton(
             text=f"{valid}  —  {promo_code.activation_code}",
             callback_data=f"show_admin_promo:{current_page}:{int(show_not_valid)}:{promo_code.promo_code_id}"
@@ -38,10 +38,10 @@ async def all_admin_promo_kb(current_page: int, language: str, show_not_valid: b
         item_button,
         left_prefix=f"admin_promo_list:{int(show_not_valid)}",
         right_prefix=f"admin_promo_list:{int(show_not_valid)}",
-        back_text=get_text(language, 'keyboard', 'Back'),
+        back_text=get_text(language, "kb_general", "Back"),
         back_callback="admin_promo",
         helpers_text=get_text(
-            language, 'keyboard', "Show not valid {indicator}"
+            language, "kb_admin_panel", "Show not valid {indicator}"
         ).format(indicator='🟢' if show_not_valid else '🔴'),
         helpers_callback=f"admin_promo_list:{0 if show_not_valid else 1}:1"
     )
@@ -49,23 +49,23 @@ async def all_admin_promo_kb(current_page: int, language: str, show_not_valid: b
 
 def select_promo_code_type_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard',"With a fixed amount"), callback_data=f'create_promo_code_amount'),],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard',"With percentage"), callback_data=f'create_promo_code_percentage'),],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard','Back'), callback_data=f'admin_promo'),]
+        [InlineKeyboardButton(text=get_text(language, "kb_admin_panel","With a fixed amount"), callback_data=f'create_promo_code_amount'),],
+        [InlineKeyboardButton(text=get_text(language, "kb_admin_panel","With percentage"), callback_data=f'create_promo_code_percentage'),],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'admin_promo'),]
     ])
 
 
 def skip_number_activations_promo_or_in_start_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', "Skip"), callback_data=f"set_expire_at_promo"), ],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', "In start"), callback_data=f"admin_create_promo"), ],
+        [InlineKeyboardButton(text=get_text(language, 'kb_general', "Skip"), callback_data=f"set_expire_at_promo"), ],
+        [InlineKeyboardButton(text=get_text(language, "kb_admin_panel", "In start"), callback_data=f"admin_create_promo"), ],
     ])
 
 
 def skip_expire_at_promo_or_in_start_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', "Skip"), callback_data=f"set_min_order_amount_promo"), ],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', "In start"), callback_data=f"admin_create_promo"), ],
+        [InlineKeyboardButton(text=get_text(language, 'kb_general', "Skip"), callback_data=f"set_min_order_amount_promo"), ],
+        [InlineKeyboardButton(text=get_text(language, "kb_admin_panel", "In start"), callback_data=f"admin_create_promo"), ],
     ])
 
 
@@ -74,11 +74,11 @@ def show_admin_promo_kb(language: str, current_page: int, promo_code_id: int, sh
 
     if is_valid:
         keyboard.row(InlineKeyboardButton(
-            text=get_text(language, 'keyboard', "Deactivate"),
+            text=get_text(language, 'kb_profile', "Deactivate"),
             callback_data=f'confirm_deactivate_promo_code:{promo_code_id}:{int(show_not_valid)}:{current_page}'
         ))
     keyboard.row(InlineKeyboardButton(
-        text=get_text(language, 'keyboard', "Back"),
+        text=get_text(language, "kb_general", "Back"),
         callback_data=f'admin_promo_list:{int(show_not_valid)}:{current_page}'
     ))
     return keyboard.as_markup()
@@ -87,7 +87,7 @@ def show_admin_promo_kb(language: str, current_page: int, promo_code_id: int, sh
 def in_show_admin_promo_kb(language: str, current_page: int, promo_code_id: int, show_not_valid: bool):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', "In promo code"),
+            text=get_text(language, "kb_admin_panel", "In promo code"),
             callback_data=f"show_admin_promo:{current_page}:{int(show_not_valid)}:{promo_code_id}"
         ), ],
     ])
@@ -96,11 +96,11 @@ def in_show_admin_promo_kb(language: str, current_page: int, promo_code_id: int,
 def confirm_deactivate_promo_code_kb(language: str, current_page: int, promo_code_id: int, show_not_valid: bool):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-                text=get_text(language, 'keyboard', 'Confirm'),
+                text=get_text(language, "kb_general", "Confirm"),
                 callback_data=f'deactivate_promo_code:{promo_code_id}:{int(show_not_valid)}:{current_page}'
         )],
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'),
+            text=get_text(language, "kb_general", "Back"),
             callback_data=f"admin_promo_list:{int(show_not_valid)}:{current_page}"
         )]
     ])
@@ -109,7 +109,7 @@ def confirm_deactivate_promo_code_kb(language: str, current_page: int, promo_cod
 def back_in_all_admin_promo_kb(language: str, current_page: int, show_not_valid: bool):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'),
+            text=get_text(language, "kb_general", "Back"),
             callback_data=f"admin_promo_list:{int(show_not_valid)}:{current_page}"
         )]
     ])
@@ -117,13 +117,13 @@ def back_in_all_admin_promo_kb(language: str, current_page: int, show_not_valid:
 
 def back_in_admin_promo_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', "Back"), callback_data=f"admin_promo"),],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f"admin_promo"),],
     ])
 
 
 def back_in_start_creating_promo_code_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', "In start"), callback_data=f"admin_create_promo"),],
+        [InlineKeyboardButton(text=get_text(language, "kb_admin_panel", "In start"), callback_data=f"admin_create_promo"),],
     ])
 
 

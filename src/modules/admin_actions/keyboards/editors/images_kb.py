@@ -23,7 +23,7 @@ async def images_list_kb(language: str, current_page: int):
         item_button_func=item_button,
         left_prefix=f"images_editor_list",
         right_prefix=f"images_editor_list",
-        back_text=get_text(language, 'keyboard', 'Back'),
+        back_text=get_text(language, "kb_general", "Back"),
         back_callback=f"editors"
     )
 
@@ -31,19 +31,19 @@ async def images_list_kb(language: str, current_page: int):
 async def image_editor(language: str, ui_image_key: str, current_show: bool, current_page: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', "Change image"),
+            text=get_text(language, "kb_admin_panel", "Change image"),
             callback_data=f'change_ui_image:{ui_image_key}:{current_page}'),
         ],
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', "{indicator} Show").format(indicator='🟢' if current_show else '🔴'),
+            text=get_text(language, "kb_admin_panel", "{indicator} Show").format(indicator='🟢' if current_show else '🔴'),
             callback_data=f"ui_image_update_show:{ui_image_key}:{0 if current_show else 1}:{current_page}"),
         ],
-        [InlineKeyboardButton(text=get_text(language, 'keyboard', 'Back'), callback_data=f'images_editor_list:{current_page}'), ]
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'images_editor_list:{current_page}'), ]
     ])
 
 async def back_in_image_editor(language: str, img_key: str, current_page: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'),
+            text=get_text(language, "kb_general", "Back"),
             callback_data=f'edit_image:{img_key}:{current_page}'), ]
     ])

@@ -29,54 +29,54 @@ async def show_account_category_admin_kb(
 
     keyboard.row(InlineKeyboardButton(text=SOLID_LINE, callback_data='none'))
     keyboard.row(InlineKeyboardButton(
-        text=get_text(language, 'keyboard', "Add subcategory"),
+        text=get_text(language, "kb_admin_panel", "Add subcategory"),
         callback_data=f'add_acc_category:{category_id}')
     )
     keyboard.row(InlineKeyboardButton(
-        text=get_text(language, 'keyboard', f"{"Remove storage" if is_account_storage else "Make storage"}"),
+        text=get_text(language, "kb_admin_panel", f"{"Remove storage" if is_account_storage else "Make storage"}"),
         callback_data=f'acc_category_update_storage:{category_id}:{0 if is_account_storage else 1}')
     )
 
     if is_account_storage:
         keyboard.row(InlineKeyboardButton(
-            text=get_text(language, 'keyboard', "Delete all accounts"),
+            text=get_text(language, "kb_admin_panel", "Delete all accounts"),
             callback_data=f'confirm_del_all_acc:{category_id}')
         )
         keyboard.row(InlineKeyboardButton(
-            text=get_text(language, 'keyboard', "Unload all accounts"),
+            text=get_text(language, "kb_admin_panel", "Unload all accounts"),
             callback_data=f'acc_category_upload_acc:{category_id}')
         )
         keyboard.row(InlineKeyboardButton(
-            text=get_text(language, 'keyboard', "Load accounts"),
+            text=get_text(language, "kb_admin_panel", "Load accounts"),
             callback_data=f'acc_category_load_acc:{category_id}')
         )
 
     # индексы
     keyboard.row(
         InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Up index'),
+            text=get_text(language, "kb_admin_panel", 'Up index'),
             callback_data=f'acc_category_update_index:{category_id}:{current_index + 1}'
         ),
         InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Down index'),
+            text=get_text(language, "kb_admin_panel", 'Down index'),
             callback_data=f'acc_category_update_index:{category_id}:{current_index - 1}'
         )
     )
 
     keyboard.row(InlineKeyboardButton(
-        text=get_text(language, 'keyboard', '{indicator} Show').format(indicator='🟢' if current_show else '🔴'),
+        text=get_text(language, "kb_admin_panel", '{indicator} Show').format(indicator='🟢' if current_show else '🔴'),
         callback_data=f'acc_category_update_show:{category_id}:{0 if current_show else 1}'
     ))
     keyboard.row(InlineKeyboardButton(
-        text=get_text(language, 'keyboard', 'Update data'),
+        text=get_text(language, "kb_admin_panel", 'Update data'),
         callback_data=f'category_update_data:{category_id}')
     )
     keyboard.row(InlineKeyboardButton(
-        text=get_text(language, 'keyboard', 'Delete'),
+        text=get_text(language, "kb_admin_panel", 'Delete'),
         callback_data=f'acc_category_confirm_delete:{category_id}')
     )
     keyboard.row(InlineKeyboardButton(
-        text=get_text(language, 'keyboard', 'Back'),
+        text=get_text(language, "kb_general", "Back"),
         callback_data=f'show_service_acc_admin:{service_id}' if is_main else f'show_acc_category_admin:{parent_category_id}')
     )
     return keyboard.as_markup()
@@ -86,40 +86,40 @@ def change_category_data_kb(language: str, category_id: int, is_account_storage:
     keyboard = InlineKeyboardBuilder()
 
     keyboard.row(InlineKeyboardButton(
-        text=get_text(language, 'keyboard', 'Name / Description'),
+        text=get_text(language, "kb_admin_panel", 'Name / Description'),
         callback_data=f'acc_category_update_name_or_des:{category_id}')
     )
     keyboard.row(InlineKeyboardButton(
         text=get_text(
             language,
-            'keyboard',
+            "kb_admin_panel",
             "{indicator} Show by default"
         ).format(indicator='🟢' if show_default else '🔴'),
         callback_data=f'update_show_ui_default_category:{category_id}:{1 if show_default else 0}')
     )
     keyboard.row(InlineKeyboardButton(
-        text=get_text(language, 'keyboard', 'Image'),
+        text=get_text(language, "kb_admin_panel", 'Image'),
         callback_data=f'acc_category_update_image:{category_id}')
     )
 
     if is_account_storage:
         keyboard.row(InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Price one account'),
+            text=get_text(language, "kb_admin_panel", 'Price one account'),
             callback_data=f'acc_category_update_price:{category_id}')
         )
         keyboard.row(InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Cost Price one account'),
+            text=get_text(language, "kb_admin_panel", 'Cost Price one account'),
             callback_data=f'acc_category_update_cost_price:{category_id}')
         )
 
     keyboard.row(InlineKeyboardButton(
-        text=get_text(language, 'keyboard', 'Number button in row'),
+        text=get_text(language, "kb_admin_panel", 'Number button in row'),
         callback_data=f'acc_category_update_number_button:{category_id}')
     )
 
 
     keyboard.row(InlineKeyboardButton(
-        text=get_text(language, 'keyboard', 'Back'),
+        text=get_text(language, "kb_general", "Back"),
         callback_data=f'show_acc_category_admin:{category_id}')
     )
 
@@ -131,7 +131,7 @@ def select_lang_category_kb(language: str, category_id: int):
     for lang in ALLOWED_LANGS:
         keyboard.row(
             InlineKeyboardButton(
-                text=get_text(language, 'keyboard', lang),
+                text=get_text(language, "kb_admin_panel", lang),
                 callback_data=f'choice_lang_category_data:{category_id}:{lang}'
             )
         )
@@ -144,11 +144,11 @@ def name_or_description_kb(language: str, category_id: int, lang: str):
     """
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', "Name"),
+            text=get_text(language, "kb_admin_panel", "Name"),
             callback_data=f'acc_category_update_name:{category_id}:{lang}'
         )],
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Description'),
+            text=get_text(language, "kb_admin_panel", 'Description'),
             callback_data=f'acc_category_update_descr:{category_id}:{lang}'
         )]
     ])
@@ -156,11 +156,11 @@ def name_or_description_kb(language: str, category_id: int, lang: str):
 def delete_accounts_kb(language: str, category_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Confirm'),
+            text=get_text(language, "kb_general", "Confirm"),
             callback_data=f'delete_all_account:{category_id}'
         )],
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'),
+            text=get_text(language, "kb_general", "Back"),
             callback_data=f'show_acc_category_admin:{category_id}'
         )]
     ])
@@ -168,11 +168,11 @@ def delete_accounts_kb(language: str, category_id: int):
 def delete_category_kb(language: str, category_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Confirm'),
+            text=get_text(language, "kb_general", "Confirm"),
             callback_data=f'delete_acc_category:{category_id}'
         )],
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', 'Back'),
+            text=get_text(language, "kb_general", "Back"),
             callback_data=f'show_acc_category_admin:{category_id}'
         )]
     ])
@@ -181,7 +181,7 @@ def delete_category_kb(language: str, category_id: int):
 def back_in_category_update_data_kb(language: str, category_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'keyboard', "To the data"),
+            text=get_text(language, "kb_admin_panel", "To the data"),
             callback_data=f'category_update_data:{category_id}'
         )]
     ])
@@ -189,5 +189,5 @@ def back_in_category_update_data_kb(language: str, category_id: int):
 
 def back_in_category_kb(language: str, category_id: int, i18n_key: str = "Back"):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'keyboard',i18n_key), callback_data=f'show_acc_category_admin:{category_id}')]
+        [InlineKeyboardButton(text=get_text(language, 'kb_general',i18n_key), callback_data=f'show_acc_category_admin:{category_id}')]
     ])

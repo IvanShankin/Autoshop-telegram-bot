@@ -10,7 +10,7 @@ from tests.helpers.fake_aiogram.fake_aiogram_module import (
 @pytest.mark.asyncio
 async def test_show_account_category_sets_state_and_edits_message_when_accounts_available(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_account_category,
     create_product_account,
@@ -25,7 +25,7 @@ async def test_show_account_category_sets_state_and_edits_message_when_accounts_
     # импорт внутри теста (чтобы не ломать импорты при запуске других тестов)
     from src.modules.catalog.selling_accounts import sel_account_handlers as module
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
     # создаём категорию, явно включаем is_accounts_storage
     category = await create_account_category(is_accounts_storage=True)
@@ -56,7 +56,7 @@ async def test_show_account_category_sets_state_and_edits_message_when_accounts_
 @pytest.mark.asyncio
 async def test_show_account_category_non_storage_clears_state_and_edits_message(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_account_category,
 ):
@@ -65,7 +65,7 @@ async def test_show_account_category_non_storage_clears_state_and_edits_message(
     """
     from src.modules.catalog.selling_accounts import sel_account_handlers as module
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
     # по умолчанию фабрика создаёт is_accounts_storage=False (если нужно явно — передать)
     category = await create_account_category(is_accounts_storage=False)
@@ -91,7 +91,7 @@ async def test_show_account_category_non_storage_clears_state_and_edits_message(
 @pytest.mark.asyncio
 async def test_set_quantity_accounts_invalid_and_exceeds_stock_behaviour(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_account_category,
     create_product_account,
@@ -103,7 +103,7 @@ async def test_set_quantity_accounts_invalid_and_exceeds_stock_behaviour(
     """
     from src.modules.catalog.selling_accounts import sel_account_handlers as module
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
     category = await create_account_category(is_accounts_storage=True)
     category_id = category.account_category_id
@@ -133,7 +133,7 @@ async def test_set_quantity_accounts_invalid_and_exceeds_stock_behaviour(
 @pytest.mark.asyncio
 async def test_set_quantity_accounts_success_updates_state_and_edits_message(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_account_category,
     create_product_account,
@@ -145,7 +145,7 @@ async def test_set_quantity_accounts_success_updates_state_and_edits_message(
     """
     from src.modules.catalog.selling_accounts import sel_account_handlers as module
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
     category = await create_account_category(is_accounts_storage=True)
     category_id = category.account_category_id
@@ -174,7 +174,7 @@ async def test_set_quantity_accounts_success_updates_state_and_edits_message(
 @pytest.mark.asyncio
 async def test_enter_promo_sets_state_and_edits_message(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_account_category,
 ):
@@ -184,7 +184,7 @@ async def test_enter_promo_sets_state_and_edits_message(
     """
     from src.modules.catalog.selling_accounts import sel_account_handlers as module
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
     # создаём категорию с аккаунтами (is_accounts_storage=True)
     category = await create_account_category(is_accounts_storage=True)
@@ -212,7 +212,7 @@ async def test_enter_promo_sets_state_and_edits_message(
 @pytest.mark.asyncio
 async def test_set_promo_code_not_found_shows_error_and_keeps_state(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_account_category,
 ):
@@ -223,7 +223,7 @@ async def test_set_promo_code_not_found_shows_error_and_keeps_state(
     """
     from src.modules.catalog.selling_accounts import sel_account_handlers as module
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
     category = await create_account_category(is_accounts_storage=True)
 
@@ -248,7 +248,7 @@ async def test_set_promo_code_not_found_shows_error_and_keeps_state(
 @pytest.mark.asyncio
 async def test_set_promo_code_success_updates_state_and_notifies_user(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_account_category,
     create_promo_code,
@@ -262,7 +262,7 @@ async def test_set_promo_code_success_updates_state_and_notifies_user(
     from src.modules.catalog.selling_accounts import sel_account_handlers as module
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage, FakeFSMContext
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
     category = await create_account_category(is_accounts_storage=True)
     promo = await create_promo_code()  # фикстура создаёт promo в БД и redis (activation_code = "TESTCODE")
@@ -290,7 +290,7 @@ async def test_set_promo_code_success_updates_state_and_notifies_user(
 @pytest.mark.asyncio
 async def test_confirm_buy_acc_invalid_quantity_answers_user_and_no_edit(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_account_category,
 ):
@@ -300,7 +300,7 @@ async def test_confirm_buy_acc_invalid_quantity_answers_user_and_no_edit(
     """
     from src.modules.catalog.selling_accounts import sel_account_handlers as module
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
     category = await create_account_category(is_accounts_storage=True)
 
@@ -316,7 +316,7 @@ async def test_confirm_buy_acc_invalid_quantity_answers_user_and_no_edit(
 @pytest.mark.asyncio
 async def test_confirm_buy_acc_with_promo_applies_discount_and_edits_message(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_account_category,
     create_promo_code,
@@ -327,7 +327,7 @@ async def test_confirm_buy_acc_with_promo_applies_discount_and_edits_message(
     """
     from src.modules.catalog.selling_accounts import sel_account_handlers as module
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user(balance=1000)
     # категоря с price_one_account по умолчанию 150 в фабрике — убедимся что она достаточна
     category = await create_account_category(price_one_account=150, is_accounts_storage=True)
@@ -356,7 +356,7 @@ async def test_confirm_buy_acc_with_promo_applies_discount_and_edits_message(
 @pytest.mark.asyncio
 async def test_confirm_buy_acc_invalid_promo_alerts_user(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_account_category,
     monkeypatch,
@@ -369,7 +369,7 @@ async def test_confirm_buy_acc_invalid_promo_alerts_user(
     from src.modules.catalog.selling_accounts import sel_account_handlers as module
     from src.exceptions.service_exceptions import InvalidPromoCode
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
     category = await create_account_category(price_one_account=100, is_accounts_storage=True)
 
@@ -394,7 +394,7 @@ class TestBuyAccount:
     async def test_buy_acc_not_enough_accounts_alerts_user(
             self,
             patch_fake_aiogram,
-            replacement_fake_bot,
+            replacement_fake_bot_fix,
             create_new_user,
             create_account_category,
     ):
@@ -403,7 +403,7 @@ class TestBuyAccount:
         сообщение не редактируется.
         """
         from src.modules.catalog.selling_accounts import sel_account_handlers as module
-        fake_bot = replacement_fake_bot
+        fake_bot = replacement_fake_bot_fix
         user = await create_new_user(balance=1000)
         category = await create_account_category(is_accounts_storage=True)
         # quantity_product_account по умолчанию 0, так что условия нехватки выполняются
@@ -422,7 +422,7 @@ class TestBuyAccount:
     async def test_buy_acc_min_amount_for_promo_not_reached(
             self,
             patch_fake_aiogram,
-            replacement_fake_bot,
+            replacement_fake_bot_fix,
             create_new_user,
             create_account_category,
             create_promo_code,
@@ -432,7 +432,7 @@ class TestBuyAccount:
         """
         from src.modules.catalog.selling_accounts import sel_account_handlers as module
 
-        fake_bot = replacement_fake_bot
+        fake_bot = replacement_fake_bot_fix
         user = await create_new_user(balance=10000)
         category = await create_account_category(price_one_account=50, is_accounts_storage=True)
         promo = await create_promo_code()  # min_order_amount=100
@@ -452,7 +452,7 @@ class TestBuyAccount:
     async def test_buy_acc_invalid_promo_code_alert(
             self,
             patch_fake_aiogram,
-            replacement_fake_bot,
+            replacement_fake_bot_fix,
             create_new_user,
             create_account_category,
             monkeypatch,
@@ -464,7 +464,7 @@ class TestBuyAccount:
         from src.modules.catalog.selling_accounts import sel_account_handlers as module
         from src.exceptions.service_exceptions import InvalidPromoCode
 
-        fake_bot = replacement_fake_bot
+        fake_bot = replacement_fake_bot_fix
         user = await create_new_user(balance=10000)
         category = await create_account_category(is_accounts_storage=True)
 
@@ -487,7 +487,7 @@ class TestBuyAccount:
     async def test_buy_acc_not_enough_money_edits_message(
             self,
             patch_fake_aiogram,
-            replacement_fake_bot,
+            replacement_fake_bot_fix,
             create_new_user,
             create_account_category,
             create_product_account
@@ -497,7 +497,7 @@ class TestBuyAccount:
         """
         from src.modules.catalog.selling_accounts import sel_account_handlers as module
 
-        fake_bot = replacement_fake_bot
+        fake_bot = replacement_fake_bot_fix
         user = await create_new_user(balance=50)
         category = await create_account_category(price_one_account=200, is_accounts_storage=True)
         _ = await create_product_account(account_category_id=category.account_category_id)
@@ -517,7 +517,7 @@ class TestBuyAccount:
     async def test_buy_acc_successful_purchase(
             self,
             patch_fake_aiogram,
-            replacement_fake_bot,
+            replacement_fake_bot_fix,
             create_new_user,
             create_account_category,
             create_product_account,
@@ -528,7 +528,7 @@ class TestBuyAccount:
         """
         from src.modules.catalog.selling_accounts import sel_account_handlers as module
 
-        fake_bot = replacement_fake_bot
+        fake_bot = replacement_fake_bot_fix
         user = await create_new_user(balance=1000)
         category = await create_account_category(price_one_account=100, is_accounts_storage=True)
         _ = await create_product_account(account_category_id=category.account_category_id)
@@ -552,7 +552,7 @@ class TestBuyAccount:
     async def test_buy_acc_purchase_failed_shows_no_enough_accounts_message(
             self,
             patch_fake_aiogram,
-            replacement_fake_bot,
+            replacement_fake_bot_fix,
             create_new_user,
             create_account_category,
             create_product_account,
@@ -564,7 +564,7 @@ class TestBuyAccount:
         """
         from src.modules.catalog.selling_accounts import sel_account_handlers as module
 
-        fake_bot = replacement_fake_bot
+        fake_bot = replacement_fake_bot_fix
         user = await create_new_user(balance=1000)
         category = await create_account_category(price_one_account=100, is_accounts_storage=True)
         _ = await create_product_account(account_category_id=category.account_category_id)

@@ -11,12 +11,12 @@ from src.utils.i18n import get_text, n_get_text
 async def test_show_type_replenishment(
     replacement_needed_modules,
     create_new_user,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
 ):
     """Callback 'confirm_deactivate_voucher' — активный ваучер вызывает запрос подтверждения."""
     from src.modules.profile.handlers import replenishment_handler as module
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
 
     cb = FakeCallbackQuery(data=f"show_type_replenishment", chat_id=user.user_id)
@@ -33,14 +33,14 @@ async def test_show_type_replenishment(
 @pytest.mark.asyncio
 async def test_get_amount_inactive_type_payment(
     replacement_needed_modules,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     monkeypatch,
 ):
     """Callback 'replenishment:<id>:<name>' — неактивный тип оплаты должен вызвать сообщение о неактивности."""
     from src.modules.profile.handlers import replenishment_handler as module
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
 
     cb = FakeCallbackQuery(
@@ -62,7 +62,7 @@ async def test_get_amount_inactive_type_payment(
 @pytest.mark.asyncio
 async def test_get_amount_active_success(
     replacement_needed_modules,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_type_payment,
     monkeypatch,
@@ -70,7 +70,7 @@ async def test_get_amount_active_success(
     """Callback 'replenishment:<id>:<name>' — активный тип оплаты корректно открывает ввод суммы."""
     from src.modules.profile.handlers import replenishment_handler as module
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
     type_payment = await create_type_payment()
 
@@ -95,7 +95,7 @@ async def test_get_amount_active_success(
 @pytest.mark.asyncio
 async def test_start_replenishment_invalid_number(
     replacement_needed_modules,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     monkeypatch,
     create_new_user
 ):
@@ -118,7 +118,7 @@ async def test_start_replenishment_invalid_number(
 @pytest.mark.asyncio
 async def test_start_replenishment_crypto_bot_success(
     replacement_needed_modules,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     monkeypatch,
     create_new_user,
     create_type_payment,
@@ -127,7 +127,7 @@ async def test_start_replenishment_crypto_bot_success(
     from src.modules.profile.handlers import replenishment_handler as module
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
     type_payment = await create_type_payment(name_for_admin='crypto_bot')
 

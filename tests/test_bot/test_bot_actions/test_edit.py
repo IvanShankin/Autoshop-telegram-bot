@@ -5,7 +5,7 @@ from tests.helpers.fake_aiogram.fake_aiogram_module import SpySend
 
 class TestEditMessage:
     @pytest.mark.asyncio
-    async def test_edit_media_by_file_id_success(self, patch_fake_aiogram, replacement_fake_bot,  monkeypatch, create_ui_image):
+    async def test_edit_media_by_file_id_success(self, patch_fake_aiogram, replacement_fake_bot_fix,  monkeypatch, create_ui_image):
         """
         Если ui_image.file_id есть и bot.edit_message_media по file_id проходит успешно,
         то edit_message должен успешно завершиться и НЕ вызывать send_message.
@@ -13,7 +13,7 @@ class TestEditMessage:
         from src.bot_actions.messages import edit as bot_actions
 
         ui_image, _ = await create_ui_image(key="test_key", show=True, file_id="existing_file_id")
-        bot = replacement_fake_bot
+        bot = replacement_fake_bot_fix
         spy_send = SpySend()
 
         monkeypatch.setattr(bot_actions, "send_message", spy_send)
@@ -34,7 +34,7 @@ class TestEditMessage:
 
 
     @pytest.mark.asyncio
-    async def test_edit_text_message_not_modified(self, patch_fake_aiogram, replacement_fake_bot, monkeypatch):
+    async def test_edit_text_message_not_modified(self, patch_fake_aiogram, replacement_fake_bot_fix, monkeypatch):
         """
         Если edit_message_text бросает TelegramBadRequest('message is not modified') —
         это не ошибка: send_message не вызывается.
@@ -43,7 +43,7 @@ class TestEditMessage:
         from aiogram import exceptions as aiogram_excs
         not_modified_exc = aiogram_excs.TelegramBadRequest("message is not modified")
 
-        bot = replacement_fake_bot
+        bot = replacement_fake_bot_fix
         bot.edit_text_behavior = not_modified_exc
         spy_send = SpySend()
 
@@ -63,7 +63,7 @@ class TestEditMessage:
 
 
     @pytest.mark.asyncio
-    async def test_edit_text_message_not_found_fallbacks_to_send(self, patch_fake_aiogram, replacement_fake_bot, monkeypatch):
+    async def test_edit_text_message_not_found_fallbacks_to_send(self, patch_fake_aiogram, replacement_fake_bot_fix, monkeypatch):
         """
         Если edit_message_text бросает TelegramBadRequest('message not found'),
         то должно произойти fallback-отправление через send_message.
@@ -72,7 +72,7 @@ class TestEditMessage:
         from aiogram import exceptions as aiogram_excs
 
         not_found_exc = aiogram_excs.TelegramBadRequest("message not found")
-        bot = replacement_fake_bot
+        bot = replacement_fake_bot_fix
         bot.edit_text_behavior = not_found_exc
 
         spy_send = SpySend()
@@ -96,7 +96,7 @@ class TestEditMessage:
 
     @pytest.mark.asyncio
     async def test_local_file_missing_then_fallback_send(
-            self, patch_fake_aiogram, replacement_fake_bot, monkeypatch, create_ui_image, tmp_path
+            self, patch_fake_aiogram, replacement_fake_bot_fix, monkeypatch, create_ui_image, tmp_path
     ):
         """
         Симулируем отсутствие локального файла (FileNotFoundError при создании FSInputFile)

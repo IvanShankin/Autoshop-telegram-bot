@@ -656,7 +656,7 @@ class TestHandlerNewActivatedVoucher:
             create_new_user,
             create_voucher,
             clean_rabbit,
-            replacement_fake_bot
+            replacement_fake_bot_fix
     ):
         """Тест активации ваучера с достижением лимита активаций"""
         user = await create_new_user()

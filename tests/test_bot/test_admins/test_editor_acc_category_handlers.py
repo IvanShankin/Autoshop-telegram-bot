@@ -10,7 +10,7 @@ from src.utils.i18n import get_text
 async def test_safe_get_category_not_found_with_callback(
         monkeypatch,
         patch_fake_aiogram,
-        replacement_fake_bot,
+        replacement_fake_bot_fix,
         create_new_user,
 ):
     """
@@ -30,14 +30,14 @@ async def test_safe_get_category_not_found_with_callback(
     # ничего не возвращает
     assert result is None
 
-    assert replacement_fake_bot.get_message(
+    assert replacement_fake_bot_fix.get_message(
         user.user_id,
         get_text(user.language, "admins_editor_category", "The category no longer exists")
     )
 
 @pytest.mark.asyncio
 async def test_show_category_sends_new_message(
-        monkeypatch, patch_fake_aiogram, replacement_fake_bot,
+        monkeypatch, patch_fake_aiogram, replacement_fake_bot_fix,
         create_new_user, create_account_category
 ):
     from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category
@@ -46,12 +46,12 @@ async def test_show_category_sends_new_message(
     user = await create_new_user()
 
     await show_category(user, category.account_category_id, send_new_message=True)
-    assert replacement_fake_bot.check_str_in_messages(category.name)
+    assert replacement_fake_bot_fix.check_str_in_messages(category.name)
 
 
 @pytest.mark.asyncio
 async def test_show_category_update_data_edit(
-        monkeypatch, patch_fake_aiogram, replacement_fake_bot,
+        monkeypatch, patch_fake_aiogram, replacement_fake_bot_fix,
         create_new_user, create_account_category
 ):
     from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category_update_data
@@ -63,12 +63,12 @@ async def test_show_category_update_data_edit(
     callback.message = FakeMessage(message_id=50)
 
     await show_category_update_data(user, category.account_category_id, callback=callback)
-    assert replacement_fake_bot.check_str_in_edited_messages(category.name)
+    assert replacement_fake_bot_fix.check_str_in_edited_messages(category.name)
 
 
 @pytest.mark.asyncio
 async def test_update_data_incorrect_value(
-        monkeypatch, patch_fake_aiogram, replacement_fake_bot,
+        monkeypatch, patch_fake_aiogram, replacement_fake_bot_fix,
         create_new_user, create_account_category
 ):
     from src.modules.admin_actions.handlers.editor.category.update_handlers import update_data
@@ -84,7 +84,7 @@ async def test_update_data_incorrect_value(
     message = FakeMessage(text="не число")
     await update_data(message, state, user)
 
-    assert replacement_fake_bot.check_str_in_messages(
+    assert replacement_fake_bot_fix.check_str_in_messages(
         get_text(user.language, "miscellaneous", "Try again")
     )
     assert await state.get_state() == UpdateNumberInCategory.price.state
@@ -92,7 +92,7 @@ async def test_update_data_incorrect_value(
 
 @pytest.mark.asyncio
 async def test_update_data_valid_price(
-        monkeypatch, patch_fake_aiogram, replacement_fake_bot,
+        monkeypatch, patch_fake_aiogram, replacement_fake_bot_fix,
         create_new_user, create_account_category
 ):
     from src.modules.admin_actions.handlers.editor.category.update_handlers import update_data
@@ -106,7 +106,7 @@ async def test_update_data_valid_price(
 
     message = FakeMessage(text="123")
     await update_data(message, state, user)
-    assert replacement_fake_bot.check_str_in_messages(
+    assert replacement_fake_bot_fix.check_str_in_messages(
         get_text(user.language, "miscellaneous", "Data updated successfully")
     )
 
@@ -115,7 +115,7 @@ async def test_update_data_valid_price(
 async def test_add_acc_category_name_prompts_next_language(
     monkeypatch,
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
 ):
     """
@@ -149,7 +149,7 @@ async def test_add_acc_category_name_prompts_next_language(
     assert await state.get_state() == GetDataForCategory.category_name.state
 
     # Проверяем, что пользователю пришла подсказка о вводе следующего языка
-    assert replacement_fake_bot.check_str_in_messages(
+    assert replacement_fake_bot_fix.check_str_in_messages(
         get_text(
             user.language,
             "admins_editor_category",
@@ -162,7 +162,7 @@ async def test_add_acc_category_name_prompts_next_language(
 async def test_service_update_index_updates_storage_flag(
     monkeypatch,
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_account_category,
 ):
@@ -199,7 +199,7 @@ async def test_service_update_index_updates_storage_flag(
 async def test_delete_acc_category_success_edit_message(
     monkeypatch,
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_account_category,
 ):
@@ -219,7 +219,7 @@ async def test_delete_acc_category_success_edit_message(
     await delete_acc_category(cb, user)
 
     # edit_message вызывается — ищем строку подтверждения
-    assert replacement_fake_bot.check_str_in_edited_messages(
+    assert replacement_fake_bot_fix.check_str_in_edited_messages(
         get_text(user.language, "admins_editor_category", "Category successfully removed!")
     )
 
@@ -228,7 +228,7 @@ async def test_delete_acc_category_success_edit_message(
 async def test_update_category_image_non_image_document(
     monkeypatch,
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_account_category,
 ):
@@ -255,4 +255,4 @@ async def test_update_category_image_non_image_document(
 
     # проверяем, что юзеру отправили подсказку о том, что это не изображение
     expected = get_text(user.language, "admins_editor_category", "This is not an image. Send it as a document")
-    assert replacement_fake_bot.get_message(user.user_id, expected)
+    assert replacement_fake_bot_fix.get_message(user.user_id, expected)

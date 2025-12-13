@@ -9,7 +9,7 @@ from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
 @pytest.mark.asyncio
 async def test_voucher_list_callback(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_voucher,
 ):
@@ -18,7 +18,7 @@ async def test_voucher_list_callback(
     """
     from src.modules.profile.handlers.vouchers_handlers import voucher_list
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
     # создаём ваучер для пользователя
     voucher = await create_voucher(creator_id=user.user_id)
@@ -37,14 +37,14 @@ async def test_voucher_list_callback(
 @pytest.mark.asyncio
 async def test_show_voucher_inactive(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_voucher,
 ):
     """Callback 'show_voucher:<id>:<page>' — невалидный ваучер должен вызвать сообщение об ошибке."""
     from src.modules.profile.handlers.vouchers_handlers import show_voucher
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
 
     voucher = await create_voucher(creator_id=user.user_id, is_valid=False)
@@ -61,14 +61,14 @@ async def test_show_voucher_inactive(
 @pytest.mark.asyncio
 async def test_show_voucher_active_success(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_voucher,
     create_new_user,
 ):
     """Callback 'show_voucher:<id>:<page>' — активный ваучер корректно отображается."""
     from src.modules.profile.handlers.vouchers_handlers import show_voucher
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     voucher = await create_voucher()
     user = await create_new_user()
 
@@ -84,14 +84,14 @@ async def test_show_voucher_active_success(
 @pytest.mark.asyncio
 async def test_confirm_deactivate_voucher_inactive(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_voucher,
 ):
     """Callback 'confirm_deactivate_voucher' — если ваучер невалиден, бот сообщает об этом."""
     from src.modules.profile.handlers.vouchers_handlers import confirm_deactivate_voucher
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
 
     voucher = await create_voucher(creator_id=user.user_id, is_valid=False)
@@ -109,14 +109,14 @@ async def test_confirm_deactivate_voucher_inactive(
 @pytest.mark.asyncio
 async def test_confirm_deactivate_voucher_active_success(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_voucher,
     create_new_user,
 ):
     """Callback 'confirm_deactivate_voucher' — активный ваучер вызывает запрос подтверждения."""
     from src.modules.profile.handlers.vouchers_handlers import confirm_deactivate_voucher
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     voucher = await create_voucher()
     user = await create_new_user()
 
@@ -133,14 +133,14 @@ async def test_confirm_deactivate_voucher_active_success(
 @pytest.mark.asyncio
 async def test_deactivate_voucher_inactive(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_voucher,
 ):
     """Callback 'deactivate_voucher' — если ваучер невалиден, бот сообщает об этом."""
     from src.modules.profile.handlers.vouchers_handlers import deactivate_voucher
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
     voucher = await create_voucher(creator_id=user.user_id, is_valid=False)
 
@@ -157,7 +157,7 @@ async def test_deactivate_voucher_inactive(
 @pytest.mark.asyncio
 async def test_deactivate_voucher_success(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_voucher,
     create_new_user,
 ):
@@ -165,7 +165,7 @@ async def test_deactivate_voucher_success(
     from src.modules.profile.handlers.vouchers_handlers import deactivate_voucher
 
     user = await create_new_user()
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     voucher = await create_voucher()
 
     cb = FakeCallbackQuery(data=f"deactivate_voucher:{voucher.voucher_id}:1", chat_id=voucher.creator_id)

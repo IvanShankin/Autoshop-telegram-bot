@@ -10,12 +10,12 @@ from src.utils.i18n import get_text
 
 
 @pytest.mark.asyncio
-async def test_start_non_existing_user(patch_fake_aiogram, replacement_fake_bot):
+async def test_start_non_existing_user(patch_fake_aiogram, replacement_fake_bot_fix):
     """Проверяем: при старте не существующий пользователь получает сообщение с просьбой выбрать язык и его добавляют в БД"""
     from src.modules import start_handler as start
     from src.services.database.users.actions import get_user
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     msg = FakeMessage(text="/start", chat_id=123, username="User")
     com = FakeCommandObject(command = "start", args = None)
 
@@ -27,11 +27,11 @@ async def test_start_non_existing_user(patch_fake_aiogram, replacement_fake_bot)
     assert fake_bot.check_str_in_messages("Select language"), "Не отправилось приветственное сообщение"
 
 @pytest.mark.asyncio
-async def test_start_existing_user(patch_fake_aiogram, replacement_fake_bot, create_new_user, create_settings):
+async def test_start_existing_user(patch_fake_aiogram, replacement_fake_bot_fix, create_new_user, create_settings):
     """Проверяем: при старте не существующий пользователь получает сообщение с просьбой выбрать язык и его добавляют в БД"""
     from src.modules import start_handler as start
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
 
     user = await create_new_user()
     setting = create_settings
@@ -49,11 +49,11 @@ async def test_start_existing_user(patch_fake_aiogram, replacement_fake_bot, cre
     assert fake_bot.get_message(user.user_id, text), "Не отправилось приветственное сообщение"
 
 @pytest.mark.asyncio
-async def test_start_with_new_referral(patch_fake_aiogram, replacement_fake_bot, create_new_user):
+async def test_start_with_new_referral(patch_fake_aiogram, replacement_fake_bot_fix, create_new_user):
     from src.modules import start_handler as start
     from src.services.database.users.actions import get_user
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     owner = await create_new_user()
     msg = FakeMessage(text=f"/start ref_{owner.unique_referral_code}", chat_id=123, username="User")
     com = FakeCommandObject(command = "start", args = f'ref_{owner.unique_referral_code}')
@@ -89,7 +89,7 @@ async def test_start_with_new_referral(patch_fake_aiogram, replacement_fake_bot,
 @pytest.mark.asyncio
 async def test_start_activate_voucher_existing_user_1(
         patch_fake_aiogram,
-        replacement_fake_bot,
+        replacement_fake_bot_fix,
         create_new_user,
         create_voucher
 ):
@@ -99,7 +99,7 @@ async def test_start_activate_voucher_existing_user_1(
 
     voucher = await create_voucher()
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
     msg = FakeMessage(text=f"/start voucher_{voucher.activation_code}", chat_id=user.user_id, username=user.username)
     com = FakeCommandObject(command = "start", args = f'voucher_{voucher.activation_code}')
@@ -122,7 +122,7 @@ async def test_start_activate_voucher_existing_user_1(
 @pytest.mark.asyncio
 async def test_start_activate_voucher_existing_user_2(
         patch_fake_aiogram,
-        replacement_fake_bot,
+        replacement_fake_bot_fix,
         create_new_user,
         create_voucher
 ):
@@ -133,7 +133,7 @@ async def test_start_activate_voucher_existing_user_2(
     voucher = await create_voucher()
     owner = await get_user(voucher.creator_id)
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     msg = FakeMessage(text=f"/start voucher_{voucher.activation_code}", chat_id=123, username="user")
     com = FakeCommandObject(command = "start", args = f'voucher_{voucher.activation_code}')
 
@@ -165,13 +165,13 @@ async def test_start_activate_voucher_existing_user_2(
     assert fake_bot.get_message(user.user_id, "Выберите язык \n\nSelect language"), "Не отправилось сообщение о выборе языка"
 
 
-async def test_select_language(patch_fake_aiogram, replacement_fake_bot, create_new_user):
+async def test_select_language(patch_fake_aiogram, replacement_fake_bot_fix, create_new_user):
     from src.modules import start_handler as start
     from src.services.database.users.actions import get_user
 
     user = await create_new_user()
     setting = await get_settings()
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
 
     callback = FakeCallbackQuery(data = "set_language_after_start:en", chat_id = user.user_id)
 
@@ -191,12 +191,12 @@ async def test_select_language(patch_fake_aiogram, replacement_fake_bot, create_
 @pytest.mark.asyncio
 async def test_maintenance_blocks_normal_user(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user
 ):
     from src.middlewares.aiogram_middleware import MaintenanceMiddleware
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
 
     user = await create_new_user()
     await update_settings(maintenance_mode=True)

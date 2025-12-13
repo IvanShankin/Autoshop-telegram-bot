@@ -12,7 +12,7 @@ from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
 @pytest.mark.asyncio
 async def test_get_file_for_login_with_existing_tg_media(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_sold_account,
     create_tg_account_media,
@@ -45,7 +45,7 @@ async def test_get_file_for_login_with_existing_tg_media(
     await get_file_for_login(cb, func_get_file_should_not_be_called, type_media="tdata_tg_id")
 
     # проверяем что бот попытался отправить
-    sent = replacement_fake_bot.sent
+    sent = replacement_fake_bot_fix.sent
     assert len(sent) > 0
     assert sent[0][0] == user.user_id
 
@@ -53,7 +53,7 @@ async def test_get_file_for_login_with_existing_tg_media(
 @pytest.mark.asyncio
 async def test_get_file_for_login_without_prior_file_calls_func_and_updates_media(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_sold_account,
     create_tg_account_media,
@@ -91,7 +91,7 @@ async def test_get_file_for_login_without_prior_file_calls_func_and_updates_medi
     await get_file_for_login(cb, func_get_file, type_media="tdata_tg_id")
 
     # проверяем, что бот отправил документ
-    sent = replacement_fake_bot.sent
+    sent = replacement_fake_bot_fix.sent
     assert any(call[0] == user.user_id for call in sent), "Bot did not send document after func_get_file"
 
     # Проверим, что запись tg_media теперь содержит непустой tdata_tg_id
@@ -102,7 +102,7 @@ async def test_get_file_for_login_without_prior_file_calls_func_and_updates_medi
 @pytest.mark.asyncio
 async def test_get_code_acc_returns_codes_and_sends_message(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_sold_account,
     monkeypatch,
@@ -138,13 +138,13 @@ async def test_get_code_acc_returns_codes_and_sends_message(
 
     # Выполняем
     await get_code_acc(cb, user)
-    assert replacement_fake_bot.get_message(user.user_id, result_message)
+    assert replacement_fake_bot_fix.get_message(user.user_id, result_message)
 
 
 @pytest.mark.asyncio
 async def test_get_code_acc_returns_false_shows_unable_to_retrieve(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_sold_account,
     monkeypatch,
@@ -178,7 +178,7 @@ async def test_get_code_acc_returns_false_shows_unable_to_retrieve(
 @pytest.mark.asyncio
 async def test_get_code_acc_no_codes_found_alert(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_sold_account,
     monkeypatch,
@@ -213,7 +213,7 @@ async def test_get_code_acc_no_codes_found_alert(
 @pytest.mark.asyncio
 async def test_chek_valid_acc_valid_true_no_change(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_sold_account,
     monkeypatch,
@@ -253,7 +253,7 @@ async def test_chek_valid_acc_valid_true_no_change(
 @pytest.mark.asyncio
 async def test_chek_valid_acc_valid_false_updates_and_refreshes_card(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_sold_account,
     monkeypatch,
@@ -299,7 +299,7 @@ async def test_chek_valid_acc_valid_false_updates_and_refreshes_card(
 @pytest.mark.asyncio
 async def test_confirm_del_acc_edits_message(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_sold_account,
 ):
@@ -327,13 +327,13 @@ async def test_confirm_del_acc_edits_message(
         phone_number=e164_to_pretty(sold_full.account_storage.phone_number),
         name=sold_full.name,
     )
-    assert replacement_fake_bot.get_edited_message(user.user_id, message_id=20, message=text)
+    assert replacement_fake_bot_fix.get_edited_message(user.user_id, message_id=20, message=text)
 
 
 @pytest.mark.asyncio
 async def test_del_account_successful_flow(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_sold_account,
     monkeypatch,
@@ -380,7 +380,7 @@ async def test_del_account_successful_flow(
 @pytest.mark.asyncio
 async def test_del_account_move_in_account_fails_shows_alert(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     create_sold_account,
     monkeypatch,

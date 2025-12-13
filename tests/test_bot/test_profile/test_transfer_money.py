@@ -8,7 +8,7 @@ from src.utils.i18n import get_text
 @pytest.mark.asyncio
 async def test_transfer_amount_invalid_input(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     monkeypatch,
     create_new_user,
 ):
@@ -18,7 +18,7 @@ async def test_transfer_amount_invalid_input(
     """
     from src.modules.profile.handlers import transfer_balance_handler as module
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
 
     # подготовим пользователя и мок get_user
     user = await create_new_user()
@@ -37,7 +37,7 @@ async def test_transfer_amount_invalid_input(
 @pytest.mark.asyncio
 async def test_transfer_amount_insufficient_funds(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     monkeypatch,
     create_new_user,
 ):
@@ -46,7 +46,7 @@ async def test_transfer_amount_insufficient_funds(
     """
     from src.modules.profile.handlers import transfer_balance_handler as module
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     # пользователь с балансом 10
     user = await create_new_user(balance=10)
 
@@ -62,7 +62,7 @@ async def test_transfer_amount_insufficient_funds(
 @pytest.mark.asyncio
 async def test_transfer_amount_success_sets_state_and_prompts_recipient(
     replacement_needed_modules,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     monkeypatch,
     create_new_user,
 ):
@@ -72,7 +72,7 @@ async def test_transfer_amount_success_sets_state_and_prompts_recipient(
     """
     from src.modules.profile.handlers import transfer_balance_handler as module
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user(balance=1000)
 
     # подготовим FSM spy
@@ -96,7 +96,7 @@ async def test_transfer_amount_success_sets_state_and_prompts_recipient(
 @pytest.mark.asyncio
 async def test_transfer_recipient_not_found(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     monkeypatch,
     create_new_user,
 ):
@@ -105,7 +105,7 @@ async def test_transfer_recipient_not_found(
     """
     from src.modules.profile.handlers import transfer_balance_handler as module
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user(balance=100)
 
     # get_user для текущего пользователя возвращаем user,
@@ -134,7 +134,7 @@ async def test_transfer_recipient_not_found(
 @pytest.mark.asyncio
 async def test_confirm_transfer_money_user_not_found_exception(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     monkeypatch,
     create_new_user,
 ):
@@ -146,7 +146,7 @@ async def test_confirm_transfer_money_user_not_found_exception(
     from src.exceptions.service_exceptions import UserNotFound
 
     # подготовим пользователя и state (с данными)
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user(balance=1000)
 
     # подготовим state.get_data() чтобы подтвердить что передаём нужные данные
@@ -178,7 +178,7 @@ async def test_confirm_transfer_money_user_not_found_exception(
 @pytest.mark.asyncio
 async def test_confirm_transfer_money_success(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     monkeypatch,
     create_new_user,
 ):
@@ -188,7 +188,7 @@ async def test_confirm_transfer_money_success(
     from src.modules.profile.handlers import transfer_balance_handler as module
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     sender = await create_new_user(balance=1000)
     recipient = await create_new_user(balance=0)
 

@@ -112,7 +112,7 @@ async def test_create_ui_image_existing_record(replacement_needed_modules, monke
 
 
 @pytest.mark.asyncio
-async def test_get_ui_image_from_redis(create_ui_image, replacement_redis):
+async def test_get_ui_image_from_redis(create_ui_image):
     """Проверяет, что get_ui_image возвращает объект из Redis, если он там есть"""
     ui_image, abs_path = await create_ui_image(key="profile")
 
@@ -128,7 +128,7 @@ async def test_get_ui_image_from_redis(create_ui_image, replacement_redis):
     assert os.path.exists(abs_path)
 
 @pytest.mark.asyncio
-async def test_get_ui_image_from_db(create_ui_image, replacement_redis):
+async def test_get_ui_image_from_db(create_ui_image):
     """Проверяет, что get_ui_image берёт из БД, если в Redis нет"""
     ui_image, abs_path = await create_ui_image(key="main_menu")
 
@@ -152,7 +152,7 @@ async def test_get_all_ui_images(create_ui_image):
 
 
 @pytest.mark.asyncio
-async def test_update_ui_image_updates_db_and_redis(create_ui_image, replacement_redis):
+async def test_update_ui_image_updates_db_and_redis(create_ui_image):
     """Проверяет, что update_ui_image обновляет запись и Redis"""
     ui_image, _ = await create_ui_image(key="profile", show=True)
     new_show_value = False
@@ -170,7 +170,7 @@ async def test_update_ui_image_updates_db_and_redis(create_ui_image, replacement
 
 
 @pytest.mark.asyncio
-async def test_delete_ui_image(create_ui_image, replacement_redis):
+async def test_delete_ui_image(create_ui_image):
     from src.services.database.system.actions import delete_ui_image
 
     ui_image, _ = await create_ui_image(key="test_ui_image")

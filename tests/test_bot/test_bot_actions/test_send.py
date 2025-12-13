@@ -4,10 +4,10 @@ import pytest
 
 class TestSendMessage:
     @pytest.mark.asyncio
-    async def test_send_message_with_valid_file_id(self, patch_fake_aiogram, replacement_fake_bot, create_ui_image, monkeypatch):
+    async def test_send_message_with_valid_file_id(self, patch_fake_aiogram, replacement_fake_bot_fix, create_ui_image, monkeypatch):
         """Валидный file_id: отправляется фото без загрузки"""
         from src.bot_actions.messages import send_message
-        fake_bot = replacement_fake_bot
+        fake_bot = replacement_fake_bot_fix
         ui_image, _ = await create_ui_image(key="welcome", file_id='existing_file_id')
 
         await send_message(chat_id=123, message="Hello!", image_key="welcome", fallback_image_key=None)
@@ -20,11 +20,11 @@ class TestSendMessage:
 
     @pytest.mark.asyncio
     async def test_send_message_with_invalid_file_id(
-        self, patch_fake_aiogram, replacement_fake_bot, create_ui_image, monkeypatch, tmp_path
+        self, patch_fake_aiogram, replacement_fake_bot_fix, create_ui_image, monkeypatch, tmp_path
     ):
         """Недействительный file_id — fallback на загрузку файла с диска"""
         from src.bot_actions.messages import send_message
-        fake_bot = replacement_fake_bot
+        fake_bot = replacement_fake_bot_fix
 
         # Подготовим подмену MEDIA_DIR, чтобы send_message открыл файл по правильному пути
         media_dir = tmp_path / "media"
@@ -75,12 +75,12 @@ class TestSendMessage:
 
     @pytest.mark.asyncio
     async def test_send_message_with_show_false(
-        self, patch_fake_aiogram, replacement_fake_bot, create_ui_image
+        self, patch_fake_aiogram, replacement_fake_bot_fix, create_ui_image
     ):
         """ show=False — фото не отправляется, только текст"""
         from src.bot_actions.messages import send_message
 
-        fake_bot = replacement_fake_bot
+        fake_bot = replacement_fake_bot_fix
         ui_image, _ = await create_ui_image(key="hidden_img", show=False, file_id="file123")
 
         await send_message(chat_id=777, message="Hidden image", image_key="hidden_img", fallback_image_key=None)
@@ -93,12 +93,12 @@ class TestSendMessage:
 
     @pytest.mark.asyncio
     async def test_send_message_no_image_found(
-        self, patch_fake_aiogram, replacement_fake_bot, monkeypatch
+        self, patch_fake_aiogram, replacement_fake_bot_fix, monkeypatch
     ):
         """ Нет изображения по ключу — отправляется обычный текст"""
         from src.bot_actions.messages import send_message
 
-        fake_bot = replacement_fake_bot
+        fake_bot = replacement_fake_bot_fix
 
         async def fake_get_ui_image(key: str):
             return None
@@ -116,12 +116,12 @@ class TestSendMessage:
 
     @pytest.mark.asyncio
     async def test_send_message_without_image_key(
-        self, patch_fake_aiogram, replacement_fake_bot
+        self, patch_fake_aiogram, replacement_fake_bot_fix
     ):
         """Без image_key — просто сообщение"""
         from src.bot_actions.messages import send_message
 
-        fake_bot = replacement_fake_bot
+        fake_bot = replacement_fake_bot_fix
 
         await send_message(chat_id=999, message="Simple text")
 

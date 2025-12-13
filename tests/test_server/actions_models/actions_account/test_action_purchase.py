@@ -23,7 +23,7 @@ from src.services.redis.core_redis import get_redis
 async def test_purchase_accounts_success(
     replacement_pyth_account,
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     monkeypatch,
     create_new_user,
     create_account_category,
@@ -128,7 +128,7 @@ async def test_purchase_accounts_success(
 async def test_purchase_accounts_fail_no_replacement(
     replacement_pyth_account,
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     monkeypatch,
     create_new_user,
     create_account_category,
@@ -223,9 +223,8 @@ class TestStartPurchaseRequest:
     @pytest.mark.asyncio
     async def test_start_purchase_request_success(
         self,
-        replacement_pyth_account,
         patch_fake_aiogram,
-        replacement_fake_bot,
+        replacement_fake_bot_fix,
         create_new_user,
         create_account_category,
         create_product_account,
@@ -328,9 +327,8 @@ class TestStartPurchaseRequest:
     @pytest.mark.asyncio
     async def test_start_purchase_request_with_promo_code(
         self,
-        replacement_pyth_account,
         patch_fake_aiogram,
-        replacement_fake_bot,
+        replacement_fake_bot_fix,
         create_new_user,
         create_account_category,
         create_product_account,
@@ -383,9 +381,8 @@ class TestStartPurchaseRequest:
     @pytest.mark.asyncio
     async def test_start_purchase_request_not_enough_accounts(
         self,
-        replacement_pyth_account,
         patch_fake_aiogram,
-        replacement_fake_bot,
+        replacement_fake_bot_fix,
         create_new_user,
         create_account_category,
         create_product_account,
@@ -412,9 +409,8 @@ class TestStartPurchaseRequest:
     @pytest.mark.asyncio
     async def test_start_purchase_request_not_enough_money(
         self,
-        replacement_pyth_account,
         patch_fake_aiogram,
-        replacement_fake_bot,
+        replacement_fake_bot_fix,
         create_new_user,
         create_account_category,
         create_product_account,
@@ -515,7 +511,6 @@ class TestVerifyReservedAccounts:
     @pytest.mark.asyncio
     async def test_verify_reserved_accounts_all_valid(
         self,
-        replacement_pyth_account,
         patch_fake_aiogram,
         create_new_user,
         create_account_category,
@@ -567,7 +562,6 @@ class TestVerifyReservedAccounts:
     @pytest.mark.asyncio
     async def test_verify_reserved_accounts_replace_one_candidate_found(
         self,
-        replacement_pyth_account,
         replacement_needed_modules,
         create_new_user,
         create_account_category,
@@ -620,7 +614,6 @@ class TestVerifyReservedAccounts:
     @pytest.mark.asyncio
     async def test_verify_reserved_accounts_all_invalid_no_candidates(
         self,
-        replacement_pyth_account,
         replacement_needed_modules,
         create_new_user,
         create_account_category,
@@ -678,7 +671,6 @@ class TestVerifyReservedAccounts:
     @pytest.mark.asyncio
     async def test_verify_reserved_accounts_partially_invalid_no_candidates(
         self,
-        replacement_pyth_account,
         replacement_needed_modules,
         create_new_user,
         create_account_category,
@@ -732,7 +724,6 @@ class TestVerifyReservedAccounts:
     @pytest.mark.asyncio
     async def test_verify_reserved_accounts_multiple_invalid_candidates_exhausted(
         self,
-        replacement_pyth_account,
         replacement_needed_modules,
         create_new_user,
         create_account_category,
@@ -798,7 +789,6 @@ class TestVerifyReservedAccounts:
     @pytest.mark.asyncio
     async def test_verify_reserved_accounts_multiple_invalid_candidates_exhausted(
         self,
-        replacement_pyth_account,
         replacement_needed_modules,
         create_new_user,
         create_account_category,
@@ -896,7 +886,6 @@ class TestCancelPurchase:
     @pytest.mark.asyncio
     async def test_cancel_purchase_request_restores_files_and_db(
         self,
-        replacement_pyth_account,
         patch_fake_aiogram,
         tmp_path,
         create_new_user,
@@ -1010,7 +999,6 @@ class TestCancelPurchase:
     @pytest.mark.asyncio
     async def test_cancel_purchase_request_deletes_sold_accounts_and_restores(
         self,
-        replacement_pyth_account,
         patch_fake_aiogram,
         tmp_path,
         create_new_user,
@@ -1124,7 +1112,6 @@ class TestFinalizePurchase:
     @pytest.mark.asyncio
     async def test_finalize_purchase_success_creates_sold_and_purchases_and_updates_states(
         self,
-        replacement_pyth_account,
         patch_fake_aiogram,
         tmp_path,
         create_new_user,
@@ -1249,7 +1236,6 @@ class TestFinalizePurchase:
     @pytest.mark.asyncio
     async def test_finalize_purchase_move_file_failure_calls_cancel_and_logs(
         self,
-        replacement_pyth_account,
         patch_fake_aiogram,
         create_new_user,
         create_account_category,
@@ -1329,7 +1315,6 @@ class TestFinalizePurchase:
     @pytest.mark.asyncio
     async def test_finalize_purchase_rename_failure_triggers_cancel_and_rolls_back(
         self,
-        replacement_pyth_account,
         patch_fake_aiogram,
         tmp_path,
         create_new_user,

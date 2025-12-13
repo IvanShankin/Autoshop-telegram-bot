@@ -15,7 +15,7 @@ from src.services.redis.core_redis import get_redis
 
 
 @pytest.mark.asyncio
-async def test_create_invoice_handles_exception(monkeypatch, create_new_user, create_type_payment, replacement_needed_modules, replacement_fake_bot):
+async def test_create_invoice_handles_exception(monkeypatch, create_new_user, create_type_payment, replacement_needed_modules, replacement_fake_bot_fix):
     from src.services.payments.crypto_bot.client import CryptoPayService
     user = await create_new_user()
     type_payment = await create_type_payment()
@@ -24,7 +24,7 @@ async def test_create_invoice_handles_exception(monkeypatch, create_new_user, cr
         await session_redis.set("dollar_rate", 80)
 
     service = CryptoPayService(token="fake", testnet=True)
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
 
     # Мокаем create_invoice у клиента, чтобы выбрасывал ошибку
     async def raise_error(*a, **kw): raise Exception("Fake error")
@@ -40,7 +40,7 @@ async def test_create_invoice_handles_exception(monkeypatch, create_new_user, cr
     assert fake_bot.check_str_in_messages("#Ошибка_при_создание_счёта_в_КБ")
 
 @pytest.mark.asyncio
-async def test_create_invoice_handles(monkeypatch, create_new_user, create_type_payment, replacement_needed_modules, replacement_fake_bot):
+async def test_create_invoice_handles(monkeypatch, create_new_user, create_type_payment, replacement_needed_modules, replacement_fake_bot_fix):
     from src.services.payments.crypto_bot.client import CryptoPayService
     user = await create_new_user()
     type_payment = await create_type_payment()
@@ -71,7 +71,7 @@ async def test_create_invoice_handles(monkeypatch, create_new_user, create_type_
 # ----- WebHook -----
 
 @pytest.mark.asyncio
-async def test_webhook_crypto_bot(monkeypatch, create_new_user, create_replenishment, replacement_needed_modules, replacement_fake_bot):
+async def test_webhook_crypto_bot(monkeypatch, create_new_user, create_replenishment, replacement_needed_modules, replacement_fake_bot_fix):
     from src.services.fastapi_core.server import app
     user = await create_new_user()
     replenishment = await create_replenishment()

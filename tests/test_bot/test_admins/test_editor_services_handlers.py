@@ -8,7 +8,7 @@ from src.exceptions.service_exceptions import ServiceContainsCategories
 
 
 @pytest.mark.asyncio
-async def test_show_service_service_not_found(monkeypatch, patch_fake_aiogram, replacement_fake_bot):
+async def test_show_service_service_not_found(monkeypatch, patch_fake_aiogram, replacement_fake_bot_fix):
     """
     Если get_account_service возвращает None — show_service должен ответить пользователю
     текстом 'The services is no longer available' (через callback.answer or send_message branch).
@@ -47,7 +47,7 @@ async def test_show_service_service_not_found(monkeypatch, patch_fake_aiogram, r
 
 @pytest.mark.asyncio
 async def test_show_service_service_found_calls_edit_message(
-        monkeypatch, patch_fake_aiogram, replacement_fake_bot, create_account_service, create_new_user
+        monkeypatch, patch_fake_aiogram, replacement_fake_bot_fix, create_account_service, create_new_user
 ):
     """
     При наличии сервиса show_service должен вызвать edit_message/send_message с текстом, содержащим имя сервиса.
@@ -64,12 +64,12 @@ async def test_show_service_service_found_calls_edit_message(
         "Service \n\nName: {name}\nIndex: {index}\nShow: {show}"
     ).format(name=service.name, index=service.index, show=service.show)
 
-    assert replacement_fake_bot.get_edited_message(user.user_id, 123, message)
+    assert replacement_fake_bot_fix.get_edited_message(user.user_id, 123, message)
 
 
 @pytest.mark.asyncio
 async def test_delete_acc_service_success(
-        monkeypatch, patch_fake_aiogram, replacement_fake_bot, create_account_service, create_new_user
+        monkeypatch, patch_fake_aiogram, replacement_fake_bot_fix, create_account_service, create_new_user
 ):
     """
     Проверяет успешное удаление сервиса — сообщение 'Service successfully removed!'
@@ -90,12 +90,12 @@ async def test_delete_acc_service_success(
 
     await delete_acc_service(callback, user)
 
-    assert replacement_fake_bot.check_str_in_edited_messages(get_text(user.language, "admins_editor_services", "Service successfully removed"))
+    assert replacement_fake_bot_fix.check_str_in_edited_messages(get_text(user.language, "admins_editor_services", "Service successfully removed"))
 
 
 @pytest.mark.asyncio
 async def test_delete_acc_service_contains_categories(
-        monkeypatch, patch_fake_aiogram, replacement_fake_bot, create_account_service, create_new_user
+        monkeypatch, patch_fake_aiogram, replacement_fake_bot_fix, create_account_service, create_new_user
 ):
     """
     Проверяет случай, когда при удалении выбрасывается ServiceContainsCategories —
@@ -122,4 +122,4 @@ async def test_delete_acc_service_contains_categories(
 
     text_expected = get_text(user.language, "admins_editor_services", "The service_acc has categories, delete them first")
 
-    assert replacement_fake_bot.check_str_in_edited_messages(text_expected)
+    assert replacement_fake_bot_fix.check_str_in_edited_messages(text_expected)

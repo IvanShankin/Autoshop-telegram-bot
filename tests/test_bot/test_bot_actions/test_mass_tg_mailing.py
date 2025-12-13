@@ -93,7 +93,7 @@ async def test_validate_inputs_button_valid_url(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_photo_id_success(monkeypatch, replacement_fake_bot):
+async def test_photo_id_success(monkeypatch, replacement_fake_bot_fix):
     from src.bot_actions.messages.mass_tg_mailing import get_photo_identifier
 
     # создаём временный файл
@@ -107,17 +107,17 @@ async def test_photo_id_success(monkeypatch, replacement_fake_bot):
             message_id=777,
             photo=[SimpleNamespace(file_id="FILE123")]
         )
-        replacement_fake_bot.sent.append(("send_photo", chat_id, photo, caption))
+        replacement_fake_bot_fix.sent.append(("send_photo", chat_id, photo, caption))
         return msg
 
     async def fake_delete(chat_id, message_id):
-        replacement_fake_bot.sent.append(("delete_message", chat_id, message_id))
+        replacement_fake_bot_fix.sent.append(("delete_message", chat_id, message_id))
 
-    replacement_fake_bot.send_photo = fake_send_photo
-    replacement_fake_bot.delete_message = fake_delete
+    replacement_fake_bot_fix.send_photo = fake_send_photo
+    replacement_fake_bot_fix.delete_message = fake_delete
 
     file_id, new_path = await get_photo_identifier(
-        bot=replacement_fake_bot,
+        bot=replacement_fake_bot_fix,
         admin_chat_id=1,
         photo_path=tmp.name
     )
@@ -127,7 +127,7 @@ async def test_photo_id_success(monkeypatch, replacement_fake_bot):
 
 @pytest.mark.asyncio
 async def test_broadcast_success_flow(
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     monkeypatch
 ):
@@ -148,7 +148,7 @@ async def test_broadcast_success_flow(
     # --- мок _send_single так, чтобы он был честным, но успешным ---
     async def fake_send_single(bot, user_id, text, photo_id, kb):
         # регистрируем отправку в fake_bot
-        replacement_fake_bot.sent.append(("send_message", user_id, text))
+        replacement_fake_bot_fix.sent.append(("send_message", user_id, text))
         return user_id, True, None
 
     monkeypatch.setattr(module, "_send_single", fake_send_single)
@@ -170,7 +170,7 @@ async def test_broadcast_success_flow(
     assert set(uid for uid, _, _ in results) == {admin_user.user_id, second_user.user_id, third_user.user_id}
 
     # fake_bot получил 3 отправки
-    assert len([x for x in replacement_fake_bot.sent if x[0] == "send_message"]) == 3
+    assert len([x for x in replacement_fake_bot_fix.sent if x[0] == "send_message"]) == 3
 
     # Проверяем запись SentMasMessages
     async with get_db() as session_db:
@@ -182,7 +182,7 @@ async def test_broadcast_success_flow(
 
 @pytest.mark.asyncio
 async def test_broadcast_partial_fail(
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     create_new_user,
     monkeypatch
 ):
@@ -201,7 +201,7 @@ async def test_broadcast_partial_fail(
     async def fake_send_single(bot, user_id, text, photo_id, kb):
         if user_id == second_user.user_id:
             return user_id, False, RuntimeError("FAIL")
-        replacement_fake_bot.sent.append(("send_message", user_id, text))
+        replacement_fake_bot_fix.sent.append(("send_message", user_id, text))
         return user_id, True, None
 
     monkeypatch.setattr(module, "_send_single", fake_send_single)

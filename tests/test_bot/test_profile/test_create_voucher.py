@@ -7,7 +7,7 @@ from tests.helpers.fake_aiogram.fake_aiogram_module import FakeFSMContext
 @pytest.mark.asyncio
 async def test_create_voucher_start_callback(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     monkeypatch,
     create_new_user,
 ):
@@ -17,7 +17,7 @@ async def test_create_voucher_start_callback(
     from src.modules.profile.handlers.vouchers_handlers import create_voucher
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
 
     fake_cb = FakeCallbackQuery(data="create_voucher", chat_id=user.user_id, username=user.username)
@@ -35,7 +35,7 @@ async def test_create_voucher_start_callback(
 @pytest.mark.asyncio
 async def test_create_voucher_invalid_amount(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     monkeypatch,
     create_new_user,
 ):
@@ -45,7 +45,7 @@ async def test_create_voucher_invalid_amount(
     from src.modules.profile.handlers.vouchers_handlers import create_voucher_get_amount
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
 
     msg = FakeMessage(text="not_number", chat_id=user.user_id, username=user.username)
@@ -61,7 +61,7 @@ async def test_create_voucher_invalid_amount(
 @pytest.mark.asyncio
 async def test_create_voucher_valid_amount_prompts_for_activations(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     monkeypatch,
     create_new_user,
 ):
@@ -71,7 +71,7 @@ async def test_create_voucher_valid_amount_prompts_for_activations(
     from src.modules.profile.handlers.vouchers_handlers import create_voucher_get_amount
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
 
     msg = FakeMessage(text="100", chat_id=user.user_id, username=user.username)
@@ -87,7 +87,7 @@ async def test_create_voucher_valid_amount_prompts_for_activations(
 @pytest.mark.asyncio
 async def test_create_voucher_not_enough_money(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     monkeypatch,
     create_new_user,
 ):
@@ -97,7 +97,7 @@ async def test_create_voucher_not_enough_money(
     from src.modules.profile.handlers.vouchers_handlers import create_voucher_get_number_of_activations
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user(balance=10)
 
     fsm = FakeFSMContext()
@@ -113,7 +113,7 @@ async def test_create_voucher_not_enough_money(
 @pytest.mark.asyncio
 async def test_confirm_create_voucher_not_enough_money_exception(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     monkeypatch,
     create_new_user,
 ):
@@ -123,7 +123,7 @@ async def test_confirm_create_voucher_not_enough_money_exception(
     from src.modules.profile.handlers.vouchers_handlers import confirm_create_voucher
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     user = await create_new_user(balance=0)
 
     fsm = FakeFSMContext()
@@ -144,7 +144,7 @@ async def test_confirm_create_voucher_not_enough_money_exception(
 @pytest.mark.asyncio
 async def test_confirm_create_voucher_success(
     patch_fake_aiogram,
-    replacement_fake_bot,
+    replacement_fake_bot_fix,
     monkeypatch,
     create_new_user,
 ):
@@ -155,7 +155,7 @@ async def test_confirm_create_voucher_success(
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
     from src.services.database.discounts.actions import get_valid_voucher_by_page
 
-    fake_bot = replacement_fake_bot
+    fake_bot = replacement_fake_bot_fix
     bot_me = await fake_bot.me()
     user = await create_new_user(balance=1000)
 

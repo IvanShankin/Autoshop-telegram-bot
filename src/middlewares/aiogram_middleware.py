@@ -76,6 +76,22 @@ class MaintenanceMiddleware(BaseMiddleware):
         )
 
 
+class OnlyAdminsMiddleware(BaseMiddleware):
+    """
+    middleware который пропускает только админов (использовать для работы с админ панелью)
+    """
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: Dict[str, Any]
+    ) -> Any:
+        event_user = data.get("event_from_user")
+
+        if await check_admin(event_user.id):
+            return await handler(event, data)
+
+
 class I18nKeyFilter(BaseFilter):
     """Извлечёт i18n_key из I18nKeyResolverMiddleware"""
     def __init__(self, key: str):

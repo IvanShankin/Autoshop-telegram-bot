@@ -1,6 +1,6 @@
 import asyncio
 
-from src.middlewares.aiogram_middleware import MaintenanceMiddleware, UserMiddleware
+from src.middlewares.aiogram_middleware import MaintenanceMiddleware, UserMiddleware, OnlyAdminsMiddleware
 from src.modules.profile.handlers import router_with_repl_kb as profile_router_with_repl_kb, router as profile_router
 from src.modules.catalog import router_with_repl_kb as catalog_router_with_repl_kb
 from src.modules.catalog import router as catalog_router
@@ -23,11 +23,14 @@ async def _including_router():
     dp.include_router(admin_router)
     dp.include_router(admin_router_with_repl_kb)
 
-    dp_logger.include_router(router_logger)
+    # роутер только для админов
+    admin_router.message.middleware(OnlyAdminsMiddleware())
+    admin_router.callback_query.middleware(OnlyAdminsMiddleware())
 
     dp.update.middleware(UserMiddleware())
     dp.update.middleware(MaintenanceMiddleware())
 
+    dp_logger.include_router(router_logger)
     dp_logger.update.middleware(UserMiddleware())
 
 

@@ -1,4 +1,6 @@
 from types import SimpleNamespace
+from typing import Any
+
 
 class _FakeAttr:
     """Имитация aiogram.F — поддерживает цепочки .data.startswith(...) и т.п."""
@@ -34,6 +36,16 @@ class FakeStatesGroup:
         # Позволяет объявлять состояния как в aiogram:
         # class MyState(StatesGroup):
         #     waiting_name = State()
+        pass
+
+
+class FakeCommand:
+    def __init__(self, command: str):
+        self.command = command
+
+
+class FakeStateFilter:
+    def __init__(self, *args, **kwargs):
         pass
 
 

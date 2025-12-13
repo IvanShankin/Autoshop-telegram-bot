@@ -82,7 +82,7 @@ async def replacement_fake_bot(monkeypatch):
     return fake_bot
 
 
-@pytest_asyncio.fixture(scope="function")
+@pytest_asyncio.fixture(scope="function", autouse=True)
 async def replacement_pyth_account(monkeypatch, replacement_pyth_ui_image):
     from src import config
     from src.services.database.selling_accounts.actions import action_purchase
@@ -99,10 +99,30 @@ async def replacement_pyth_account(monkeypatch, replacement_pyth_ui_image):
     if os.path.isdir(new_account_dir):
         shutil.rmtree(new_account_dir) # удаляет директорию созданную для тестов
 
-@pytest_asyncio.fixture(scope="function")
+
+@pytest_asyncio.fixture(scope="function", autouse=True)
 async def replacement_pyth_ui_image(monkeypatch, tmp_path):
     from src.services.database.system.actions import actions as actions_modul
     from src.utils import ui_images_data
+
     new_ui_section_dir = tmp_path / "ui_sections_test"
     monkeypatch.setattr(actions_modul, "UI_SECTIONS", new_ui_section_dir)
     monkeypatch.setattr(ui_images_data, "UI_SECTIONS", new_ui_section_dir)
+
+    yield
+
+    if os.path.isdir(new_ui_section_dir):
+        shutil.rmtree(new_ui_section_dir)  # удаляет директорию созданную для тестов
+
+
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def replacement_pyth_ui_image(monkeypatch, tmp_path):
+    from src.bot_actions.messages import mass_tg_mailing as messages_modul
+
+    new_sent_mass_msg_dir = tmp_path / "sent_mass_msg_image_test"
+    monkeypatch.setattr(messages_modul, "SENT_MASS_MSG_IMAGE_DIR", new_sent_mass_msg_dir)
+
+    yield
+
+    if os.path.isdir(new_sent_mass_msg_dir):
+        shutil.rmtree(new_sent_mass_msg_dir)  # удаляет директорию созданную для тестов

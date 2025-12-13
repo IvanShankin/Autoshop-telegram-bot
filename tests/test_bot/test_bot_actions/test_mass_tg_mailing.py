@@ -1,3 +1,4 @@
+import os
 import tempfile
 from types import SimpleNamespace
 

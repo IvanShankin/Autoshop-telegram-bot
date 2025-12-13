@@ -470,10 +470,6 @@ async def test__check_account_validity_async_success(
     def fake_decryption_tg_account(account_storage_arg):
         # создаём папку, чтобы rmtree мог ее удалить (проверим вызов)
         os.makedirs(temp_folder_path, exist_ok=True)
-        # создадим минимальные файлы, которые могут понадобиться
-        open(str((temp_folder_path / "session.session").touch()), "wb").close()
-        tdata_dir = temp_folder_path / "tdata"
-        os.makedirs(tdata_dir, exist_ok=True)
         return temp_folder_path
 
     monkeypatch.setattr(actions, "decryption_tg_account", fake_decryption_tg_account)

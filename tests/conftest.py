@@ -22,7 +22,7 @@ MODE = os.getenv('MODE')
 RABBITMQ_URL = os.getenv('RABBITMQ_URL')
 
 import pytest_asyncio
-from src.services.database.core.filling_database import create_database
+from src.services.database.core.filling_database import create_table
 
 consumer_started = False
 
@@ -32,13 +32,25 @@ if "aiogram" in sys.modules:
 
 # ---------- фикстуры ----------
 
-@pytest_asyncio.fixture(scope='session', autouse=True)
-async def create_database_fixture():
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def replacement_needed_modules(
+        replacement_redis,
+        replacement_fake_bot,
+        patch_fake_aiogram,
+        replacement_pyth_account,
+        replacement_pyth_ui_image,
+):
+    """Заменит все необходимые модули"""
+    yield
+
+
+@pytest_asyncio.fixture(scope='function', autouse=True)
+async def create_database_fixture(replacement_needed_modules):
     if MODE != "TEST":
         raise Exception("Используется основная БД!")
 
     # Создаем БД
-    await create_database()
+    await create_table()
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
@@ -66,15 +78,6 @@ async def clean_redis(replacement_redis):
 
     await filling_all_redis()
 
-@pytest_asyncio.fixture(scope="function", autouse=True)
-async def replacement_needed_modules(
-        replacement_redis,
-        replacement_fake_bot,
-        patch_fake_aiogram,
-        replacement_pyth_account,
-):
-    """Заменит все необходимые модули"""
-    yield
 
 @pytest_asyncio.fixture(scope="function")
 async def start_consumer():

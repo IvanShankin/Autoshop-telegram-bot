@@ -8,7 +8,7 @@ from tests.helpers.fake_aiogram.fake_aiogram_module import (
     ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply, FakeInlineKeyboardBuilder,
     BaseMiddleware, FakeTelegramForbiddenError, FakeTelegramBadRequest, FakeInputMediaPhoto, FakeFSInputFile,
     FakeBaseFilter, FakeState, FakeStatesGroup, FakeCommandObject, FakeTelegramObject, FakeReplyKeyboardBuilder,
-    FakeDocument, FakeBufferedInputFile, FakeTelegramNotFound, FakeTelegramRetryAfter
+    FakeDocument, FakeBufferedInputFile, FakeTelegramNotFound, FakeTelegramRetryAfter, FakeCommand, FakeStateFilter
 )
 
 @pytest.fixture(scope="session")
@@ -39,7 +39,9 @@ def patch_fake_aiogram():
     sys.modules["aiogram.filters"].CommandStart = object
     sys.modules["aiogram.filters"].Text = object
     sys.modules["aiogram.filters"].BaseFilter = FakeBaseFilter
+    sys.modules["aiogram.filters"].Command = FakeCommand
     sys.modules["aiogram.filters"].CommandObject = FakeCommandObject
+    sys.modules["aiogram.filters"].StateFilter = FakeStateFilter
     sys.modules["aiogram.filters.state"] = ModuleType("aiogram.filters.state")
     sys.modules["aiogram.filters.state"].StateFilter = object
 

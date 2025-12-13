@@ -6,7 +6,7 @@ import zipfile
 from pathlib import Path
 from typing import Optional, List, AsyncGenerator
 
-from src.config import SENT_MASS_MSG_IMAGE_DIR, MAX_UPLOAD_FILE, TEMP_FILE_DIR
+from src.config import MAX_UPLOAD_FILE, TEMP_FILE_DIR
 from src.utils.core_logger import logger
 
 

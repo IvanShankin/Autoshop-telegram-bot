@@ -252,10 +252,13 @@ async def create_income_from_referral_fabric(
 
 
 
-async def create_replenishment_fabric(amount: int = 110) -> Replenishments:
+async def create_replenishment_fabric(amount: int = 110, user_id: int = None) -> Replenishments:
     """Создаёт пополнение для пользователя"""
     async with get_db() as session_db:
-        user = await create_new_user_fabric()
+        if user_id is None:
+            user = await create_new_user_fabric()
+            user_id = user.user_id
+
         # создаём тип платежа (если ещё нет)
         result = await session_db.execute(select(TypePayments))
         type_payment = result.scalars().first()
@@ -271,7 +274,7 @@ async def create_replenishment_fabric(amount: int = 110) -> Replenishments:
             await session_db.refresh(type_payment)
 
         repl = Replenishments(
-            user_id=user.user_id,
+            user_id=user_id,
             type_payment_id=type_payment.type_payment_id,
             origin_amount=100,
             amount=amount, # сумма пополнения
@@ -558,14 +561,15 @@ async def create_product_account_factory(
         account_category_id: int = None,
         account_storage_id: int = None,
         status: str = 'for_sale',
-        phone_number: str = '+7 920 107-42-12'
+        phone_number: str = '+7 920 107-42-12',
+        price_one_account: int = 150
 ) -> (ProductAccounts, ProductAccountFull):
     async with get_db() as session_db:
         if type_account_service_id is None:
             service_type = await create_type_account_service_factory(filling_redis=filling_redis)
             type_account_service_id = service_type.type_account_service_id
         if account_category_id is None:
-            category = await create_account_category_factory(filling_redis=filling_redis)
+            category = await create_account_category_factory(filling_redis=filling_redis, price_one_account=price_one_account)
             account_category_id = category.account_category_id
         if account_storage_id is None:
             account_storage = await create_account_storage_factory(status=status, phone_number=phone_number)

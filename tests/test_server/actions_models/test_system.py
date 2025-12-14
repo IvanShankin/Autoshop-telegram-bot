@@ -5,7 +5,7 @@ from orjson import orjson
 from sqlalchemy import delete, select
 
 from src.services.database.system.actions.actions import get_all_types_payments, add_backup_log, update_type_payment, \
-    get_type_payment, update_ui_image, get_all_ui_images, get_ui_image
+    get_type_payment, update_ui_image, get_all_ui_images, get_ui_image, get_statistics
 from src.services.database.system.models import Settings, BackupLogs, TypePayments
 from src.services.database.system.actions import get_settings, update_settings
 from src.services.database.core.database import get_db
@@ -330,3 +330,53 @@ async def test_add_backup_log_creates_record():
         log_db = result.scalar_one()
         assert log_db.file_path == file_path
         assert log_db.size_in_kilobytes == size_kb
+
+
+
+@pytest.mark.asyncio
+async def test_get_statistics(create_new_user, create_replenishment, create_product_account, create_purchase_account):
+    users = [await create_new_user() for _ in range(3)]
+    replenishments = [await create_replenishment(user_id=users[0].user_id) for _ in range(3)]
+    purchase_account = [await create_purchase_account(user_id=users[0].user_id) for _ in range(3)]
+
+    product_accounts = []
+    for _ in range(3):
+        _, prod_acc = await create_product_account(price_one_account=100)
+        product_accounts.append(prod_acc)
+
+
+    result = await get_statistics(10)
+
+
+    assert result.total_users == len(users)
+    assert result.new_users == len(users)
+    assert result.active_users == len(users)
+
+    assert result.quantity_sale_accounts == len(purchase_account)
+    assert result.amount_sale_accounts == sum(s.purchase_price for s in purchase_account)
+    assert result.total_net_profit == sum(s.net_profit for s in purchase_account)
+
+    assert result.quantity_replenishments == 3
+    assert result.amount_replenishments == sum(r.amount for r in replenishments)
+
+    # Проверяем разбивку по платёжным системам
+    assert isinstance(result.replenishment_payment_systems, list)
+
+    total_from_payment_systems = sum(
+        ps.amount_replenishments
+        for ps in result.replenishment_payment_systems
+    )
+    assert total_from_payment_systems == result.amount_replenishments
+
+    total_quantity_from_payment_systems = sum(
+        ps.quantity_replenishments
+        for ps in result.replenishment_payment_systems
+    )
+    assert total_quantity_from_payment_systems == result.quantity_replenishments
+
+    assert result.funds_in_bot == 300
+
+    assert result.accounts_for_sale == len(product_accounts)
+
+    assert result.last_backup == "—"
+

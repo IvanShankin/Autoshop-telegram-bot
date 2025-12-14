@@ -29,7 +29,9 @@ from src.modules.admin_actions.handlers.settings.main_settings_handlers import r
 from src.modules.admin_actions.handlers.settings.change_settings_handlers import router as change_settings_router
 from src.modules.admin_actions.handlers.settings.change_admins_handlers import router as change_admins_router
 
-from src.modules.admin_actions.handlers.show_data_by_id import router as show_data_by_id_router
+from src.modules.admin_actions.handlers.show_data_by_id_handlers import router as show_data_by_id_router
+
+from src.modules.admin_actions.handlers.statistics_handlers import router as statistics_router
 
 
 router = Router()
@@ -64,7 +66,11 @@ router.include_router(change_admins_router)
 
 router.include_router(show_data_by_id_router)
 
+router.include_router(statistics_router)
+
+# логгер
 router_logger.include_router(logger_router)
+# логгер
 
 __all__ = [
     'router',

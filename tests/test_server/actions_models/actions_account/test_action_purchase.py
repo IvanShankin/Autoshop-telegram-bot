@@ -21,7 +21,7 @@ from src.services.redis.core_redis import get_redis
 
 @pytest.mark.asyncio
 async def test_purchase_accounts_success(
-    replacement_pyth_account,
+    replacement_pyth_account_fix,
     patch_fake_aiogram,
     replacement_fake_bot_fix,
     monkeypatch,
@@ -126,7 +126,7 @@ async def test_purchase_accounts_success(
 
 @pytest.mark.asyncio
 async def test_purchase_accounts_fail_no_replacement(
-    replacement_pyth_account,
+    replacement_pyth_account_fix,
     patch_fake_aiogram,
     replacement_fake_bot_fix,
     monkeypatch,
@@ -436,7 +436,7 @@ class TestStartPurchaseRequest:
 
 @pytest.mark.asyncio
 async def test__check_account_validity_async_success(
-    replacement_pyth_account,
+    replacement_pyth_account_fix,
     patch_fake_aiogram,
     create_product_account,
     create_account_category,

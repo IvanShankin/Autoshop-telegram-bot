@@ -1,12 +1,16 @@
+from datetime import datetime, UTC, timedelta
 import os
 from pathlib import Path
 from typing import List
 
 import aiofiles
 import orjson
-from sqlalchemy import select, update, delete, func
+from sqlalchemy import select, update, delete, func, desc
 
 from src.config import PAGE_SIZE
+from src.services.database.selling_accounts.models import PurchasesAccounts, ProductAccounts, AccountCategories
+from src.services.database.system.shemas.shemas import StatisticsData, ReplenishmentPaymentSystem
+from src.services.database.users.models import Users, Replenishments
 from src.services.redis.filling_redis import filling_types_payments_by_id, filling_all_types_payments, \
     filling_ui_image
 from src.services.redis.time_storage import TIME_SETTINGS
@@ -354,3 +358,89 @@ async def add_backup_log(file_path: str, size_in_kilobytes: int) -> BackupLogs:
 
     return new_backup_log
 
+
+async def get_statistics(interval_days: int) -> StatisticsData:
+    up_to_date = datetime.now(UTC) - timedelta(days=interval_days)
+
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(func.count()).where(Users.last_used >= up_to_date))
+        active_users = result_db.scalar()
+
+        result_db = await session_db.execute(select(func.count()).where(Users.created_at >= up_to_date))
+        new_users = result_db.scalar()
+
+        result_db = await session_db.execute(select(func.count()).select_from(Users))
+        total_users = result_db.scalar()
+
+        result_db = await session_db.execute(select(PurchasesAccounts).where(PurchasesAccounts.purchase_date >= up_to_date))
+        needs_sale_accounts: List[PurchasesAccounts] = result_db.scalars().all()
+
+        quantity_sale_accounts = max(len(needs_sale_accounts), 0)
+
+        amount_sale_accounts = 0
+        for sale_acc in needs_sale_accounts:
+            amount_sale_accounts += sale_acc.purchase_price
+
+        total_net_profit = 0
+        for sale_acc in needs_sale_accounts:
+            total_net_profit += sale_acc.net_profit
+
+        result_db = await session_db.execute(select(Replenishments).where(Replenishments.created_at >= up_to_date))
+        needs_replenishments: List[Replenishments] = result_db.scalars().all()
+
+        quantity_replenishments = max(len(needs_replenishments), 0)
+        amount_replenishments = 0
+        for replenishment in needs_replenishments:
+            amount_replenishments += replenishment.amount
+
+        all_type_payments = await get_all_types_payments()
+        replenishment_payment_systems = []
+        for type_payment in all_type_payments:
+            replenishments = [
+                replenishment
+                for replenishment in needs_replenishments
+                if replenishment.type_payment_id == type_payment.type_payment_id
+            ]
+
+            amount_replenishments_current_type = 0
+            for replenishment in replenishments:
+                amount_replenishments_current_type += replenishment.amount
+
+            replenishment_payment_systems.append(
+                ReplenishmentPaymentSystem(
+                    name = type_payment.name_for_user,
+                    quantity_replenishments = max(len(replenishments), 0),
+                    amount_replenishments = amount_replenishments_current_type
+                )
+            )
+
+
+        result = await session_db.execute(
+            select(func.coalesce(func.sum(AccountCategories.price_one_account), 0))
+            .select_from(ProductAccounts)
+            .join(ProductAccounts.account_category)
+        )
+        funds_in_bot = result.scalar()
+
+        result_db = await session_db.execute(select(func.count()).select_from(ProductAccounts))
+        accounts_for_sale = result_db.scalar()
+
+        result_db = await session_db.execute(select(BackupLogs.created_at).order_by(desc(BackupLogs.created_at)).limit(1))
+        last_backup = result_db.scalar_one_or_none()
+
+        last_backup = last_backup if last_backup else "—"
+
+    return StatisticsData(
+        active_users=active_users,
+        new_users=new_users,
+        total_users=total_users,
+        quantity_sale_accounts=quantity_sale_accounts,
+        amount_sale_accounts=amount_sale_accounts,
+        total_net_profit=total_net_profit,
+        quantity_replenishments=quantity_replenishments,
+        amount_replenishments=amount_replenishments,
+        replenishment_payment_systems=replenishment_payment_systems,
+        funds_in_bot=funds_in_bot,
+        accounts_for_sale=accounts_for_sale,
+        last_backup=last_backup,
+    )

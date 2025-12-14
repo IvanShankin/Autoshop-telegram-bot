@@ -289,6 +289,20 @@ msgid "Sold Account"
 msgstr "Проданный аккаунт"
 
 
+msgid "Statistics"
+msgstr "Статистика"
 
+msgid "Per day"
+msgstr "За день"
 
+msgid "Per week"
+msgstr "За неделю"
 
+msgid "Per month"
+msgstr "За месяц"
+
+msgid "Per year"
+msgstr "За год"
+
+msgid "All time"
+msgstr "За всё время"

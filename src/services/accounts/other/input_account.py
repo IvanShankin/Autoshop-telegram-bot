@@ -9,7 +9,7 @@ from src.services.accounts.utils.helper_imports import get_unique_among_db
 from src.services.database.selling_accounts.actions import add_account_storage, add_product_account
 from src.services.filesystem.input_account import make_csv_bytes
 from src.utils.core_logger import logger
-from src.utils.secret_data import encrypt_data
+from src.services.secrets import encrypt_text, make_account_key, get_crypto_context
 
 
 async def input_other_account(stream: io.BytesIO, account_category_id: int, type_account_service: str) -> ImportResult:
@@ -116,16 +116,24 @@ async def import_in_db(
     :return: Список неудачно добавленных аккаунтов
     """
     errors_added = []
+    crypto = get_crypto_context()
+
     for account in account_data:
         try:
+
+            # персональный DEK аккаунта
+            encrypted_key_b64, account_key = make_account_key(crypto.kek)
+
+            login_encrypted = encrypt_text(account.login, account_key)
+            password_encrypted = encrypt_text(account.password, account_key)
+
             acc = await add_account_storage(
                 type_service_name=type_account_service,
                 checksum="",  # это не надо для данного типа аккаунтов
-                encrypted_key="", # это не надо для данного типа аккаунтов
-                encrypted_key_nonce="",  # это не надо для данного типа аккаунтов
+                encrypted_key=encrypted_key_b64, 
                 phone_number=account.phone,
-                login_encrypted=encrypt_data(account.login),
-                password_encrypted=encrypt_data(account.password),
+                login_encrypted=login_encrypted,
+                password_encrypted=password_encrypted,
             )
             await add_product_account(
                 account_category_id=account_category_id,

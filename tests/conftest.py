@@ -1,13 +1,19 @@
 import asyncio
 import os
-import shutil
-from contextlib import suppress
-
+import sys
 import aio_pika
+
+from contextlib import suppress
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from tests.helpers.monkeypatch_data import *
+from tests.helpers.monkeypatch_data import (
+    replacement_redis,
+    replacement_fake_bot,
+    replacement_pyth_account,
+    replacement_pyth_ui_image,
+    replacement_pyth_sent_mass_msg_image
+)
 from src.services.database.core.database import SQL_DB_URL
 from src.services.database import core
 from src.services.redis.core_redis import get_redis
@@ -31,10 +37,7 @@ consumer_started = False
 if "aiogram" in sys.modules:
     raise RuntimeError("aiogram был импортирован слишком рано! Используй локальный импорт в функции/фикстуре.")
 
-# регистрируем фикстуры из другого файла
-pytest_plugins = [
-    "tests.helpers.monkeypatch_data",
-]
+
 
 # ---------- фикстуры ----------
 

@@ -144,7 +144,6 @@ class AccountStorage(Base):
 
     # === Шифрование ===
     encrypted_key = Column(Text, nullable=False)       # Персональный ключ аккаунта, зашифрованный мастер-ключом (base64)
-    encrypted_key_nonce = Column(Text, nullable=False) # nonce, использованный при wrap (Nonce (IV) для AES-GCM (base64))
     key_version = Column(Integer, nullable=False, server_default=text("1")) # Номер мастер-ключа (для ротации)
     encryption_algo = Column(String(32), nullable=False, server_default=text("'AES-GCM-256'")) # Алгоритм шифрования
 

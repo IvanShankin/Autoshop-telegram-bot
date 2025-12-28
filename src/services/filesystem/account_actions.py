@@ -9,7 +9,7 @@ from src.config import ACCOUNTS_DIR
 from src.services.database.selling_accounts.models import AccountStorage, AccountStoragePydentic
 from src.services.filesystem.actions import move_file
 from src.utils.core_logger import logger
-from src.utils.secret_data import unwrap_account_key, decrypt_folder, derive_master_key
+from src.services.secrets import decrypt_folder, get_crypto_context, unwrap_dek
 
 
 async def move_in_account(account: AccountStorage, type_service_name: str, status: str) -> bool:
@@ -77,17 +77,25 @@ def create_path_account(status: str, type_account_service: str, uuid: str) -> st
     return str(Path(ACCOUNTS_DIR) / status / type_account_service / uuid / 'account.enc')
 
 
-def decryption_tg_account(account_storage: AccountStorage | AccountStoragePydentic):
+def decryption_tg_account(
+    account_storage: AccountStorage | AccountStoragePydentic,
+    kek: bytes
+):
     """
-    Расшифровывает файлы для телеграмм аккаунтов и записывает на диск расшифрованные данные во временную директорию (Temp)
-    :return: путь к расшифрованным данным от аккаунта: Временная папка с .session и tdata (директория)
+    Расшифровывает файлы Telegram-аккаунта во временную директорию.
+    :param kek: (Key Encryption Key) передаётся из runtime.
     """
-    master_key = derive_master_key()
-    account_key = unwrap_account_key(account_storage.encrypted_key, master_key)
 
-    abs_path = ACCOUNTS_DIR / Path(account_storage.file_path)
-    abs_path = abs_path.resolve()
-    folder_path = decrypt_folder(abs_path, account_key)
+    # Расшифровываем DEK (account_key)
+    account_key = unwrap_dek(
+        encrypted_key_b64=account_storage.encrypted_key,
+        kek=kek
+    )
+
+    abs_path = (ACCOUNTS_DIR / Path(account_storage.file_path)).resolve()
+
+    folder_path = decrypt_folder(abs_path, account_key) # Расшифровываем архив DEK-ом
+
     return folder_path
 
 
@@ -98,7 +106,8 @@ async def get_tdata_tg_acc(account_storage: AccountStorage) -> AsyncGenerator[st
     """
     folder_path = None
     try:
-        folder_path = decryption_tg_account(account_storage)
+        crypto = get_crypto_context()
+        folder_path = decryption_tg_account(account_storage, crypto.kek)
         dir_for_tdata = Path(folder_path) / f'{account_storage.account_storage_id}_tdata'
         dir_for_tdata.mkdir(exist_ok=True)
         result = await move_file(str(Path(folder_path) / 'tdata'), str(dir_for_tdata))
@@ -128,7 +137,8 @@ async def get_session_tg_acc(account_storage: AccountStorage) -> AsyncGenerator[
     """
     folder_path = None
     try:
-        folder_path = decryption_tg_account(account_storage)
+        crypto = get_crypto_context()
+        folder_path = decryption_tg_account(account_storage, crypto.kek)
         session_path = str(Path(folder_path) / 'session.session')
         if os.path.isfile(session_path):
             yield session_path

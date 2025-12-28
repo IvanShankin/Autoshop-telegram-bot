@@ -346,10 +346,10 @@ async def update_type_payment(
     return type_payment
 
 
-async def add_backup_log(file_path: str, size_in_kilobytes: int) -> BackupLogs:
+async def add_backup_log(file_path: str, size_bytes: int) -> BackupLogs:
     new_backup_log = BackupLogs(
         file_path = file_path,
-        size_in_kilobytes = size_in_kilobytes,
+        size_bytes = size_bytes,
     )
     async with get_db() as session_db:
         session_db.add(new_backup_log)

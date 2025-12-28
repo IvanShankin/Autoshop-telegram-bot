@@ -3,15 +3,20 @@ import base64
 import pytest
 from pathlib import Path
 
-from src.utils.secret_data import encrypt_data, decrypt_data, gen_key, encrypt_bytes_with_key, decrypt_bytes_with_key, \
-    unwrap_account_key, decrypt_file_to_bytes, encrypt_folder, decrypt_folder
+from src.services.secrets import encrypt_text, decrypt_text, gen_key, encrypt_bytes, \
+    decrypt_bytes, \
+    decrypt_file_to_bytes, encrypt_folder, decrypt_folder, get_crypto_context, unwrap_dek
 
 
 @pytest.mark.asyncio
 async def test_encrypt_decrypt_token_roundtrip():
     text = "my_secret_text"
-    enc = encrypt_data(text)
-    dec = decrypt_data(enc)
+
+    crypto = get_crypto_context()
+
+    enc = encrypt_text(text, crypto.dek)
+    dec = decrypt_text(enc, crypto.dek)
+
     assert dec == text
     assert enc != text
 
@@ -24,38 +29,37 @@ def test_gen_key_length_and_uniqueness():
     assert k1 != k2  # вероятность совпадения крайне мала
 
 
-def test_encrypt_decrypt_bytes_roundtrip():
-    key = gen_key()
+def test_encrypt_decrypt_text_roundtrip():
+    dek = gen_key()
     plaintext = b"hello world"
-    enc = encrypt_bytes_with_key(plaintext, key)
-    dec = decrypt_bytes_with_key(enc, key)
+    enc = encrypt_bytes(plaintext, dek)
+    dec = decrypt_bytes(enc, dek)
     assert dec == plaintext
 
 
-def test_decrypt_bytes_with_wrong_key_raises():
+def test_decrypt_text_with_wrong_key_raises():
     key1 = gen_key()
     key2 = gen_key()
     plaintext = b"test-data"
-    encrypted = encrypt_bytes_with_key(plaintext, key1)
+    encrypted = encrypt_bytes(plaintext, key1)
     with pytest.raises(Exception):
-        decrypt_bytes_with_key(encrypted, key2)
+        decrypt_bytes(encrypted, key2)
 
 
 def test_unwrap_account_key_and_file_decrypt(tmp_path):
-    key = gen_key()
+    crypto = get_crypto_context()
     plaintext = b"super data"
-    encrypted = encrypt_bytes_with_key(plaintext, key)
+    encrypted = encrypt_bytes(plaintext, crypto.dek)
     wrapped_b64 = base64.b64encode(encrypted).decode()
 
-    # unwrap_account_key
-    unwrapped = unwrap_account_key(wrapped_b64, key)
+    unwrapped = unwrap_dek(wrapped_b64, crypto.dek)
     assert unwrapped == plaintext
 
     # decrypt_file_to_bytes
     file_path = tmp_path / "encrypted.bin"
     with open(file_path, "wb") as f:
         f.write(encrypted)
-    decrypted = decrypt_file_to_bytes(str(file_path), key)
+    decrypted = decrypt_file_to_bytes(str(file_path), crypto.dek)
     assert decrypted == plaintext
 
 

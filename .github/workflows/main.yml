@@ -63,7 +63,6 @@ jobs:
       - name: Run tests
         env:
           # токены
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
           TOKEN_BOT: ${{ secrets.TOKEN_BOT }}
           TOKEN_LOGGER_BOT: ${{ secrets.TOKEN_LOGGER_BOT }}
           TOKEN_CRYPTO_BOT: ${{ secrets.TOKEN_CRYPTO_BOT }}

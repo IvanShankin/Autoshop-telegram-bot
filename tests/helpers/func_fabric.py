@@ -10,7 +10,6 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from src.config import SECRET_KEY
 from src.services.database.selling_accounts.models.models import AccountStorage, TgAccountMedia
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_sold_accounts_by_owner_id, \
@@ -30,17 +29,7 @@ from src.services.database.users.models import Users, Replenishments, Notificati
 from src.services.database.system.models import TypePayments
 from src.services.database.core.database import get_db
 from src.services.database.referrals.models import Referrals, IncomeFromReferrals
-from src.utils.secret_data import encrypt_data
-
-
-def make_fake_account_key_for_test() -> tuple[str, bytes]:
-    """Создаёт случайный account_key и его base64-зашифрованную версию через master_key."""
-    master_key = base64.b64decode(SECRET_KEY)
-    account_key = os.urandom(32)
-    aesgcm = AESGCM(master_key)
-    nonce = os.urandom(12)
-    wrapped = nonce + aesgcm.encrypt(nonce, account_key, None)
-    return base64.b64encode(wrapped).decode(), account_key
+from src.services.secrets import encrypt_text, get_crypto_context, make_account_key
 
 
 def make_fake_encrypted_archive_for_test(account_key: bytes, status: str = "for_sale", type_account_service: str = "telegram") -> str:
@@ -530,7 +519,8 @@ async def create_account_storage_factory(
         status: str = 'for_sale',
         phone_number: str = '+7 920 107-42-12'
 ) -> AccountStorage:
-    encrypted_key_b64, account_key = make_fake_account_key_for_test()
+    crypto = get_crypto_context()
+    encrypted_key_b64, account_key = make_account_key(crypto.kek)
     file_path = make_fake_encrypted_archive_for_test(account_key, status)
 
     account_storage = AccountStorage(
@@ -538,11 +528,10 @@ async def create_account_storage_factory(
         checksum = "checksum",
 
         encrypted_key = encrypted_key_b64,
-        encrypted_key_nonce = "gnjfdsnjds",
 
         phone_number = phone_number,
-        login_encrypted = encrypt_data('login_encrypted'),
-        password_encrypted = encrypt_data('password_encrypted'),
+        login_encrypted = encrypt_text('login_encrypted', account_key),
+        password_encrypted = encrypt_text('password_encrypted', account_key),
 
         is_active = is_active,
         is_valid = is_valid,

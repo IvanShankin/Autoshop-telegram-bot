@@ -258,7 +258,6 @@ async def add_account_storage(
     type_service_name: str,
     checksum: str,
     encrypted_key: str,
-    encrypted_key_nonce: str,
     phone_number: str,
 
     status: Literal["for_sale", "bought", "deleted"] = 'for_sale',
@@ -272,8 +271,7 @@ async def add_account_storage(
      Преобразует номер телефона в необходимый формат для хранения (E164)
     :param type_service_name: Имя сервиса необходимо для формирования пути (должен иметься в TYPE_ACCOUNT_SERVICES)
     :param checksum: Контроль целостности (SHA256 зашифрованного файла)
-    :param encrypted_key: Персональный ключ аккаунта, зашифрованный мастер-ключом (base64)
-    :param encrypted_key_nonce: nonce, использованный при wrap (Nonce (IV) для AES-GCM (base64))
+    :param encrypted_key: Персональный ключ аккаунта, зашифрованный мастер-ключом (DEK)
     :param phone_number: номер телефона
     :param status: статус
     :param key_version: Номер мастер-ключа (для ротации)
@@ -297,7 +295,6 @@ async def add_account_storage(
         checksum = checksum,
         status = status,
         encrypted_key = encrypted_key,
-        encrypted_key_nonce = encrypted_key_nonce,
         key_version = key_version,
         encryption_algo = encryption_algo,
         phone_number = phone_in_e164(phone_number),

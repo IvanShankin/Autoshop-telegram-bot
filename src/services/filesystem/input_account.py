@@ -8,8 +8,7 @@ from typing import Optional, List, Sequence, Dict
 from src.services.accounts.tg.shemas import CreatedEncryptedArchive, BaseAccountProcessingResult
 from src.services.filesystem.actions import _sync_cleanup_used_data
 from src.utils.core_logger import logger
-from src.utils.secret_data import encrypt_folder, make_account_key, sha256_file
-
+from src.services.secrets import encrypt_folder, make_account_key, sha256_file, get_crypto_context
 
 
 async def encrypted_tg_account(
@@ -22,7 +21,8 @@ async def encrypted_tg_account(
     """
 
     try:
-        encrypted_key_b64, account_key, nonce_b64 = make_account_key()
+        crypto = get_crypto_context()
+        encrypted_key_b64, account_key = make_account_key(crypto.dek)
 
         # создаём директорию под файл
         Path(dest_encrypted_path).parent.mkdir(parents=True, exist_ok=True)
@@ -31,7 +31,7 @@ async def encrypted_tg_account(
         encrypt_folder(
             folder_path=src_directory,
             encrypted_path=dest_encrypted_path,
-            key=account_key
+            dek=account_key
         )
 
         # считаем checksum
@@ -40,7 +40,6 @@ async def encrypted_tg_account(
         return CreatedEncryptedArchive(
             result=True,
             encrypted_key_b64=encrypted_key_b64,
-            encrypted_key_nonce=nonce_b64,
             path_encrypted_acc=dest_encrypted_path,
             checksum=checksum
         )

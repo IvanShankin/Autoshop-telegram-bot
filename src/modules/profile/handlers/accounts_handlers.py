@@ -18,7 +18,7 @@ from src.services.accounts.tg.actions import check_account_validity, get_auth_co
 from src.utils.core_logger import logger
 from src.utils.i18n import get_text
 from src.utils.pars_number import e164_to_pretty
-from src.utils.secret_data import decrypt_data
+from src.services.secrets import decrypt_text, get_crypto_context, unwrap_dek
 
 router = Router()
 
@@ -269,11 +269,17 @@ async def get_log_pas(callback: CallbackQuery, user: Users):
         await callback.answer(get_text(user.language, 'profile_messages', "Account not found"))
         return
 
+    crypto = get_crypto_context()
+    account_key = unwrap_dek(
+        account.account_storage.encrypted_key,
+        crypto.kek
+    )
+
     await send_message(
         user.user_id,
         get_text(user.language, 'profile_messages', "Login: <code>{login}</code> \nPassword: <code>{password}</code>").format(
-            login=decrypt_data(account.account_storage.login_encrypted),
-            password=decrypt_data(account.account_storage.password_encrypted)
+            login=decrypt_text(account.account_storage.login_encrypted, account_key),
+            password=decrypt_text(account.account_storage.password_encrypted, account_key)
         )
     )
 

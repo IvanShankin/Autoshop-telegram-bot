@@ -315,13 +315,13 @@ async def test_update_type_payment_index_shift_down(create_type_payment):
 async def test_add_backup_log_creates_record():
     """Проверка, что add_backup_log создаёт запись в БД."""
     file_path = "/tmp/test_backup.sql"
-    size_kb = 123
+    size_bytes = 123
 
-    new_log = await add_backup_log(file_path, size_kb)
+    new_log = await add_backup_log(file_path, size_bytes)
 
     assert new_log.backup_log_id is not None
     assert new_log.file_path == file_path
-    assert new_log.size_in_kilobytes == size_kb
+    assert new_log.size_bytes == size_bytes
 
     async with get_db() as session_db:
         result = await session_db.execute(
@@ -329,7 +329,7 @@ async def test_add_backup_log_creates_record():
         )
         log_db = result.scalar_one()
         assert log_db.file_path == file_path
-        assert log_db.size_in_kilobytes == size_kb
+        assert log_db.size_bytes == size_bytes
 
 
 

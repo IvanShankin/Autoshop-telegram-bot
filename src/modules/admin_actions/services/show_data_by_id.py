@@ -13,7 +13,7 @@ from src.services.database.users.actions.action_other_with_user import get_trans
 from src.services.database.users.models import Users
 from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_text
-from src.utils.secret_data import decrypt_data
+from src.services.secrets import decrypt_text, get_crypto_context, unwrap_dek
 
 
 async def show_data_by_id_handler(state: str, message_text: str, user: Users, current_page: int):
@@ -345,6 +345,15 @@ async def get_message_sold_account_full(
 
     storage = sold_account_full.account_storage
 
+    crypto = get_crypto_context()
+    account_key = unwrap_dek(
+        storage.encrypted_key,
+        crypto.kek
+    )
+
+    login = decrypt_text(storage.login_encrypted, account_key) if storage.login_encrypted  else "—"
+    password = decrypt_text(storage.password_encrypted, account_key) if storage.password_encrypted  else "—"
+    
     return get_text(
         language,
         "admins_show_data_by_id",
@@ -383,8 +392,8 @@ async def get_message_sold_account_full(
         key_version=storage.key_version,
         encryption_algo=storage.encryption_algo,
         phone_number=storage.phone_number,
-        login_encrypted=decrypt_data(storage.login_encrypted) if storage.login_encrypted else "-",
-        password_encrypted=decrypt_data(storage.password_encrypted) if storage.password_encrypted else "-",
+        login_encrypted=login,
+        password_encrypted=password,
         is_active=storage.is_active,
         is_valid=storage.is_valid,
         added_at=storage.added_at.strftime(DT_FORMAT),

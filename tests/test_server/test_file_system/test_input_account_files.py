@@ -66,16 +66,10 @@ async def test_encrypted_tg_account_success(tmp_path):
 
     dest_path = tmp_path / "encrypted.zip"
 
-    def fake_encrypt_folder(folder_path, encrypted_path, key):
-        # создаём пустой файл, чтобы sha256_file не падал
-        Path(encrypted_path).write_text("encrypted")
 
-    with patch("src.services.filesystem.input_account.make_account_key", return_value=("key_b64", b"key", "nonce")):
-        with patch("src.services.filesystem.input_account.encrypt_folder", side_effect=fake_encrypt_folder) as mock_encrypt:
-            result = await encrypted_tg_account(str(src_dir), str(dest_path))
-            mock_encrypt.assert_called_once()
-            assert result.result
-            assert result.path_encrypted_acc == str(dest_path)
+    result = await encrypted_tg_account(str(src_dir), str(dest_path))
+    assert result.result
+    assert result.path_encrypted_acc == str(dest_path)
 
 
 

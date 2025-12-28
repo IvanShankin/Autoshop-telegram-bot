@@ -51,4 +51,4 @@ class BackupLogs(Base):
     backup_log_id = Column(Integer, primary_key=True, autoincrement=True)
     file_path = Column(String(1000), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    size_in_kilobytes = Column(Integer, nullable=False)
+    size_bytes = Column(BigInteger, nullable=False)

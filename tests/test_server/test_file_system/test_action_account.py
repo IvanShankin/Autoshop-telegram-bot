@@ -6,6 +6,8 @@ from pathlib import Path
 from unittest.mock import AsyncMock
 
 from src.services.database.selling_accounts.models import AccountStorage, ProductAccounts
+from src.services.secrets import get_crypto_context, make_account_key
+
 
 # импортируем тестируемые функции
 
@@ -128,21 +130,21 @@ async def test_move_in_account_fail(monkeypatch):
 
 def test_decryption_tg_account_calls_correct(monkeypatch):
     from src.services.filesystem.account_actions import decryption_tg_account
+
+    crypto = get_crypto_context()
+    encrypted_key_base64, account_key = make_account_key(crypto.kek)
+
     acc_storage = AccountStorage()
-    acc_storage.encrypted_key = "encrypted"
+    acc_storage.encrypted_key = encrypted_key_base64
     acc_storage.file_path = "telegram/account.enc"
 
-    fake_master = b"master"
-    fake_unwrap = b"key"
     fake_folder = "/tmp/folder"
 
     from src.services.filesystem import account_actions
-    monkeypatch.setattr(account_actions, "derive_master_key", lambda: fake_master)
-    monkeypatch.setattr(account_actions, "unwrap_account_key", lambda enc, key: fake_unwrap)
     monkeypatch.setattr(account_actions, "decrypt_folder", lambda path, key: fake_folder)
     monkeypatch.setattr(account_actions, "ACCOUNTS_DIR", "/root/accounts")
 
-    res = decryption_tg_account(acc_storage)
+    res = decryption_tg_account(acc_storage, crypto.kek)
     assert res == fake_folder
 
 
@@ -160,7 +162,7 @@ async def test_get_tdata_tg_acc_creates_archive(tmp_path, monkeypatch):
 
     # переопределяем decryption_tg_account, чтобы вернуть этот путь
     from src.services.filesystem import account_actions
-    monkeypatch.setattr(account_actions, "decryption_tg_account", lambda a: folder_path)
+    monkeypatch.setattr(account_actions, "decryption_tg_account", lambda account, kek: folder_path)
 
     # создаём объект AccountStorage
     acc = AccountStorage(account_storage_id=1)
@@ -169,6 +171,7 @@ async def test_get_tdata_tg_acc_creates_archive(tmp_path, monkeypatch):
     archive_path = await anext(gen)
 
     # проверяем, что zip файл реально создан и содержит data.txt
+    assert archive_path
     assert Path(archive_path).exists()
     with zipfile.ZipFile(archive_path, "r") as zf:
         path_result = Path("tdata") / "data.txt"
@@ -190,7 +193,7 @@ async def test_get_tdata_tg_acc_handles_missing_tdata(tmp_path, monkeypatch):
     folder_path.mkdir()
 
     from src.services.filesystem import account_actions
-    monkeypatch.setattr(account_actions, "decryption_tg_account", lambda a: folder_path)
+    monkeypatch.setattr(account_actions, "decryption_tg_account", lambda account, kek: folder_path)
 
     acc = AccountStorage(account_storage_id=2)
 
@@ -210,7 +213,7 @@ async def test_get_session_tg_acc_reads_existing_file(tmp_path, monkeypatch):
     (folder_path / "session.session").write_text("data")
 
     from src.services.filesystem import account_actions
-    monkeypatch.setattr(account_actions, "decryption_tg_account", lambda a: folder_path)
+    monkeypatch.setattr(account_actions, "decryption_tg_account", lambda account, kek: folder_path)
 
     acc = AccountStorage(account_storage_id=3)
     gen = get_session_tg_acc(acc)
@@ -230,7 +233,7 @@ async def test_get_session_tg_acc_missing_file(tmp_path, monkeypatch):
     folder_path.mkdir()
 
     from src.services.filesystem import account_actions
-    monkeypatch.setattr(account_actions, "decryption_tg_account", lambda a: folder_path)
+    monkeypatch.setattr(account_actions, "decryption_tg_account", lambda account, kek: folder_path)
 
     acc = AccountStorage(account_storage_id=4)
     gen = get_session_tg_acc(acc)

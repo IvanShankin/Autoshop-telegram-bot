@@ -13,7 +13,6 @@ TOKEN_CRYPTO_BOT = os.getenv('TOKEN_CRYPTO_BOT')
 
 MAIN_ADMIN = int(os.getenv('MAIN_ADMIN'))
 RABBITMQ_URL = os.getenv('RABBITMQ_URL')
-SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = "HS256"
 
 BASE_DIR = Path(__file__).resolve().parent.parent

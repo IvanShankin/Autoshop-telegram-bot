@@ -7,6 +7,7 @@ from src.config import MAX_UPLOAD_FILE
 from src.services.accounts.utils.helper_upload import get_account_storage_by_category_id
 from src.services.filesystem.account_actions import decryption_tg_account
 from src.services.filesystem.actions import get_dir_size, make_archive
+from src.services.secrets import get_crypto_context
 
 
 async def upload_tg_account(category_id: int) -> AsyncGenerator[str, str]:
@@ -24,7 +25,8 @@ async def upload_tg_account(category_id: int) -> AsyncGenerator[str, str]:
     accounts = await get_account_storage_by_category_id(category_id)
 
     for acc in accounts:
-        decrypted_folder = decryption_tg_account(acc.account_storage)
+        crypto = get_crypto_context()
+        decrypted_folder = decryption_tg_account(acc.account_storage, crypto.kek)
         folder_size = get_dir_size(decrypted_folder)
 
         # обрабатывать слишком большие директории (которые превышают MAX_UPLOAD_FILE 49 мб) не надо

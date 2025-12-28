@@ -13,6 +13,7 @@ from src.config import TYPE_ACCOUNT_SERVICES
 from src.services.database.selling_accounts.models import AccountStorage
 from src.services.filesystem.account_actions import decryption_tg_account
 from src.utils.core_logger import logger
+from src.services.secrets import get_crypto_context
 
 CODE_PATTERN = [
         r"\b\d{5}\b",  # например: 56741
@@ -55,7 +56,8 @@ async def check_account_validity(account_storage: AccountStorage, type_service_n
     temp_folder = None
     try:
         # decryption heavy IO в thread
-        temp_folder = await asyncio.to_thread(decryption_tg_account, account_storage)
+        crypto = get_crypto_context()
+        temp_folder = await asyncio.to_thread(decryption_tg_account, account_storage, crypto.kek)
         # проверка уже асинхронная
         is_valid = await check_valid_accounts_telethon(temp_folder)
         return bool(is_valid)
@@ -78,7 +80,8 @@ async def get_auth_codes(account_storage: AccountStorage, limit: int = 100) -> L
     result_list = []
     temp_account_path = None
     try:
-        temp_account_path = decryption_tg_account(account_storage)
+        crypto = get_crypto_context()
+        temp_account_path = decryption_tg_account(account_storage, crypto.kek)
         tdata_path = str(Path(temp_account_path) / 'tdata')
         tdesk = TDesktop(tdata_path)
 

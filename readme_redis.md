@@ -269,7 +269,6 @@
         "status": str,
         
         "encrypted_key": str,
-        "encrypted_key_nonce": str,
         "key_version": int,
         "encryption_algo": str,
         
@@ -334,7 +333,6 @@
         "status": str,
         
         "encrypted_key": str,
-        "encrypted_key_nonce": str,
         "key_version": int,
         "encryption_algo": str,
         

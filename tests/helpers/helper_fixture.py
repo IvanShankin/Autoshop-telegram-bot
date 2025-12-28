@@ -1,4 +1,8 @@
+import base64
+
 import pytest_asyncio
+
+from src.services.secrets import set_crypto_context, CryptoContext
 from tests.helpers.func_fabric import create_new_user_fabric, create_admin_fabric, create_referral_fabric, \
     create_income_from_referral_fabric, create_replenishment_fabric, create_type_payment_factory, \
     create_voucher_factory, create_type_account_service_factory, create_account_service_factory, \
@@ -9,6 +13,22 @@ from tests.helpers.func_fabric import create_new_user_fabric, create_admin_fabri
     create_promo_code_activation_fabric
 from src.services.database.system.models import  Settings
 from src.services.database.core.database import get_db
+
+
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def create_crypto_context():
+    """Создаёт CryptoContext"""
+    try:
+        kek_base64 = b"TjIXMqYwYPfFFnJLGAHD0IJLRo4OugMtm0YovbGpPaU="
+        dek_base64 = b"BtMAKbeZowwFcj87524XOoa9Ympm0QFPnRwAhXqjJUk="
+
+        crypto = CryptoContext(
+            kek = base64.b64decode(kek_base64),
+            dek = base64.b64decode(dek_base64)
+        )
+        set_crypto_context(crypto)
+    except RuntimeError: # если уже имеется
+        pass
 
 
 @pytest_asyncio.fixture

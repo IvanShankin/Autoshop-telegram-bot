@@ -463,7 +463,7 @@ async def test__check_account_validity_async_success(
     # СДЕЛАЕМ decryption синхронным (то, что ожидает asyncio.to_thread)
     temp_folder_path = Path.cwd() / "tmp_test_account_folder"
 
-    def fake_decryption_tg_account(account_storage_arg):
+    def fake_decryption_tg_account(account_storage_arg, kek):
         # создаём папку, чтобы rmtree мог ее удалить (проверим вызов)
         os.makedirs(temp_folder_path, exist_ok=True)
         return temp_folder_path

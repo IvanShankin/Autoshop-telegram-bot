@@ -1,3 +1,4 @@
+import hashlib
 import os
 import base64
 import shutil
@@ -17,42 +18,67 @@ def encrypt_bytes(plaintext: bytes, dek: bytes) -> bytes:
     return nonce + ciphertext
 
 
-def wrap_dek(dek: bytes, kek: bytes) -> str:
-    wrapped = encrypt_bytes(dek, kek)
-    return base64.b64encode(wrapped).decode()
-
-
-def encrypt_text(plaintext: str, dek: bytes) -> str:
+def wrap_dek(dek: bytes, kek: bytes) -> tuple[str, str, str]:
     """
-       Шифрует текст с помощью DEK.
-       Возвращает base64(nonce || ciphertext)
-       """
+    Шифрует DEK с помощью KEK.
+    Возвращает:
+    encrypted_data_b64, nonce_b64, sha256_b64
+    """
+    nonce = os.urandom(12)
+    aesgcm = AESGCM(kek)
+
+    ciphertext = aesgcm.encrypt(nonce, dek, None)
+    sha256 = hashlib.sha256(ciphertext).digest()
+
+    return (
+        base64.b64encode(ciphertext).decode("ascii"),
+        base64.b64encode(nonce).decode("ascii"),
+        base64.b64encode(sha256).decode("ascii"),
+    )
+
+
+def encrypt_text(plaintext: str, dek: bytes, nonce_b64: str = None) -> tuple[str, str, str]:
+    """
+    Возвращает:
+    encrypted_data_b64, nonce_b64, sha256_b64
+    """
     data = plaintext.encode("utf-8")
 
+    if not nonce_b64:
+        nonce_b64 = os.urandom(12)
+
     aesgcm = AESGCM(dek)
-    nonce = os.urandom(12)
 
-    ciphertext = aesgcm.encrypt(nonce, data, None)
-    wrapped = nonce + ciphertext
+    ciphertext = aesgcm.encrypt(nonce_b64, data, None)
 
-    return base64.b64encode(wrapped).decode("ascii")
+    sha256 = hashlib.sha256(ciphertext).digest()
+
+    return (
+        base64.b64encode(ciphertext).decode("ascii"),
+        base64.b64encode(nonce_b64).decode("ascii"),
+        base64.b64encode(sha256).decode("ascii"),
+    )
 
 
-def make_account_key(kek: bytes) -> tuple[str, bytes]:
+def make_account_key(kek: bytes) -> tuple[str, bytes, str]:
     """
     Создаёт DEK (account_key)
-    :return: Tuple[encrypted_dek_b64 — зашифрованный DEK (для storage), account_key — plaintext DEK (для runtime)]
+    :return: Tuple[
+        encrypted_dek_b64 — зашифрованный DEK (для storage),
+        account_key — plaintext DEK (для runtime),
+        nonce_b64 — используемый nonce для шифрования
+    ]
     """
-    account_key = os.urandom(32)  # DEK
+    account_key = os.urandom(32)  # plaintext DEK
+    nonce = os.urandom(12)        # уникальный nonce для AES-GCM
 
     aesgcm = AESGCM(kek)
-    nonce = os.urandom(12)
     encrypted = aesgcm.encrypt(nonce, account_key, None)
 
-    wrapped = nonce + encrypted
-    encrypted_key_b64 = base64.b64encode(wrapped).decode()
+    encrypted_dek_b64 = base64.b64encode(encrypted).decode("ascii")
+    nonce_b64 = base64.b64encode(nonce).decode("ascii")
 
-    return encrypted_key_b64, account_key
+    return encrypted_dek_b64, account_key, nonce_b64
 
 
 def encrypt_folder(folder_path: str, encrypted_path: str, dek: bytes):

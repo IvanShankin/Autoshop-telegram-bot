@@ -1,3 +1,4 @@
+import base64
 import importlib
 import os
 import shutil
@@ -6,9 +7,9 @@ import types
 from contextlib import asynccontextmanager
 
 import fakeredis
+import pytest_asyncio
 
 from src.bot_actions.throttler import RateLimiter
-from src.config import RATE_SEND_MSG_LIMIT
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeBot
 from src.services.redis import core_redis
 
@@ -35,6 +36,7 @@ async def replacement_redis(monkeypatch):
 
 
 def replacement_fake_bot(monkeypatch):
+    from src.config import RATE_SEND_MSG_LIMIT
     # очищаем бота
     fake_bot.clear()
 
@@ -122,3 +124,26 @@ def replacement_pyth_sent_mass_msg_image(monkeypatch, tmp_path):
 
     if os.path.isdir(new_sent_mass_msg_dir):
         shutil.rmtree(new_sent_mass_msg_dir)  # удаляет директорию созданную для тестов
+
+
+def create_crypto_context():
+    """Создаёт CryptoContext"""
+    from src.services.secrets.crypto import CryptoContext, set_crypto_context
+    try:
+        kek_base64 = b"TjIXMqYwYPfFFnJLGAHD0IJLRo4OugMtm0YovbGpPaU="
+        dek_base64 = b"BtMAKbeZowwFcj87524XOoa9Ympm0QFPnRwAhXqjJUk="
+        nonce = os.urandom(12)
+
+        crypto = CryptoContext(
+            kek = base64.b64decode(kek_base64),
+            dek = base64.b64decode(dek_base64),
+            nonce_b64_dek = str(nonce)
+        )
+        set_crypto_context(crypto)
+    except RuntimeError: # если уже имеется
+        pass
+
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def create_crypto_context_fix():
+    """Создаёт CryptoContext"""
+    create_crypto_context()

@@ -258,13 +258,16 @@ async def add_account_storage(
     type_service_name: str,
     checksum: str,
     encrypted_key: str,
+    encrypted_key_nonce: str,
     phone_number: str,
 
     status: Literal["for_sale", "bought", "deleted"] = 'for_sale',
     key_version: int = 1,
     encryption_algo: str = 'AES-GCM-256',
     login_encrypted: str = None,
+    login_nonce: str = None,
     password_encrypted: str = None,
+    password_nonce: str = None,
 ) -> AccountStorage:
     """
     Путь сформируется только для аккаунтов телеграмма т.к. только их данные хранятся в файле.
@@ -272,12 +275,15 @@ async def add_account_storage(
     :param type_service_name: Имя сервиса необходимо для формирования пути (должен иметься в TYPE_ACCOUNT_SERVICES)
     :param checksum: Контроль целостности (SHA256 зашифрованного файла)
     :param encrypted_key: Персональный ключ аккаунта, зашифрованный мастер-ключом (DEK)
+    :param encrypted_key_nonce: nonce, использованный при wrap (Nonce (IV) для AES-GCM (base64))
     :param phone_number: номер телефона
     :param status: статус
     :param key_version: Номер мастер-ключа (для ротации)
     :param encryption_algo: Алгоритм шифрования
     :param login_encrypted: Зашифрованный логин
+    :param login_nonce: используемый nonce при шифровании
     :param password_encrypted: Зашифрованный Пароль
+    :param password_nonce:  используемый nonce при шифровании
     """
     if type_service_name not in TYPE_ACCOUNT_SERVICES:
         raise ValueError(f"type_service_name = {type_service_name} не найден")
@@ -295,11 +301,14 @@ async def add_account_storage(
         checksum = checksum,
         status = status,
         encrypted_key = encrypted_key,
+        encrypted_key_nonce=encrypted_key_nonce,
         key_version = key_version,
         encryption_algo = encryption_algo,
         phone_number = phone_in_e164(phone_number),
         login_encrypted = login_encrypted,
-        password_encrypted = password_encrypted
+        login_nonce = login_nonce,
+        password_encrypted = password_encrypted,
+        password_nonce = password_nonce
     )
 
     async with get_db() as session_db:

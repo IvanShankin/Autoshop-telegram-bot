@@ -132,7 +132,7 @@ def test_decryption_tg_account_calls_correct(monkeypatch):
     from src.services.filesystem.account_actions import decryption_tg_account
 
     crypto = get_crypto_context()
-    encrypted_key_base64, account_key = make_account_key(crypto.kek)
+    encrypted_key_base64, account_key, nonce = make_account_key(crypto.kek)
 
     acc_storage = AccountStorage()
     acc_storage.encrypted_key = encrypted_key_base64
@@ -144,7 +144,7 @@ def test_decryption_tg_account_calls_correct(monkeypatch):
     monkeypatch.setattr(account_actions, "decrypt_folder", lambda path, key: fake_folder)
     monkeypatch.setattr(account_actions, "ACCOUNTS_DIR", "/root/accounts")
 
-    res = decryption_tg_account(acc_storage, crypto.kek)
+    res = decryption_tg_account(acc_storage, crypto)
     assert res == fake_folder
 
 

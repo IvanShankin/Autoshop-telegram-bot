@@ -144,13 +144,16 @@ class AccountStorage(Base):
 
     # === Шифрование ===
     encrypted_key = Column(Text, nullable=False)       # Персональный ключ аккаунта, зашифрованный мастер-ключом (base64)
+    encrypted_key_nonce = Column(Text,nullable=False)  # nonce, использованный при wrap (Nonce (IV) для AES-GCM (base64))
     key_version = Column(Integer, nullable=False, server_default=text("1")) # Номер мастер-ключа (для ротации)
     encryption_algo = Column(String(32), nullable=False, server_default=text("'AES-GCM-256'")) # Алгоритм шифрования
 
     # === Основные поля ===
     phone_number = Column(String(100), nullable=False) # Пример: +79161234567
     login_encrypted = Column(Text, nullable=True)
+    login_nonce = Column(Text, nullable=True)
     password_encrypted = Column(Text, nullable=True)
+    password_nonce = Column(Text, nullable=True)
 
     # === Флаги ===
     is_active = Column(Boolean, nullable=False, server_default=text('true')) # логическое удаление

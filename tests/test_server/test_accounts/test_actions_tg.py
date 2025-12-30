@@ -62,7 +62,7 @@ async def test_check_account_validity_true(tmp_path, monkeypatch):
         async def ToTelethon(self, *a, **kw): return FakeClient()
 
     from src.services.accounts.tg import actions
-    monkeypatch.setattr(actions, "decryption_tg_account", lambda account, kek: folder_path)
+    monkeypatch.setattr(actions, "decryption_tg_account", lambda account, crypto: folder_path)
     monkeypatch.setattr(actions, "TDesktop", lambda path: FakeTDesktop())
     monkeypatch.setattr(actions, "TYPE_ACCOUNT_SERVICES", ["telegram"])
 
@@ -90,7 +90,7 @@ async def test_check_account_validity_false(tmp_path, monkeypatch):
         async def ToTelethon(self, *a, **kw): return FakeClient()
 
     from src.services.accounts.tg import actions
-    monkeypatch.setattr(actions, "decryption_tg_account", lambda account, kek: folder_path)
+    monkeypatch.setattr(actions, "decryption_tg_account", lambda account, crypto: folder_path)
     monkeypatch.setattr(actions, "TDesktop", lambda path: FakeTDesktop())
     monkeypatch.setattr(actions, "TYPE_ACCOUNT_SERVICES", ["telegram"])
 
@@ -111,7 +111,7 @@ async def test_get_auth_codes_reads_codes(tmp_path, monkeypatch):
 
     # подменяем decryption_tg_account, чтобы вернуть нашу папку
     from src.services.accounts.tg import actions
-    monkeypatch.setattr(actions, "decryption_tg_account", lambda account, kek: folder_path)
+    monkeypatch.setattr(actions, "decryption_tg_account", lambda account, crypto: folder_path)
 
     fake_msg1 = type("Msg", (), {"message": "Your code: 12345", "date": datetime.now(timezone.utc)})
     fake_msg2 = type("Msg", (), {"message": "Code 67890!", "date": datetime.now(timezone.utc)})

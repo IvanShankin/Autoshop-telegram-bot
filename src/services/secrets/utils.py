@@ -1,6 +1,8 @@
 import hashlib
 import os
 import getpass
+import sys
+import warnings
 
 from pathlib import Path
 from argon2.low_level import hash_secret_raw, Type
@@ -9,8 +11,33 @@ from argon2.low_level import hash_secret_raw, Type
 SALT = b"QJ\t\x11\xae\x94\x08\xb2\nP\x9fC\x87xpW"
 
 
-def read_passphrase() -> str:
-    return getpass.getpass("Enter passphrase: ")
+def read_secret(prompt: str, name: str) -> str:
+    """
+    Безопасный ввод пароля.
+    В реальном терминале используется getpass.
+    В IDE используется метод input() с предупреждением.
+    """
+
+    mode = os.getenv("MODE")
+    if mode == "TEST":
+        try:
+            return os.getenv("MODE")
+        except KeyError:
+            raise RuntimeError(
+                f"{name} must be set in test environment"
+            )
+
+    if sys.stdin.isatty():
+        # Реальный терминал — безопасный ввод
+        return getpass.getpass(prompt)
+
+    warnings.warn(
+        "Secure input is not supported in this environment. "
+        "Password will be echoed. "
+        "Run the program in a system terminal for secure input.",
+        RuntimeWarning,
+    )
+    return input(prompt)
 
 
 def derive_kek(passphrase: str, salt: bytes = SALT) -> bytes:
@@ -29,11 +56,14 @@ def derive_kek(passphrase: str, salt: bytes = SALT) -> bytes:
     )
 
 
-def gen_key() -> bytes:
+def gen_key(length: int = 32) -> bytes:
     """
-    :return: DEK (Data Encryption Key)
+    Генерирует криптографически стойкий Data Encryption Key (DEK).
+
+    :param length: длина ключа в байтах (по умолчанию 32 = 256 бит)
+    :return: bytes
     """
-    return os.urandom(32)
+    return os.urandom(length)
 
 
 def sha256_file(file_path: str | Path) -> str:

@@ -35,5 +35,8 @@ msgstr "Попробуйте ещё раз"
 msgid "Data updated successfully"
 msgstr "Данные успешно обновлены"
 
+msgid "Successfully updated"
+msgstr "Успешно обновлён"
+
 msgid "File loading"
 msgstr "Файл загружается"

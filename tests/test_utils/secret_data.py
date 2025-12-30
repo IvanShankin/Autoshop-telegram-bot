@@ -14,8 +14,8 @@ async def test_encrypt_decrypt_token_roundtrip():
 
     crypto = get_crypto_context()
 
-    enc = encrypt_text(text, crypto.dek)
-    dec = decrypt_text(enc, crypto.dek)
+    enc, nonce_b64, _ = encrypt_text(text, crypto.dek)
+    dec = decrypt_text(enc, nonce_b64, crypto.dek)
 
     assert dec == text
     assert enc != text
@@ -52,7 +52,7 @@ def test_unwrap_account_key_and_file_decrypt(tmp_path):
     encrypted = encrypt_bytes(plaintext, crypto.dek)
     wrapped_b64 = base64.b64encode(encrypted).decode()
 
-    unwrapped = unwrap_dek(wrapped_b64, crypto.dek)
+    unwrapped = unwrap_dek(wrapped_b64, crypto.nonce_b64_dek, crypto.dek)
     assert unwrapped == plaintext
 
     # decrypt_file_to_bytes

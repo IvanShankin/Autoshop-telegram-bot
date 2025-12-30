@@ -1,13 +1,11 @@
-from src.services.secrets.decrypt import unwrap_dek
-from src.services.secrets.utils import read_passphrase, derive_kek
-
 
 class CryptoContext:
-    __slots__ = ("kek", "dek")
+    __slots__ = ("kek", "dek", "nonce_b64_dek")
 
-    def __init__(self, kek: bytes, dek: bytes):
+    def __init__(self, kek: bytes, dek: bytes, nonce_b64_dek: str):
         self.kek = kek
         self.dek = dek
+        self.nonce_b64_dek = nonce_b64_dek
 
 
 _CRYPTO_CTX: CryptoContext | None = None
@@ -26,14 +24,3 @@ def get_crypto_context() -> CryptoContext:
     return _CRYPTO_CTX
 
 
-def init_crypto_context() -> CryptoContext:
-    passphrase = read_passphrase()
-
-    kek = derive_kek(passphrase)
-
-    del passphrase # затираем passphrase
-
-    enc_dek = b"fdsfdsvxx"# обращаемся к API и получаем зашифрованный DEK
-    dek = unwrap_dek(enc_dek, kek)
-
-    return CryptoContext(kek=kek, dek=dek)

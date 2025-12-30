@@ -125,3 +125,33 @@ class TextTooLong(Exception):
 class TextNotLinc(Exception):
     """Указанный текст не является ссылкой"""
     pass
+
+
+class CryptoInitializationError(RuntimeError):
+    """При вводе оператором неверный passphrase"""
+    pass
+
+class StorageError(RuntimeError):
+    pass
+
+
+class StorageConnectionError(StorageError):
+    pass
+
+
+class StorageSSLError(StorageError):
+    pass
+
+
+class StorageNotFound(StorageError):
+    pass
+
+
+class StorageGone(StorageError):
+    pass
+
+
+class StorageResponseError(StorageError):
+    def __init__(self, status_code: int, body: str | None = None):
+        self.status_code = status_code
+        super().__init__(f"Storage returned HTTP {status_code}: {body}")

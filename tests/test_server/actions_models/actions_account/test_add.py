@@ -186,6 +186,7 @@ async def test_add_translation_in_sold_account(replacement_needed_modules):
         type_service_name='telegram',
         checksum='checksum',
         encrypted_key='fgdshjyte3',
+        encrypted_key_nonce='encrypted_key_nonce',
         phone_number='+7 324 345-54-34',
     )
 

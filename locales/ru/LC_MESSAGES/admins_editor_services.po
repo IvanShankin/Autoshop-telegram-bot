@@ -27,9 +27,6 @@ msgstr "Сервис \n\nИмя: {name}\nИндекс: {index}\nПоказыва
 msgid "The service is no longer available"
 msgstr "Сервиса больше нет"
 
-msgid "Successfully updated"
-msgstr "Успешно обновлён"
-
 msgid "Please enter a new name"
 msgstr "Укажите новое имя"
 

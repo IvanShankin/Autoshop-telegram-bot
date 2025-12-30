@@ -35,7 +35,7 @@ async def acc_category_update_storage(callback: CallbackQuery, user: Users):
 
     try:
         await update_account_category(category_id, is_accounts_storage=is_storage)
-        message = get_text(user.language, "admins_editor_category", "Successfully updated")
+        message = get_text(user.language, "miscellaneous", "Successfully updated")
     except AccountCategoryNotFound:
         try:
             await callback.message.delete()
@@ -58,7 +58,7 @@ async def service_update_index(callback: CallbackQuery, user: Users):
 
     if new_index >= 0:
         await update_account_category(category_id, index=new_index)
-    await callback.answer(get_text(user.language, "admins_editor_category","Successfully updated"))
+    await callback.answer(get_text(user.language, "miscellaneous","Successfully updated"))
     await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
 
 
@@ -68,7 +68,7 @@ async def service_update_show(callback: CallbackQuery, user: Users):
     show = bool(int(callback.data.split(':')[2]))
 
     await update_account_category(category_id, show=show)
-    await callback.answer(get_text(user.language, "admins_editor_category","Successfully updated"))
+    await callback.answer(get_text(user.language, "miscellaneous","Successfully updated"))
     await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
 
 

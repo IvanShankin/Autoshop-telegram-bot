@@ -520,18 +520,24 @@ async def create_account_storage_factory(
         phone_number: str = '+7 920 107-42-12'
 ) -> AccountStorage:
     crypto = get_crypto_context()
-    encrypted_key_b64, account_key = make_account_key(crypto.kek)
+    encrypted_key_b64, account_key, encrypted_key_nonce = make_account_key(crypto.kek)
     file_path = make_fake_encrypted_archive_for_test(account_key, status)
+
+    login_encrypted, login_nonce, _ = encrypt_text('login_encrypted', account_key)
+    password_encrypted, password_nonce, _ = encrypt_text('password_encrypted', account_key)
 
     account_storage = AccountStorage(
         file_path = file_path,
         checksum = "checksum",
 
         encrypted_key = encrypted_key_b64,
+        encrypted_key_nonce = encrypted_key_nonce,
 
         phone_number = phone_number,
-        login_encrypted = encrypt_text('login_encrypted', account_key),
-        password_encrypted = encrypt_text('password_encrypted', account_key),
+        login_encrypted = login_encrypted,
+        login_nonce = login_nonce,
+        password_encrypted = password_encrypted,
+        password_nonce = password_nonce,
 
         is_active = is_active,
         is_valid = is_valid,

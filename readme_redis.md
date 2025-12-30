@@ -269,12 +269,15 @@
         "status": str,
         
         "encrypted_key": str,
+        "encrypted_key_nonce": str,
         "key_version": int,
         "encryption_algo": str,
         
         "phone_number": str,
         "login_encrypted": str | None,
+        "login_nonce": str | None,
         "password_encrypted": str | None,
+        "password_nonce": str | None,
         
         "is_active": bool,
         "is_valid": bool,
@@ -333,12 +336,15 @@
         "status": str,
         
         "encrypted_key": str,
+        "encrypted_key_nonce": str,
         "key_version": int,
         "encryption_algo": str,
         
         "phone_number": str,
         "login_encrypted": str | None,
+        "login_nonce": str | None,
         "password_encrypted": str | None,
+        "password_nonce": str | None,
         
         "is_active": bool,
         "is_valid": bool,

@@ -83,7 +83,7 @@ async def service_update_index(callback: CallbackQuery, user: Users):
 
     if new_index >= 0:
         await update_account_service(service_id, index=new_index)
-    await callback.answer(get_text(user.language, "admins_editor_services","Successfully updated"))
+    await callback.answer(get_text(user.language, "miscellaneous","Successfully updated"))
     await show_service(user=user, callback=callback, message_id=callback.message.message_id, service_id=service_id)
 
 
@@ -93,7 +93,7 @@ async def service_update_show(callback: CallbackQuery, user: Users):
     show = bool(int(callback.data.split(':')[2]))
 
     await update_account_service(service_id, show=show)
-    await callback.answer(get_text(user.language, "admins_editor_services","Successfully updated"))
+    await callback.answer(get_text(user.language, "miscellaneous","Successfully updated"))
     await show_service(user=user, callback=callback, message_id=callback.message.message_id, service_id=service_id)
 
 

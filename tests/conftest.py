@@ -12,12 +12,15 @@ from tests.helpers.monkeypatch_data import (
     replacement_fake_bot,
     replacement_pyth_account,
     replacement_pyth_ui_image,
-    replacement_pyth_sent_mass_msg_image
+    replacement_pyth_sent_mass_msg_image,
+    create_crypto_context
 )
+
+create_crypto_context() # обязательно вызываем тут, что бы не обращались к серверу хранения
+
 from src.services.database.core.database import SQL_DB_URL
 from src.services.database import core
 from src.services.redis.core_redis import get_redis
-from src.services.redis.filling_redis import filling_all_redis
 
 from tests.helpers.helper_fixture import *
 
@@ -113,6 +116,7 @@ async def clean_db(monkeypatch):
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def clean_redis(replacement_redis_fix):
+    from src.services.redis.filling_redis import filling_all_redis
     async with get_redis() as session_redis:
         await session_redis.flushdb()
 

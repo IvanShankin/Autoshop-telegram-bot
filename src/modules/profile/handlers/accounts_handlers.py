@@ -272,14 +272,15 @@ async def get_log_pas(callback: CallbackQuery, user: Users):
     crypto = get_crypto_context()
     account_key = unwrap_dek(
         account.account_storage.encrypted_key,
+        crypto.nonce_b64_dek,
         crypto.kek
     )
 
     await send_message(
         user.user_id,
         get_text(user.language, 'profile_messages', "Login: <code>{login}</code> \nPassword: <code>{password}</code>").format(
-            login=decrypt_text(account.account_storage.login_encrypted, account_key),
-            password=decrypt_text(account.account_storage.password_encrypted, account_key)
+            login=decrypt_text(account.account_storage.login_encrypted, account.account_storage.login_nonce, account_key),
+            password=decrypt_text(account.account_storage.password_encrypted, account.account_storage.password_nonce, account_key)
         )
     )
 

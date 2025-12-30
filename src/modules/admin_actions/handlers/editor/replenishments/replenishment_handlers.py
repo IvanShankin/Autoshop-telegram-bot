@@ -94,15 +94,17 @@ async def get_type_service_name(message: Message, state: FSMContext, user: Users
     data = GetTypePaymentNameData(**await state.get_data())
 
     if len(message.text) > 200:
+        domain = "admins_editor_replenishments"
         message_key = "The new name is too long. Please try again"
     else:
+        domain = "miscellaneous"
         message_key = "Successfully updated"
         await update_type_payment(type_payment_id=data.type_payment_id, name_for_user=message.text)
         await state.clear()
 
     await send_message(
         chat_id=user.user_id,
-        message=get_text(user.language,"admins_editor_replenishments",message_key),
+        message=get_text(user.language, domain,message_key),
         reply_markup=back_in_edit_type_payment_kb(user.language, data.type_payment_id)
     )
 
@@ -112,7 +114,7 @@ async def type_payment_update_show(callback: CallbackQuery, user: Users):
     type_payment_id = int(callback.data.split(':')[1])
     new_is_active = bool(int(callback.data.split(':')[2]))
     await update_type_payment(type_payment_id=type_payment_id, is_active=new_is_active)
-    await callback.answer(get_text(user.language,"admins_editor_replenishments","Successfully updated"),show_alert=True)
+    await callback.answer(get_text(user.language,"miscellaneous","Successfully updated"),show_alert=True)
     await show_type_payment(user, type_payment_id, message_id=callback.message.message_id, callback=callback)
 
 
@@ -123,7 +125,7 @@ async def type_payment_update_index(callback: CallbackQuery, user: Users):
 
     if new_index >= 0:
         await update_type_payment(type_payment_id=type_payment_id, index=new_index)
-    await callback.answer(get_text(user.language,"admins_editor_replenishments","Successfully updated"),show_alert=True)
+    await callback.answer(get_text(user.language,"miscellaneous","Successfully updated"),show_alert=True)
     await show_type_payment(user, type_payment_id, message_id=callback.message.message_id, callback=callback)
 
 

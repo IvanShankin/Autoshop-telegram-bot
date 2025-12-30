@@ -7,3 +7,20 @@ __pycache__/
 *.env
 *.test.env
 tests/manual_test.py
+
+
+# CA
+certs/ca/ca.key
+
+# Private keys
+certs/**/**/*.key
+certs/**/**/*.pfx
+certs/**/**/*.pem
+
+# OpenSSL artifacts
+certs/**/*.csr
+certs/**/*.srl
+certs/**/*.pem
+
+# Configs for cert generation
+certs/**/*.cnf

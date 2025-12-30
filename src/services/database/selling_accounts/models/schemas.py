@@ -90,12 +90,15 @@ class AccountStoragePydentic(BaseModel):
     status: str
 
     encrypted_key: str
+    encrypted_key_nonce: str
     key_version: int
     encryption_algo: str
 
     phone_number: str
     login_encrypted: Optional[str] = None
+    login_nonce: Optional[str] = None
     password_encrypted: Optional[str] = None
+    password_nonce: Optional[str] = None
 
     is_active: bool
     is_valid: bool

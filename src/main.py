@@ -7,9 +7,13 @@ from src.services.redis.filling_redis import filling_all_redis
 from src.services.database.discounts.utils.set_not_valid import deactivate_expired_promo_codes_and_vouchers
 from src.bot_actions.bot_run import run_bot
 from src.services.redis.tasks import start_dollar_rate_scheduler
+from src.services.secrets import init_crypto_context, get_crypto_context
 from src.utils.core_logger import logger
 
 async def on_startup():
+    if not get_crypto_context():
+        init_crypto_context()
+
     await create_database()
     await filling_all_redis()
     await start_background_consumer()

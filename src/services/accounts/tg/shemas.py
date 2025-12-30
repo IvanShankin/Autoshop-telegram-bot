@@ -39,4 +39,5 @@ class CreatedEncryptedArchive(BaseModel):
     result: bool
     encrypted_key_b64: Optional[str] = None
     path_encrypted_acc: Optional[str] = None
+    encrypted_key_nonce: Optional[str] = None
     checksum: Optional[str] = None

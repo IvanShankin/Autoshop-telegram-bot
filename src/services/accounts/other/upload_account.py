@@ -14,14 +14,15 @@ async def upload_other_account(category_id: int) -> bytes:
     for acc in accounts:
         account_key = unwrap_dek(
             acc.account_storage.encrypted_key,
+            crypto.nonce_b64_dek,
             crypto.kek
         )
 
         ready_acc.append(
             {
                 "phone": e164_to_pretty(acc.account_storage.phone_number),
-                "login": decrypt_text(acc.account_storage.login_encrypted, account_key),
-                "password": decrypt_text(acc.account_storage.password_encrypted, account_key),
+                "login": decrypt_text(acc.account_storage.login_encrypted, acc.account_storage.login_nonce, account_key),
+                "password": decrypt_text(acc.account_storage.password_encrypted, acc.account_storage.password_nonce, account_key),
             }
         )
 

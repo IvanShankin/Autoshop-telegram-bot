@@ -122,18 +122,21 @@ async def import_in_db(
         try:
 
             # персональный DEK аккаунта
-            encrypted_key_b64, account_key = make_account_key(crypto.kek)
+            encrypted_key_b64, account_key, nonce = make_account_key(crypto.kek)
 
-            login_encrypted = encrypt_text(account.login, account_key)
-            password_encrypted = encrypt_text(account.password, account_key)
+            login_encrypted, login_nonce, _  = encrypt_text(account.login, account_key)
+            password_encrypted, password_nonce, _  = encrypt_text(account.password, account_key)
 
             acc = await add_account_storage(
                 type_service_name=type_account_service,
                 checksum="",  # это не надо для данного типа аккаунтов
-                encrypted_key=encrypted_key_b64, 
+                encrypted_key=encrypted_key_b64,
+                encrypted_key_nonce=nonce,
                 phone_number=account.phone,
                 login_encrypted=login_encrypted,
+                login_nonce=login_nonce,
                 password_encrypted=password_encrypted,
+                password_nonce=password_nonce,
             )
             await add_product_account(
                 account_category_id=account_category_id,

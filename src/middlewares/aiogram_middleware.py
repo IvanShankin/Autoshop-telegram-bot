@@ -109,4 +109,4 @@ class I18nKeyFilter(BaseFilter):
         if not user:
             return False
 
-        return message.text == get_text(user.language, "kb_admin_panel", self.key)
+        return message.text == get_text(user.language, "kb_start", self.key)

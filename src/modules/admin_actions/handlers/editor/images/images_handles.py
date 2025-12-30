@@ -84,7 +84,7 @@ async def ui_image_update_show(callback: CallbackQuery, user: Users):
     new_show = bool(int(callback.data.split(':')[2]))
     current_page = int(callback.data.split(':')[3])
     await update_ui_image(ui_image_key, show=new_show)
-    await callback.answer(get_text(user.language, "admins_editor_images", "Successfully updated"), show_alert=True)
+    await callback.answer(get_text(user.language, "miscellaneous", "Successfully updated"), show_alert=True)
     await show_image_editor(
         ui_image_key=ui_image_key,
         current_page=current_page,

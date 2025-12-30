@@ -348,11 +348,12 @@ async def get_message_sold_account_full(
     crypto = get_crypto_context()
     account_key = unwrap_dek(
         storage.encrypted_key,
-        crypto.kek
+        crypto.nonce_b64_dek,
+        crypto.kek,
     )
 
-    login = decrypt_text(storage.login_encrypted, account_key) if storage.login_encrypted  else "—"
-    password = decrypt_text(storage.password_encrypted, account_key) if storage.password_encrypted  else "—"
+    login = decrypt_text(storage.login_encrypted, storage.login_nonce, account_key) if storage.login_encrypted  else "—"
+    password = decrypt_text(storage.password_encrypted, storage.password_nonce, account_key) if storage.password_encrypted  else "—"
     
     return get_text(
         language,

@@ -57,7 +57,7 @@ async def check_account_validity(account_storage: AccountStorage, type_service_n
     try:
         # decryption heavy IO в thread
         crypto = get_crypto_context()
-        temp_folder = await asyncio.to_thread(decryption_tg_account, account_storage, crypto.kek)
+        temp_folder = await asyncio.to_thread(decryption_tg_account, account_storage, crypto)
         # проверка уже асинхронная
         is_valid = await check_valid_accounts_telethon(temp_folder)
         return bool(is_valid)
@@ -81,7 +81,7 @@ async def get_auth_codes(account_storage: AccountStorage, limit: int = 100) -> L
     temp_account_path = None
     try:
         crypto = get_crypto_context()
-        temp_account_path = decryption_tg_account(account_storage, crypto.kek)
+        temp_account_path = decryption_tg_account(account_storage, crypto)
         tdata_path = str(Path(temp_account_path) / 'tdata')
         tdesk = TDesktop(tdata_path)
 

@@ -1,3 +1,4 @@
+ALGORITHM = "HS256"
 
 DT_FORMAT = "%Y-%m-%d %H:%M:%S"
 PAYMENT_LIFETIME_SECONDS = 1200 # 20 минут

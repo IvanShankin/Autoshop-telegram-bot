@@ -17,22 +17,28 @@ def decrypt_bytes(nonce_and_ct: bytes, dek: bytes) -> bytes:
     return aesgcm.decrypt(nonce, ct, None)
 
 
-def unwrap_dek(encrypted_key_b64: str, kek: bytes) -> bytes:
-    wrapped = base64.b64decode(encrypted_key_b64)
-    return decrypt_bytes(wrapped, kek)
+def unwrap_dek(
+    encrypted_data_b64: str,
+    nonce_b64: str,
+    kek: bytes,
+) -> bytes:
+    ciphertext = base64.b64decode(encrypted_data_b64)
+    nonce = base64.b64decode(nonce_b64)
+
+    aesgcm = AESGCM(kek)
+    return aesgcm.decrypt(nonce, ciphertext, None)
 
 
-def decrypt_text(encrypted_b64: str, dek: bytes) -> str:
-    """
-    Расшифровывает base64(nonce || ciphertext) в строку
-    """
-    wrapped = base64.b64decode(encrypted_b64)
-
-    nonce = wrapped[:12]
-    ct = wrapped[12:]
+def decrypt_text(
+    encrypted_data_b64: str,
+    nonce_b64: str,
+    dek: bytes,
+) -> str:
+    ciphertext = base64.b64decode(encrypted_data_b64)
+    nonce = base64.b64decode(nonce_b64)
 
     aesgcm = AESGCM(dek)
-    plaintext = aesgcm.decrypt(nonce, ct, None)
+    plaintext = aesgcm.decrypt(nonce, ciphertext, None)
 
     return plaintext.decode("utf-8")
 

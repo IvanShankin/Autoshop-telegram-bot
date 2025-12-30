@@ -116,6 +116,7 @@ async def import_in_db(
             type_service_name=type_account_service,
             checksum="",  # пока пусто
             encrypted_key="",  # пока пусто
+            encrypted_key_nonce="",  # пока пусто
             phone_number=phone,
         )
 
@@ -139,7 +140,8 @@ async def import_in_db(
         acc = await update_account_storage(
             account_storage_id=acc.account_storage_id,
             checksum=enc.checksum,
-            encrypted_key=enc.encrypted_key_b64
+            encrypted_key=enc.encrypted_key_b64,
+            encrypted_key_nonce=enc.encrypted_key_nonce,
         )
 
         await add_product_account(account_category_id, acc.account_storage_id)

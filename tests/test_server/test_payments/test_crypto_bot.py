@@ -9,7 +9,7 @@ from aiocryptopay.models.invoice import Invoice
 
 from httpx import AsyncClient, ASGITransport
 
-from src.config import TOKEN_CRYPTO_BOT
+from src.services.secrets.secret_conf import get_secret_conf
 from src.services.database.replenishments_event.schemas import NewReplenishment
 from src.services.redis.core_redis import get_redis
 
@@ -106,7 +106,7 @@ async def test_webhook_crypto_bot(monkeypatch, create_new_user, create_replenish
     }
 
     raw_body = orjson.dumps(data)
-    secret = hashlib.sha256(TOKEN_CRYPTO_BOT.encode()).digest()
+    secret = hashlib.sha256(get_secret_conf().TOKEN_CRYPTO_BOT.encode()).digest()
     signature = hmac.new(secret, raw_body, hashlib.sha256).hexdigest()
 
     async with AsyncClient(transport=ASGITransport(app), base_url="http://test") as ac:
@@ -163,7 +163,7 @@ async def test_webhook_crypto_bot_no_payload(monkeypatch):
     }
 
     raw_body = orjson.dumps(data)
-    secret = hashlib.sha256(TOKEN_CRYPTO_BOT.encode()).digest()
+    secret = hashlib.sha256(get_secret_conf().TOKEN_CRYPTO_BOT.encode()).digest()
     signature = hmac.new(secret, raw_body, hashlib.sha256).hexdigest()
 
     async with AsyncClient(transport=ASGITransport(app), base_url="http://test") as ac:

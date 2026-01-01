@@ -22,7 +22,7 @@ async def encrypted_tg_account(
 
     try:
         crypto = get_crypto_context()
-        encrypted_key_b64, account_key, nonce = make_account_key(crypto.dek)
+        encrypted_key_b64, account_key, nonce = make_account_key(crypto.kek)
 
         # создаём директорию под файл
         Path(dest_encrypted_path).parent.mkdir(parents=True, exist_ok=True)
@@ -41,6 +41,7 @@ async def encrypted_tg_account(
             result=True,
             encrypted_key_b64=encrypted_key_b64,
             path_encrypted_acc=dest_encrypted_path,
+            encrypted_key_nonce=nonce,
             checksum=checksum
         )
 

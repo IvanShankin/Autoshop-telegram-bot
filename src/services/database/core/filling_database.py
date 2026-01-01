@@ -3,7 +3,8 @@ import logging
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from src.config import MAIN_ADMIN, TYPE_PAYMENTS, TYPE_ACCOUNT_SERVICES
+from src.services.secrets.secret_conf import get_secret_conf
+from src.config import TYPE_PAYMENTS, TYPE_ACCOUNT_SERVICES
 from src.services.database.admins.actions import create_admin
 from src.utils.ui_images_data import UI_IMAGES
 from src.services.database.users.models import Users, NotificationSettings
@@ -45,7 +46,7 @@ async def create_database():
     # заполнение таблиц
     await filling_settings()
     await filling_referral_lvl()
-    await filling_admins(MAIN_ADMIN)
+    await filling_admins(get_secret_conf().MAIN_ADMIN)
     for type_payment in TYPE_PAYMENTS:
         await filling_type_payment(type_payment)
     for type_account_services in TYPE_ACCOUNT_SERVICES:

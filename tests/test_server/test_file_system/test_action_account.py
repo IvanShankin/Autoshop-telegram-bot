@@ -6,11 +6,23 @@ from pathlib import Path
 from unittest.mock import AsyncMock
 
 from src.services.database.selling_accounts.models import AccountStorage, ProductAccounts
-from src.services.secrets import get_crypto_context, make_account_key
+from src.services.secrets import get_crypto_context
 
 
 # импортируем тестируемые функции
 
+
+def create_test_directory(base: Path) -> Path:
+    base.mkdir(parents=True, exist_ok=True)
+
+    (base / "a.txt").write_text("hello")
+    (base / "b.txt").write_text("world")
+
+    sub = base / "nested"
+    sub.mkdir()
+    (sub / "c.txt").write_text("nested file")
+
+    return base
 
 
 def test_move_file_sync_success(tmp_path):
@@ -128,24 +140,69 @@ async def test_move_in_account_fail(monkeypatch):
     assert result is False
 
 
-def test_decryption_tg_account_calls_correct(monkeypatch):
+async def test_decryption_tg_account_calls_correct(monkeypatch, create_account_storage):
     from src.services.filesystem.account_actions import decryption_tg_account
+    from src.services.filesystem import account_actions
 
     crypto = get_crypto_context()
-    encrypted_key_base64, account_key, nonce = make_account_key(crypto.kek)
-
-    acc_storage = AccountStorage()
-    acc_storage.encrypted_key = encrypted_key_base64
-    acc_storage.file_path = "telegram/account.enc"
-
+    acc_storage = await create_account_storage()
     fake_folder = "/tmp/folder"
 
-    from src.services.filesystem import account_actions
     monkeypatch.setattr(account_actions, "decrypt_folder", lambda path, key: fake_folder)
     monkeypatch.setattr(account_actions, "ACCOUNTS_DIR", "/root/accounts")
 
     res = decryption_tg_account(acc_storage, crypto)
     assert res == fake_folder
+
+
+@pytest.mark.asyncio
+async def test_encrypt_decrypt_directory_roundtrip(
+    tmp_path,
+    monkeypatch,
+):
+    """
+    Полный round-trip:
+    directory -> encrypt -> decrypt -> directory
+    """
+    from src.services.filesystem.input_account import encrypted_tg_account
+    from src.services.filesystem.account_actions import decryption_tg_account
+
+    # Исходная директория
+    src_dir = create_test_directory(tmp_path / "src")
+
+    # Путь к зашифрованному архиву
+    encrypted_file = tmp_path / "encrypted" / "account.enc"
+
+    # Подменяем ACCOUNTS_DIR
+    import src.services.filesystem.account_actions as fs_module
+    monkeypatch.setattr(fs_module, "ACCOUNTS_DIR", tmp_path)
+
+
+    enc = await encrypted_tg_account(
+        src_directory=str(src_dir),
+        dest_encrypted_path=str(encrypted_file),
+    )
+
+    assert enc.result is True
+    assert encrypted_file.exists()
+
+    storage = AccountStorage(
+        encrypted_key=enc.encrypted_key_b64,
+        encrypted_key_nonce=enc.encrypted_key_nonce,
+        file_path=encrypted_file.relative_to(tmp_path).as_posix(),
+    )
+
+    crypto = get_crypto_context()
+    decrypted_dir = decryption_tg_account(
+        account_storage=storage,
+        crypto=crypto,
+    )
+
+    decrypted_dir = Path(decrypted_dir)
+
+    assert (decrypted_dir / "a.txt").read_text() == "hello"
+    assert (decrypted_dir / "b.txt").read_text() == "world"
+    assert (decrypted_dir / "nested" / "c.txt").read_text() == "nested file"
 
 
 @pytest.mark.asyncio

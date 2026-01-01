@@ -4,7 +4,7 @@ import hashlib
 from fastapi import Request, HTTPException, APIRouter
 from pydantic import ValidationError
 
-from src.config import TOKEN_CRYPTO_BOT
+from src.services.secrets.secret_conf import get_secret_conf
 from src.broker.producer import publish_event
 from src.services.database.users.actions import update_replenishment, get_replenishment
 from src.services.payments.crypto_bot.schemas import WebhookCryptoBot
@@ -28,7 +28,7 @@ async def crypto_webhook(request: Request):
     raw_body = await request.body()
 
     # Проверка подписи
-    if not verify_signature(TOKEN_CRYPTO_BOT, raw_body, signature):
+    if not verify_signature(get_secret_conf().TOKEN_CRYPTO_BOT, raw_body, signature):
         raise HTTPException(status_code=403, detail="Invalid signature")
 
     # Парсим JSON

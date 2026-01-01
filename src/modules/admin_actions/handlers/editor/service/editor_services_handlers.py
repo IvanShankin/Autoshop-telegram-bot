@@ -63,7 +63,7 @@ async def get_service_name(message: Message, state: FSMContext, user: Users):
     try:
         await add_account_services(message.text, data.service_type_id)
     except ServiceTypeBusy:
-        await send_message(user.user_id, get_text(user.language, "admins_editor_services","Unable to create. This service_acc type is in use"))
+        await send_message(user.user_id, get_text(user.language, "admins_editor_services","Unable to create. This service type is in use"))
         return
 
     await send_message(user.user_id, get_text(user.language, "admins_editor_services","Service successfully created"), reply_markup=to_services_kb(user.language))

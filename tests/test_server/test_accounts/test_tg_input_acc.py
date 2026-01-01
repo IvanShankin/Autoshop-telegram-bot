@@ -250,7 +250,7 @@ async def test_import_in_db_valid_and_invalid(tmp_path, create_account_category)
             patch("src.services.accounts.tg.input_account.make_archive", new_callable=AsyncMock) as mock_make_archive:
         # Настроим шифрование: первый успех, второй провал
         mock_enc.side_effect = [
-            SimpleNamespace(result=True, encrypted_key_b64="k", checksum="c"),
+            SimpleNamespace(result=True, encrypted_key_b64="k", encrypted_key_nonce="fsdvxfsd", checksum="c"),
             SimpleNamespace(result=False)
         ]
 

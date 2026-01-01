@@ -4,6 +4,8 @@ import sys
 import aio_pika
 
 from contextlib import suppress
+
+import pytest
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine
 
@@ -13,8 +15,13 @@ from tests.helpers.monkeypatch_data import (
     replacement_pyth_account,
     replacement_pyth_ui_image,
     replacement_pyth_sent_mass_msg_image,
-    create_crypto_context
+    create_crypto_context,
+    replace_get_secret
 )
+
+
+with pytest.MonkeyPatch().context() as mp:
+    result = replace_get_secret(mp)
 
 create_crypto_context() # обязательно вызываем тут, что бы не обращались к серверу хранения
 

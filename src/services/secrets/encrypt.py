@@ -84,7 +84,8 @@ def make_account_key(kek: bytes) -> tuple[str, bytes, str]:
 def encrypt_folder(folder_path: str, encrypted_path: str, dek: bytes):
     """Архивирует папку и шифрует архив. Удалит folder_path"""
     # создаём имя временного файла, но не открываем его
-    tmp_zip_path = tempfile.mktemp(suffix=".zip")
+    with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as tmp:
+        tmp_zip_path = tmp.name
 
     # архивируем
     shutil.make_archive(tmp_zip_path.replace(".zip", ""), 'zip', folder_path)

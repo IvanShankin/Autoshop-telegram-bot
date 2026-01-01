@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 
 import fakeredis
 import pytest_asyncio
+from dotenv import load_dotenv
 
 from src.bot_actions.throttler import RateLimiter
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeBot
@@ -137,13 +138,31 @@ def create_crypto_context():
         crypto = CryptoContext(
             kek = base64.b64decode(kek_base64),
             dek = base64.b64decode(dek_base64),
-            nonce_b64_dek = str(nonce)
+            nonce_b64_dek = base64.b64encode(nonce).decode('utf-8')
         )
         set_crypto_context(crypto)
     except RuntimeError: # если уже имеется
         pass
 
+
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def create_crypto_context_fix():
     """Создаёт CryptoContext"""
     create_crypto_context()
+
+
+def replace_get_secret(monkeypatch):
+    #  Подменяем get_secret ДО вызова функции
+    import src.services.secrets.loader as loader
+
+    monkeypatch.setattr(
+        loader,
+        "get_secret",
+        lambda name: os.getenv(name),
+    )
+
+    import src.services.secrets.secret_conf as config
+    config._settings = None
+
+
+

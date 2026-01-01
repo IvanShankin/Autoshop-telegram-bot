@@ -3,7 +3,8 @@ import json
 from aiocryptopay import AioCryptoPay, Networks
 
 from src.bot_actions.messages import send_log
-from src.config import TOKEN_CRYPTO_BOT, PAYMENT_LIFETIME_SECONDS
+from src.services.secrets.secret_conf import get_secret_conf
+from src.config import PAYMENT_LIFETIME_SECONDS
 from src.services.database.replenishments_event.schemas import NewReplenishment
 from src.services.database.users.actions import create_replenishment, update_replenishment
 from src.services.redis.core_redis import get_redis
@@ -72,4 +73,4 @@ class CryptoPayService:
                 status='error',
             )
 
-crypto_bot = CryptoPayService(token=TOKEN_CRYPTO_BOT,  testnet=False)
+crypto_bot = CryptoPayService(token=get_secret_conf().TOKEN_CRYPTO_BOT,  testnet=False)

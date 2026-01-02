@@ -205,7 +205,11 @@ async def create_voucher(
             session_db.add(new_admin_actions)
             await session_db.commit()
             await send_log(
-                f'#Админ_создал_ваучер \n\nСумма: {amount} \nЧисло активаций: {number_of_activations} \nГоден до: {expire_at}'
+                f"🛠️\n"
+                f'#Админ_создал_ваучер \n\n'
+                f'Сумма: {amount} \n'
+                f'Число активаций: {number_of_activations} \n'
+                f'Годен до: {expire_at}'
             )
         else:
             new_user_log = UserAuditLogs(

@@ -150,10 +150,12 @@ async def admin_update_user_balance(admin_id: int, target_user_id: int, new_bala
         await session_db.commit()
 
     await send_log(
+        f"🔴\n"
         f"#Админ_изменил_баланс_пользователю \n\n"
         f"ID админа: {admin_id}\n"
         f"ID пользователя: {target_user_id}\n\n"
         f"Баланс до: {target_user.balance}\n"
         f"Баланс после: {new_balance}\n"
         f"Изменён на: {new_balance - target_user.balance}\n"
+        f"🔴"
     )

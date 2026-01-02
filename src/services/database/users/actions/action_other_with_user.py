@@ -121,6 +121,7 @@ async def add_banned_account(admin_id: int, user_id: int, reason: str):
         await session_redis.set(f"banned_account:{user_id}", reason)
 
     await send_log(
+        f"🛠️\n"
         f"#Аккаунт_забанен \n\n"
         f"Админ c ID = '{admin_id}' \n"
         f"Добавил нового пользователя в забаненные аккаунты \n\n"
@@ -148,6 +149,7 @@ async def delete_banned_account(admin_id: int, user_id: int):
         await session_redis.delete(f"banned_account:{user_id}")
 
     await send_log(
+        f"🛠️\n"
         f"#Аккаунт_разбанен \n\n"
         f"Админ c ID = '{admin_id}' разбанил пользователя \n"
         f"ID разбаненного аккаунта: '{user_id}'"

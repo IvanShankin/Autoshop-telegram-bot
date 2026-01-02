@@ -169,6 +169,7 @@ async def create_promo_code(
         sale += f"Процент скидки: {new_promo_code.discount_percentage} %"
 
     await send_log(
+        f"🛠️\n"
         f"#Админ_создал_новый_промокод \n\n"
         f"ID: {new_promo_code.promo_code_id}\n"
         f"Код активации: {new_promo_code.activation_code}\n"
@@ -222,6 +223,7 @@ async def deactivate_promo_code(user_id: int, promo_code_id: int):
         await session_db.commit()
 
         await send_log(
+            f"🛠️\n"
             f"#Администрация_деактивировала_промокод \n\n"
             f"promo_code_id: {promo_code_id}\n"
             f"Код промокода: {promo_code.activation_code}\n"

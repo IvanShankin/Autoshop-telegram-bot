@@ -85,10 +85,10 @@ async def show_category_update_data(
         callback: CallbackQuery = None
 ):
     category = await safe_get_category(category_id=category_id, user=user, callback=callback)
-    ui_image = await get_ui_image(category.ui_image_key)
     if not category:
         return
 
+    ui_image = await get_ui_image(category.ui_image_key)
     message = get_text(
         user.language,
         "admins_editor_category",

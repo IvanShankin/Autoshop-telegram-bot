@@ -11,7 +11,9 @@ from src.services.secrets import init_crypto_context, get_crypto_context
 from src.utils.core_logger import logger
 
 async def on_startup():
-    if not get_crypto_context():
+    try:
+        get_crypto_context()
+    except RuntimeError:
         init_crypto_context()
 
     await create_database()

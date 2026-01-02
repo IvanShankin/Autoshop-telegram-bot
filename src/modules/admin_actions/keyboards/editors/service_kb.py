@@ -50,7 +50,7 @@ async def show_service_acc_admin_kb(language: str, current_show: bool, current_i
         callback_data=f'service_update_show:{service_id}:{0 if current_show else 1}'
     ))
     keyboard.row(InlineKeyboardButton(text=get_text(language, "kb_admin_panel",'Rename'), callback_data=f'service_rename:{service_id}'))
-    keyboard.row(InlineKeyboardButton(text=get_text(language, "kb_admin_panel",'Delete'), callback_data=f'service_confirm_delete:{service_id}'))
+    keyboard.row(InlineKeyboardButton(text=get_text(language, "kb_general","Delete"), callback_data=f'service_confirm_delete:{service_id}'))
     keyboard.row(InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'services_editor'))
     return keyboard.as_markup()
 

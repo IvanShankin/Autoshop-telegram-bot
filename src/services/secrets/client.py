@@ -1,5 +1,5 @@
 from src.exceptions.service_exceptions import StorageSSLError, StorageResponseError, StorageConnectionError, \
-    StorageNotFound, StorageGone
+    StorageNotFound, StorageGone, StorageConflict
 
 from pathlib import Path
 import requests
@@ -57,6 +57,8 @@ class SecretsStorageClient:
         if response.status_code not in expected_status:
             if response.status_code == 404:
                 raise StorageNotFound()
+            if response.status_code == 409:
+                raise StorageConflict()
             if response.status_code == 410:
                 raise StorageGone()
             raise StorageResponseError(response.status_code, response.text)
@@ -85,11 +87,11 @@ class SecretsStorageClient:
 
 
     def create_secret_string(
-            self,
-            name: str,
-            encrypted_data: str,
-            nonce: str,
-            sha256: str,
+        self,
+        name: str,
+        encrypted_data: str,
+        nonce: str,
+        sha256: str,
     ) -> None:
         self._request(
             "POST",
@@ -104,13 +106,21 @@ class SecretsStorageClient:
         )
 
 
-    def create_next_string_version(self, name: str, encrypted_data: str) -> None:
+    def create_next_string_version(
+        self,
+        name: str,
+        encrypted_data: str,
+        nonce: str,
+        sha256: str,
+    ) -> None:
         self._request(
             "POST",
             "/secrets_strings/versions",
             json={
                 "name": name,
                 "encrypted_data": encrypted_data,
+                "nonce": nonce,
+                "sha256": sha256,
             },
             expected_status=(201,),
         )

@@ -15,9 +15,7 @@ def get_secret_conf() -> SecretSettings:
         _settings = SecretSettings(
             TOKEN_BOT=get_secret("TOKEN_BOT"),
             TOKEN_LOGGER_BOT=get_secret("TOKEN_LOGGER_BOT"),
-            TOKEN_CRYPTO_BOT=get_secret("TOKEN_CRYPTO_BOT"),
-            MAIN_ADMIN=int(get_secret("MAIN_ADMIN")),
-            RABBITMQ_URL=get_secret("RABBITMQ_URL"),
+            TOKEN_CRYPTO_BOT=get_secret("TOKEN_CRYPTO_BOT")
         )
 
     return _settings

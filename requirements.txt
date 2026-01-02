@@ -37,7 +37,12 @@ hyperlink==21.0.0
 idna==3.10
 incremental==24.7.2
 iniconfig==2.1.0
+jaraco.classes==3.4.0
+jaraco.context==6.0.2
+jaraco.functools==4.4.0
+keyring==25.7.0
 magic-filter==1.0.12
+more-itertools==10.8.0
 multidict==6.6.4
 numpy==2.3.4
 openpyxl==3.1.5
@@ -69,6 +74,7 @@ pytest-twisted==1.14.3
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.1
 pytz==2025.2
+pywin32-ctypes==0.2.3
 redis==6.4.0
 requests==2.32.5
 rsa==4.9.1

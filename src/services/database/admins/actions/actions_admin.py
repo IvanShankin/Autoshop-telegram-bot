@@ -5,7 +5,7 @@ from sqlalchemy import select, func, update
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.expression import delete
 
-from src.services.secrets.secret_conf import get_secret_conf
+from src.config import MAIN_ADMIN
 from src.config import PAGE_SIZE
 from src.exceptions.service_exceptions import UserNotFound, AdminNotFound, UnableRemoveMainAdmin
 from src.services.database.admins.models import MessageForSending, Admins, AdminActions, SentMasMessages
@@ -65,7 +65,7 @@ async def delete_admin(user_id: int):
     if not await check_admin(user_id):
         raise AdminNotFound()
 
-    if user_id == get_secret_conf().MAIN_ADMIN:
+    if user_id == MAIN_ADMIN:
         raise UnableRemoveMainAdmin()
 
     async with get_db() as session_db:

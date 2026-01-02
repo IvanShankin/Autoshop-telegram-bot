@@ -1,7 +1,7 @@
 from typing import Optional
 
 from src.bot_actions.bot_instance import get_bot_logger, GLOBAL_RATE_LIMITER
-from src.services.secrets.secret_conf import get_secret_conf
+from src.config import MAIN_ADMIN
 from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply, FSInputFile, \
     Message
 
@@ -176,8 +176,8 @@ async def send_log(text: str, channel_for_logging_id: int = None):
             logger.error(f"Ошибка отправки сообщения support. Ошибка: {str(e)}")
 
         try:
-            await bot.send_message(get_secret_conf().MAIN_ADMIN, message_error)
+            await bot.send_message(MAIN_ADMIN, message_error)
             for message in parts:
-                await bot.send_message(get_secret_conf().MAIN_ADMIN, message)
+                await bot.send_message(MAIN_ADMIN, message)
         except Exception as e:
             logger.error(f"Ошибка отправки сообщения MAIN_ADMIN. Ошибка: {str(e)}")

@@ -151,6 +151,10 @@ class StorageGone(StorageError):
     pass
 
 
+class StorageConflict(StorageError):
+    pass
+
+
 class StorageResponseError(StorageError):
     def __init__(self, status_code: int, body: str | None = None):
         self.status_code = status_code

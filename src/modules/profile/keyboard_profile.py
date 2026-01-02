@@ -160,7 +160,7 @@ def account_kb(language: str, sold_account_id: int, type_account_service_id: int
             callback_data=f'chek_valid_acc:{sold_account_id}:{type_account_service_id}:{current_page}:{int(current_validity)}')
         ],
         [InlineKeyboardButton(
-            text=get_text(language, "kb_admin_panel", 'Delete'),
+            text=get_text(language, "kb_general", "Delete"),
             callback_data=f'confirm_del_acc:{sold_account_id}:{type_account_service_id}:{current_page}')
         ],
         [InlineKeyboardButton(

@@ -3,11 +3,11 @@ from datetime import datetime, timezone
 import aio_pika
 import orjson
 
-from src.services.secrets.secret_conf import get_secret_conf
+from src.config import RABBITMQ_URL
 
 
 async def publish_event(event_data: dict, routing_key: str):
-    connection = await aio_pika.connect_robust(get_secret_conf().RABBITMQ_URL)
+    connection = await aio_pika.connect_robust(RABBITMQ_URL)
     async with connection:
         channel = await connection.channel()
         exchange = await channel.declare_exchange("events", aio_pika.ExchangeType.TOPIC, durable=True)

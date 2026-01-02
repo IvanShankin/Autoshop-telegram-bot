@@ -72,7 +72,7 @@ async def show_account_category_admin_kb(
         callback_data=f'category_update_data:{category_id}')
     )
     keyboard.row(InlineKeyboardButton(
-        text=get_text(language, "kb_admin_panel", 'Delete'),
+        text=get_text(language, "kb_general", "Delete"),
         callback_data=f'acc_category_confirm_delete:{category_id}')
     )
     keyboard.row(InlineKeyboardButton(

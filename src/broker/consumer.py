@@ -5,7 +5,7 @@ import aio_pika
 import aiormq
 from orjson import orjson
 
-from src.services.secrets.secret_conf import get_secret_conf
+from src.config import RABBITMQ_URL
 from src.services.database.discounts.events import promo_code_event_handler, voucher_event_handler
 from src.services.database.referrals.events import referral_event_handler
 from src.services.database.replenishments_event.event_handlers_replenishments import replenishment_event_handler
@@ -90,7 +90,7 @@ async def _run_single_consumer_loop(started_event: asyncio.Event, stop_event: as
     Одна сессия: соединяемся, объявляем exchange/queue/binds, регистрируем consumer и
     обрабатываем сообщения, пока stop_event не установлен.
     """
-    connection = await aio_pika.connect_robust(get_secret_conf().RABBITMQ_URL)
+    connection = await aio_pika.connect_robust(RABBITMQ_URL)
     try:
         channel = await connection.channel()
         exchange = await channel.declare_exchange("events", aio_pika.ExchangeType.TOPIC, durable=True)

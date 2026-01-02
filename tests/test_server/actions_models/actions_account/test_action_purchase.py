@@ -9,7 +9,7 @@ import pytest
 from sqlalchemy import select
 
 from tests.helpers.helper_functions import comparison_models
-from src.exceptions.service_exceptions import NotEnoughAccounts, NotEnoughMoney
+from src.exceptions import NotEnoughAccounts, NotEnoughMoney
 from src.services.database.core import get_db
 from src.services.database.selling_accounts.models.models import PurchaseRequests, PurchaseRequestAccount, \
     AccountStorage, ProductAccounts, SoldAccounts, PurchasesAccounts

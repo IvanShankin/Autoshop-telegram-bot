@@ -143,7 +143,7 @@ async def test_confirm_transfer_money_user_not_found_exception(
     то редактируется сообщение с текстом об ошибке.
     """
     from src.modules.profile.handlers import transfer_balance_handler as module
-    from src.exceptions.service_exceptions import UserNotFound
+    from src.exceptions import UserNotFound
 
     # подготовим пользователя и state (с данными)
     fake_bot = replacement_fake_bot_fix

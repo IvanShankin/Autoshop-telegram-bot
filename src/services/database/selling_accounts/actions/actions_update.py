@@ -6,7 +6,7 @@ import orjson
 from sqlalchemy import select, update, func
 from sqlalchemy.orm import selectinload
 
-from src.exceptions.service_exceptions import AccountCategoryNotFound, TheCategoryStorageAccount, \
+from src.exceptions import AccountCategoryNotFound, TheCategoryStorageAccount, \
     IncorrectedNumberButton, IncorrectedCostPrice, IncorrectedAmountSale, CategoryStoresSubcategories
 from src.services.database.selling_accounts.models.models import AccountStorage, TgAccountMedia
 from src.services.database.system.actions import create_ui_image, delete_ui_image

@@ -9,7 +9,7 @@ from aiogram.types import CallbackQuery, Message
 from src.bot_actions.messages import edit_message, send_message
 from src.bot_actions.messages.mass_tg_mailing import visible_text_length, broadcast_message_generator
 from src.config import SEMAPHORE_MAILING_LIMIT, MAX_SIZE_BYTES, MAX_SIZE_MB, RATE_SEND_MSG_LIMIT
-from src.exceptions.service_exceptions import TextTooLong
+from src.exceptions import TextTooLong
 from src.modules.admin_actions.keyboards import editor_message_mailing_kb
 from src.modules.admin_actions.keyboards.editors.mass_mailing_kb import confirm_start_mailing_kb, \
     change_mailing_photo_kb, change_mailing_text_kb, back_in_change_mailing_text_kb, change_mailing_btn_url_kb, \

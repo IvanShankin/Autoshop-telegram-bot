@@ -1,4 +1,4 @@
-from src.exceptions.service_exceptions import StorageSSLError, StorageResponseError, StorageConnectionError, \
+from src.exceptions import StorageSSLError, StorageResponseError, StorageConnectionError, \
     StorageNotFound, StorageGone, StorageConflict
 
 from pathlib import Path

@@ -1,6 +1,6 @@
 from getpass import getpass
 
-from src.exceptions.service_exceptions import StorageNotFound, StorageConflict
+from src.exceptions import StorageNotFound, StorageConflict
 from src.services.secrets import get_crypto_context, set_crypto_context, CryptoContext, unwrap_dek
 from src.services.secrets.shemas import SecretSettings
 from src.services.secrets.utils import derive_kek, gen_key, read_secret

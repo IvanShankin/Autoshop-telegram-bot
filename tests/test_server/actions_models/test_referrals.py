@@ -5,7 +5,7 @@ import pytest
 from orjson import orjson
 from sqlalchemy import delete, select
 
-from src.exceptions.service_exceptions import InvalidAmountOfAchievement, InvalidSelectedLevel
+from src.exceptions import InvalidAmountOfAchievement, InvalidSelectedLevel
 from src.services.database.core.database import get_db
 from src.services.database.referrals.actions import add_referral, get_all_referrals, get_income_from_referral, \
     get_referral_income_page, get_count_referral_income, add_referral_lvl, delete_referral_lvl, update_referral_lvl

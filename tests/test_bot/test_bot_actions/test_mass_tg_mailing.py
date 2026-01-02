@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import pytest
 from sqlalchemy import select
 
-from src.exceptions.service_exceptions import TextTooLong
+from src.exceptions import TextTooLong
 from src.services.database.admins.models import SentMasMessages
 from src.services.database.core import get_db
 

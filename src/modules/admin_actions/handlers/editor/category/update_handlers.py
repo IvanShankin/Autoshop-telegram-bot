@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.messages import edit_message, send_message
 from src.config import MAX_SIZE_MB, MAX_SIZE_BYTES
-from src.exceptions.service_exceptions import AccountCategoryNotFound, \
+from src.exceptions import AccountCategoryNotFound, \
     TheCategoryStorageAccount, CategoryStoresSubcategories
 from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category, show_category_update_data
 from src.modules.admin_actions.keyboards import to_services_kb, select_lang_category_kb, \

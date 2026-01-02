@@ -367,7 +367,7 @@ async def test_confirm_buy_acc_invalid_promo_alerts_user(
     Мы проверяем, что сообщение НЕ редактируется (handler ответил alert'ом).
     """
     from src.modules.catalog.selling_accounts import sel_account_handlers as module
-    from src.exceptions.service_exceptions import InvalidPromoCode
+    from src.exceptions import InvalidPromoCode
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
@@ -462,7 +462,7 @@ class TestBuyAccount:
         сообщение не редактируется.
         """
         from src.modules.catalog.selling_accounts import sel_account_handlers as module
-        from src.exceptions.service_exceptions import InvalidPromoCode
+        from src.exceptions import InvalidPromoCode
 
         fake_bot = replacement_fake_bot_fix
         user = await create_new_user(balance=10000)

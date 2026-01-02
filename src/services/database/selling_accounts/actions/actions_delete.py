@@ -6,7 +6,7 @@ import orjson
 from sqlalchemy import select, delete, distinct, update
 
 from src.config import ACCOUNTS_DIR
-from src.exceptions.service_exceptions import ServiceContainsCategories, CategoryStoresSubcategories, \
+from src.exceptions import ServiceContainsCategories, CategoryStoresSubcategories, \
     AccountCategoryNotFound, TheCategoryStorageAccount
 from src.services.database.system.actions import delete_ui_image
 from src.services.redis.core_redis import get_redis

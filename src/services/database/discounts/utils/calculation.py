@@ -1,4 +1,4 @@
-from src.exceptions.service_exceptions import InvalidPromoCode
+from src.exceptions import InvalidPromoCode
 from src.services.database.discounts.actions import get_promo_code
 from src.services.database.discounts.models import PromoCodes
 

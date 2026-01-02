@@ -3,7 +3,7 @@ from typing import List, Optional, Tuple
 from orjson import orjson
 from sqlalchemy import select, update, delete
 
-from src.exceptions.service_exceptions import InvalidAmountOfAchievement, InvalidSelectedLevel
+from src.exceptions import InvalidAmountOfAchievement, InvalidSelectedLevel
 from src.services.database.core.database import get_db
 from src.services.database.core.filling_database import filling_referral_lvl as filling_referral_lvl_in_db
 from src.services.database.referrals.models import ReferralLevels, Referrals

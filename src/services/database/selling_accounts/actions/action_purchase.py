@@ -11,7 +11,7 @@ from sqlalchemy.orm import selectinload
 
 from src.broker.producer import publish_event
 from src.config import ACCOUNTS_DIR
-from src.exceptions.service_exceptions import CategoryNotFound, NotEnoughAccounts, NotEnoughMoney
+from src.exceptions import CategoryNotFound, NotEnoughAccounts, NotEnoughMoney
 from src.services.database.discounts.events import NewActivatePromoCode
 from src.services.database.discounts.utils.calculation import discount_calculation
 from src.services.database.selling_accounts.events.schemas import NewPurchaseAccount, AccountsData

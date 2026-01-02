@@ -5,7 +5,7 @@ from aiogram.types import CallbackQuery, Message
 from src.bot_actions.messages import edit_message, send_message
 from src.bot_actions.bot_instance import get_bot
 from src.bot_actions.checking_data import checking_availability_money, checking_correctness_number
-from src.exceptions.service_exceptions import NotEnoughMoney
+from src.exceptions import NotEnoughMoney
 from src.modules.profile.keyboard_profile import back_in_balance_transfer_kb, replenishment_and_back_in_transfer_kb, \
     confirmation_voucher_kb, all_vouchers_kb, back_in_all_voucher_kb, show_voucher_kb, confirm_deactivate_voucher_kb
 from src.modules.profile.schemas.transfer_balance import CreateVoucherData

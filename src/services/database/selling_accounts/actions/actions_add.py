@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.config import TYPE_ACCOUNT_SERVICES
-from src.exceptions.service_exceptions import TranslationAlreadyExists, ServiceTypeBusy, AccountServiceNotFound, \
+from src.exceptions import TranslationAlreadyExists, ServiceTypeBusy, AccountServiceNotFound, \
     AccountCategoryNotFound, IncorrectedNumberButton, IncorrectedAmountSale, IncorrectedCostPrice, \
     TheCategoryStorageAccount, CategoryNotFound, TheCategoryNotStorageAccount
 from src.services.database.selling_accounts.models import AccountStorage

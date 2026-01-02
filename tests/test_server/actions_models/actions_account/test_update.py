@@ -2,7 +2,7 @@ import pytest
 import orjson
 from sqlalchemy import select
 
-from src.exceptions.service_exceptions import AccountCategoryNotFound, IncorrectedNumberButton, IncorrectedCostPrice, \
+from src.exceptions import AccountCategoryNotFound, IncorrectedNumberButton, IncorrectedCostPrice, \
     IncorrectedAmountSale, TheCategoryStorageAccount
 from src.services.database.selling_accounts.models.models import AccountStorage, TgAccountMedia
 from src.services.redis.core_redis import get_redis

@@ -1,6 +1,6 @@
 from typing import List, Tuple, TypeVar
 
-from src.exceptions.service_exceptions import TypeAccountServiceNotFound
+from src.exceptions import TypeAccountServiceNotFound
 from src.services.accounts.shemas import HasPhone
 from src.services.database.selling_accounts.actions import get_all_types_account_service, \
     get_all_phone_in_account_storage

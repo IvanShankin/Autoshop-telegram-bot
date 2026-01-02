@@ -4,8 +4,7 @@ import pytest
 import orjson
 from sqlalchemy import select
 
-from src.exceptions.service_exceptions import ServiceContainsCategories, TheCategoryStorageAccount, \
-    CategoryStoresSubcategories
+from src.exceptions import ServiceContainsCategories, TheCategoryStorageAccount, CategoryStoresSubcategories
 from src.services.database.system.actions import get_ui_image
 from src.services.filesystem.account_actions import create_path_account
 from src.services.redis.core_redis import get_redis

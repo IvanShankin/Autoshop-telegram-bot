@@ -2,7 +2,7 @@ from aiogram.types import CallbackQuery, FSInputFile, BufferedInputFile
 
 from src.bot_actions.messages import send_message
 from src.bot_actions.bot_instance import get_bot
-from src.exceptions.service_exceptions import ProductAccountNotFound
+from src.exceptions import ProductAccountNotFound
 from src.modules.admin_actions.services.editor.category.category_loader import service_not_found, \
     safe_get_service_name
 from src.modules.admin_actions.keyboards import back_in_category_kb

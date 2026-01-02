@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import pytest
 
 from src.utils.i18n import get_text
-from src.exceptions.service_exceptions import ServiceContainsCategories
+from src.exceptions import ServiceContainsCategories
 
 
 @pytest.mark.asyncio

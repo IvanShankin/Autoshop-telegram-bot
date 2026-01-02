@@ -2,7 +2,7 @@ import pytest
 from orjson import orjson
 from sqlalchemy import select
 
-from src.exceptions.service_exceptions import TranslationAlreadyExists, ServiceTypeBusy, IncorrectedAmountSale, \
+from src.exceptions import TranslationAlreadyExists, ServiceTypeBusy, IncorrectedAmountSale, \
     TheCategoryStorageAccount, TheCategoryNotStorageAccount
 from src.services.database.selling_accounts.models.models import TgAccountMedia
 from src.services.database.system.models import UiImages

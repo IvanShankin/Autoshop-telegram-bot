@@ -7,7 +7,7 @@ from sqlalchemy.sql.expression import delete
 
 from src.config import MAIN_ADMIN
 from src.config import PAGE_SIZE
-from src.exceptions.service_exceptions import UserNotFound, AdminNotFound, UnableRemoveMainAdmin
+from src.exceptions import UserNotFound, AdminNotFound, UnableRemoveMainAdmin
 from src.services.database.admins.models import MessageForSending, Admins, AdminActions, SentMasMessages
 from src.services.database.core.database import get_db
 from src.services.database.system.actions import create_ui_image, delete_ui_image, update_ui_image

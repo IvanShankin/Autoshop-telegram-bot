@@ -1,34 +1,9 @@
+"""
+Бизнес-исключения.
+Исключения, связанные с нарушением бизнес-правил и логики приложения.
+"""
+
 from typing import Optional
-
-
-class CategoryNotFound(Exception):
-    pass
-
-class TypeAccountServiceNotFound(Exception):
-    pass
-
-class AccountServiceNotFound(Exception):
-    pass
-
-class UserNotFound(Exception):
-    pass
-
-class AdminNotFound(Exception):
-    pass
-
-class AccountCategoryNotFound(Exception):
-    pass
-
-class ProductAccountNotFound(Exception):
-    pass
-
-class ArchiveNotFount(Exception):
-    """Архив не найден"""
-    pass
-
-class DirNotFount(Exception):
-    """Архив не найден"""
-    pass
 
 
 class NotEnoughAccounts(Exception):
@@ -51,8 +26,6 @@ class InvalidPromoCode(Exception):
 
 class PromoCodeAlreadyActivated(Exception):
     pass
-
-
 
 class TranslationAlreadyExists(Exception):
     pass
@@ -92,10 +65,6 @@ class SettingsNotFilled(Exception):
     """Настройки не заполнены"""
     pass
 
-class TelegramError(Exception):
-    """Любая ошибка связанная с Telethon"""
-    pass
-
 class InvalidFormatRows(Exception):
     """При распаковке csv файла, если у него не верный формат"""
     pass
@@ -125,37 +94,3 @@ class TextTooLong(Exception):
 class TextNotLinc(Exception):
     """Указанный текст не является ссылкой"""
     pass
-
-
-class CryptoInitializationError(RuntimeError):
-    """При вводе оператором неверный passphrase"""
-    pass
-
-class StorageError(RuntimeError):
-    pass
-
-
-class StorageConnectionError(StorageError):
-    pass
-
-
-class StorageSSLError(StorageError):
-    pass
-
-
-class StorageNotFound(StorageError):
-    pass
-
-
-class StorageGone(StorageError):
-    pass
-
-
-class StorageConflict(StorageError):
-    pass
-
-
-class StorageResponseError(StorageError):
-    def __init__(self, status_code: int, body: str | None = None):
-        self.status_code = status_code
-        super().__init__(f"Storage returned HTTP {status_code}: {body}")

@@ -3,7 +3,7 @@ from orjson import orjson
 from sqlalchemy import delete, select
 
 from tests.helpers.helper_functions import parse_redis_user, comparison_models
-from src.exceptions.service_exceptions import UserNotFound, NotEnoughMoney
+from src.exceptions import UserNotFound, NotEnoughMoney
 from src.services.database.admins.models import AdminActions
 from src.services.database.users.actions.action_user import get_user_by_ref_code
 from src.services.database.users.models import Users, NotificationSettings, BannedAccounts, WalletTransaction, \

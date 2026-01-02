@@ -8,7 +8,7 @@ from pathlib import Path
 from sqlalchemy import select
 from telethon.hints import Phone
 
-from src.exceptions.service_exceptions import ArchiveNotFount, DirNotFount
+from src.exceptions import ArchiveNotFount, DirNotFount
 from src.services.database.core import get_db
 from types import SimpleNamespace
 

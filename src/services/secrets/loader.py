@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 from src.config import MODE
 from src.config.paths_conf import SSL_CLIENT_CERT_FILE, SSL_CLIENT_KEY_FILE, SSL_CA_FILE
-from src.exceptions.service_exceptions import StorageConnectionError, CryptoInitializationError, \
+from src.exceptions import StorageConnectionError, CryptoInitializationError, \
     StorageNotFound
 
 from src.services.secrets.crypto import get_crypto_context, CryptoContext, set_crypto_context

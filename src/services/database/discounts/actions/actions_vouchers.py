@@ -7,7 +7,7 @@ from sqlalchemy import update, select, func
 
 from src.broker.producer import publish_event
 from src.config import PAGE_SIZE
-from src.exceptions.service_exceptions import NotEnoughMoney
+from src.exceptions import NotEnoughMoney
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_voucher_by_user_id, filling_user
 from src.services.database.admins.models import AdminActions

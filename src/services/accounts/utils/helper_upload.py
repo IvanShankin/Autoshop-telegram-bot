@@ -1,6 +1,6 @@
 from typing import List
 
-from src.exceptions.service_exceptions import ProductAccountNotFound
+from src.exceptions import ProductAccountNotFound
 from src.services.database.selling_accounts.actions import get_product_account_by_category_id
 from src.services.database.selling_accounts.models import ProductAccountFull
 

@@ -4,7 +4,7 @@ from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.messages import send_message
 from src.config import ALLOWED_LANGS, DEFAULT_LANG
-from src.exceptions.service_exceptions import AccountCategoryNotFound, \
+from src.exceptions import AccountCategoryNotFound, \
     TheCategoryStorageAccount
 from src.modules.admin_actions.keyboards import to_services_kb, back_in_category_kb
 from src.modules.admin_actions.schemas import GetDataForCategoryData

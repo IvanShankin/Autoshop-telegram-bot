@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.messages import edit_message, send_message
 from src.bot_actions.bot_instance import get_bot
-from src.exceptions.service_exceptions import InvalidPromoCode, CategoryNotFound, NotEnoughMoney, NotEnoughAccounts
+from src.exceptions import InvalidPromoCode, CategoryNotFound, NotEnoughMoney, NotEnoughAccounts
 from src.modules.catalog.selling_accounts.keyboard_sell_acc import all_services_account_kb, \
     main_catalog_account_by_service_kb, account_category_kb, back_in_account_category_kb, confirm_buy_acc_kb, \
     replenishment_and_back_in_cat

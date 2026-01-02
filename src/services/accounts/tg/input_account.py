@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import List, AsyncGenerator, Any, Tuple
 
 from src.config import ACCOUNTS_DIR
-from src.exceptions.service_exceptions import ArchiveNotFount, DirNotFount
+from src.exceptions import ArchiveNotFount, DirNotFount
 from src.services.accounts.utils.helper_imports import get_unique_among_db
 from src.services.database.selling_accounts.actions import add_account_storage, add_product_account, \
     update_account_storage

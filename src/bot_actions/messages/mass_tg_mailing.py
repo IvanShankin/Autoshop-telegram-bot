@@ -11,7 +11,7 @@ from sqlalchemy import select
 
 from src.bot_actions.bot_instance import get_bot, GLOBAL_RATE_LIMITER
 from src.config import SEMAPHORE_MAILING_LIMIT, SENT_MASS_MSG_IMAGE_DIR
-from src.exceptions.service_exceptions import TextTooLong, TextNotLinc
+from src.exceptions import TextTooLong, TextNotLinc
 from src.services.database.core.database import get_db
 from src.services.database.users.models import Users
 from src.services.database.admins.models import SentMasMessages

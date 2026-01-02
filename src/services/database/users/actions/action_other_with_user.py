@@ -6,7 +6,7 @@ from asyncpg.pgproto.pgproto import timedelta
 from sqlalchemy import select, update, delete, func
 
 from src.config import PAGE_SIZE, PAYMENT_LIFETIME_SECONDS
-from src.exceptions.service_exceptions import UserNotFound, NotEnoughMoney
+from src.exceptions import UserNotFound, NotEnoughMoney
 from src.services.redis.filling_redis import filling_user
 from src.services.database.admins.models import AdminActions
 from src.services.database.referrals.utils import create_unique_referral_code

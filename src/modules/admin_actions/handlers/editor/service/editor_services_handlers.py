@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.messages import edit_message, send_message
-from src.exceptions.service_exceptions import ServiceTypeBusy, ServiceContainsCategories
+from src.exceptions import ServiceTypeBusy, ServiceContainsCategories
 from src.modules.admin_actions.keyboards.editors.service_kb import back_in_all_type_service_kb
 from src.modules.admin_actions.services import show_service
 from src.modules.admin_actions.keyboards import all_services_account_admin_kb, all_services_types_kb, \

@@ -1,7 +1,7 @@
 from typing import List
 from sqlalchemy import select, func
 
-from src.config import PAGE_SIZE
+from src.config import get_config
 from src.services.database.core.database import get_db
 from src.services.database.referrals.actions.actions_ref_lvls import get_referral_lvl
 from src.services.database.referrals.models import Referrals, IncomeFromReferrals
@@ -19,8 +19,11 @@ async def get_all_referrals(user_id) -> List[Referrals]:
         return result_db.scalars().all()
 
 
-async def get_referral_income_page(user_id: int, page: int = None, page_size: int = PAGE_SIZE) -> List[IncomeFromReferrals]:
+async def get_referral_income_page(user_id: int, page: int = None, page_size: int = None) -> List[IncomeFromReferrals]:
     """Еслине указывать page, то вернётся весь список"""
+    if not page_size:
+        page_size = get_config().different.page_size
+
     async with get_db() as session_db:
         query = select(
             IncomeFromReferrals

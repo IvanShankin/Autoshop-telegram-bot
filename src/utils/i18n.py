@@ -1,12 +1,12 @@
 from functools import lru_cache
 from gettext import translation
 
-from src.config import LOCALES_DIR
+from src.config import get_config
 
 
 class I18n:
-    def __init__(self, lang: str, domain: str, localedir: str = LOCALES_DIR):
-        self.trans = translation(domain=domain, localedir=localedir, languages=[lang])
+    def __init__(self, lang: str, domain: str):
+        self.trans = translation(domain=domain, localedir=get_config().paths.locales_dir, languages=[lang])
 
     def gettext(self, message: str)->str:
         return self.trans.gettext(message)

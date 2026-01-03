@@ -7,7 +7,7 @@ import aiofiles
 import orjson
 from sqlalchemy import select, update, delete, func, desc
 
-from src.config import PAGE_SIZE
+from src.config import get_config
 from src.services.database.selling_accounts.models import PurchasesAccounts, ProductAccounts, AccountCategories
 from src.services.database.system.shemas.shemas import StatisticsData, ReplenishmentPaymentSystem
 from src.services.database.users.models import Users, Replenishments
@@ -18,7 +18,7 @@ from src.services.database.system.models import Settings, TypePayments, BackupLo
 from src.services.database.core.database import get_db
 from src.services.redis.core_redis import get_redis
 from src.services.database.system.models import UiImages
-from src.utils.ui_images_data import UI_SECTIONS, UI_IMAGES, UI_IMAGES_IGNORE_ADMIN
+from src.utils.ui_images_data import get_ui_images, UI_IMAGES_IGNORE_ADMIN
 
 
 def _check_file_exists(ui_image: UiImages) -> UiImages | None:
@@ -92,10 +92,13 @@ async def update_settings(
     return None
 
 
-async def get_ui_images_by_page(page: int, page_size: int = PAGE_SIZE) -> List[str]:
+async def get_ui_images_by_page(page: int, page_size: int = None) -> List[str]:
     # Получаем все ключи, исключив админские
+    if not page_size:
+        page_size = get_config().different.page_size
+
     filtered_keys = [
-        key for key in UI_IMAGES.keys()
+        key for key in get_ui_images().keys()
         if key not in UI_IMAGES_IGNORE_ADMIN
     ]
 
@@ -117,7 +120,7 @@ async def create_ui_image(key: str, file_data: bytes, show: bool = True, file_id
     :param file_id: id в телеграмме
     :return:
     """
-    new_path = UI_SECTIONS / f"{key}.png"
+    new_path = get_config().paths.ui_sections_dir / f"{key}.png"
     new_path.parent.mkdir(parents=True, exist_ok=True) # создаём директорию, если её нет
 
     async with get_db() as session_db:

@@ -6,7 +6,7 @@ from dateutil.parser import parse
 from sqlalchemy import update, select, func
 
 from src.broker.producer import publish_event
-from src.config import PAGE_SIZE
+from src.config import get_config
 from src.exceptions import NotEnoughMoney
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_voucher_by_user_id, filling_user
@@ -25,13 +25,16 @@ from src.bot_actions.messages import send_log
 async def get_valid_voucher_by_page(
     user_id: Optional[int] = None,
     page: int = None,
-    page_size: int = PAGE_SIZE,
+    page_size: int = None,
     only_created_admin: bool = False
 ) -> List[SmallVoucher]:
     """
     :param user_id: необходим если получаем по пользователю, а не по админам
     Если не указывать page, то вернётся весь список. Отсортирован по дате (desc)
     """
+    if not page_size:
+        page_size = get_config().different.page_size
+
     # необходимое условие, что бы админ получил все ваучеры
     if not only_created_admin:
         async with get_redis() as session_redis:

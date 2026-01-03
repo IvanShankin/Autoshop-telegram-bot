@@ -8,7 +8,7 @@ from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.messages import edit_message, send_message
 from src.bot_actions.messages.mass_tg_mailing import visible_text_length, broadcast_message_generator
-from src.config import SEMAPHORE_MAILING_LIMIT, MAX_SIZE_BYTES, MAX_SIZE_MB, RATE_SEND_MSG_LIMIT
+from src.config import get_config
 from src.exceptions import TextTooLong
 from src.modules.admin_actions.keyboards import editor_message_mailing_kb
 from src.modules.admin_actions.keyboards.editors.mass_mailing_kb import confirm_start_mailing_kb, \
@@ -102,7 +102,7 @@ async def editor_mes_mailing(callback: CallbackQuery, user: Users):
             "admins_editor_mass_mailing",
             "Are you sure you want to broadcast this message to all users? \n\n"
             "This will take approximately: {need_seconds} seconds"
-        ).format(need_seconds=await get_quantity_users() // RATE_SEND_MSG_LIMIT),
+        ).format(need_seconds=await get_quantity_users() // get_config().different.rate_send_msg_limit),
         reply_markup=confirm_start_mailing_kb(user.language)
     )
 
@@ -189,12 +189,12 @@ async def get_new_image(message: Message, state: FSMContext, user: Users):
     if not doc.mime_type.startswith("image/"): # Проверяем, что это действительно изображение
         text = get_text(user.language,"admins_editor_images", "This is not an image. Send it as a document")
 
-    elif doc.file_size > MAX_SIZE_BYTES: # Проверяем размер, известный Telegram (без скачивания)
+    elif doc.file_size > get_config().limits.max_size_bytes: # Проверяем размер, известный Telegram (без скачивания)
         text = get_text(
             user.language,
             "admins_editor_category",
             "The file is too large — maximum {max_size_mb} MB. \n\nTry again"
-        ).format(max_size_mb=MAX_SIZE_MB)
+        ).format(max_size_mb=get_config().limits.max_size_mb)
     else:
         file = await message.bot.get_file(doc.file_id)
 

@@ -11,7 +11,7 @@ from src.bot_actions.bot_instance import get_bot
 from src.bot_actions.messages import send_log, send_message
 from src.services.database.system.actions import get_ui_image, update_ui_image
 from src.services.filesystem.actions import check_file_exists
-from src.utils.core_logger import logger
+from src.utils.core_logger import get_logger
 
 
 def _is_message_not_found_error(exc: Exception) -> bool:
@@ -70,6 +70,7 @@ async def _try_edit_media_by_file_id(
     except ValidationError: # если текс не передан
         return False
     except TelegramForbiddenError as e:
+        logger = get_logger(__name__)
         logger.warning(f"[edit_message] Forbidden editing media by file_id chat={chat_id} id={message_id}: {e}")
         return False
     except TelegramBadRequest as e:
@@ -77,13 +78,17 @@ async def _try_edit_media_by_file_id(
         if 'canceled by new editMessageMedia request' in e.message or 'message is not modified' in e.message:
             return True # это сообщение уже обработано или не надо обрабатывать
         elif _is_file_id_invalid_error(e):
+            logger = get_logger(__name__)
             logger.info(f"[edit_message] file_id invalid for file_id={file_id}; will try upload. Detail: {e}")
         elif _is_message_not_found_error(e):
+            logger = get_logger(__name__)
             logger.info(f"[edit_message] message not found when editing media by file_id chat={chat_id} id={message_id}")
         else:
+            logger = get_logger(__name__)
             logger.exception(f"[edit_message] TelegramBadRequest editing by file_id: {e}")
         return False
     except Exception as e:
+        logger = get_logger(__name__)
         logger.exception(f"[edit_message] Unexpected error editing media by file_id: {e}")
         return False
 
@@ -99,11 +104,11 @@ async def _try_edit_media_by_file(
         fallback_image_key:  Optional[str] = None,
     ) -> bool:
     """Пробуем заменить media, загрузив файл с диска. При успехе сохраняем новый file_id (если есть)."""
+    logger = get_logger(__name__)
     try:
         photo = FSInputFile(ui_image.file_path)
     except (FileNotFoundError, AttributeError):
         logger.warning(f"[edit_message] Local file not found: {ui_image.file_path}")
-
         if fallback_image_key:
             ui_image = await get_ui_image(fallback_image_key)
             if ui_image:
@@ -167,6 +172,7 @@ async def _try_edit_text(
       - False => редактирование не удалось (например message not found)
       - None  => сообщение не изменилось (message is not modified) — это не ошибка, но менять не нужно
     """
+    logger = get_logger(__name__)
     try:
         if not text:
             text = "None"
@@ -215,6 +221,7 @@ async def edit_message(
     :param always_show_photos: Будет показывать фото даже если стоит флаг Show == False
     """
     bot = await get_bot()
+    logger = get_logger(__name__)
 
     # Если есть image_key — пробуем редактировать/заменить media
     if image_key:

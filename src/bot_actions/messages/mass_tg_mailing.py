@@ -9,17 +9,15 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, FSInputFil
 from aiogram.exceptions import TelegramForbiddenError, TelegramNotFound, TelegramRetryAfter
 from sqlalchemy import select
 
-from src.bot_actions.bot_instance import get_bot, GLOBAL_RATE_LIMITER
-from src.config import SEMAPHORE_MAILING_LIMIT, SENT_MASS_MSG_IMAGE_DIR
+from src.bot_actions.bot_instance import get_bot
+from src.config import get_config, get_global_rate_limit, get_semaphore_mailing
 from src.exceptions import TextTooLong, TextNotLinc
 from src.services.database.core.database import get_db
 from src.services.database.users.models import Users
 from src.services.database.admins.models import SentMasMessages
 from src.services.filesystem.actions import copy_file
-from src.utils.core_logger import logger
+from src.utils.core_logger import get_logger
 
-
-semaphore = asyncio.Semaphore(SEMAPHORE_MAILING_LIMIT)
 
 MAX_CHARS_WITH_PHOTO = 1024
 MAX_CHARS_WITHOUT_PHOTO = 4096
@@ -97,7 +95,7 @@ async def get_photo_identifier(
     if photo_path is None:
         return None, None
 
-    new_file_path = copy_file(src=photo_path, dst_dir=SENT_MASS_MSG_IMAGE_DIR)
+    new_file_path = copy_file(src=photo_path, dst_dir=get_config().paths.sent_mass_msg_image_dir)
 
     # Заливаем временно админу, получить file_id и удалить сообщение
     sent_msg = await bot.send_photo(admin_chat_id, photo=FSInputFile(new_file_path), caption="(temp upload to get file_id)")
@@ -123,8 +121,11 @@ async def _send_single(
     Использует глобальный semaphore.
     :return: Tuple(user_id, success, exception)
     """
+    logger = get_logger(__name__)
+    semaphore = get_semaphore_mailing()
+
     async with semaphore:
-        await GLOBAL_RATE_LIMITER.acquire()
+        await get_global_rate_limit().acquire()
 
         try:
             if photo_id:
@@ -149,7 +150,6 @@ async def broadcast_message_generator(
     admin_id: int,
     photo_path: Optional[str] = None,
     button_url: Optional[str] = None,
-    concurrency: int = SEMAPHORE_MAILING_LIMIT,
 ) -> AsyncGenerator[Tuple[int, bool, Optional[Exception]], None]:
     """
     Асинхронный генератор, который после отправки сообщения возвращает кортеж
@@ -163,10 +163,7 @@ async def broadcast_message_generator(
     :except TextNotLinc: текст в кнопке не является ссылкой
     :except FileNotFoundError: фото не найдено
     """
-    # обновим semaphore по concurrency
-    global semaphore
-    semaphore = asyncio.Semaphore(concurrency)
-
+    conf = get_config()
     bot = await get_bot()
 
     text, photo_id, new_photo_path, inline_kb = await validate_broadcast_inputs(bot, admin_id, text, photo_path, button_url)
@@ -181,7 +178,7 @@ async def broadcast_message_generator(
     tasks = set()
     success = 0
     failed = 0
-    batch_size = max(1, concurrency * 2)  # сколько тасков держать в пуле (безопасно немного больше concurrency)
+    batch_size = max(1, conf.different.semaphore_mailing_limit * 2)  # сколько тасков держать в пуле (безопасно немного больше concurrency)
 
     async for uid in gen_user_ids():
         task = asyncio.create_task(_send_single(bot, uid, text, photo_id, inline_kb))
@@ -222,4 +219,5 @@ async def broadcast_message_generator(
         ))
         await session.commit()
 
+    logger = get_logger(__name__)
     logger.info(f"Рассылка закончена, успешных {success} из {failed + success}")

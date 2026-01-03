@@ -1,43 +1,33 @@
 import os
 
 from cryptography.exceptions import InvalidTag
-from dotenv import load_dotenv
 
-from src.config import MODE
-from src.config.paths_conf import SSL_CLIENT_CERT_FILE, SSL_CLIENT_KEY_FILE, SSL_CA_FILE
-from src.exceptions import StorageConnectionError, CryptoInitializationError, \
-    StorageNotFound
-
+from src.exceptions import StorageConnectionError, CryptoInitializationError, StorageNotFound
 from src.services.secrets.crypto import get_crypto_context, CryptoContext, set_crypto_context
 from src.services.secrets.keyring_store import load_kek
 from src.services.secrets.decrypt import unwrap_dek, decrypt_text
 from src.services.secrets.client import SecretsStorageClient
-from src.utils.core_logger import logger
+from src.services.secrets.runtime import get_runtime
+from src.utils.core_logger import get_logger
 
-load_dotenv()
 
-
-STORAGE_SERVER_URL = os.getenv("STORAGE_SERVER_URL")
-CERT = (
-    str(SSL_CLIENT_CERT_FILE),
-    str(SSL_CLIENT_KEY_FILE)
-)
-CA = str(SSL_CA_FILE)
 GLOBAL_DEK_NAME = "crypto_global_dek"
 
 
-
 def get_storage_client() -> SecretsStorageClient:
+    runtime = get_runtime()
     return SecretsStorageClient(
-        base_url=STORAGE_SERVER_URL,
-        cert=CERT,
-        ca=CA,
+        base_url=runtime.storage_url,
+        cert=runtime.cert,
+        ca=runtime.ca,
     )
+
 
 
 def init_crypto_context():
     # для тестов и разработки
-    if MODE in {"DEV", "TEST"}:
+    runtime = get_runtime()
+    if runtime.mode in {"DEV", "TEST"}:
         set_crypto_context(
             CryptoContext(
                 kek=b"fake_kek_32byteslong____",
@@ -80,12 +70,14 @@ def check_storage_service() -> bool:
 def get_secret(secret_name: str) -> str:
 
     # для тестов и разработки
-    if MODE in {"DEV", "TEST"}:
+    runtime = get_runtime()
+    if runtime.mode in {"DEV", "TEST"}:
         value = os.getenv(secret_name)
         if value is None:
             raise RuntimeError(
                 f"Secret {secret_name} not found in environment (.env)"
             )
+        logger = get_logger(__name__)
         logger.debug(f"Received secret {secret_name} from ENV")
         return value
 
@@ -101,6 +93,7 @@ def get_secret(secret_name: str) -> str:
 
     try:
         response = storage.get_secret_string(secret_name)
+        logger = get_logger(__name__)
         logger.info(f"Received a secret {secret_name} from the Storage service")
     except StorageNotFound:
         raise StorageNotFound(f"Secret {secret_name} not found. Install it by running the script")

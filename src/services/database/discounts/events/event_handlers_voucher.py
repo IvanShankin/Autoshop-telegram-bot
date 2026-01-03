@@ -1,7 +1,7 @@
 from sqlalchemy import update
 
 from src.bot_actions.bot_instance import get_bot
-from src.config import DEFAULT_LANG
+from src.config import get_config
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
 from src.services.database.discounts.utils.sending import send_set_not_valid_voucher
@@ -93,7 +93,7 @@ async def handler_new_activated_voucher(new_activation_voucher: NewActivationVou
 
 async def send_failed(voucher_id: int, error: str):
     message_log = get_text(
-        DEFAULT_LANG,
+        get_config().app.default_lang,
         "discount",
         "Error_while_activating_voucher. \n\nVoucher ID '{id}' \nError: {error}"
     ).format(id=voucher_id, error=error)

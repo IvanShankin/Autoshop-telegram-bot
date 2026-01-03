@@ -2,13 +2,13 @@ from datetime import datetime, timezone
 
 from sqlalchemy import update, select
 
-from src.config import DEFAULT_LANG
+from src.config import get_config
 from src.services.redis.core_redis import get_redis
 from src.services.database.discounts.events.schemas import NewActivatePromoCode
 from src.services.database.discounts.models import PromoCodes, ActivatedPromoCodes
 from src.services.database.core.database import get_db
 from src.services.database.users.models import UserAuditLogs
-from src.utils.core_logger import logger
+from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text
 from src.bot_actions.messages import send_log
 
@@ -94,13 +94,14 @@ async def handler_new_activate_promo_code(new_activate: NewActivatePromoCode):
             await session_db.commit()
 
     except Exception as e:
+        logger = get_logger(__name__)
         logger.error(f"Произошла ошибка, записи об активации промокода. Ошибка: {str(e)}")
         await on_new_activate_promo_code_failed(new_activate.promo_code_id, str(e))
 
 
 async def on_new_activate_promo_code_completed(promo_code_id: int, user_id: int, activation_code: str, activations_left: int):
     message_log = get_text(
-        DEFAULT_LANG,
+        get_config().app.default_lang,
         "discount",
         "#Promocode_activation \nID promo_code '{promo_code_id}' \nCode '{code}' \nID user '{user_id}'"
         "\n\nSuccessfully activated. \nActivations remaining: {number_of_activations}"
@@ -109,7 +110,7 @@ async def on_new_activate_promo_code_completed(promo_code_id: int, user_id: int,
 
 async def send_promo_code_expired(promo_code_id: int, activation_code: str):
     message_log = get_text(
-        DEFAULT_LANG,
+        get_config().app.default_lang,
         "discount",
         "#Promo_code_expired \nID '{id}' \nCode '{code}'"
         "\n\nThe promo code has expired due to reaching the number of activations or time limit. It is no longer possible to activate it"
@@ -118,7 +119,7 @@ async def send_promo_code_expired(promo_code_id: int, activation_code: str):
 
 async def on_new_activate_promo_code_failed(promo_code_id: int, error: str):
     message_log = get_text(
-        DEFAULT_LANG,
+        get_config().app.default_lang,
         "discount",
         "#Error_activating_promo_code \n\nPromo code ID '{id}' \nError: {error}"
     ).format(id=promo_code_id, error=error)

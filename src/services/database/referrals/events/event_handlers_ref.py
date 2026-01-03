@@ -4,15 +4,15 @@ from aiogram.exceptions import TelegramForbiddenError
 from sqlalchemy import update, select
 
 from src.bot_actions.bot_instance import get_bot_logger
-from src.config import DT_FORMAT, DEFAULT_LANG
+from src.config import get_config
 from src.services.database.users.actions import get_user, update_user
 from src.services.database.users.models import UserAuditLogs, WalletTransaction, NotificationSettings
 from src.services.database.core.database import get_db
+from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text
 from src.services.database.referrals.actions import get_referral_lvl
 from src.services.database.referrals.models.models_ref import Referrals, IncomeFromReferrals
 from src.services.database.replenishments_event.schemas import ReplenishmentCompleted
-from src.utils.core_logger import logger
 from src.bot_actions.messages import send_log
 
 async def referral_event_handler(event):
@@ -126,6 +126,7 @@ async def handler_new_income_referral(new_replenishment: ReplenishmentCompleted)
                 )
 
     except Exception as e:
+        logger = get_logger(__name__)
         logger.error(f"#Ошибка_пополнения. Произошла ошибка при начислении денег владельцу реферала. "
                      f"Флаг обновлённого баланса: {money_credited}. Ошибка: {str(e)}.")
         await on_referral_income_failed(str(e))
@@ -158,30 +159,31 @@ async def on_referral_income_completed(user_id: int, language: str,  amount: int
         except TelegramForbiddenError:  # если бот заблокирован у пользователя
             pass
     except Exception as e:
+        logger = get_logger(__name__)
         logger.error(
             f"#Ошибка_пополнения. Произошла ошибка при отсылке сообщения о пополнении денег владельцу реферала. Ошибка: {str(e)}."
         )
 
         message_log = get_text(
-            DEFAULT_LANG,
+            get_config().app.default_lang,
             'referral_messages',
             "#Replenishment_error \n\n"
             "An error occurred while sending a message about replenishing funds to the referral owner. \n"
             "Error: {error}. \n\n"
             "Time: {time}"
-        ).format(error=str(e), time=datetime.now().strftime(DT_FORMAT))
+        ).format(error=str(e), time=datetime.now().strftime(get_config().different.dt_format))
         await send_log(message_log)
 
 async def on_referral_income_failed(error: str):
     """Отсылает лог ошибки при пополнении баланса"""
     message_log = get_text(
-        DEFAULT_LANG,
+        get_config().app.default_lang,
         'referral_messages',
         "#Replenishment_error \n\n"
         "An error occurred while sending a message about replenishing funds to the referral owner. \n"
         "Error: {error}. \n\n"
         "Time: {time}"
-    ).format(error=error, time=datetime.now().strftime(DT_FORMAT))
+    ).format(error=error, time=datetime.now().strftime(get_config().different.dt_format))
 
     await send_log(message_log)
 

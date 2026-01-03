@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.config import ALLOWED_LANGS, SOLID_LINE
+from src.config import get_config
 from src.services.database.selling_accounts.actions import get_account_categories_by_parent_id
 from src.utils.i18n import get_text
 
@@ -27,7 +27,7 @@ async def show_account_category_admin_kb(
     for cat in categories:
         keyboard.row(InlineKeyboardButton(text=str(cat.name), callback_data=f'show_acc_category_admin:{cat.account_category_id}'))
 
-    keyboard.row(InlineKeyboardButton(text=SOLID_LINE, callback_data='none'))
+    keyboard.row(InlineKeyboardButton(text=get_config().app.solid_line, callback_data='none'))
     keyboard.row(InlineKeyboardButton(
         text=get_text(language, "kb_admin_panel", "Add subcategory"),
         callback_data=f'add_acc_category:{category_id}')
@@ -128,7 +128,7 @@ def change_category_data_kb(language: str, category_id: int, is_account_storage:
 
 def select_lang_category_kb(language: str, category_id: int):
     keyboard = InlineKeyboardBuilder()
-    for lang in ALLOWED_LANGS:
+    for lang in get_config().app.allowed_langs:
         keyboard.row(
             InlineKeyboardButton(
                 text=get_text(language, "kb_admin_panel", lang),
@@ -140,7 +140,7 @@ def select_lang_category_kb(language: str, category_id: int):
 
 def name_or_description_kb(language: str, category_id: int, lang: str):
     """
-    :param lang: Код языка из переменной ALLOWED_LANGS
+    :param lang: Код языка из переменной get_config().app.allowed_langs
     """
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(

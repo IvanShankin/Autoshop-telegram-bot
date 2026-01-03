@@ -5,6 +5,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import AsyncMock
 
+from src.config import get_config
 from src.services.database.selling_accounts.models import AccountStorage, ProductAccounts
 from src.services.secrets import get_crypto_context
 
@@ -86,25 +87,25 @@ async def test_rename_file_async(tmp_path):
     assert dst.read_text() == "y"
 
 
-def test_create_path_account_builds_correct_path(tmp_path, monkeypatch):
+def test_create_path_account_builds_correct_path(monkeypatch):
     from src.services.filesystem.account_actions import create_path_account
-    from src.services.filesystem import account_actions
-    monkeypatch.setattr(account_actions,"ACCOUNTS_DIR", tmp_path)
+
+    conf = get_config()
     result = create_path_account("sold", "telegram", "1234")
-    expected = tmp_path / "sold" / "telegram" / "1234" / "account.enc"
+    expected = conf.paths.accounts_dir / "sold" / "telegram" / "1234" / "account.enc"
+
     assert Path(result) == expected
 
 
 @pytest.mark.asyncio
-async def test_move_in_account_success(tmp_path, monkeypatch):
+async def test_move_in_account_success(monkeypatch):
     from src.services.filesystem.account_actions import move_in_account
-    # patch ACCOUNTS_DIR
-    from src.services.filesystem import account_actions
-    monkeypatch.setattr(account_actions, "ACCOUNTS_DIR", tmp_path)
+
+    conf = get_config()
 
     # создаём src файл
     uuid = "abcd"
-    orig_file = tmp_path / "for_sale" / "telegram" / uuid / "account.enc"
+    orig_file = conf.paths.accounts_dir / "for_sale" / "telegram" / uuid / "account.enc"
     os.makedirs(orig_file.parent, exist_ok=True)
     orig_file.write_text("data")
 
@@ -117,7 +118,7 @@ async def test_move_in_account_success(tmp_path, monkeypatch):
     result = await move_in_account(product.account_storage, "telegram", "sold")
     assert result is True
 
-    new_path = tmp_path / "sold" / "telegram" / uuid / "account.enc"
+    new_path = conf.paths.accounts_dir / "sold" / "telegram" / uuid / "account.enc"
     assert new_path.exists()
     assert not orig_file.exists()
 
@@ -149,7 +150,6 @@ async def test_decryption_tg_account_calls_correct(monkeypatch, create_account_s
     fake_folder = "/tmp/folder"
 
     monkeypatch.setattr(account_actions, "decrypt_folder", lambda path, key: fake_folder)
-    monkeypatch.setattr(account_actions, "ACCOUNTS_DIR", "/root/accounts")
 
     res = decryption_tg_account(acc_storage, crypto)
     assert res == fake_folder
@@ -157,7 +157,6 @@ async def test_decryption_tg_account_calls_correct(monkeypatch, create_account_s
 
 @pytest.mark.asyncio
 async def test_encrypt_decrypt_directory_roundtrip(
-    tmp_path,
     monkeypatch,
 ):
     """
@@ -167,16 +166,12 @@ async def test_encrypt_decrypt_directory_roundtrip(
     from src.services.filesystem.input_account import encrypted_tg_account
     from src.services.filesystem.account_actions import decryption_tg_account
 
+    conf = get_config()
     # Исходная директория
-    src_dir = create_test_directory(tmp_path / "src")
+    src_dir = create_test_directory(conf.paths.accounts_dir / "src")
 
     # Путь к зашифрованному архиву
-    encrypted_file = tmp_path / "encrypted" / "account.enc"
-
-    # Подменяем ACCOUNTS_DIR
-    import src.services.filesystem.account_actions as fs_module
-    monkeypatch.setattr(fs_module, "ACCOUNTS_DIR", tmp_path)
-
+    encrypted_file = conf.paths.accounts_dir / "encrypted" / "account.enc"
 
     enc = await encrypted_tg_account(
         src_directory=str(src_dir),
@@ -189,7 +184,7 @@ async def test_encrypt_decrypt_directory_roundtrip(
     storage = AccountStorage(
         encrypted_key=enc.encrypted_key_b64,
         encrypted_key_nonce=enc.encrypted_key_nonce,
-        file_path=encrypted_file.relative_to(tmp_path).as_posix(),
+        file_path=encrypted_file.relative_to(conf.paths.accounts_dir).as_posix(),
     )
 
     crypto = get_crypto_context()

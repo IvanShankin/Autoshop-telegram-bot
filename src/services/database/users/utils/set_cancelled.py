@@ -5,7 +5,7 @@ from sqlalchemy import update, and_
 
 from src.services.database.core import get_db
 from src.services.database.users.models import Replenishments, UserAuditLogs
-from src.utils.core_logger import logger
+from src.utils.core_logger import get_logger
 
 
 async def _set_cancelled_replenishment():
@@ -43,5 +43,6 @@ async def deactivate_expired_replenishments(interval: int = 60):
         try:
             await _set_cancelled_replenishment()
         except Exception as e:
+            logger = get_logger(__name__)
             logger.error(f"Ошибка при попытки установить 'cancelled' пополнение. Ошибка: {str(e)}")
         await asyncio.sleep(interval)

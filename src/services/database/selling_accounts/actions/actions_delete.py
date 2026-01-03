@@ -5,7 +5,7 @@ from typing import List
 import orjson
 from sqlalchemy import select, delete, distinct, update
 
-from src.config import ACCOUNTS_DIR
+from src.config import get_config
 from src.exceptions import ServiceContainsCategories, CategoryStoresSubcategories, \
     AccountCategoryNotFound, TheCategoryStorageAccount
 from src.services.database.system.actions import delete_ui_image
@@ -233,7 +233,7 @@ async def delete_product_accounts_by_category(category_id: int):
             if not acc.file_path: # если нет путь значит у всех остальных аккаунтов тоже нет
                 continue
 
-            folder = ACCOUNTS_DIR / Path(acc.file_path).parent
+            folder = get_config().paths.accounts_dir / Path(acc.file_path).parent
 
             # удаляем каталог со всем содержимым
             shutil.rmtree(folder, ignore_errors=True)

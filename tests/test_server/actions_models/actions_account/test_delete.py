@@ -268,11 +268,6 @@ async def test_delete_product_accounts_by_category_success(
     - очищается product_accounts_by_account_id
     """
     from src.services.database.selling_accounts.actions.actions_delete import delete_product_accounts_by_category
-    # Мокаем ACCOUNTS_DIR → временная директория
-    monkeypatch.setattr(
-        "src.services.database.selling_accounts.actions.actions_delete.ACCOUNTS_DIR",
-        tmp_path,
-    )
 
     # Создаём категорию
     category = await create_account_category(filling_redis=True)

@@ -5,7 +5,7 @@ import orjson
 from asyncpg.pgproto.pgproto import timedelta
 from sqlalchemy import select, update, delete, func
 
-from src.config import PAGE_SIZE, PAYMENT_LIFETIME_SECONDS
+from src.config import get_config
 from src.exceptions import UserNotFound, NotEnoughMoney
 from src.services.redis.filling_redis import filling_user
 from src.services.database.admins.models import AdminActions
@@ -18,7 +18,7 @@ from src.services.database.core.database import get_db
 from src.services.redis.core_redis import get_redis
 from src.services.redis.time_storage import TIME_USER, TIME_SUBSCRIPTION_PROMPT
 from src.bot_actions.messages import send_log
-from src.utils.core_logger import logger
+from src.utils.core_logger import get_logger
 
 
 async def add_new_user(user_id: int, username: str, language: str = 'ru') -> Users:
@@ -165,8 +165,11 @@ async def get_wallet_transaction(wallet_transaction_id: int) -> WalletTransactio
         return result.scalar_one_or_none()
 
 
-async def get_wallet_transaction_page(user_id: int, page: int = None, page_size: int = PAGE_SIZE) -> List[WalletTransaction]:
+async def get_wallet_transaction_page(user_id: int, page: int = None, page_size: int = None) -> List[WalletTransaction]:
     """Если не указывать page, то вернётся весь список. Отсортирован по дате (desc)"""
+    if not page_size:
+        page_size = get_config().different.page_size
+
     async with get_db() as session_db:
         query = select(
             WalletTransaction
@@ -275,6 +278,7 @@ async def money_transfer(sender_id: int, recipient_id: int, amount: int):
             await session_db.commit()
     except Exception as e:
         await send_log(f"#Ошибка_при_переводе_денег \n\nID пользователя: {sender_id} \nОшибка: {e}")
+        logger = get_logger(__name__)
         logger.exception(f"ошибка: {e}")
 
 
@@ -320,7 +324,7 @@ async def update_replenishment(
     status: str,
     payment_system_id: Optional[str] = None,
     invoice_url: Optional[str] = None,
-    expire_at: datetime | None = datetime.now(timezone.utc) + timedelta(seconds=PAYMENT_LIFETIME_SECONDS),
+    expire_at: datetime = None,
     payment_data: Optional[Dict[str, Any]] = None,
 ) -> Replenishments:
     """
@@ -329,7 +333,7 @@ async def update_replenishment(
         status: Статус
         payment_system_id: ID транзакции в системе платежа
         invoice_url: URL для оплаты
-        expire_at: Срок действия платежа
+        expire_at: Срок действия платежа.
         payment_data: Дополнительные данные платежа в формате JSON
     """
     async with get_db() as session_db:
@@ -340,7 +344,7 @@ async def update_replenishment(
                 payment_system_id=payment_system_id,
                 status=status,
                 invoice_url=invoice_url,
-                expire_at=expire_at,
+                expire_at=datetime.now(timezone.utc) + timedelta(seconds=get_config().different.payment_lifetime_seconds) if expire_at is None else None,
                 payment_data=payment_data
             )
             .returning(Replenishments)

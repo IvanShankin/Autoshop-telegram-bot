@@ -9,6 +9,7 @@ from contextlib import suppress
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine
 
+from src.config import init_config
 from tests.helpers.monkeypatch_data import (
     replacement_redis,
     replacement_fake_bot,
@@ -71,19 +72,19 @@ async def replacement_fake_bot_fix(monkeypatch, replacement_pyth_ui_image_fix):
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def replacement_pyth_account_fix(monkeypatch, replacement_pyth_ui_image_fix):
-    for _ in replacement_pyth_account(monkeypatch):
+    for _ in replacement_pyth_account():
         yield
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def replacement_pyth_ui_image_fix(monkeypatch, tmp_path):
-    for _ in replacement_pyth_ui_image(monkeypatch, tmp_path):
+    for _ in replacement_pyth_ui_image(tmp_path):
         yield
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def replacement_pyth_sent_mass_msg_image_fix(monkeypatch, tmp_path):
-    for _ in replacement_pyth_sent_mass_msg_image(monkeypatch, tmp_path):
+    for _ in replacement_pyth_sent_mass_msg_image(tmp_path):
         yield
 
 
@@ -151,6 +152,7 @@ async def start_consumer():
             with suppress(asyncio.CancelledError):
                 await task
 
+
 @pytest_asyncio.fixture(scope="function")
 async def clean_rabbit(start_consumer):
     connection = await aio_pika.connect_robust(RABBITMQ_URL)
@@ -163,8 +165,15 @@ async def clean_rabbit(start_consumer):
     await connection.close()
     yield
 
+
 @pytest_asyncio.fixture
 async def get_engine():
     engine = create_async_engine(SQL_DB_URL)
     yield engine
     await engine.dispose()
+
+
+
+@pytest_asyncio.fixture(scope="session", autouse=True)
+async def init_conf_fix():
+    init_config()

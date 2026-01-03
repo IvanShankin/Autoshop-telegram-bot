@@ -2,13 +2,13 @@ import uuid
 
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message, InputMediaPhoto
+from aiogram.types import CallbackQuery
 
-from src.bot_actions.messages import edit_message, send_message
-from src.config import DT_FORMAT
+from src.bot_actions.messages import edit_message
+from src.config import get_config
 from src.modules.admin_actions.keyboards import admin_mailing_kb, all_admin_mass_mailing_kb, show_sent_mass_message_kb
 from src.modules.admin_actions.keyboards.editors.mass_mailing_kb import back_in_show_sent_mass_message_kb
-from src.services.database.admins.actions.actions_admin import get_sent_mass_messages_by_page, get_sent_mass_messages
+from src.services.database.admins.actions.actions_admin import get_sent_mass_messages
 from src.services.database.system.actions import create_ui_image, delete_ui_image
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
@@ -109,7 +109,7 @@ async def detail_mass_msg(callback: CallbackQuery, user: Users):
         admin_id=msg.user_id,
         number_received=msg.number_received,
         number_sent=msg.number_sent,
-        created_at=msg.created_at.strftime(DT_FORMAT)
+        created_at=msg.created_at.strftime(get_config().different.dt_format)
     )
 
     await edit_message(

@@ -5,10 +5,10 @@ from pathlib import Path
 from typing import AsyncGenerator
 
 from src.bot_actions.messages import send_log
-from src.config import ACCOUNTS_DIR
+from src.config import get_config
 from src.services.database.selling_accounts.models import AccountStorage, AccountStoragePydentic
 from src.services.filesystem.actions import move_file
-from src.utils.core_logger import logger
+from src.utils.core_logger import get_logger
 from src.services.secrets import decrypt_folder, get_crypto_context, unwrap_dek, CryptoContext
 
 
@@ -16,14 +16,14 @@ async def move_in_account(account: AccountStorage, type_service_name: str, statu
     """
     Перенос аккаунтов к `status` удалив исходное местоположение.
     :param account: AccountStorage.
-    :param type_service_name: Брать с константы TYPE_ACCOUNT_SERVICES (config.py)
+    :param type_service_name: Брать с константы config.app.type_account_services (get_config().py)
     :param status: статус аккаунта который будет в конечном пути
     :return: Если возникнет ошибка или аккаунт не переместится, то вернёт False
     """
     orig = None
     final = None
     try:
-        orig = str(Path(ACCOUNTS_DIR) / account.file_path)  # полный путь
+        orig = str(Path(get_config().paths.accounts_dir) / account.file_path)  # полный путь
         final = create_path_account(
             status=status,
             type_account_service=type_service_name,
@@ -47,6 +47,7 @@ async def move_in_account(account: AccountStorage, type_service_name: str, statu
             f"account_storage_id: {account.account_storage_id if account.account_storage_id else "none"} \n"
             f"Ошибка: {str(e)}"
         )
+        logger = get_logger(__name__)
         logger.exception(f"Ошибка при переносе аккаунта к {status} %s", account.account_storage_id)
         await send_log(text)
         return False
@@ -70,11 +71,11 @@ def create_path_account(status: str, type_account_service: str, uuid: str) -> st
     """
     Создаст путь к аккаунту.
 
-    type_account_service брать с TYPE_ACCOUNT_SERVICES (config.py)
+    type_account_service брать с get_config().app.type_account_services (config)
 
     :return: Полный путь. Пример: .../accounts/for_sale/telegram/gbgbfd-dnnjcs/account.enc
     """
-    return str(Path(ACCOUNTS_DIR) / status / type_account_service / uuid / 'account.enc')
+    return str(Path(get_config().paths.accounts_dir) / status / type_account_service / uuid / 'account.enc')
 
 
 def decryption_tg_account(
@@ -93,7 +94,7 @@ def decryption_tg_account(
         kek=crypto.kek
     )
 
-    abs_path = (ACCOUNTS_DIR / Path(account_storage.file_path)).resolve()
+    abs_path = (get_config().paths.accounts_dir / Path(account_storage.file_path)).resolve()
 
     folder_path = decrypt_folder(abs_path, account_key) # Расшифровываем архив DEK-ом
 
@@ -124,6 +125,7 @@ async def get_tdata_tg_acc(account_storage: AccountStorage) -> AsyncGenerator[st
             )
             yield archive_path
     except Exception as e:
+        logger = get_logger(__name__)
         logger.exception("#Ошибка при получении tdata с аккаунта %s: %s", getattr(account_storage, "account_storage_id", None), e)
         yield False
     finally:
@@ -137,6 +139,8 @@ async def get_session_tg_acc(account_storage: AccountStorage) -> AsyncGenerator[
     :return: Путь к файлу
     """
     folder_path = None
+    logger = get_logger(__name__)
+
     try:
         crypto = get_crypto_context()
         folder_path = decryption_tg_account(account_storage, crypto)

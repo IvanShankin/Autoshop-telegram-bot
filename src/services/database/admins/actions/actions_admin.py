@@ -5,8 +5,7 @@ from sqlalchemy import select, func, update
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.expression import delete
 
-from src.config import MAIN_ADMIN
-from src.config import PAGE_SIZE
+from src.config import get_config
 from src.exceptions import UserNotFound, AdminNotFound, UnableRemoveMainAdmin
 from src.services.database.admins.models import MessageForSending, Admins, AdminActions, SentMasMessages
 from src.services.database.core.database import get_db
@@ -65,7 +64,7 @@ async def delete_admin(user_id: int):
     if not await check_admin(user_id):
         raise AdminNotFound()
 
-    if user_id == MAIN_ADMIN:
+    if user_id == get_config().env.main_admin:
         raise UnableRemoveMainAdmin()
 
     async with get_db() as session_db:
@@ -175,8 +174,11 @@ async def get_sent_mass_messages(message_id: int) -> SentMasMessages | None:
 
 async def get_sent_mass_messages_by_page(
     page: int = None,
-    page_size: int = PAGE_SIZE,
+    page_size: int = None,
 ) -> List[SentMasMessages]:
+    if not page_size:
+        page_size = get_config().different.page_size
+
     async with get_db() as session_db:
         query = select(SentMasMessages)
         if page:

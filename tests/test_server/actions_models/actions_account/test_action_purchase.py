@@ -457,9 +457,6 @@ async def test__check_account_validity_async_success(
 
     account_storage = prod_obj.account_storage
 
-    # Подменим TYPE_ACCOUNT_SERVICES чтобы наш type_service_name считался валидным
-    monkeypatch.setattr(actions, "TYPE_ACCOUNT_SERVICES", {"test_service": True})
-
     # СДЕЛАЕМ decryption синхронным (то, что ожидает asyncio.to_thread)
     temp_folder_path = Path.cwd() / "tmp_test_account_folder"
 
@@ -497,7 +494,7 @@ async def test__check_account_validity_async_success(
     monkeypatch.setattr(shutil, "rmtree", fake_rmtree)
 
     # Вызов тестируемой функции
-    ok = await action_mod.check_account_validity(account_storage, "test_service")
+    ok = await action_mod.check_account_validity(account_storage, "telegram")
 
     assert ok is True
     # rmtree должен быть вызван в finally

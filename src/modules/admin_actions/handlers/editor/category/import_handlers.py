@@ -8,8 +8,7 @@ from aiogram.types import CallbackQuery, Message, FSInputFile, BufferedInputFile
 
 from src.bot_actions.messages import edit_message, send_message, send_log
 from src.bot_actions.bot_instance import get_bot
-from src.config import SUPPORTED_ARCHIVE_EXTENSIONS, \
-    TEMP_FILE_DIR
+from src.config import get_config
 from src.exceptions import TypeAccountServiceNotFound, InvalidFormatRows
 from src.modules.admin_actions.keyboards import back_in_category_kb, \
     name_or_description_kb
@@ -22,7 +21,7 @@ from src.modules.admin_actions.state import ImportTgAccounts, ImportOtherAccount
 from src.services.accounts.other.input_account import input_other_account
 from src.services.accounts.tg.input_account import import_telegram_accounts_from_archive
 from src.services.database.users.models import Users
-from src.utils.core_logger import logger
+from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text
 
 
@@ -105,6 +104,7 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
             await bot.send_document(message.from_user.id, document=file, caption=caption)
             await message_loading.delete()
         except Exception as e:
+            logger = get_logger(__name__)
             logger.warning(f"[import_tg_account.load_file] - ошибка: '{str(e)}'")
             pass
 
@@ -121,14 +121,14 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
         doc=doc,
         user=user,
         state=state,
-        expected_formats=SUPPORTED_ARCHIVE_EXTENSIONS,
+        expected_formats=get_config().app.supported_archive_extensions,
         set_state=ImportTgAccounts.archive
     )
     if not valid_file:
         return
 
 
-    save_path = str(Path(TEMP_FILE_DIR) / doc.file_name)
+    save_path = str(Path(get_config().paths.temp_file_dir) / doc.file_name)
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     file = await message.bot.get_file(doc.file_id) # Получаем объект файла
 
@@ -177,6 +177,7 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
         await service_not_found(user)
     except Exception as e:
         text = f"#Ошибка_при_добавлении_аккаунтов  [import_tg_account]. \nОшибка='{str(e)}'"
+        logger = get_logger(__name__)
         logger.exception(text)
         await send_log(text)
         await send_message(
@@ -265,6 +266,7 @@ async def import_other_account(message: Message, state: FSMContext, user: Users)
         await service_not_found(user)
     except Exception as e:
         text = f"#Ошибка_при_добавлении_аккаунтов  [import_other_account]. \nОшибка='{str(e)}'"
+        logger = get_logger(__name__)
         logger.exception(text)
         await send_log(text)
         await send_message(

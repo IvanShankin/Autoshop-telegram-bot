@@ -1,7 +1,7 @@
 from typing import Optional
 
-from src.bot_actions.bot_instance import get_bot_logger, GLOBAL_RATE_LIMITER
-from src.config import MAIN_ADMIN
+from src.bot_actions.bot_instance import get_bot_logger
+from src.config import get_config, get_global_rate_limit
 from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply, FSInputFile, \
     Message
 
@@ -9,7 +9,7 @@ from src.bot_actions.bot_instance import get_bot
 from src.services.database.system.actions import get_ui_image, update_ui_image
 from src.services.database.system.actions import get_settings
 from src.services.filesystem.actions import check_file_exists
-from src.utils.core_logger import logger
+from src.utils.core_logger import get_logger
 
 
 async def send_message(
@@ -27,9 +27,10 @@ async def send_message(
     if not message and not image_key:
         raise ValueError("При отсылке нового сообщения необходимо указать хотя бы 'message' или 'image_key'")
 
-    await GLOBAL_RATE_LIMITER.acquire()
+    await get_global_rate_limit().acquire()
 
     bot = await get_bot()
+    logger = get_logger(__name__)
     if image_key:
         ui_image = await get_ui_image(image_key)
         if ui_image and (ui_image.show or always_show_photos): # если есть изображение по данному пути и его можно показывать
@@ -159,6 +160,8 @@ async def send_log(text: str, channel_for_logging_id: int = None):
         for message in parts:
             await bot.send_message(int(channel_for_logging_id), message)
     except Exception as e:
+        logger = get_logger(__name__)
+
         settings = await get_settings()
         message_error = (
             f"Не удалось отправить сообщение в канал с логами.\n"
@@ -176,8 +179,8 @@ async def send_log(text: str, channel_for_logging_id: int = None):
             logger.error(f"Ошибка отправки сообщения support. Ошибка: {str(e)}")
 
         try:
-            await bot.send_message(MAIN_ADMIN, message_error)
+            await bot.send_message(get_config().env.main_admin, message_error)
             for message in parts:
-                await bot.send_message(MAIN_ADMIN, message)
+                await bot.send_message(get_config().env.main_admin, message)
         except Exception as e:
             logger.error(f"Ошибка отправки сообщения MAIN_ADMIN. Ошибка: {str(e)}")

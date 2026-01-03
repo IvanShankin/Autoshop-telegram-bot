@@ -1,5 +1,5 @@
 from src.bot_actions.messages import send_message
-from src.config import DT_FORMAT
+from src.config import get_config
 from src.modules.admin_actions.keyboards.show_data_kb import back_in_show_data_by_id_kb
 from src.modules.admin_actions.state.show_data_by_id import ShowDataById
 from src.services.database.discounts.actions import get_voucher_by_id, get_promo_code
@@ -88,10 +88,10 @@ async def get_message_replenishment(replenishment_id: int, language: str) -> str
         origin_amount=replenishment.origin_amount,
         amount=replenishment.amount,
         status=get_text(language, "status_replenishments", replenishment.status),
-        created_at=replenishment.created_at.strftime(DT_FORMAT),
+        created_at=replenishment.created_at.strftime(get_config().different.dt_format),
         payment_system_id=replenishment.payment_system_id,
         invoice_url=replenishment.invoice_url,
-        expire_at=replenishment.expire_at.strftime(DT_FORMAT)
+        expire_at=replenishment.expire_at.strftime(get_config().different.dt_format)
     )
 
 
@@ -120,7 +120,7 @@ async def get_message_purchase_account(purchase_id: int, language: str) -> str |
         purchase_price=purchase_account.purchase_price,
         cost_price=purchase_account.cost_price,
         net_profit=purchase_account.net_profit,
-        purchase_date=purchase_account.purchase_date.strftime(DT_FORMAT)
+        purchase_date=purchase_account.purchase_date.strftime(get_config().different.dt_format)
     )
 
 async def get_message_transfer_money(transfer_money_id: int, language: str) -> str | None:
@@ -142,7 +142,7 @@ async def get_message_transfer_money(transfer_money_id: int, language: str) -> s
         user_from_id=transfer_money.user_from_id,
         user_where_id=transfer_money.user_where_id,
         amount=transfer_money.amount,
-        created_at=transfer_money.created_at.strftime(DT_FORMAT),
+        created_at=transfer_money.created_at.strftime(get_config().different.dt_format),
     )
 
 
@@ -173,8 +173,8 @@ async def get_message_voucher(voucher_id: int, language: str) -> str | None:
         amount=voucher.amount,
         activated_counter=voucher.activated_counter,
         number_of_activations=voucher.number_of_activations,
-        start_at=voucher.start_at.strftime(DT_FORMAT),
-        expire_at=voucher.expire_at.strftime(DT_FORMAT) if voucher.expire_at else "-",
+        start_at=voucher.start_at.strftime(get_config().different.dt_format),
+        expire_at=voucher.expire_at.strftime(get_config().different.dt_format) if voucher.expire_at else "-",
         is_valid=voucher.is_valid,
     )
 
@@ -196,7 +196,7 @@ async def get_message_activate_voucher(activate_voucher_id: int, language: str) 
         voucher_activation_id=activate_voucher.voucher_activation_id,
         voucher_id=activate_voucher.voucher_id,
         user_id=activate_voucher.user_id,
-        created_at=activate_voucher.created_at.strftime(DT_FORMAT),
+        created_at=activate_voucher.created_at.strftime(get_config().different.dt_format),
     )
 
 
@@ -227,8 +227,8 @@ async def get_message_promo_code(promo_code_id: int, language: str) -> str | Non
         amount=promo.amount if promo.amount is not None else "-",
         discount_percentage=promo.discount_percentage if promo.discount_percentage is not None else "-",
         number_of_activations=promo.number_of_activations,
-        start_at=promo.start_at.strftime(DT_FORMAT),
-        expire_at=promo.expire_at.strftime(DT_FORMAT) if promo.expire_at else "-",
+        start_at=promo.start_at.strftime(get_config().different.dt_format),
+        expire_at=promo.expire_at.strftime(get_config().different.dt_format) if promo.expire_at else "-",
         is_valid=promo.is_valid,
     )
 
@@ -252,7 +252,7 @@ async def get_message_activated_promo_code(activated_promo_code_id: int, languag
         activated_promo_code_id=activated_promo_code.activated_promo_code_id,
         promo_code_id=activated_promo_code.promo_code_id,
         user_id=activated_promo_code.user_id,
-        created_at=activated_promo_code.created_at.strftime(DT_FORMAT),
+        created_at=activated_promo_code.created_at.strftime(get_config().different.dt_format),
     )
 
 
@@ -273,7 +273,7 @@ async def get_message_referral(referral_id: int, language: str) -> str | None:
         referral_id=referral.referral_id,
         owner_user_id=referral.owner_user_id,
         level=referral.level,
-        created_at=referral.created_at.strftime(DT_FORMAT),
+        created_at=referral.created_at.strftime(get_config().different.dt_format),
     )
 
 
@@ -303,7 +303,7 @@ async def get_message_income_from_referral(
         referral_id=income.referral_id,
         amount=income.amount,
         percentage_of_replenishment=income.percentage_of_replenishment,
-        created_at=income.created_at.strftime(DT_FORMAT),
+        created_at=income.created_at.strftime(get_config().different.dt_format),
     )
 
 
@@ -333,7 +333,7 @@ async def get_message_wallet_transaction(
         amount=tx.amount,
         balance_before=tx.balance_before,
         balance_after=tx.balance_after,
-        created_at=tx.created_at.strftime(DT_FORMAT),
+        created_at=tx.created_at.strftime(get_config().different.dt_format),
     )
 
 
@@ -384,7 +384,7 @@ async def get_message_sold_account_full(
         type_account_service_id=sold_account_full.type_account_service_id,
         name=sold_account_full.name,
         description=sold_account_full.description,
-        sold_at=sold_account_full.sold_at.strftime(DT_FORMAT),
+        sold_at=sold_account_full.sold_at.strftime(get_config().different.dt_format),
 
         account_storage_id=storage.account_storage_id,
         storage_uuid=storage.storage_uuid,
@@ -397,9 +397,9 @@ async def get_message_sold_account_full(
         password_encrypted=password,
         is_active=storage.is_active,
         is_valid=storage.is_valid,
-        added_at=storage.added_at.strftime(DT_FORMAT),
+        added_at=storage.added_at.strftime(get_config().different.dt_format),
         last_check_at=(
-            storage.last_check_at.strftime(DT_FORMAT)
+            storage.last_check_at.strftime(get_config().different.dt_format)
             if storage.last_check_at
             else "-"
         ),

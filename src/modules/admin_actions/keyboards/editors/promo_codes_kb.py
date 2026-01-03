@@ -3,7 +3,7 @@ from math import ceil
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.config import PAGE_SIZE
+from src.config import get_config
 from src.services.database.discounts.actions.actions_promo import get_promo_code_by_page, get_count_promo_codes
 from src.services.database.discounts.models import PromoCodes
 from src.services.keyboards.keyboard_with_pages import pagination_keyboard
@@ -20,9 +20,9 @@ def admin_promo_kb(language: str):
 
 async def all_admin_promo_kb(current_page: int, language: str, show_not_valid: bool):
     """Клавиатура со списком только активных ваучеров у администрации"""
-    records = await get_promo_code_by_page(page=current_page, page_size=PAGE_SIZE, show_not_valid=show_not_valid)
+    records = await get_promo_code_by_page(page=current_page, page_size=get_config().different.page_size, show_not_valid=show_not_valid)
     total = await get_count_promo_codes(consider_invalid=show_not_valid)
-    total_pages = max(ceil(total / PAGE_SIZE), 1)
+    total_pages = max(ceil(total / get_config().different.page_size), 1)
 
     def item_button(promo_code: PromoCodes):
         valid = get_text(language, "kb_admin_panel", "Valid" if promo_code.is_valid else "Not valid")

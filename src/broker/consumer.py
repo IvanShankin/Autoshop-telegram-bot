@@ -5,12 +5,12 @@ import aio_pika
 import aiormq
 from orjson import orjson
 
-from src.config import RABBITMQ_URL
+from src.config import get_config
 from src.services.database.discounts.events import promo_code_event_handler, voucher_event_handler
 from src.services.database.referrals.events import referral_event_handler
 from src.services.database.replenishments_event.event_handlers_replenishments import replenishment_event_handler
 from src.services.database.selling_accounts.events.even_handlers_acc import account_purchase_event_handler
-from src.utils.core_logger import logger
+from src.utils.core_logger import get_logger
 
 # глобальные переменные для управления задачей
 _consumer_task: asyncio.Task | None = None
@@ -19,6 +19,7 @@ _consumer_stop_event: asyncio.Event | None = None
 
 async def start_background_consumer():
     global _consumer_task, _consumer_stop_event, _consumer_start_event
+    logger = get_logger(__name__)
 
     if _consumer_task and not _consumer_task.done():
         return  # уже запущен
@@ -44,6 +45,7 @@ async def start_background_consumer():
 
 async def stop_background_consumer():
     global _consumer_task, _consumer_stop_event
+    logger = get_logger(__name__)
 
     if not _consumer_task:
         return
@@ -73,6 +75,7 @@ async def _consumer_runner(started_event: asyncio.Event, stop_event: asyncio.Eve
     При ошибке — логируем и переподключаемся через паузу.
     """
     reconnect_delay = 1.0
+    logger = get_logger(__name__)
     while not stop_event.is_set():
         try:
             await _run_single_consumer_loop(started_event, stop_event)
@@ -90,7 +93,8 @@ async def _run_single_consumer_loop(started_event: asyncio.Event, stop_event: as
     Одна сессия: соединяемся, объявляем exchange/queue/binds, регистрируем consumer и
     обрабатываем сообщения, пока stop_event не установлен.
     """
-    connection = await aio_pika.connect_robust(RABBITMQ_URL)
+    connection = await aio_pika.connect_robust(get_config().env.rabbitmq_url)
+    logger = get_logger(__name__)
     try:
         channel = await connection.channel()
         exchange = await channel.declare_exchange("events", aio_pika.ExchangeType.TOPIC, durable=True)
@@ -147,7 +151,9 @@ async def handle_event(event: dict):
             await account_purchase_event_handler(event)
 
     except aiormq.exceptions.ChannelInvalidStateError as e:
+        logger = get_logger(__name__)
         logger.error(f"Ошибка при обращении с каналом! {str(e)}")
     except Exception as e:
+        logger = get_logger(__name__)
         logger.error(f"Ошибка при обработке сообщения у RebbitMQ. Ошибка: {str(e)}")
 

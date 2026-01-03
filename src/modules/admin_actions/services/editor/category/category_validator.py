@@ -5,7 +5,7 @@ from aiogram.fsm.state import State
 from aiogram.types import Document
 
 from src.bot_actions.messages import send_message
-from src.config import MAX_DOWNLOAD_SIZE
+from src.config import get_config
 from src.modules.admin_actions.keyboards import back_in_category_kb
 from src.services.database.selling_accounts.models import AccountCategoryFull
 from src.services.database.users.models import Users
@@ -30,14 +30,14 @@ async def check_valid_file(doc: Document, user: Users, state: FSMContext, expect
         await state.set_state(set_state)
         return False
 
-    if doc.file_size > MAX_DOWNLOAD_SIZE:
+    if doc.file_size > get_config().limits.max_download_size:
         await send_message(
             user.user_id,
             get_text(
                 user.language,
                 "admins_editor_category",
                 "The file is too large. The maximum size is {max_size_file} MB. \n\nPlease send a different file"
-            ).format(extensions_list=MAX_DOWNLOAD_SIZE)
+            ).format(extensions_list=get_config().limits.max_download_size)
         )
         await state.set_state(set_state)
         return False

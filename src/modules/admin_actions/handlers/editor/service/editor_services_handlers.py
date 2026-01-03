@@ -15,7 +15,7 @@ from src.modules.admin_actions.state import GetServiceName, RenameService
 from src.services.database.selling_accounts.actions import add_account_services, update_account_service, \
     delete_account_service
 from src.services.database.users.models import Users
-from src.utils.core_logger import logger
+from src.utils.core_logger import get_logger
 from src.utils.i18n import  get_text
 
 router = Router()
@@ -132,6 +132,7 @@ async def update_service_name(message: Message, state: FSMContext, user: Users):
         except Exception:
             pass
     except Exception as e:
+        logger = get_logger(__name__)
         logger.error(f"[update_service_name] handler Ошибка: {str(e)}")
 
 

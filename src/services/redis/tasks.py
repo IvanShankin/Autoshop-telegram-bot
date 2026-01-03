@@ -4,7 +4,7 @@ import json
 import aiohttp
 import logging
 
-from src.config import FETCH_INTERVAL
+from src.config import get_config
 from src.services.redis.core_redis import get_redis
 
 # API-источники
@@ -123,4 +123,4 @@ async def start_dollar_rate_scheduler():
         except Exception as e:
             logging.error(f"Ошибка при установление курса: {str(e)}")
 
-        await asyncio.sleep(FETCH_INTERVAL)
+        await asyncio.sleep(get_config().different.fetch_interval)

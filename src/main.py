@@ -7,15 +7,20 @@ from src.services.redis.filling_redis import filling_all_redis
 from src.services.database.discounts.utils.set_not_valid import deactivate_expired_promo_codes_and_vouchers
 from src.bot_actions.bot_run import run_bot
 from src.services.redis.tasks import start_dollar_rate_scheduler
-from src.services.secrets import init_crypto_context, get_crypto_context
-from src.utils.core_logger import logger
+from src.services.secrets import init_crypto_context
+from src.config import get_config, init_config
+from src.utils.core_logger import setup_logging, get_logger
+
 
 async def on_startup():
     try:
-        get_crypto_context()
-    except RuntimeError:
         init_crypto_context()
+    except RuntimeError: # если уже есть
+        pass
 
+    init_config()
+
+    setup_logging(get_config().paths.log_file)
     await create_database()
     await filling_all_redis()
     await start_background_consumer()
@@ -31,6 +36,7 @@ async def on_shutdown():
     await stop_background_consumer()
 
 if __name__ == '__main__':
+    logger = get_logger(__name__)
     try:
         logger.info("Бот начал работу")
         asyncio.run(on_startup())

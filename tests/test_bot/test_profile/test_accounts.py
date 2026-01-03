@@ -2,7 +2,7 @@ from types import SimpleNamespace
 from datetime import datetime, timedelta, UTC
 import pytest
 
-from src.config import DT_FORMAT
+from src.config import get_config
 from src.utils.i18n import get_text
 from src.utils.pars_number import e164_to_pretty
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
@@ -128,7 +128,7 @@ async def test_get_code_acc_returns_codes_and_sends_message(
             user.language,
             'profile_messages',
             "Date: {date} \nCode: <code>{code}</code>\n\n"
-        ).format(date=date.strftime(DT_FORMAT), code=code)
+        ).format(date=date.strftime(get_config().different.dt_format), code=code)
 
     from src.modules.profile.handlers import accounts_handlers as modul
     monkeypatch.setattr(modul, "get_auth_codes", fake_get_auth_codes)

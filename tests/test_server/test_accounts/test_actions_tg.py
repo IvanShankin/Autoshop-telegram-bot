@@ -64,7 +64,6 @@ async def test_check_account_validity_true(tmp_path, monkeypatch):
     from src.services.accounts.tg import actions
     monkeypatch.setattr(actions, "decryption_tg_account", lambda account, crypto: folder_path)
     monkeypatch.setattr(actions, "TDesktop", lambda path: FakeTDesktop())
-    monkeypatch.setattr(actions, "TYPE_ACCOUNT_SERVICES", ["telegram"])
 
     acc = AccountStorage(account_storage_id=5)
     result = await check_account_validity(acc, "telegram")
@@ -92,7 +91,6 @@ async def test_check_account_validity_false(tmp_path, monkeypatch):
     from src.services.accounts.tg import actions
     monkeypatch.setattr(actions, "decryption_tg_account", lambda account, crypto: folder_path)
     monkeypatch.setattr(actions, "TDesktop", lambda path: FakeTDesktop())
-    monkeypatch.setattr(actions, "TYPE_ACCOUNT_SERVICES", ["telegram"])
 
     acc = AccountStorage(account_storage_id=6)
     result = await check_account_validity(acc, "telegram")

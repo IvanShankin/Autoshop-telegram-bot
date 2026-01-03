@@ -61,12 +61,14 @@ async def test_update_settings(create_settings):
 async def test_create_ui_image_new_record(tmp_path, monkeypatch):
     """Проверяет, что функция создаёт новую запись и файл, если key не существует."""
     from src.services.database.system.actions import create_ui_image
-    from src.utils.ui_images_data import UI_SECTIONS
+    from src.utils.ui_images_data import get_config
+
+    conf = get_config()
 
     # Подготовка
     fake_key = "banner"
     fake_data = b"test_image_bytes"
-    fake_path = UI_SECTIONS / (fake_key + '.png')
+    fake_path = conf.paths.ui_sections_dir / (fake_key + '.png')
 
     # Действие
     result = await create_ui_image(fake_key, fake_data)

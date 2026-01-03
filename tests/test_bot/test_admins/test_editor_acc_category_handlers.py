@@ -130,7 +130,7 @@ async def test_add_acc_category_name_prompts_next_language(
 
     user = await create_new_user()
 
-    # подготовим state: пустые data_name -> next_lang должен быть первым в ALLOWED_LANGS
+    # подготовим state: пустые data_name -> next_lang должен быть первым в get_config().app.allowed_langs
     state = FakeFSMContext()
     await state.update_data(
         service_id=1,
@@ -139,7 +139,7 @@ async def test_add_acc_category_name_prompts_next_language(
         data_name={},
     )
 
-    # имитируем сообщение с именем для DEFAULT_LANG
+    # имитируем сообщение с именем для get_config().app.default_lang
     msg = FakeMessage(text="My default name", chat_id=user.user_id, username=user.username)
 
     # вызов хендлера

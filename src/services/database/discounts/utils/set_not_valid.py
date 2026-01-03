@@ -8,7 +8,7 @@ from src.services.database.discounts.actions.actions_vouchers import deactivate_
 from src.services.database.discounts.models import Vouchers, PromoCodes
 from src.services.database.discounts.utils.sending import send_set_not_valid_voucher
 from src.services.database.users.actions import get_user
-from src.utils.core_logger import logger
+from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text
 from src.bot_actions.messages import send_log
 
@@ -69,5 +69,6 @@ async def deactivate_expired_promo_codes_and_vouchers(interval: int = 60):
             await _set_not_valid_promo_code()
             await _set_not_valid_vouchers()
         except Exception as e:
+            logger = get_logger(__name__)
             logger.error(f"Ошибка при деактивации промокодов/ваучеров. Ошибка: {str(e)}")
         await asyncio.sleep(interval)

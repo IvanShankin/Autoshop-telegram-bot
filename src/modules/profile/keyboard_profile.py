@@ -3,7 +3,7 @@ from math import ceil
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.config import ALLOWED_LANGS, NAME_LANGS, EMOJI_LANGS, PAGE_SIZE
+from src.config import get_config
 from src.services.keyboards.keyboard_with_pages import pagination_keyboard
 from src.services.database.discounts.actions import get_valid_voucher_by_page
 from src.services.database.discounts.actions import get_count_voucher
@@ -125,9 +125,9 @@ async def services_sold_accounts_kb(language: str, user_id: int):
 
 
 async def sold_accounts_kb(language: str, current_page: int, type_account_service_id: int, user_id: int):
-    records = await get_sold_account_by_page(user_id, type_account_service_id, current_page, language, PAGE_SIZE)
+    records = await get_sold_account_by_page(user_id, type_account_service_id, current_page, language, get_config().different.page_size)
     total = await get_count_sold_account(user_id, type_account_service_id)
-    total_pages = max(ceil(total / PAGE_SIZE), 1)
+    total_pages = max(ceil(total / get_config().different.page_size), 1)
 
     def item_button(acc):
         text = e164_to_pretty(acc.phone_number) if acc.phone_number else acc.name
@@ -237,9 +237,9 @@ def profile_settings_kb(language: str):
 def settings_language_kb(language: str):
     keyboard = InlineKeyboardBuilder()
 
-    for lang in ALLOWED_LANGS:
+    for lang in get_config().app.allowed_langs:
         is_current = (lang == language)
-        text = f"{'✔️ ' if is_current else ''}{NAME_LANGS[lang]}  {EMOJI_LANGS[lang]}"
+        text = f"{'✔️ ' if is_current else ''}{get_config().app.name_langs[lang]}  {get_config().app.emoji_langs[lang]}"
         keyboard.add(InlineKeyboardButton(text=text, callback_data=f'language_selection:{lang}'))
 
     keyboard.adjust(2)
@@ -271,9 +271,9 @@ async def wallet_transactions_kb(language: str, current_page: int, target_user_i
     :param target_user_id: Пользователь по которому будем искать.
     :param user_id: Пользователь, которому выведутся данные
     """
-    records = await get_wallet_transaction_page(target_user_id, current_page, PAGE_SIZE)
+    records = await get_wallet_transaction_page(target_user_id, current_page, get_config().different.page_size)
     total = await get_count_wallet_transaction(target_user_id)
-    total_pages = max(ceil(total / PAGE_SIZE), 1)
+    total_pages = max(ceil(total / get_config().different.page_size), 1)
 
     def item_button(t):
         return InlineKeyboardButton(
@@ -330,9 +330,9 @@ async def accrual_ref_list_kb(language: str, current_page: int, target_user_id: 
     :param target_user_id: Пользователь по которому будем искать.
     :param user_id: Пользователь, которому выведутся данные
     """
-    records = await get_referral_income_page(target_user_id, current_page, PAGE_SIZE)
+    records = await get_referral_income_page(target_user_id, current_page, get_config().different.page_size)
     total = await get_count_referral_income(target_user_id)
-    total_pages = max(ceil(total / PAGE_SIZE), 1)
+    total_pages = max(ceil(total / get_config().different.page_size), 1)
 
     def item_button(inc):
         return InlineKeyboardButton(
@@ -407,9 +407,9 @@ def replenishment_and_back_in_transfer_kb(language: str):
 
 async def all_vouchers_kb(current_page: int, target_user_id: int, user_id: int, language: str):
     """Клавиатура со списком только активных ваучеров у данного пользователя"""
-    records = await get_valid_voucher_by_page(target_user_id, current_page, PAGE_SIZE)
+    records = await get_valid_voucher_by_page(target_user_id, current_page, get_config().different.page_size)
     total = await get_count_voucher(target_user_id)
-    total_pages = max(ceil(total / PAGE_SIZE), 1)
+    total_pages = max(ceil(total / get_config().different.page_size), 1)
 
     def item_button(voucher):
         return InlineKeyboardButton(

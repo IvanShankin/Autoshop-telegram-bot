@@ -3,7 +3,7 @@ from aiogram.fsm.state import State
 from aiogram.types import CallbackQuery
 
 from src.bot_actions.messages import edit_message, send_message
-from src.config import EMOJI_LANGS, NAME_LANGS, DEFAULT_LANG
+from src.config import get_config
 from src.modules.admin_actions.keyboards import back_in_service_kb, back_in_category_update_data_kb
 from src.modules.admin_actions.state import GetDataForCategory
 from src.services.database.users.models import Users
@@ -17,7 +17,7 @@ async def name_input_prompt_by_language(user: Users, service_id: int, lang_code:
             user.language,
             "admins_editor_category",
             "Specify the category name for this language: {language}"
-        ).format(language=f'{EMOJI_LANGS[lang_code]} {NAME_LANGS[lang_code]}'),
+        ).format(language=f'{get_config().app.emoji_langs[lang_code]} {get_config().app.name_langs[lang_code]}'),
         reply_markup=back_in_service_kb(user.language, service_id)
     )
 
@@ -29,12 +29,12 @@ async def set_state_create_category(
         parent_id: int | None
 ):
     await state.clear()
-    lang_code = DEFAULT_LANG
+    lang_code = get_config().app.default_lang
 
     await state.update_data(
         service_id=service_id,
         parent_id=parent_id,
-        requested_language=DEFAULT_LANG,
+        requested_language=get_config().app.default_lang,
         data_name={},
         data_description={},
     )

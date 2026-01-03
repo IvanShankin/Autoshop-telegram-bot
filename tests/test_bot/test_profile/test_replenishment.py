@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import pytest
 
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery, FakeFSMContext
-from src.config import PAYMENT_LIFETIME_SECONDS
+from src.config import get_config
 from src.utils.i18n import get_text, n_get_text
 
 
@@ -131,11 +131,17 @@ async def test_start_replenishment_crypto_bot_success(
     user = await create_new_user()
     type_payment = await create_type_payment(name_for_admin='crypto_bot')
 
-    async def fake_create_invoice(**kwargs):
-        return "https://test-invoice"
 
-    from src.modules.profile.handlers.replenishment_handler import crypto_bot as modul
-    monkeypatch.setattr(modul,"create_invoice", fake_create_invoice)
+    def fake_get_crypto_bot():
+        class FakeCryptoBot:
+            async def create_invoice(self, **kwargs):
+                return "https://test-invoice"
+
+        return FakeCryptoBot()
+
+    from src.modules.profile.handlers import replenishment_handler
+    monkeypatch.setattr(replenishment_handler, "get_crypto_bot", fake_get_crypto_bot)
+
 
     # FSM с заранее записанным payment_id
     fsm = FakeFSMContext()
@@ -155,10 +161,10 @@ async def test_start_replenishment_crypto_bot_success(
         "pay. After the time expires, the invoice will be canceled. \n\n"
         "Amount: {origin_sum}\n"
         "Payable: {total_sum} ₽ ( + commission {percent}%)",
-        PAYMENT_LIFETIME_SECONDS // 60
+        get_config().different.payment_lifetime_seconds // 60
     ).format(
         service_name=type_payment.name_for_user,
-        minutes=PAYMENT_LIFETIME_SECONDS // 60,
+        minutes=get_config().different.payment_lifetime_seconds // 60,
         origin_sum=100,
         total_sum=100 + (100 * type_payment.commission // 100) if type_payment.commission else 100,
         percent=type_payment.commission

@@ -5,7 +5,7 @@ from aiogram.types import Message, TelegramObject
 from typing import Callable, Dict, Any, Awaitable
 
 from src.bot_actions.messages import send_message
-from src.config import DEFAULT_LANG
+from src.config import get_config
 from src.services.database.admins.actions import check_admin
 from src.services.database.system.actions import get_settings
 from src.services.database.users.actions import get_user
@@ -63,7 +63,7 @@ class MaintenanceMiddleware(BaseMiddleware):
             return await handler(event, data)
 
         user = await get_user(user_id, update_last_used=True)
-        language = user.language if user else DEFAULT_LANG
+        language = user.language if user else get_config().app.default_lang
 
         await send_message(
             user_id,

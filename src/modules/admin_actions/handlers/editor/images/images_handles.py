@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.messages import edit_message, send_message
-from src.config import MAX_SIZE_BYTES, MAX_SIZE_MB
+from src.config import get_config
 from src.modules.admin_actions.keyboards import images_list_kb, image_editor, back_in_image_editor
 from src.modules.admin_actions.schemas import GetNewImageData
 from src.modules.admin_actions.state import GetNewImage
@@ -116,12 +116,12 @@ async def change_ui_image_result(message: Message, state: FSMContext, user: User
 
     if not doc.mime_type.startswith("image/"): # Проверяем, что это действительно изображение
         text = get_text(user.language,"admins_editor_images", "This is not an image. Send it as a document")
-    elif doc.file_size > MAX_SIZE_BYTES: # Проверяем размер, известный Telegram (без скачивания)
+    elif doc.file_size > get_config().limits.max_size_bytes: # Проверяем размер, известный Telegram (без скачивания)
         text = get_text(
             user.language,
             "admins_editor_category",
             "The file is too large — maximum {max_size_mb} MB. \n\nTry again"
-        ).format(max_size_mb=MAX_SIZE_MB)
+        ).format(max_size_mb=get_config().limits.max_size_mb)
     else:
         # Получаем объект файла
         file = await message.bot.get_file(doc.file_id)

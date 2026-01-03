@@ -727,11 +727,11 @@ async def create_ui_image_factory(key: str = "main_menu", show: bool = True, fil
     """
        сохраняет запись UiImages в БД и возвращает (ui_image, abs_path).
     """
-    from src.utils.ui_images_data import UI_SECTIONS
+    from src.utils.ui_images_data import get_config
     # Подготовим директорию и файл
-    UI_SECTIONS.mkdir(parents=True, exist_ok=True)
+    conf = get_config()
 
-    file_abs = UI_SECTIONS / f"{key}.png"
+    file_abs = conf.paths.ui_sections_dir / f"{key}.png"
     file_abs.write_bytes(b"fake-image-bytes")       # создаём тестовый файл
 
     async with get_db() as session:

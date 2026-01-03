@@ -3,10 +3,9 @@ import logging
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from src.config import MAIN_ADMIN
-from src.config import TYPE_PAYMENTS, TYPE_ACCOUNT_SERVICES
+from src.config import get_config
 from src.services.database.admins.actions import create_admin
-from src.utils.ui_images_data import UI_IMAGES
+from src.utils.ui_images_data import get_ui_images
 from src.services.database.users.models import Users, NotificationSettings
 from src.services.database.system.models import Settings, TypePayments, UiImages
 from src.services.database.core.database import get_db, SQL_DB_URL, DB_NAME, POSTGRES_SERVER_URL, Base
@@ -46,13 +45,15 @@ async def create_database():
     # заполнение таблиц
     await filling_settings()
     await filling_referral_lvl()
-    await filling_admins(MAIN_ADMIN)
-    for type_payment in TYPE_PAYMENTS:
+    await filling_admins(get_config().env.main_admin)
+    for type_payment in get_config().app.type_payments:
         await filling_type_payment(type_payment)
-    for type_account_services in TYPE_ACCOUNT_SERVICES:
+    for type_account_services in get_config().app.type_account_services:
         await filling_type_account_services(type_account_services)
-    for key in UI_IMAGES:
-        await filling_ui_image(key=key, path=str(UI_IMAGES[key]))
+
+    ui_images = get_ui_images()
+    for key in ui_images:
+        await filling_ui_image(key=key, path=str(ui_images[key]))
 
 async def create_table():
     """создает таблицы в целевой базе данных"""

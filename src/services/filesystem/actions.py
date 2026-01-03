@@ -6,8 +6,8 @@ import zipfile
 from pathlib import Path
 from typing import Optional, List, AsyncGenerator
 
-from src.config import MAX_UPLOAD_FILE, TEMP_FILE_DIR
-from src.utils.core_logger import logger
+from src.config import get_config
+from src.utils.core_logger import get_logger
 
 
 
@@ -127,6 +127,7 @@ async def make_archive(data_for_archiving: str | List[str], new_path_archive: st
         # Проверяем существование каждого пути
         for p in paths:
             if not os.path.exists(p):
+                logger = get_logger(__name__)
                 logger.error(f"Ошибка: путь '{p}' не существует")
                 return False
 
@@ -142,6 +143,7 @@ async def make_archive(data_for_archiving: str | List[str], new_path_archive: st
         return True
 
     except Exception as e:
+        logger = get_logger(__name__)
         logger.exception(f"Ошибка make_archive: {e}")
         return False
 
@@ -227,11 +229,11 @@ async def split_file_on_chunk(file_path: str) -> AsyncGenerator[str, None]:
 
     with open(file_path, "rb") as f:
         while True:
-            chunk = f.read(MAX_UPLOAD_FILE)
+            chunk = f.read(get_config().limits.max_download_size)
             if not chunk:
                 break
 
-            temp_path = TEMP_FILE_DIR / f"log_file_part_{part}.log"
+            temp_path = get_config().paths.temp_file_dir / f"log_file_part_{part}.log"
             with open(temp_path, "wb") as out:
                 out.write(chunk)
 

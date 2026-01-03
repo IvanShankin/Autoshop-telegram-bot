@@ -10,7 +10,7 @@ from sqlalchemy import select, update, delete
 from sqlalchemy.orm import selectinload
 
 from src.broker.producer import publish_event
-from src.config import ACCOUNTS_DIR
+from src.config import get_config
 from src.exceptions import CategoryNotFound, NotEnoughAccounts, NotEnoughMoney
 from src.services.database.discounts.events import NewActivatePromoCode
 from src.services.database.discounts.utils.calculation import discount_calculation
@@ -32,7 +32,7 @@ from src.services.database.selling_accounts.models import ProductAccounts, SoldA
 from src.services.database.selling_accounts.models.schemas import StartPurchaseAccount
 from src.services.database.users.actions import get_user
 from src.services.database.users.models import Users
-from src.utils.core_logger import logger
+from src.utils.core_logger import get_logger
 from src.bot_actions.messages import send_log
 
 
@@ -76,7 +76,10 @@ async def purchase_accounts(
             "Пользователь пытался купить аккаунты, но ему не нашлось необходимое количество аккаунтов"
         )
         await send_log(text)
+
+        logger = get_logger(__name__)
         logger.warning(text)
+
         result = False
     else:
         data.product_accounts = valid_list # обновляем data.product_accounts на валидные
@@ -245,6 +248,7 @@ async def _delete_account(account_storage: List[ProductAccounts], type_service_n
                 )
                 await delete_product_account(bad_account.account_id)
             except Exception:
+                logger = get_logger(__name__)
                 logger.exception("Error marking bad account deleted %s", bad_account.account_storage.account_storage_id)
 
             # логируем в deleted_accounts
@@ -264,8 +268,11 @@ async def _delete_account(account_storage: List[ProductAccounts], type_service_n
                     f"Себестоимость: {category.cost_price_one_account}\n"
                 )
                 await send_log(text)
+
+                logger = get_logger(__name__)
                 logger.info(text)
             except Exception:
+                logger = get_logger(__name__)
                 logger.exception("Failed to log deleted account %s", bad_account.account_storage.account_storage_id)
 
 
@@ -284,6 +291,8 @@ async def verify_reserved_accounts(
     """
     if not product_accounts:
         return False
+
+    logger = get_logger(__name__)
 
     # 1) Подготовим list AccountStorage объектов из переданных ProductAccounts
     #    product_accounts гарантированно имеют подгруженный account_storage
@@ -492,6 +501,8 @@ async def cancel_purchase_request(
     :param product_accounts: Список orm объектов с обязательно подгруженными account_storage
     """
     user = None
+    logger = get_logger(__name__)
+
     # Попытаться вернуть временные файлы обратно (temp -> orig) если они существуют
     for orig, temp, final in mapping:
         for src in (temp, final):
@@ -598,10 +609,12 @@ async def finalize_purchase(user_id: int, data: StartPurchaseAccount):
     purchase_ids: List[int] = []
     account_movement: list[AccountsData] = []
 
+    logger = get_logger(__name__)
+
     try:
         # Подготовим перемещения в temp (вне транзакции) — НЕ изменяем DB
         for account in data.product_accounts:
-            orig = str(Path(ACCOUNTS_DIR) / account.account_storage.file_path) # полный путь
+            orig = str(Path(get_config().paths.accounts_dir) / account.account_storage.file_path) # полный путь
             final = create_path_account(
                 status="bought",
                 type_account_service=data.type_service_name,

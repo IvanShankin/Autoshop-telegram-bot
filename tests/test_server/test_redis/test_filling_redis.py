@@ -4,7 +4,7 @@ from sqlalchemy import select
 
 import src.services.redis.filling_redis as filling
 from tests.helpers.helper_functions import comparison_models
-from src.utils.ui_images_data import UI_IMAGES
+from src.utils.ui_images_data import get_ui_images
 from src.services.database.core.filling_database import filling_ui_image
 from src.services.database.discounts.models import SmallVoucher
 from src.services.database.system.models import UiImages
@@ -208,13 +208,14 @@ async def test_filling_user(create_new_user):
 @pytest.mark.asyncio
 async def test_filling_types_account_service(create_type_account_service):
     # заполняем БД
-    for key in UI_IMAGES:
-        await filling_ui_image(key=key, path=str(UI_IMAGES[key]))
+    ui_images = get_ui_images()
+    for key in ui_images:
+        await filling_ui_image(key=key, path=str(ui_images[key]))
         await filling.filling_ui_image(key) # тестируемая функция
 
     async with get_redis() as session_redis:
         async with get_db() as session_db:
-            for key, value in UI_IMAGES:
+            for key, value in ui_images:
                 result_db = await session_db.execute(select(UiImages).where(UiImages.key == key)) 
                 data_db = result_db.scalar()
 

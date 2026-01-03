@@ -3,7 +3,7 @@ from math import ceil
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.config import PAGE_SIZE
+from src.config import get_config
 from src.services.database.discounts.actions import get_valid_voucher_by_page, get_count_voucher
 from src.services.keyboards.keyboard_with_pages import pagination_keyboard
 from src.utils.i18n import get_text
@@ -33,9 +33,9 @@ def skip_expire_at_or_back_kb(language: str):
 
 async def all_admin_vouchers_kb(current_page: int, language: str):
     """Клавиатура со списком только активных ваучеров у администрации"""
-    records = await get_valid_voucher_by_page(page=current_page, page_size=PAGE_SIZE, only_created_admin=True)
+    records = await get_valid_voucher_by_page(page=current_page, page_size=get_config().different.page_size, only_created_admin=True)
     total = await get_count_voucher(by_admins=True)
-    total_pages = max(ceil(total / PAGE_SIZE), 1)
+    total_pages = max(ceil(total / get_config().different.page_size), 1)
 
     def item_button(voucher):
         valid = get_text(language, "kb_admin_panel", "Valid" if voucher.is_valid else "Not valid")

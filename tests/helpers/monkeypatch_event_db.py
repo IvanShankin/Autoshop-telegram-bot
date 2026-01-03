@@ -3,7 +3,7 @@ import importlib
 
 import pytest_asyncio
 
-from src.utils.core_logger import logger
+from src.utils.core_logger import get_logger
 
 def monkeypatch_event_db(
         monkeypatch,
@@ -42,6 +42,7 @@ def monkeypatch_event_db(
             try:
                 ev.set()
             except Exception:
+                logger = get_logger(__name__)
                 logger.error("TEST-WRAPPER: failed to set processed_event")
 
     # Патчим реализацию

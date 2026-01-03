@@ -9,10 +9,10 @@ from opentele.api import UseCurrentSession
 from opentele.td import TDesktop
 from telethon.tl.types import Message, User
 
-from src.config import TYPE_ACCOUNT_SERVICES
+from src.config import get_config
 from src.services.database.selling_accounts.models import AccountStorage
 from src.services.filesystem.account_actions import decryption_tg_account
-from src.utils.core_logger import logger
+from src.utils.core_logger import get_logger
 from src.services.secrets import get_crypto_context
 
 CODE_PATTERN = [
@@ -26,6 +26,7 @@ async def check_valid_accounts_telethon(folder_path: str) -> User | bool:
     :return: результат проверки. True - если валидный
     """
     try:
+        logger = get_logger(__name__)
         tdata_path = str(Path(folder_path) / 'tdata')
         tdesk = TDesktop(tdata_path)
 
@@ -50,7 +51,7 @@ async def check_account_validity(account_storage: AccountStorage, type_service_n
     """
     Дешифровка + проверка валидности — обёртка, возвращает True/False. Создаст временное хранилище и после удалит его
     """
-    if type_service_name not in TYPE_ACCOUNT_SERVICES:
+    if type_service_name not in get_config().app.type_account_services:
         return False
 
     temp_folder = None
@@ -62,6 +63,7 @@ async def check_account_validity(account_storage: AccountStorage, type_service_n
         is_valid = await check_valid_accounts_telethon(temp_folder)
         return bool(is_valid)
     except Exception as e:
+        logger = get_logger(__name__)
         logger.exception("Error while validating account %s: %s", getattr(account_storage, "account_storage_id", None), e)
         return False
     finally:

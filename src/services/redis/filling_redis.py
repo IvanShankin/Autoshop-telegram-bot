@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.expression import distinct
 
-from src.config import ALLOWED_LANGS
+from src.config import get_config
 from src.services.database.discounts.models import SmallVoucher
 from src.services.database.selling_accounts.models.models import AccountStorage
 from src.services.database.selling_accounts.models.schemas import SoldAccountFull, SoldAccountSmall, \
@@ -23,7 +23,7 @@ from src.services.database.referrals.models import ReferralLevels
 from src.services.redis.core_redis import get_redis
 from src.services.redis.time_storage import TIME_USER, TIME_SOLD_ACCOUNTS_BY_OWNER, TIME_SOLD_ACCOUNTS_BY_ACCOUNT, \
     TIME_ALL_VOUCHER
-from src.utils.core_logger import logger
+from src.utils.core_logger import get_logger
 
 
 async def filling_all_redis():
@@ -74,6 +74,7 @@ async def filling_all_redis():
     await filling_product_accounts_by_category_id()
     await filling_promo_code()
     await filling_vouchers()
+    logger = get_logger(__name__)
     logger.info("Redis filling successfully")
 
 
@@ -284,7 +285,7 @@ async def filling_account_categories_by_service_id():
                 for category in account_categories:
                     for translate in category.translations:
                         lang = translate.lang
-                        if lang and lang in ALLOWED_LANGS:
+                        if lang and lang in get_config().app.allowed_langs:
                             langs_set.add(lang)
 
                 if not langs_set:
@@ -343,7 +344,7 @@ async def filling_account_categories_by_category_id():
                         lang = translate.lang
                         if not lang:
                             continue
-                        if lang not in ALLOWED_LANGS:
+                        if lang not in get_config().app.allowed_langs:
                             continue
                         if lang not in langs:
                             langs.append(lang)

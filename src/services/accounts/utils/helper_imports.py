@@ -4,7 +4,7 @@ from src.exceptions import TypeAccountServiceNotFound
 from src.services.accounts.shemas import HasPhone
 from src.services.database.selling_accounts.actions import get_all_types_account_service, \
     get_all_phone_in_account_storage
-from src.utils.core_logger import logger
+from src.utils.core_logger import get_logger
 from src.utils.pars_number import phone_in_e164
 
 
@@ -40,6 +40,7 @@ async def get_unique_among_db(
     for acc_data in account_data:
         # преобразовываем номер т.к. такой формат хранится в БД
         if phone_in_e164(acc_data.phone) in numbers_in_db:
+            logger = get_logger(__name__)
             logger.info(f"[get_unique_among_db] - Найден дублик аккаунта: {acc_data.phone}")
             duplicate_items.append(acc_data)
         else:

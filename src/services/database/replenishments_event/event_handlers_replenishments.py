@@ -2,7 +2,7 @@ from datetime import datetime
 from sqlalchemy import update, select
 
 from src.broker.producer import publish_event
-from src.config import DT_FORMAT, DEFAULT_LANG
+from src.config import get_config
 from src.services.database.users.actions import update_user, get_user
 from src.services.database.users.models import WalletTransaction, UserAuditLogs, Replenishments
 from src.services.database.core.database import get_db
@@ -10,7 +10,7 @@ from src.services.database.replenishments_event.schemas import NewReplenishment
 from src.utils.i18n import  get_text, n_get_text
 from src.modules.keyboard_main import support_kb
 from src.services.database.replenishments_event.schemas import ReplenishmentCompleted, ReplenishmentFailed
-from src.utils.core_logger import logger
+from src.utils.core_logger import get_logger
 from src.bot_actions.messages import send_log, send_message
 
 
@@ -95,6 +95,7 @@ async def handler_new_replenishment(new_replenishment: NewReplenishment):
 
         error = False
     except Exception as e:
+        logger = get_logger(__name__)
         logger.error(
             f"\n#Ошибка_пополнения Произошла ошибка при пополнении 'handler_new_replenishment'. \n"
             f"Флаг обновлённого баланса: {money_credited}. \n"
@@ -159,7 +160,7 @@ async def on_replenishment_completed(event: ReplenishmentCompleted):
 
     if not event.error:
         message_log = n_get_text(
-            DEFAULT_LANG,
+            get_config().app.default_lang,
             "replenishment",
             "#Replenishment \n\nUser {username} successfully topped up the balance by {sum} ruble. \n"
             "Replenishment ID: {replenishment_id} \n\n"
@@ -172,11 +173,11 @@ async def on_replenishment_completed(event: ReplenishmentCompleted):
             username=event.username,
             sum=event.amount,
             replenishment_id=event.replenishment_id,
-            time=datetime.now().strftime(DT_FORMAT)
+            time=datetime.now().strftime(get_config().different.dt_format)
         )
     else:
         message_log = get_text(
-            DEFAULT_LANG,
+            get_config().app.default_lang,
             'replenishment',
             "#Replenishment_error \n\nUser {username} Paid money, balance updated, but an error occurred inside the server. \n"
             "Replenishment ID: {replenishment_id}.\nError: {error} \n\nTime: {time}"
@@ -184,7 +185,7 @@ async def on_replenishment_completed(event: ReplenishmentCompleted):
             username=event.username,
             replenishment_id=event.replenishment_id,
             error=str(event.error_str),
-            time=datetime.now().strftime(DT_FORMAT)
+            time=datetime.now().strftime(get_config().different.dt_format)
         )
 
     await send_log(message_log)
@@ -202,7 +203,7 @@ async def on_replenishment_failed(event: ReplenishmentFailed):
     await send_message(event.user_id, message_for_user, reply_markup=await support_kb(event.language))
 
     message_log = get_text(
-        DEFAULT_LANG,
+        get_config().app.default_lang,
         "replenishment",
         "#Replenishment_error \n\nUser {username} Paid money, but the balance was not updated. \n"
         "Replenishment ID: {replenishment_id}. \nError: {error} \n\nTime: {time}"
@@ -210,7 +211,7 @@ async def on_replenishment_failed(event: ReplenishmentFailed):
         username=event.username,
         replenishment_id=event.replenishment_id,
         error=str(event.error_str),
-        time=datetime.now().strftime(DT_FORMAT)
+        time=datetime.now().strftime(get_config().different.dt_format)
     )
 
     await send_log(message_log)

@@ -26,7 +26,7 @@ class TestSendMessage:
         from src.bot_actions.messages import send_message
         fake_bot = replacement_fake_bot_fix
 
-        # Подготовим подмену MEDIA_DIR, чтобы send_message открыл файл по правильному пути
+        # Подготовим подмену get_config().paths.media_dir, чтобы send_message открыл файл по правильному пути
         media_dir = tmp_path / "media"
         ui_sections = media_dir / "ui_sections"
         ui_sections.mkdir(parents=True, exist_ok=True)

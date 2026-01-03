@@ -1,9 +1,7 @@
-from src.config import MEDIA_DIR
+from src.config import get_config
 from io import BytesIO
 from PIL import Image
 
-
-UI_SECTIONS = MEDIA_DIR / "ui_sections"
 
 
 def get_default_image_bytes(color: str = "white", size: tuple[int, int] = (500, 500)) -> bytes:
@@ -16,75 +14,76 @@ def get_default_image_bytes(color: str = "white", size: tuple[int, int] = (500, 
     img.save(buf, format="PNG")
     return buf.getvalue()
 
+def get_ui_images():
+    ui_sections = get_config().paths.ui_sections_dir
+    return {
+        # Начальные экраны
+        "welcome_message": ui_sections / "welcome_message.png",
+        "selecting_language": ui_sections / "selecting_language.png",
+        "subscription_prompt": ui_sections / "subscription_prompt.png",
 
-UI_IMAGES = {
-    # Начальные экраны
-    "welcome_message": UI_SECTIONS / "welcome_message.png",
-    "selecting_language": UI_SECTIONS / "selecting_language.png",
-    "subscription_prompt": UI_SECTIONS / "subscription_prompt.png",
+        # Основные разделы профиля
+        "profile": ui_sections / "profile.png",
+        "profile_settings": ui_sections / "profile_settings.png",
+        "notification_settings": ui_sections / "notification_settings.png",
 
-    # Основные разделы профиля
-    "profile": UI_SECTIONS / "profile.png",
-    "profile_settings": UI_SECTIONS / "profile_settings.png",
-    "notification_settings": UI_SECTIONS / "notification_settings.png",
+        # аккаунты (профиль)
+        "purchased_accounts": ui_sections / "purchased_accounts.png",
 
-    # аккаунты (профиль)
-    "purchased_accounts": UI_SECTIONS / "purchased_accounts.png",
+        # История операций
+        "history_transections": ui_sections / "history_transections.png",
+        "history_income_from_referrals": ui_sections / "history_income_from_referrals.png",
 
-    # История операций
-    "history_transections": UI_SECTIONS / "history_transections.png",
-    "history_income_from_referrals": UI_SECTIONS / "history_income_from_referrals.png",
+        # Реферальная система
+        "ref_system": ui_sections / "ref_system.png",
+        "new_referral": ui_sections / "new_referral.png",
 
-    # Реферальная система
-    "ref_system": UI_SECTIONS / "ref_system.png",
-    "new_referral": UI_SECTIONS / "new_referral.png",
+        # Перевод средств
+        "balance_transfer": ui_sections / "balance_transfer.png",
+        "enter_amount": ui_sections / "enter_amount.png",
+        "enter_user_id": ui_sections / "enter_user_id.png",
+        "confirm_the_data": ui_sections / "confirm_the_data.png",
+        "successful_transfer": ui_sections / "successful_transfer.png",
+        "receiving_funds_from_transfer": ui_sections / "receiving_funds_from_transfer.png",
 
-    # Перевод средств
-    "balance_transfer": UI_SECTIONS / "balance_transfer.png",
-    "enter_amount": UI_SECTIONS / "enter_amount.png",
-    "enter_user_id": UI_SECTIONS / "enter_user_id.png",
-    "confirm_the_data": UI_SECTIONS / "confirm_the_data.png",
-    "successful_transfer": UI_SECTIONS / "successful_transfer.png",
-    "receiving_funds_from_transfer": UI_SECTIONS / "receiving_funds_from_transfer.png",
+        # Ваучеры
+        "enter_number_activations_for_voucher": ui_sections / "enter_number_activations_for_voucher.png",
+        "successful_create_voucher": ui_sections / "successful_create_voucher.png",
+        "successfully_activate_voucher": ui_sections / "successfully_activate_voucher.png",
+        "unsuccessfully_activate_voucher": ui_sections / "unsuccessfully_activate_voucher.png",
+        "viewing_vouchers": ui_sections / "viewing_vouchers.png",
+        "confirm_deactivate_voucher": ui_sections / "confirm_deactivate_voucher.png",
+        "voucher_successful_deactivate": ui_sections / "voucher_successful_deactivate.png",
 
-    # Ваучеры
-    "enter_number_activations_for_voucher": UI_SECTIONS / "enter_number_activations_for_voucher.png",
-    "successful_create_voucher": UI_SECTIONS / "successful_create_voucher.png",
-    "successfully_activate_voucher": UI_SECTIONS / "successfully_activate_voucher.png",
-    "unsuccessfully_activate_voucher": UI_SECTIONS / "unsuccessfully_activate_voucher.png",
-    "viewing_vouchers": UI_SECTIONS / "viewing_vouchers.png",
-    "confirm_deactivate_voucher": UI_SECTIONS / "confirm_deactivate_voucher.png",
-    "voucher_successful_deactivate": UI_SECTIONS / "voucher_successful_deactivate.png",
+        # Ошибки
+        "insufficient_funds": ui_sections / "insufficient_funds.png", # недостаточно средств
+        "incorrect_data_entered": ui_sections / "incorrect_data_entered.png",
+        "user_no_found": ui_sections / "user_no_found.png",
+        "server_error": ui_sections / "server_error.png",
 
-    # Ошибки
-    "insufficient_funds": UI_SECTIONS / "insufficient_funds.png", # недостаточно средств
-    "incorrect_data_entered": UI_SECTIONS / "incorrect_data_entered.png",
-    "user_no_found": UI_SECTIONS / "user_no_found.png",
-    "server_error": UI_SECTIONS / "server_error.png",
+        # Пополнение
+        "show_all_services_replenishments": ui_sections / "show_all_services_replenishments.png",
+        "request_enter_amount": ui_sections / "request_enter_amount.png",
+        "pay": ui_sections / "pay.png", # успешная оплата при пополнении
 
-    # Пополнение
-    "show_all_services_replenishments": UI_SECTIONS / "show_all_services_replenishments.png",
-    "request_enter_amount": UI_SECTIONS / "request_enter_amount.png",
-    "pay": UI_SECTIONS / "pay.png", # успешная оплата при пополнении
+        # каталог
+        "main_catalog": ui_sections / "main_catalog.png",
+        "default_catalog_account": ui_sections / "default_catalog_account.png",
+        "account_catalog": ui_sections / "account_catalog.png",
+        "confirm_purchase": ui_sections / "confirm_purchase.png",
+        "successful_purchase": ui_sections / "successful_purchase.png",
 
-    # каталог
-    "main_catalog": UI_SECTIONS / "main_catalog.png",
-    "default_catalog_account": UI_SECTIONS / "default_catalog_account.png",
-    "account_catalog": UI_SECTIONS / "account_catalog.png",
-    "confirm_purchase": UI_SECTIONS / "confirm_purchase.png",
-    "successful_purchase": UI_SECTIONS / "successful_purchase.png",
+        # промокод
+        "entering_promo_code": ui_sections / "entering_promo_code.png",
 
-    # промокод
-    "entering_promo_code": UI_SECTIONS / "entering_promo_code.png",
+        # админ панель
+        "admin_panel": ui_sections / "admin_panel.png",
+        "info_add_accounts": ui_sections / "info_add_accounts.png",
+        "example_csv": ui_sections / "example_csv.png",
 
-    # админ панель
-    "admin_panel": UI_SECTIONS / "admin_panel.png",
-    "info_add_accounts": UI_SECTIONS / "info_add_accounts.png",
-    "example_csv": UI_SECTIONS / "example_csv.png",
+        # тех работы
+        "technical_work": ui_sections / "technical_work.png",
 
-    # тех работы
-    "technical_work": UI_SECTIONS / "technical_work.png",
-
-}
+    }
 
 UI_IMAGES_IGNORE_ADMIN = ["info_add_accounts", "example_csv"]

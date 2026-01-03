@@ -1,7 +1,7 @@
 import pytest
 from types import SimpleNamespace
 
-from src.config import DEFAULT_LANG
+from src.config import get_config
 from src.utils.i18n import get_text
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
 

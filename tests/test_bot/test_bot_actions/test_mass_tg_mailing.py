@@ -160,7 +160,6 @@ async def test_broadcast_success_flow(
         admin_id=admin_user.user_id,
         photo_path=None,
         button_url=None,
-        concurrency=2,
     ):
         results.append((uid, ok, exc))
 
@@ -210,7 +209,6 @@ async def test_broadcast_partial_fail(
     async for uid, ok, exc in broadcast_message_generator(
         text="test",
         admin_id=admin_user.user_id,
-        concurrency=3
     ):
         results.append((uid, ok, exc))
 

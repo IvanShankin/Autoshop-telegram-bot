@@ -11,6 +11,7 @@ import pytest_asyncio
 from dotenv import load_dotenv
 
 from src.bot_actions.throttler import RateLimiter
+from src.config import get_config, set_config
 from src.services.secrets import init_crypto_context
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeBot
 from src.services.redis import core_redis
@@ -38,7 +39,7 @@ async def replacement_redis(monkeypatch):
 
 
 def replacement_fake_bot(monkeypatch):
-    from src.config import RATE_SEND_MSG_LIMIT
+    from src.config import get_config
     # очищаем бота
     fake_bot.clear()
 
@@ -57,7 +58,7 @@ def replacement_fake_bot(monkeypatch):
     async def run_bot():
         return fake_bot, None
 
-    fake_module.GLOBAL_RATE_LIMITER = RateLimiter(max_calls=RATE_SEND_MSG_LIMIT, period=1.0)
+    fake_module.GLOBAL_RATE_LIMITER = RateLimiter(max_calls=get_config().different.rate_send_msg_limit, period=1.0)
 
     fake_module.get_bot = fake_get_bot
     fake_module.get_dispatcher = get_dispatcher
@@ -85,16 +86,15 @@ def replacement_fake_bot(monkeypatch):
     return fake_bot
 
 
-def replacement_pyth_account(monkeypatch):
-    from src import config
-    from src.services.database.selling_accounts.actions import action_purchase
-    from src.services.filesystem import account_actions
+def replacement_pyth_account():
+    conf = get_config()
 
-    new_account_dir = config.MEDIA_DIR / "accounts_test"
+    new_account_dir = get_config().paths.media_dir / "accounts_test"
+    conf.paths.accounts_dir = new_account_dir
 
-    monkeypatch.setattr(config, 'ACCOUNTS_DIR', new_account_dir)
-    monkeypatch.setattr(action_purchase, 'ACCOUNTS_DIR', new_account_dir)
-    monkeypatch.setattr(account_actions, 'ACCOUNTS_DIR', new_account_dir)
+    set_config(conf)
+
+    os.makedirs(new_account_dir, exist_ok=True)
 
     yield
 
@@ -102,13 +102,15 @@ def replacement_pyth_account(monkeypatch):
         shutil.rmtree(new_account_dir) # удаляет директорию созданную для тестов
 
 
-def replacement_pyth_ui_image(monkeypatch, tmp_path):
-    from src.services.database.system.actions import actions as actions_modul
-    from src.utils import ui_images_data
+def replacement_pyth_ui_image(tmp_path):
+    conf = get_config()
 
     new_ui_section_dir = tmp_path / "ui_sections_test"
-    monkeypatch.setattr(actions_modul, "UI_SECTIONS", new_ui_section_dir)
-    monkeypatch.setattr(ui_images_data, "UI_SECTIONS", new_ui_section_dir)
+    conf.paths.ui_sections_dir = new_ui_section_dir
+
+    os.makedirs(new_ui_section_dir, exist_ok=True)
+
+    set_config(conf)
 
     yield
 
@@ -116,11 +118,15 @@ def replacement_pyth_ui_image(monkeypatch, tmp_path):
         shutil.rmtree(new_ui_section_dir)  # удаляет директорию созданную для тестов
 
 
-def replacement_pyth_sent_mass_msg_image(monkeypatch, tmp_path):
-    from src.bot_actions.messages import mass_tg_mailing as messages_modul
+def replacement_pyth_sent_mass_msg_image(tmp_path):
+    conf = get_config()
 
     new_sent_mass_msg_dir = tmp_path / "sent_mass_msg_image_test"
-    monkeypatch.setattr(messages_modul, "SENT_MASS_MSG_IMAGE_DIR", new_sent_mass_msg_dir)
+    conf.paths.sent_mass_msg_image_dir = new_sent_mass_msg_dir
+
+    os.makedirs(new_sent_mass_msg_dir, exist_ok=True)
+
+    set_config(conf)
 
     yield
 
@@ -138,6 +144,11 @@ async def create_crypto_context_fix():
         pass
 
 
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def set_need_config():
+    conf = get_config()
 
+    conf.app.type_account_services = ["telegram"]
 
+    set_config(conf)
 

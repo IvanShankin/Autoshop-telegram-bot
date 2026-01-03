@@ -4,7 +4,7 @@ import pytest
 from orjson import orjson
 from sqlalchemy import delete, select, update
 
-from src.config import PAGE_SIZE
+from src.config import get_config
 from src.services.database.admins.models import AdminActions
 from src.services.database.discounts.actions.actions_promo import get_promo_code_by_page, get_count_promo_codes, \
     deactivate_promo_code
@@ -342,7 +342,7 @@ async def test_get_promo_code_by_page(create_promo_code):
 
     result_pomo_code = await get_promo_code_by_page(page=1)
 
-    for i in range(PAGE_SIZE):
+    for i in range(get_config().different.page_size):
         assert result_pomo_code[i].to_dict() in  promo_codes
 
 

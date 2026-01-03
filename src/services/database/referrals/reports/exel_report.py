@@ -2,7 +2,7 @@ import io
 from datetime import datetime
 import pandas as pd
 
-from src.config import DT_FORMAT
+from src.config import get_config
 from src.services.database.referrals.actions import get_all_referrals, get_referral_income_page
 from src.services.database.users.actions import get_user
 from src.utils.i18n import get_text
@@ -12,7 +12,7 @@ def _strip_tz(value: datetime) -> str:
     """Убирает timezone из datetime, если есть и преобразует в строку"""
     if isinstance(value, datetime) and value.tzinfo is not None:
         value = value.replace(tzinfo=None)
-    return value.strftime(DT_FORMAT)
+    return value.strftime(get_config().different.dt_format)
 
 
 async def generate_referral_report_excel(owner_user_id: int, language: str) -> bytes:
@@ -66,7 +66,7 @@ async def generate_referral_report_excel(owner_user_id: int, language: str) -> b
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         # блок 1 - служебная информация
         info_df = pd.DataFrame([
-            [get_text(language, 'referral_report', 'Export date'), datetime.now().strftime(DT_FORMAT)],
+            [get_text(language, 'referral_report', 'Export date'), datetime.now().strftime(get_config().different.dt_format)],
             [get_text(language, 'referral_report', 'Owner ID'), owner_user_id],
             [get_text(language, 'referral_report', 'Total referrals'), total_referrals],
             [get_text(language, 'referral_report', 'Total income'), total_income],

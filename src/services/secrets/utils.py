@@ -7,6 +7,7 @@ import warnings
 from pathlib import Path
 from argon2.low_level import hash_secret_raw, Type
 
+from src.services.secrets.runtime import get_runtime
 
 SALT = b"QJ\t\x11\xae\x94\x08\xb2\nP\x9fC\x87xpW"
 
@@ -17,9 +18,8 @@ def read_secret(prompt: str, name: str) -> str:
     В реальном терминале используется getpass.
     В IDE используется метод input() с предупреждением.
     """
-
-    mode = os.getenv("MODE")
-    if mode == "TEST":
+    runtime = get_runtime()
+    if runtime.mode == "TEST":
         try:
             return os.getenv("MODE")
         except KeyError:

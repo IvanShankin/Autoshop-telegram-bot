@@ -1,14 +1,14 @@
 import json
+from typing import Optional
 
 from aiocryptopay import AioCryptoPay, Networks
 
 from src.bot_actions.messages import send_log
-from src.services.secrets.secret_conf import get_secret_conf
-from src.config import PAYMENT_LIFETIME_SECONDS
+from src.config import get_config
 from src.services.database.replenishments_event.schemas import NewReplenishment
 from src.services.database.users.actions import create_replenishment, update_replenishment
 from src.services.redis.core_redis import get_redis
-from src.utils.core_logger import logger
+from src.utils.core_logger import get_logger
 
 
 class CryptoPayService:
@@ -46,7 +46,7 @@ class CryptoPayService:
                 currency_type='fiat',
                 fiat="USD",
                 payload=json.dumps(new_replenishment.model_dump()), # поменять
-                expires_in=PAYMENT_LIFETIME_SECONDS
+                expires_in=get_config().different.payment_lifetime_seconds
             )
             # обновление в БД
             await update_replenishment(
@@ -64,6 +64,7 @@ class CryptoPayService:
                 f"Сумма в рублях: {amount_rub}\n"
                 f"Сумма в долларах: {amount_usd}\n"
             )
+            logger = get_logger(__name__)
             logger.error(text)
             await send_log(text)
 
@@ -73,4 +74,13 @@ class CryptoPayService:
                 status='error',
             )
 
-crypto_bot = CryptoPayService(token=get_secret_conf().TOKEN_CRYPTO_BOT,  testnet=False)
+
+_crypto_bot: Optional[CryptoPayService] = None
+
+
+def get_crypto_bot() -> CryptoPayService:
+    global _crypto_bot
+    if _crypto_bot is None:
+        _crypto_bot = CryptoPayService(token=get_config().secrets.token_crypto_bot,  testnet=False)
+
+    return _crypto_bot

@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.config import SOLID_LINE
+from src.config import get_config
 from src.services.database.selling_accounts.actions import get_all_account_services, get_all_types_account_service, \
     get_account_categories_by_parent_id
 from src.utils.i18n import get_text
@@ -15,7 +15,7 @@ async def all_services_account_admin_kb(language: str):
     for ser in services:
         keyboard.add(InlineKeyboardButton(text=str(ser.name), callback_data=f'show_service_acc_admin:{ser.account_service_id}'))
 
-    keyboard.add(InlineKeyboardButton(text=SOLID_LINE, callback_data='none'))
+    keyboard.add(InlineKeyboardButton(text=get_config().app.solid_line, callback_data='none'))
     keyboard.add(InlineKeyboardButton(text=get_text(language, "kb_admin_panel",'Add'), callback_data=f'add_account_service'))
     keyboard.add(InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'admin_panel'))
     keyboard.adjust(1)
@@ -30,7 +30,7 @@ async def show_service_acc_admin_kb(language: str, current_show: bool, current_i
         keyboard.row(
             InlineKeyboardButton(text=str(cat.name), callback_data=f'show_acc_category_admin:{cat.account_category_id}'))
 
-    keyboard.row(InlineKeyboardButton(text=SOLID_LINE, callback_data='none'))
+    keyboard.row(InlineKeyboardButton(text=get_config().app.solid_line, callback_data='none'))
     keyboard.row(InlineKeyboardButton(
         text=get_text(language, "kb_admin_panel","Add Category"),
         callback_data=f'add_main_acc_category:{service_id}')

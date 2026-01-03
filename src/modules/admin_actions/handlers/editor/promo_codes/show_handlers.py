@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
 from src.bot_actions.messages import edit_message
-from src.config import DT_FORMAT
+from src.config import get_config
 from src.modules.admin_actions.keyboards import admin_promo_kb, all_admin_promo_kb, \
     back_in_all_admin_promo_kb, show_admin_promo_kb
 from src.services.database.discounts.actions import get_promo_code
@@ -75,8 +75,8 @@ async def show_admin_promo(callback: CallbackQuery, user: Users):
                 number_of_activations=(promo_code.number_of_activations if promo_code.number_of_activations else
                                         get_text(user.language, "admins_editor_promo_codes", "unlimited")),
                 activated_counter=promo_code.activated_counter,
-                start_at=promo_code.start_at.strftime(DT_FORMAT),
-                expire_at=(promo_code.expire_at.strftime(DT_FORMAT) if promo_code.expire_at else
+                start_at=promo_code.start_at.strftime(get_config().different.dt_format),
+                expire_at=(promo_code.expire_at.strftime(get_config().different.dt_format) if promo_code.expire_at else
                            get_text(user.language, "admins_editor_promo_codes", "endlessly"))
             )
         reply_markup = show_admin_promo_kb(

@@ -2,7 +2,7 @@ from aiogram.types import CallbackQuery
 
 from src.bot_actions.messages import edit_message
 from src.bot_actions.bot_instance import get_bot
-from src.config import DT_FORMAT
+from src.config import get_config
 from src.modules.profile.keyboard_profile import back_in_wallet_transactions_kb, back_in_accrual_ref_list_kb
 from src.services.database.discounts.actions import get_valid_voucher_by_page
 from src.services.database.referrals.actions import get_referral_lvl
@@ -70,7 +70,7 @@ async def message_show_transaction(
         amount=transaction.amount,
         balance_before=transaction.balance_before,
         balance_after=transaction.balance_after,
-        created_at=transaction.created_at.strftime(DT_FORMAT),
+        created_at=transaction.created_at.strftime(get_config().different.dt_format),
     )
 
     await edit_message(
@@ -102,7 +102,7 @@ async def message_income_ref(
         username=username,
         amount=income.amount,
         percentage_of_replenishment=income.percentage_of_replenishment,
-        date=income.created_at.strftime(DT_FORMAT),
+        date=income.created_at.strftime(get_config().different.dt_format),
     )
 
     await edit_message(

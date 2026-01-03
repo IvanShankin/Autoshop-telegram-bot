@@ -4,7 +4,7 @@ import tempfile
 from pathlib import Path
 from typing import List, AsyncGenerator, Any, Tuple
 
-from src.config import ACCOUNTS_DIR
+from src.config import get_config
 from src.exceptions import ArchiveNotFount, DirNotFount
 from src.services.accounts.utils.helper_imports import get_unique_among_db
 from src.services.database.selling_accounts.actions import add_account_storage, add_product_account, \
@@ -14,7 +14,7 @@ from src.services.filesystem.input_account import encrypted_tg_account, cleanup_
 from src.services.accounts.tg.actions import check_valid_accounts_telethon
 from src.services.accounts.tg.shemas import ArchiveProcessingResult, ArchivesBatchResult, BaseAccountProcessingResult, \
      DirsBatchResult, ImportResult
-from src.utils.core_logger import logger
+from src.utils.core_logger import get_logger
 
 # ограничиваем число параллельных обработок
 SEM = asyncio.Semaphore(7)
@@ -121,7 +121,7 @@ async def import_in_db(
         )
 
         # Полный путь к будущему зашифрованному файлу
-        dest_path = ACCOUNTS_DIR / acc.file_path
+        dest_path = get_config().paths.accounts_dir / acc.file_path
 
         #  шифруем
         enc = await encrypted_tg_account(
@@ -180,6 +180,7 @@ async def split_unique_and_duplicates(
         )
 
         if duplicate:
+            logger = get_logger(__name__)
             logger.info(f"[split_unique_and_duplicates] - Найден дубликат аккаунта: {item.dir_path}")
             duplicate_items.append(item)
             continue
@@ -208,6 +209,7 @@ async def process_inappropriate_acc(inappropriate_items, archive_dir):
             # теперь архивируем ЭТУ копию
             await make_archive(str(dst), str(dst.with_suffix(".zip")))
         except Exception as e:
+            logger = get_logger(__name__)
             logger.exception("Ошибка при архивировании неподходящего аккаунта", exc_info=e)
 
 
@@ -216,6 +218,7 @@ async def process_archives_batch(directory: str) -> ArchivesBatchResult:
     if not archives:
         raise ArchiveNotFount()
 
+    logger = get_logger(__name__)
     logger.info(f"Найдено архивов: {len(archives)}")
 
     tasks = [asyncio.create_task(process_single_archive(path)) for path in archives]
@@ -246,6 +249,7 @@ async def process_dirs_batch(directory: str) -> DirsBatchResult:
     fixed: List[BaseAccountProcessingResult] = []
     for r in results:
         if isinstance(r, Exception):
+            logger = get_logger(__name__)
             logger.exception("Ошибка при обработке директории", exc_info=r)
         else:
             fixed.append(r)
@@ -255,6 +259,7 @@ async def process_dirs_batch(directory: str) -> DirsBatchResult:
 
 async def process_single_dir(directory: str) -> BaseAccountProcessingResult:
     result = BaseAccountProcessingResult(valid=False, dir_path=directory)
+    logger = get_logger(__name__)
 
     try:
         user = await check_valid_accounts_telethon(directory)
@@ -284,6 +289,7 @@ async def process_single_archive(archive_path: str) -> ArchiveProcessingResult:
 
     async with SEM:
         try:
+            logger = get_logger(__name__)
             logger.info(f"Обработка архива: {archive_path}")
 
             temp_dir = await extract_archive_to_temp(archive_path)

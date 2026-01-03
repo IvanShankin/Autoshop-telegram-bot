@@ -9,7 +9,7 @@ from sqlalchemy import select, update
 from sqlalchemy import MetaData, Table
 
 from src.broker.producer import publish_event
-from src.config import DT_FORMAT, DEFAULT_LANG
+from src.config import get_config
 from src.services.database.discounts.models import Vouchers
 from src.services.database.selling_accounts.events.schemas import NewPurchaseAccount, AccountsData
 from src.services.database.system.actions import get_settings, update_settings
@@ -183,7 +183,7 @@ class TestHandlerNewReplenishment:
 
         # лог
         message_log = get_text(
-            DEFAULT_LANG,
+            get_config().app.default_lang,
             'replenishment',
             "#Replenishment_error \n\nUser {username} Paid money, balance updated, but an error occurred inside the server. \n"
             "Replenishment ID: {replenishment_id}.\nError: {error} \n\nTime: {time}"
@@ -191,7 +191,7 @@ class TestHandlerNewReplenishment:
             username=f'@{user.username}',
             replenishment_id=new_replenishment.replenishment_id,
             error="",
-            time=datetime.now().strftime(DT_FORMAT),
+            time=datetime.now().strftime(get_config().different.dt_format),
         )
 
         assert fake_bot.check_str_in_messages(message_log[:100])
@@ -253,7 +253,7 @@ class TestHandlerNewReplenishment:
             username=user.username,
             sum=amount,
             replenishment_id=replenishment_id,
-            time=datetime.now().strftime(DT_FORMAT)
+            time=datetime.now().strftime(get_config().different.dt_format)
         )
 
         assert fake_bot.check_str_in_messages(message_log[:100])
@@ -307,7 +307,7 @@ class TestHandlerNewReplenishment:
             username=user.username,
             replenishment_id=replenishment_id,
             error=error_text,
-            time=datetime.now().strftime(DT_FORMAT)
+            time=datetime.now().strftime(get_config().different.dt_format)
         )
 
         assert fake_bot.check_str_in_messages(message_log[:100])
@@ -474,7 +474,7 @@ class TestHandlerNewIncomeRef:
             "An error occurred while sending a message about replenishing funds to the referral owner. \n"
             "Error: {error}. \n\n"
             "Time: {time}"
-        ).format(error=error_text, time=datetime.now().strftime(DT_FORMAT))
+        ).format(error=error_text, time=datetime.now().strftime(get_config().different.dt_format))
 
         assert fake_bot.check_str_in_messages(message_log[:100]), "Лог об ошибке рефералки не был отправлен"
 

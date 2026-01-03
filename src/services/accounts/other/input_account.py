@@ -8,7 +8,7 @@ from src.services.accounts.other.shemas import AccountImportData, ImportResult, 
 from src.services.accounts.utils.helper_imports import get_unique_among_db
 from src.services.database.selling_accounts.actions import add_account_storage, add_product_account
 from src.services.filesystem.input_account import make_csv_bytes
-from src.utils.core_logger import logger
+from src.utils.core_logger import get_logger
 from src.services.secrets import encrypt_text, make_account_key, get_crypto_context
 
 
@@ -148,6 +148,7 @@ async def import_in_db(
             raise
         except Exception as e:
             message_log = f"#Ошибка при добавлении other аккаунта в БД: {str(e)}"
+            logger = get_logger(__name__)
             logger.exception(message_log)
             await send_log(message_log)
             errors_added.append(account)

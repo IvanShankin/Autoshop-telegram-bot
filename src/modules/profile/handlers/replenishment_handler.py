@@ -4,13 +4,13 @@ from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.messages import edit_message, send_message
 from src.bot_actions.checking_data import checking_correctness_number
-from src.config import PAYMENT_LIFETIME_SECONDS, MIN_MAX_REPLENISHMENT
+from src.config import get_config
 from src.modules.profile.keyboard_profile import type_replenishment_kb, back_in_type_replenishment_kb, payment_invoice
 from src.modules.profile.schemas.replenishment import GetAmountData
 from src.modules.profile.state.replenishment import GetAmount
 from src.services.database.system.actions.actions import get_type_payment
 from src.services.database.users.models import Users
-from src.services.payments.crypto_bot.client import crypto_bot
+from src.services.payments.crypto_bot.client import get_crypto_bot
 from src.utils.i18n import get_text, n_get_text
 
 router_with_repl_kb = Router()
@@ -90,15 +90,15 @@ async def start_replenishment(message: Message, state: FSMContext, user: Users):
 
     total_amount = user_data.amount + (user_data.amount * type_payment.commission // 100) if type_payment.commission else user_data.amount
 
-    if (MIN_MAX_REPLENISHMENT[type_payment.name_for_admin]['min'] > total_amount or
-        MIN_MAX_REPLENISHMENT[type_payment.name_for_admin]['max'] < total_amount):
+    if (get_config().app.min_max_replenishment[type_payment.name_for_admin]['min'] > total_amount or
+        get_config().app.min_max_replenishment[type_payment.name_for_admin]['max'] < total_amount):
         text = get_text(
             user.language,
             'profile_messages',
             "Incorrect amount entered. \n\nMaximum: {amount_max} \nMinimum: {amount_min}"
         ).format(
-            amount_max=MIN_MAX_REPLENISHMENT[type_payment.name_for_admin]['max'],
-            amount_min=MIN_MAX_REPLENISHMENT[type_payment.name_for_admin]['min']
+            amount_max=get_config().app.min_max_replenishment[type_payment.name_for_admin]['max'],
+            amount_min=get_config().app.min_max_replenishment[type_payment.name_for_admin]['min']
         )
         await send_message(
             chat_id=message.from_user.id,
@@ -110,6 +110,7 @@ async def start_replenishment(message: Message, state: FSMContext, user: Users):
 
     try:
         if type_payment.name_for_admin == 'crypto_bot':
+            crypto_bot = get_crypto_bot()
             url = await crypto_bot.create_invoice(
                 user_id=user.user_id,
                 type_payment_id=type_payment.type_payment_id,
@@ -142,10 +143,10 @@ async def start_replenishment(message: Message, state: FSMContext, user: Users):
             "pay. After the time expires, the invoice will be canceled. \n\n"
             "Amount: {origin_sum}\n"
             "Payable: {total_sum} ₽ ( + commission {percent}%)",
-            PAYMENT_LIFETIME_SECONDS // 60
+            get_config().different.payment_lifetime_seconds // 60
         ).format(
             service_name=type_payment.name_for_user,
-            minutes=PAYMENT_LIFETIME_SECONDS // 60,
+            minutes=get_config().different.payment_lifetime_seconds // 60,
             origin_sum=user_data.amount,
             total_sum=total_amount,
             percent=type_payment.commission
@@ -157,7 +158,7 @@ async def start_replenishment(message: Message, state: FSMContext, user: Users):
             image_key='pay',
             reply_markup=payment_invoice(user.language, url)
         )
-    except Exception:
+    except Exception as e:
         text = get_text(user.language, 'profile_messages', "An error occurred, please try again")
         await send_message(
             chat_id=message.from_user.id,

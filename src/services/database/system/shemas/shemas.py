@@ -21,7 +21,7 @@ class StatisticsData(BaseModel):
 
     quantity_replenishments: int
     amount_replenishments: int
-    replenishment_payment_systems: List[ReplenishmentPaymentSystem] # тут все переменные с TYPE_PAYMENTS
+    replenishment_payment_systems: List[ReplenishmentPaymentSystem] # тут все переменные с get_config().app.type_payments
 
     funds_in_bot: int # средств в боте всего (по выставленной цене)
     accounts_for_sale: int # аккаунтов на продаже

@@ -7,7 +7,7 @@ import orjson
 from sqlalchemy import select, inspect as sa_inspect, true, DateTime, func
 from sqlalchemy.orm import selectinload
 
-from src.config import PAGE_SIZE, DEFAULT_LANG
+from src.config import get_config
 from src.services.database.selling_accounts.models.models import AccountStorage, TgAccountMedia, PurchasesAccounts
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import (
@@ -403,12 +403,15 @@ async def get_sold_account_by_page(
         type_account_service_id: int,
         page: int,
         language: str,
-        page_size: int = PAGE_SIZE
+        page_size: int = None
 ) -> List[SoldAccountSmall]:
     """
         Возвращает список проданных аккаунтов пользователя с пагинацией. Не вернёт удалённые аккаунты
         Отсортировано по дате продажи (desc).
     """
+    if page_size is None:
+        page_size = get_config().different.page_size
+
     async with get_redis() as session_redis:
         result_redis = await session_redis.get(f'sold_accounts_by_owner_id:{user_id}:{language}')
         if result_redis:
@@ -457,7 +460,7 @@ async def get_count_sold_account(user_id: int, type_account_service_id: int) -> 
 
 async def get_union_type_account_service_id(user_id: int) -> List[int]:
     async with get_redis() as session_redis:
-        result_redis = await session_redis.get(f'sold_accounts_by_owner_id:{user_id}:{DEFAULT_LANG}')
+        result_redis = await session_redis.get(f'sold_accounts_by_owner_id:{user_id}:{get_config().app.default_lang}')
         if result_redis:
             objs_list: list[dict] = orjson.loads(result_redis)  # список с redis
             if objs_list:

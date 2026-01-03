@@ -330,17 +330,26 @@ async def test_process_archives_batch_calls_process_single_archive(tmp_path):
 @pytest.mark.asyncio
 async def test_process_dirs_batch_no_dirs(tmp_path):
     from src.services.accounts.tg.input_account import process_dirs_batch
+
+    test_dir = (tmp_path / "fake_dir")
+    test_dir.mkdir(parents=True)
+
     with pytest.raises(DirNotFount):
-        await process_dirs_batch(str(tmp_path))
+        await process_dirs_batch(str(test_dir))
 
 
 @pytest.mark.asyncio
 async def test_process_dirs_batch_calls_process_single_dir(tmp_path):
     from src.services.accounts.tg.input_account import process_dirs_batch
-    (tmp_path / "dir1").mkdir()
+
+    test_dir = tmp_path / "test_processing_dir"
+    (test_dir / "dir1").mkdir(parents=True)
+
     with patch("src.services.accounts.tg.input_account.process_single_dir", new_callable=AsyncMock) as mock_proc:
         mock_proc.return_value = BaseAccountProcessingResult(valid=True, dir_path=str(tmp_path / "dir1"), user=None)
-        result = await process_dirs_batch(str(tmp_path))
+
+        result = await process_dirs_batch(str(test_dir))
+
         assert result.total == 1
         assert len(result.items) == 1
 

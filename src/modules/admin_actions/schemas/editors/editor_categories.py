@@ -14,7 +14,7 @@ class RenameServiceData(BaseModel):
 class GetDataForCategoryData(BaseModel):
     service_id: int
     parent_id: int | None
-    requested_language: str # входить в ALLOWED_LANGS
+    requested_language: str # входить в get_config().app.allowed_langs
     data_name: Dict[str, str] # код языка и по нему имя
 
 

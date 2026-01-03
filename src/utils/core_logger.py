@@ -1,15 +1,23 @@
 import logging
-from src.config import LOG_DIR, LOG_FILE
+from pathlib import Path
 
-LOG_DIR.mkdir(exist_ok=True)
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler(LOG_FILE,encoding='utf-8'),
-        logging.StreamHandler()
-    ]
-)
+def setup_logging(
+    log_file: Path,
+    level: int = logging.INFO,
+) -> None:
+    log_file.parent.mkdir(parents=True, exist_ok=True)
 
-logger = logging.getLogger(__name__)
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.FileHandler(log_file, encoding="utf-8"),
+            logging.StreamHandler(),
+        ],
+    )
+
+
+def get_logger(name: str) -> logging.Logger:
+    return logging.getLogger(name)
+

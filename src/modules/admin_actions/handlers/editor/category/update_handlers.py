@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.messages import edit_message, send_message
-from src.config import MAX_SIZE_MB, MAX_SIZE_BYTES
+from src.config import get_config
 from src.exceptions import AccountCategoryNotFound, \
     TheCategoryStorageAccount, CategoryStoresSubcategories
 from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category, show_category_update_data
@@ -227,12 +227,12 @@ async def update_category_image(message: Message, state: FSMContext, user: Users
     if not doc.mime_type.startswith("image/"): # Проверяем, что это действительно изображение
         text = get_text(user.language,"admins_editor_category", "This is not an image. Send it as a document")
         reply_markup = back_in_category_update_data_kb(user.language, category.account_category_id)
-    elif doc.file_size > MAX_SIZE_BYTES: # Проверяем размер, известный Telegram (без скачивания)
+    elif doc.file_size > get_config().limits.max_size_bytes: # Проверяем размер, известный Telegram (без скачивания)
         text = get_text(
             user.language,
             "admins_editor_category",
             "The file is too large — maximum {max_size_mb} MB. \n\nTry again"
-        ).format(max_size_mb=MAX_SIZE_MB)
+        ).format(max_size_mb=get_config().limits.max_size_mb)
         reply_markup = back_in_category_update_data_kb(user.language, category.account_category_id)
     else:
         # Получаем объект файла

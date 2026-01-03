@@ -4,8 +4,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, FSInputFile, Message
 
 from src.bot_actions.bot_instance import get_bot, get_bot_logger
-from src.bot_actions.messages import edit_message, send_message
-from src.config import LOG_FILE, DEFAULT_LANG
+from src.bot_actions.messages import edit_message
+from src.config import get_config
 from src.modules.admin_actions.keyboards import admin_settings_kb
 from src.services.database.admins.actions import check_admin
 from src.services.database.system.actions import get_settings
@@ -23,7 +23,7 @@ async def send_log_files(bot: Bot, chat_id: int, language: str):
         text=get_text(language, "admins_settings", "Log upload has begun")
     )
 
-    async for chunk_path in split_file_on_chunk(LOG_FILE):
+    async for chunk_path in split_file_on_chunk(get_config().paths.log_file):
         await bot.send_document(chat_id,FSInputFile(chunk_path))
 
     await bot.send_message(
@@ -54,4 +54,4 @@ async def cmd_start(message: Message, user: Users):
     settings = await get_settings()
     bot_logger = await get_bot_logger()
     if await check_admin(user.user_id) or settings.channel_for_logging_id == message.chat.id:
-        await send_log_files(bot_logger, message.chat.id, DEFAULT_LANG)
+        await send_log_files(bot_logger, message.chat.id, get_config().app.default_lang)

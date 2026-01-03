@@ -6,7 +6,7 @@ import orjson
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from src.config import TYPE_ACCOUNT_SERVICES
+from src.config import get_config
 from src.exceptions import TranslationAlreadyExists, ServiceTypeBusy, AccountServiceNotFound, \
     AccountCategoryNotFound, IncorrectedNumberButton, IncorrectedAmountSale, IncorrectedCostPrice, \
     TheCategoryStorageAccount, CategoryNotFound, TheCategoryNotStorageAccount
@@ -272,7 +272,7 @@ async def add_account_storage(
     """
     Путь сформируется только для аккаунтов телеграмма т.к. только их данные хранятся в файле.
      Преобразует номер телефона в необходимый формат для хранения (E164)
-    :param type_service_name: Имя сервиса необходимо для формирования пути (должен иметься в TYPE_ACCOUNT_SERVICES)
+    :param type_service_name: Имя сервиса необходимо для формирования пути (должен иметься в get_config().app.type_account_services)
     :param checksum: Контроль целостности (SHA256 зашифрованного файла)
     :param encrypted_key: Персональный ключ аккаунта, зашифрованный мастер-ключом (DEK)
     :param encrypted_key_nonce: nonce, использованный при wrap (Nonce (IV) для AES-GCM (base64))
@@ -285,7 +285,7 @@ async def add_account_storage(
     :param password_encrypted: Зашифрованный Пароль
     :param password_nonce:  используемый nonce при шифровании
     """
-    if type_service_name not in TYPE_ACCOUNT_SERVICES:
+    if type_service_name not in get_config().app.type_account_services:
         raise ValueError(f"type_service_name = {type_service_name} не найден")
 
     # только для аккаунтов телеграмм формируем путь

@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.messages import send_message
-from src.config import ALLOWED_LANGS, DEFAULT_LANG
+from src.config import get_config
 from src.exceptions import AccountCategoryNotFound, \
     TheCategoryStorageAccount
 from src.modules.admin_actions.keyboards import to_services_kb, back_in_category_kb
@@ -43,7 +43,7 @@ async def add_acc_category_name(message: Message, state: FSMContext, user: Users
 
     # поиск недостающего перевода
     next_lang = None
-    for lang_cod in ALLOWED_LANGS:
+    for lang_cod in get_config().app.allowed_langs:
         if lang_cod not in data.data_name:
             next_lang = lang_cod
 
@@ -62,13 +62,13 @@ async def add_acc_category_name(message: Message, state: FSMContext, user: Users
     try:
         category = await add_account_category(
             account_service_id=data.service_id,
-            language=DEFAULT_LANG,
-            name=data.data_name[DEFAULT_LANG],
+            language=get_config().app.default_lang,
+            name=data.data_name[get_config().app.default_lang],
             parent_id=data.parent_id
         )
 
         for lang_code in data.data_name:
-            if lang_code == DEFAULT_LANG:
+            if lang_code == get_config().app.default_lang:
                 continue
 
             await add_translation_in_account_category(

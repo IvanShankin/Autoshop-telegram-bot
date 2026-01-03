@@ -5,7 +5,7 @@ import orjson
 from sqlalchemy import select, func, update
 
 from src.bot_actions.messages import send_log
-from src.config import PAGE_SIZE
+from src.config import get_config
 from src.services.redis.core_redis import get_redis
 from src.services.database.admins.models import AdminActions
 from src.services.database.core.database import get_db
@@ -16,9 +16,12 @@ from src.utils.codes import generate_code
 
 async def get_promo_code_by_page(
     page: int = None,
-    page_size: int = PAGE_SIZE,
+    page_size: int = None,
     show_not_valid: bool = False
 ) -> List[PromoCodes]:
+    if page_size is None:
+        page_size = get_config().different.page_size
+
     async with get_db() as session_db:
         query = select(PromoCodes)
         if page:

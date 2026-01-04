@@ -9,7 +9,7 @@ from contextlib import suppress
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from src.config import init_config
+from src.config import init_config, get_config, set_config
 from tests.helpers.monkeypatch_data import (
     replacement_redis,
     replacement_fake_bot,
@@ -20,7 +20,6 @@ from tests.helpers.monkeypatch_data import (
 )
 
 
-from src.services.database.core.database import SQL_DB_URL
 from src.services.database import core
 from src.services.redis.core_redis import get_redis
 
@@ -100,12 +99,14 @@ async def create_database_fixture(replacement_needed_modules):
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def clean_db(monkeypatch):
+    conf = get_config()
     # создаём новый engine для теста
-    test_engine = create_async_engine(core.SQL_DB_URL, future=True)
+    test_engine = create_async_engine(conf.db_connection.sql_db_url, future=True)
 
-    # подменяем глобальный engine и sessionmaker внутри core.py
-    monkeypatch.setattr(core, "engine", test_engine)
-    core.session_local.configure(bind=test_engine)
+    conf.db_connection.engine = test_engine
+    conf.db_connection.session_local.configure(bind=test_engine)
+
+    set_config(conf)
 
     # дропаем и создаём таблицы
     async with test_engine.begin() as conn:
@@ -168,7 +169,7 @@ async def clean_rabbit(start_consumer):
 
 @pytest_asyncio.fixture
 async def get_engine():
-    engine = create_async_engine(SQL_DB_URL)
+    engine = create_async_engine(get_config().db_connection.sql_db_url)
     yield engine
     await engine.dispose()
 

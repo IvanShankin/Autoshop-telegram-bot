@@ -1,16 +1,3 @@
-
-
-# ALGORITHM = "HS256"
-#
-# DT_FORMAT = "%Y-%m-%d %H:%M:%S"
-# PAYMENT_LIFETIME_SECONDS = 1200 # 20 минут
-# FETCH_INTERVAL = 7200 # 2 часа (для обновления курса доллара)
-#
-# SEMAPHORE_MAILING_LIMIT = 15
-# RATE_SEND_MSG_LIMIT = 25
-#
-# PAGE_SIZE = 6
-
 from pydantic import BaseModel
 
 class MiscellaneousConf(BaseModel):

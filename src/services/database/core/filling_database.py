@@ -8,31 +8,33 @@ from src.services.database.admins.actions import create_admin
 from src.utils.ui_images_data import get_ui_images
 from src.services.database.users.models import Users, NotificationSettings
 from src.services.database.system.models import Settings, TypePayments, UiImages
-from src.services.database.core.database import get_db, SQL_DB_URL, DB_NAME, POSTGRES_SERVER_URL, Base
+from src.services.database.core.database import get_db, Base
 from src.services.database.referrals.utils import create_unique_referral_code
 from src.services.database.referrals.models import ReferralLevels
-from src.services.database.admins.models import MessageForSending, Admins
+from src.services.database.admins.models import Admins
 from src.services.database.selling_accounts.models import TypeAccountServices
 
 
 async def create_database():
     """Создает базу данных и все таблицы в ней (если существует, то ничего не произойдёт) """
     # Сначала подключаемся к серверу PostgreSQL без указания конкретной базы
-    engine = create_async_engine(POSTGRES_SERVER_URL, isolation_level="AUTOCOMMIT")
+    conf = get_config()
+    engine = create_async_engine(conf.db_connection.postgres_server_url, isolation_level="AUTOCOMMIT")
+
     try:
         # Проверяем существование базы данных и создаем если ее нет
         async with engine.connect() as conn:
             result = await conn.execute(
-                text(f"SELECT 1 FROM pg_database WHERE datname = '{DB_NAME}'")
+                text(f"SELECT 1 FROM pg_database WHERE datname = '{conf.env.db_name}'")
             )
             database_exists = result.scalar() == 1
 
             if not database_exists: # если БД нет
-                logging.info(f"Creating core {DB_NAME}...")
-                await conn.execute(text(f"CREATE DATABASE {DB_NAME}"))
-                logging.info(f"Database {DB_NAME} created successfully")
+                logging.info(f"Creating core {conf.env.db_name}...")
+                await conn.execute(text(f"CREATE DATABASE {conf.env.db_name}"))
+                logging.info(f"Database {conf.env.db_name} created successfully")
             else:
-                logging.info(f"Database {DB_NAME} already exists")
+                logging.info(f"Database {conf.env.db_name} already exists")
     except Exception as e:
         logging.error(f"Error checking/creating core: {e}")
         raise
@@ -57,7 +59,7 @@ async def create_database():
 
 async def create_table():
     """создает таблицы в целевой базе данных"""
-    engine = create_async_engine(SQL_DB_URL)
+    engine = create_async_engine(get_config().db_connection.sql_db_url)
     try:
         async with engine.begin() as conn:
             logging.info("Creating core tables...")

@@ -3,8 +3,9 @@ from asyncio import Semaphore
 from typing import Optional
 
 from src.config.base import init_env
+from src.config.db_conf import DbConnectionSettings
 from src.config.env_conf import EnvSettings, Mode
-from src.config.for_bot_conf import AppConfig
+from src.config.app_conf import AppConfig
 from src.config.miscellaneous_conf import MiscellaneousConf
 from src.config.paths_conf import PathSettings
 from src.config.secrets_conf import load_secrets
@@ -27,7 +28,7 @@ class Config:
         set_runtime(
             SecretsRuntime(
                 mode=RuntimeMode(self.env.mode),
-                storage_url=os.getenv("STORAGE_SERVER_URL"),
+                storage_url=self.env.storage_server_url,
                 cert=(
                     str(self.paths.ssl_client_cert_file),
                     str(self.paths.ssl_client_key_file),
@@ -38,6 +39,12 @@ class Config:
 
         self.secrets = load_secrets()
         self.limits = FileLimits()
+        self.db_connection = DbConnectionSettings.create(
+            db_user=self.env.db_user,
+            db_password=self.secrets.db_password,
+            db_host=self.env.db_host,
+            db_name=self.env.db_name
+        )
 
 
 

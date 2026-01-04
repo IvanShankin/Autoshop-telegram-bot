@@ -1,18 +1,15 @@
-import os
 from contextlib import asynccontextmanager
-
-from dotenv import load_dotenv
 from redis.asyncio import Redis  # Асинхронный клиент
 
-load_dotenv()
-REDIS_HOST = os.getenv('REDIS_HOST')
-REDIS_PORT = int(os.getenv('REDIS_PORT'))
+from src.config import get_config
+
 
 @asynccontextmanager
 async def get_redis():
+    conf = get_config()
     redis = Redis(
-        host=REDIS_HOST,
-        port=REDIS_PORT,
+        host=conf.env.redis_host,
+        port=conf.env.redis_port,
         db=0,
         decode_responses=True
     )

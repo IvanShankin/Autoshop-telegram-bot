@@ -1,7 +1,9 @@
 from getpass import getpass
 
+from src.config import EnvSettings, PathSettings, init_env
 from src.exceptions import StorageNotFound, StorageConflict
 from src.services.secrets import get_crypto_context, set_crypto_context, CryptoContext, unwrap_dek
+from src.services.secrets.runtime import set_runtime, RuntimeMode, SecretsRuntime
 from src.services.secrets.shemas import SecretSettings
 from src.services.secrets.utils import derive_kek, gen_key, read_secret
 from src.services.secrets.encrypt import wrap_dek, encrypt_text
@@ -18,6 +20,23 @@ def _encrypt_input(secret_name: str, dek: bytes) -> tuple[str, str, str]:
     secret = read_secret(f"Enter secret {secret_name}: ", secret_name)
     return encrypt_text(secret, dek)
 
+def _init_runtime():
+    init_env()
+
+    env = EnvSettings.from_env()
+    paths = PathSettings.build()
+
+    set_runtime(
+        SecretsRuntime(
+            mode=RuntimeMode(env.mode),
+            storage_url=env.storage_server_url,
+            cert=(
+                str(paths.ssl_client_cert_file),
+                str(paths.ssl_client_key_file),
+            ),
+            ca=str(paths.ssl_ca_file),
+        )
+    )
 
 def init_dek() -> bytes:
     """
@@ -28,6 +47,8 @@ def init_dek() -> bytes:
     del passphrase
 
     store_kek(kek) # установка kek
+
+    _init_runtime()
 
     storage = get_storage_client()
 

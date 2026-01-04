@@ -21,7 +21,7 @@ def read_secret(prompt: str, name: str) -> str:
     runtime = get_runtime()
     if runtime.mode == "TEST":
         try:
-            return os.getenv("MODE")
+            return runtime.mode
         except KeyError:
             raise RuntimeError(
                 f"{name} must be set in test environment"

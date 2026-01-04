@@ -7,7 +7,7 @@ from tests.helpers.func_fabric import create_new_user_fabric, create_admin_fabri
     create_product_account_factory, create_sold_account_factory, create_ui_image_factory, \
     create_wallet_transaction_fabric, create_tg_account_media_factory, create_promo_codes_fabric, \
     create_sent_mass_message_fabric, create_purchase_account_fabric, create_transfer_moneys_fabric, \
-    create_promo_code_activation_fabric
+    create_promo_code_activation_fabric, create_backup_log_fabric
 from src.services.database.system.models import  Settings
 from src.services.database.core.database import get_db
 
@@ -20,7 +20,7 @@ async def create_new_user():
 
 
 @pytest_asyncio.fixture
-async def create_admin_fix(create_new_user):
+async def create_admin_fix():
     return create_admin_fabric
 
 
@@ -30,7 +30,7 @@ async def create_sent_mass_message():
 
 
 @pytest_asyncio.fixture
-async def create_referral(create_new_user):
+async def create_referral():
     """
     Создаёт тестовый реферала (у нового пользователя появляется владелец)
     :return Реферал(Referrals), Владельца(Users) и Реферала(Users)
@@ -39,7 +39,7 @@ async def create_referral(create_new_user):
 
 
 @pytest_asyncio.fixture
-async def create_income_from_referral(create_new_user, create_replenishment):
+async def create_income_from_referral():
     """
     Создаёт доход от реферала, если не указать реферала, то создаст нового, если не указать владельца, то создаст нового.
     :return Доход(IncomeFromReferrals), Реферал(Users), Владелец(Users)
@@ -48,7 +48,7 @@ async def create_income_from_referral(create_new_user, create_replenishment):
 
 
 @pytest_asyncio.fixture
-async def create_replenishment(create_new_user):
+async def create_replenishment():
     """Создаёт пополнение для пользователя"""
     return create_replenishment_fabric
 
@@ -88,7 +88,7 @@ async def create_promo_code_activation():
 
 
 @pytest_asyncio.fixture
-async def create_voucher(create_new_user):
+async def create_voucher():
     return create_voucher_factory
 
 
@@ -98,7 +98,7 @@ async def create_type_account_service():
 
 
 @pytest_asyncio.fixture
-async def create_account_service(create_type_account_service):
+async def create_account_service():
     return create_account_service_factory
 
 
@@ -108,17 +108,17 @@ async def create_translate_account_category():
 
 
 @pytest_asyncio.fixture
-async def create_account_category(create_account_service, create_ui_image):
+async def create_account_category():
     return create_account_category_factory
 
 
 @pytest_asyncio.fixture
-async def create_account_storage(create_type_account_service, create_account_category):
+async def create_account_storage():
     return create_account_storage_factory
 
 
 @pytest_asyncio.fixture
-async def create_product_account(create_type_account_service, create_account_category, create_account_storage):
+async def create_product_account():
     return create_product_account_factory
 
 
@@ -128,17 +128,17 @@ async def create_purchase_account():
 
 
 @pytest_asyncio.fixture
-async def create_sold_account(create_new_user, create_type_account_service, create_account_storage):
+async def create_sold_account():
     return create_sold_account_factory
 
 
 @pytest_asyncio.fixture
-async def create_tg_account_media(create_new_user, create_type_account_service, create_account_storage):
+async def create_tg_account_media():
     return create_tg_account_media_factory
 
 
 @pytest_asyncio.fixture
-async def create_ui_image(tmp_path, monkeypatch):
+async def create_ui_image():
     """
     сохраняет запись UiImages в БД и возвращает (ui_image, abs_path).
     """
@@ -146,10 +146,15 @@ async def create_ui_image(tmp_path, monkeypatch):
 
 
 @pytest_asyncio.fixture
-async def create_transfer_moneys(create_new_user):
+async def create_transfer_moneys():
     return create_transfer_moneys_fabric
 
 
 @pytest_asyncio.fixture
-async def create_wallet_transaction(create_new_user):
+async def create_wallet_transaction():
     return create_wallet_transaction_fabric
+
+
+@pytest_asyncio.fixture
+async def create_backup_log():
+    return create_backup_log_fabric

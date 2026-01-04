@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import os
 import getpass
@@ -9,7 +10,7 @@ from argon2.low_level import hash_secret_raw, Type
 
 from src.services.secrets.runtime import get_runtime
 
-SALT = b"QJ\t\x11\xae\x94\x08\xb2\nP\x9fC\x87xpW"
+SALT = b"autoservice.master.kek.v1"
 
 
 def read_secret(prompt: str, name: str) -> str:
@@ -78,3 +79,21 @@ def sha256_file(file_path: str | Path) -> str:
             h.update(chunk)
 
     return h.hexdigest()
+
+
+def extract_nonce_b64(encrypted_file: Path) -> str:
+    with encrypted_file.open("rb") as f:
+        nonce = f.read(12)
+
+    return base64.b64encode(nonce).decode("ascii")
+
+
+def calc_sha256_b64(file_path: Path) -> str:
+    sha256 = hashlib.sha256()
+
+    with file_path.open("rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            sha256.update(chunk)
+
+    return base64.b64encode(sha256.digest()).decode("ascii")
+

@@ -204,6 +204,7 @@ class SecretsStorageClient:
         self,
         name: str
     ) -> None:
+        """Удалит любой секрет не важно какой он по типу (HARD)"""
         self._request(
             "DELETE",
             f"/secrets/{name}/purge",

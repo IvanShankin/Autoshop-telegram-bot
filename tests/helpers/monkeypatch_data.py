@@ -1,14 +1,14 @@
-import base64
 import importlib
 import os
 import shutil
 import sys
 import types
 from contextlib import asynccontextmanager
+from unittest.mock import MagicMock
 
 import fakeredis
+import pytest
 import pytest_asyncio
-from dotenv import load_dotenv
 
 from src.bot_actions.throttler import RateLimiter
 from src.config import get_config, set_config
@@ -152,3 +152,16 @@ async def set_need_config():
 
     set_config(conf)
 
+
+@pytest.fixture
+def fake_storage(monkeypatch):
+    storage = MagicMock()
+
+    from src.services.database.backups import backup_db as core_modul
+    monkeypatch.setattr(
+        core_modul,
+        "get_storage_client",
+        lambda: storage
+    )
+
+    return storage

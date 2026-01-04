@@ -24,7 +24,7 @@ def _init_runtime():
     init_env()
 
     env = EnvSettings.from_env()
-    paths = PathSettings.build()
+    paths = PathSettings.build(env.mode)
 
     set_runtime(
         SecretsRuntime(

@@ -316,13 +316,19 @@ async def test_update_type_payment_index_shift_down(create_type_payment):
 @pytest.mark.asyncio
 async def test_add_backup_log_creates_record():
     """Проверка, что add_backup_log создаёт запись в БД."""
-    file_path = "/tmp/test_backup.sql"
+    storage_file_name = "test_backup"
     size_bytes = 123
 
-    new_log = await add_backup_log(file_path, size_bytes)
+    new_log = await add_backup_log(
+        storage_file_name,
+        "storage_encrypted_dek_name",
+        "encrypted_dek_b64",
+        "dek_nonce_b64",
+        size_bytes
+    )
 
     assert new_log.backup_log_id is not None
-    assert new_log.file_path == file_path
+    assert new_log.storage_file_name == storage_file_name
     assert new_log.size_bytes == size_bytes
 
     async with get_db() as session_db:
@@ -330,7 +336,7 @@ async def test_add_backup_log_creates_record():
             select(BackupLogs).where(BackupLogs.backup_log_id == new_log.backup_log_id)
         )
         log_db = result.scalar_one()
-        assert log_db.file_path == file_path
+        assert log_db.storage_file_name == storage_file_name
         assert log_db.size_bytes == size_bytes
 
 

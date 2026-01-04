@@ -349,9 +349,18 @@ async def update_type_payment(
     return type_payment
 
 
-async def add_backup_log(file_path: str, size_bytes: int) -> BackupLogs:
+async def add_backup_log(
+    storage_file_name: str,
+    storage_encrypted_dek_name: str,
+    encrypted_dek_b64: str,
+    dek_nonce_b64: str,
+    size_bytes: int
+) -> BackupLogs:
     new_backup_log = BackupLogs(
-        file_path = file_path,
+        storage_file_name = storage_file_name,
+        storage_encrypted_dek_name = storage_encrypted_dek_name,
+        encrypted_dek_b64 = encrypted_dek_b64,
+        dek_nonce_b64 = dek_nonce_b64,
         size_bytes = size_bytes,
     )
     async with get_db() as session_db:
@@ -360,6 +369,34 @@ async def add_backup_log(file_path: str, size_bytes: int) -> BackupLogs:
         await session_db.refresh(new_backup_log)
 
     return new_backup_log
+
+
+async def get_backup_log_by_id(
+    backup_log_id: int
+) -> BackupLogs:
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            select(BackupLogs)
+            .where(BackupLogs.backup_log_id == backup_log_id)
+        )
+        return result_db.scalar_one_or_none()
+
+
+async def get_all_backup_logs_desc() -> List[BackupLogs]:
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            select(BackupLogs).order_by(BackupLogs.created_at.desc())
+        )
+        return result_db.scalars().all()
+
+
+async def delete_backup_log(backup_log_id: int):
+    async with get_db() as session_db:
+        await session_db.execute(
+            delete(BackupLogs)
+            .where(BackupLogs.backup_log_id == backup_log_id)
+        )
+        await session_db.commit()
 
 
 async def get_statistics(interval_days: int) -> StatisticsData:

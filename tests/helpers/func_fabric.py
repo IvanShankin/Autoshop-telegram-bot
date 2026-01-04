@@ -23,7 +23,7 @@ from src.services.database.referrals.utils import create_unique_referral_code
 from src.services.database.selling_accounts.models import SoldAccounts, TypeAccountServices, SoldAccountsTranslation, \
     AccountServices, AccountCategories, AccountCategoryTranslation, ProductAccounts, \
     SoldAccountFull, AccountCategoryFull, SoldAccountSmall, ProductAccountFull, PurchasesAccounts
-from src.services.database.system.models import UiImages
+from src.services.database.system.models import UiImages, BackupLogs
 from src.services.database.users.models import Users, Replenishments, NotificationSettings, WalletTransaction, \
     TransferMoneys
 from src.services.database.system.models import TypePayments
@@ -879,4 +879,31 @@ async def create_sent_mass_message_fabric(
         await session_db.refresh(sent_message)
 
     return sent_message
-        
+
+
+async def create_backup_log_fabric(
+    storage_file_name: str = None,
+    storage_encrypted_dek_name: str = None,
+    encrypted_dek_b64: str = "encrypted_dek_b64",
+    dek_nonce_b64: str = "dek_nonce_b64",
+    size_bytes: int = 12345,
+) -> BackupLogs:
+    if storage_file_name is None:
+        storage_file_name = str(uuid.uuid4())
+
+    if storage_encrypted_dek_name is None:
+        storage_encrypted_dek_name = str(uuid.uuid4())
+
+    async with get_db() as session_db:
+        log = BackupLogs(
+            storage_file_name=storage_file_name,
+            storage_encrypted_dek_name=storage_encrypted_dek_name,
+            encrypted_dek_b64 = encrypted_dek_b64,
+            dek_nonce_b64 = dek_nonce_b64,
+            size_bytes = size_bytes
+        )
+        session_db.add(log)
+        await session_db.commit()
+        await session_db.refresh(log)
+
+    return log

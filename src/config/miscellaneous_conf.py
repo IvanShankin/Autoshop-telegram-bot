@@ -7,4 +7,5 @@ class MiscellaneousConf(BaseModel):
     fetch_interval: int = 7200  # 2 часа (для обновления курса доллара)
     semaphore_mailing_limit: int = 15
     rate_send_msg_limit: int = 25
-    page_size: int =6
+    page_size: int = 6
+    backup_retention_count: int = 14

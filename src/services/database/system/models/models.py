@@ -49,6 +49,14 @@ class BackupLogs(Base):
     __tablename__ = "backup_logs"
 
     backup_log_id = Column(Integer, primary_key=True, autoincrement=True)
-    file_path = Column(String(1000), nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # имя объекта в storage service
+    storage_file_name = Column(String(512), nullable=False, unique=True)
+    storage_encrypted_dek_name = Column(String(512), nullable=False, unique=True)
+
+    # DEK
+    encrypted_dek_b64 = Column(Text, nullable=False)
+    dek_nonce_b64 = Column(String(64), nullable=False)
+
     size_bytes = Column(BigInteger, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

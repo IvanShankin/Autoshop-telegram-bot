@@ -17,6 +17,7 @@ from tests.helpers.monkeypatch_data import (
     replacement_pyth_ui_image,
     replacement_pyth_sent_mass_msg_image,
     create_crypto_context_fix,
+    fake_storage,
 )
 
 

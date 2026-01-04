@@ -1,6 +1,8 @@
 import asyncio
 
 from src.broker.consumer import start_background_consumer, stop_background_consumer
+from src.deferred_tasks.core import init_scheduler
+from src.services.database.backups.backup_db import add_backup_create, add_backup_cleanup
 from src.services.database.core.filling_database import create_database
 from src.services.fastapi_core.server import start_server
 from src.services.redis.filling_redis import filling_all_redis
@@ -29,10 +31,15 @@ async def on_startup():
     asyncio.create_task(start_dollar_rate_scheduler())
     asyncio.create_task(start_server())
 
+    # отложенный задачник
+    scheduler = init_scheduler()
+    add_backup_create(scheduler)
+    add_backup_cleanup(scheduler)
+    scheduler.start()
+
     await run_bot()
 
 async def on_shutdown():
-    # аккуратно остановим consumer
     await stop_background_consumer()
 
 if __name__ == '__main__':

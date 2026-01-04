@@ -3,6 +3,8 @@ import os
 import base64
 import shutil
 import tempfile
+from pathlib import Path
+
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 
@@ -37,7 +39,7 @@ def wrap_dek(dek: bytes, kek: bytes) -> tuple[str, str, str]:
     )
 
 
-def encrypt_text(plaintext: str, dek: bytes, nonce_b64: str = None) -> tuple[str, str, str]:
+def encrypt_text(plaintext: str, dek: bytes, nonce_b64:  bytes = None) -> tuple[str, str, str]:
     """
     Возвращает:
     encrypted_data_b64, nonce_b64, sha256_b64
@@ -104,3 +106,17 @@ def encrypt_folder(folder_path: str, encrypted_path: str, dek: bytes):
     # очищаем
     os.remove(tmp_zip_path)
     shutil.rmtree(folder_path)
+
+
+def encrypt_dump_file(
+    dump_path: Path,
+    encrypted_path: Path,
+    dek: bytes,
+):
+    with open(dump_path, "rb") as f:
+        data = f.read()
+
+    encrypted = encrypt_bytes(data, dek)
+
+    with open(encrypted_path, "wb") as f:
+        f.write(encrypted)

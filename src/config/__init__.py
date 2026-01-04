@@ -22,7 +22,7 @@ class Config:
         self.env = EnvSettings.from_env()
         self.app = AppConfig()
         self.different = MiscellaneousConf()
-        self.paths = PathSettings.build()
+        self.paths = PathSettings.build(self.env.mode)
 
         # инициализировать необходимо не позже чем устанавливаем секреты (при установке секретов используется runtime)
         set_runtime(

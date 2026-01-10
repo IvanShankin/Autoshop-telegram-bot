@@ -140,7 +140,7 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
     try:
         gen_import_acc = import_telegram_accounts_from_archive(
             archive_path=save_path,
-            account_category_id=data.category_id,
+            category_id=data.category_id,
             type_account_service=data.type_account_service
         )
         result = await gen_import_acc.__anext__()

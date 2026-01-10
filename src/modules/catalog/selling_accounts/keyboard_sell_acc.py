@@ -1,9 +1,9 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.services.database.selling_accounts.actions import get_account_service, get_all_account_services, \
+from src.services.database.product_categories.actions import get_account_service, get_all_account_services, \
     get_account_categories_by_parent_id, get_account_categories_by_category_id
-from src.services.database.selling_accounts.models import AccountCategoryFull
+from src.services.database.product_categories.models import CategoryFull
 from src.utils.i18n import get_text
 
 
@@ -24,7 +24,7 @@ async def main_catalog_account_by_service_kb(language: str, service_id: int):
     keyboard = InlineKeyboardBuilder()
 
     for cat in categories:
-        keyboard.add(InlineKeyboardButton(text=cat.name, callback_data=f'show_account_category:{cat.account_category_id}:0'))
+        keyboard.add(InlineKeyboardButton(text=cat.name, callback_data=f'show_account_category:{cat.category_id}:0'))
 
     keyboard.add(InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'show_catalog_services_accounts'))
     keyboard.adjust(1)
@@ -32,15 +32,15 @@ async def main_catalog_account_by_service_kb(language: str, service_id: int):
 
 async def account_category_kb(
     language: str,
-    category: AccountCategoryFull,
+    category: CategoryFull,
     quantity_for_buying: int = 0,
     promo_code_id: int = None
 ):
     parent_category = category
     keyboard = InlineKeyboardBuilder()
-    current_category_id = parent_category.account_category_id
+    current_category_id = parent_category.category_id
 
-    if parent_category.is_accounts_storage: # если в этой категории продаются аккаунты
+    if parent_category.is_product_storage: # если в этой категории продаются аккаунты
         keyboard.row(
             InlineKeyboardButton(
                 # callback_data - "show_account_category:{id категории}:{количество аккаунтов}"
@@ -75,7 +75,7 @@ async def account_category_kb(
         buttons = [
             InlineKeyboardButton(
                 text=cat.name,
-                callback_data=f'show_account_category:{cat.account_category_id}:0'
+                callback_data=f'show_account_category:{cat.category_id}:0'
             )
             for cat in categories
         ]

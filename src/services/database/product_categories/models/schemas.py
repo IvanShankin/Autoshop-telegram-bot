@@ -3,14 +3,14 @@ from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
-from src.services.database.selling_accounts.models import SoldAccounts, ProductAccounts
-from src.services.database.selling_accounts.models.models import AccountStorage, AccountCategories, \
-    AccountCategoryTranslation
+from src.services.database.product_categories.models import SoldAccounts, ProductAccounts
+from src.services.database.product_categories.models import AccountStorage, Categories, CategoryTranslation
 
 
-class PurchaseAccountSchem(BaseModel):
+class PurchaseAccountSchema(BaseModel):
     ids_deleted_product_account: List[int]
     ids_new_sold_account: List[int]
+
 
 class StartPurchaseAccount(BaseModel):
     purchase_request_id: int
@@ -19,7 +19,7 @@ class StartPurchaseAccount(BaseModel):
     promo_code_id: int | None
     product_accounts: List[ProductAccounts] # ОБЯЗАТЕЛЬНО с подгруженными AccountStorage
     type_service_name: str
-    translations_category: List[AccountCategoryTranslation]
+    translations_category: List[CategoryTranslation]
     original_price_one_acc: int  # Цена на момент покупки (без учёта промокода)
     purchase_price_one_acc: int  # Цена на момент покупки (с учётом промокода)
     cost_price_one_acc: int  # Себестоимость на момент покупки
@@ -31,9 +31,8 @@ class StartPurchaseAccount(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-class AccountCategoryFull(BaseModel):
-    account_category_id: int
-    account_service_id: int
+class CategoryFull(BaseModel):
+    category_id: int
     ui_image_key: str
     parent_id: Optional[int]
 
@@ -44,44 +43,38 @@ class AccountCategoryFull(BaseModel):
     show: bool
     number_buttons_in_row: int
     is_main: bool
-    is_accounts_storage: bool
-
-    price_one_account: Optional[int]
-    cost_price_one_account: Optional[int]
+    is_product_storage: bool
 
     # Число аккаунтов на продаже которое хранит в себе. Есть только у категорий хранящие аккаунты
-    quantity_product_account: int
+    quantity_product: int
 
     model_config = ConfigDict(from_attributes=True)
 
     @classmethod
     def from_orm_with_translation(
             cls,
-            category: AccountCategories,
-            quantity_product_account:int,
+            category: Categories,
+            quantity_product:int,
             lang: str,
             fallback: str | None = None
         ):
-        """orm модель превратит в AccountCategoryFull"""
+        """orm модель превратит в CategoryFull"""
         return cls(
-            account_category_id=category.account_category_id,
-            account_service_id=category.account_service_id,
+            category_id=category.category_id,
             ui_image_key=category.ui_image_key,
             parent_id=category.parent_id,
             index=category.index,
             show=category.show,
             number_buttons_in_row=category.number_buttons_in_row,
             is_main=category.is_main,
-            is_accounts_storage=category.is_accounts_storage,
-            price_one_account=category.price_one_account,
-            cost_price_one_account=category.cost_price_one_account,
             name=category.get_name(lang, fallback),
             description=category.get_description(lang, fallback),
-            quantity_product_account=quantity_product_account
+            quantity_product=quantity_product,
+            is_product_storage=category.is_product_storage
         )
 
 
-class AccountStoragePydentic(BaseModel):
+class AccountStoragePydantic(BaseModel):
     account_storage_id: int
     storage_uuid: str
 
@@ -109,8 +102,8 @@ class AccountStoragePydentic(BaseModel):
 
 class ProductAccountSmall(BaseModel):
     account_id: int
-    type_account_service_id: int
-    account_category_id: int
+    type_account_service: str
+    category_id: int
     account_storage_id: int
     created_at: datetime
 
@@ -119,8 +112,8 @@ class ProductAccountSmall(BaseModel):
         """orm модель превратит в ProductAccountSmall"""
         return cls(
             account_id=product_account.account_id,
-            type_account_service_id=product_account.type_account_service_id,
-            account_category_id=product_account.account_category_id,
+            type_account_service=product_account.type_account_service,
+            category_id=product_account.category_id,
             created_at=product_account.created_at,
             account_storage_id=product_account.account_storage_id
         )
@@ -128,21 +121,21 @@ class ProductAccountSmall(BaseModel):
 
 class ProductAccountFull(BaseModel):
     account_id: int
-    type_account_service_id: int
-    account_category_id: int
+    product_id: int
+    type_account_service: str
     created_at: datetime
 
-    account_storage: AccountStoragePydentic
+    account_storage: AccountStoragePydantic
 
     @classmethod
     def from_orm_model(cls, product_account: ProductAccounts, storage_account: AccountStorage):
         """orm модель превратит в ProductAccountFull"""
         return cls(
             account_id=product_account.account_id,
-            type_account_service_id=product_account.type_account_service_id,
-            account_category_id=product_account.account_category_id,
+            product_id=product_account.product_id,
+            type_account_service=product_account.type_account_service,
             created_at=product_account.created_at,
-            account_storage= AccountStoragePydentic(**storage_account.to_dict()),
+            account_storage= AccountStoragePydantic(**storage_account.to_dict()),
         )
 
 
@@ -150,14 +143,14 @@ class ProductAccountFull(BaseModel):
 class SoldAccountFull(BaseModel):
     sold_account_id: int
     owner_id: int
-    type_account_service_id: int
+    type_account_service: str
 
     name: str
     description: str
 
     sold_at: datetime
 
-    account_storage: AccountStoragePydentic
+    account_storage: AccountStoragePydantic
 
     @classmethod
     async def from_orm_with_translation(cls, account: SoldAccounts, lang: str, fallback: str | None = None):
@@ -165,17 +158,18 @@ class SoldAccountFull(BaseModel):
         return cls(
             sold_account_id=account.sold_account_id,
             owner_id=account.owner_id,
-            type_account_service_id=account.type_account_service_id,
+            type_account_service=account.type_account_service,
             name=account.get_name(lang, fallback),
             description=account.get_description(lang, fallback),
             sold_at=account.sold_at,
-            account_storage=AccountStoragePydentic(**account.account_storage.to_dict())
+            account_storage=AccountStoragePydantic(**account.account_storage.to_dict())
         )
+
 
 class SoldAccountSmall(BaseModel):
     sold_account_id: int
     owner_id: int
-    type_account_service_id: int
+    type_account_service: str
 
     phone_number: str
     name: str
@@ -189,7 +183,7 @@ class SoldAccountSmall(BaseModel):
         return cls(
             sold_account_id=account.sold_account_id,
             owner_id=account.owner_id,
-            type_account_service_id=account.type_account_service_id,
+            type_account_service=account.type_account_service,
             name=account.get_name(lang, fallback),
             description=account.get_description(lang, fallback),
             sold_at=account.sold_at,

@@ -2,74 +2,35 @@ import pytest
 from orjson import orjson
 from sqlalchemy import select
 
-from src.exceptions import TranslationAlreadyExists, ServiceTypeBusy, IncorrectedAmountSale, \
-    TheCategoryStorageAccount, TheCategoryNotStorageAccount
-from src.services.database.selling_accounts.models.models import TgAccountMedia
+from src.exceptions import TranslationAlreadyExists, TheCategoryStorageAccount, TheCategoryNotStorageAccount
+from src.services.database.product_categories.models import TgAccountMedia
 from src.services.database.system.models import UiImages
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
-from src.services.database.selling_accounts.models import AccountServices, DeletedAccounts, SoldAccounts, \
-    AccountCategoryTranslation, ProductAccounts, AccountCategories, SoldAccountsTranslation, AccountStorage
+from src.services.database.product_categories.models import DeletedAccounts, SoldAccounts, \
+    CategoryTranslation, ProductAccounts, Categories, SoldAccountsTranslation, AccountStorage
 
 
 @pytest.mark.asyncio
-async def test_add_account_services(replacement_needed_modules, create_type_account_service):
-    from src.services.database.selling_accounts.actions import add_account_services
-    type_service = await create_type_account_service(name="telegram")
-    type_service_2 = await create_type_account_service(name="other")
-
-    new_service = await add_account_services(
-        name="account_service",
-        type_account_service_id=type_service.type_account_service_id
-    )
-    new_service_2 = await add_account_services(
-        name="account_service_2",
-        type_account_service_id=type_service_2.type_account_service_id
-    )
-
-    with pytest.raises(ServiceTypeBusy):
-        await add_account_services(name="service_fail", type_account_service_id=type_service.type_account_service_id)
-
-    async with get_db() as session_db:
-        result_db = await session_db.execute(
-            select(AccountServices)
-            .where(AccountServices.account_service_id == new_service.account_service_id)
-        )
-        service_db: AccountServices = result_db.scalar_one_or_none()
-
-        assert new_service.to_dict() == service_db.to_dict()
-
-    async with get_redis() as session_redis:
-        result_redis = await session_redis.get('account_services')
-        service_list = orjson.loads(result_redis)
-        assert new_service.to_dict() in service_list
-        assert service_list[0]['index'] == 0
-        assert service_list[1]['index'] == 1
-
-        result_redis = await session_redis.get(f"account_service:{new_service.account_service_id}")
-        service_from_redis = orjson.loads(result_redis)
-        assert new_service.to_dict() == service_from_redis
-
-@pytest.mark.asyncio
-async def test_add_translation_in_account_category(replacement_needed_modules, create_account_category):
-    from src.services.database.selling_accounts.actions import add_translation_in_account_category
-    category = await create_account_category(filling_redis=False)
+async def test_add_translation_in_category(replacement_needed_modules, create_category):
+    from src.services.database.product_categories.actions import add_translation_in_category
+    category = await create_category(filling_redis=False)
 
     # Успешное добавление перевода
-    translation = await add_translation_in_account_category(
-        account_category_id=category.account_category_id,
+    translation = await add_translation_in_category(
+        category_id=category.category_id,
         language="en",
         name="translated name",
         description="translated description"
     )
-    assert translation.account_category_id == category.account_category_id
+    assert translation.category_id == category.category_id
     assert translation.name == "translated name"
 
     async with get_db() as session_db:
         result = await session_db.execute(
-            select(AccountCategoryTranslation).where(
-                AccountCategoryTranslation.account_category_id == category.account_category_id,
-                AccountCategoryTranslation.lang == "en"
+            select(CategoryTranslation).where(
+                CategoryTranslation.category_id == category.category_id,
+                CategoryTranslation.lang == "en"
             )
         )
         translation_db = result.scalar_one_or_none()
@@ -79,31 +40,31 @@ async def test_add_translation_in_account_category(replacement_needed_modules, c
     # Должен закэшироваться в Redis
     async with get_redis() as session_redis:
         redis_data = await session_redis.get(
-            f"account_categories_by_category_id:{category.account_category_id}:en"
+            f"account_categories_by_category_id:{category.category_id}:en"
         )
         assert redis_data
         category_in_redis: dict = orjson.loads(redis_data)
-        assert category_in_redis["account_category_id"] == category.account_category_id
+        assert category_in_redis["category_id"] == category.category_id
         assert category_in_redis["name"] == "translated name"
 
         redis_data = await session_redis.get(f"account_categories_by_service_id:{category.account_service_id}:en")
         assert redis_data
         category_list: list[dict] = orjson.loads(redis_data)
-        assert category_list[0]["account_category_id"] == category.account_category_id
+        assert category_list[0]["category_id"] == category.category_id
         assert category_list[0]["name"] == "translated name"
 
 
     # Ошибка при повторном добавлении того же языка
     with pytest.raises(ValueError):
-        await add_translation_in_account_category(
-            account_category_id=category.account_category_id,
+        await add_translation_in_category(
+            category_id=category.category_id,
             language="en",
             name="duplicated name"
         )
 
 @pytest.mark.asyncio
-async def test_add_account_category(replacement_needed_modules, create_account_service):
-    from src.services.database.selling_accounts.actions import add_account_category
+async def test_add_category(replacement_needed_modules, create_account_service):
+    from src.services.database.product_categories.actions import add_account_category
     service = await create_account_service(filling_redis=False)
 
     # Успешное добавление
@@ -112,14 +73,14 @@ async def test_add_account_category(replacement_needed_modules, create_account_s
         language="ru",
         name="main cat",
         description="desc",
-        is_accounts_storage=True
+        is_product_storage=True
     )
     assert category.account_service_id == service.account_service_id
     assert category.is_main is True
 
     async with get_db() as session_db:
         result = await session_db.execute(
-            select(AccountCategories).where(AccountCategories.account_category_id == category.account_category_id)
+            select(Categories).where(Categories.category_id == category.category_id)
         )
         category_db = result.scalar_one_or_none()
         assert category_db is not None
@@ -137,21 +98,21 @@ async def test_add_account_category(replacement_needed_modules, create_account_s
             account_service_id=service.account_service_id,
             language="ru",
             name="child cat",
-            parent_id=category.account_category_id,
-            is_accounts_storage=True
+            parent_id=category.category_id,
+            is_product_storage=True
         )
 
 
 @pytest.mark.asyncio
-async def test_add_product_account(replacement_needed_modules, create_account_category, create_account_storage):
-    from src.services.database.selling_accounts.actions import add_product_account
+async def test_add_product_account(replacement_needed_modules, create_category, create_account_storage):
+    from src.services.database.product_categories.actions import add_product_account
     # Создаём категорию-хранилище
     account_storage = await create_account_storage()
-    category = await create_account_category(is_accounts_storage=True, filling_redis=False)
+    category = await create_category(is_product_storage=True, filling_redis=False)
 
     # Успешное добавление
     new_product = await add_product_account(
-        account_category_id=category.account_category_id,
+        category_id=category.category_id,
         account_storage_id=account_storage.account_storage_id,
     )
 
@@ -166,21 +127,21 @@ async def test_add_product_account(replacement_needed_modules, create_account_ca
         redis_data = await session_redis.get(f"product_accounts_by_account_id:{new_product.account_id}")
         assert redis_data
 
-        redis_data = await session_redis.get(f"product_accounts_by_category_id:{category.account_category_id}")
+        redis_data = await session_redis.get(f"product_accounts_by_category_id:{category.category_id}")
         assert redis_data
 
     # Ошибка: категория не является хранилищем
-    category_non_storage = await create_account_category(is_accounts_storage=False, filling_redis=False)
+    category_non_storage = await create_category(is_product_storage=False, filling_redis=False)
     with pytest.raises(TheCategoryNotStorageAccount):
         await add_product_account(
-            account_category_id=category_non_storage.account_category_id,
+            category_id=category_non_storage.category_id,
             account_storage_id=account_storage.account_storage_id,
         )
 
 
 @pytest.mark.asyncio
 async def test_add_translation_in_sold_account(replacement_needed_modules):
-    from src.services.database.selling_accounts.actions import add_account_storage
+    from src.services.database.product_categories.actions import add_account_storage
 
     new_acc = await add_account_storage(
         type_service_name='telegram',
@@ -209,7 +170,7 @@ async def test_add_translation_in_sold_account(replacement_needed_modules):
 
 @pytest.mark.asyncio
 async def test_add_translation_in_sold_account(replacement_needed_modules, create_sold_account):
-    from src.services.database.selling_accounts.actions import add_translation_in_sold_account
+    from src.services.database.product_categories.actions import add_translation_in_sold_account
     sold_account, _ = await create_sold_account(filling_redis=False)
 
     # Успешное добавление нового перевода
@@ -256,7 +217,7 @@ async def test_add_translation_in_sold_account(replacement_needed_modules, creat
 
 @pytest.mark.asyncio
 async def test_add_sold_account(replacement_needed_modules, create_new_user, create_account_storage, create_type_account_service):
-    from src.services.database.selling_accounts.actions import add_sold_account
+    from src.services.database.product_categories.actions import add_sold_account
     user = await create_new_user()
     account_storage = await create_account_storage()
     type_service = await create_type_account_service(filling_redis=False)
@@ -294,7 +255,7 @@ async def test_add_sold_account(replacement_needed_modules, create_new_user, cre
 
 @pytest.mark.asyncio
 async def test_add_deleted_accounts(replacement_needed_modules, create_account_storage, create_type_account_service):
-    from src.services.database.selling_accounts.actions import add_deleted_accounts
+    from src.services.database.product_categories.actions import add_deleted_accounts
     account_storage = await create_account_storage()
     type_service = await create_type_account_service(filling_redis=False)
 

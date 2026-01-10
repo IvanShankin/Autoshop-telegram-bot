@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, UTC
-from typing import Type, Any, Optional, Callable, Iterable, List
+from typing import Type, Any, Optional, Callable, List
 
 import orjson
 from sqlalchemy import select
@@ -8,11 +8,11 @@ from sqlalchemy.sql.expression import distinct
 
 from src.config import get_config
 from src.services.database.discounts.models import SmallVoucher
-from src.services.database.selling_accounts.models.models import AccountStorage
-from src.services.database.selling_accounts.models.schemas import SoldAccountFull, SoldAccountSmall, \
-    AccountStoragePydentic, ProductAccountFull, AccountCategoryFull
-from src.services.database.selling_accounts.models import TypeAccountServices, AccountServices, AccountCategories, \
-    ProductAccounts, SoldAccounts
+from src.services.database.product_categories.models import AccountStorage
+from src.services.database.product_categories.models.main_category_and_product import Products
+from src.services.database.product_categories.models.schemas import SoldAccountFull, SoldAccountSmall, \
+    AccountStoragePydantic, ProductAccountFull, CategoryFull
+from src.services.database.product_categories.models import Categories, ProductAccounts, SoldAccounts
 from src.services.database.system.models import UiImages
 from src.services.database.users.models import Users, BannedAccounts
 from src.services.database.system.models import Settings, TypePayments
@@ -65,13 +65,9 @@ async def filling_all_redis():
     await filling_users()
     await filling_admins()
     await filling_banned_accounts()
-    await filling_all_types_account_service()
-    await filling_type_account_services()
-    await filling_all_account_services()
-    await filling_account_services()
-    await filling_account_categories_by_service_id()
-    await filling_account_categories_by_category_id()
-    await filling_product_accounts_by_category_id()
+    await filling_all_keys_category()
+    await filling_product_by_category_id()
+    await filling_product_accounts_by_product_id()
     await filling_promo_code()
     await filling_vouchers()
     logger = get_logger(__name__)
@@ -220,115 +216,102 @@ async def filling_banned_accounts():
     )
 
 
-async def filling_all_types_account_service():
-    async with get_db() as session_db:
-        result_db = await session_db.execute(select(TypeAccountServices))
-        all_types_service: list[TypeAccountServices] = result_db.scalars().all()
-        types_in_dicts = [service.to_dict() for service in all_types_service]
+async def _filling_categories(
+    key_prefix: str,
+    field_condition: Optional[Any] = None,
+):
+    """
+    :param key_prefix: префикс для ключа
+    :param field_condition: Условие отбора при select Categories
+    """
+    await _delete_keys_by_pattern(f"{key_prefix}:*")
 
-        async with get_redis() as session_redis:
-            await session_redis.set("types_account_service", orjson.dumps(types_in_dicts))
-
-
-async def filling_type_account_services():
-    await _fill_redis_single_objects(
-        model=TypeAccountServices,
-        key_prefix='type_account_service',
-        key_extractor=lambda type_account_service: type_account_service.type_account_service_id,
-    )
-
-
-async def filling_all_account_services():
-    await _delete_keys_by_pattern(f'account_services')
-    async with get_db() as session_db:
-        result_db = await session_db.execute(select(AccountServices).order_by(AccountServices.index.asc()))
-        services = result_db.scalars().all()
-
-    if services:
-        list_service = [service.to_dict() for service in services]
-        async with get_redis() as session_redis:
-            await session_redis.set("account_services", orjson.dumps(list_service))
-
-
-async def filling_account_services():
-    await _fill_redis_single_objects(
-        model=AccountServices,
-        key_prefix='account_service',
-        key_extractor=lambda account_service: account_service.account_service_id,
-    )
-
-
-async def filling_account_categories_by_service_id():
-    await _delete_keys_by_pattern(f'account_categories_by_service_id:*')
-    async with get_db() as session_db:
-        service_ids = (await session_db.execute(select(AccountServices.account_service_id))).scalars().all()
-
-        if not service_ids:
-            return
-
-        async with get_redis() as r:
-            for service_id in service_ids:
-                # получаем объекты группы
-                result_db = await session_db.execute(
-                    select(AccountCategories)
-                    .where(AccountCategories.account_service_id == service_id)
-                    .order_by(AccountCategories.index.asc())
-                    .options(selectinload(AccountCategories.translations), selectinload(AccountCategories.product_accounts))
-                )
-
-                account_categories: list[AccountCategories] = result_db.scalars().all()
-                if not account_categories:
-                    continue
-
-                # union языков, которые реально есть среди объектов (и допустимы)
-                langs_set = set()
-                for category in account_categories:
-                    for translate in category.translations:
-                        lang = translate.lang
-                        if lang and lang in get_config().app.allowed_langs:
-                            langs_set.add(lang)
-
-                if not langs_set:
-                    continue
-
-                async with r.pipeline(transaction=False) as pipe:
-                    for lang in langs_set:
-                        list_for_redis = []
-                        for category in account_categories:
-                            # если у объекта нет перевода для lang — пропускаем его
-                            has_lang = False
-                            for translate in category.translations:
-                                if translate.lang == lang:
-                                    has_lang = True
-                                    break
-                            if not has_lang:
-                                continue
-
-                            result_category = AccountCategoryFull.from_orm_with_translation(
-                                category = category,
-                                quantity_product_account = len(category.product_accounts),
-                                lang = lang
-                            )
-
-                            list_for_redis.append(result_category.model_dump())
-
-                        if not list_for_redis:
-                            continue
-
-                        key = f"account_categories_by_service_id:{service_id}:{lang}"
-                        value_bytes = orjson.dumps(list_for_redis)
-                        await pipe.set(key, value_bytes)
-                    await pipe.execute()
-
-
-async def filling_account_categories_by_category_id():
-    await _delete_keys_by_pattern(f'account_categories_by_category_id:*') # удаляем по каждой категории
     async with get_db() as session_db:
         result_db = await session_db.execute(
-            select(AccountCategories)
-            .options(selectinload(AccountCategories.translations), selectinload(AccountCategories.product_accounts))
+            select(Categories)
+            .options(selectinload(Categories.translations), selectinload(Categories.products))
+            .where(field_condition)
+            .order_by(Categories.index.asc())
         )
-        categories: list[AccountCategories] = result_db.scalars().all()
+        categories: list[Categories] = result_db.scalars().all()
+
+        if not categories:
+            return
+
+        # union языков, которые реально есть среди объектов (и допустимы)
+        langs_set = set()
+        for category in categories:
+            for translate in category.translations:
+                lang = translate.lang
+                if lang and lang in get_config().app.allowed_langs:
+                    langs_set.add(lang)
+
+        if not langs_set:
+            return
+
+        async with get_redis() as session_redis:
+            async with session_redis.pipeline(transaction=False) as pipe:
+                for lang in langs_set:
+                    list_for_redis = []
+
+                    for category in categories:
+                        # если у объекта нет перевода для lang — пропускаем его
+                        has_lang = False
+                        for translate in category.translations:
+                            if translate.lang == lang:
+                                has_lang = True
+                                break
+                        if not has_lang:
+                            continue
+
+                        result_category = CategoryFull.from_orm_with_translation(
+                            category = category,
+                            quantity_product= len(category.products),
+                            lang = lang
+                        )
+
+                        list_for_redis.append(result_category.model_dump())
+
+                    if not list_for_redis:
+                        continue
+
+                    key = f"{key_prefix}:{lang}"
+                    value_bytes = orjson.dumps(list_for_redis)
+                    await pipe.set(key, value_bytes)
+                await pipe.execute()
+
+
+async def filling_main_categories():
+    await _filling_categories(
+        key_prefix="main_categories",
+        field_condition=(Categories.is_main == True)
+    )
+
+
+async def filling_categories_by_parent():
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            select(Categories)
+            .where(Categories.parent_id.is_not(None))
+        )
+        categories: list[Categories] = result_db.scalars().all()
+
+    for cat in categories:
+        await _filling_categories(
+            key_prefix=f"categories_by_parent:{cat.parent_id}",
+            field_condition=(Categories.parent_id == cat.parent_id)
+        )
+
+
+async def filling_category_by_category():
+    await _delete_keys_by_pattern(f"category:*")
+
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            select(Categories)
+            .options(selectinload(Categories.translations), selectinload(Categories.products))
+        )
+        categories: list[Categories] = result_db.scalars().all()
 
         if not categories:
             return
@@ -336,7 +319,7 @@ async def filling_account_categories_by_category_id():
         async with get_redis() as session_redis:
             async with session_redis.pipeline(transaction=False) as pipe:
                 for category in categories:
-                    category_id = category.account_category_id
+                    category_id = category.category_id
 
                     # получаем все языки которые имеются у данного объекта (obj)
                     langs = []
@@ -355,45 +338,71 @@ async def filling_account_categories_by_category_id():
 
                     for lang in langs:
                         try:
-                            value_obj = AccountCategoryFull.from_orm_with_translation(
+                            value_obj = CategoryFull.from_orm_with_translation(
                                 category=category,
-                                quantity_product_account=len(category.product_accounts),
+                                quantity_product=len(category.products),
                                 lang=lang
                             )
-                        except Exception:  # если по какой-то причине to_localized_dict упадёт — пропускаем этот язык
+                        except Exception as e:
+                            logger = get_logger(__name__)
+                            logger.warning(f"Error when converting to CategoryFull: {str(e)}")
                             continue
                         if not value_obj:
                             continue
 
                         value_bytes = orjson.dumps(value_obj.model_dump())
-                        key = f"account_categories_by_category_id:{category_id}:{lang}"
+                        key = f"category:{category_id}:{lang}"
                         await pipe.set(key, value_bytes)
                 await pipe.execute()
 
 
-async def filling_product_accounts_by_category_id():
-    await _delete_keys_by_pattern(f'product_accounts_by_category_id:*') # удаляем по каждой категории
+async def filling_all_keys_category():
+    """Заполняет redis всеми ключами для категорий"""
+    await filling_main_categories()
+    await filling_categories_by_parent()
+    await filling_category_by_category()
+
+
+async def filling_product_by_category_id():
+    await _delete_keys_by_pattern(f"products_by_category:*") # удаляем по каждой категории
     async with get_db() as session_db:
         # Получаем все ID для группировки
-        result_db = await session_db.execute(select(ProductAccounts.account_category_id))
-        category_ids = result_db.scalars().all()
+        result_db = await session_db.execute(select(distinct(Products.category_id)))
+        unique_category_ids = result_db.scalars().all()
 
-        for category_id in category_ids:
-            # Строим запрос с условием
-            result_db = await session_db.execute(select(ProductAccounts).where(ProductAccounts.account_category_id == category_id))
+        for category_id in unique_category_ids:
+            result_db = await session_db.execute(select(Products).where(Products.category_id == category_id))
             product_accounts = result_db.scalars().all()
 
             if product_accounts:
                 async with get_redis() as session_redis:
                     list_for_redis = [obj.to_dict() for obj in product_accounts]
-                    key = f"product_accounts_by_category_id:{category_id}"
+                    key = f"products_by_category:{category_id}"
                     value = orjson.dumps(list_for_redis)
                     await session_redis.set(key, value)
 
 
+async def filling_product_accounts_by_product_id():
+    await _delete_keys_by_pattern(f"product_accounts_by_product:*") # удаляем по каждой категории
+    async with get_db() as session_db:
+        # Получаем все ID для группировки
+        result_db = await session_db.execute(select(ProductAccounts.product_id))
+        account_product_ids = result_db.scalars().all()
+
+        for product_id in account_product_ids:
+            result_db = await session_db.execute(select(ProductAccounts).where(ProductAccounts.product_id == product_id))
+            product_accounts = result_db.scalars().all()
+
+            if product_accounts:
+                async with get_redis() as session_redis:
+                    list_for_redis = [obj.to_dict() for obj in product_accounts]
+                    key = f"product_accounts_by_product:{product_id}"
+                    value = orjson.dumps(list_for_redis)
+                    await session_redis.set(key, value)
+
 
 async def filling_product_account_by_account_id(account_id: int):
-    await _delete_keys_by_pattern(f'product_accounts_by_account_id:{account_id}') # удаляем только по данному id
+    await _delete_keys_by_pattern(f'product_account:{account_id}') # удаляем только по данному id
     async with get_db() as session_db:
         result_db = await session_db.execute(select(ProductAccounts).where(ProductAccounts.account_id == account_id))
         account: ProductAccounts = result_db.scalar_one_or_none()
@@ -404,12 +413,9 @@ async def filling_product_account_by_account_id(account_id: int):
         if not storage_account: return
 
         async with get_redis() as session_redis:
-            product_account = ProductAccountFull(
-                account_id = account.account_id,
-                type_account_service_id = account.type_account_service_id,
-                account_category_id = account.account_category_id,
-                created_at = account.created_at,
-                account_storage = AccountStoragePydentic(**storage_account.to_dict())
+            product_account = ProductAccountFull.from_orm_model(
+                product_account=account,
+                storage_account=storage_account
             )
             await session_redis.set(
                 f'product_accounts_by_account_id:{account.account_id}',

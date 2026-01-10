@@ -11,8 +11,8 @@ from src.modules.admin_actions.schemas import GetDataForCategoryData
 from src.modules.admin_actions.services import safe_get_category
 from src.modules.admin_actions.services import set_state_create_category, name_input_prompt_by_language
 from src.modules.admin_actions.state import GetDataForCategory
-from src.services.database.selling_accounts.actions import add_account_category, \
-    add_translation_in_account_category
+from src.services.database.product_categories.actions import add_account_category, \
+    add_translation_in_category
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
 
@@ -71,13 +71,13 @@ async def add_acc_category_name(message: Message, state: FSMContext, user: Users
             if lang_code == get_config().app.default_lang:
                 continue
 
-            await add_translation_in_account_category(
-                account_category_id=category.account_category_id,
+            await add_translation_in_category(
+                category_id=category.category_id,
                 language=lang_code,
                 name=data.data_name[lang_code]
             )
         message = get_text(user.language, "admins_editor_category", "Category successfully created!")
-        reply_markup = back_in_category_kb(user.language, category.account_category_id, i18n_key="In category")
+        reply_markup = back_in_category_kb(user.language, category.category_id, i18n_key="In category")
     except AccountCategoryNotFound:
         message = get_text(user.language, "admins_editor_category","The category no longer exists")
         reply_markup = to_services_kb(user.language)

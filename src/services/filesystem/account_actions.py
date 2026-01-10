@@ -6,7 +6,7 @@ from typing import AsyncGenerator
 
 from src.bot_actions.messages import send_log
 from src.config import get_config
-from src.services.database.selling_accounts.models import AccountStorage, AccountStoragePydentic
+from src.services.database.product_categories.models import AccountStorage, AccountStoragePydantic
 from src.services.filesystem.actions import move_file
 from src.utils.core_logger import get_logger
 from src.services.secrets import decrypt_folder, get_crypto_context, unwrap_dek, CryptoContext
@@ -79,7 +79,7 @@ def create_path_account(status: str, type_account_service: str, uuid: str) -> st
 
 
 def decryption_tg_account(
-    account_storage: AccountStorage | AccountStoragePydentic,
+    account_storage: AccountStorage | AccountStoragePydantic,
     crypto: CryptoContext,
 ):
     """

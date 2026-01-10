@@ -7,7 +7,7 @@ from aiogram.types import Document
 from src.bot_actions.messages import send_message
 from src.config import get_config
 from src.modules.admin_actions.keyboards import back_in_category_kb
-from src.services.database.selling_accounts.models import AccountCategoryFull
+from src.services.database.product_categories.models import CategoryFull
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
 
@@ -46,12 +46,12 @@ async def check_valid_file(doc: Document, user: Users, state: FSMContext, expect
 
 
 
-async def check_category_is_acc_storage(category: AccountCategoryFull, user: Users) -> bool:
+async def check_category_is_acc_storage(category: CategoryFull, user: Users) -> bool:
     """
     Проверит что категория - хранилище аккаунтов. Еслине хранит, то отправит сообщение, что необходимо сделать хранилищем
     :return bool: True если хранит, иначе False
     """
-    if not category.is_accounts_storage:
+    if not category.is_product_storage:
         await send_message(
             user.user_id,
             get_text(user.language,"admins_editor_category","First, make this category an account storage"),

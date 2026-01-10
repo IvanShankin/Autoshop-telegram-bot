@@ -16,9 +16,9 @@ from src.modules.profile.keyboard_profile import in_profile_kb
 from src.services.database.discounts.actions import get_promo_code
 from src.services.database.discounts.actions.actions_promo import check_activate_promo_code
 from src.services.database.discounts.utils.calculation import discount_calculation
-from src.services.database.selling_accounts.actions import get_account_service, get_account_categories_by_category_id
-from src.services.database.selling_accounts.actions.action_purchase import purchase_accounts
-from src.services.database.selling_accounts.models import AccountCategoryFull
+from src.services.database.product_categories.actions import get_account_service, get_account_categories_by_category_id
+from src.services.database.product_categories.actions.action_purchase import purchase_accounts
+from src.services.database.product_categories.models import CategoryFull
 from src.services.database.system.actions import get_ui_image
 from src.services.database.users.models import Users
 from src.utils.converter import safe_int_conversion
@@ -26,10 +26,10 @@ from src.utils.i18n import get_text
 
 router = Router()
 
-async def _check_category(category_id: int, old_message_id: int, user_id: int, language: str) -> AccountCategoryFull | None:
+async def _check_category(category_id: int, old_message_id: int, user_id: int, language: str) -> CategoryFull | None:
     """
     Если есть категория, то вернёт её, если не найдена, то отошлёт соответсвующее сообщение и удалит прошлое
-    :return: Если есть категория, то вернёт AccountCategoryFull, иначе None
+    :return: Если есть категория, то вернёт CategoryFull, иначе None
     """
     category = await get_account_categories_by_category_id(category_id, language=language)
     if not category:
@@ -80,12 +80,12 @@ async def edit_message_account_category(
         user: Users,
         message_id: int,
         data: BuyAccountsData,
-        category: AccountCategoryFull
+        category: CategoryFull
 ):
     ui_image = await get_ui_image(category.ui_image_key)
 
     message = None
-    if category.is_accounts_storage:
+    if category.is_product_storage:
         message_discount = ''
         total_price = data.quantity_for_buying * category.price_one_account
 
@@ -150,10 +150,10 @@ async def show_account_category(callback: CallbackQuery, state: FSMContext, user
     if category is None:
         return
 
-    if category.is_accounts_storage:
+    if category.is_product_storage:
         # попадём сюда если пользователь произвёл действия на категории, где хранятся аккаунты
 
-        if category.quantity_product_account < quantity_account:  # если имеется меньше, чем хочет пользователь
+        if category.quantity_product < quantity_account:  # если имеется меньше, чем хочет пользователь
             await callback.answer(get_text(user.language, 'catalog','No longer in stock'))
             return
         if quantity_account < 0:
@@ -171,7 +171,7 @@ async def show_account_category(callback: CallbackQuery, state: FSMContext, user
     else:
         # если пользователь перемещается оп категориям (так же может выйти назад с категории)
         await state.clear()
-        data = BuyAccountsData(old_message_id=callback.message.message_id, category_id=category.account_category_id)
+        data = BuyAccountsData(old_message_id=callback.message.message_id, category_id=category.category_id)
         await state.update_data(**data.model_dump())
 
     await edit_message_account_category(
@@ -204,7 +204,7 @@ async def set_quantity_accounts(message: Message, state: FSMContext, user: Users
     sent_message = None
     if new_quantity_accounts is None:
         sent_message = await send_message(user.user_id, get_text(user.language, 'miscellaneous',"Incorrect value entered. Please try again"))
-    elif new_quantity_accounts > category.quantity_product_account:
+    elif new_quantity_accounts > category.quantity_product:
         sent_message = await send_message(user.user_id, get_text(user.language, 'catalog',"No longer in stock"))
     else:
         data.quantity_for_buying = new_quantity_accounts
@@ -251,7 +251,7 @@ async def enter_promo(callback: CallbackQuery, state: FSMContext, user: Users):
         image_key='entering_promo_code',
         reply_markup=back_in_account_category_kb(
             user.language,
-            category_id=category.account_category_id,
+            category_id=category.category_id,
             quantity_for_buying=quantity_account
         )
     )
@@ -438,7 +438,7 @@ async def buy_acc(callback: CallbackQuery, user: Users):
         return
 
     # если на сервере недостаточно аккаунтов
-    if category.quantity_product_account < quantity_account:
+    if category.quantity_product < quantity_account:
         await _show_no_enough_accounts()
         return
 

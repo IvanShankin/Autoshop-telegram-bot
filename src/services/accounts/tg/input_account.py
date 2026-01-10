@@ -7,7 +7,7 @@ from typing import List, AsyncGenerator, Any, Tuple
 from src.config import get_config
 from src.exceptions import ArchiveNotFount, DirNotFount
 from src.services.accounts.utils.helper_imports import get_unique_among_db
-from src.services.database.selling_accounts.actions import add_account_storage, add_product_account, \
+from src.services.database.product_categories.actions import add_account_storage, add_product_account, \
     update_account_storage
 from src.services.filesystem.actions import extract_archive_to_temp, make_archive
 from src.services.filesystem.input_account import encrypted_tg_account, cleanup_used_data, archive_if_not_empty
@@ -22,7 +22,7 @@ SEM = asyncio.Semaphore(7)
 
 async def import_telegram_accounts_from_archive(
     archive_path: str,
-    account_category_id: int,
+    category_id: int,
     type_account_service: str
 ) -> AsyncGenerator[ImportResult, Any]:
     """
@@ -62,7 +62,7 @@ async def import_telegram_accounts_from_archive(
     await process_inappropriate_acc(invalid_items, invalid_dir)
 
     # Грузим уникальные в БД
-    successfully_added = await import_in_db(unique_items, type_account_service, invalid_dir, account_category_id)
+    successfully_added = await import_in_db(unique_items, type_account_service, invalid_dir, category_id)
 
     invalid_archive = await archive_if_not_empty(invalid_dir)
     duplicate_archive = await archive_if_not_empty(duplicate_dir)
@@ -93,14 +93,14 @@ async def import_in_db(
     all_items: List[BaseAccountProcessingResult],
     type_account_service: str,
     invalid_dir: str,
-    account_category_id: int
+    category_id: int
 ) -> int:
     """
     Импортирует аккаунты в БД
     :param all_items: все уникальные данные об аккаунтах
     :param type_account_service: тип сервиса куда добавляем
     :param invalid_dir: путь к директории с невалидными аккаунтами
-    :param account_category_id: категория куда необходимо добавить
+    :param category_id: категория куда необходимо добавить
     :return: успешное количество добавленных аккаунтов
     """
     successfully_added = 0
@@ -144,7 +144,7 @@ async def import_in_db(
             encrypted_key_nonce=enc.encrypted_key_nonce,
         )
 
-        await add_product_account(account_category_id, acc.account_storage_id)
+        await add_product_account(category_id, acc.account_storage_id)
         successfully_added += 1
 
     return successfully_added

@@ -3,10 +3,10 @@
 Все значения которые хранятся с TTL навсегда, меняются в зависимости от их изменений
 
 
-### 1. Настройки (Settings)
+### Настройки (Settings)
 **Ключ:** `settings`  
 **Значение:**  
-``` json
+```json
 {
     "support_username": int, 
     "maintenance_mode": bool, 
@@ -19,10 +19,10 @@
 ```
 **TTL:** Навсегда
 
-### 2. Изображения для разделов (UiImages)
+### Изображения для разделов (UiImages)
 **Ключ:** `ui_image:{key}`  
 **Значение:** 
-``` json
+```json
 {
     "key": str, 
     "file_path": str, 
@@ -32,11 +32,11 @@
 ```
 **TTL:** Навсегда
 
-### 3. Все типы оплаты (TypePayments)
+### Все типы оплаты (TypePayments)
 **Ключ:** `all_types_payments:`  
 **Важно:** список отсортирован по возрастанию поля index <br>
 **Значение:**  
-``` json
+```json
 [
     {
         "type_payment_id": int, 
@@ -52,10 +52,10 @@
 ```
 **TTL:** Навсегда
 
-### 4. Тип оплаты по id (TypePayments)
+### Тип оплаты по id (TypePayments)
 **Ключ:** `type_payments:{type_payment_id}`  
 **Значение:**  
-``` json
+```json
 {
     "type_payment_id": int, 
     "name_for_user": str,
@@ -68,10 +68,10 @@
 ```
 **TTL:** Навсегда
 
-### 5. Пользователь (Users)
+### Пользователь (Users)
 **Ключ:** `user:{user_id}`  
 **Значение:**  
-``` json
+```json
 {
     "user_id": int, 
     "username": str,
@@ -85,15 +85,17 @@
 ```
 **TTL:** 6 часов
 
-### 6. Просьба подписаться на канал (Users)
+
+### Просьба подписаться на канал (Users)
 **Ключ:** `subscription_prompt:{user_id}`
 **Значение:** `_` выступает в роли метки  
 **TTL:** 15 дней
 
-### 7. Уровни рефералов (ReferralLevels)
+
+### Уровни рефералов (ReferralLevels)
 **Ключ:** `referral_levels`  
 **Значение:**  
-``` json
+```json
 [
     {
         "referral_level_id": int, 
@@ -106,111 +108,26 @@
 ```
 **TTL:** Навсегда
 
-### 8. Админы (Admins)
+
+### Админы (Admins)
 **Ключ:** `admin:{user_id}`   
 **Значение:** `_` выступает в роли метки  
 **TTL:** Навсегда
 
-### 9. Забаненные аккаунты (BannedAccounts)
+
+### Забаненные аккаунты (BannedAccounts)
 **Ключ:** `banned_account:{user_id}`  
 **Значение:** `Причина бана`  
 **TTL:** Навсегда
 
-### 10. Тип продаваемых аккаунтов (TypeAccountServices)
-**Ключ:** `types_account_service`   
-**Значение:** 
-``` json
+
+### Главные категории (категории где is_main == True)
+**Ключ:** `main_categories:{lang}`
+**Значение:**
+```json
 [
-    {
-        "type_account_service_id": int ,
-        "name": str
-    }
-    .....
-]
-
-```
-
-### 11. Тип продаваемых аккаунтов (TypeAccountServices)
-**Ключ:** `type_account_service:{type_account_service_id}`   
-**Значение:** 
-``` json
-{
-    "type_account_service_id": int ,
-    "name": str
-}
-```
-**TTL:** Навсегда
-
-### 12. Список всех сервисов у продаваемых аккаунтов (AccountServices)
-**Важно:** список отсортирован по возрастанию поля index  
-**Ключ:** `account_services`   
-**Значение:** 
-``` json
-[
-    {
-        "account_service_id": int ,
-        "name": str,
-        "index": int,
-        "show": bool,
-        "type_account_service_id": int
-    }
-    .....
-]
-```
-**TTL:** Навсегда
-
-### 13. Сервисы у продаваемых аккаунтов (AccountServices)
-**Ключ:** `account_service:{account_service_id}`  
-**Значение:** 
-``` json
-{
-    "account_service_id": int ,
-    "name": str,
-    "index": int,
-    "show": bool,
-    "type_account_service_id": int
-}
-```
-**TTL:** Навсегда
-
-### 14. Категории аккаунтов по id сервиса (AccountCategories)
-**Ключ:** `account_categories_by_service_id:{account_service_id}:{language}`  
-**Значение:** 
-``` json
-[
-    {
-        "account_category_id": int,
-        "account_service_id": int,
-        "ui_image_key": str
-        "parent_id": int,
-        
-        "name": str,
-        "description": str,
-        "index": int,
-        "show": bool,
-        "number_buttons_in_row": int, 
-        
-        "is_main": bool, 
-        "is_accounts_storage": bool, 
-        
-        # только для тех кто хранит аккаунты 
-        "price_one_account": int or None,
-        "cost_price_one_account": int or None
-        
-        "quantity_product_account": int
-    }
-    .....
-]
-```
-**TTL:** Навсегда
-
-### 15. Категории аккаунтов по id категории (AccountCategories)
-**Ключ:** `account_categories_by_category_id:{account_category_id}:{language}`  
-**Значение:** 
-``` json
-{
-    "account_category_id": int,
-    "account_service_id": int,
+  {
+    "category_id": int,
     "ui_image_key": str
     "parent_id": int,
     
@@ -221,45 +138,120 @@
     "number_buttons_in_row": int, 
     
     "is_main": bool, 
-    "is_accounts_storage": bool, 
+    "is_product_storage": bool, 
     
-    # только для тех кто хранит аккаунты 
-    "price_one_account": int,
-    "cost_price_one_account": int
+    # только для тех кто хранит товары
+    "price": int,
+    "cost_price": int
     
-    "quantity_product_account": int
-}
-```
-**TTL:** Навсегда
-
-
-### 16. Товары Аккаунты по id категории (ProductAccounts)
-**Ключ:** `product_accounts_by_category_id:{account_category_id}`  
-**Значение:** 
-``` json
-[
-    {
-        "account_id": int,
-        "type_account_service_id": int,
-        "account_category_id": int,
-        "account_storage_id": int,
-        "created_at": datetime,
-    }
-    .....
+    "products_count": int
+  }
 ]
 ```
-**TTL:** Навсегда
+**TTL:** навсегда
 
-### 17. Товары Аккаунты по id аккаунта (ProductAccounts)
-**Ключ:** `product_accounts_by_account_id:{account_id}`  
-**Значение:** 
-``` json
+
+### Категории по parent_id
+**Ключ:** `categories_by_parent:{parent_id}:{lang}`
+**Значение:**
+```json
+[
+  {
+    "category_id": int,
+    "ui_image_key": str
+    "parent_id": int,
+    
+    "name": str,
+    "description": str,
+    "index": int,
+    "show": bool,
+    "number_buttons_in_row": int, 
+    
+    "is_main": bool, 
+    "is_product_storage": bool, 
+    
+    # только для тех кто хранит товары
+    "price": int,
+    "cost_price": int
+    
+    "products_count": int
+  }
+]
+```
+**TTL:** навсегда
+
+
+### Категория по id
+**Ключ:** `category:{category_id}:{lang}`
+**Значение:**
+```json
+{
+    "category_id": int,
+    "ui_image_key": str
+    "parent_id": int,
+    
+    "name": str,
+    "description": str,
+    "index": int,
+    "show": bool,
+    "number_buttons_in_row": int, 
+    
+    "is_main": bool, 
+    "is_product_storage": bool, 
+    
+    # только для тех кто хранит товары
+    "price": int,
+    "cost_price": int
+    
+    "products_count": int
+}
+```
+**TTL:** навсегда
+
+
+
+### Продукты по категории
+**Ключ:** `products_by_category:{category_id}`
+**Значение:**
+```json
+[
+  {
+    "product_id": int,
+    "category_id": int,
+    "product_type": str,
+  }
+]
+```
+**TTL:** навсегда
+
+
+## ProductAccounts по product_id
+**Ключ:** `product_accounts_by_product:{product_id}`
+**Значение:**
+```json
+[
+  {
+    "account_id": int,
+    "product_id": int,
+    "type_account_service": int,
+    "account_storage_id": int,
+    "created_at": datetime,
+  }
+]
+```
+**TTL:** навсегда
+
+
+## ProductAccounts по account_id
+**Ключ:** `product_account:{account_id}`
+**Значение:**
+```json
 {
     "account_id": int,
-    "type_account_service_id": int,
-    "account_category_id": int,
+    "product_id": int,
+    "type_account_service": int,
     "created_at": datetime,
-     
+  
     "account_storage": {
         "account_storage_id": int,
         "storage_uuid": str,
@@ -287,18 +279,19 @@
     }
 }
 ```
-**TTL:** Навсегда
+**TTL:** навсегда
 
-### 18. Проданные аккаунты по id владельца (SoldAccounts)
+
+### Проданные аккаунты по id владельца (SoldAccounts)
 **Важно:** хранит только НЕ удалённые аккаунты (is_deleted == False)  
 **Ключ:** `sold_accounts_by_owner_id:{owner_id}:{language}`  
 **Значение:** 
-``` json
+```json
 [
     {
         "sold_account_id": int,
         "owner_id": int,
-        "type_account_service_id": int,
+        "type_account_service": str,
         
         "phone_number": str,
         "name": str,
@@ -306,21 +299,21 @@
         
         "sold_at": datetime
         
-    }
+    },
     .....
 ]
 ```
 **TTL:** 6 часов
 
-### 19. Проданные аккаунты по id аккаунта (SoldAccounts)
+### Проданные аккаунты по id аккаунта (SoldAccounts)
 **Важно:** хранит только НЕ удалённые аккаунты (is_deleted == False)  
 **Ключ:** `sold_accounts_by_accounts_id:{sold_account_id}:{language}`  
 **Значение:** 
-``` json
+```json
 {
     "sold_account_id": int,
     "owner_id": int,
-    "type_account_service_id": int,
+    "type_account_service": int,
     
     "name": str,
     "description": str,
@@ -357,11 +350,11 @@
 **TTL:** 6 часов
 
 
-### 20. Промокоды (PromoCodes)
+### Промокоды (PromoCodes)
 **Важно:** хранит только действительные (is_valid == True)  
 **Ключ:** `promo_code:{activation_code}`  
 **Значение:** 
-``` json
+```json
 {
     "promo_code_id": int,
     "activation_code": str,
@@ -379,11 +372,11 @@
 ```
 **TTL:** До окончания срока действия
 
-### 21. Список ваучеров (Vouchers)
+### Список ваучеров (Vouchers)
 **Важно:** хранит только действительные (is_valid == True), отфильтровано по дате создания `desc`   
 **Ключ:** `voucher_by_user:{user_id}`  
 **Значение:** 
-``` json
+```json
 [
     {
         voucher_id: int
@@ -398,11 +391,11 @@
 ```
 **TTL:** 10 часов
 
-### 22. Ваучеры (Vouchers)
+### Ваучеры (Vouchers)
 **Важно:** хранит только действительные (is_valid == True)  
 **Ключ:** `voucher:{activation_code}`  
 **Значение:** 
-``` json
+```json
 {
     "voucher_id": int,
     "creator_id": int,
@@ -421,7 +414,7 @@
 
 **TTL:** Навсегда
 
-### 22. Курс доллара
+### Курс доллара
 **Ключ:** `dollar_rate`  
 **Значение:** `float`
 **TTL:** Навсегда, обновляется раз в два часа (get_config().different.fetch_interval)

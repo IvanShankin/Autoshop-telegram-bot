@@ -10,7 +10,7 @@ pytestmark = pytest.mark.asyncio
 async def test_split_unique_and_duplicates_in_memory_and_db_duplicates(
     create_type_account_service,
     create_account_service,
-    create_account_category,
+    create_category,
     create_product_account  # fixture — фабрика/создатель записи в БД
 ):
     """
@@ -22,11 +22,11 @@ async def test_split_unique_and_duplicates_in_memory_and_db_duplicates(
 
     type_service = await create_type_account_service()
     service = await create_account_service(type_account_service_id=type_service.type_account_service_id)
-    category = await create_account_category(account_service_id=service.account_service_id)
+    category = await create_category(account_service_id=service.account_service_id)
 
     # Создаём уже существующую запись в БД — это будет дубль по телефону
     existing_phone = "+79990001122"
-    await create_product_account(phone_number=existing_phone, account_category_id=category.account_category_id)
+    await create_product_account(phone_number=existing_phone, category_id=category.category_id)
 
 
     # Подготавливаем входные данные: один телефон = existing_phone (дубликат в БД),
@@ -55,7 +55,7 @@ async def test_split_unique_and_duplicates_in_memory_and_db_duplicates(
 async def test_input_other_account_full_flow_create_and_return_reports(
     create_type_account_service,
     create_account_service,
-    create_account_category,
+    create_category,
     create_product_account
 ):
     """
@@ -72,11 +72,11 @@ async def test_input_other_account_full_flow_create_and_return_reports(
 
     type_service = await create_type_account_service()
     service = await create_account_service(type_account_service_id=type_service.type_account_service_id)
-    category = await create_account_category(account_service_id=service.account_service_id, is_accounts_storage=True)
+    category = await create_category(account_service_id=service.account_service_id, is_product_storage=True)
 
     # Телефон, который уже есть в БД
     phone_existing = "+71230000000"
-    await create_product_account(phone_number=phone_existing, account_category_id=category.account_category_id)
+    await create_product_account(phone_number=phone_existing, category_id=category.category_id)
 
     # Готовим CSV с 3 строками: 1 дубль в БД, 1 дубликат в файле (same as second), 1 новый
     csv_rows = [
@@ -89,7 +89,7 @@ async def test_input_other_account_full_flow_create_and_return_reports(
     stream = io.BytesIO(csv_bytes)
 
     # Запускаем импортер
-    result = await input_other_account(stream, category.account_category_id, type_service.name)
+    result = await input_other_account(stream, category.category_id, type_service.name)
 
     # total_processed — число строк (csv.DictReader.line_num - 1 в коде)
     assert result.total_processed == 3

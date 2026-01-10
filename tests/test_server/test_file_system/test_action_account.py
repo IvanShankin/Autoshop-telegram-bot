@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import AsyncMock
 
 from src.config import get_config
-from src.services.database.selling_accounts.models import AccountStorage, ProductAccounts
+from src.services.database.product_categories.models import AccountStorage, ProductAccounts
 from src.services.secrets import get_crypto_context
 
 

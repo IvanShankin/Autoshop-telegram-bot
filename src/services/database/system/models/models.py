@@ -26,7 +26,7 @@ class UiImages(Base):
     show = Column(Boolean, nullable=False, server_default=text('true'))
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    account_category = relationship("AccountCategories", back_populates="ui_image")
+    category = relationship("Categories", back_populates="ui_image")
     message_for_sending = relationship("MessageForSending", back_populates="ui_image")
 
 

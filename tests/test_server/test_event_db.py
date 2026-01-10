@@ -11,7 +11,7 @@ from sqlalchemy import MetaData, Table
 from src.broker.producer import publish_event
 from src.config import get_config
 from src.services.database.discounts.models import Vouchers
-from src.services.database.selling_accounts.events.schemas import NewPurchaseAccount, AccountsData
+from src.services.database.product_categories.events.schemas import NewPurchaseAccount, AccountsData
 from src.services.database.system.actions import get_settings, update_settings
 from src.services.database.users.models import Replenishments, Users, WalletTransaction, UserAuditLogs
 from src.services.database.replenishments_event.schemas import ReplenishmentFailed, ReplenishmentCompleted, NewReplenishment
@@ -836,7 +836,7 @@ async def test_handler_new_purchase_creates_wallet_and_logs(
     - отправляются логи (проверяется fake_bot)
     """
 
-    from src.services.database.selling_accounts.events.even_handlers_acc import handler_new_purchase
+    from src.services.database.product_categories.events.even_handlers_acc import handler_new_purchase
     # подготовка данных
     user = await create_new_user()
     # создаём sold_account в БД и перевод для языка 'ru'
@@ -914,7 +914,7 @@ async def test_account_purchase_event_handler_parses_and_calls_handler(
     Проверяем, что account_purchase_event_handler корректно парсит dict-ивент
     и вызывает handler_new_purchase (через этот wrapper вставится Pydantic->handler).
     """
-    from src.services.database.selling_accounts.events.even_handlers_acc import account_purchase_event_handler
+    from src.services.database.product_categories.events.even_handlers_acc import account_purchase_event_handler
     user = await create_new_user()
     _, sold_full = await create_sold_account(filling_redis=False, owner_id=user.user_id, language='ru')
 

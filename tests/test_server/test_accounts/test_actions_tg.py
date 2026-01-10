@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from src.services.database.selling_accounts.models import AccountStorage
+from src.services.database.product_categories.models import AccountStorage
 
 
 

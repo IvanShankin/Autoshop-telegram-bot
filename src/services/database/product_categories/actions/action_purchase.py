@@ -14,22 +14,22 @@ from src.config import get_config
 from src.exceptions import CategoryNotFound, NotEnoughAccounts, NotEnoughMoney
 from src.services.database.discounts.events import NewActivatePromoCode
 from src.services.database.discounts.utils.calculation import discount_calculation
-from src.services.database.selling_accounts.events.schemas import NewPurchaseAccount, AccountsData
-from src.services.database.selling_accounts.models.models import PurchaseRequests, PurchaseRequestAccount
+from src.services.database.product_categories.events.schemas import NewPurchaseAccount, AccountsData
+from src.services.database.product_categories.models import PurchaseRequests, PurchaseRequestAccount
 from src.services.database.users.models.models_users import BalanceHolder
 from src.services.filesystem.account_actions import create_path_account, rename_file, move_in_account
 from src.services.filesystem.actions import move_file
 from src.services.accounts.tg.actions import check_account_validity
-from src.services.redis.filling_redis import filling_product_accounts_by_category_id, \
+from src.services.redis.filling_redis import filling_product_by_category_id, \
     filling_product_account_by_account_id, filling_sold_accounts_by_owner_id, filling_sold_account_by_account_id, \
     filling_user, filling_account_categories_by_service_id, filling_account_categories_by_category_id
 from src.services.database.core.database import get_db
-from src.services.database.selling_accounts.actions import get_account_categories_by_category_id, \
+from src.services.database.product_categories.actions import get_account_categories_by_category_id, \
     update_account_storage, delete_product_account, add_deleted_accounts, get_account_service, get_type_account_service, \
     get_product_account_by_category_id
-from src.services.database.selling_accounts.models import ProductAccounts, SoldAccounts, PurchasesAccounts, \
-    SoldAccountsTranslation, AccountCategoryTranslation, AccountStorage
-from src.services.database.selling_accounts.models.schemas import StartPurchaseAccount
+from src.services.database.product_categories.models import ProductAccounts, SoldAccounts, PurchasesAccounts, \
+    SoldAccountsTranslation, CategoryTranslation, AccountStorage
+from src.services.database.product_categories.models.schemas import StartPurchaseAccount
 from src.services.database.users.actions import get_user
 from src.services.database.users.models import Users
 from src.utils.core_logger import get_logger
@@ -120,10 +120,10 @@ async def start_purchase_request(
 
     async with get_db() as session_db:
         result_db = await session_db.execute(
-            select(AccountCategoryTranslation)
-            .where(AccountCategoryTranslation.account_category_id == category_id)
+            select(CategoryTranslation)
+            .where(CategoryTranslation.category_id == category_id)
         )
-        translations_category: list[AccountCategoryTranslation] = result_db.scalars().all()
+        translations_category: list[CategoryTranslation] = result_db.scalars().all()
 
     if not category or not translations_category:
         raise CategoryNotFound("Данной категории больше не существует")
@@ -151,7 +151,7 @@ async def start_purchase_request(
                 .options(selectinload(ProductAccounts.account_storage))
                 .join(ProductAccounts.account_storage)
                 .where(
-                    (ProductAccounts.account_category_id == category_id) &
+                    (ProductAccounts.category_id == category_id) &
                     (AccountStorage.status == "for_sale")
                 )
                 .order_by(ProductAccounts.created_at.desc())
@@ -231,7 +231,7 @@ async def _delete_account(account_storage: List[ProductAccounts], type_service_n
 
     if account_storage:
         category = await get_account_categories_by_category_id(
-            account_category_id=account_storage[0].account_category_id,
+            category_id=account_storage[0].category_id,
             return_not_show=True
         )
 
@@ -362,7 +362,7 @@ async def verify_reserved_accounts(
                         .options(selectinload(ProductAccounts.account_storage))
                         .join(ProductAccounts.account_storage)
                         .where(
-                            (ProductAccounts.account_category_id == bad_queue[0].account_category_id) &  # выбираем по категории текущей «дыры»
+                            (ProductAccounts.category_id == bad_queue[0].category_id) &  # выбираем по категории текущей «дыры»
                             (ProductAccounts.type_account_service_id == bad_queue[0].type_account_service_id) &
                             (AccountStorage.is_active == True) &
                             (AccountStorage.is_valid == True) &
@@ -565,7 +565,7 @@ async def cancel_purchase_request(
                     if aid not in existing_ids:
                         session.add(ProductAccounts(
                             type_account_service_id=account.type_account_service_id,
-                            account_category_id=account.account_category_id,
+                            category_id=account.category_id,
                             account_storage_id=aid
                         ))
 
@@ -590,7 +590,7 @@ async def cancel_purchase_request(
     if user:
         await filling_user(user)
     await filling_sold_accounts_by_owner_id(user_id)
-    await filling_product_accounts_by_category_id()
+    await filling_product_by_category_id()
     for sid in sold_account_ids:
         await filling_sold_account_by_account_id(sid)
     for pid in product_accounts:
@@ -748,7 +748,7 @@ async def finalize_purchase(user_id: int, data: StartPurchaseAccount):
 
         # обновление redis
         await filling_sold_accounts_by_owner_id(user_id)
-        await filling_product_accounts_by_category_id()
+        await filling_product_by_category_id()
         for sid in sold_account_ids:
             await filling_sold_account_by_account_id(sid)
         for pid in data.product_accounts:

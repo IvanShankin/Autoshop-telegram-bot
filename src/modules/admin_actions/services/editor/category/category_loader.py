@@ -5,17 +5,17 @@ from aiogram.types import CallbackQuery
 from src.bot_actions.messages import send_message
 from src.bot_actions.bot_instance import get_bot
 from src.modules.admin_actions.keyboards import to_services_kb
-from src.services.database.selling_accounts.actions import get_account_categories_by_category_id, \
+from src.services.database.product_categories.actions import get_account_categories_by_category_id, \
     get_account_service, get_type_account_service
-from src.services.database.selling_accounts.models import AccountCategoryFull
+from src.services.database.product_categories.models import CategoryFull
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
 
 
-async def safe_get_category(category_id: int, user: Users, callback: CallbackQuery | None = None) -> AccountCategoryFull | None:
+async def safe_get_category(category_id: int, user: Users, callback: CallbackQuery | None = None) -> CategoryFull | None:
     """Проверит наличие категории, если нет, то удалит сообщение (если имеется callback) и отошлёт соответствующие сообщение"""
     category = await get_account_categories_by_category_id(
-        account_category_id=category_id,
+        category_id=category_id,
         language=user.language,
         return_not_show=True
     )
@@ -34,7 +34,7 @@ async def safe_get_category(category_id: int, user: Users, callback: CallbackQue
     return category
 
 
-async def safe_get_service_name(category: AccountCategoryFull, user: Users, message_id: int) -> str | None:
+async def safe_get_service_name(category: CategoryFull, user: Users, message_id: int) -> str | None:
     """Произведёт поиск по сервисам, если не найдёт, то удалит сообщение и отошлёт соответствующие сообщение"""
     service_name = None
     service = await get_account_service(category.account_service_id, return_not_show=True)

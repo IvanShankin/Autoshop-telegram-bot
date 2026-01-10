@@ -14,7 +14,7 @@ from types import SimpleNamespace
 
 from src.services.accounts.tg.shemas import BaseAccountProcessingResult, ArchiveProcessingResult
 from telethon.tl.types import User
-from src.services.database.selling_accounts.models import ProductAccounts
+from src.services.database.product_categories.models import ProductAccounts
 
 
 VALID_USER = User(
@@ -40,7 +40,7 @@ VALID_USER = User(
 
 class TestImportAccount:
     @pytest.mark.asyncio
-    async def test_import_creates_product_account(self, tmp_path, create_account_category):
+    async def test_import_creates_product_account(self, tmp_path, create_category):
         """
         Интеграционный тест:
         - создаёт входной zip с двумя директориями acc1 и acc2 (каждая содержит tdata + session.session)
@@ -90,11 +90,11 @@ class TestImportAccount:
             return None
 
         # создаём категорию (фигстура)
-        category = await create_account_category(is_accounts_storage=True)
+        category = await create_category(is_product_storage=True)
 
         # запускаем интеграционный импорт (мок только проверки валидности)
         with patch("src.services.accounts.tg.input_account.check_valid_accounts_telethon", new=AsyncMock(side_effect=fake_check)):
-            gen = import_telegram_accounts_from_archive(str(input_zip), account_category_id=category.account_category_id, type_account_service="telegram")
+            gen = import_telegram_accounts_from_archive(str(input_zip), category_id=category.category_id, type_account_service="telegram")
 
             # получаем результат (он yield-ит ImportResult)
             result = await gen.__anext__()
@@ -117,7 +117,7 @@ class TestImportAccount:
 
 
     @pytest.mark.asyncio
-    async def test_import_with_duplicate_accounts_archived(self, tmp_path, create_account_category):
+    async def test_import_with_duplicate_accounts_archived(self, tmp_path, create_category):
         """
         Интеграционный тест на дубликаты:
         - создаём два accX директории, но оба возвращают одного и того же user (одинаковый id/phone)
@@ -148,10 +148,10 @@ class TestImportAccount:
         async def fake_check_dup(path):
             return dup_user
 
-        category = await create_account_category(is_accounts_storage=True)
+        category = await create_category(is_product_storage=True)
 
         with patch("src.services.accounts.tg.input_account.check_valid_accounts_telethon", new=AsyncMock(side_effect=fake_check_dup)):
-            gen = import_telegram_accounts_from_archive(str(input_zip), account_category_id=category.account_category_id, type_account_service="telegram")
+            gen = import_telegram_accounts_from_archive(str(input_zip), category_id=category.category_id, type_account_service="telegram")
             result = await gen.__anext__()
 
             # должно быть два обработанных, но один дубликат -> duplicate_archive_path не None
@@ -173,7 +173,7 @@ class TestImportAccount:
             assert len(items) == 1
 
     @pytest.mark.asyncio
-    async def test_import_with_invalid_accounts_archived(self, tmp_path, create_account_category):
+    async def test_import_with_invalid_accounts_archived(self, tmp_path, create_category):
         """
         Интеграционный тест:
         - создаём одну директорию acc_bad
@@ -201,7 +201,7 @@ class TestImportAccount:
         async def fake_check_invalid(path):
             return None
 
-        category = await create_account_category(is_accounts_storage=True)
+        category = await create_category(is_product_storage=True)
 
         with patch(
                 "src.services.accounts.tg.input_account.check_valid_accounts_telethon",
@@ -209,7 +209,7 @@ class TestImportAccount:
         ):
             gen = import_telegram_accounts_from_archive(
                 str(input_zip),
-                account_category_id=category.account_category_id,
+                category_id=category.category_id,
                 type_account_service="telegram"
             )
 
@@ -235,10 +235,10 @@ class TestImportAccount:
             assert len(items) == 0, "Не должно быть ProductAccounts для невалидных данных"
 
 @pytest.mark.asyncio
-async def test_import_in_db_valid_and_invalid(tmp_path, create_account_category):
+async def test_import_in_db_valid_and_invalid(tmp_path, create_category):
     from src.services.accounts.tg.input_account import import_in_db
     # Создаём валидный и битый item
-    category = await create_account_category(is_accounts_storage=True)
+    category = await create_category(is_product_storage=True)
     valid_item = BaseAccountProcessingResult(valid=True, dir_path=str(tmp_path / "valid_acc"), user= VALID_USER)
 
     invalid_item = BaseAccountProcessingResult(valid=True, dir_path=str(tmp_path / "invalid_acc"), user=VALID_USER)
@@ -258,7 +258,7 @@ async def test_import_in_db_valid_and_invalid(tmp_path, create_account_category)
             [valid_item, invalid_item],
             "telegram",
             str(tmp_path / "invalid_dir"),
-            category.account_category_id
+            category.category_id
         )
         copied_dir = Path(tmp_path / "invalid_dir") / Path(invalid_item.dir_path).name
         archive_file = str(copied_dir.with_suffix(".zip"))

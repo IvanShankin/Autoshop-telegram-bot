@@ -38,47 +38,47 @@ async def test_safe_get_category_not_found_with_callback(
 @pytest.mark.asyncio
 async def test_show_category_sends_new_message(
         monkeypatch, patch_fake_aiogram, replacement_fake_bot_fix,
-        create_new_user, create_account_category
+        create_new_user, create_category
 ):
     from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category
 
-    category = await create_account_category(is_accounts_storage=False)
+    category = await create_category(is_product_storage=False)
     user = await create_new_user()
 
-    await show_category(user, category.account_category_id, send_new_message=True)
+    await show_category(user, category.category_id, send_new_message=True)
     assert replacement_fake_bot_fix.check_str_in_messages(category.name)
 
 
 @pytest.mark.asyncio
 async def test_show_category_update_data_edit(
         monkeypatch, patch_fake_aiogram, replacement_fake_bot_fix,
-        create_new_user, create_account_category
+        create_new_user, create_category
 ):
     from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category_update_data
 
-    category = await create_account_category()
+    category = await create_category()
     user = await create_new_user()
 
-    callback = FakeCallbackQuery(data=f"id:{category.account_category_id}")
+    callback = FakeCallbackQuery(data=f"id:{category.category_id}")
     callback.message = FakeMessage(message_id=50)
 
-    await show_category_update_data(user, category.account_category_id, callback=callback)
+    await show_category_update_data(user, category.category_id, callback=callback)
     assert replacement_fake_bot_fix.check_str_in_edited_messages(category.name)
 
 
 @pytest.mark.asyncio
 async def test_update_data_incorrect_value(
         monkeypatch, patch_fake_aiogram, replacement_fake_bot_fix,
-        create_new_user, create_account_category
+        create_new_user, create_category
 ):
     from src.modules.admin_actions.handlers.editor.category.update_handlers import update_data
     from src.modules.admin_actions.state import UpdateNumberInCategory
 
-    category = await create_account_category()
+    category = await create_category()
     user = await create_new_user()
     state = FakeFSMContext()
 
-    await state.update_data(category_id=category.account_category_id)
+    await state.update_data(category_id=category.category_id)
     await state.set_state(UpdateNumberInCategory.price)
 
     message = FakeMessage(text="не число")
@@ -93,15 +93,15 @@ async def test_update_data_incorrect_value(
 @pytest.mark.asyncio
 async def test_update_data_valid_price(
         monkeypatch, patch_fake_aiogram, replacement_fake_bot_fix,
-        create_new_user, create_account_category
+        create_new_user, create_category
 ):
     from src.modules.admin_actions.handlers.editor.category.update_handlers import update_data
     from src.modules.admin_actions.state import UpdateNumberInCategory
 
-    category = await create_account_category()
+    category = await create_category()
     user = await create_new_user()
     state = FakeFSMContext()
-    await state.update_data(category_id=category.account_category_id)
+    await state.update_data(category_id=category.category_id)
     await state.set_state(UpdateNumberInCategory.price)
 
     message = FakeMessage(text="123")
@@ -164,21 +164,21 @@ async def test_service_update_index_updates_storage_flag(
     patch_fake_aiogram,
     replacement_fake_bot_fix,
     create_new_user,
-    create_account_category,
+    create_category,
 ):
     """
-    Если update_account_category проходит успешно, то флаг is_accounts_storage должен измениться в БД.
+    Если update_account_category проходит успешно, то флаг is_product_storage должен измениться в БД.
     Мы проверяем изменение напрямую через фабрику/базу данных.
     """
     from src.modules.admin_actions.handlers.editor.category.update_handlers import acc_category_update_storage
-    from src.services.database.selling_accounts.actions import get_account_categories_by_category_id
+    from src.services.database.product_categories.actions import get_account_categories_by_category_id
 
-    # создаём категорию (по умолчанию фабрика возвращает is_accounts_storage=False)
-    category = await create_account_category(is_accounts_storage=False)
+    # создаём категорию (по умолчанию фабрика возвращает is_product_storage=False)
+    category = await create_category(is_product_storage=False)
     user = await create_new_user()
 
     # подготовим callback: установить is_storage = 1
-    cb = FakeCallbackQuery(data=f"acc_category_update_storage:{category.account_category_id}:1",
+    cb = FakeCallbackQuery(data=f"acc_category_update_storage:{category.category_id}:1",
                            chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=777)
 
@@ -187,12 +187,12 @@ async def test_service_update_index_updates_storage_flag(
 
     # проверим, что в БД значение изменилось
     updated = await get_account_categories_by_category_id(
-        account_category_id=category.account_category_id,
+        category_id=category.category_id,
         language=user.language,
         return_not_show=True
     )
     assert updated is not None
-    assert updated.is_accounts_storage is True
+    assert updated.is_product_storage is True
 
 
 @pytest.mark.asyncio
@@ -201,7 +201,7 @@ async def test_delete_acc_category_success_edit_message(
     patch_fake_aiogram,
     replacement_fake_bot_fix,
     create_new_user,
-    create_account_category,
+    create_category,
 ):
     """
     Успешное удаление категории должно привести к вызову edit_message
@@ -209,10 +209,10 @@ async def test_delete_acc_category_success_edit_message(
     """
     from src.modules.admin_actions.handlers.editor.category.delete_handlers import delete_acc_category
 
-    category = await create_account_category()
+    category = await create_category()
     user = await create_new_user()
 
-    cb = FakeCallbackQuery(data=f"delete_acc_category:{category.account_category_id}",
+    cb = FakeCallbackQuery(data=f"delete_acc_category:{category.category_id}",
                            chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=321)
 
@@ -230,7 +230,7 @@ async def test_update_category_image_non_image_document(
     patch_fake_aiogram,
     replacement_fake_bot_fix,
     create_new_user,
-    create_account_category,
+    create_category,
 ):
     """
     Если прислали документ с mime_type, который не начинается на 'image/',
@@ -238,12 +238,12 @@ async def test_update_category_image_non_image_document(
     """
     from src.modules.admin_actions.handlers.editor.category.update_handlers import update_category_image
 
-    category = await create_account_category()
+    category = await create_category()
     user = await create_new_user()
 
     # подготовим state с category_id
     state = FakeFSMContext()
-    await state.update_data(category_id=category.account_category_id)
+    await state.update_data(category_id=category.category_id)
 
     # подготовим FakeMessage с документом не image/*
     doc = SimpleNamespace(mime_type="application/pdf", file_size=1024, file_id="file_123")

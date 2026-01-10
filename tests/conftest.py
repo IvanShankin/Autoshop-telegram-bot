@@ -42,6 +42,8 @@ consumer_started = False
 if "aiogram" in sys.modules:
     raise RuntimeError("aiogram был импортирован слишком рано! Используй локальный импорт в функции/фикстуре.")
 
+if MODE != "TEST":
+    raise Exception("Используется основная БД!")
 
 
 # ---------- фикстуры ----------

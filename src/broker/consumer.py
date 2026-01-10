@@ -9,7 +9,7 @@ from src.config import get_config
 from src.services.database.discounts.events import promo_code_event_handler, voucher_event_handler
 from src.services.database.referrals.events import referral_event_handler
 from src.services.database.replenishments_event.event_handlers_replenishments import replenishment_event_handler
-from src.services.database.selling_accounts.events.even_handlers_acc import account_purchase_event_handler
+from src.services.database.product_categories.events.even_handlers_acc import account_purchase_event_handler
 from src.utils.core_logger import get_logger
 
 # глобальные переменные для управления задачей

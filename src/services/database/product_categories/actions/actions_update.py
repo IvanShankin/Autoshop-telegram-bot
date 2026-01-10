@@ -8,15 +8,15 @@ from sqlalchemy.orm import selectinload
 
 from src.exceptions import AccountCategoryNotFound, TheCategoryStorageAccount, \
     IncorrectedNumberButton, IncorrectedCostPrice, IncorrectedAmountSale, CategoryStoresSubcategories
-from src.services.database.selling_accounts.models.models import AccountStorage, TgAccountMedia
+from src.services.database.product_categories.models import AccountStorage, TgAccountMedia
 from src.services.database.system.actions import create_ui_image, delete_ui_image
 from src.services.redis.core_redis import get_redis
-from src.services.redis.filling_redis import filling_all_account_services, filling_account_categories_by_service_id, \
-    filling_account_categories_by_category_id, filling_account_services, filling_product_account_by_account_id, \
-    filling_product_accounts_by_category_id, filling_sold_account_by_account_id, filling_sold_accounts_by_owner_id
+from src.services.redis.filling_redis import filling_account_categories_by_service_id, \
+    filling_account_categories_by_category_id, filling_product_account_by_account_id, \
+    filling_product_by_category_id, filling_sold_account_by_account_id, filling_sold_accounts_by_owner_id
 from src.services.database.core.database import get_db
-from src.services.database.selling_accounts.models import AccountServices, AccountCategories, ProductAccounts, \
-    AccountCategoryTranslation, AccountCategoryFull
+from src.services.database.product_categories.models import Categories, ProductAccounts, \
+    CategoryTranslation, CategoryFull
 
 
 def _create_dict(data: List[tuple[str, Any]]) -> dict:
@@ -31,121 +31,17 @@ def _create_dict(data: List[tuple[str, Any]]) -> dict:
     return result
 
 
-async def update_account_service(
-        account_service_id: int,
-        name: str = None,
-        index: int = None,
-        show: bool = None
-) -> AccountServices:
-    """Можно изменить всё кроме типа сервиса"""
-    async with get_db() as session:
-        # загружаем текущий объект
-        result = await session.execute(
-            select(AccountServices).where(AccountServices.account_service_id == account_service_id)
-        )
-        service: AccountServices = result.scalar_one_or_none()
-        if not service:
-            raise ValueError(f"Сервис аккаунтов с id = {account_service_id} не найден")
-
-        # собираем только те поля, которые реально переданы
-        update_data = {}
-        if name is not None:
-            update_data["name"] = name
-        if show is not None:
-            update_data["show"] = show
-        if index is not None:
-            # нормализуем new_index — int, не меньше 0
-            try:
-                new_index = int(index)
-            except Exception:
-                raise ValueError("index должен быть целым числом")
-            if new_index < 0:
-                new_index = 0
-
-            # считаем сколько всего записей (чтобы определить максимальный индекс)
-            total_res = await session.execute(select(func.count()).select_from(AccountServices))
-            total_count = total_res.scalar_one()
-            # max_index — индекс последнего элемента в текущей коллекции
-            max_index = max(0, total_count - 1)
-
-            # если новый индекс больше максимального — помещаем в конец
-            if new_index > max_index:
-                new_index = max_index
-
-            # старый индекс — если None, считаем как "последний" (т.е. append)
-            old_index = service.index if service.index is not None else max_index
-
-            # если фактически ничего не меняется — пропускаем перестановки
-            if new_index != old_index:
-                # сдвиги других записей в зависимости от направления перемещения
-                if new_index < old_index:
-                    # перемещение влево (меньше): поднимаем (+1) все записи с индексом в [new_index, old_index-1]
-                    await session.execute(
-                        update(AccountServices)
-                        .where(AccountServices.index >= new_index)
-                        .where(AccountServices.index < old_index)
-                        .values(index=AccountServices.index + 1)
-                    )
-                else:  # new_index > old_index
-                    # перемещение вправо (больше): опускаем (-1) все записи с индексом в [old_index+1, new_index]
-                    await session.execute(
-                        update(AccountServices)
-                        .where(AccountServices.index <= new_index)
-                        .where(AccountServices.index > old_index)
-                        .values(index=AccountServices.index - 1)
-                    )
-
-                update_data["index"] = new_index
-            # else: new_index == old_index -> ничего не делаем по индексам
-
-        if update_data:
-            await session.execute(
-                update(AccountServices)
-                .where(AccountServices.account_service_id == account_service_id)
-                .values(**update_data)
-            )
-
-            await session.commit()
-
-            # обновляем объект в памяти (чтобы вернуть актуальные данные)
-            for key, value in update_data.items():
-                setattr(service, key, value)
-
-        if update_data:
-            await session.execute(
-                update(AccountServices)
-                .where(AccountServices.account_service_id == account_service_id)
-                .values(**update_data)
-            )
-
-            await session.commit()
-
-            # обновляем объект в памяти (чтобы вернуть актуальные данные)
-            for key, value in update_data.items():
-                setattr(service, key, value)
-
-    if update_data:
-        await filling_all_account_services() # обновляем redis для поддержания целостности индексов
-
-        if index is None: # если индекс не меняли, то достаточно обновить только один ключ в redis
-            async with get_redis() as session_redis:
-                await session_redis.set(f"account_service:{account_service_id}", orjson.dumps(service.to_dict()))
-        else:
-            await filling_account_services()
-
-    return service
-
 
 async def update_account_category(
-        account_category_id: int,
+        category_id: int,
         index: int = None,
         show: bool = None,
         file_data: bytes = None,
         number_buttons_in_row: int = None,
-        is_accounts_storage: bool = None,
+        is_product_storage: bool = None,
         price_one_account: int = None,
         cost_price_one_account: int = None,
-) -> AccountCategories:
+) -> Categories:
     """
     :param file_data: поток байтов для создания нового ui_image, старый будет удалён
     :except IncorrectedAmountSale: Цена аккаунтов должна быть положительным числом или равно 0
@@ -166,40 +62,40 @@ async def update_account_category(
     async with get_db() as session:
         # загружаем текущий объект
         result = await session.execute(
-            select(AccountCategories)
-            .options(selectinload(AccountCategories.ui_image))
-            .where(AccountCategories.account_category_id == account_category_id)
+            select(Categories)
+            .options(selectinload(Categories.ui_image))
+            .where(Categories.category_id == category_id)
         )
-        category: AccountCategories = result.scalar_one_or_none()
+        category: Categories = result.scalar_one_or_none()
         old_ui_image = category.ui_image_key
         if not category:
-            raise AccountCategoryNotFound(f"Категория аккаунтов с id = {account_category_id} не найдена")
+            raise AccountCategoryNotFound(f"Категория аккаунтов с id = {category_id} не найдена")
 
         # собираем только те поля, которые реально переданы
         update_data = {}
-        if is_accounts_storage is not None:
-            if is_accounts_storage: # если хотим установить хранилище аккаунтов
+        if is_product_storage is not None:
+            if is_product_storage: # если хотим установить хранилище аккаунтов
                 result = await session.execute(
-                    select(AccountCategories).where(AccountCategories.parent_id == account_category_id)
+                    select(Categories).where(Categories.parent_id == category_id)
                 )
-                subcategories: AccountCategories = result.scalars().first()
+                subcategories: Categories = result.scalars().first()
                 if subcategories:  # если данная категория хранит подкатегории
                     raise CategoryStoresSubcategories(
-                        f"Категория с id = {account_category_id} хранит подкатегории. Сперва удалите их"
+                        f"Категория с id = {category_id} хранит подкатегории. Сперва удалите их"
                     )
             else: # если хотим убрать хранилище аккаунтов
                 result = await session.execute(
-                    select(ProductAccounts).where(ProductAccounts.account_category_id == account_category_id)
+                    select(ProductAccounts).where(ProductAccounts.category_id == category_id)
                 )
                 product_account: ProductAccounts = result.scalars().first()
                 if product_account: # если данная категория хранит аккаунты
                     raise TheCategoryStorageAccount(
-                        f"Категория с id = {account_category_id} хранит аккаунты. "
+                        f"Категория с id = {category_id} хранит аккаунты. "
                         f"Необходимо извлечь их для применения изменений"
                     )
 
 
-            update_data["is_accounts_storage"] = is_accounts_storage
+            update_data["is_product_storage"] = is_product_storage
         if show is not None:
             update_data["show"] = show
         if price_one_account is not None:
@@ -226,7 +122,7 @@ async def update_account_category(
                 new_index = 0
 
             # определяем общее количество категорий
-            total_res = await session.execute(select(func.count()).select_from(AccountCategories))
+            total_res = await session.execute(select(func.count()).select_from(Categories))
             total_count = total_res.scalar_one()
             max_index = max(0, total_count - 1)
 
@@ -242,26 +138,26 @@ async def update_account_category(
                 if new_index < old_index:
                     # Перемещение вверх: сдвигаем все записи между [new_index, old_index-1] вверх (+1)
                     await session.execute(
-                        update(AccountCategories)
-                        .where(AccountCategories.index >= new_index)
-                        .where(AccountCategories.index < old_index)
-                        .values(index=AccountCategories.index + 1)
+                        update(Categories)
+                        .where(Categories.index >= new_index)
+                        .where(Categories.index < old_index)
+                        .values(index=Categories.index + 1)
                     )
                 else:
                     # Перемещение вниз: сдвигаем все записи между [old_index+1, new_index] вниз (-1)
                     await session.execute(
-                        update(AccountCategories)
-                        .where(AccountCategories.index <= new_index)
-                        .where(AccountCategories.index > old_index)
-                        .values(index=AccountCategories.index - 1)
+                        update(Categories)
+                        .where(Categories.index <= new_index)
+                        .where(Categories.index > old_index)
+                        .values(index=Categories.index - 1)
                     )
 
                 update_data["index"] = new_index
 
         if update_data:
             await session.execute(
-                update(AccountCategories)
-                .where(AccountCategories.account_category_id == account_category_id)
+                update(Categories)
+                .where(Categories.category_id == category_id)
                 .values(**update_data)
             )
 
@@ -283,31 +179,31 @@ async def update_account_category(
 
 
 async def update_account_category_translation(
-        account_category_id: int,
+        category_id: int,
         language: str,
         name: str = None,
         description: str = None
-) -> AccountCategoryFull:
+) -> CategoryFull:
     """
-    :except AccountCategoryNotFound: Категория аккаунтов с id = {account_category_id} не найдена
+    :except AccountCategoryNotFound: Категория аккаунтов с id = {category_id} не найдена
     """
     async with get_db() as session:
         # загружаем текущий объект
         result = await session.execute(
-            select(AccountCategories).where(AccountCategories.account_category_id == account_category_id)
+            select(Categories).where(Categories.category_id == category_id)
         )
-        category: AccountCategories = result.scalar_one_or_none()
+        category: Categories = result.scalar_one_or_none()
         if not category:
-            raise AccountCategoryNotFound(f"Категория аккаунтов с id = {account_category_id} не найдена")
+            raise AccountCategoryNotFound(f"Категория аккаунтов с id = {category_id} не найдена")
 
         result = await session.execute(
-            select(AccountCategoryTranslation)
+            select(CategoryTranslation)
             .where(
-                (AccountCategoryTranslation.account_category_id == account_category_id) &
-                (AccountCategoryTranslation.lang == language)
+                (CategoryTranslation.category_id == category_id) &
+                (CategoryTranslation.lang == language)
             )
         )
-        translation: AccountCategoryTranslation = result.scalar_one_or_none()
+        translation: CategoryTranslation = result.scalar_one_or_none()
         if not translation:
             raise ValueError(f"Перевод с языком '{language}' не найден")
 
@@ -320,10 +216,10 @@ async def update_account_category_translation(
 
         if update_data:
             await session.execute(
-                update(AccountCategoryTranslation)
+                update(CategoryTranslation)
                 .where(
-                    (AccountCategoryTranslation.account_category_id == account_category_id) &
-                    (AccountCategoryTranslation.lang == language)
+                    (CategoryTranslation.category_id == category_id) &
+                    (CategoryTranslation.lang == language)
                 )
                 .values(**update_data)
             )
@@ -401,7 +297,7 @@ async def update_account_storage(
         # один AccountStorage - одна запись в другой таблице, но будем заполнять везде где есть
         if account.product_account:
             await filling_product_account_by_account_id(account.product_account.account_id)
-            await filling_product_accounts_by_category_id()
+            await filling_product_by_category_id()
         if account.sold_account:
             await filling_sold_account_by_account_id(account.sold_account.sold_account_id)
             await filling_sold_accounts_by_owner_id(account.sold_account.owner_id)

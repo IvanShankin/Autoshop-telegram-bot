@@ -9,88 +9,34 @@ from src.services.database.system.actions import get_ui_image
 from src.services.filesystem.account_actions import create_path_account
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
-from src.services.database.selling_accounts.actions import (
-    delete_account_service,
+from src.services.database.product_categories.actions import (
     delete_translate_category,
     delete_account_category,
     delete_product_account,
     delete_sold_account,
-    add_translation_in_account_category, get_type_account_service,  # используется в тестах
+    add_translation_in_category,  # используется в тестах
 )
-from src.services.database.selling_accounts.models import (
-    AccountServices, AccountCategories, AccountCategoryTranslation,
+from src.services.database.product_categories.models import (
+    Categories, CategoryTranslation,
     ProductAccounts, SoldAccounts, SoldAccountsTranslation, AccountStorage
 )
 
 
-@pytest.mark.asyncio
-async def test_delete_account_service_success_and_index_shift(create_type_account_service, create_account_service):
-    t1 = await create_type_account_service(name="t1")
-    svc1 = await create_account_service(filling_redis=True, name="svc1", type_account_service_id=t1.type_account_service_id)
-    t2 = await create_type_account_service(name="t2")
-    svc2 = await create_account_service(filling_redis=True, name="svc2", type_account_service_id=t2.type_account_service_id)
-
-    # убедимся что индексы 0 и 1
-    assert svc1.index == 0
-    assert svc2.index == 1
-
-    # удаляем сервис с индексом 0 (svc1)
-    await delete_account_service(svc1.account_service_id)
-
-    # проверяем БД: svc1 нет, svc2 индекс стал 0
-    async with get_db() as s:
-        res = await s.execute(select(AccountServices).where(AccountServices.account_service_id == svc1.account_service_id))
-        assert res.scalar_one_or_none() is None
-
-        res2 = await s.execute(select(AccountServices).where(AccountServices.account_service_id == svc2.account_service_id))
-        svc2_db = res2.scalar_one_or_none()
-        assert svc2_db is not None
-        assert svc2_db.index == 0
-
-    # проверяем Redis
-    async with get_redis() as r:
-        raw_list = await r.get("account_services")
-        assert raw_list is not None
-        list_services = orjson.loads(raw_list)
-        # svc1 не должен присутствовать, svc2 присутствует и index == 0
-        ids = [s["account_service_id"] for s in list_services]
-        assert svc1.account_service_id not in ids
-        found = [s for s in list_services if s["account_service_id"] == svc2.account_service_id]
-        assert found
-        assert found[0]["index"] == 0
-
-        # одиночный ключ удалён
-        single = await r.get(f"account_service:{svc1.account_service_id}")
-        assert single is None
-
 
 @pytest.mark.asyncio
-async def test_delete_account_service_error_when_has_categories(create_account_service, create_account_category):
-    """
-    Нельзя удалить сервис если у него есть категории -> ValueError
-    """
-    svc = await create_account_service(filling_redis=False)
-    # создаём категорию привязанную к svc
-    cat = await create_account_category(filling_redis=False, account_service_id=svc.account_service_id)
-
-    with pytest.raises(ServiceContainsCategories):
-        await delete_account_service(svc.account_service_id)
-
-
-@pytest.mark.asyncio
-async def test_delete_translate_category_success_and_error_when_last_translation(create_account_category):
+async def test_delete_translate_category_success_and_error_when_last_translation(create_category):
     """
     Проверяет удаление перевода:
     - если переводов > 1 — перевод удаляется и ключ в redis удаляется
     - если перевод единственный — ValueError
     """
     # создаём категорию с переводом ru
-    full_cat = await create_account_category(filling_redis=True, language="ru", name="orig")
-    cat_id = full_cat.account_category_id
+    full_cat = await create_category(filling_redis=True, language="ru", name="orig")
+    cat_id = full_cat.category_id
 
     # добавляем перевод 'en'
-    en_translation = await add_translation_in_account_category(
-        account_category_id=cat_id, language="en", name="en name", description="en desc"
+    en_translation = await add_translation_in_category(
+        category_id=cat_id, language="en", name="en name", description="en desc"
     )
 
     # удаляем en
@@ -99,9 +45,9 @@ async def test_delete_translate_category_success_and_error_when_last_translation
     # проверяем в БД, что перевода en нет
     async with get_db() as s:
         res = await s.execute(
-            select(AccountCategoryTranslation).where(
-                (AccountCategoryTranslation.account_category_id == cat_id) &
-                (AccountCategoryTranslation.lang == "en")
+            select(CategoryTranslation).where(
+                (CategoryTranslation.category_id == cat_id) &
+                (CategoryTranslation.lang == "en")
             )
         )
         assert res.scalar_one_or_none() is None
@@ -117,49 +63,49 @@ async def test_delete_translate_category_success_and_error_when_last_translation
 
 
 @pytest.mark.asyncio
-async def test_delete_account_category_various_errors_and_index_shift(create_account_service, create_account_category, create_product_account):
+async def test_delete_account_category_various_errors_and_index_shift(create_account_service, create_category, create_product_account):
     """
     Проверяет:
-    - нельзя удалить категорию если она is_accounts_storage или есть product/accounts
+    - нельзя удалить категорию если она is_product_storage или есть product/accounts
     - нельзя удалить если есть дочерние категории
     - при успешном удалении индексы сдвигаются
     """
     svc = await create_account_service(filling_redis=False)
     # создаём три основные категории (siblings) для проверки индексов
-    cat1 = await create_account_category(filling_redis=True, account_service_id=svc.account_service_id, language="ru", name="c1")
-    cat2 = await create_account_category(filling_redis=True, account_service_id=svc.account_service_id, language="ru", name="c2")
-    cat3 = await create_account_category(filling_redis=True, account_service_id=svc.account_service_id, language="ru", name="c3")
+    cat1 = await create_category(filling_redis=True, account_service_id=svc.account_service_id, language="ru", name="c1")
+    cat2 = await create_category(filling_redis=True, account_service_id=svc.account_service_id, language="ru", name="c2")
+    cat3 = await create_category(filling_redis=True, account_service_id=svc.account_service_id, language="ru", name="c3")
 
     # индексы ожидаем 0,1,2
     assert cat1.index == 0
     assert cat2.index == 1
     assert cat3.index == 2
 
-    # попытка удалить категорию-хранилище (если пометить её как is_accounts_storage) -> создаём такую и пробуем
-    storage_cat = await create_account_category(filling_redis=False, account_service_id=svc.account_service_id, is_accounts_storage=True, language="ru", name="storage")
+    # попытка удалить категорию-хранилище (если пометить её как is_product_storage) -> создаём такую и пробуем
+    storage_cat = await create_category(filling_redis=False, account_service_id=svc.account_service_id, is_product_storage=True, language="ru", name="storage")
     # добавим product в storage_cat
-    prod, _ = await create_product_account(filling_redis=True, account_category_id=storage_cat.account_category_id)
+    prod, _ = await create_product_account(filling_redis=True, category_id=storage_cat.category_id)
 
     with pytest.raises(TheCategoryStorageAccount):
-        await delete_account_category(storage_cat.account_category_id)
+        await delete_account_category(storage_cat.category_id)
 
     # создаём родительскую и дочернюю категорию
-    parent = await create_account_category(filling_redis=False, account_service_id=svc.account_service_id, parent_id=None, language="ru", name="parent")
-    child = await create_account_category(filling_redis=False, account_service_id=svc.account_service_id, parent_id=parent.account_category_id, language="ru", name="child")
+    parent = await create_category(filling_redis=False, account_service_id=svc.account_service_id, parent_id=None, language="ru", name="parent")
+    child = await create_category(filling_redis=False, account_service_id=svc.account_service_id, parent_id=parent.category_id, language="ru", name="child")
     # попытка удалить parent — должен быть ValueError (есть дочерняя)
     with pytest.raises(CategoryStoresSubcategories):
-        await delete_account_category(parent.account_category_id)
+        await delete_account_category(parent.category_id)
 
     # успешное удаление middle (cat2) и проверка смещения индексов
-    await delete_account_category(cat2.account_category_id)
+    await delete_account_category(cat2.category_id)
 
     async with get_db() as s:
-        res_all = await s.execute(select(AccountCategories).where(AccountCategories.account_service_id == svc.account_service_id).order_by(AccountCategories.index.asc()))
+        res_all = await s.execute(select(Categories).where(Categories.account_service_id == svc.account_service_id).order_by(Categories.index.asc()))
         remaining = res_all.scalars().all()
         # cat1 должен остаться с index 0, cat3 должен сместиться на 1 (раньше 2)
-        ids_idx = {c.account_category_id: c.index for c in remaining}
-        assert ids_idx.get(cat1.account_category_id) == 0
-        assert ids_idx.get(cat3.account_category_id) == 1
+        ids_idx = {c.category_id: c.index for c in remaining}
+        assert ids_idx.get(cat1.category_id) == 0
+        assert ids_idx.get(cat3.category_id) == 1
 
     # проверка redis: ключи по сервису и по категории должны быть обновлены/удалены
     async with get_redis() as r:
@@ -168,28 +114,28 @@ async def test_delete_account_category_various_errors_and_index_shift(create_acc
         assert raw_list is not None
         lst = orjson.loads(raw_list)
         # в списке больше нет cat2
-        assert all(el["account_category_id"] != cat2.account_category_id for el in lst)
+        assert all(el["category_id"] != cat2.category_id for el in lst)
 
 @pytest.mark.asyncio
-async def test_delete_account_category_deleted_ui_image(create_account_category, create_ui_image):
+async def test_delete_account_category_deleted_ui_image(create_category, create_ui_image):
     ui_image, _ = await create_ui_image()
-    category = await create_account_category(ui_image_key=ui_image.key)
+    category = await create_category(ui_image_key=ui_image.key)
 
-    await delete_account_category(category.account_category_id)
+    await delete_account_category(category.category_id)
 
     assert not await get_ui_image(ui_image.key)
 
 
 @pytest.mark.asyncio
-async def test_delete_product_account_success_and_error(create_product_account, create_account_category):
+async def test_delete_product_account_success_and_error(create_product_account, create_category):
     """
     Проверяет удаление product_account:
     - успешное удаление из БД и очистка key product_accounts_by_account_id
     - ошибка при попытке удалить несуществующий аккаунт
     """
-    cat = await create_account_category(filling_redis=True)
-    prod, _ = await create_product_account(filling_redis=True, account_category_id=cat.account_category_id)
-    prod_2 = await create_product_account(filling_redis=True, account_category_id=cat.account_category_id)
+    cat = await create_category(filling_redis=True)
+    prod, _ = await create_product_account(filling_redis=True, category_id=cat.category_id)
+    prod_2 = await create_product_account(filling_redis=True, category_id=cat.category_id)
     account_id = prod.account_id
 
     # удаляем успешно
@@ -200,7 +146,7 @@ async def test_delete_product_account_success_and_error(create_product_account, 
         assert res.scalar_one_or_none() is None
 
     async with get_redis() as r:
-        result_redis = await r.get(f"product_accounts_by_category_id:{cat.account_category_id}")
+        result_redis = await r.get(f"product_accounts_by_category_id:{cat.category_id}")
         account_list = orjson.loads(result_redis)
         assert len(account_list) == 1 # должен остаться только один
 
@@ -258,7 +204,7 @@ async def test_delete_product_accounts_by_category_success(
         monkeypatch,
         tmp_path,
         create_product_account,
-        create_account_category,
+        create_category,
 ):
     """
     Базовый позитивный сценарий:
@@ -267,23 +213,23 @@ async def test_delete_product_accounts_by_category_success(
     - вызываются filling_* функции
     - очищается product_accounts_by_account_id
     """
-    from src.services.database.selling_accounts.actions.actions_delete import delete_product_accounts_by_category
+    from src.services.database.product_categories.actions.actions_delete import delete_product_accounts_by_category
 
     # Создаём категорию
-    category = await create_account_category(filling_redis=True)
+    category = await create_category(filling_redis=True)
 
     # Создаём 2 product аккаунта
     prod1, acc1 = await create_product_account(
         filling_redis=True,
-        account_category_id=category.account_category_id
+        category_id=category.category_id
     )
     prod2, acc2 = await create_product_account(
         filling_redis=True,
-        account_category_id=category.account_category_id
+        category_id=category.category_id
     )
 
     # Выполняем
-    await delete_product_accounts_by_category(category.account_category_id)
+    await delete_product_accounts_by_category(category.category_id)
 
     #  Проверка БД
     async with get_db() as s:
@@ -303,17 +249,25 @@ async def test_delete_product_accounts_by_category_success(
         )
         assert res_prod.scalars().all() == []
 
-    type_service = await get_type_account_service(acc1.type_account_service_id)
+    assert False
 
-    # Проверка удаления с диска
-    assert not Path(
-        create_path_account(acc1.account_storage.status, type_service.name, acc1.account_storage.storage_uuid)
-    ).exists()
-    assert not Path(
-        create_path_account(acc2.account_storage.status, type_service.name, acc2.account_storage.storage_uuid)
-    ).exists()
+    # ПЕРЕДЕЛАТЬ НИЖЕ
+    # ПЕРЕДЕЛАТЬ НИЖЕ
+    # ПЕРЕДЕЛАТЬ НИЖЕ
 
-    # Проверка Redis
-    async with get_redis() as r:
-        assert await r.get(f"product_accounts_by_account_id:{prod1.account_id}") is None
-        assert await r.get(f"product_accounts_by_account_id:{prod2.account_id}") is None
+
+    #
+    # type_service = await get_type_account_service(acc1.type_account_service_id)
+    #
+    # # Проверка удаления с диска
+    # assert not Path(
+    #     create_path_account(acc1.account_storage.status, type_service.name, acc1.account_storage.storage_uuid)
+    # ).exists()
+    # assert not Path(
+    #     create_path_account(acc2.account_storage.status, type_service.name, acc2.account_storage.storage_uuid)
+    # ).exists()
+    #
+    # # Проверка Redis
+    # async with get_redis() as r:
+    #     assert await r.get(f"product_accounts_by_account_id:{prod1.account_id}") is None
+    #     assert await r.get(f"product_accounts_by_account_id:{prod2.account_id}") is None

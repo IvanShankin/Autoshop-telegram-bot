@@ -8,12 +8,12 @@ from src.modules.admin_actions.services.editor.category.category_loader import s
 from src.modules.admin_actions.keyboards import back_in_category_kb
 from src.services.accounts.other.upload_account import upload_other_account
 from src.services.accounts.tg.upload_account import upload_tg_account
-from src.services.database.selling_accounts.models import AccountCategoryFull
+from src.services.database.product_categories.models import CategoryFull
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
 
 
-async def upload_account(category: AccountCategoryFull, user: Users, callback: CallbackQuery):
+async def upload_account(category: CategoryFull, user: Users, callback: CallbackQuery):
     service_name = await safe_get_service_name(category, user, callback.message.message_id)
     bot = await get_bot()
 
@@ -55,7 +55,7 @@ async def upload_account(category: AccountCategoryFull, user: Users, callback: C
         ),
         reply_markup=back_in_category_kb(
             language=user.language,
-            category_id=category.account_category_id,
+            category_id=category.category_id,
             i18n_key="In category"
         )
     )

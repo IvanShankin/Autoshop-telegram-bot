@@ -11,68 +11,29 @@ from src.exceptions import ServiceContainsCategories, CategoryStoresSubcategorie
 from src.services.database.system.actions import delete_ui_image
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_account_categories_by_service_id, \
-    filling_account_categories_by_category_id, filling_product_accounts_by_category_id, \
+    filling_account_categories_by_category_id, filling_product_by_category_id, \
     filling_sold_accounts_by_owner_id, filling_product_account_by_account_id
 from src.services.database.core.database import get_db
-from src.services.database.selling_accounts.models import AccountServices, AccountCategories, ProductAccounts, \
-    AccountCategoryTranslation, SoldAccounts, SoldAccountsTranslation, AccountStorage
+from src.services.database.product_categories.models import Categories, ProductAccounts, \
+    CategoryTranslation, SoldAccounts, SoldAccountsTranslation, AccountStorage
 
 
-async def delete_account_service(account_service_id: int):
-    async with get_db() as session_db:
-        result_db = await session_db.execute(
-            select(AccountServices)
-            .where(AccountServices.account_service_id == account_service_id)
-        )
-        service = result_db.scalar_one_or_none()
-        if not service:
-            raise ValueError(f"Сервис с id = {account_service_id} не найден")
-
-        result_db = await session_db.execute(
-            select(AccountCategories)
-            .where(AccountCategories.account_service_id == account_service_id)
-        )
-        category = result_db.scalars().first()
-
-        if category:
-            raise ServiceContainsCategories(f"У данного сервиса есть категории, сперва удалите их")
-
-        # удаление
-        await session_db.execute(delete(AccountServices).where(AccountServices.account_service_id == account_service_id))
-
-        # изменение последовательности индексов
-        await session_db.execute(
-            update(AccountServices)
-            .where(AccountServices.index > service.index)
-            .values(index=AccountServices.index - 1)
-        )
-
-        await session_db.commit()
-
-        async with get_redis() as session_redis:
-            result_db = await session_db.execute(select(AccountServices))
-            list_service: list[AccountServices] = result_db.scalars().all()
-            list_dicts = [service.to_dict() for service in list_service]
-
-            await session_redis.set('account_services', orjson.dumps(list_dicts)) # обновляем список
-            await session_redis.delete(f'account_service:{account_service_id}')
-
-async def delete_translate_category(account_category_id: int, language: str):
+async def delete_translate_category(category_id: int, language: str):
     """
     :exception ValueError: Если у данной категории это единственный перевод
     """
     async with get_db() as session_db:
         result_db = await session_db.execute(
-            select(AccountCategories)
-            .where(AccountCategories.account_category_id == account_category_id)
+            select(Categories)
+            .where(Categories.category_id == category_id)
         )
-        category: AccountCategories = result_db.scalar_one_or_none()
+        category: Categories = result_db.scalar_one_or_none()
         if not category:
-            raise ValueError(f"Категория с id = {account_category_id} не найдена")
+            raise ValueError(f"Категория с id = {category_id} не найдена")
 
         result_db = await session_db.execute(
-            select(distinct(AccountCategoryTranslation.lang))
-            .where(AccountCategoryTranslation.account_category_id == account_category_id)
+            select(distinct(CategoryTranslation.lang))
+            .where(CategoryTranslation.category_id == category_id)
         )
         translations: list = result_db.scalars().all()
         if len(translations) == 1:
@@ -80,10 +41,10 @@ async def delete_translate_category(account_category_id: int, language: str):
 
         # удаление
         await session_db.execute(
-            delete(AccountCategoryTranslation)
+            delete(CategoryTranslation)
             .where(
-                (AccountCategoryTranslation.account_category_id == account_category_id) &
-                (AccountCategoryTranslation.lang == language)
+                (CategoryTranslation.category_id == category_id) &
+                (CategoryTranslation.lang == language)
             )
         )
 
@@ -92,9 +53,10 @@ async def delete_translate_category(account_category_id: int, language: str):
         # обновление redis
         await filling_account_categories_by_service_id()
         async with get_redis() as session_redis:
-            await session_redis.delete(f"account_categories_by_category_id:{account_category_id}:{language}")
+            await session_redis.delete(f"account_categories_by_category_id:{category_id}:{language}")
 
-async def check_category_before_del(category_id: int) -> AccountCategories:
+
+async def check_category_before_del(category_id: int) -> Categories:
     """
     :except AccountCategoryNotFound: Категория с id = {category_id} не найдена
     :except TheCategoryStorageAccount: Данная категория не должна хранить аккаунты
@@ -102,24 +64,24 @@ async def check_category_before_del(category_id: int) -> AccountCategories:
     """
     async with get_db() as session_db:
         result_db = await session_db.execute(
-            select(AccountCategories)
-            .where(AccountCategories.account_category_id == category_id)
+            select(Categories)
+            .where(Categories.category_id == category_id)
         )
-        category: AccountCategories = result_db.scalar_one_or_none()
+        category: Categories = result_db.scalar_one_or_none()
         if not category:
             raise AccountCategoryNotFound(f"Категория с id = {category_id} не найдена")
 
         result_db = await session_db.execute(
             select(ProductAccounts)
-            .where(ProductAccounts.account_category_id == category.account_category_id)
+            .where(ProductAccounts.category_id == category.category_id)
         )
         account = result_db.scalars().first()
-        if account or category.is_accounts_storage:
+        if account or category.is_product_storage:
             raise TheCategoryStorageAccount(f"Данная категория не должна хранить аккаунты")
 
         result_db = await session_db.execute(
-            select(AccountCategories)
-            .where(AccountCategories.parent_id == category.account_category_id)
+            select(Categories)
+            .where(Categories.parent_id == category.category_id)
         )
         subsidiary_category = result_db.scalars().first()
         if subsidiary_category:
@@ -127,28 +89,28 @@ async def check_category_before_del(category_id: int) -> AccountCategories:
 
         return category
 
-async def delete_account_category(account_category_id: int):
+async def delete_account_category(category_id: int):
     """Удалит категорию аккаунтов и связанную UiImage"""
     async with get_db() as session_db:
-        category = await check_category_before_del(account_category_id)
+        category = await check_category_before_del(category_id)
 
         # удаление
         deleted_result = await session_db.execute(
-            delete(AccountCategories)
-            .where(AccountCategories.account_category_id == account_category_id)
-            .returning(AccountCategories)
+            delete(Categories)
+            .where(Categories.category_id == category_id)
+            .returning(Categories)
         )
-        deleted_cat: AccountCategories = deleted_result.scalar_one_or_none()
+        deleted_cat: Categories = deleted_result.scalar_one_or_none()
         await session_db.execute(
-            delete(AccountCategoryTranslation)
-            .where(AccountCategoryTranslation.account_category_id == account_category_id)
+            delete(CategoryTranslation)
+            .where(CategoryTranslation.category_id == category_id)
         )
 
         # изменение последовательности индексов
         await session_db.execute(
-            update(AccountCategories)
-            .where(AccountCategories.index > category.index)
-            .values(index=AccountCategories.index - 1)
+            update(Categories)
+            .where(Categories.index > category.index)
+            .values(index=Categories.index - 1)
         )
 
         await session_db.commit()
@@ -174,7 +136,7 @@ async def delete_product_account(account_id: int):
         await session_db.commit()
 
         # обновляем redis
-        await filling_product_accounts_by_category_id()
+        await filling_product_by_category_id()
         async with get_redis() as session_redis:
             await session_redis.delete(f'product_accounts_by_account_id:{account_id}')
 
@@ -211,7 +173,7 @@ async def delete_product_accounts_by_category(category_id: int):
     async with get_db() as session_db:
         product_ids_result = await session_db.execute(
             select(ProductAccounts.account_id)
-            .where(ProductAccounts.account_category_id == category_id)
+            .where(ProductAccounts.category_id == category_id)
         )
         product_ids: List[int] = product_ids_result.scalars().all()
 
@@ -220,7 +182,7 @@ async def delete_product_accounts_by_category(category_id: int):
             .where(
                 AccountStorage.account_storage_id.in_(
                     select(ProductAccounts.account_storage_id)
-                    .where(ProductAccounts.account_category_id == category_id)
+                    .where(ProductAccounts.category_id == category_id)
                 )
             )
             .returning(AccountStorage)
@@ -241,7 +203,7 @@ async def delete_product_accounts_by_category(category_id: int):
         if delete_acc:
             await filling_account_categories_by_service_id()
             await filling_account_categories_by_category_id()
-            await filling_product_accounts_by_category_id()
+            await filling_product_by_category_id()
 
             for acc_id in product_ids:
                 await filling_product_account_by_account_id(acc_id)

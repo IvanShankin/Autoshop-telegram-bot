@@ -12,11 +12,11 @@ async def test_show_account_category_sets_state_and_edits_message_when_accounts_
     patch_fake_aiogram,
     replacement_fake_bot_fix,
     create_new_user,
-    create_account_category,
+    create_category,
     create_product_account,
 ):
     """
-    Если категория хранит аккаунты (is_accounts_storage=True) и доступно достаточное количество аккаунтов,
+    Если категория хранит аккаунты (is_product_storage=True) и доступно достаточное количество аккаунтов,
     то show_account_category должен:
       - записать в state данные (category_id, quantity_for_buying, old_message_id)
       - установить state в BuyAccount.quantity_accounts (проверяем, что state изменился)
@@ -27,14 +27,14 @@ async def test_show_account_category_sets_state_and_edits_message_when_accounts_
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
-    # создаём категорию, явно включаем is_accounts_storage
-    category = await create_account_category(is_accounts_storage=True)
-    category_id = category.account_category_id
+    # создаём категорию, явно включаем is_product_storage
+    category = await create_category(is_product_storage=True)
+    category_id = category.category_id
 
     quantity = 3
     # добавим нужное количество product_accounts в категорию
     for _ in range(quantity):
-        await create_product_account(account_category_id=category_id)
+        await create_product_account(category_id=category_id)
 
     cb = FakeCallbackQuery(data=f"show_account_category:{category_id}:{quantity}", chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=123)
@@ -58,18 +58,18 @@ async def test_show_account_category_non_storage_clears_state_and_edits_message(
     patch_fake_aiogram,
     replacement_fake_bot_fix,
     create_new_user,
-    create_account_category,
+    create_category,
 ):
     """
-    Для категорий не-хранилищ (is_accounts_storage=False) — state очищается и edit_message_account_category вызывается.
+    Для категорий не-хранилищ (is_product_storage=False) — state очищается и edit_message_account_category вызывается.
     """
     from src.modules.catalog.selling_accounts import sel_account_handlers as module
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
-    # по умолчанию фабрика создаёт is_accounts_storage=False (если нужно явно — передать)
-    category = await create_account_category(is_accounts_storage=False)
-    category_id = category.account_category_id
+    # по умолчанию фабрика создаёт is_product_storage=False (если нужно явно — передать)
+    category = await create_category(is_product_storage=False)
+    category_id = category.category_id
 
     cb = FakeCallbackQuery(data=f"show_account_category:{category_id}:1", chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=222, photo=None)
@@ -93,7 +93,7 @@ async def test_set_quantity_accounts_invalid_and_exceeds_stock_behaviour(
     patch_fake_aiogram,
     replacement_fake_bot_fix,
     create_new_user,
-    create_account_category,
+    create_category,
     create_product_account,
 ):
     """
@@ -105,8 +105,8 @@ async def test_set_quantity_accounts_invalid_and_exceeds_stock_behaviour(
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
-    category = await create_account_category(is_accounts_storage=True)
-    category_id = category.account_category_id
+    category = await create_category(is_product_storage=True)
+    category_id = category.category_id
 
     # 1) нечисловой ввод
     fsm1 = FakeFSMContext()
@@ -135,7 +135,7 @@ async def test_set_quantity_accounts_success_updates_state_and_edits_message(
     patch_fake_aiogram,
     replacement_fake_bot_fix,
     create_new_user,
-    create_account_category,
+    create_category,
     create_product_account,
 ):
     """
@@ -147,12 +147,12 @@ async def test_set_quantity_accounts_success_updates_state_and_edits_message(
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
-    category = await create_account_category(is_accounts_storage=True)
-    category_id = category.account_category_id
+    category = await create_category(is_product_storage=True)
+    category_id = category.category_id
 
     # создаём несколько аккаунтов для категории
     for _ in range(4):
-        await create_product_account(account_category_id=category_id)
+        await create_product_account(category_id=category_id)
 
     fsm = FakeFSMContext()
     # предварительная state (имитируем, что пользователь начал покупку)
@@ -176,7 +176,7 @@ async def test_enter_promo_sets_state_and_edits_message(
     patch_fake_aiogram,
     replacement_fake_bot_fix,
     create_new_user,
-    create_account_category,
+    create_category,
 ):
     """
     Callback enter_promo: должен отредактировать сообщение с просьбой ввести код
@@ -186,9 +186,9 @@ async def test_enter_promo_sets_state_and_edits_message(
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
-    # создаём категорию с аккаунтами (is_accounts_storage=True)
-    category = await create_account_category(is_accounts_storage=True)
-    cat_id = category.account_category_id
+    # создаём категорию с аккаунтами (is_product_storage=True)
+    category = await create_category(is_product_storage=True)
+    cat_id = category.category_id
     qty = 2
 
     cb = FakeCallbackQuery(data=f"enter_promo:{cat_id}:{qty}", chat_id=user.user_id, username=user.username)
@@ -214,7 +214,7 @@ async def test_set_promo_code_not_found_shows_error_and_keeps_state(
     patch_fake_aiogram,
     replacement_fake_bot_fix,
     create_new_user,
-    create_account_category,
+    create_category,
 ):
     """
     Ввод несуществующего/истёкшего промокода:
@@ -225,11 +225,11 @@ async def test_set_promo_code_not_found_shows_error_and_keeps_state(
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
-    category = await create_account_category(is_accounts_storage=True)
+    category = await create_category(is_product_storage=True)
 
     # подготовим state как будто пользователь перешёл в ввод промокода
     fsm = FakeFSMContext()
-    await fsm.update_data(category_id=category.account_category_id, old_message_id=33, quantity_for_buying=1)
+    await fsm.update_data(category_id=category.category_id, old_message_id=33, quantity_for_buying=1)
 
     # вводим случайный код которого нет
     msg = FakeMessage(text="NOT_EXISTING_CODE", chat_id=user.user_id, username=user.username)
@@ -250,7 +250,7 @@ async def test_set_promo_code_success_updates_state_and_notifies_user(
     patch_fake_aiogram,
     replacement_fake_bot_fix,
     create_new_user,
-    create_account_category,
+    create_category,
     create_promo_code,
 ):
     """
@@ -264,12 +264,12 @@ async def test_set_promo_code_success_updates_state_and_notifies_user(
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
-    category = await create_account_category(is_accounts_storage=True)
+    category = await create_category(is_product_storage=True)
     promo = await create_promo_code()  # фикстура создаёт promo в БД и redis (activation_code = "TESTCODE")
 
     # подготовим state like user opened promo input
     fsm = FakeFSMContext()
-    await fsm.update_data(category_id=category.account_category_id, old_message_id=44, quantity_for_buying=1)
+    await fsm.update_data(category_id=category.category_id, old_message_id=44, quantity_for_buying=1)
 
     msg = FakeMessage(text=promo.activation_code, chat_id=user.user_id, username=user.username)
 
@@ -292,7 +292,7 @@ async def test_confirm_buy_acc_invalid_quantity_answers_user_and_no_edit(
     patch_fake_aiogram,
     replacement_fake_bot_fix,
     create_new_user,
-    create_account_category,
+    create_category,
 ):
     """
     Если quantity_account <= 0 — callback должен вызвать callback.answer и не редактировать сообщение.
@@ -302,9 +302,9 @@ async def test_confirm_buy_acc_invalid_quantity_answers_user_and_no_edit(
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
-    category = await create_account_category(is_accounts_storage=True)
+    category = await create_category(is_product_storage=True)
 
-    cb = FakeCallbackQuery(data=f"confirm_buy_acc:{category.account_category_id}:0:None", chat_id=user.user_id, username=user.username)
+    cb = FakeCallbackQuery(data=f"confirm_buy_acc:{category.category_id}:0:None", chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=12)
 
     await module.confirm_buy_acc(cb, user)
@@ -318,7 +318,7 @@ async def test_confirm_buy_acc_with_promo_applies_discount_and_edits_message(
     patch_fake_aiogram,
     replacement_fake_bot_fix,
     create_new_user,
-    create_account_category,
+    create_category,
     create_promo_code,
 ):
     """
@@ -330,12 +330,12 @@ async def test_confirm_buy_acc_with_promo_applies_discount_and_edits_message(
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user(balance=1000)
     # категоря с price_one_account по умолчанию 150 в фабрике — убедимся что она достаточна
-    category = await create_account_category(price_one_account=150, is_accounts_storage=True)
+    category = await create_category(price_one_account=150, is_product_storage=True)
     promo = await create_promo_code() # amount=100
 
     quantity = 1
     # total_sum before discount = 150, discount = 100 => due = 50
-    cb = FakeCallbackQuery(data=f"confirm_buy_acc:{category.account_category_id}:{quantity}:{promo.promo_code_id}", chat_id=user.user_id, username=user.username)
+    cb = FakeCallbackQuery(data=f"confirm_buy_acc:{category.category_id}:{quantity}:{promo.promo_code_id}", chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=99)
 
     await module.confirm_buy_acc(cb, user)
@@ -358,7 +358,7 @@ async def test_confirm_buy_acc_invalid_promo_alerts_user(
     patch_fake_aiogram,
     replacement_fake_bot_fix,
     create_new_user,
-    create_account_category,
+    create_category,
     monkeypatch,
 ):
     """
@@ -371,7 +371,7 @@ async def test_confirm_buy_acc_invalid_promo_alerts_user(
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
-    category = await create_account_category(price_one_account=100, is_accounts_storage=True)
+    category = await create_category(price_one_account=100, is_product_storage=True)
 
     # заставим discount_calculation бросать InvalidPromoCode
     async def fake_discount_calculation(amount, promo_code_id=None):
@@ -380,7 +380,7 @@ async def test_confirm_buy_acc_invalid_promo_alerts_user(
     from src.services.database.discounts.utils import calculation
     monkeypatch.setattr(calculation, "discount_calculation", fake_discount_calculation)
 
-    cb = FakeCallbackQuery(data=f"confirm_buy_acc:{category.account_category_id}:1:9999", chat_id=user.user_id, username=user.username)
+    cb = FakeCallbackQuery(data=f"confirm_buy_acc:{category.category_id}:1:9999", chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=55)
 
     await module.confirm_buy_acc(cb, user)
@@ -396,19 +396,19 @@ class TestBuyAccount:
             patch_fake_aiogram,
             replacement_fake_bot_fix,
             create_new_user,
-            create_account_category,
+            create_category,
     ):
         """
-        Если category.quantity_product_account < quantity_account — показывается alert,
+        Если category.quantity_product < quantity_account — показывается alert,
         сообщение не редактируется.
         """
         from src.modules.catalog.selling_accounts import sel_account_handlers as module
         fake_bot = replacement_fake_bot_fix
         user = await create_new_user(balance=1000)
-        category = await create_account_category(is_accounts_storage=True)
+        category = await create_category(is_product_storage=True)
         # quantity_product_account по умолчанию 0, так что условия нехватки выполняются
 
-        cb = FakeCallbackQuery(data=f"buy_acc:{category.account_category_id}:5:None", chat_id=user.user_id,
+        cb = FakeCallbackQuery(data=f"buy_acc:{category.category_id}:5:None", chat_id=user.user_id,
                                username=user.username)
         cb.message = SimpleNamespace(message_id=10)
 
@@ -424,7 +424,7 @@ class TestBuyAccount:
             patch_fake_aiogram,
             replacement_fake_bot_fix,
             create_new_user,
-            create_account_category,
+            create_category,
             create_promo_code,
     ):
         """
@@ -434,11 +434,11 @@ class TestBuyAccount:
 
         fake_bot = replacement_fake_bot_fix
         user = await create_new_user(balance=10000)
-        category = await create_account_category(price_one_account=50, is_accounts_storage=True)
+        category = await create_category(price_one_account=50, is_product_storage=True)
         promo = await create_promo_code()  # min_order_amount=100
 
         # quantity_account = 1 => total_sum = 50 < 100
-        cb = FakeCallbackQuery(data=f"buy_acc:{category.account_category_id}:1:{promo.promo_code_id}",
+        cb = FakeCallbackQuery(data=f"buy_acc:{category.category_id}:1:{promo.promo_code_id}",
                                chat_id=user.user_id, username=user.username)
         cb.message = SimpleNamespace(message_id=20)
 
@@ -454,7 +454,7 @@ class TestBuyAccount:
             patch_fake_aiogram,
             replacement_fake_bot_fix,
             create_new_user,
-            create_account_category,
+            create_category,
             monkeypatch,
     ):
         """
@@ -466,7 +466,7 @@ class TestBuyAccount:
 
         fake_bot = replacement_fake_bot_fix
         user = await create_new_user(balance=10000)
-        category = await create_account_category(is_accounts_storage=True)
+        category = await create_category(is_product_storage=True)
 
         async def fake_discount_calculation(amount, promo_code_id=None):
             raise InvalidPromoCode()
@@ -474,7 +474,7 @@ class TestBuyAccount:
         from src.services.database.discounts.utils import calculation
         monkeypatch.setattr(calculation, "discount_calculation", fake_discount_calculation)
 
-        cb = FakeCallbackQuery(data=f"buy_acc:{category.account_category_id}:1:9999",
+        cb = FakeCallbackQuery(data=f"buy_acc:{category.category_id}:1:9999",
                                chat_id=user.user_id, username=user.username)
         cb.message = SimpleNamespace(message_id=30)
 
@@ -489,7 +489,7 @@ class TestBuyAccount:
             patch_fake_aiogram,
             replacement_fake_bot_fix,
             create_new_user,
-            create_account_category,
+            create_category,
             create_product_account
     ):
         """
@@ -499,10 +499,10 @@ class TestBuyAccount:
 
         fake_bot = replacement_fake_bot_fix
         user = await create_new_user(balance=50)
-        category = await create_account_category(price_one_account=200, is_accounts_storage=True)
-        _ = await create_product_account(account_category_id=category.account_category_id)
+        category = await create_category(price_one_account=200, is_product_storage=True)
+        _ = await create_product_account(category_id=category.category_id)
 
-        cb = FakeCallbackQuery(data=f"buy_acc:{category.account_category_id}:1:None",
+        cb = FakeCallbackQuery(data=f"buy_acc:{category.category_id}:1:None",
                                chat_id=user.user_id, username=user.username)
         cb.message = SimpleNamespace(message_id=40)
 
@@ -519,7 +519,7 @@ class TestBuyAccount:
             patch_fake_aiogram,
             replacement_fake_bot_fix,
             create_new_user,
-            create_account_category,
+            create_category,
             create_product_account,
             monkeypatch,
     ):
@@ -530,16 +530,16 @@ class TestBuyAccount:
 
         fake_bot = replacement_fake_bot_fix
         user = await create_new_user(balance=1000)
-        category = await create_account_category(price_one_account=100, is_accounts_storage=True)
-        _ = await create_product_account(account_category_id=category.account_category_id)
+        category = await create_category(price_one_account=100, is_product_storage=True)
+        _ = await create_product_account(category_id=category.category_id)
 
         async def fake_purchase_accounts(**kwargs):
             return True
 
         from src.modules import catalog
-        monkeypatch.setattr(catalog, "selling_accounts", fake_purchase_accounts)
+        monkeypatch.setattr(catalog, "product_categories", fake_purchase_accounts)
 
-        cb = FakeCallbackQuery(data=f"buy_acc:{category.account_category_id}:1:None",
+        cb = FakeCallbackQuery(data=f"buy_acc:{category.category_id}:1:None",
                                chat_id=user.user_id, username=user.username)
         cb.message = SimpleNamespace(message_id=50)
 
@@ -554,7 +554,7 @@ class TestBuyAccount:
             patch_fake_aiogram,
             replacement_fake_bot_fix,
             create_new_user,
-            create_account_category,
+            create_category,
             create_product_account,
             monkeypatch,
     ):
@@ -566,16 +566,16 @@ class TestBuyAccount:
 
         fake_bot = replacement_fake_bot_fix
         user = await create_new_user(balance=1000)
-        category = await create_account_category(price_one_account=100, is_accounts_storage=True)
-        _ = await create_product_account(account_category_id=category.account_category_id)
+        category = await create_category(price_one_account=100, is_product_storage=True)
+        _ = await create_product_account(category_id=category.category_id)
 
         async def fake_purchase_accounts(**kwargs):
             return False
 
         from src.modules import catalog
-        monkeypatch.setattr(catalog, "selling_accounts", fake_purchase_accounts)
+        monkeypatch.setattr(catalog, "product_categories", fake_purchase_accounts)
 
-        cb = FakeCallbackQuery(data=f"buy_acc:{category.account_category_id}:1:None",
+        cb = FakeCallbackQuery(data=f"buy_acc:{category.category_id}:1:None",
                                chat_id=user.user_id, username=user.username)
         cb.message = SimpleNamespace(message_id=60)
 

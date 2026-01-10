@@ -27,13 +27,13 @@ async def show_category(
         user.language,
         "admins_editor_category",
         "Category \n\nName: {name}\nIndex: {index}\nShow: {show} \n\nStores accounts: {is_account_storage}"
-    ).format(name=category.name, index=category.index, show=category.show, is_account_storage=category.is_accounts_storage)
-    if category.is_accounts_storage:
+    ).format(name=category.name, index=category.index, show=category.show, is_account_storage=category.is_product_storage)
+    if category.is_product_storage:
         price_one_acc = category.price_one_account  if category.price_one_account else 0
         cost_price_acc = category.cost_price_one_account  if category.cost_price_one_account else 0
 
-        total_sum_acc = category.quantity_product_account * price_one_acc
-        total_cost_price_acc = category.quantity_product_account * cost_price_acc
+        total_sum_acc = category.quantity_product * price_one_acc
+        total_cost_price_acc = category.quantity_product * cost_price_acc
 
         message += get_text(
             user.language,
@@ -43,7 +43,7 @@ async def show_category(
             "Cost of all stored accounts: {total_cost_price_acc}\n"
             "Expected profit: {total_profit}"
         ).format(
-            total_quantity_acc=category.quantity_product_account,
+            total_quantity_acc=category.quantity_product,
             total_sum_acc=total_sum_acc,
             total_cost_price_acc=total_cost_price_acc,
             total_profit=total_sum_acc - total_cost_price_acc,
@@ -58,7 +58,7 @@ async def show_category(
         category_id=category_id,
         parent_category_id=category.parent_id if category.parent_id else None,
         is_main=category.is_main,
-        is_account_storage=category.is_accounts_storage,
+        is_account_storage=category.is_product_storage,
     )
 
     if send_new_message:
@@ -95,7 +95,7 @@ async def show_category_update_data(
         "Name: {name} \nDescription: {description} \n\n"
     ).format(name=category.name,description=category.description)
 
-    if category.is_accounts_storage:
+    if category.is_product_storage:
         message += get_text(
             user.language,
             "admins_editor_category",
@@ -113,7 +113,7 @@ async def show_category_update_data(
     reply_markup = change_category_data_kb(
         user.language,
         category_id=category_id,
-        is_account_storage=category.is_accounts_storage,
+        is_account_storage=category.is_product_storage,
         show_default = False if (ui_image and ui_image.show) else True
     )
 

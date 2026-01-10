@@ -12,7 +12,6 @@ from src.services.database.core.database import get_db, Base
 from src.services.database.referrals.utils import create_unique_referral_code
 from src.services.database.referrals.models import ReferralLevels
 from src.services.database.admins.models import Admins
-from src.services.database.selling_accounts.models import TypeAccountServices
 
 
 async def create_database():
@@ -50,8 +49,6 @@ async def create_database():
     await filling_admins(get_config().env.main_admin)
     for type_payment in get_config().app.type_payments:
         await filling_type_payment(type_payment)
-    for type_account_services in get_config().app.type_account_services:
-        await filling_type_account_services(type_account_services)
 
     ui_images = get_ui_images()
     for key in ui_images:
@@ -141,21 +138,6 @@ async def filling_type_payment(type_payments: str):
             new_type_payment = TypePayments(name_for_user=type_payments, name_for_admin=type_payments, index=new_index)
             session_db.add(new_type_payment)
             await session_db.commit()
-
-async def filling_type_account_services(type_account_services: str):
-    async with get_db() as session_db:
-        result = await session_db.execute(select(TypeAccountServices).where(TypeAccountServices.name == type_account_services))
-        result_payment = result.scalar()
-
-        if not result_payment:
-            new_type_account_services = TypeAccountServices(name=type_account_services)
-            session_db.add(new_type_account_services)
-            await session_db.commit()
-
-
-
-
-
 
 
 

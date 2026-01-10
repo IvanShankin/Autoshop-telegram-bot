@@ -7,112 +7,62 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.config import get_config
-from src.exceptions import TranslationAlreadyExists, ServiceTypeBusy, AccountServiceNotFound, \
+from src.exceptions import TranslationAlreadyExists, \
     AccountCategoryNotFound, IncorrectedNumberButton, IncorrectedAmountSale, IncorrectedCostPrice, \
     TheCategoryStorageAccount, CategoryNotFound, TheCategoryNotStorageAccount
-from src.services.database.selling_accounts.models import AccountStorage
-from src.services.database.selling_accounts.models.models import TgAccountMedia
+from src.services.database.product_categories.models import AccountStorage
+from src.services.database.product_categories.models import TgAccountMedia
+from src.services.database.product_categories.models.product_account import AccountServiceType
 from src.services.database.system.actions.actions import create_ui_image
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
-from src.services.database.selling_accounts.actions.actions_get import get_account_service, \
-    get_account_categories_by_category_id, _get_account_categories_by_service_id, get_type_account_service, \
-    get_product_account_by_category_id
-from src.services.database.selling_accounts.models import AccountServices, AccountCategories, AccountCategoryTranslation, \
-    ProductAccounts, SoldAccounts, SoldAccountsTranslation, DeletedAccounts, AccountCategoryFull, SoldAccountSmall
+from src.services.database.product_categories.actions.actions_get import get_account_categories_by_category_id, \
+    _get_account_categories_by_service_id, get_product_account_by_category_id
+from src.services.database.product_categories.models import Categories, CategoryTranslation, \
+    ProductAccounts, SoldAccounts, SoldAccountsTranslation, DeletedAccounts, CategoryFull, SoldAccountSmall
 from src.services.database.users.actions import get_user
 from src.services.redis.filling_redis import filling_product_account_by_account_id, \
-    filling_product_accounts_by_category_id, filling_sold_accounts_by_owner_id, filling_sold_account_by_account_id, \
+    filling_product_by_category_id, filling_sold_accounts_by_owner_id, filling_sold_account_by_account_id, \
     filling_account_categories_by_service_id, filling_account_categories_by_category_id
 from src.utils.pars_number import phone_in_e164
 from src.utils.ui_images_data import get_default_image_bytes
 
 
-async def add_account_services(name: str, type_account_service_id: int) -> AccountServices:
-    """
-    У одного типа сервиса может быть только один прикреплённый сервис,
-    то есть не должно быть такого, что есть два telegram или два instagram (на other не распространяется)
 
-    Будет установлен самый большой индекс + 1
-    :return AccountServices: только что созданный
-    :exception ServiceTypeBusy: Если данный тип сервиса занят
-    """
-
-    async with get_db() as session_db:
-        result_db = await session_db.execute(
-            select(AccountServices)
-            .where(AccountServices.type_account_service_id == type_account_service_id)
-        )
-
-        account_service = result_db.scalar_one_or_none()
-        if account_service:
-            if not account_service.name == "other":
-                raise ServiceTypeBusy("Данный тип сервиса занят")
-
-        result_db = await session_db.execute(select(AccountServices).order_by(AccountServices.index.asc()))
-        all_services: list[AccountServices] = result_db.scalars().all() # тут уже отсортированный по index
-
-        new_index = max((service.index for service in all_services), default=-1) + 1
-
-        new_account_service = AccountServices(
-            name=name,
-            index=new_index,
-            show=True,
-            type_account_service_id=type_account_service_id,
-        )
-        session_db.add(new_account_service)
-        await session_db.commit()
-        await session_db.refresh(new_account_service)
-        all_services.append(new_account_service)
-
-    async with get_redis() as session_redis:
-        list_for_redis = [service.to_dict() for service in all_services]
-
-        await session_redis.set(
-            f"account_services",
-            orjson.dumps(list_for_redis)
-        )
-        await session_redis.set(
-            f"account_service:{new_account_service.account_service_id}",
-            orjson.dumps(new_account_service.to_dict())
-        )
-
-    return new_account_service
-
-async def add_translation_in_account_category(
-        account_category_id: int,
+async def add_translation_in_category(
+        category_id: int,
         language: str,
         name: str,
         description: str = None,
-) -> AccountCategoryFull:
+) -> CategoryFull:
     """
-    Добавит перевод для AccountCategories и закэширует.
+    Добавит перевод для Categories и закэширует.
     :param language: Код языка ("ru","en"...)
-    :exception AccountCategoryNotFound: Если account_category_id не найден. Если перевод по данному языку есть
+    :exception AccountCategoryNotFound: Если category_id не найден. Если перевод по данному языку есть
     """
     async with get_db() as session_db:
         result_db = await session_db.execute(
-            select(AccountCategories)
-            .where(AccountCategories.account_category_id == account_category_id)
+            select(Categories)
+            .where(Categories.category_id == category_id)
         )
-        category: AccountCategories = result_db.scalar_one_or_none()
+        category: Categories = result_db.scalar_one_or_none()
 
         if not category:
-            raise AccountCategoryNotFound(f"Категории с id = {account_category_id} не найдено")
+            raise AccountCategoryNotFound(f"Категории с id = {category_id} не найдено")
 
         result_db = await session_db.execute(
-            select(AccountCategoryTranslation)
+            select(CategoryTranslation)
             .where(
-                (AccountCategoryTranslation.account_category_id == account_category_id) &
-                (AccountCategoryTranslation.lang == language)
+                (CategoryTranslation.category_id == category_id) &
+                (CategoryTranslation.lang == language)
             )
         )
-        translation: AccountCategoryTranslation = result_db.scalar_one_or_none()
+        translation: CategoryTranslation = result_db.scalar_one_or_none()
         if translation:
             raise ValueError(f"Перевод по данному языку '{language}' уже есть")
 
-        new_translation = AccountCategoryTranslation(
-            account_category_id = account_category_id,
+        new_translation = CategoryTranslation(
+            category_id = category_id,
             lang = language,
             name = name,
             description = description,
@@ -125,18 +75,18 @@ async def add_translation_in_account_category(
 
         # Перечитываем category с актуальными translations
         result_db = await session_db.execute(
-            select(AccountCategories)
+            select(Categories)
             .options(
-                selectinload(AccountCategories.translations),
-                selectinload(AccountCategories.product_accounts)
+                selectinload(Categories.translations),
+                selectinload(Categories.products)
             )
-            .where(AccountCategories.account_category_id == account_category_id)
+            .where(Categories.category_id == category_id)
         )
         category = result_db.scalar_one()
 
-        full_category = AccountCategoryFull.from_orm_with_translation(
+        full_category = CategoryFull.from_orm_with_translation(
             category=category,
-            quantity_product_account= len(category.product_accounts),
+            quantity_product= len(category.products),
             lang=language
         )
 
@@ -151,7 +101,7 @@ async def add_translation_in_account_category(
             orjson.dumps(new_all_categories)
         )
         await session_redis.set(
-            f"account_categories_by_category_id:{account_category_id}:{language}",
+            f"account_categories_by_category_id:{category_id}:{language}",
             orjson.dumps(full_category.model_dump())
         )
 
@@ -164,12 +114,12 @@ async def add_account_category(
         description: str = None,
         parent_id: int = None,
         number_buttons_in_row: int = 1,
-        is_accounts_storage: bool = False,
+        is_product_storage: bool = False,
         price_one_account: int = 0,
         cost_price_one_account: int = 0
-) -> AccountCategoryFull:
+) -> CategoryFull:
     """
-    Создаст новый AccountCategories и закэширует его.
+    Создаст новый Categories и закэширует его.
 
 
     :param account_service_id: Сервис у данной категории.
@@ -177,10 +127,10 @@ async def add_account_category(
     :param parent_id: ID другой категории для которой новая категория будет дочерней и тем самым будет находиться
     ниже по иерархии. Если не указывать, то будет категорией которая находится сразу после сервиса (главной).
     :param number_buttons_in_row: Количество кнопок для перехода в другую категорию на одну строку от 1 до 8.
-    :param is_accounts_storage: Флаг установки категории хранилищем аккаунтов.
+    :param is_product_storage: Флаг установки категории хранилищем аккаунтов.
     :param price_one_account: Цена одного аккаунта.
     :param cost_price_one_account: Себестоимость аккаунта.
-    :return: AccountCategories: только что созданный.
+    :return: Categories: только что созданный.
     :exception AccountServiceNotFound: Если account_service_id не найден.
     :exception TheCategoryStorageAccount: Если parent_id не является хранилищем аккаунтов.
     """
@@ -192,14 +142,11 @@ async def add_account_category(
     if number_buttons_in_row is not None and (number_buttons_in_row < 1 or number_buttons_in_row > 8):
         raise IncorrectedNumberButton("Количество кнопок в строке, должно быть в диапазоне от 1 до 8")
 
-    if not await get_account_service(account_service_id, return_not_show=True):
-        raise AccountServiceNotFound(f"Сервис для аккаунтов с id = {account_service_id} не найдена")
-
     if parent_id:
         parent_category = await get_account_categories_by_category_id(parent_id, return_not_show=True)
         if not parent_category:
             raise AccountCategoryNotFound()
-        if parent_category.is_accounts_storage:
+        if parent_category.is_product_storage:
             raise TheCategoryStorageAccount(
                 f"Родительский аккаунт (parent_id = {parent_id}) является хранилищем аккаунтов. "
                 f"К данной категории нельзя прикрепить другую категорию"
@@ -209,15 +156,15 @@ async def add_account_category(
         if parent_id:
             is_main = False
             result_db = await session_db.execute(
-                select(AccountCategories)
-                .where(AccountCategories.parent_id == parent_id)
+                select(Categories)
+                .where(Categories.parent_id == parent_id)
             )
 
         else:
             is_main = True
             result_db = await session_db.execute(
-                select(AccountCategories)
-                .where(AccountCategories.is_main == True)
+                select(Categories)
+                .where(Categories.is_main == True)
             )
 
         categories = result_db.scalars().all()
@@ -229,16 +176,16 @@ async def add_account_category(
         new_ui_image = await create_ui_image(key=key, file_data=file_data, show=False)
 
         # создание категории
-        new_account_categories = AccountCategories(
+        new_account_categories = Categories(
             account_service_id = account_service_id,
             parent_id = parent_id,
             ui_image_key = new_ui_image.key,
             index = new_index,
             number_buttons_in_row = number_buttons_in_row,
             is_main = is_main,
-            is_accounts_storage = is_accounts_storage,
+            is_product_storage = is_product_storage,
 
-            # только для тех категорий которые хранят аккаунты (is_accounts_storage == True)
+            # только для тех категорий которые хранят аккаунты (is_product_storage == True)
             price_one_account = price_one_account,
             cost_price_one_account = cost_price_one_account
         )
@@ -246,8 +193,8 @@ async def add_account_category(
         await session_db.commit()
         await session_db.refresh(new_account_categories)
 
-    return await add_translation_in_account_category(
-        account_category_id = new_account_categories.account_category_id,
+    return await add_translation_in_category(
+        category_id = new_account_categories.category_id,
         language = language,
         name = name,
         description = description
@@ -328,27 +275,30 @@ async def add_account_storage(
 
 
 async def add_product_account(
-    account_category_id: int,
+    type_account_service: str,
+    category_id: int,
     account_storage_id: int,
 ) -> ProductAccounts:
     """
-    Добавится аккаунт в категорию только где is_accounts_storage = True.
+    Добавится аккаунт в категорию только где is_product_storage = True.
     У аккаунта будет присвоен тип сервиса такой же как у категории
     """
 
-    category = await get_account_categories_by_category_id(account_category_id, return_not_show=True)
+    category = await get_account_categories_by_category_id(category_id, return_not_show=True)
     if not category:
-        raise CategoryNotFound(f"Категория аккаунтов с id = {account_category_id} не найдена")
-    elif not category.is_accounts_storage:
+        raise CategoryNotFound(f"Категория аккаунтов с id = {category_id} не найдена")
+    elif not category.is_product_storage:
         raise TheCategoryNotStorageAccount(
-            f"Категория аккаунтов с id = {account_category_id} не является хранилищем аккаунтов. "
+            f"Категория аккаунтов с id = {category_id} не является хранилищем аккаунтов. "
             f"для добавления аккаунтов необходимо сделать хранилищем"
         )
 
-    service = await get_account_service(category.account_service_id, return_not_show=True)
+    if not any(type_account_service == member.value for member in AccountServiceType):
+        raise ValueError(f"Тип сервиса = {type_account_service} не найден")
+
     new_product_account = ProductAccounts(
-        type_account_service_id = service.type_account_service_id,
-        account_category_id = account_category_id,
+        type_account_service = type_account_service,
+        category_id = category_id,
         account_storage_id = account_storage_id,
     )
 
@@ -357,7 +307,7 @@ async def add_product_account(
         await session_db.commit()
         await session_db.refresh(new_product_account)
 
-    all_account = await get_product_account_by_category_id(account_category_id)
+    all_account = await get_product_account_by_category_id(category_id)
     new_list_accounts = [new_product_account.to_dict()]
     for account in all_account:
         new_list_accounts.append(account.to_dict())
@@ -365,7 +315,7 @@ async def add_product_account(
     # заполнение redis
     # конкретно аккаунты
     await filling_product_account_by_account_id(new_product_account.account_id)
-    await filling_product_accounts_by_category_id()
+    await filling_product_by_category_id()
 
     # категории
     await filling_account_categories_by_service_id()
@@ -429,7 +379,7 @@ async def add_translation_in_sold_account(
 
 async def add_sold_account(
     owner_id: int,
-    type_account_service_id: int,
+    type_account_service: str,
     account_storage_id: int,
     language: str,
     name: str,
@@ -439,13 +389,13 @@ async def add_sold_account(
     if not await get_user(owner_id):
         raise ValueError(f"Пользователь с ID = {owner_id} не найден")
 
-    if not await get_type_account_service(type_account_service_id):
-        raise ValueError(f"Тип сервиса с ID = {type_account_service_id} не найден")
+    if not any(type_account_service == member.value for member in AccountServiceType):
+        raise ValueError(f"Тип сервиса = {type_account_service} не найден")
 
     new_sold_account = SoldAccounts(
         owner_id = owner_id,
         account_storage_id = account_storage_id,
-        type_account_service_id = type_account_service_id
+        type_account_service = type_account_service
     )
 
     async with get_db() as session_db:
@@ -461,18 +411,18 @@ async def add_sold_account(
     )
 
 async def add_deleted_accounts(
-        type_account_service_id: int,
+        type_account_service: str,
         account_storage_id: int,
         category_name: str,
         description: str
 ) -> DeletedAccounts:
 
-    if not await get_type_account_service(type_account_service_id):
-        raise ValueError(f"Тип сервиса с id = {type_account_service_id} не найден")
+    if not any(type_account_service == member.value for member in AccountServiceType):
+        raise ValueError(f"Тип сервиса = {type_account_service} не найден")
 
     async with get_db() as session_db:
         new_deleted_account = DeletedAccounts(
-            type_account_service_id = type_account_service_id,
+            type_account_service = type_account_service,
             account_storage_id = account_storage_id,
             category_name = category_name,
             description = description

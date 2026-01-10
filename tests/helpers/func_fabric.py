@@ -1,4 +1,4 @@
-import os, base64
+import os
 import uuid
 import zipfile
 from datetime import datetime, timezone, timedelta
@@ -10,19 +10,19 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from src.services.database.selling_accounts.models.models import AccountStorage, TgAccountMedia
+from src.services.database.product_categories.models import AccountStorage, TgAccountMedia
+from src.services.database.product_categories.models.main_category_and_product import Products
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_sold_accounts_by_owner_id, \
-    filling_sold_account_by_account_id, filling_account_categories_by_service_id, \
-    filling_account_categories_by_category_id, filling_all_account_services, filling_account_services, \
-    filling_product_account_by_account_id, filling_product_accounts_by_category_id, filling_all_types_payments, \
+    filling_sold_account_by_account_id, filling_all_keys_category, filling_product_account_by_account_id, \
+    filling_product_by_category_id, filling_product_accounts_by_product_id, filling_all_types_payments, \
     filling_types_payments_by_id
 from src.services.database.admins.models import Admins, SentMasMessages, MessageForSending
 from src.services.database.discounts.models import Vouchers, PromoCodes, ActivatedPromoCodes
 from src.services.database.referrals.utils import create_unique_referral_code
-from src.services.database.selling_accounts.models import SoldAccounts, TypeAccountServices, SoldAccountsTranslation, \
-    AccountServices, AccountCategories, AccountCategoryTranslation, ProductAccounts, \
-    SoldAccountFull, AccountCategoryFull, SoldAccountSmall, ProductAccountFull, PurchasesAccounts
+from src.services.database.product_categories.models import SoldAccounts, SoldAccountsTranslation, \
+    Categories, CategoryTranslation, ProductAccounts, \
+    SoldAccountFull, CategoryFull, SoldAccountSmall, ProductAccountFull, PurchasesAccounts
 from src.services.database.system.models import UiImages, BackupLogs
 from src.services.database.users.models import Users, Replenishments, NotificationSettings, WalletTransaction, \
     TransferMoneys
@@ -350,64 +350,16 @@ async def create_voucher_factory(
     return voucher
 
 
-async def create_type_account_service_factory(filling_redis: bool = True, name: str = "telegram") -> TypeAccountServices:
-    async with get_db() as session_db:
-        new_type = TypeAccountServices(name=name)
-        session_db.add(new_type)
-        await session_db.commit()
-        await session_db.refresh(new_type)
-
-    if filling_redis:
-        await filling_all_account_services()
-        await filling_account_services()
-
-    return new_type
-
-
-async def create_account_service_factory(
-        filling_redis: bool = True,
-        name: str = "telegram",
-        index: int = None,
-        type_account_service_id: int = None,
-        show: bool = True,
-) -> AccountServices:
-    async with get_db() as session_db:
-        if index is None:
-            result_db = await session_db.execute(select(AccountServices).order_by(AccountServices.index.asc()))
-            all_services: list[AccountServices] = result_db.scalars().all()  # тут уже отсортированный по index
-            index = max((service.index for service in all_services), default=-1) + 1
-        if type_account_service_id is None:
-            service = await create_type_account_service_factory(filling_redis=filling_redis)
-            type_account_service_id = service.type_account_service_id
-
-        new_service = AccountServices(
-            name=name,
-            index=index,
-            show=show,
-            type_account_service_id=type_account_service_id,
-        )
-        session_db.add(new_service)
-        await session_db.commit()
-        await session_db.refresh(new_service)
-
-    if filling_redis:
-        await filling_all_account_services()
-        await filling_account_services()
-
-    return new_service
-
-
-
-async def create_translate_account_category_factory(
+async def create_translate_category_factory(
         category_id: int,
         filling_redis: bool = True,
         language: str = "ru",
         name: str = "name",
         description: str = "description"
-) -> AccountCategoryFull:
+) -> CategoryFull:
     async with get_db() as session_db:
-        new_translate = AccountCategoryTranslation(
-            account_category_id=category_id,
+        new_translate = CategoryTranslation(
+            category_id=category_id,
             lang=language,
             name=name,
             description=description
@@ -416,44 +368,39 @@ async def create_translate_account_category_factory(
         await session_db.commit()
 
         result = await session_db.execute(
-            select(AccountCategories)
-            .options(selectinload(AccountCategories.translations), selectinload(AccountCategories.product_accounts))
-            .where(AccountCategories.account_category_id == category_id)
+            select(Categories)
+            .options(selectinload(Categories.translations), selectinload(Categories.product))
+            .where(Categories.category_id == category_id)
         )
         category = result.scalar_one()
 
-        full_category = AccountCategoryFull.from_orm_with_translation(
-            category = category,
-            quantity_product_account = len(category.product_accounts),
-            lang = language
+        full_category = CategoryFull.from_orm_with_translation(
+            category=category,
+            quantity_product=len(category.product),
+            lang=language
         )
 
     if filling_redis:
-        await filling_account_categories_by_service_id()
-        await filling_account_categories_by_category_id()
+        await filling_all_keys_category()
 
     return full_category
 
 
-async def create_account_category_factory(
+async def create_category_factory(
         filling_redis: bool = True,
-        account_service_id: int = None,
         parent_id: int = None,
         ui_image_key: str = None,
         index: int = None,
         show: bool = True,
         is_main: bool = True,
-        is_accounts_storage: bool = False,
-        price_one_account: int = 150,
-        cost_price_one_account: int = 100,
+        is_product_storage: bool = False,
+        price: int = 150,
+        cost_price: int = 100,
         language: str = "ru",
         name: str = "name",
         description: str = "description"
-) -> AccountCategoryFull:
+) -> CategoryFull:
     async with get_db() as session_db:
-        if account_service_id is None:
-            service = await create_account_service_factory(filling_redis=filling_redis)
-            account_service_id = service.account_service_id
         if parent_id is not None:
             is_main = False
         if ui_image_key is None:
@@ -461,30 +408,29 @@ async def create_account_category_factory(
             ui_image_key = ui_image.key
         if index is None:
             result_db = await session_db.execute(
-                select(AccountCategories)
-                .where(AccountCategories.parent_id == parent_id)
-                .order_by(AccountCategories.index.asc())
+                select(Categories)
+                .where(Categories.parent_id == parent_id)
+                .order_by(Categories.index.asc())
             )
-            all_services: list[AccountCategories] = result_db.scalars().all()  # тут уже отсортированный по index
-            index = max((service.index for service in all_services), default=-1) + 1
+            all_categorys: list[Categories] = result_db.scalars().all()  # тут уже отсортированный по index
+            index = max((category.index for category in all_categorys), default=-1) + 1
 
-        new_category = AccountCategories(
-            account_service_id=account_service_id,
+        new_category = Categories(
             parent_id = parent_id,
             ui_image_key = ui_image_key,
             index = index,
             show = show,
             is_main = is_main,
-            is_accounts_storage = is_accounts_storage,
-            price_one_account = price_one_account,
-            cost_price_one_account = cost_price_one_account
+            is_product_storage = is_product_storage,
+            price = price,
+            cost_price = cost_price
         )
         session_db.add(new_category)
         await session_db.commit()
         await session_db.refresh(new_category)
 
-        new_translate = AccountCategoryTranslation(
-            account_category_id=new_category.account_category_id,
+        new_translate = CategoryTranslation(
+            category_id=new_category.category_id,
             lang=language,
             name=name,
             description=description
@@ -494,20 +440,19 @@ async def create_account_category_factory(
 
         # Перечитываем объект с подгруженными translations
         result = await session_db.execute(
-            select(AccountCategories)
-            .options(selectinload(AccountCategories.translations), selectinload(AccountCategories.product_accounts))
-            .where(AccountCategories.account_category_id == new_category.account_category_id)
+            select(Categories)
+            .options(selectinload(Categories.translations), selectinload(Categories.products))
+            .where(Categories.category_id == new_category.category_id)
         )
         new_category = result.scalar_one()
 
-        full_category = AccountCategoryFull.from_orm_with_translation(
+        full_category = CategoryFull.from_orm_with_translation(
             category = new_category,
-            quantity_product_account = len(new_category.product_accounts),
+            quantity_product= len(new_category.products),
             lang = language,
         )
         if filling_redis:
-            await filling_account_categories_by_service_id()
-            await filling_account_categories_by_category_id()
+            await filling_all_keys_category()
 
     return full_category
 
@@ -550,22 +495,47 @@ async def create_account_storage_factory(
         return account_storage
 
 
+async def create_product_factory(
+    filling_redis: bool = True,
+    category_id: int = None,
+    product_type: str = "account",
+) -> Products:
+    async with get_db() as session_db:
+        if category_id is None:
+            category = await create_category_factory(filling_redis=filling_redis)
+            category_id = category.category_id
+
+        new_product = Products(
+            category_id=category_id,
+            product_type=product_type,
+        )
+        session_db.add(new_product)
+
+        await session_db.commit()
+
+    if filling_redis:
+        await filling_product_by_category_id()
+
+    return new_product
+
+
 async def create_product_account_factory(
         filling_redis: bool = True,
-        type_account_service_id: int = None,
-        account_category_id: int = None,
+        type_account_service: str = "telegram",
+        category_id: int = None,
+        product_id: int = None,
         account_storage_id: int = None,
         status: str = 'for_sale',
         phone_number: str = '+7 920 107-42-12',
-        price_one_account: int = 150
+        price: int = 150
 ) -> (ProductAccounts, ProductAccountFull):
     async with get_db() as session_db:
-        if type_account_service_id is None:
-            service_type = await create_type_account_service_factory(filling_redis=filling_redis)
-            type_account_service_id = service_type.type_account_service_id
-        if account_category_id is None:
-            category = await create_account_category_factory(filling_redis=filling_redis, price_one_account=price_one_account)
-            account_category_id = category.account_category_id
+        if category_id is None:
+            category = await create_category_factory(filling_redis=filling_redis, price=price)
+            category_id = category.category_id
+        if product_id is None:
+            product = await create_product_factory(filling_redis=filling_redis, category_id=category_id)
+            product_id = product.product_id
         if account_storage_id is None:
             account_storage = await create_account_storage_factory(status=status, phone_number=phone_number)
             account_storage_id = account_storage.account_storage_id
@@ -573,8 +543,8 @@ async def create_product_account_factory(
             account_storage = None
 
         new_account = ProductAccounts(
-            type_account_service_id = type_account_service_id,
-            account_category_id = account_category_id,
+            product_id = product_id,
+            type_account_service = type_account_service,
             account_storage_id = account_storage_id,
         )
         session_db.add(new_account)
@@ -587,12 +557,11 @@ async def create_product_account_factory(
         new_account = result_db.scalar()
 
         if filling_redis:
-            await filling_product_accounts_by_category_id()
+            await filling_product_by_category_id()
             await filling_product_account_by_account_id(new_account.account_id)
 
             # связанные таблицы
-            await filling_account_categories_by_category_id()
-            await filling_account_categories_by_service_id()
+            await filling_all_keys_category()
 
         if not account_storage:
             result_db = await session_db.execute(
@@ -608,7 +577,7 @@ async def create_product_account_factory(
 async def create_sold_account_factory(
         filling_redis: bool = True,
         owner_id: int = None,
-        type_account_service_id: int = None,
+        type_account_service: str = "telegram",
         account_storage_id: int = None,
         is_active: bool = True,
         is_valid: bool = True,
@@ -621,9 +590,6 @@ async def create_sold_account_factory(
         if owner_id is None:
             user = await create_new_user_fabric()
             owner_id = user.user_id
-        if type_account_service_id is None:
-            service = await create_type_account_service_factory(filling_redis=filling_redis)
-            type_account_service_id = service.type_account_service_id
         if account_storage_id is None:
             account_storage = await create_account_storage_factory(
                 is_active, is_valid, 'bought', phone_number=phone_number
@@ -632,7 +598,7 @@ async def create_sold_account_factory(
 
         new_sold_account = SoldAccounts(
             owner_id = owner_id,
-            type_account_service_id = type_account_service_id,
+            type_account_service = type_account_service,
             account_storage_id = account_storage_id,
         )
 

@@ -1,64 +1,126 @@
 import orjson
 import pytest
-from sqlalchemy import select
 
 import src.services.redis.filling_redis as filling
 from tests.helpers.helper_functions import comparison_models
-from src.utils.ui_images_data import get_ui_images
-from src.services.database.core.filling_database import filling_ui_image
 from src.services.database.discounts.models import SmallVoucher
-from src.services.database.system.models import UiImages
 from src.services.database.users.models import  BannedAccounts
 from src.services.database.core.database import get_db
 from src.services.redis.core_redis import get_redis
 
 
 @pytest.mark.asyncio
-async def test_filling_account_categories_by_category_id(create_account_category):
-    category = await create_account_category(filling_redis=False)
+async def test_filling_main_categories(create_category):
+    category = await create_category(filling_redis=False, is_main=True)
 
     # Execute
-    await filling.filling_account_categories_by_category_id()
+    await filling.filling_main_categories()
 
     async with get_redis() as session_redis:
         val = await session_redis.get(
-            f"account_categories_by_category_id:{category.account_category_id}:ru"
+            f"main_categories:ru"
+        )
+    await comparison_models(category.model_dump(), orjson.loads(val)[0], ['quantity_product_account'])
+
+@pytest.mark.asyncio
+async def test_filling_categories_by_parent(create_category):
+    category_parent = await create_category(filling_redis=False)
+    category = await create_category(filling_redis=False, parent_id=category_parent.category_id)
+
+    # Execute
+    await filling.filling_categories_by_parent()
+
+    async with get_redis() as session_redis:
+        val = await session_redis.get(
+            f"categories_by_parent:{category_parent.category_id}:ru"
+        )
+    await comparison_models(category.model_dump(), orjson.loads(val)[0], ['quantity_product_account'])
+
+
+@pytest.mark.asyncio
+async def test_filling_category_by_category(create_category):
+    category = await create_category(filling_redis=False, language='ru')
+
+    await filling.filling_category_by_category()
+
+    async with get_redis() as session_redis:
+        val = await session_redis.get(
+            f"category:{category.category_id}:ru"
         )
     await comparison_models(category.model_dump(), orjson.loads(val), ['quantity_product_account'])
 
-@pytest.mark.asyncio
-async def test_filling_sold_account_by_account_id(create_sold_account):
-    _, sold_account = await create_sold_account(filling_redis=False)
-    await filling.filling_sold_account_by_account_id(sold_account.sold_account_id)
-
-    # Assert
-    async with get_redis() as session_redis:
-        key = f"sold_accounts_by_accounts_id:{sold_account.sold_account_id}:ru"
-        val = await session_redis.get(key)
-
-    data = orjson.loads(val)
-    await comparison_models(sold_account.model_dump(), data)
-
-
 
 @pytest.mark.asyncio
-async def test_filling_account_categories_by_service_id(create_account_service, create_account_category):
-    # Setup
-    account_service = await create_account_service(filling_redis=False)
-    category_1 = await create_account_category(filling_redis=False, account_service_id=account_service.account_service_id, language='ru')
-    category_2 = await create_account_category(filling_redis=False, account_service_id=account_service.account_service_id, language='ru')
+async def test_filling_product_by_category_id(create_category, create_product):
+    category = await create_category(filling_redis=False, language='ru')
 
-    # Execute
-    await filling.filling_account_categories_by_service_id()
+    products = []
+    for i in range(3):
+        product = await create_product(
+            filling_redis=False,
+            category_id=category.category_id,
+        )
+        products.append(product)
+
+    other_product = await create_product(filling_redis=False)
+
+    await filling.filling_product_by_category_id()
 
     async with get_redis() as session_redis:
-        key = f"account_categories_by_service_id:{account_service.account_service_id}:ru"
-        val = await session_redis.get(key)
+        val = await session_redis.get(
+            f"products_by_category:{category.category_id}"
+        )
+        redis_result = orjson.loads(val)
 
-    categories_list = orjson.loads(val)
-    assert len(categories_list) == 2
-    await comparison_models(category_1.model_dump(), categories_list[0], ['quantity_product_account'])
-    await comparison_models(category_2.model_dump(), categories_list[1], ['quantity_product_account'])
+    for prod in products:
+        assert prod.to_dict() in redis_result
+
+    assert not other_product in redis_result
+
+
+@pytest.mark.asyncio
+async def test_filling_product_accounts_by_product_id(create_product, create_product_account):
+    product = await create_product(filling_redis=False)
+
+    account_products = []
+    for i in range(3):
+        product, _ = await create_product_account(
+            filling_redis=False,
+            product_id=product.product_id,
+        )
+        account_products.append(product)
+
+    other_account_product = await create_product(filling_redis=False)
+
+    await filling.filling_product_accounts_by_product_id()
+
+    async with get_redis() as session_redis:
+        val = await session_redis.get(
+            f"product_accounts_by_product:{product.product_id}"
+        )
+        redis_result = orjson.loads(val)
+
+    for prod in account_products:
+        assert any(comparison_models(prod.to_dict(), redis)  for redis in redis_result )
+
+    assert not other_account_product in redis_result
+
+
+@pytest.mark.asyncio
+async def test_filling_product_account_by_account_id(create_product_account, create_category):
+    category = await create_category(is_product_storage=True)
+    _, product = await create_product_account(
+        filling_redis=False,
+        category_id=category.category_id,
+    )
+
+    await filling.filling_product_account_by_account_id(product.account_id)
+
+    async with get_redis() as session_redis:
+        val = await session_redis.get(f"product_accounts_by_account_id:{product.account_id}")
+
+    await comparison_models(product.model_dump(), orjson.loads(val))
+
 
 @pytest.mark.asyncio
 async def test_filling_sold_accounts_by_owner_id(create_new_user, create_sold_account):
@@ -82,6 +144,21 @@ async def test_filling_sold_accounts_by_owner_id(create_new_user, create_sold_ac
     assert 2 == len(items)
 
     await comparison_models(sold_account_2.model_dump(), items[0])
+
+
+@pytest.mark.asyncio
+async def test_filling_sold_account_by_account_id(create_sold_account):
+    _, sold_account = await create_sold_account(filling_redis=False)
+    await filling.filling_sold_account_by_account_id(sold_account.sold_account_id)
+
+    # Assert
+    async with get_redis() as session_redis:
+        key = f"sold_accounts_by_accounts_id:{sold_account.sold_account_id}:ru"
+        val = await session_redis.get(key)
+
+    data = orjson.loads(val)
+    await comparison_models(sold_account.model_dump(), data)
+
 
 class TestFillRedisSingleObjects():
     """Тесты для заполнения Redis одиночными объектами"""
@@ -114,45 +191,6 @@ class TestFillRedisSingleObjects():
 
         assert val
 
-    @pytest.mark.asyncio
-    async def test_filling_type_account_services(self, create_type_account_service):
-        type_service = await create_type_account_service()
-
-        await filling.filling_type_account_services()
-
-        async with get_redis() as session_redis:
-            val = await session_redis.get(f"type_account_service:{type_service.type_account_service_id}")
-
-        await comparison_models(type_service.to_dict(), orjson.loads(val))
-
-    @pytest.mark.asyncio
-    async def test_filling_account_services(self, create_account_service):
-        account_service = await create_account_service()
-
-        await filling.filling_account_services()
-
-        async with get_redis() as session_redis:
-            val = await session_redis.get(f"account_service:{account_service.type_account_service_id}")
-
-        await comparison_models(account_service.to_dict(), orjson.loads(val))
-
-
-    @pytest.mark.asyncio
-    async def test_filling_product_account_by_account_id(self, create_product_account, create_account_category,create_type_account_service):
-        type_account_service = await create_type_account_service()
-        category = await create_account_category(is_accounts_storage=True)
-        _, product = await create_product_account(
-            filling_redis=False,
-            type_account_service_id=type_account_service.type_account_service_id,
-            account_category_id=category.account_category_id,
-        )
-
-        await filling.filling_product_account_by_account_id(product.account_id)
-
-        async with get_redis() as session_redis:
-            val = await session_redis.get(f"product_accounts_by_account_id:{product.account_id}")
-
-        await comparison_models(product.model_dump(), orjson.loads(val))
 
     @pytest.mark.asyncio
     async def test_filling_promo_code(self, create_promo_code):
@@ -177,24 +215,25 @@ class TestFillRedisSingleObjects():
 
         await comparison_models(voucher.to_dict(), orjson.loads(val))
 
-@pytest.mark.asyncio
-async def test_filling_product_accounts_by_category_id(create_product_account, create_account_category):
-    category = await create_account_category(filling_redis=False)
-    create_product_account_1, _ = await create_product_account(filling_redis=False, account_category_id = category.account_category_id)
-    create_product_account_2, _ = await create_product_account(filling_redis=False, account_category_id = category.account_category_id)
 
-    # Execute
-    await filling.filling_product_accounts_by_category_id()
-
-    # Assert
-    async with get_redis() as session_redis:
-        val = await session_redis.get(f"product_accounts_by_category_id:{category.account_category_id}")
-
-    data = orjson.loads(val)
-    assert len(data) == 2
-
-    await comparison_models(create_product_account_1.to_dict(), data[0])
-    await comparison_models(create_product_account_2.to_dict(), data[1])
+# @pytest.mark.asyncio
+# async def test_filling_product_by_category_id(create_product_account, create_category):
+#     category = await create_category(filling_redis=False)
+#     create_product_account_1, _ = await create_product_account(filling_redis=False, category_id = category.category_id)
+#     create_product_account_2, _ = await create_product_account(filling_redis=False, category_id = category.category_id)
+#
+#     # Execute
+#     await filling.filling_product_by_category_id()
+#
+#     # Assert
+#     async with get_redis() as session_redis:
+#         val = await session_redis.get(f"product_accounts_by_category_id:{category.category_id}")
+#
+#     data = orjson.loads(val)
+#     assert len(data) == 2
+#
+#     await comparison_models(create_product_account_1.to_dict(), data[0])
+#     await comparison_models(create_product_account_2.to_dict(), data[1])
 
 @pytest.mark.asyncio
 async def test_filling_user(create_new_user):
@@ -204,54 +243,6 @@ async def test_filling_user(create_new_user):
     async with get_redis() as session_redis:
         user_redis = await session_redis.get(f'user:{user.user_id}')
         await comparison_models(user, orjson.loads(user_redis))
-
-@pytest.mark.asyncio
-async def test_filling_types_account_service(create_type_account_service):
-    # заполняем БД
-    ui_images = get_ui_images()
-    for key in ui_images:
-        await filling_ui_image(key=key, path=str(ui_images[key]))
-        await filling.filling_ui_image(key) # тестируемая функция
-
-    async with get_redis() as session_redis:
-        async with get_db() as session_db:
-            for key, value in ui_images:
-                result_db = await session_db.execute(select(UiImages).where(UiImages.key == key)) 
-                data_db = result_db.scalar()
-
-                result_redis = await session_redis.get(f"ui_image:{key}")
-                data_redis = orjson.loads(result_redis)
-
-                assert data_redis == data_db.to_dict()
-                assert str(value) == data_redis['file_path']
-
-
-@pytest.mark.asyncio
-async def test_filling_types_account_service(create_type_account_service):
-    service_1 = await create_type_account_service()
-    service_2 = await create_type_account_service()
-
-    await filling.filling_all_types_account_service()
-
-    async with get_redis() as session_redis:
-        val = await session_redis.get("types_account_service")
-        list_types = orjson.loads(val)
-
-    assert service_1.to_dict() in list_types
-    assert service_2.to_dict() in list_types
-
-
-@pytest.mark.asyncio
-async def test_filling_all_account_services(create_account_service):
-    account_service = await create_account_service()
-
-    await filling.filling_all_account_services()
-
-    async with get_redis() as session_redis:
-        val = await session_redis.get(f"account_services")
-        list_account_service = orjson.loads(val)
-
-    assert account_service.to_dict() in list_account_service
 
 
 @pytest.mark.asyncio
@@ -271,6 +262,7 @@ async def test_filling_all_types_payments(create_type_payment):
     assert type_payment_0.to_dict() == all_types[0]
     assert type_payment_1.to_dict() == all_types[1]
     assert type_payment_2.to_dict() == all_types[2]
+
 
 @pytest.mark.asyncio
 async def test_filling_types_payments_by_id(create_type_payment):

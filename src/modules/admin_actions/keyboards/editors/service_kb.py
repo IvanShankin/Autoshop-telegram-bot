@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.config import get_config
-from src.services.database.selling_accounts.actions import get_all_account_services, get_all_types_account_service, \
+from src.services.database.product_categories.actions import get_all_account_services, get_all_types_account_service, \
     get_account_categories_by_parent_id
 from src.utils.i18n import get_text
 
@@ -28,7 +28,7 @@ async def show_service_acc_admin_kb(language: str, current_show: bool, current_i
 
     for cat in categories:
         keyboard.row(
-            InlineKeyboardButton(text=str(cat.name), callback_data=f'show_acc_category_admin:{cat.account_category_id}'))
+            InlineKeyboardButton(text=str(cat.name), callback_data=f'show_acc_category_admin:{cat.category_id}'))
 
     keyboard.row(InlineKeyboardButton(text=get_config().app.solid_line, callback_data='none'))
     keyboard.row(InlineKeyboardButton(

@@ -8,7 +8,6 @@ class AppConfig(BaseModel):
     min_max_replenishment: Dict[str, Dict[str, int]] = {
         'crypto_bot': {"min": 1, "max": 99999999}
     }
-    type_account_services: List[str] = ['telegram', 'other']
 
     # Настройки языков
     allowed_langs: List[str] = ["ru", "en"]  # все коды языков

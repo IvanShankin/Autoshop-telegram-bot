@@ -135,7 +135,7 @@ async def backup_database():
         )
 
 
-async def cleanup_old_backups(retain_last: int):
+async def cleanup_old_backups(retain_last: int = 2):
     storage = get_storage_client()
     logger = get_logger(__name__)
     backups = await get_all_backup_logs_desc()  # DESC

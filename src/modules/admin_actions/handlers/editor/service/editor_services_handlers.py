@@ -12,7 +12,7 @@ from src.modules.admin_actions.keyboards import all_services_account_admin_kb, a
     to_services_kb,  back_in_service_kb, delete_service_kb
 from src.modules.admin_actions.schemas import GetServiceNameData, RenameServiceData
 from src.modules.admin_actions.state import GetServiceName, RenameService
-from src.services.database.selling_accounts.actions import add_account_services, update_account_service, \
+from src.services.database.product_categories.actions import add_account_services, update_account_service, \
     delete_account_service
 from src.services.database.users.models import Users
 from src.utils.core_logger import get_logger

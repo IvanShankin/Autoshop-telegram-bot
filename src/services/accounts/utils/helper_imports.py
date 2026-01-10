@@ -2,7 +2,7 @@ from typing import List, Tuple, TypeVar
 
 from src.exceptions import TypeAccountServiceNotFound
 from src.services.accounts.shemas import HasPhone
-from src.services.database.selling_accounts.actions import get_all_types_account_service, \
+from src.services.database.product_categories.actions import get_all_types_account_service, \
     get_all_phone_in_account_storage
 from src.utils.core_logger import get_logger
 from src.utils.pars_number import phone_in_e164

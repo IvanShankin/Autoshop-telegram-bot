@@ -19,7 +19,7 @@ from src.modules.admin_actions.services import update_message_query_data
 from src.modules.admin_actions.services import upload_account
 from src.modules.admin_actions.state import UpdateNameForCategory, \
     UpdateDescriptionForCategory, UpdateCategoryImage, UpdateNumberInCategory
-from src.services.database.selling_accounts.actions import update_account_category, \
+from src.services.database.product_categories.actions import update_account_category, \
     update_account_category_translation
 from src.services.database.system.actions import update_ui_image
 from src.services.database.users.models import Users
@@ -34,7 +34,7 @@ async def acc_category_update_storage(callback: CallbackQuery, user: Users):
     is_storage = bool(int(callback.data.split(':')[2])) # что необходимо установить
 
     try:
-        await update_account_category(category_id, is_accounts_storage=is_storage)
+        await update_account_category(category_id, is_product_storage=is_storage)
         message = get_text(user.language, "miscellaneous", "Successfully updated")
     except AccountCategoryNotFound:
         try:
@@ -123,7 +123,7 @@ async def get_name_for_update(message: Message, state: FSMContext, user: Users):
     data = UpdateNameForCategoryData( **(await state.get_data()))
     try:
         await update_account_category_translation(
-            account_category_id=data.category_id,
+            category_id=data.category_id,
             language=data.language,
             name=message.text,
         )
@@ -168,7 +168,7 @@ async def get_description_for_update(message: Message, state: FSMContext, user: 
     data = UpdateDescriptionForCategoryData( **(await state.get_data()))
     try:
         await update_account_category_translation(
-            account_category_id=data.category_id,
+            category_id=data.category_id,
             language=data.language,
             description=message.text,
         )
@@ -226,14 +226,14 @@ async def update_category_image(message: Message, state: FSMContext, user: Users
 
     if not doc.mime_type.startswith("image/"): # Проверяем, что это действительно изображение
         text = get_text(user.language,"admins_editor_category", "This is not an image. Send it as a document")
-        reply_markup = back_in_category_update_data_kb(user.language, category.account_category_id)
+        reply_markup = back_in_category_update_data_kb(user.language, category.category_id)
     elif doc.file_size > get_config().limits.max_size_bytes: # Проверяем размер, известный Telegram (без скачивания)
         text = get_text(
             user.language,
             "admins_editor_category",
             "The file is too large — maximum {max_size_mb} MB. \n\nTry again"
         ).format(max_size_mb=get_config().limits.max_size_mb)
-        reply_markup = back_in_category_update_data_kb(user.language, category.account_category_id)
+        reply_markup = back_in_category_update_data_kb(user.language, category.category_id)
     else:
         # Получаем объект файла
         file = await message.bot.get_file(doc.file_id)
@@ -247,7 +247,7 @@ async def update_category_image(message: Message, state: FSMContext, user: Users
         try:
             await update_account_category(data.category_id, file_data=file_bytes)
             text = get_text(user.language, "admins_editor_category", "Image installed successfully")
-            reply_markup = back_in_category_update_data_kb(user.language, category.account_category_id)
+            reply_markup = back_in_category_update_data_kb(user.language, category.category_id)
         except AccountCategoryNotFound:
             text = get_text(user.language, "admins_editor_category", "The category no longer exists")
 

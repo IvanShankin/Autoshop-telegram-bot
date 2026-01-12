@@ -25,17 +25,7 @@ async def get_unique_among_db(
     unique_items = []
     duplicate_items = []
 
-    types_account_service = await get_all_types_account_service()
-    type_account_service_id = None
-    for type_service in types_account_service:
-        if type_account_service == type_service.name:
-            type_account_service_id = type_service.type_account_service_id
-
-    # если не нашли полученный сервис
-    if type_account_service_id is None:
-        raise TypeAccountServiceNotFound()
-
-    numbers_in_db = await get_all_phone_in_account_storage(type_account_service_id)
+    numbers_in_db = await get_all_phone_in_account_storage(type_account_service)
 
     for acc_data in account_data:
         # преобразовываем номер т.к. такой формат хранится в БД

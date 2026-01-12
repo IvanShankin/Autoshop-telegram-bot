@@ -2,17 +2,15 @@ import shutil
 from pathlib import Path
 from typing import List
 
-import orjson
 from sqlalchemy import select, delete, distinct, update
 
 from src.config import get_config
-from src.exceptions import ServiceContainsCategories, CategoryStoresSubcategories, \
+from src.exceptions import CategoryStoresSubcategories, \
     AccountCategoryNotFound, TheCategoryStorageAccount
 from src.services.database.system.actions import delete_ui_image
 from src.services.redis.core_redis import get_redis
-from src.services.redis.filling_redis import filling_account_categories_by_service_id, \
-    filling_account_categories_by_category_id, filling_product_by_category_id, \
-    filling_sold_accounts_by_owner_id, filling_product_account_by_account_id
+from src.services.redis.filling_redis import filling_all_keys_category, filling_sold_accounts_by_owner_id, \
+    filling_product_account_by_account_id, filling_product_accounts_by_category_id, filling_sold_account_by_account_id
 from src.services.database.core.database import get_db
 from src.services.database.product_categories.models import Categories, ProductAccounts, \
     CategoryTranslation, SoldAccounts, SoldAccountsTranslation, AccountStorage
@@ -51,9 +49,7 @@ async def delete_translate_category(category_id: int, language: str):
         await session_db.commit()
 
         # обновление redis
-        await filling_account_categories_by_service_id()
-        async with get_redis() as session_redis:
-            await session_redis.delete(f"account_categories_by_category_id:{category_id}:{language}")
+        await filling_all_keys_category(category_id=category_id)
 
 
 async def check_category_before_del(category_id: int) -> Categories:
@@ -89,7 +85,8 @@ async def check_category_before_del(category_id: int) -> Categories:
 
         return category
 
-async def delete_account_category(category_id: int):
+
+async def delete_category(category_id: int):
     """Удалит категорию аккаунтов и связанную UiImage"""
     async with get_db() as session_db:
         category = await check_category_before_del(category_id)
@@ -116,11 +113,11 @@ async def delete_account_category(category_id: int):
         await session_db.commit()
 
         # обновление redis
-        await filling_account_categories_by_service_id()
-        await filling_account_categories_by_category_id()
+        await filling_all_keys_category()
 
     if deleted_cat and deleted_cat.ui_image_key:
         await delete_ui_image(deleted_cat.ui_image_key)
+
 
 async def delete_product_account(account_id: int):
     async with get_db() as session_db:
@@ -136,9 +133,10 @@ async def delete_product_account(account_id: int):
         await session_db.commit()
 
         # обновляем redis
-        await filling_product_by_category_id()
-        async with get_redis() as session_redis:
-            await session_redis.delete(f'product_accounts_by_account_id:{account_id}')
+        await filling_product_accounts_by_category_id()
+        await filling_product_account_by_account_id(account_id)
+        await filling_all_keys_category(account.category_id)
+
 
 async def delete_sold_account(account_id: int):
     async with get_db() as session_db:
@@ -162,10 +160,8 @@ async def delete_sold_account(account_id: int):
         await session_db.commit()
 
         # обновляем redis
-        async with get_redis() as session_redis:
-            for language in all_lang:
-                await filling_sold_accounts_by_owner_id(account.owner_id)
-                await session_redis.delete(f'sold_accounts_by_accounts_id:{account.sold_account_id}:{language}')
+        await filling_sold_accounts_by_owner_id(account.owner_id)
+        await filling_sold_account_by_account_id(account.sold_account_id)
 
 
 async def delete_product_accounts_by_category(category_id: int):
@@ -201,9 +197,9 @@ async def delete_product_accounts_by_category(category_id: int):
             shutil.rmtree(folder, ignore_errors=True)
 
         if delete_acc:
-            await filling_account_categories_by_service_id()
-            await filling_account_categories_by_category_id()
-            await filling_product_by_category_id()
+            await filling_all_keys_category(category_id=category_id)
+
+            await filling_product_accounts_by_category_id()
 
             for acc_id in product_ids:
                 await filling_product_account_by_account_id(acc_id)

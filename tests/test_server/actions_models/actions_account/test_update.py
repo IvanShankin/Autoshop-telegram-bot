@@ -12,23 +12,21 @@ from src.services.database.product_categories.models import Categories, Category
 
 class TestUpdateCategory:
     @pytest.mark.asyncio
-    async def test_update_account_category_index_reorder_and_redis(self, create_account_service, create_category):
-        from src.services.database.product_categories.actions import update_account_category
+    async def test_update_category_index_reorder_and_redis(self, create_category):
+        from src.services.database.product_categories.actions import update_category
         # Создаём один сервис и три категории (main) с индексами 0,1,2
-        svc = await create_account_service(filling_redis=True, name="svc_cat_test")
-        c1 = await create_category(filling_redis=True, account_service_id=svc.account_service_id, language="ru", name="c1")
-        c2 = await create_category(filling_redis=True, account_service_id=svc.account_service_id, language="ru", name="c2")
-        c3 = await create_category(filling_redis=True, account_service_id=svc.account_service_id, language="ru", name="c3")
+        c1 = await create_category(filling_redis=True, language="ru", name="c1")
+        c2 = await create_category(filling_redis=True, language="ru", name="c2")
+        c3 = await create_category(filling_redis=True, language="ru", name="c3")
 
         # перемещение c3 -> index 0
-        updated = await update_account_category(c3.category_id, index=0)
+        updated = await update_category(c3.category_id, index=0)
         assert updated.index == 0
 
         # проверка базы данных: категории для этой услуги, упорядоченные по индексу (возрастание): c3(0), c1(1), c2(2)
         async with get_db() as session:
             res = await session.execute(
                 select(Categories)
-                .where(Categories.account_service_id == svc.account_service_id)
                 .order_by(Categories.index.asc())
             )
             rows = res.scalars().all()
@@ -37,22 +35,21 @@ class TestUpdateCategory:
             assert rows[1].index == 1
             assert rows[2].index == 2
 
-        # Redis: account_categories_by_service_id:{service_id}:ru следует сортировать по возрастанию индекса
+        # Redis: main_categories:{service_id}:ru следует сортировать по возрастанию индекса
         async with get_redis() as r:
-            raw = await r.get(f"account_categories_by_service_id:{svc.account_service_id}:ru")
+            raw = await r.get(f"main_categories:ru")
             assert raw
             lst = orjson.loads(raw)
             assert lst[0]["category_id"] == c3.category_id
             assert [it["index"] for it in lst] == [0, 1, 2]
 
         # перемещение c3 в конец (index 2)
-        updated2 = await update_account_category(c3.category_id, index=2)
+        updated2 = await update_category(c3.category_id, index=2)
         assert updated2.index == 2
 
         async with get_db() as session:
             res = await session.execute(
                 select(Categories)
-                .where(Categories.account_service_id == svc.account_service_id)
                 .order_by(Categories.index.asc())
             )
             rows = res.scalars().all()
@@ -63,20 +60,19 @@ class TestUpdateCategory:
             assert rows[2].category_id == c3.category_id
 
         async with get_redis() as r:
-            raw = await r.get(f"account_categories_by_service_id:{svc.account_service_id}:ru")
+            raw = await r.get(f"main_categories:ru")
             lst = orjson.loads(raw)
             assert [it["index"] for it in lst] == [0, 1, 2]
 
 
     @pytest.mark.asyncio
-    async def test_update_account_category_changed_file_data(
+    async def test_update_category_changed_file_data(
             self,
-            create_account_service,
             create_category,
             create_product_account,
             create_ui_image
     ):
-        from src.services.database.product_categories.actions import update_account_category
+        from src.services.database.product_categories.actions import update_category
         from src.utils.ui_images_data import get_default_image_bytes
 
         old_ui_image, _ = await create_ui_image()
@@ -86,7 +82,7 @@ class TestUpdateCategory:
             language="ru"
         )
 
-        await update_account_category(cat.category_id, file_data=get_default_image_bytes())
+        await update_category(cat.category_id, file_data=get_default_image_bytes())
 
         async with get_db() as session:
             res = await session.execute(
@@ -100,16 +96,13 @@ class TestUpdateCategory:
     @pytest.mark.asyncio
     async def test_update_account_category_validation_and_product_conflict(
         self,
-        create_account_service,
         create_category,
         create_product_account
     ):
-        from src.services.database.product_categories.actions import update_account_category
+        from src.services.database.product_categories.actions import update_category
 
-        svc = await create_account_service(filling_redis=False)
         cat = await create_category(
             filling_redis=False,
-            account_service_id=svc.account_service_id,
             is_product_storage=True,
             language="ru"
         )
@@ -117,16 +110,16 @@ class TestUpdateCategory:
 
         # Попытка изменить is_product_storage -> должна вызвать ValueError, поскольку is_product_storage=True
         with pytest.raises(TheCategoryStorageAccount):
-            await update_account_category(cat.category_id, is_product_storage=False)
+            await update_category(cat.category_id, is_product_storage=False)
 
         # Проверка на нормальную цену
         with pytest.raises(IncorrectedAmountSale):
-            await update_account_category(cat.category_id, price_one_account=-1)
+            await update_category(cat.category_id, price_one_account=-1)
 
         with pytest.raises(IncorrectedCostPrice):
-            await update_account_category(cat.category_id, cost_price_one_account=-1)
+            await update_category(cat.category_id, cost_price_one_account=-1)
 
-        updated = await update_account_category(cat.category_id, show=False)
+        updated = await update_category(cat.category_id, show=False)
         assert updated.show is False
 
         # Проверка БД
@@ -140,7 +133,7 @@ class TestUpdateCategory:
 
         # Redis updated keys should exist (function calls filling... on update)
         async with get_redis() as r:
-            raw = await r.get(f"account_categories_by_category_id:{cat.category_id}:ru")
+            raw = await r.get(f"category:{cat.category_id}:ru")
             parsed = orjson.loads(raw)
             assert parsed["category_id"] == cat.category_id
             assert parsed["show"] == False
@@ -182,7 +175,7 @@ class TestUpdateAccountCategoryTranslation:
 
         # проверяем Redis: ключ отдельного category
         async with get_redis() as r:
-            key_single = f"account_categories_by_category_id:{full_category.category_id}:ru"
+            key_single = f"category:{full_category.category_id}:ru"
             raw_single = await r.get(key_single)
             assert raw_single is not None, "Ожидается наличие ключа в redis для отдельной категории"
             parsed_single = orjson.loads(raw_single)
@@ -190,7 +183,7 @@ class TestUpdateAccountCategoryTranslation:
             assert parsed_single["description"] == new_description
 
             # key списка категорий по сервису
-            key_list = f"account_categories_by_service_id:{full_category.account_service_id}:ru"
+            key_list = f"main_categories:ru"
             raw_list = await r.get(key_list)
             assert raw_list is not None, "Ожидается наличие ключа списка категорий по сервису"
             parsed_list = orjson.loads(raw_list)
@@ -214,6 +207,7 @@ class TestUpdateAccountCategoryTranslation:
         with pytest.raises(ValueError):
             await update_account_category_translation(category_id=full_category.category_id, language="en", name="x")
 
+
 class TestUpdateAccountStorage:
     @pytest.mark.asyncio
     async def test_update_account_storage_sold_account(self, create_sold_account, create_account_storage):
@@ -234,7 +228,7 @@ class TestUpdateAccountStorage:
 
         async with get_redis() as r:
             # в redis не должны ничего хранить, т.к. мы установили is_valid == False
-            json_str = await r.get(f"sold_accounts_by_accounts_id:{sold_account_id}:ru")
+            json_str = await r.get(f"sold_account:{sold_account_id}:ru")
             assert not json_str
 
             json_str = await r.get(f"sold_accounts_by_owner_id:{full_account.owner_id}:ru")
@@ -257,7 +251,7 @@ class TestUpdateAccountStorage:
             assert account_storage.is_valid == False
 
         async with get_redis() as r:
-            raw_single = await r.get(f"product_accounts_by_account_id:{product_account_id}")
+            raw_single = await r.get(f"product_account:{product_account_id}")
             product_account = ProductAccountFull(**orjson.loads(raw_single))
             assert product_account.account_storage.is_valid == False
 

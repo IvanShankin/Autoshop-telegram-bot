@@ -832,7 +832,7 @@ async def test_handler_new_purchase_creates_wallet_and_logs(
     Прямой вызов handler_new_purchase:
     - создаётся WalletTransaction
     - создаются UserAuditLogs (по каждому account_movement)
-    - обновляется redis (sold_accounts_by_accounts_id и sold_accounts_by_owner_id)
+    - обновляется redis (sold_account и sold_accounts_by_owner_id)
     - отправляются логи (проверяется fake_bot)
     """
 

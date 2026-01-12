@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text, text,
 from sqlalchemy.orm import relationship
 
 from src.services.database.core.database import Base
-
+from src.services.database.product_categories.models.product_account import AccountServiceType
 
 
 class Categories(Base):
@@ -27,18 +27,30 @@ class Categories(Base):
     show = Column(Boolean, nullable=False, server_default=text('true'))
     # количество кнопок для перехода в другую категорию на одну строку от 1 до 8
     number_buttons_in_row = Column(Integer, nullable=False, server_default=text('1'))
+
     is_main = Column(Boolean, nullable=False, server_default=text('false'))
     is_product_storage = Column(Boolean, nullable=False, server_default=text('false')) # если это хранилище товаров
 
     # есть только когда is_product_storage == True
+    product_type = Column(Enum("account", "universal", "file", name="product_type"), nullable=True)
+    type_account_service = type_account_service = Column(
+        Enum(
+            AccountServiceType,
+            values_callable=lambda x: [e.value for e in x],
+            name="accountservicetype"
+        ),
+        nullable=True
+    ) # только для категорий хранящие аккаунты
     price = Column(Integer, nullable=True, server_default=text("0"))
     cost_price = Column(Integer, nullable=True, server_default=text("0"))
 
-    products = relationship("Products", back_populates="category")
     next_categories = relationship("Categories",back_populates="parent",foreign_keys=[parent_id])
     ui_image = relationship("UiImages",back_populates="category")
     parent = relationship("Categories",back_populates="next_categories",remote_side=lambda: [Categories.category_id])
     translations = relationship("CategoryTranslation", back_populates="category", cascade="all, delete-orphan")
+
+    product_universals = relationship("ProductUniversal", back_populates="category",)
+    product_accounts = relationship("ProductAccounts", back_populates="category",)
 
     def _get_field_with_translation(self,field: Callable[[Any], Any], lang: str, fallback: str = None)->str | None:
         """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
@@ -84,23 +96,3 @@ class CategoryTranslation(Base):
     description = Column(Text, nullable=True)
 
     category = relationship("Categories", back_populates="translations")
-
-
-class Products(Base):
-    """Это продукт к нему могут быть прикреплены бесконечно количество конкретных товаров """
-    __tablename__ = "products"
-
-    product_id = Column(Integer, primary_key=True, autoincrement=True)
-    category_id = Column(Integer, ForeignKey("categories.category_id"))
-
-    product_type = Column(Enum(
-        "account",
-        "universal",
-        "file",
-        name="product_type"
-    ), nullable=False)
-
-    category = relationship("Categories", back_populates="products")
-    product_accounts = relationship("ProductAccounts", back_populates="product")
-    product_universal = relationship("ProductUniversal", back_populates="product")
-

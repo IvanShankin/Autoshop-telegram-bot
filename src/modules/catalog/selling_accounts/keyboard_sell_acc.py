@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.services.database.product_categories.actions import get_account_service, get_all_account_services, \
-    get_account_categories_by_parent_id, get_account_categories_by_category_id
+    get_categories, get_categories_by_category_id
 from src.services.database.product_categories.models import CategoryFull
 from src.utils.i18n import get_text
 
@@ -20,7 +20,7 @@ async def all_services_account_kb(language: str):
 
 
 async def main_catalog_account_by_service_kb(language: str, service_id: int):
-    categories = await get_account_categories_by_parent_id(account_service_id=service_id, language=language)
+    categories = await get_categories(language=language)
     keyboard = InlineKeyboardBuilder()
 
     for cat in categories:
@@ -63,8 +63,7 @@ async def account_category_kb(
             callback_data=f'enter_promo:{current_category_id}:{quantity_for_buying}')
         )
     else: # если эта категория хранит другие категории
-        categories = await get_account_categories_by_parent_id(
-            account_service_id=parent_category.account_service_id,
+        categories = await get_categories(
             parent_id=current_category_id,
             language=language
         )

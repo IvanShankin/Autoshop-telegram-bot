@@ -8,12 +8,13 @@ import pytest
 
 from sqlalchemy import select
 
+from src.services.database.product_categories.models.product_account import AccountServiceType
 from tests.helpers.helper_functions import comparison_models
 from src.exceptions import NotEnoughAccounts, NotEnoughMoney
 from src.services.database.core import get_db
 from src.services.database.product_categories.models import PurchaseRequests, PurchaseRequestAccount, \
     AccountStorage, ProductAccounts, SoldAccounts, PurchasesAccounts
-from src.services.database.product_categories.models.schemas import StartPurchaseAccount
+from src.services.database.product_categories.models.schemas import StartPurchaseAccount, ProductAccountFull
 from src.services.database.users.models import Users
 from src.services.database.users.models.models_users import BalanceHolder
 from src.services.redis.core_redis import get_redis
@@ -44,7 +45,7 @@ async def test_purchase_accounts_success(
 
     # подготовка: пользователь + категория + N аккаунтов
     user = await create_new_user(balance=10_000)
-    category_full = await create_category(price_one_account=100)  # price=100
+    category_full = await create_category(price=100)  # price=100
     category_id = category_full.category_id
     quantity = 2
 
@@ -109,12 +110,12 @@ async def test_purchase_accounts_success(
     for p in products:
         final = create_path_account(
             status="bought",
-            type_account_service='telegram',
+            type_account_service=p.type_account_service,
             uuid=str(p.account_storage.storage_uuid)
         )
         where = create_path_account(
             status="for_sale",
-            type_account_service='telegram',
+            type_account_service=p.type_account_service,
             uuid=str(p.account_storage.storage_uuid)
         )
 
@@ -147,7 +148,7 @@ async def test_purchase_accounts_fail_no_replacement(
 
     # подготовка: пользователь + категория + N аккаунтов
     user = await create_new_user(balance=5_000)
-    category_full = await create_category(price_one_account=500)  # достаточно высокая цена
+    category_full = await create_category(price=500)  # достаточно высокая цена
     category_id = category_full.category_id
     quantity = 2
 
@@ -199,17 +200,17 @@ async def test_purchase_accounts_fail_no_replacement(
     for p in products:
         not_dir = create_path_account(
             status="bought",
-            type_account_service='telegram',
+            type_account_service=p.type_account_service,
             uuid=str(p.account_storage.storage_uuid)
         )
         not_dir_2 = create_path_account(
             status="for_sale",
-            type_account_service='telegram',
+            type_account_service=p.type_account_service,
             uuid=str(p.account_storage.storage_uuid)
         )
         there_is_dir = create_path_account(
             status="deleted",
-            type_account_service='telegram',
+            type_account_service=p.type_account_service,
             uuid=str(p.account_storage.storage_uuid)
         )
 
@@ -241,7 +242,7 @@ class TestStartPurchaseRequest:
         from src.services.database.product_categories.actions.action_purchase import start_purchase_request
         # подготовка
         user = await create_new_user(balance=10_000)
-        full_category = await create_category(price_one_account=100)
+        full_category = await create_category(price=100)
         category_id = full_category.category_id
         quantity = 3
 
@@ -319,10 +320,11 @@ class TestStartPurchaseRequest:
 
             for account in created_products_full:
                 account.account_storage.status = "reserved" # аккаунт должен стать зарезервированным
-                account_redis = await session_redis.get(f'product_accounts_by_account_id:{account.account_id}')
+                account_redis = await session_redis.get(f'product_account:{account.account_id}')
                 account_dict = orjson.loads(account_redis)
-                await comparison_models(account.model_dump(), account_dict)
 
+                # преобразовываем так что бы сервис принял правильный тип данных
+                await comparison_models(account.model_dump(), ProductAccountFull(**account_dict).model_dump())
 
     @pytest.mark.asyncio
     async def test_start_purchase_request_with_promo_code(
@@ -344,7 +346,7 @@ class TestStartPurchaseRequest:
 
         # подготовка данных
         user = await create_new_user(balance=10_000)
-        category = await create_category(price_one_account=500)
+        category = await create_category(price=500)
         promo = await create_promo_code()
 
         quantity = 2
@@ -366,7 +368,7 @@ class TestStartPurchaseRequest:
         # проверки возвращаемых данных
         assert result.category_id == category.category_id
         assert result.purchase_request_id is not None
-        assert result.total_amount < category.price_one_account * quantity  # скидка применена
+        assert result.total_amount < category.price * quantity  # скидка применена
         assert result.user_balance_after == balance_before - result.total_amount
 
         # проверки в БД
@@ -420,7 +422,7 @@ class TestStartPurchaseRequest:
         """
         from src.services.database.product_categories.actions.action_purchase import start_purchase_request
         user = await create_new_user(balance=10)  # маленький баланс
-        full_category = await create_category(price_one_account=1000)
+        full_category = await create_category(price=1000)
         category_id = full_category.category_id
 
         # создаём хотя бы 1 аккаунт
@@ -494,7 +496,7 @@ async def test__check_account_validity_async_success(
     monkeypatch.setattr(shutil, "rmtree", fake_rmtree)
 
     # Вызов тестируемой функции
-    ok = await action_mod.check_account_validity(account_storage, "telegram")
+    ok = await action_mod.check_account_validity(account_storage, AccountServiceType.TELEGRAM)
 
     assert ok is True
     # rmtree должен быть вызван в finally
@@ -540,12 +542,12 @@ class TestVerifyReservedAccounts:
 
 
         # Мокаем check_account_validity чтобы вернуть True для всех
-        async def always_ok(account_storage, type_service_name):
+        async def always_ok(account_storage, type_service_account):
             return True
         monkeypatch.setattr(action_mod, "check_account_validity", always_ok)
 
         # Вызов
-        result = await action_mod.verify_reserved_accounts(products, "telegram", purchase_request_id)
+        result = await action_mod.verify_reserved_accounts(products, cat.type_account_service, purchase_request_id)
 
         # проверяем, что получили список product accounts в ответе
         assert isinstance(result, list)
@@ -579,7 +581,7 @@ class TestVerifyReservedAccounts:
         # создаём кандидата (в БД должен быть candidate with status 'for_sale')
         cand_prod, _ = await create_product_account(
             category_id=category.category_id,
-            type_account_service_id=bad_prod.type_account_service_id
+            type_account_service=bad_prod.type_account_service
         )
 
         # добавим purchase_request в БД
@@ -591,7 +593,7 @@ class TestVerifyReservedAccounts:
             purchase_request_id = pr.purchase_request_id
 
         # Мокаем check_account_validity: плохой -> False, кандидат -> True
-        async def check_by_storage(storage, type_service_name):
+        async def check_by_storage(storage, type_service_account):
             sid = getattr(storage, "account_storage_id", None)
             bad_sid = bad_prod.account_storage.account_storage_id
             if sid == bad_sid:
@@ -601,7 +603,7 @@ class TestVerifyReservedAccounts:
         monkeypatch.setattr(action_mod, "check_account_validity", check_by_storage)
 
         # Вызов: подаём список с одним 'плохим' аккаунтом
-        result = await action_mod.verify_reserved_accounts([bad_prod], "telegram", purchase_request_id)
+        result = await action_mod.verify_reserved_accounts([bad_prod], bad_prod.type_account_service , purchase_request_id)
 
         # Ожидаем список валидных аккаунтов, содержащий кандидата (cand_prod)
         assert isinstance(result, list)
@@ -650,7 +652,7 @@ class TestVerifyReservedAccounts:
         async def always_invalid(*a, **kw): return False
         monkeypatch.setattr(action_mod, "check_account_validity", always_invalid)
 
-        result = await action_mod.verify_reserved_accounts(bad_accounts, "telegram", pr_id)
+        result = await action_mod.verify_reserved_accounts(bad_accounts, cat.type_account_service, pr_id)
 
         # все невалидные → пустой список
         assert isinstance(result, bool)
@@ -684,9 +686,9 @@ class TestVerifyReservedAccounts:
         cat = await create_category()
 
         # создадим 3 аккаунта
-        acc1, _ = await create_product_account(category_id=cat.category_id)
-        acc2, _ = await create_product_account(category_id=cat.category_id)
-        acc3, _ = await create_product_account(category_id=cat.category_id)
+        acc1, _ = await create_product_account(category_id=cat.category_id, status="reserved")
+        acc2, _ = await create_product_account(category_id=cat.category_id, status="reserved")
+        acc3, _ = await create_product_account(category_id=cat.category_id, status="reserved")
         accounts = [acc1, acc2, acc3]
 
         async with get_db() as session:
@@ -705,7 +707,7 @@ class TestVerifyReservedAccounts:
 
         monkeypatch.setattr(action_mod, "check_account_validity", validity_check)
 
-        result = await action_mod.verify_reserved_accounts(accounts, "telegram", pr_id)
+        result = await action_mod.verify_reserved_accounts(accounts, acc1.type_account_service, pr_id)
 
         assert result == False
 
@@ -724,7 +726,6 @@ class TestVerifyReservedAccounts:
         replacement_needed_modules,
         create_new_user,
         create_category,
-        create_type_account_service,
         create_product_account,
         monkeypatch,
     ):
@@ -736,12 +737,11 @@ class TestVerifyReservedAccounts:
 
         user = await create_new_user()
         cat = await create_category()
-        type_service = await create_type_account_service()
 
         # создаём 3 "плохих" аккаунта
         bad_accounts = [
             await create_product_account(
-                category_id=cat.category_id, type_account_service_id=type_service.type_account_service_id
+                category_id=cat.category_id, type_account_service=AccountServiceType.TELEGRAM
             )
             for _ in range(3)
         ]
@@ -750,7 +750,7 @@ class TestVerifyReservedAccounts:
         # создаём только одного кандидата (status='for_sale')
         candidate, _ = await create_product_account(
             category_id=cat.category_id,
-            type_account_service_id=type_service.type_account_service_id
+            type_account_service=AccountServiceType.TELEGRAM
         )
 
         async with get_db() as session:
@@ -770,7 +770,11 @@ class TestVerifyReservedAccounts:
 
         monkeypatch.setattr(action_mod, "check_account_validity", validity_check)
 
-        result = await action_mod.verify_reserved_accounts([bad_accounts[0]], "telegram", pr_id)
+        result = await action_mod.verify_reserved_accounts(
+            [bad_accounts[0]],
+            bad_accounts[0].type_account_service,
+            pr_id
+        )
 
         # должен вернуться только один аккаунт (наш кандидат)
         assert len(result) == 1
@@ -783,13 +787,13 @@ class TestVerifyReservedAccounts:
             storages = q.scalars().all()
             assert all(s.status == "deleted" for s in storages)
 
+
     @pytest.mark.asyncio
     async def test_verify_reserved_accounts_multiple_invalid_candidates_exhausted(
         self,
         replacement_needed_modules,
         create_new_user,
         create_category,
-        create_type_account_service,
         create_product_account,
         monkeypatch,
     ):
@@ -802,13 +806,12 @@ class TestVerifyReservedAccounts:
 
         user = await create_new_user()
         cat = await create_category()
-        type_service = await create_type_account_service()
 
         # создаём 2 аккаунта
         valid_accounts = [
             await create_product_account(
                 category_id=cat.category_id,
-                type_account_service_id=type_service.type_account_service_id,
+                type_account_service=AccountServiceType.TELEGRAM,
                 status='reserved',
             )
             for _ in range(2)
@@ -818,7 +821,7 @@ class TestVerifyReservedAccounts:
         # невалидный аккаунт
         bad_account, _ = await create_product_account(
             category_id=cat.category_id,
-            type_account_service_id=type_service.type_account_service_id
+            type_account_service=AccountServiceType.TELEGRAM
         )
         accounts = valid_accounts.copy()
         accounts.append(bad_account)
@@ -827,7 +830,7 @@ class TestVerifyReservedAccounts:
         candidates = [
             await create_product_account(
                 category_id=cat.category_id,
-                type_account_service_id=type_service.type_account_service_id
+                type_account_service=AccountServiceType.TELEGRAM
             )
             for _ in range(3)
         ]
@@ -848,7 +851,7 @@ class TestVerifyReservedAccounts:
 
         monkeypatch.setattr(action_mod, "check_account_validity", validity_check)
 
-        result = await action_mod.verify_reserved_accounts(accounts, "telegram", pr_id)
+        result = await action_mod.verify_reserved_accounts(accounts, AccountServiceType.TELEGRAM, pr_id)
         result_dicts = [acc.to_dict() for acc in result]
 
         # должен вернуться 3 аккаунта
@@ -875,8 +878,6 @@ class TestVerifyReservedAccounts:
                 )
             )
             assert q.scalar_one_or_none()
-
-
 
 
 class TestCancelPurchase:
@@ -936,10 +937,9 @@ class TestCancelPurchase:
         data = action_mod.StartPurchaseAccount(
             purchase_request_id=pr.purchase_request_id,
             category_id=cat.category_id,
-            type_account_service_id=prod.type_account_service_id,
             promo_code_id=None,
             product_accounts=[prod],  # с загруженным account_storage
-            type_service_name="telegram",
+            type_service_account=AccountServiceType.TELEGRAM,
             translations_category=[],
             original_price_one_acc=100,
             purchase_price_one_acc=50,
@@ -958,7 +958,7 @@ class TestCancelPurchase:
             total_amount=data.total_amount,
             purchase_request_id=data.purchase_request_id,
             product_accounts=data.product_accounts,
-            type_service_name=data.type_service_name
+            type_service_account=data.type_service_account
         )
 
         # --- проверки файлов ---
@@ -1013,11 +1013,11 @@ class TestCancelPurchase:
         user = await create_new_user(balance=200)
         cat = await create_category()
 
-        # product для data.product_accounts
+        # product для data.products
         prod, prod_full = await create_product_account(category_id=cat.category_id)
         _, sold = await create_sold_account(
             owner_id=user.user_id,
-            type_account_service_id=prod.type_account_service_id
+            type_account_service=prod.type_account_service
         )
 
         # создаём SoldAccounts и PurchasesAccounts записи, которые должны быть удалены
@@ -1053,10 +1053,9 @@ class TestCancelPurchase:
         data = action_mod.StartPurchaseAccount(
             purchase_request_id=pr.purchase_request_id,
             category_id=cat.category_id,
-            type_account_service_id=prod.type_account_service_id,
             promo_code_id=None,
             product_accounts=[prod],
-            type_service_name="telegram",
+            type_service_account=AccountServiceType.TELEGRAM,
             translations_category=[],
             original_price_one_acc=100,
             purchase_price_one_acc=30,
@@ -1075,7 +1074,7 @@ class TestCancelPurchase:
             total_amount=data.total_amount,
             purchase_request_id=data.purchase_request_id,
             product_accounts=data.product_accounts,
-            type_service_name=data.type_service_name
+            type_service_account=data.type_service_account
         )
 
         # проверки
@@ -1172,20 +1171,12 @@ class TestFinalizePurchase:
         monkeypatch.setattr(action_mod, "rename_file", fake_rename_file)
         monkeypatch.setattr(action_mod, "publish_event", fake_publish_event)
 
-        # Подменим filling_* чтобы не ломать тест (они работают с redis; можно просто заглушить)
-        async def noop_fill(*a, **kw): return None
-        monkeypatch.setattr(action_mod, "filling_sold_accounts_by_owner_id", noop_fill)
-        monkeypatch.setattr(action_mod, "filling_product_by_category_id", noop_fill)
-        monkeypatch.setattr(action_mod, "filling_sold_account_by_account_id", noop_fill)
-        monkeypatch.setattr(action_mod, "filling_product_account_by_account_id", noop_fill)
-
         data = StartPurchaseAccount(
             purchase_request_id=pr.purchase_request_id,
             category_id=cat.category_id,
-            type_account_service_id=prod.type_account_service_id,
             promo_code_id=promo.promo_code_id,
             product_accounts=[prod],
-            type_service_name="telegram",
+            type_service_account=AccountServiceType.TELEGRAM,
             translations_category=[],
             original_price_one_acc=100,
             purchase_price_one_acc=50,
@@ -1275,20 +1266,14 @@ class TestFinalizePurchase:
 
         # заглушки для rename/fill/publish
         async def noop(*a, **kw): return None
-        monkeypatch.setattr(action_mod, "rename_file", noop)
-        monkeypatch.setattr(action_mod, "filling_sold_accounts_by_owner_id", noop)
-        monkeypatch.setattr(action_mod, "filling_product_by_category_id", noop)
-        monkeypatch.setattr(action_mod, "filling_sold_account_by_account_id", noop)
-        monkeypatch.setattr(action_mod, "filling_product_account_by_account_id", noop)
         monkeypatch.setattr(action_mod, "publish_event", noop)
 
         data = StartPurchaseAccount(
             purchase_request_id=pr.purchase_request_id,
             category_id=cat.category_id,
-            type_account_service_id=prod.type_account_service_id,
             promo_code_id=None,
             product_accounts=[prod],
-            type_service_name="telegram",
+            type_service_account=AccountServiceType.TELEGRAM,
             translations_category=[],
             original_price_one_acc=100,
             purchase_price_one_acc=50,
@@ -1358,10 +1343,9 @@ class TestFinalizePurchase:
         data = SimpleNamespace(
             purchase_request_id=pr.purchase_request_id,
             category_id=cat.category_id,
-            type_account_service_id=prod.type_account_service_id,
             promo_code_id=None,
             product_accounts=[prod],
-            type_service_name="telegram",
+            type_service_account=AccountServiceType.TELEGRAM,
             translations_category=[],
             original_price_one_acc=100,
             purchase_price_one_acc=50,

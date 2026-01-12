@@ -3,7 +3,7 @@ import uuid
 import zipfile
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Literal
 
 import orjson
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -11,11 +11,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.services.database.product_categories.models import AccountStorage, TgAccountMedia
-from src.services.database.product_categories.models.main_category_and_product import Products
+from src.services.database.product_categories.models.product_account import AccountServiceType
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_sold_accounts_by_owner_id, \
     filling_sold_account_by_account_id, filling_all_keys_category, filling_product_account_by_account_id, \
-    filling_product_by_category_id, filling_product_accounts_by_product_id, filling_all_types_payments, \
+    filling_product_accounts_by_category_id, filling_all_types_payments, \
     filling_types_payments_by_id
 from src.services.database.admins.models import Admins, SentMasMessages, MessageForSending
 from src.services.database.discounts.models import Vouchers, PromoCodes, ActivatedPromoCodes
@@ -32,7 +32,11 @@ from src.services.database.referrals.models import Referrals, IncomeFromReferral
 from src.services.secrets import encrypt_text, get_crypto_context, make_account_key
 
 
-def make_fake_encrypted_archive_for_test(account_key: bytes, status: str = "for_sale", type_account_service: str = "telegram") -> str:
+def make_fake_encrypted_archive_for_test(
+        account_key: bytes,
+        status: str = "for_sale",
+        type_account_service: AccountServiceType = AccountServiceType.TELEGRAM
+) -> str:
     """
     Создаёт зашифрованный архив аккаунта в структуре проекта:
     accounts/<status>/<type_account_service>/<uuid>/account.enc
@@ -357,6 +361,8 @@ async def create_translate_category_factory(
         name: str = "name",
         description: str = "description"
 ) -> CategoryFull:
+    from src.services.database.product_categories.actions import get_quantity_products_in_category
+
     async with get_db() as session_db:
         new_translate = CategoryTranslation(
             category_id=category_id,
@@ -369,14 +375,14 @@ async def create_translate_category_factory(
 
         result = await session_db.execute(
             select(Categories)
-            .options(selectinload(Categories.translations), selectinload(Categories.product))
+            .options(selectinload(Categories.translations))
             .where(Categories.category_id == category_id)
         )
         category = result.scalar_one()
 
         full_category = CategoryFull.from_orm_with_translation(
             category=category,
-            quantity_product=len(category.product),
+            quantity_product=await get_quantity_products_in_category(category_id),
             lang=language
         )
 
@@ -394,12 +400,16 @@ async def create_category_factory(
         show: bool = True,
         is_main: bool = True,
         is_product_storage: bool = False,
+        product_type: str = "account",
+        type_account_service: AccountServiceType = AccountServiceType.TELEGRAM,
         price: int = 150,
         cost_price: int = 100,
         language: str = "ru",
         name: str = "name",
         description: str = "description"
 ) -> CategoryFull:
+    from src.services.database.product_categories.actions import get_quantity_products_in_category
+
     async with get_db() as session_db:
         if parent_id is not None:
             is_main = False
@@ -422,6 +432,8 @@ async def create_category_factory(
             show = show,
             is_main = is_main,
             is_product_storage = is_product_storage,
+            product_type=product_type,
+            type_account_service=type_account_service,
             price = price,
             cost_price = cost_price
         )
@@ -441,14 +453,14 @@ async def create_category_factory(
         # Перечитываем объект с подгруженными translations
         result = await session_db.execute(
             select(Categories)
-            .options(selectinload(Categories.translations), selectinload(Categories.products))
+            .options(selectinload(Categories.translations))
             .where(Categories.category_id == new_category.category_id)
         )
         new_category = result.scalar_one()
 
         full_category = CategoryFull.from_orm_with_translation(
             category = new_category,
-            quantity_product= len(new_category.products),
+            quantity_product=await get_quantity_products_in_category(new_category.category_id),
             lang = language,
         )
         if filling_redis:
@@ -495,35 +507,10 @@ async def create_account_storage_factory(
         return account_storage
 
 
-async def create_product_factory(
-    filling_redis: bool = True,
-    category_id: int = None,
-    product_type: str = "account",
-) -> Products:
-    async with get_db() as session_db:
-        if category_id is None:
-            category = await create_category_factory(filling_redis=filling_redis)
-            category_id = category.category_id
-
-        new_product = Products(
-            category_id=category_id,
-            product_type=product_type,
-        )
-        session_db.add(new_product)
-
-        await session_db.commit()
-
-    if filling_redis:
-        await filling_product_by_category_id()
-
-    return new_product
-
-
 async def create_product_account_factory(
         filling_redis: bool = True,
-        type_account_service: str = "telegram",
+        type_account_service: AccountServiceType = AccountServiceType.TELEGRAM,
         category_id: int = None,
-        product_id: int = None,
         account_storage_id: int = None,
         status: str = 'for_sale',
         phone_number: str = '+7 920 107-42-12',
@@ -533,9 +520,6 @@ async def create_product_account_factory(
         if category_id is None:
             category = await create_category_factory(filling_redis=filling_redis, price=price)
             category_id = category.category_id
-        if product_id is None:
-            product = await create_product_factory(filling_redis=filling_redis, category_id=category_id)
-            product_id = product.product_id
         if account_storage_id is None:
             account_storage = await create_account_storage_factory(status=status, phone_number=phone_number)
             account_storage_id = account_storage.account_storage_id
@@ -543,7 +527,7 @@ async def create_product_account_factory(
             account_storage = None
 
         new_account = ProductAccounts(
-            product_id = product_id,
+            category_id = category_id,
             type_account_service = type_account_service,
             account_storage_id = account_storage_id,
         )
@@ -557,7 +541,6 @@ async def create_product_account_factory(
         new_account = result_db.scalar()
 
         if filling_redis:
-            await filling_product_by_category_id()
             await filling_product_account_by_account_id(new_account.account_id)
 
             # связанные таблицы
@@ -577,7 +560,7 @@ async def create_product_account_factory(
 async def create_sold_account_factory(
         filling_redis: bool = True,
         owner_id: int = None,
-        type_account_service: str = "telegram",
+        type_account_service: AccountServiceType = AccountServiceType.TELEGRAM,
         account_storage_id: int = None,
         is_active: bool = True,
         is_valid: bool = True,

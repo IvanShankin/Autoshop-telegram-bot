@@ -3,7 +3,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.config import get_config
 from src.services.database.product_categories.actions import get_all_account_services, get_all_types_account_service, \
-    get_account_categories_by_parent_id
+    get_categories
 from src.utils.i18n import get_text
 
 
@@ -23,7 +23,7 @@ async def all_services_account_admin_kb(language: str):
 
 
 async def show_service_acc_admin_kb(language: str, current_show: bool, current_index: int, service_id: int):
-    categories = await get_account_categories_by_parent_id(account_service_id=service_id, return_not_show = True)
+    categories = await get_categories(return_not_show = True)
     keyboard = InlineKeyboardBuilder()
 
     for cat in categories:

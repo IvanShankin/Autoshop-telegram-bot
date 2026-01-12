@@ -9,7 +9,7 @@ from src.modules.admin_actions.keyboards import to_services_kb, delete_category_
     delete_accounts_kb
 from src.modules.admin_actions.services import safe_get_category
 from src.modules.admin_actions.services import upload_account
-from src.services.database.product_categories.actions.actions_delete import delete_account_category, \
+from src.services.database.product_categories.actions.actions_delete import delete_category, \
     delete_product_accounts_by_category
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
@@ -41,7 +41,7 @@ async def delete_acc_category(callback: CallbackQuery, user: Users):
     reply_markup = None
 
     try:
-        await delete_account_category(category_id)
+        await delete_category(category_id)
         message = get_text(user.language, "admins_editor_category","Category successfully removed!")
         reply_markup = to_services_kb(user.language)
     except AccountCategoryNotFound:

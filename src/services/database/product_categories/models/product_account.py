@@ -82,7 +82,7 @@ class ProductAccounts(Base):
     __tablename__ = "product_accounts"
 
     account_id = Column(Integer, primary_key=True, autoincrement=True)
-    product_id = Column(ForeignKey("products.product_id"), nullable=False)
+    category_id = Column(ForeignKey("categories.category_id"), nullable=False)
     type_account_service = Column(
         Enum(
             AccountServiceType,
@@ -96,7 +96,7 @@ class ProductAccounts(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     account_storage = relationship("AccountStorage", back_populates="product_account")
-    product = relationship("Products", back_populates="product_accounts")
+    category = relationship("Categories", back_populates="product_accounts")
 
 
 class SoldAccounts(Base):
@@ -201,7 +201,14 @@ class DeletedAccounts(Base):
 
     deleted_account_id = Column(Integer, primary_key=True, autoincrement=True)
     account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id", ondelete="CASCADE"), nullable=False)
-    type_account_service = Column(Enum(AccountServiceType), nullable=False)
+    type_account_service = Column(
+        Enum(
+            AccountServiceType,
+            values_callable=lambda x: [e.value for e in x],
+            name="accountservicetype"
+        ),
+        nullable=False
+    )
     category_name = Column(Text, nullable=False)
     description = Column(Text, nullable=True)
 

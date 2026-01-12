@@ -1,9 +1,10 @@
 import pytest
 from orjson import orjson
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from src.exceptions import TranslationAlreadyExists, TheCategoryStorageAccount, TheCategoryNotStorageAccount
 from src.services.database.product_categories.models import TgAccountMedia
+from src.services.database.product_categories.models.product_account import AccountServiceType
 from src.services.database.system.models import UiImages
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
@@ -40,14 +41,14 @@ async def test_add_translation_in_category(replacement_needed_modules, create_ca
     # Должен закэшироваться в Redis
     async with get_redis() as session_redis:
         redis_data = await session_redis.get(
-            f"account_categories_by_category_id:{category.category_id}:en"
+            f"category:{category.category_id}:en"
         )
         assert redis_data
         category_in_redis: dict = orjson.loads(redis_data)
         assert category_in_redis["category_id"] == category.category_id
         assert category_in_redis["name"] == "translated name"
 
-        redis_data = await session_redis.get(f"account_categories_by_service_id:{category.account_service_id}:en")
+        redis_data = await session_redis.get(f"main_categories:en")
         assert redis_data
         category_list: list[dict] = orjson.loads(redis_data)
         assert category_list[0]["category_id"] == category.category_id
@@ -63,19 +64,15 @@ async def test_add_translation_in_category(replacement_needed_modules, create_ca
         )
 
 @pytest.mark.asyncio
-async def test_add_category(replacement_needed_modules, create_account_service):
-    from src.services.database.product_categories.actions import add_account_category
-    service = await create_account_service(filling_redis=False)
+async def test_add_category(replacement_needed_modules):
+    from src.services.database.product_categories.actions import add_category
 
     # Успешное добавление
-    category = await add_account_category(
-        account_service_id=service.account_service_id,
+    category = await add_category(
         language="ru",
         name="main cat",
         description="desc",
-        is_product_storage=True
     )
-    assert category.account_service_id == service.account_service_id
     assert category.is_main is True
 
     async with get_db() as session_db:
@@ -92,16 +89,6 @@ async def test_add_category(replacement_needed_modules, create_account_service):
         ui_image = result.scalar_one_or_none()
         assert category_db is not None
 
-    # Ошибка, если указать parent_id от категории-хранилища
-    with pytest.raises(TheCategoryStorageAccount):
-        await add_account_category(
-            account_service_id=service.account_service_id,
-            language="ru",
-            name="child cat",
-            parent_id=category.category_id,
-            is_product_storage=True
-        )
-
 
 @pytest.mark.asyncio
 async def test_add_product_account(replacement_needed_modules, create_category, create_account_storage):
@@ -112,6 +99,7 @@ async def test_add_product_account(replacement_needed_modules, create_category, 
 
     # Успешное добавление
     new_product = await add_product_account(
+        type_account_service=AccountServiceType.TELEGRAM,
         category_id=category.category_id,
         account_storage_id=account_storage.account_storage_id,
     )
@@ -124,16 +112,17 @@ async def test_add_product_account(replacement_needed_modules, create_category, 
         assert product_db is not None
 
     async with get_redis() as session_redis:
-        redis_data = await session_redis.get(f"product_accounts_by_account_id:{new_product.account_id}")
+        redis_data = await session_redis.get(f"product_account:{new_product.account_id}")
         assert redis_data
 
-        redis_data = await session_redis.get(f"product_accounts_by_category_id:{category.category_id}")
+        redis_data = await session_redis.get(f"product_accounts_by_category:{category.category_id}")
         assert redis_data
 
     # Ошибка: категория не является хранилищем
     category_non_storage = await create_category(is_product_storage=False, filling_redis=False)
     with pytest.raises(TheCategoryNotStorageAccount):
         await add_product_account(
+            type_account_service=AccountServiceType.TELEGRAM,
             category_id=category_non_storage.category_id,
             account_storage_id=account_storage.account_storage_id,
         )
@@ -200,7 +189,7 @@ async def test_add_translation_in_sold_account(replacement_needed_modules, creat
         account = orjson.loads(redis_data)
         assert account[0]["name"] == "translated name"
 
-        redis_data = await session_redis.get(f"sold_accounts_by_accounts_id:{sold_account.sold_account_id}:en")
+        redis_data = await session_redis.get(f"sold_account:{sold_account.sold_account_id}:en")
         assert redis_data
         account = orjson.loads(redis_data)
         assert account["name"] == "translated name"
@@ -216,16 +205,15 @@ async def test_add_translation_in_sold_account(replacement_needed_modules, creat
 
 
 @pytest.mark.asyncio
-async def test_add_sold_account(replacement_needed_modules, create_new_user, create_account_storage, create_type_account_service):
+async def test_add_sold_account(replacement_needed_modules, create_new_user, create_account_storage):
     from src.services.database.product_categories.actions import add_sold_account
     user = await create_new_user()
     account_storage = await create_account_storage()
-    type_service = await create_type_account_service(filling_redis=False)
 
     # Успешное добавление
     sold = await add_sold_account(
         owner_id=user.user_id,
-        type_account_service_id=type_service.type_account_service_id,
+        type_account_service=AccountServiceType.TELEGRAM,
         account_storage_id=account_storage.account_storage_id,
         language="ru",
         name="sold",
@@ -245,7 +233,7 @@ async def test_add_sold_account(replacement_needed_modules, create_new_user, cre
     with pytest.raises(ValueError):
         await add_sold_account(
             owner_id=99999,
-            type_account_service_id=type_service.type_account_service_id,
+            type_account_service=AccountServiceType.TELEGRAM,
             account_storage_id=account_storage.account_storage_id,
             language="ru",
             name="fail",
@@ -254,13 +242,12 @@ async def test_add_sold_account(replacement_needed_modules, create_new_user, cre
 
 
 @pytest.mark.asyncio
-async def test_add_deleted_accounts(replacement_needed_modules, create_account_storage, create_type_account_service):
+async def test_add_deleted_accounts(replacement_needed_modules, create_account_storage):
     from src.services.database.product_categories.actions import add_deleted_accounts
     account_storage = await create_account_storage()
-    type_service = await create_type_account_service(filling_redis=False)
 
     deleted = await add_deleted_accounts(
-        type_account_service_id=type_service.type_account_service_id,
+        type_account_service=AccountServiceType.TELEGRAM,
         account_storage_id=account_storage.account_storage_id,
         category_name="cat",
         description="desc"
@@ -278,7 +265,7 @@ async def test_add_deleted_accounts(replacement_needed_modules, create_account_s
     # Ошибка при несуществующем типе
     with pytest.raises(ValueError):
         await add_deleted_accounts(
-            type_account_service_id=99999,
+            type_account_service="fake_type_account_service",
             account_storage_id=account_storage.account_storage_id,
             category_name="fail",
             description="fail"

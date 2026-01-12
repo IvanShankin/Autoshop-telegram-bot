@@ -19,7 +19,7 @@ from src.modules.admin_actions.services import update_message_query_data
 from src.modules.admin_actions.services import upload_account
 from src.modules.admin_actions.state import UpdateNameForCategory, \
     UpdateDescriptionForCategory, UpdateCategoryImage, UpdateNumberInCategory
-from src.services.database.product_categories.actions import update_account_category, \
+from src.services.database.product_categories.actions import update_category, \
     update_account_category_translation
 from src.services.database.system.actions import update_ui_image
 from src.services.database.users.models import Users
@@ -34,7 +34,7 @@ async def acc_category_update_storage(callback: CallbackQuery, user: Users):
     is_storage = bool(int(callback.data.split(':')[2])) # что необходимо установить
 
     try:
-        await update_account_category(category_id, is_product_storage=is_storage)
+        await update_category(category_id, is_product_storage=is_storage)
         message = get_text(user.language, "miscellaneous", "Successfully updated")
     except AccountCategoryNotFound:
         try:
@@ -57,7 +57,7 @@ async def service_update_index(callback: CallbackQuery, user: Users):
     new_index = int(callback.data.split(':')[2])
 
     if new_index >= 0:
-        await update_account_category(category_id, index=new_index)
+        await update_category(category_id, index=new_index)
     await callback.answer(get_text(user.language, "miscellaneous","Successfully updated"))
     await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
 
@@ -67,7 +67,7 @@ async def service_update_show(callback: CallbackQuery, user: Users):
     category_id = int(callback.data.split(':')[1])
     show = bool(int(callback.data.split(':')[2]))
 
-    await update_account_category(category_id, show=show)
+    await update_category(category_id, show=show)
     await callback.answer(get_text(user.language, "miscellaneous","Successfully updated"))
     await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
 
@@ -245,7 +245,7 @@ async def update_category_image(message: Message, state: FSMContext, user: Users
         # Преобразуем поток  bytes
         file_bytes = byte_stream.getvalue()
         try:
-            await update_account_category(data.category_id, file_data=file_bytes)
+            await update_category(data.category_id, file_data=file_bytes)
             text = get_text(user.language, "admins_editor_category", "Image installed successfully")
             reply_markup = back_in_category_update_data_kb(user.language, category.category_id)
         except AccountCategoryNotFound:

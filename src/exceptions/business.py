@@ -49,6 +49,10 @@ class TheCategoryNotStorageAccount(Exception):
     """Категория НЕ хранит аккаунты"""
     pass
 
+class TheAccountServiceDoesNotMatch(Exception):
+    """Не совпадает сервис аккаунтов"""
+    pass
+
 class IncorrectedNumberButton(Exception):
     """Некорректное число кнопок в одной строке. Ограничение: от 1 до 8 """
     pass

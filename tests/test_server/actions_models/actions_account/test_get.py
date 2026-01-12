@@ -1,35 +1,49 @@
 import pytest
 
-from src.services.redis.filling_redis import filling_account_categories_by_category_id
+from helpers.helper_functions import comparison_models
+from src.services.database.product_categories.models.product_account import AccountServiceType
+from src.services.redis.filling_redis import filling_category_by_category
 
 
 
 @pytest.mark.asyncio
+async def test_get_quantity_products_in_category(create_category, create_product_account):
+    from src.services.database.product_categories.actions import get_quantity_products_in_category
+    category = await create_category()
+
+    for i in range(5):
+        await create_product_account(category_id=category.category_id)
+
+    quantity_products = await get_quantity_products_in_category(category.category_id)
+
+    assert quantity_products == 5
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
-async def test_get_account_categories_by_category_id(use_redis, create_category, create_product_account):
-    from src.services.database.product_categories.actions import get_account_categories_by_category_id
+async def test_get_categories_by_category_id(use_redis, create_category, create_product_account):
+    from src.services.database.product_categories.actions import get_categories_by_category_id
 
     category_1 = await create_category(filling_redis=use_redis)
     category_other = await create_category(filling_redis=use_redis)
     _ = await create_product_account(filling_redis=use_redis, category_id=category_1.category_id)
     category_1.quantity_product = 1
     if use_redis:
-        await filling_account_categories_by_category_id() # для поддержания актуальных данных в redis
+        await filling_category_by_category([category_1.category_id]) # для поддержания актуальных данных в redis
 
-    result_category = await get_account_categories_by_category_id(category_1.category_id, return_not_show=True)
+    result_category = await get_categories_by_category_id(category_1.category_id, return_not_show=True)
 
     assert category_1 == result_category
 
 
 @pytest.mark.asyncio
-async def test_get_all_phone_in_account_storage(create_account_service, create_product_account, create_sold_account):
+async def test_get_all_phone_in_account_storage(create_product_account, create_sold_account):
     from src.services.database.product_categories.actions import get_all_phone_in_account_storage
 
-    service = await create_account_service()
-    _, account_1 = await create_product_account(type_account_service_id=service.type_account_service_id)
-    account_2, _ = await create_sold_account(type_account_service_id=service.type_account_service_id, phone_number = "+7 32949 543543")
+    _, account_1 = await create_product_account(type_account_service=AccountServiceType.TELEGRAM)
+    account_2, _ = await create_sold_account(type_account_service=AccountServiceType.TELEGRAM, phone_number = "+7 32949 543543")
 
-    all_phones = await get_all_phone_in_account_storage(service.type_account_service_id)
+    all_phones = await get_all_phone_in_account_storage(AccountServiceType.TELEGRAM)
 
     assert account_1.account_storage.phone_number in all_phones
     assert account_2.phone_number in all_phones
@@ -38,29 +52,24 @@ async def test_get_all_phone_in_account_storage(create_account_service, create_p
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
-async def test_get_account_categories_by_parent_id(use_redis, create_category, create_account_service, create_product_account):
-    from src.services.database.product_categories.actions import get_account_categories_by_parent_id
-
-    service = await create_account_service()
+async def test_get_categories(use_redis, create_category, create_product_account):
+    from src.services.database.product_categories.actions import get_categories
 
     category_owner = await create_category(filling_redis=use_redis)
     category_3 = await create_category(
         filling_redis=use_redis,
-        account_service_id=service.account_service_id,
         is_product_storage=True,
         parent_id=category_owner.category_id,
         index=3
     )
     category_1 = await create_category(
         filling_redis=use_redis,
-        account_service_id=service.account_service_id,
         is_product_storage=True,
         parent_id=category_owner.category_id,
         index=1
     )
     category_2 = await create_category(
         filling_redis=use_redis,
-        account_service_id=service.account_service_id,
         is_product_storage=True,
         parent_id=category_owner.category_id,
         index=2
@@ -74,7 +83,7 @@ async def test_get_account_categories_by_parent_id(use_redis, create_category, c
 
     category_other = await create_category(filling_redis=use_redis,)
 
-    list_category = await get_account_categories_by_parent_id(service.account_service_id, category_owner.category_id)
+    list_category = await get_categories(category_owner.category_id)
     list_category = [category.model_dump() for category in list_category]
 
     # должны быть отсортированы по индексам
@@ -98,8 +107,8 @@ async def test_get_product_account_by_category_id(use_redis, create_category, cr
     list_account = [account.to_dict() for account in list_account]
 
     assert len(list_account) == 2
-    assert account_1.to_dict() in list_account
-    assert account_2.to_dict() in list_account
+    assert any(comparison_models(account_1, account) for account in list_account)
+    assert any(comparison_models(account_2, account) for account in list_account)
 
 
 @pytest.mark.asyncio
@@ -115,8 +124,8 @@ async def test_get_full_product_account_by_category_id(create_category, create_p
     list_account = [account.model_dump() for account in list_account]
 
     assert len(list_account) == 2
-    assert account_1.model_dump() in list_account
-    assert account_2.model_dump() in list_account
+    assert any(comparison_models(account_1, account) for account in list_account)
+    assert any(comparison_models(account_2, account) for account in list_account)
 
 
 @pytest.mark.asyncio
@@ -157,10 +166,10 @@ async def test_get_sold_account_by_page(use_redis, create_new_user, create_sold_
 
     owner = await create_new_user()
     account_1, _ = await create_sold_account(use_redis, owner_id=owner.user_id)
-    account_2, _ = await create_sold_account(use_redis, type_account_service_id=account_1.type_account_service_id, owner_id=owner.user_id)
+    account_2, _ = await create_sold_account(use_redis, owner_id=owner.user_id)
     account_other, _ = await create_sold_account(use_redis)
 
-    list_account = await get_sold_account_by_page(owner.user_id, account_1.type_account_service_id, 1, owner.language)
+    list_account = await get_sold_account_by_page(owner.user_id, account_1.type_account_service, 1, owner.language)
     list_account = [account.model_dump() for account in list_account]
 
     # должен быть отсортирован по возрастанию даты
@@ -181,23 +190,6 @@ async def test_get_sold_accounts_by_account_id(use_redis, create_sold_account):
 
     assert account.model_dump() == account_result.model_dump()
 
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize('use_redis', (True, False))
-async def test_get_union_type_account_service_id(use_redis, create_sold_account):
-    from src.services.database.product_categories.actions import get_union_type_account_service_id
-
-    _, account_1 = await create_sold_account(use_redis)
-    _, account_2 = await create_sold_account(
-        use_redis, type_account_service_id=account_1.type_account_service_id, owner_id=account_1.owner_id
-    )
-    _, account_3 = await create_sold_account(use_redis, owner_id=account_1.owner_id)
-
-    result = await get_union_type_account_service_id(account_1.owner_id)
-
-    assert 2 == len(result)
-    assert account_1.type_account_service_id in result
-    assert account_3.type_account_service_id in result
 
 
 @pytest.mark.asyncio

@@ -41,7 +41,7 @@ async def test_filling_categories_by_parent(create_category):
 async def test_filling_category_by_category(create_category):
     category = await create_category(filling_redis=False, language='ru')
 
-    await filling.filling_category_by_category()
+    await filling.filling_category_by_category([category.category_id])
 
     async with get_redis() as session_redis:
         val = await session_redis.get(
@@ -51,52 +51,24 @@ async def test_filling_category_by_category(create_category):
 
 
 @pytest.mark.asyncio
-async def test_filling_product_by_category_id(create_category, create_product):
-    category = await create_category(filling_redis=False, language='ru')
-
-    products = []
-    for i in range(3):
-        product = await create_product(
-            filling_redis=False,
-            category_id=category.category_id,
-        )
-        products.append(product)
-
-    other_product = await create_product(filling_redis=False)
-
-    await filling.filling_product_by_category_id()
-
-    async with get_redis() as session_redis:
-        val = await session_redis.get(
-            f"products_by_category:{category.category_id}"
-        )
-        redis_result = orjson.loads(val)
-
-    for prod in products:
-        assert prod.to_dict() in redis_result
-
-    assert not other_product in redis_result
-
-
-@pytest.mark.asyncio
-async def test_filling_product_accounts_by_product_id(create_product, create_product_account):
-    product = await create_product(filling_redis=False)
+async def test_filling_product_accounts_by_category_id(create_category, create_product_account):
+    category = await create_category(filling_redis=False)
 
     account_products = []
     for i in range(3):
         product, _ = await create_product_account(
             filling_redis=False,
-            product_id=product.product_id,
+            category_id=category.category_id,
         )
         account_products.append(product)
 
-    other_account_product = await create_product(filling_redis=False)
+    other_account_product = await create_product_account(filling_redis=False)
 
-    await filling.filling_product_accounts_by_product_id()
+    await filling.filling_product_accounts_by_category_id()
 
     async with get_redis() as session_redis:
         val = await session_redis.get(
-            f"product_accounts_by_product:{product.product_id}"
+            f"product_accounts_by_category:{category.category_id}"
         )
         redis_result = orjson.loads(val)
 
@@ -117,7 +89,7 @@ async def test_filling_product_account_by_account_id(create_product_account, cre
     await filling.filling_product_account_by_account_id(product.account_id)
 
     async with get_redis() as session_redis:
-        val = await session_redis.get(f"product_accounts_by_account_id:{product.account_id}")
+        val = await session_redis.get(f"product_account:{product.account_id}")
 
     await comparison_models(product.model_dump(), orjson.loads(val))
 
@@ -153,7 +125,7 @@ async def test_filling_sold_account_by_account_id(create_sold_account):
 
     # Assert
     async with get_redis() as session_redis:
-        key = f"sold_accounts_by_accounts_id:{sold_account.sold_account_id}:ru"
+        key = f"sold_account:{sold_account.sold_account_id}:ru"
         val = await session_redis.get(key)
 
     data = orjson.loads(val)

@@ -16,17 +16,16 @@ from src.services.database.discounts.events import NewActivatePromoCode
 from src.services.database.discounts.utils.calculation import discount_calculation
 from src.services.database.product_categories.events.schemas import NewPurchaseAccount, AccountsData
 from src.services.database.product_categories.models import PurchaseRequests, PurchaseRequestAccount
+from src.services.database.product_categories.models.product_account import AccountServiceType
 from src.services.database.users.models.models_users import BalanceHolder
 from src.services.filesystem.account_actions import create_path_account, rename_file, move_in_account
 from src.services.filesystem.actions import move_file
 from src.services.accounts.tg.actions import check_account_validity
-from src.services.redis.filling_redis import filling_product_by_category_id, \
-    filling_product_account_by_account_id, filling_sold_accounts_by_owner_id, filling_sold_account_by_account_id, \
-    filling_user, filling_account_categories_by_service_id, filling_account_categories_by_category_id
+from src.services.redis.filling_redis import filling_product_account_by_account_id, filling_sold_accounts_by_owner_id, \
+    filling_sold_account_by_account_id, filling_user, filling_all_keys_category, filling_product_accounts_by_category_id
 from src.services.database.core.database import get_db
-from src.services.database.product_categories.actions import get_account_categories_by_category_id, \
-    update_account_storage, delete_product_account, add_deleted_accounts, get_account_service, get_type_account_service, \
-    get_product_account_by_category_id
+from src.services.database.product_categories.actions import get_categories_by_category_id, \
+    update_account_storage, delete_product_account, add_deleted_accounts, get_product_account_by_category_id
 from src.services.database.product_categories.models import ProductAccounts, SoldAccounts, PurchasesAccounts, \
     SoldAccountsTranslation, CategoryTranslation, AccountStorage
 from src.services.database.product_categories.models.schemas import StartPurchaseAccount
@@ -59,7 +58,7 @@ async def purchase_accounts(
     """
     result = False
     data = await start_purchase_request(user_id, category_id, quantity_accounts, promo_code_id)
-    valid_list = await verify_reserved_accounts(data.product_accounts, data.type_service_name, data.purchase_request_id)
+    valid_list = await verify_reserved_accounts(data.product_accounts, data.type_service_account, data.purchase_request_id)
     if valid_list is False:
         await cancel_purchase_request(
             user_id = user_id,
@@ -69,7 +68,7 @@ async def purchase_accounts(
             total_amount = data.total_amount,
             purchase_request_id = data.purchase_request_id,
             product_accounts = [],
-            type_service_name=data.type_service_name
+            type_service_account=data.type_service_account
         )
         text = (
             "#Недостаточно_аккаунтов \n"
@@ -82,20 +81,19 @@ async def purchase_accounts(
 
         result = False
     else:
-        data.product_accounts = valid_list # обновляем data.product_accounts на валидные
+        data.product_accounts = valid_list      # обновляем data.product_accounts на валидные
         await finalize_purchase(user_id, data)
         result = True
 
     # обновляем redis
-    await filling_account_categories_by_service_id()
-    await filling_account_categories_by_category_id()
+    await filling_all_keys_category(category_id=category_id)
     return result
 
 
 async def start_purchase_request(
-        user_id: int,
-        category_id: int,
-        quantity_accounts: int,
+    user_id: int,
+    category_id: int,
+    quantity_accounts: int,
     promo_code_id: Optional[int]
 ) -> StartPurchaseAccount:
     """
@@ -114,9 +112,8 @@ async def start_purchase_request(
 """
 
     # получаем категорию
-    category = await get_account_categories_by_category_id(category_id)
-    account_service = await get_account_service(category.account_service_id, return_not_show=True)
-    type_service = await get_type_account_service(account_service.type_account_service_id)
+    category = await get_categories_by_category_id(category_id)
+    type_service = category.type_account_service
 
     async with get_db() as session_db:
         result_db = await session_db.execute(
@@ -128,7 +125,7 @@ async def start_purchase_request(
     if not category or not translations_category:
         raise CategoryNotFound("Данной категории больше не существует")
 
-    original_price_per = category.price_one_account
+    original_price_per = category.price
     original_total = original_price_per * quantity_accounts  # оригинальная сумма которую должен заплатить пользователь
 
     # рассчитываем скидку
@@ -212,31 +209,30 @@ async def start_purchase_request(
     return StartPurchaseAccount(
         purchase_request_id = new_purchase_requests.purchase_request_id,
         category_id = category_id,
-        type_account_service_id = type_service.type_account_service_id,
+        type_service_account = type_service,
         promo_code_id = promo_code_id,
         product_accounts = product_accounts,
-        type_service_name = type_service.name,
         translations_category = translations_category,
-        original_price_one_acc = category.price_one_account,
+        original_price_one_acc = category.price,
         purchase_price_one_acc = final_total // quantity_accounts if final_total > 0 else final_total ,
-        cost_price_one_acc = category.cost_price_one_account,
+        cost_price_one_acc = category.cost_price,
         total_amount = final_total,
         user_balance_before = user_balance_before,
         user_balance_after = user.balance
     )
 
 
-async def _delete_account(account_storage: List[ProductAccounts], type_service_name: str):
+async def _delete_account(account_storage: List[ProductAccounts], type_service_account: AccountServiceType):
     """Проведёт всю необходимую работу с БД и переместит аккаунты с for_sale в deleted"""
 
     if account_storage:
-        category = await get_account_categories_by_category_id(
+        category = await get_categories_by_category_id(
             category_id=account_storage[0].category_id,
             return_not_show=True
         )
 
         for bad_account in account_storage:
-            await move_in_account(account=bad_account.account_storage, type_service_name=type_service_name, status="deleted")
+            await move_in_account(account=bad_account.account_storage, type_service_name=type_service_account, status="deleted")
 
             # помечаем первоначальный плохо прошедший аккаунт как deleted сразу
             try:
@@ -255,7 +251,7 @@ async def _delete_account(account_storage: List[ProductAccounts], type_service_n
             try:
 
                 await add_deleted_accounts(
-                    type_account_service_id=bad_account.type_account_service_id,
+                    type_account_service=bad_account.type_account_service,
                     account_storage_id=bad_account.account_storage.account_storage_id,
                     category_name=category.name,
                     description=category.description
@@ -265,7 +261,7 @@ async def _delete_account(account_storage: List[ProductAccounts], type_service_n
                     "При покупке был найден невалидный аккаунт, он удалён с продажи \n"
                     "Данные об аккаунте: \n"
                     f"storage_account_id: {bad_account.account_storage.account_storage_id}\n"
-                    f"Себестоимость: {category.cost_price_one_account}\n"
+                    f"Себестоимость: {category.cost_price}\n"
                 )
                 await send_log(text)
 
@@ -278,14 +274,14 @@ async def _delete_account(account_storage: List[ProductAccounts], type_service_n
 
 async def verify_reserved_accounts(
     product_accounts: List[ProductAccounts],
-    type_service_name: str,
+    type_service_account: AccountServiceType,
     purchase_request_id: int
 ) -> List[ProductAccounts] | False:
     """
     Проверяет валидность аккаунтов, если невалидный — заменит и логирует.
     Возвращает False, если не удалось собрать нужное количество валидных аккаунтов.
     :param product_accounts: Обязательно ProductAccounts с подгруженными account_storage
-    :param type_service_name: имя типа сервиса
+    :param type_service_account: имя типа сервиса
     :param purchase_request_id: id заказа
     :return: List[ProductAccounts] если нашли необходимое количество валидных аккаунтов. False если нет нужного количества аккаунтов
     """
@@ -302,7 +298,7 @@ async def verify_reserved_accounts(
     async def validate_slot(pa: ProductAccounts):
         """Проверка одного ProductAccounts -> возвращает (pa, is_valid)"""
         async with sem:
-            return pa, await check_account_validity(pa.account_storage, type_service_name)
+            return pa, await check_account_validity(pa.account_storage, type_service_account)
 
     # 2) Получим purchase_request (чтобы иметь доступ к balance_holder)
     async with get_db() as session_db:
@@ -348,7 +344,7 @@ async def verify_reserved_accounts(
 
         if invalid_accounts:
             # переносим аккаунты к невалидным
-            await _delete_account(invalid_accounts, type_service_name=type_service_name)
+            await _delete_account(invalid_accounts, type_service_account=type_service_account)
 
         while bad_queue and attempts < MAX_REPLACEMENT_ATTEMPTS:
             attempts += 1
@@ -363,7 +359,7 @@ async def verify_reserved_accounts(
                         .join(ProductAccounts.account_storage)
                         .where(
                             (ProductAccounts.category_id == bad_queue[0].category_id) &  # выбираем по категории текущей «дыры»
-                            (ProductAccounts.type_account_service_id == bad_queue[0].type_account_service_id) &
+                            (ProductAccounts.type_account_service == bad_queue[0].type_account_service) &
                             (AccountStorage.is_active == True) &
                             (AccountStorage.is_valid == True) &
                             (AccountStorage.status == "for_sale")
@@ -400,7 +396,7 @@ async def verify_reserved_accounts(
             async def validate_candidate(candidate: ProductAccounts):
                 async with sem:
                     try:
-                        ok = await check_account_validity(candidate.account_storage, type_service_name)
+                        ok = await check_account_validity(candidate.account_storage, type_service_account)
                         return candidate, ok
                     except Exception as e:
                         logger.exception("Candidate validation exception for %s: %s",
@@ -417,7 +413,7 @@ async def verify_reserved_accounts(
             # и привязываем нужное количество валидных к заявке (заменяем позиции из bad_queue).
             try:
                 # удаление невалидных аккаунтов
-                await _delete_account(invalid_candidates, type_service_name=type_service_name)
+                await _delete_account(invalid_candidates, type_service_account=type_service_account)
 
                 async with session_db.begin():
                     # Используем столько валидных кандидатов, сколько нужно (по очереди из bad_queue)
@@ -487,7 +483,7 @@ async def cancel_purchase_request(
     total_amount: int,
     purchase_request_id: int,
     product_accounts: List[ProductAccounts],
-    type_service_name: str,
+    type_service_account: AccountServiceType,
 ):
     """
     получает mapping и пытается вернуть файлы и БД в исходное состояние
@@ -548,7 +544,7 @@ async def cancel_purchase_request(
                         status="for_sale",
                         file_path=create_path_account(
                             status="bought",
-                            type_account_service=type_service_name,
+                            type_account_service=type_service_account,
                             uuid=AccountStorage.storage_uuid
                         )
                     )
@@ -564,7 +560,7 @@ async def cancel_purchase_request(
                     aid = account.account_storage.account_storage_id
                     if aid not in existing_ids:
                         session.add(ProductAccounts(
-                            type_account_service_id=account.type_account_service_id,
+                            type_account_service=account.type_account_service,
                             category_id=account.category_id,
                             account_storage_id=aid
                         ))
@@ -590,7 +586,7 @@ async def cancel_purchase_request(
     if user:
         await filling_user(user)
     await filling_sold_accounts_by_owner_id(user_id)
-    await filling_product_by_category_id()
+    await filling_product_accounts_by_category_id()
     for sid in sold_account_ids:
         await filling_sold_account_by_account_id(sid)
     for pid in product_accounts:
@@ -617,7 +613,7 @@ async def finalize_purchase(user_id: int, data: StartPurchaseAccount):
             orig = str(Path(get_config().paths.accounts_dir) / account.account_storage.file_path) # полный путь
             final = create_path_account(
                 status="bought",
-                type_account_service=data.type_service_name,
+                type_account_service=data.type_service_account,
                 uuid=account.account_storage.storage_uuid
             )
             temp = final + ".part"  # временный файл рядом с финальным
@@ -637,7 +633,7 @@ async def finalize_purchase(user_id: int, data: StartPurchaseAccount):
                     total_amount=data.total_amount,
                     purchase_request_id=data.purchase_request_id,
                     product_accounts=data.product_accounts,
-                    type_service_name=data.type_service_name
+                    type_service_account=data.type_service_account
                 )
                 return
 
@@ -659,7 +655,7 @@ async def finalize_purchase(user_id: int, data: StartPurchaseAccount):
                     new_sold = SoldAccounts(
                         owner_id=user_id,
                         account_storage_id=account.account_storage.account_storage_id,
-                        type_account_service_id=data.type_account_service_id
+                        type_account_service=data.type_service_account
                     )
                     session.add(new_sold)
                     await session.flush()
@@ -695,7 +691,7 @@ async def finalize_purchase(user_id: int, data: StartPurchaseAccount):
                             status='bought',
                             file_path=create_path_account(
                                 status="bought",
-                                type_account_service=data.type_service_name,
+                                type_account_service=data.type_service_account,
                                 uuid=account.account_storage.storage_uuid
                             )
                         )
@@ -742,13 +738,12 @@ async def finalize_purchase(user_id: int, data: StartPurchaseAccount):
                 total_amount=data.total_amount,
                 purchase_request_id=data.purchase_request_id,
                 product_accounts=data.product_accounts,
-                type_service_name=data.type_service_name
+                type_service_account=data.type_service_account
             )
             return
 
         # обновление redis
         await filling_sold_accounts_by_owner_id(user_id)
-        await filling_product_by_category_id()
         for sid in sold_account_ids:
             await filling_sold_account_by_account_id(sid)
         for pid in data.product_accounts:
@@ -785,6 +780,6 @@ async def finalize_purchase(user_id: int, data: StartPurchaseAccount):
             total_amount=data.total_amount,
             purchase_request_id=data.purchase_request_id,
             product_accounts=data.product_accounts,
-            type_service_name=data.type_service_name
+            type_service_account=data.type_service_account
         )
 

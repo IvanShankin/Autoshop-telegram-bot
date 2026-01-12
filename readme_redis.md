@@ -295,7 +295,7 @@
 
 ### Проданные аккаунты по id аккаунта (SoldAccounts)
 **Важно:** хранит только НЕ удалённые аккаунты (is_deleted == False)  
-**Ключ:** `sold_accounts_by_accounts_id:{sold_account_id}:{language}`  
+**Ключ:** `sold_account:{sold_account_id}:{language}`  
 **Значение:** 
 ```json
 {

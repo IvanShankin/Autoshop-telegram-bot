@@ -1,8 +1,7 @@
 import uuid
 from datetime import datetime
-from typing import Literal, Any, List
+from typing import Literal
 
-import orjson
 from sqlalchemy import select, update, func
 from sqlalchemy.orm import selectinload
 
@@ -10,29 +9,14 @@ from src.exceptions import AccountCategoryNotFound, TheCategoryStorageAccount, \
     IncorrectedNumberButton, IncorrectedCostPrice, IncorrectedAmountSale, CategoryStoresSubcategories
 from src.services.database.product_categories.models import AccountStorage, TgAccountMedia
 from src.services.database.system.actions import create_ui_image, delete_ui_image
-from src.services.redis.core_redis import get_redis
-from src.services.redis.filling_redis import filling_account_categories_by_service_id, \
-    filling_account_categories_by_category_id, filling_product_account_by_account_id, \
-    filling_product_by_category_id, filling_sold_account_by_account_id, filling_sold_accounts_by_owner_id
+from src.services.redis.filling_redis import filling_all_keys_category, filling_product_account_by_account_id, \
+    filling_sold_account_by_account_id, filling_sold_accounts_by_owner_id
 from src.services.database.core.database import get_db
 from src.services.database.product_categories.models import Categories, ProductAccounts, \
     CategoryTranslation, CategoryFull
 
 
-def _create_dict(data: List[tuple[str, Any]]) -> dict:
-    """
-    Формирует словарь, если переменная есть, то запишет её с указанным ключом
-    :param data: List[("имя для ключа", значение)]
-    """
-    result = {}
-    for key_name, value in data:
-        if value is not None:
-            result[key_name] = value
-    return result
-
-
-
-async def update_account_category(
+async def update_category(
         category_id: int,
         index: int = None,
         show: bool = None,
@@ -69,7 +53,7 @@ async def update_account_category(
         category: Categories = result.scalar_one_or_none()
         old_ui_image = category.ui_image_key
         if not category:
-            raise AccountCategoryNotFound(f"Категория аккаунтов с id = {category_id} не найдена")
+            raise AccountCategoryNotFound(f"Категория с id = {category_id} не найдена")
 
         # собираем только те поля, которые реально переданы
         update_data = {}
@@ -172,8 +156,7 @@ async def update_account_category(
 
     if update_data:
         # обновит redis с новыми index
-        await filling_account_categories_by_service_id()
-        await filling_account_categories_by_category_id()
+        await filling_all_keys_category()
 
     return category
 
@@ -232,8 +215,7 @@ async def update_account_category_translation(
 
     if update_data:
         # обновит redis с новыми index
-        await filling_account_categories_by_service_id()
-        await filling_account_categories_by_category_id()
+        await filling_all_keys_category(category_id=category_id)
 
     return translation
 
@@ -266,21 +248,33 @@ async def update_account_storage(
         )
         account: AccountStorage = result.scalar_one_or_none()
 
-        update_data = _create_dict([
-            ('storage_uuid', storage_uuid),
-            ('file_path', file_path),
-            ('checksum', checksum),
-            ('status', status),
-            ('encrypted_key', encrypted_key),
-            ('encrypted_key_nonce', encrypted_key_nonce),
-            ('key_version', key_version),
-            ('encryption_algo', encryption_algo),
-            ('login_encrypted', login_encrypted),
-            ('password_encrypted', password_encrypted),
-            ('last_check_at', last_check_at),
-            ('is_valid', is_valid),
-            ('is_active', is_active),
-        ])
+        update_data = {}
+        if storage_uuid is not None:
+            update_data['storage_uuid'] = storage_uuid
+        if file_path is not None:
+            update_data['file_path'] = file_path
+        if checksum is not None:
+            update_data['checksum'] = checksum
+        if status is not None:
+            update_data['status'] = status
+        if encrypted_key is not None:
+            update_data['encrypted_key'] = encrypted_key
+        if encrypted_key_nonce is not None:
+            update_data['encrypted_key_nonce'] = encrypted_key_nonce
+        if key_version is not None:
+            update_data['key_version'] = key_version
+        if encryption_algo is not None:
+            update_data['encryption_algo'] = encryption_algo
+        if login_encrypted is not None:
+            update_data['login_encrypted'] = login_encrypted
+        if password_encrypted is not None:
+            update_data['password_encrypted'] = password_encrypted
+        if last_check_at is not None:
+            update_data['last_check_at'] = last_check_at
+        if is_valid is not None:
+            update_data['is_valid'] = is_valid
+        if is_active is not None:
+            update_data['is_active'] = is_active
 
         if update_data:
             await session.execute(
@@ -297,12 +291,12 @@ async def update_account_storage(
         # один AccountStorage - одна запись в другой таблице, но будем заполнять везде где есть
         if account.product_account:
             await filling_product_account_by_account_id(account.product_account.account_id)
-            await filling_product_by_category_id()
         if account.sold_account:
             await filling_sold_account_by_account_id(account.sold_account.sold_account_id)
             await filling_sold_accounts_by_owner_id(account.sold_account.owner_id)
 
         return account
+
 
 async def update_tg_account_media(
         tg_account_media_id: int,
@@ -310,10 +304,11 @@ async def update_tg_account_media(
         session_tg_id: str = None
 ) -> TgAccountMedia | None:
     async with get_db() as session:
-        update_data = _create_dict([
-            ('tdata_tg_id', tdata_tg_id),
-            ('session_tg_id', session_tg_id),
-        ])
+        update_data = {}
+        if tdata_tg_id is not None:
+            update_data['tdata_tg_id'] = tdata_tg_id
+        if session_tg_id is not None:
+            update_data['session_tg_id'] = session_tg_id
 
         if update_data:
             result = await session.execute(

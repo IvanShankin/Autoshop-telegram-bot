@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.config import get_config
-from src.services.database.product_categories.actions import get_account_categories_by_parent_id
+from src.services.database.product_categories.actions import get_categories
 from src.utils.i18n import get_text
 
 
@@ -17,8 +17,7 @@ async def show_account_category_admin_kb(
     is_main: bool,
     is_account_storage: bool
 ):
-    categories = await get_account_categories_by_parent_id(
-        account_service_id=service_id,
+    categories = await get_categories(
         parent_id=category_id,
         return_not_show=True
     )

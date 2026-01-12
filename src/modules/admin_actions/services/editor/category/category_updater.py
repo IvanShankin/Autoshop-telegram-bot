@@ -9,7 +9,7 @@ from src.exceptions import IncorrectedAmountSale, IncorrectedCostPrice, \
 from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category_update_data
 from src.modules.admin_actions.schemas import UpdateCategoryOnlyId
 from src.modules.admin_actions.state import UpdateNumberInCategory
-from src.services.database.product_categories.actions import update_account_category
+from src.services.database.product_categories.actions import update_category
 from src.services.database.users.models import Users
 from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_text
@@ -31,11 +31,11 @@ async def update_data(message: Message, state: FSMContext, user: Users):
     else:
         try:
             if await state.get_state() == UpdateNumberInCategory.price.state:
-                await update_account_category(data.category_id, price_one_account=new_number)
+                await update_category(data.category_id, price_one_account=new_number)
             elif await state.get_state() == UpdateNumberInCategory.cost_price.state:
-                await update_account_category(data.category_id, cost_price_one_account=new_number)
+                await update_category(data.category_id, cost_price_one_account=new_number)
             elif await state.get_state() == UpdateNumberInCategory.number_button.state:
-                await update_account_category(data.category_id, number_buttons_in_row=new_number)
+                await update_category(data.category_id, number_buttons_in_row=new_number)
         except (IncorrectedAmountSale, IncorrectedCostPrice, IncorrectedNumberButton):
             message_error = get_text(user.language, 'miscellaneous', "Incorrect value entered. Please try again")
 

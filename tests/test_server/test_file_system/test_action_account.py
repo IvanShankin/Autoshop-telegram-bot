@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock
 
 from src.config import get_config
 from src.services.database.product_categories.models import AccountStorage, ProductAccounts
+from src.services.database.product_categories.models.product_account import AccountServiceType
 from src.services.secrets import get_crypto_context
 
 
@@ -91,8 +92,8 @@ def test_create_path_account_builds_correct_path(monkeypatch):
     from src.services.filesystem.account_actions import create_path_account
 
     conf = get_config()
-    result = create_path_account("sold", "telegram", "1234")
-    expected = conf.paths.accounts_dir / "sold" / "telegram" / "1234" / "account.enc"
+    result = create_path_account("sold",  AccountServiceType.TELEGRAM, "1234")
+    expected = conf.paths.accounts_dir / "sold" / AccountServiceType.TELEGRAM.value / "1234" / "account.enc"
 
     assert Path(result) == expected
 

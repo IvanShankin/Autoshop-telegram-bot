@@ -167,11 +167,11 @@ async def test_service_update_index_updates_storage_flag(
     create_category,
 ):
     """
-    Если update_account_category проходит успешно, то флаг is_product_storage должен измениться в БД.
+    Если update_category проходит успешно, то флаг is_product_storage должен измениться в БД.
     Мы проверяем изменение напрямую через фабрику/базу данных.
     """
     from src.modules.admin_actions.handlers.editor.category.update_handlers import acc_category_update_storage
-    from src.services.database.product_categories.actions import get_account_categories_by_category_id
+    from src.services.database.product_categories.actions import get_categories_by_category_id
 
     # создаём категорию (по умолчанию фабрика возвращает is_product_storage=False)
     category = await create_category(is_product_storage=False)
@@ -186,7 +186,7 @@ async def test_service_update_index_updates_storage_flag(
     await acc_category_update_storage(cb, user)
 
     # проверим, что в БД значение изменилось
-    updated = await get_account_categories_by_category_id(
+    updated = await get_categories_by_category_id(
         category_id=category.category_id,
         language=user.language,
         return_not_show=True

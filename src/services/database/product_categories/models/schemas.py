@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import List
 from typing import Optional
 from datetime import datetime
@@ -5,6 +6,7 @@ from pydantic import BaseModel, ConfigDict
 
 from src.services.database.product_categories.models import SoldAccounts, ProductAccounts
 from src.services.database.product_categories.models import AccountStorage, Categories, CategoryTranslation
+from src.services.database.product_categories.models.product_account import AccountServiceType
 
 
 class PurchaseAccountSchema(BaseModel):
@@ -15,10 +17,9 @@ class PurchaseAccountSchema(BaseModel):
 class StartPurchaseAccount(BaseModel):
     purchase_request_id: int
     category_id: int
-    type_account_service_id: int
+    type_service_account: AccountServiceType
     promo_code_id: int | None
     product_accounts: List[ProductAccounts] # ОБЯЗАТЕЛЬНО с подгруженными AccountStorage
-    type_service_name: str
     translations_category: List[CategoryTranslation]
     original_price_one_acc: int  # Цена на момент покупки (без учёта промокода)
     purchase_price_one_acc: int  # Цена на момент покупки (с учётом промокода)
@@ -42,10 +43,16 @@ class CategoryFull(BaseModel):
     index: int
     show: bool
     number_buttons_in_row: int
+
     is_main: bool
     is_product_storage: bool
 
-    # Число аккаунтов на продаже которое хранит в себе. Есть только у категорий хранящие аккаунты
+    product_type: str | None
+    type_account_service: AccountServiceType | None
+    price: int | None
+    cost_price: int | None
+
+    # Число товаров на продаже которое хранит в себе. Есть только у категорий хранящие аккаунты
     quantity_product: int
 
     model_config = ConfigDict(from_attributes=True)
@@ -69,8 +76,14 @@ class CategoryFull(BaseModel):
             is_main=category.is_main,
             name=category.get_name(lang, fallback),
             description=category.get_description(lang, fallback),
+            is_product_storage=category.is_product_storage,
+
+            product_type=category.product_type,
+            type_account_service=category.type_account_service,
+            price=category.price,
+            cost_price=category.cost_price,
+
             quantity_product=quantity_product,
-            is_product_storage=category.is_product_storage
         )
 
 
@@ -102,7 +115,7 @@ class AccountStoragePydantic(BaseModel):
 
 class ProductAccountSmall(BaseModel):
     account_id: int
-    type_account_service: str
+    type_account_service: AccountServiceType
     category_id: int
     account_storage_id: int
     created_at: datetime
@@ -121,8 +134,8 @@ class ProductAccountSmall(BaseModel):
 
 class ProductAccountFull(BaseModel):
     account_id: int
-    product_id: int
-    type_account_service: str
+    category_id: int
+    type_account_service: AccountServiceType
     created_at: datetime
 
     account_storage: AccountStoragePydantic
@@ -132,7 +145,7 @@ class ProductAccountFull(BaseModel):
         """orm модель превратит в ProductAccountFull"""
         return cls(
             account_id=product_account.account_id,
-            product_id=product_account.product_id,
+            category_id=product_account.category_id,
             type_account_service=product_account.type_account_service,
             created_at=product_account.created_at,
             account_storage= AccountStoragePydantic(**storage_account.to_dict()),
@@ -143,7 +156,7 @@ class ProductAccountFull(BaseModel):
 class SoldAccountFull(BaseModel):
     sold_account_id: int
     owner_id: int
-    type_account_service: str
+    type_account_service: AccountServiceType
 
     name: str
     description: str
@@ -169,7 +182,7 @@ class SoldAccountFull(BaseModel):
 class SoldAccountSmall(BaseModel):
     sold_account_id: int
     owner_id: int
-    type_account_service: str
+    type_account_service: AccountServiceType
 
     phone_number: str
     name: str

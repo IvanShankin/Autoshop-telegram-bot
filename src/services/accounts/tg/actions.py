@@ -11,6 +11,7 @@ from telethon.tl.types import Message, User
 
 from src.config import get_config
 from src.services.database.product_categories.models import AccountStorage
+from src.services.database.product_categories.models.product_account import AccountServiceType
 from src.services.filesystem.account_actions import decryption_tg_account
 from src.utils.core_logger import get_logger
 from src.services.secrets import get_crypto_context
@@ -47,11 +48,11 @@ async def check_valid_accounts_telethon(folder_path: str) -> User | bool:
         return False
 
 
-async def check_account_validity(account_storage: AccountStorage, type_service_name: str) -> bool:
+async def check_account_validity(account_storage: AccountStorage, type_account_service: AccountServiceType) -> bool:
     """
     Дешифровка + проверка валидности — обёртка, возвращает True/False. Создаст временное хранилище и после удалит его
     """
-    if type_service_name not in get_config().app.type_account_services:
+    if not any(type_account_service.value == member.value for member in AccountServiceType): # если нет такого типа сервиса
         return False
 
     temp_folder = None

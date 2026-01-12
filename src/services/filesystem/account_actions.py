@@ -7,16 +7,17 @@ from typing import AsyncGenerator
 from src.bot_actions.messages import send_log
 from src.config import get_config
 from src.services.database.product_categories.models import AccountStorage, AccountStoragePydantic
+from src.services.database.product_categories.models.product_account import AccountServiceType
 from src.services.filesystem.actions import move_file
 from src.utils.core_logger import get_logger
 from src.services.secrets import decrypt_folder, get_crypto_context, unwrap_dek, CryptoContext
 
 
-async def move_in_account(account: AccountStorage, type_service_name: str, status: str) -> bool:
+async def move_in_account(account: AccountStorage, type_service_name: AccountServiceType, status: str) -> bool:
     """
     Перенос аккаунтов к `status` удалив исходное местоположение.
     :param account: AccountStorage.
-    :param type_service_name: Брать с константы config.app.type_account_services (get_config().py)
+    :param type_service_name: тип сервиса аккаунта
     :param status: статус аккаунта который будет в конечном пути
     :return: Если возникнет ошибка или аккаунт не переместится, то вернёт False
     """
@@ -67,7 +68,7 @@ async def rename_file(src: str, dst: str) -> bool:
     return await asyncio.to_thread(rename_sync, src, dst)
 
 
-def create_path_account(status: str, type_account_service: str, uuid: str) -> str:
+def create_path_account(status: str, type_account_service: AccountServiceType, uuid: str) -> str:
     """
     Создаст путь к аккаунту.
 
@@ -75,7 +76,7 @@ def create_path_account(status: str, type_account_service: str, uuid: str) -> st
 
     :return: Полный путь. Пример: .../accounts/for_sale/telegram/gbgbfd-dnnjcs/account.enc
     """
-    return str(Path(get_config().paths.accounts_dir) / status / type_account_service / uuid / 'account.enc')
+    return str(Path(get_config().paths.accounts_dir) / status / type_account_service.value / uuid / 'account.enc')
 
 
 def decryption_tg_account(

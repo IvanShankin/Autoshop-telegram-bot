@@ -11,7 +11,7 @@ from src.modules.admin_actions.schemas import GetDataForCategoryData
 from src.modules.admin_actions.services import safe_get_category
 from src.modules.admin_actions.services import set_state_create_category, name_input_prompt_by_language
 from src.modules.admin_actions.state import GetDataForCategory
-from src.services.database.product_categories.actions import add_account_category, \
+from src.services.database.product_categories.actions import add_category, \
     add_translation_in_category
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
@@ -60,8 +60,7 @@ async def add_acc_category_name(message: Message, state: FSMContext, user: Users
 
     # если заполнили имена -> создаём категорию
     try:
-        category = await add_account_category(
-            account_service_id=data.service_id,
+        category = await add_category(
             language=get_config().app.default_lang,
             name=data.data_name[get_config().app.default_lang],
             parent_id=data.parent_id

@@ -2,16 +2,15 @@ from datetime import datetime, timedelta, UTC
 from typing import Type, Any, Optional, Callable, List
 
 import orjson
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.expression import distinct
 
 from src.config import get_config
 from src.services.database.discounts.models import SmallVoucher
-from src.services.database.product_categories.models import AccountStorage
-from src.services.database.product_categories.models.main_category_and_product import Products
+from src.services.database.product_categories.models import AccountStorage, ProductUniversal
 from src.services.database.product_categories.models.schemas import SoldAccountFull, SoldAccountSmall, \
-    AccountStoragePydantic, ProductAccountFull, CategoryFull
+    ProductAccountFull, CategoryFull
 from src.services.database.product_categories.models import Categories, ProductAccounts, SoldAccounts
 from src.services.database.system.models import UiImages
 from src.services.database.users.models import Users, BannedAccounts
@@ -66,12 +65,25 @@ async def filling_all_redis():
     await filling_admins()
     await filling_banned_accounts()
     await filling_all_keys_category()
-    await filling_product_by_category_id()
-    await filling_product_accounts_by_product_id()
+    await filling_product_accounts_by_category_id()
     await filling_promo_code()
     await filling_vouchers()
     logger = get_logger(__name__)
     logger.info("Redis filling successfully")
+
+
+async def _get_quantity_products_in_category(category_id: int) -> int:
+    async with get_db() as session:
+        stmt = (
+            select(func.count())
+            .select_from(Categories)
+            .outerjoin(ProductAccounts, ProductAccounts.category_id == Categories.category_id)
+            .outerjoin(ProductUniversal, ProductUniversal.category_id == Categories.category_id)
+            .where(Categories.category_id == category_id)
+        )
+
+        result = await session.execute(stmt)
+        return result.scalar_one()
 
 
 async def _delete_keys_by_pattern(pattern: str):
@@ -229,7 +241,7 @@ async def _filling_categories(
     async with get_db() as session_db:
         result_db = await session_db.execute(
             select(Categories)
-            .options(selectinload(Categories.translations), selectinload(Categories.products))
+            .options(selectinload(Categories.translations))
             .where(field_condition)
             .order_by(Categories.index.asc())
         )
@@ -266,7 +278,7 @@ async def _filling_categories(
 
                         result_category = CategoryFull.from_orm_with_translation(
                             category = category,
-                            quantity_product= len(category.products),
+                            quantity_product=await _get_quantity_products_in_category(category.category_id),
                             lang = lang
                         )
 
@@ -303,17 +315,22 @@ async def filling_categories_by_parent():
         )
 
 
-async def filling_category_by_category():
-    await _delete_keys_by_pattern(f"category:*")
+async def filling_category_by_category(category_ids: List):
+    for category_id in category_ids:
+        await _delete_keys_by_pattern(f"category:{category_id}:*")
+
+    if not category_ids:
+        return
 
     async with get_db() as session_db:
         result_db = await session_db.execute(
             select(Categories)
-            .options(selectinload(Categories.translations), selectinload(Categories.products))
+            .options(selectinload(Categories.translations))
+            .where(Categories.category_id.in_(category_ids) )
         )
-        categories: list[Categories] = result_db.scalars().all()
+        categories: List[Categories] = result_db.scalars().all()
 
-        if not categories:
+        if not category_ids:
             return
 
         async with get_redis() as session_redis:
@@ -340,7 +357,7 @@ async def filling_category_by_category():
                         try:
                             value_obj = CategoryFull.from_orm_with_translation(
                                 category=category,
-                                quantity_product=len(category.products),
+                                quantity_product=await _get_quantity_products_in_category(category_id),
                                 lang=lang
                             )
                         except Exception as e:
@@ -356,47 +373,39 @@ async def filling_category_by_category():
                 await pipe.execute()
 
 
-async def filling_all_keys_category():
-    """Заполняет redis всеми ключами для категорий"""
+async def filling_all_keys_category(category_id: int = None):
+    """Заполняет redis всеми ключами для категорий
+    :param category_id: Если передать, то заполнит по всем значениям, которые связаны с ним"""
     await filling_main_categories()
     await filling_categories_by_parent()
-    await filling_category_by_category()
+
+    category_ids_for_dilling = []
+    if category_id is None:
+        async with get_db() as session_db:
+            result = await session_db.execute(select(Categories))
+            categories = result.scalars().all()
+            category_ids_for_dilling = [cat.category_id for cat in categories]
+    else:
+        category_ids_for_dilling = [category_id]
+
+    await filling_category_by_category(category_ids_for_dilling)
 
 
-async def filling_product_by_category_id():
-    await _delete_keys_by_pattern(f"products_by_category:*") # удаляем по каждой категории
+async def filling_product_accounts_by_category_id():
+    await _delete_keys_by_pattern(f"product_accounts_by_category:*") # удаляем по каждой категории
     async with get_db() as session_db:
         # Получаем все ID для группировки
-        result_db = await session_db.execute(select(distinct(Products.category_id)))
-        unique_category_ids = result_db.scalars().all()
+        result_db = await session_db.execute(select(ProductAccounts.category_id))
+        account_category_ids = result_db.scalars().all()
 
-        for category_id in unique_category_ids:
-            result_db = await session_db.execute(select(Products).where(Products.category_id == category_id))
+        for category_id in account_category_ids:
+            result_db = await session_db.execute(select(ProductAccounts).where(ProductAccounts.category_id == category_id))
             product_accounts = result_db.scalars().all()
 
             if product_accounts:
                 async with get_redis() as session_redis:
                     list_for_redis = [obj.to_dict() for obj in product_accounts]
-                    key = f"products_by_category:{category_id}"
-                    value = orjson.dumps(list_for_redis)
-                    await session_redis.set(key, value)
-
-
-async def filling_product_accounts_by_product_id():
-    await _delete_keys_by_pattern(f"product_accounts_by_product:*") # удаляем по каждой категории
-    async with get_db() as session_db:
-        # Получаем все ID для группировки
-        result_db = await session_db.execute(select(ProductAccounts.product_id))
-        account_product_ids = result_db.scalars().all()
-
-        for product_id in account_product_ids:
-            result_db = await session_db.execute(select(ProductAccounts).where(ProductAccounts.product_id == product_id))
-            product_accounts = result_db.scalars().all()
-
-            if product_accounts:
-                async with get_redis() as session_redis:
-                    list_for_redis = [obj.to_dict() for obj in product_accounts]
-                    key = f"product_accounts_by_product:{product_id}"
+                    key = f"product_accounts_by_category:{category_id}"
                     value = orjson.dumps(list_for_redis)
                     await session_redis.set(key, value)
 
@@ -418,7 +427,7 @@ async def filling_product_account_by_account_id(account_id: int):
                 storage_account=storage_account
             )
             await session_redis.set(
-                f'product_accounts_by_account_id:{account.account_id}',
+                f'product_account:{account.account_id}',
                 orjson.dumps(product_account.model_dump())
             )
 
@@ -467,7 +476,7 @@ async def filling_sold_accounts_by_owner_id(owner_id: int):
 
 async def filling_sold_account_by_account_id(sold_account_id: int):
     """Заполнит SoldAccounts по всем языкам которые есть"""
-    await _delete_keys_by_pattern(f'sold_accounts_by_accounts_id:{sold_account_id}:*') # удаляем по всем языкам
+    await _delete_keys_by_pattern(f'sold_account:{sold_account_id}:*') # удаляем по всем языкам
     async with get_db() as session_db:
         result_db = await session_db.execute(
             select(SoldAccounts)
@@ -494,7 +503,7 @@ async def filling_sold_account_by_account_id(sold_account_id: int):
             async with get_redis() as session_redis:
                 for account, lang in list_accounts_by_lang:
                     await session_redis.setex(
-                        f"sold_accounts_by_accounts_id:{sold_account_id}:{lang}",
+                        f"sold_account:{sold_account_id}:{lang}",
                         TIME_SOLD_ACCOUNTS_BY_ACCOUNT,
                         orjson.dumps(account.model_dump())
                     )

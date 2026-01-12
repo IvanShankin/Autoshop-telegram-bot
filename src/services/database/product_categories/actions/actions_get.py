@@ -4,16 +4,18 @@ from typing import List, Any, Callable, Awaitable, Set
 import inspect as inspect_python
 import orjson
 
-from sqlalchemy import select, inspect as sa_inspect, true, DateTime, func
+from sqlalchemy import select, inspect as sa_inspect, DateTime, func
 from sqlalchemy.orm import selectinload
 
 from src.config import get_config
-from src.services.database.product_categories.models import AccountStorage, TgAccountMedia, PurchasesAccounts
+from src.services.database.product_categories.models import AccountStorage, TgAccountMedia, PurchasesAccounts, \
+    ProductUniversal
+from src.services.database.product_categories.models.product_account import AccountServiceType
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import (
-    filling_account_categories_by_service_id,filling_account_categories_by_category_id,
-    filling_product_by_category_id, filling_product_account_by_account_id,
-    filling_sold_account_by_account_id, filling_sold_accounts_by_owner_id
+    filling_product_account_by_account_id,
+    filling_sold_account_by_account_id, filling_sold_accounts_by_owner_id, filling_category_by_category,
+    filling_categories_by_parent, filling_main_categories, filling_product_accounts_by_category_id
 )
 from src.services.database.core.database import get_db
 from src.services.database.product_categories.models import Categories,  ProductAccounts, SoldAccounts, CategoryFull, \
@@ -28,6 +30,7 @@ async def _maybe_await(v):
     except AttributeError: # если получили синхронную функцию
         return v
 
+
 @lru_cache
 def _get_model_deserializers(model_db):
     deserializers = {}
@@ -36,12 +39,14 @@ def _get_model_deserializers(model_db):
             deserializers[column.key] = lambda v: datetime.fromisoformat(v) if isinstance(v, str) else v
     return deserializers
 
+
 def _deserialize_fields(model_db, data):
     deserializers = _get_model_deserializers(model_db)
     return {
         key: deserializers.get(key, lambda v: v)(value)
         for key, value in data.items()
     }
+
 
 async def _get_single_obj(
     model_db,
@@ -86,6 +91,7 @@ async def _get_single_obj(
             return await _maybe_await(post_process(result)) if post_process else result
 
     return None
+
 
 async def _get_grouped_objects(
     model_db,
@@ -138,7 +144,7 @@ async def _get_grouped_objects(
 
 def _has_accounts_in_subtree(category: CategoryFull, all_categories: list[CategoryFull]) -> bool:
     """
-    Проверяет, есть ли в поддереве категории хотя бы одна видимая категория-хранилище с аккаунтами.
+    Проверяет, есть ли в поддереве категории хотя бы одна видимая категория-хранилище.
     Категории с show=False не учитываются и не "передают" наличие аккаунтов вверх.
     """
 
@@ -160,54 +166,49 @@ def _has_accounts_in_subtree(category: CategoryFull, all_categories: list[Catego
 
     return False
 
-async def _get_account_categories_by_service_id(
-        account_service_id: int,
-        language: str = 'ru',
-        return_not_show: bool = False
-) -> List[CategoryFull]:
-    """
-    Вернёт не отсортированный список
-    :param return_not_show: Если необходимо вернуть запись, даже если у неё стоит флаг `show = False`
-    """
 
-    def post_process(obj: Categories | dict):
-        # если пришёл словарь (из кеша), создаём DTO напрямую
-        if isinstance(obj, dict):
-            return CategoryFull.model_validate(obj)
-
-        # если пришёл ORM-объект из БД — используем существующий метод
-        return CategoryFull.from_orm_with_translation(
-            obj,
-            lang=language,
-            quantity_product=len(obj.product_accounts)
+async def get_quantity_products_in_category(category_id: int) -> int:
+    async with get_db() as session:
+        stmt = (
+            select(func.count())
+            .select_from(Categories)
+            .outerjoin(ProductAccounts, ProductAccounts.category_id == Categories.category_id)
+            .outerjoin(ProductUniversal, ProductUniversal.category_id == Categories.category_id)
+            .where(Categories.category_id == category_id)
         )
 
-    category_list: list[Categories] = await _get_grouped_objects(
-        model_db=Categories,
-        redis_key=f"account_categories_by_service_id:{account_service_id}:{language}",
-        options=(selectinload(Categories.translations), selectinload(Categories.product)),
-        filter_expr=Categories.account_service_id == account_service_id,
-        call_fun_filling=filling_account_categories_by_service_id,
-        post_process=post_process
-    )
+        result = await session.execute(stmt)
+        return result.scalar_one()
 
-    if return_not_show: # необходимо вернуть любую запись
-        return category_list
 
-    # Фильтрация по show и наличию аккаунтов в поддереве
-    return [
-        category for category in category_list
-        if category.show and _has_accounts_in_subtree(category, category_list)
-    ]
+async def get_all_phone_in_account_storage(type_account_service: AccountServiceType) -> Set[str]:
+    """Вернёт все номера телефонов которые хранятся в БД у определённого типа сервиса"""
+    async with get_db() as session_db:
+        # получение данных с БД
+        stmt = (
+            select(AccountStorage.phone_number)
+            .select_from(AccountStorage)
+            .join(ProductAccounts, ProductAccounts.account_storage_id == AccountStorage.account_storage_id)
+            .where(ProductAccounts.type_account_service == type_account_service)
+        ).union(
+            select(AccountStorage.phone_number)
+            .select_from(AccountStorage)
+            .join(SoldAccounts, SoldAccounts.account_storage_id == AccountStorage.account_storage_id)
+            .where(SoldAccounts.type_account_service == type_account_service)
+        )
 
-async def get_account_categories_by_category_id(
-        category_id: int,
-        language: str = 'ru',
-        return_not_show: bool = False
+        result = await session_db.execute(stmt)
+        return (result.scalars().all())
+
+
+async def get_categories_by_category_id(
+    category_id: int,
+    language: str = 'ru',
+    return_not_show: bool = False
 ) -> CategoryFull | None:
     """:param return_not_show: Если необходимо вернуть запись, даже если у неё стоит флаг `show = False`"""
 
-    def post_process(obj: Categories | dict):
+    async def post_process(obj: Categories | dict):
         # если пришёл словарь (из кеша), создаём DTO напрямую
         if isinstance(obj, dict):
             return CategoryFull.model_validate(obj)
@@ -215,16 +216,19 @@ async def get_account_categories_by_category_id(
         # если пришёл ORM-объект из БД — используем существующий метод
         return CategoryFull.from_orm_with_translation(
             obj,
-            quantity_product=len(obj.product_accounts),
+            quantity_product=await get_quantity_products_in_category(obj.category_id),
             lang=language
         )
 
+    async def call_fun_filling():
+        await filling_category_by_category([category_id])
+
     category = await _get_single_obj(
         model_db=Categories,
-        redis_key=f'account_categories_by_category_id:{category_id}:{language}',
-        options=(selectinload(Categories.translations), selectinload(Categories.product)),
+        redis_key=f'category:{category_id}:{language}',
+        options=(selectinload(Categories.translations), ),
         filter_expr=Categories.category_id == category_id,
-        call_fun_filling=filling_account_categories_by_category_id,
+        call_fun_filling=call_fun_filling,
         post_process=post_process
     )
 
@@ -234,48 +238,51 @@ async def get_account_categories_by_category_id(
         return category if category and category.show == True else None
 
 
-async def get_all_phone_in_account_storage(type_account_service_id: int) -> Set[str]:
-    """Вернёт все номера телефонов которые хранятся в БД у определённого типа сервиса"""
-    async with get_db() as session_db:
-        # получение данных с БД
-        stmt = (
-            select(AccountStorage.phone_number)
-            .select_from(AccountStorage)
-            .join(ProductAccounts, ProductAccounts.account_storage_id == AccountStorage.account_storage_id)
-            .where(ProductAccounts.type_account_service_id == type_account_service_id)
-        ).union(
-            select(AccountStorage.phone_number)
-            .select_from(AccountStorage)
-            .join(SoldAccounts, SoldAccounts.account_storage_id == AccountStorage.account_storage_id)
-            .where(SoldAccounts.type_account_service_id == type_account_service_id)
-        )
-
-        result = await session_db.execute(stmt)
-        return (result.scalars().all())
-
-
-async def get_account_categories_by_parent_id(
-        account_service_id: int,
+async def get_categories(
         parent_id: int = None,
         language: str = 'ru',
         return_not_show: bool = False
 ) -> List[CategoryFull]:
     """
-    Вернёт отсортированный по возрастанию список CategoryFull по полю index
-    :param account_service_id: id сервиса
-    :param parent_id: id родителя искомых категорий, если не указывать, то вернутся категории с is_main = True
-    :param language: язык
-    :param return_not_show: Если необходимо вернуть запись, даже если у неё стоит флаг `show = False`
-    :return:
+        Вернёт отсортированный по возрастанию список CategoryFull по полю index
+        :param parent_id: id родителя искомых категорий, если не указывать, то вернутся категории с is_main = True
+        :param language: язык
+        :param return_not_show: Если необходимо вернуть запись, даже если у неё стоит флаг `show = False`
+        :return:
     """
-    list_category = await _get_account_categories_by_service_id(account_service_id, language, return_not_show)
 
-    if parent_id:
-        unsorted_list = [category for category in list_category if category.parent_id == parent_id]
+    async def post_process(obj: Categories | dict):
+        # если пришёл словарь (из кеша), создаём DTO напрямую
+        if isinstance(obj, dict):
+            return CategoryFull.model_validate(obj)
+
+        # если пришёл ORM-объект из БД — используем существующий метод
+        return CategoryFull.from_orm_with_translation(
+            obj,
+            lang=language,
+            quantity_product=await get_quantity_products_in_category(obj.category_id)
+        )
+
+    category_list: list[Categories] = await _get_grouped_objects(
+        model_db=Categories,
+        redis_key=f"categories_by_parent:{parent_id}:{language}" if parent_id else f"main_categories:{language}",
+        options=(selectinload(Categories.translations), ),
+        filter_expr=Categories.parent_id == parent_id if parent_id else Categories.is_main == True,
+        call_fun_filling=filling_categories_by_parent if parent_id else filling_main_categories,
+        post_process=post_process
+    )
+
+    if return_not_show:
+        sorted_list = category_list
     else:
-        unsorted_list = [category for category in list_category if category.is_main == True]
+        # Фильтрация по show и наличию товара в поддереве
+        sorted_list = [
+            category for category in category_list
+            if category.show and _has_accounts_in_subtree(category, category_list)
+        ]
 
-    return sorted(unsorted_list, key=lambda category: category.index)
+    return sorted(sorted_list, key=lambda category: category.index)
+
 
 async def get_product_account_by_category_id(
     category_id: int,
@@ -295,9 +302,9 @@ async def get_product_account_by_category_id(
 
     return await _get_grouped_objects(
         model_db=ProductAccounts,
-        redis_key=f'product_accounts_by_category_id:{category_id}',
+        redis_key=f'product_accounts_by_category:{category_id}',
         filter_expr=ProductAccounts.category_id == category_id,
-        call_fun_filling=filling_product_by_category_id,
+        call_fun_filling=filling_product_accounts_by_category_id,
     )
 
 
@@ -315,12 +322,13 @@ async def get_product_account_by_account_id(account_id: int) -> ProductAccountFu
 
     return await _get_single_obj(
         model_db=ProductAccounts,
-        redis_key=f'product_accounts_by_account_id:{account_id}',
+        redis_key=f'product_account:{account_id}',
         options=(selectinload(ProductAccounts.account_storage), ),
         filter_expr=ProductAccounts.account_id == account_id,
         post_process=post_process,
         call_fun_filling=call_fun_filling
     )
+
 
 async def get_sold_accounts_by_owner_id(owner_id: int, language: str) -> List[SoldAccountSmall]:
     """
@@ -349,9 +357,10 @@ async def get_sold_accounts_by_owner_id(owner_id: int, language: str) -> List[So
         post_process=post_process,
     )
 
+
 async def get_sold_account_by_page(
         user_id: int,
-        type_account_service_id: int,
+        type_account_service: str,
         page: int,
         language: str,
         page_size: int = None
@@ -371,7 +380,7 @@ async def get_sold_account_by_page(
                 account_list = []
                 for account in objs_list:
                     account_validate = SoldAccountSmall.model_validate(account)
-                    if account_validate.type_account_service_id == type_account_service_id:
+                    if account_validate.type_account_service == type_account_service:
                         account_list.append(account_validate)
 
                 start = (page - 1) * page_size
@@ -384,7 +393,7 @@ async def get_sold_account_by_page(
             .options(selectinload(SoldAccounts.translations), selectinload(SoldAccounts.account_storage))
             .where(
                 (SoldAccounts.owner_id == user_id) &
-                (SoldAccounts.type_account_service_id == type_account_service_id) &
+                (SoldAccounts.type_account_service == type_account_service) &
                 (SoldAccounts.account_storage.has(is_active=True))
             )
             .order_by(SoldAccounts.sold_at.desc())
@@ -395,45 +404,19 @@ async def get_sold_account_by_page(
 
         return [SoldAccountSmall.from_orm_with_translation(account, lang=language) for account in account_list]
 
-async def get_count_sold_account(user_id: int, type_account_service_id: int) -> int:
+
+async def get_count_sold_account(user_id: int, type_account_service: str) -> int:
     """Вернёт количество не удалённых аккаунтов"""
     async with get_db() as session_db:
         result = await session_db.execute(
             select(func.count(SoldAccounts.sold_account_id))
             .where(
                 (SoldAccounts.owner_id == user_id) &
-                (SoldAccounts.type_account_service_id == type_account_service_id) &
+                (SoldAccounts.type_account_service == type_account_service) &
                 (SoldAccounts.account_storage.has(is_active=True))
             )
         )
         return result.scalar_one()
-
-
-async def get_union_type_account_service_id(user_id: int) -> List[int]:
-    async with get_redis() as session_redis:
-        result_redis = await session_redis.get(f'sold_accounts_by_owner_id:{user_id}:{get_config().app.default_lang}')
-        if result_redis:
-            objs_list: list[dict] = orjson.loads(result_redis)  # список с redis
-            if objs_list:
-                type_ids = []
-                for account in objs_list:
-                    account_validate = SoldAccountSmall.model_validate(account)
-                    if account_validate.type_account_service_id not in type_ids:
-                        type_ids.append(account_validate.type_account_service_id)
-
-                return type_ids
-
-    async with get_db() as session_db:
-        result = await session_db.execute(
-            select(SoldAccounts.type_account_service_id)
-            .where(
-                (SoldAccounts.owner_id == user_id)
-                & (SoldAccounts.account_storage.has(is_active=True))
-            )
-            .distinct()  # выбираем только уникальные значения
-        )
-        await filling_sold_accounts_by_owner_id(user_id)
-        return [row[0] for row in result.all()]
 
 
 async def get_sold_accounts_by_account_id(sold_account_id: int, language: str = 'ru') -> SoldAccountFull | None:
@@ -450,7 +433,7 @@ async def get_sold_accounts_by_account_id(sold_account_id: int, language: str = 
 
     return await _get_single_obj(
         model_db=SoldAccounts,
-        redis_key=f'sold_accounts_by_accounts_id:{sold_account_id}:{language}',
+        redis_key=f'sold_account:{sold_account_id}:{language}',
         filter_expr=(SoldAccounts.sold_account_id == sold_account_id) & (SoldAccounts.account_storage.has(is_active=True)),
         call_fun_filling=filling_account,
         options=(selectinload(SoldAccounts.translations), selectinload(SoldAccounts.account_storage)),

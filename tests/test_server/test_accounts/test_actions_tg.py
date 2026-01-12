@@ -5,7 +5,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock
 
 from src.services.database.product_categories.models import AccountStorage
-
+from src.services.database.product_categories.models.product_account import AccountServiceType
 
 
 class TestCheckValidAccounts:
@@ -66,7 +66,7 @@ async def test_check_account_validity_true(tmp_path, monkeypatch):
     monkeypatch.setattr(actions, "TDesktop", lambda path: FakeTDesktop())
 
     acc = AccountStorage(account_storage_id=5)
-    result = await check_account_validity(acc, "telegram")
+    result = await check_account_validity(acc, AccountServiceType.TELEGRAM)
     assert result is True
 
 
@@ -93,7 +93,7 @@ async def test_check_account_validity_false(tmp_path, monkeypatch):
     monkeypatch.setattr(actions, "TDesktop", lambda path: FakeTDesktop())
 
     acc = AccountStorage(account_storage_id=6)
-    result = await check_account_validity(acc, "telegram")
+    result = await check_account_validity(acc, AccountServiceType.TELEGRAM)
     assert result is False
 
 

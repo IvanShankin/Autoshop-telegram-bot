@@ -14,9 +14,9 @@ from src.config import get_config
 from src.exceptions import CategoryNotFound, NotEnoughAccounts, NotEnoughMoney
 from src.services.database.discounts.events import NewActivatePromoCode
 from src.services.database.discounts.utils.calculation import discount_calculation
-from src.services.database.product_categories.events.schemas import NewPurchaseAccount, AccountsData
-from src.services.database.product_categories.models import PurchaseRequests, PurchaseRequestAccount
-from src.services.database.product_categories.models.product_account import AccountServiceType
+from src.services.database.categories.actions.events.schemas import NewPurchaseAccount, AccountsData
+from src.services.database.categories.models import PurchaseRequests, PurchaseRequestAccount
+from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.database.users.models.models_users import BalanceHolder
 from src.services.filesystem.account_actions import create_path_account, rename_file, move_in_account
 from src.services.filesystem.actions import move_file
@@ -24,11 +24,11 @@ from src.services.accounts.tg.actions import check_account_validity
 from src.services.redis.filling_redis import filling_product_account_by_account_id, filling_sold_accounts_by_owner_id, \
     filling_sold_account_by_account_id, filling_user, filling_all_keys_category, filling_product_accounts_by_category_id
 from src.services.database.core.database import get_db
-from src.services.database.product_categories.actions import get_categories_by_category_id, \
+from src.services.database.categories.actions import get_categories_by_category_id, \
     update_account_storage, delete_product_account, add_deleted_accounts, get_product_account_by_category_id
-from src.services.database.product_categories.models import ProductAccounts, SoldAccounts, PurchasesAccounts, \
+from src.services.database.categories.models import ProductAccounts, SoldAccounts, PurchasesAccounts, \
     SoldAccountsTranslation, CategoryTranslation, AccountStorage
-from src.services.database.product_categories.models.schemas import StartPurchaseAccount
+from src.services.database.categories.models.schemas import StartPurchaseAccount
 from src.services.database.users.actions import get_user
 from src.services.database.users.models import Users
 from src.utils.core_logger import get_logger

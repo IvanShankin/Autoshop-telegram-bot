@@ -79,7 +79,7 @@ async def test_delete_acc_service_success(
     service = await create_account_service()
     user = await create_new_user()
 
-    from src.services.database.product_categories.actions import actions_delete as modul
+    from src.services.database.categories.actions import actions_delete as modul
     monkeypatch.setattr(modul,"delete_account_service", lambda sid: asyncio.sleep(0))
 
     callback = SimpleNamespace(
@@ -109,7 +109,7 @@ async def test_delete_acc_service_contains_categories(
     async def raise_contains(*_):
         raise ServiceContainsCategories()
 
-    from src.services.database.product_categories.actions import actions_delete as modul
+    from src.services.database.categories.actions import actions_delete as modul
     monkeypatch.setattr(modul,"delete_account_service",raise_contains,)
 
     callback = SimpleNamespace(

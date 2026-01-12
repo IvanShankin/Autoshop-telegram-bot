@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.config import get_config
-from src.services.database.product_categories.actions import get_categories
+from src.services.database.categories.actions import get_categories
 from src.utils.i18n import get_text
 
 

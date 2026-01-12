@@ -6,8 +6,8 @@ from typing import AsyncGenerator
 
 from src.bot_actions.messages import send_log
 from src.config import get_config
-from src.services.database.product_categories.models import AccountStorage, AccountStoragePydantic
-from src.services.database.product_categories.models.product_account import AccountServiceType
+from src.services.database.categories.models import AccountStorage, AccountStoragePydantic
+from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.filesystem.actions import move_file
 from src.utils.core_logger import get_logger
 from src.services.secrets import decrypt_folder, get_crypto_context, unwrap_dek, CryptoContext

@@ -8,7 +8,7 @@ from src.modules.admin_actions.services.editor.category.category_loader import s
 from src.modules.admin_actions.keyboards import back_in_category_kb
 from src.services.accounts.other.upload_account import upload_other_account
 from src.services.accounts.tg.upload_account import upload_tg_account
-from src.services.database.product_categories.models import CategoryFull
+from src.services.database.categories.models import CategoryFull
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
 

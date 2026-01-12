@@ -6,7 +6,7 @@ from src.bot_actions.messages import send_log
 from src.exceptions import InvalidFormatRows, CategoryNotFound, TheCategoryNotStorageAccount
 from src.services.accounts.other.shemas import AccountImportData, ImportResult, REQUIRED_HEADERS
 from src.services.accounts.utils.helper_imports import get_unique_among_db
-from src.services.database.product_categories.actions import add_account_storage, add_product_account
+from src.services.database.categories.actions import add_account_storage, add_product_account
 from src.services.filesystem.input_account import make_csv_bytes
 from src.utils.core_logger import get_logger
 from src.services.secrets import encrypt_text, make_account_key, get_crypto_context

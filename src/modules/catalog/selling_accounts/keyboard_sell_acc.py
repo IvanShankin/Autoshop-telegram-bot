@@ -1,9 +1,9 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.services.database.product_categories.actions import get_account_service, get_all_account_services, \
+from src.services.database.categories.actions import get_account_service, get_all_account_services, \
     get_categories, get_categories_by_category_id
-from src.services.database.product_categories.models import CategoryFull
+from src.services.database.categories.models import CategoryFull
 from src.utils.i18n import get_text
 
 

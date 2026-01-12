@@ -7,12 +7,12 @@ from sqlalchemy.orm import selectinload
 
 from src.exceptions import AccountCategoryNotFound, TheCategoryStorageAccount, \
     IncorrectedNumberButton, IncorrectedCostPrice, IncorrectedAmountSale, CategoryStoresSubcategories
-from src.services.database.product_categories.models import AccountStorage, TgAccountMedia
+from src.services.database.categories.models import AccountStorage, TgAccountMedia
 from src.services.database.system.actions import create_ui_image, delete_ui_image
 from src.services.redis.filling_redis import filling_all_keys_category, filling_product_account_by_account_id, \
     filling_sold_account_by_account_id, filling_sold_accounts_by_owner_id
 from src.services.database.core.database import get_db
-from src.services.database.product_categories.models import Categories, ProductAccounts, \
+from src.services.database.categories.models import Categories, ProductAccounts, \
     CategoryTranslation, CategoryFull
 
 

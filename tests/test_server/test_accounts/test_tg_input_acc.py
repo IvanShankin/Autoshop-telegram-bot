@@ -14,7 +14,7 @@ from types import SimpleNamespace
 
 from src.services.accounts.tg.shemas import BaseAccountProcessingResult, ArchiveProcessingResult
 from telethon.tl.types import User
-from src.services.database.product_categories.models import ProductAccounts
+from src.services.database.categories.models import ProductAccounts
 
 
 VALID_USER = User(

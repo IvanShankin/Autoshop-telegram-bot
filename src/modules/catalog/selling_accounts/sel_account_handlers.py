@@ -16,9 +16,9 @@ from src.modules.profile.keyboard_profile import in_profile_kb
 from src.services.database.discounts.actions import get_promo_code
 from src.services.database.discounts.actions.actions_promo import check_activate_promo_code
 from src.services.database.discounts.utils.calculation import discount_calculation
-from src.services.database.product_categories.actions import get_account_service, get_categories_by_category_id
-from src.services.database.product_categories.actions.action_purchase import purchase_accounts
-from src.services.database.product_categories.models import CategoryFull
+from src.services.database.categories.actions import get_account_service, get_categories_by_category_id
+from src.services.database.categories.actions.action_purchase_account import purchase_accounts
+from src.services.database.categories.models import CategoryFull
 from src.services.database.system.actions import get_ui_image
 from src.services.database.users.models import Users
 from src.utils.converter import safe_int_conversion

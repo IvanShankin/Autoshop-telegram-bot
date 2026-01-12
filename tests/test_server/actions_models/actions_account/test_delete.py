@@ -9,7 +9,7 @@ from src.services.database.system.actions import get_ui_image
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
 
-from src.services.database.product_categories.models import (
+from src.services.database.categories.models import (
     Categories, CategoryTranslation,
     ProductAccounts, SoldAccounts, SoldAccountsTranslation, AccountStorage
 )
@@ -23,7 +23,7 @@ async def test_delete_translate_category_success_and_error_when_last_translation
     - если переводов > 1 — перевод удаляется и ключ в redis удаляется
     - если перевод единственный — ValueError
     """
-    from src.services.database.product_categories.actions import delete_translate_category, add_translation_in_category
+    from src.services.database.categories.actions import delete_translate_category, add_translation_in_category
 
     # создаём категорию с переводом ru
     full_cat = await create_category(filling_redis=True, language="ru", name="orig")
@@ -65,7 +65,7 @@ async def test_delete_account_category_various_errors_and_index_shift(create_cat
     - нельзя удалить если есть дочерние категории
     - при успешном удалении индексы сдвигаются
     """
-    from src.services.database.product_categories.actions import delete_category
+    from src.services.database.categories.actions import delete_category
 
     # создаём три основные категории (siblings) для проверки индексов
     cat1 = await create_category(filling_redis=True, language="ru", name="c1")
@@ -115,7 +115,7 @@ async def test_delete_account_category_various_errors_and_index_shift(create_cat
 
 @pytest.mark.asyncio
 async def test_delete_category_deleted_ui_image(create_category, create_ui_image):
-    from src.services.database.product_categories.actions import delete_category
+    from src.services.database.categories.actions import delete_category
 
     ui_image, _ = await create_ui_image()
     category = await create_category(ui_image_key=ui_image.key)
@@ -132,7 +132,7 @@ async def test_delete_product_account_success_and_error(create_product_account, 
     - успешное удаление из БД и очистка key product_account
     - ошибка при попытке удалить несуществующий аккаунт
     """
-    from src.services.database.product_categories.actions import delete_product_account
+    from src.services.database.categories.actions import delete_product_account
 
     cat = await create_category(filling_redis=True)
     prod, _ = await create_product_account(filling_redis=True, category_id=cat.category_id)
@@ -165,7 +165,7 @@ async def test_delete_sold_account_success_and_redis_update(create_new_user, cre
     - запись удалена из БД (SoldAccounts и SoldAccountsTranslation)
     - Redis обновлён: список владельца и одиночный ключ удалены
     """
-    from src.services.database.product_categories.actions import delete_sold_account
+    from src.services.database.categories.actions import delete_sold_account
 
     # создаём user и sold_account через фабрику
     full, _ = await create_sold_account(filling_redis=True, language="ru", name="to_del")
@@ -215,7 +215,7 @@ async def test_delete_product_accounts_by_category_success(
     - вызываются filling_* функции
     - очищается product_account
     """
-    from src.services.database.product_categories.actions.actions_delete import delete_product_accounts_by_category
+    from src.services.database.categories.actions.actions_delete import delete_product_accounts_by_category
     from src.services.filesystem.account_actions import create_path_account
 
     # Создаём категорию

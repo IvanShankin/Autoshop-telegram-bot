@@ -8,10 +8,10 @@ from sqlalchemy.sql.expression import distinct
 
 from src.config import get_config
 from src.services.database.discounts.models import SmallVoucher
-from src.services.database.product_categories.models import AccountStorage, ProductUniversal
-from src.services.database.product_categories.models.schemas import SoldAccountFull, SoldAccountSmall, \
+from src.services.database.categories.models import AccountStorage, ProductUniversal
+from src.services.database.categories.models.schemas import SoldAccountFull, SoldAccountSmall, \
     ProductAccountFull, CategoryFull
-from src.services.database.product_categories.models import Categories, ProductAccounts, SoldAccounts
+from src.services.database.categories.models import Categories, ProductAccounts, SoldAccounts
 from src.services.database.system.models import UiImages
 from src.services.database.users.models import Users, BannedAccounts
 from src.services.database.system.models import Settings, TypePayments

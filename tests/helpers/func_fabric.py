@@ -10,8 +10,8 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from src.services.database.product_categories.models import AccountStorage, TgAccountMedia
-from src.services.database.product_categories.models.product_account import AccountServiceType
+from src.services.database.categories.models import AccountStorage, TgAccountMedia
+from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_sold_accounts_by_owner_id, \
     filling_sold_account_by_account_id, filling_all_keys_category, filling_product_account_by_account_id, \
@@ -20,7 +20,7 @@ from src.services.redis.filling_redis import filling_sold_accounts_by_owner_id, 
 from src.services.database.admins.models import Admins, SentMasMessages, MessageForSending
 from src.services.database.discounts.models import Vouchers, PromoCodes, ActivatedPromoCodes
 from src.services.database.referrals.utils import create_unique_referral_code
-from src.services.database.product_categories.models import SoldAccounts, SoldAccountsTranslation, \
+from src.services.database.categories.models import SoldAccounts, SoldAccountsTranslation, \
     Categories, CategoryTranslation, ProductAccounts, \
     SoldAccountFull, CategoryFull, SoldAccountSmall, ProductAccountFull, PurchasesAccounts
 from src.services.database.system.models import UiImages, BackupLogs
@@ -361,7 +361,7 @@ async def create_translate_category_factory(
         name: str = "name",
         description: str = "description"
 ) -> CategoryFull:
-    from src.services.database.product_categories.actions import get_quantity_products_in_category
+    from src.services.database.categories.actions import get_quantity_products_in_category
 
     async with get_db() as session_db:
         new_translate = CategoryTranslation(
@@ -408,7 +408,7 @@ async def create_category_factory(
         name: str = "name",
         description: str = "description"
 ) -> CategoryFull:
-    from src.services.database.product_categories.actions import get_quantity_products_in_category
+    from src.services.database.categories.actions import get_quantity_products_in_category
 
     async with get_db() as session_db:
         if parent_id is not None:

@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text, text,
 from sqlalchemy.orm import relationship
 
 from src.services.database.core.database import Base
-from src.services.database.product_categories.models.product_account import AccountServiceType
+from src.services.database.categories.models.product_account import AccountServiceType
 
 
 class Categories(Base):

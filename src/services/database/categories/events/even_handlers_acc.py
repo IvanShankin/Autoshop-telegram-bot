@@ -1,5 +1,5 @@
 from src.services.database.core.database import get_db
-from src.services.database.product_categories.events.schemas import NewPurchaseAccount
+from src.services.database.categories.actions.events.schemas import NewPurchaseAccount
 from src.services.database.users.models import UserAuditLogs, WalletTransaction
 from src.bot_actions.messages import send_log
 

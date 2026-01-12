@@ -2,18 +2,18 @@ import pytest
 import orjson
 from sqlalchemy import select
 
-from src.exceptions import AccountCategoryNotFound, IncorrectedNumberButton, IncorrectedCostPrice, \
+from src.exceptions import AccountCategoryNotFound, IncorrectedCostPrice, \
     IncorrectedAmountSale, TheCategoryStorageAccount
-from src.services.database.product_categories.models import AccountStorage, TgAccountMedia
+from src.services.database.categories.models import AccountStorage, TgAccountMedia
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
-from src.services.database.product_categories.models import Categories, CategoryTranslation, ProductAccountFull
+from src.services.database.categories.models import Categories, CategoryTranslation, ProductAccountFull
 
 
 class TestUpdateCategory:
     @pytest.mark.asyncio
     async def test_update_category_index_reorder_and_redis(self, create_category):
-        from src.services.database.product_categories.actions import update_category
+        from src.services.database.categories.actions import update_category
         # Создаём один сервис и три категории (main) с индексами 0,1,2
         c1 = await create_category(filling_redis=True, language="ru", name="c1")
         c2 = await create_category(filling_redis=True, language="ru", name="c2")
@@ -72,7 +72,7 @@ class TestUpdateCategory:
             create_product_account,
             create_ui_image
     ):
-        from src.services.database.product_categories.actions import update_category
+        from src.services.database.categories.actions import update_category
         from src.utils.ui_images_data import get_default_image_bytes
 
         old_ui_image, _ = await create_ui_image()
@@ -99,7 +99,7 @@ class TestUpdateCategory:
         create_category,
         create_product_account
     ):
-        from src.services.database.product_categories.actions import update_category
+        from src.services.database.categories.actions import update_category
 
         cat = await create_category(
             filling_redis=False,
@@ -142,7 +142,7 @@ class TestUpdateCategory:
 class TestUpdateAccountCategoryTranslation:
     @pytest.mark.asyncio
     async def test_update_account_category_translation_success(self,create_category):
-        from src.services.database.product_categories.actions import update_account_category_translation
+        from src.services.database.categories.actions import update_account_category_translation
 
         full_category = await create_category(filling_redis=True, language="ru", name="orig", description="orig")
 
@@ -195,7 +195,7 @@ class TestUpdateAccountCategoryTranslation:
 
     @pytest.mark.asyncio
     async def test_update_account_category_translation_errors(self, create_category):
-        from src.services.database.product_categories.actions import update_account_category_translation
+        from src.services.database.categories.actions import update_account_category_translation
         # несуществующая категория
         with pytest.raises(AccountCategoryNotFound):
             await update_account_category_translation(category_id=999999, language="ru", name="x")
@@ -211,7 +211,7 @@ class TestUpdateAccountCategoryTranslation:
 class TestUpdateAccountStorage:
     @pytest.mark.asyncio
     async def test_update_account_storage_sold_account(self, create_sold_account, create_account_storage):
-        from src.services.database.product_categories.actions import update_account_storage
+        from src.services.database.categories.actions import update_account_storage
         account_storage = await create_account_storage()
         _, full_account = await create_sold_account(
             filling_redis=True, account_storage_id=account_storage.account_storage_id, language="ru"
@@ -236,7 +236,7 @@ class TestUpdateAccountStorage:
 
     @pytest.mark.asyncio
     async def test_update_account_storage_product_account(self, create_product_account, create_account_storage):
-        from src.services.database.product_categories.actions import update_account_storage
+        from src.services.database.categories.actions import update_account_storage
         account_storage = await create_account_storage()
         _, full_account = await create_product_account(filling_redis=True, account_storage_id=account_storage.account_storage_id)
         product_account_id = full_account.account_id
@@ -257,7 +257,7 @@ class TestUpdateAccountStorage:
 
 @pytest.mark.asyncio
 async def test_update_tg_account_media(create_tg_account_media):
-    from src.services.database.product_categories.actions import update_tg_account_media
+    from src.services.database.categories.actions import update_tg_account_media
 
     tg_media = await create_tg_account_media()
 

@@ -19,7 +19,7 @@ from src.modules.admin_actions.services import update_message_query_data
 from src.modules.admin_actions.services import upload_account
 from src.modules.admin_actions.state import UpdateNameForCategory, \
     UpdateDescriptionForCategory, UpdateCategoryImage, UpdateNumberInCategory
-from src.services.database.product_categories.actions import update_category, \
+from src.services.database.categories.actions import update_category, \
     update_account_category_translation
 from src.services.database.system.actions import update_ui_image
 from src.services.database.users.models import Users

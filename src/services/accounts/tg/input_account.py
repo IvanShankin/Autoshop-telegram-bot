@@ -7,7 +7,7 @@ from typing import List, AsyncGenerator, Any, Tuple
 from src.config import get_config
 from src.exceptions import ArchiveNotFount, DirNotFount
 from src.services.accounts.utils.helper_imports import get_unique_among_db
-from src.services.database.product_categories.actions import add_account_storage, add_product_account, \
+from src.services.database.categories.actions import add_account_storage, add_product_account, \
     update_account_storage
 from src.services.filesystem.actions import extract_archive_to_temp, make_archive
 from src.services.filesystem.input_account import encrypted_tg_account, cleanup_used_data, archive_if_not_empty

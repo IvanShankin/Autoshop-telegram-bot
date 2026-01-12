@@ -1,14 +1,14 @@
 import pytest
 
-from helpers.helper_functions import comparison_models
-from src.services.database.product_categories.models.product_account import AccountServiceType
+from tests.helpers.helper_functions import comparison_models
+from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.redis.filling_redis import filling_category_by_category
 
 
 
 @pytest.mark.asyncio
 async def test_get_quantity_products_in_category(create_category, create_product_account):
-    from src.services.database.product_categories.actions import get_quantity_products_in_category
+    from src.services.database.categories.actions import get_quantity_products_in_category
     category = await create_category()
 
     for i in range(5):
@@ -22,7 +22,7 @@ async def test_get_quantity_products_in_category(create_category, create_product
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_categories_by_category_id(use_redis, create_category, create_product_account):
-    from src.services.database.product_categories.actions import get_categories_by_category_id
+    from src.services.database.categories.actions import get_categories_by_category_id
 
     category_1 = await create_category(filling_redis=use_redis)
     category_other = await create_category(filling_redis=use_redis)
@@ -38,7 +38,7 @@ async def test_get_categories_by_category_id(use_redis, create_category, create_
 
 @pytest.mark.asyncio
 async def test_get_all_phone_in_account_storage(create_product_account, create_sold_account):
-    from src.services.database.product_categories.actions import get_all_phone_in_account_storage
+    from src.services.database.categories.actions import get_all_phone_in_account_storage
 
     _, account_1 = await create_product_account(type_account_service=AccountServiceType.TELEGRAM)
     account_2, _ = await create_sold_account(type_account_service=AccountServiceType.TELEGRAM, phone_number = "+7 32949 543543")
@@ -53,7 +53,7 @@ async def test_get_all_phone_in_account_storage(create_product_account, create_s
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_categories(use_redis, create_category, create_product_account):
-    from src.services.database.product_categories.actions import get_categories
+    from src.services.database.categories.actions import get_categories
 
     category_owner = await create_category(filling_redis=use_redis)
     category_3 = await create_category(
@@ -96,7 +96,7 @@ async def test_get_categories(use_redis, create_category, create_product_account
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_product_account_by_category_id(use_redis, create_category, create_product_account):
-    from src.services.database.product_categories.actions import get_product_account_by_category_id
+    from src.services.database.categories.actions import get_product_account_by_category_id
 
     category = await create_category()
     account_1, _ = await create_product_account(use_redis, category_id=category.category_id)
@@ -113,7 +113,7 @@ async def test_get_product_account_by_category_id(use_redis, create_category, cr
 
 @pytest.mark.asyncio
 async def test_get_full_product_account_by_category_id(create_category, create_product_account):
-    from src.services.database.product_categories.actions import get_product_account_by_category_id
+    from src.services.database.categories.actions import get_product_account_by_category_id
 
     category = await create_category()
     _, account_1 = await create_product_account(category_id=category.category_id)
@@ -131,7 +131,7 @@ async def test_get_full_product_account_by_category_id(create_category, create_p
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_product_account_by_account_id(use_redis, create_category, create_product_account):
-    from src.services.database.product_categories.actions import get_product_account_by_account_id
+    from src.services.database.categories.actions import get_product_account_by_account_id
     category = await create_category()
     _, account = await create_product_account(use_redis, category_id=category.category_id)
     _, account_other = await create_product_account(use_redis)
@@ -143,7 +143,7 @@ async def test_get_product_account_by_account_id(use_redis, create_category, cre
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_sold_accounts_by_owner_id(use_redis, create_new_user, create_sold_account):
-    from src.services.database.product_categories.actions import get_sold_accounts_by_owner_id
+    from src.services.database.categories.actions import get_sold_accounts_by_owner_id
 
     owner = await create_new_user()
     account_1, _ = await create_sold_account(use_redis, owner_id=owner.user_id)
@@ -162,7 +162,7 @@ async def test_get_sold_accounts_by_owner_id(use_redis, create_new_user, create_
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_sold_account_by_page(use_redis, create_new_user, create_sold_account):
-    from src.services.database.product_categories.actions import get_sold_account_by_page
+    from src.services.database.categories.actions import get_sold_account_by_page
 
     owner = await create_new_user()
     account_1, _ = await create_sold_account(use_redis, owner_id=owner.user_id)
@@ -181,7 +181,7 @@ async def test_get_sold_account_by_page(use_redis, create_new_user, create_sold_
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_sold_accounts_by_account_id(use_redis, create_sold_account):
-    from src.services.database.product_categories.actions import get_sold_accounts_by_account_id
+    from src.services.database.categories.actions import get_sold_accounts_by_account_id
 
     _, account = await create_sold_account(use_redis)
     _, account_other = await create_sold_account(use_redis)
@@ -199,7 +199,7 @@ async def test_subtree_with_visible_storage_returns_true(create_category, create
     grand.is_product_storage=True и в grand есть аккаунт
     все show=True -> root/child/grand => True
     """
-    from src.services.database.product_categories.actions.actions_get import _has_accounts_in_subtree
+    from src.services.database.categories.actions.actions_get import _has_accounts_in_subtree
     # создаём дерево
     root = await create_category()
     child = await create_category(parent_id=root.category_id)
@@ -227,7 +227,7 @@ async def test_subtree_blocked_by_hidden_node(create_category, create_product_ac
     root -> child (show=False) -> grand(is_product_storage=True, has account)
     child.show == False => child и root должны вернуть False, grand True
     """
-    from src.services.database.product_categories.actions.actions_get import _has_accounts_in_subtree
+    from src.services.database.categories.actions.actions_get import _has_accounts_in_subtree
     root = await create_category()
     # child скрыт
     child = await create_category(parent_id=root.category_id, show=False)
@@ -255,7 +255,7 @@ async def test_subtree_wide_siblings_only_one_branch_has_accounts(create_categor
     child_2 -> grand_target(is_product_storage=True, has account)
     Ожидаем: root True; child_2 True; другие child False
     """
-    from src.services.database.product_categories.actions.actions_get import _has_accounts_in_subtree
+    from src.services.database.categories.actions.actions_get import _has_accounts_in_subtree
     root = await create_category()
     children = []
     for _i in range(5):
@@ -286,7 +286,7 @@ async def test_subtree_wide_siblings_only_one_branch_has_accounts(create_categor
 
 @pytest.mark.asyncio
 async def test_update_tg_account_media(create_tg_account_media):
-    from src.services.database.product_categories.actions import get_tg_account_media
+    from src.services.database.categories.actions import get_tg_account_media
 
     tg_media = await create_tg_account_media()
     result_tg_media = await get_tg_account_media(tg_media.account_storage_id)

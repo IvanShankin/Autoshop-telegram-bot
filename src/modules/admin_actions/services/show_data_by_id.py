@@ -6,7 +6,7 @@ from src.services.database.discounts.actions import get_voucher_by_id, get_promo
 from src.services.database.discounts.actions.actions_promo import get_activated_promo_code
 from src.services.database.discounts.actions.actions_vouchers import get_activate_voucher
 from src.services.database.referrals.actions.actions_ref import get_referral, get_income_from_referral
-from src.services.database.product_categories.actions.actions_get import get_purchases_accounts, \
+from src.services.database.categories.actions.actions_get import get_purchases_accounts, \
     get_sold_accounts_by_account_id
 from src.services.database.users.actions import get_replenishment
 from src.services.database.users.actions.action_other_with_user import get_transfer_money, get_wallet_transaction

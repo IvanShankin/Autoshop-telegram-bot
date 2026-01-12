@@ -4,9 +4,9 @@ from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
-from src.services.database.product_categories.models import SoldAccounts, ProductAccounts
-from src.services.database.product_categories.models import AccountStorage, Categories, CategoryTranslation
-from src.services.database.product_categories.models.product_account import AccountServiceType
+from src.services.database.categories.models import SoldAccounts, ProductAccounts
+from src.services.database.categories.models import AccountStorage, Categories, CategoryTranslation
+from src.services.database.categories.models.product_account import AccountServiceType
 
 
 class PurchaseAccountSchema(BaseModel):

@@ -8,9 +8,9 @@ from sqlalchemy import select, inspect as sa_inspect, DateTime, func
 from sqlalchemy.orm import selectinload
 
 from src.config import get_config
-from src.services.database.product_categories.models import AccountStorage, TgAccountMedia, PurchasesAccounts, \
+from src.services.database.categories.models import AccountStorage, TgAccountMedia, PurchasesAccounts, \
     ProductUniversal
-from src.services.database.product_categories.models.product_account import AccountServiceType
+from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import (
     filling_product_account_by_account_id,
@@ -18,7 +18,7 @@ from src.services.redis.filling_redis import (
     filling_categories_by_parent, filling_main_categories, filling_product_accounts_by_category_id
 )
 from src.services.database.core.database import get_db
-from src.services.database.product_categories.models import Categories,  ProductAccounts, SoldAccounts, CategoryFull, \
+from src.services.database.categories.models import Categories,  ProductAccounts, SoldAccounts, CategoryFull, \
     SoldAccountSmall, SoldAccountFull, ProductAccountFull
 
 

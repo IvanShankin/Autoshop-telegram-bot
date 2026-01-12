@@ -10,13 +10,13 @@ from src.exceptions import TranslationAlreadyExists, \
     TheCategoryNotStorageAccount
 from src.exceptions.business import TheAccountServiceDoesNotMatch
 from src.services.database.core.database import get_db
-from src.services.database.product_categories.actions.actions_get import get_categories_by_category_id, \
+from src.services.database.categories.actions.actions_get import get_categories_by_category_id, \
     get_quantity_products_in_category
-from src.services.database.product_categories.models import AccountStorage
-from src.services.database.product_categories.models import Categories, CategoryTranslation, \
+from src.services.database.categories.models import AccountStorage
+from src.services.database.categories.models import Categories, CategoryTranslation, \
     ProductAccounts, SoldAccounts, SoldAccountsTranslation, DeletedAccounts, CategoryFull, SoldAccountSmall
-from src.services.database.product_categories.models import TgAccountMedia
-from src.services.database.product_categories.models.product_account import AccountServiceType
+from src.services.database.categories.models import TgAccountMedia
+from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.database.system.actions.actions import create_ui_image
 from src.services.database.users.actions import get_user
 from src.services.redis.filling_redis import filling_product_account_by_account_id, \
@@ -95,7 +95,6 @@ async def add_translation_in_category(
     return full_category
 
 
-# было: add_account_category
 async def add_category(
     language: str,
     name: str,

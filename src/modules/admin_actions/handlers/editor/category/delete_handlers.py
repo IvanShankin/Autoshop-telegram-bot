@@ -9,7 +9,7 @@ from src.modules.admin_actions.keyboards import to_services_kb, delete_category_
     delete_accounts_kb
 from src.modules.admin_actions.services import safe_get_category
 from src.modules.admin_actions.services import upload_account
-from src.services.database.product_categories.actions.actions_delete import delete_category, \
+from src.services.database.categories.actions.actions_delete import delete_category, \
     delete_product_accounts_by_category
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text

@@ -8,7 +8,7 @@ import orjson
 from sqlalchemy import select, update, delete, func, desc
 
 from src.config import get_config
-from src.services.database.product_categories.models import PurchasesAccounts, ProductAccounts, Categories
+from src.services.database.categories.models import PurchasesAccounts, ProductAccounts, Categories
 from src.services.database.system.shemas.shemas import StatisticsData, ReplenishmentPaymentSystem
 from src.services.database.users.models import Users, Replenishments
 from src.services.redis.filling_redis import filling_types_payments_by_id, filling_all_types_payments, \

@@ -8,9 +8,9 @@ from src.bot_actions.bot_instance import get_bot
 from src.config import get_config
 from src.modules.profile.keyboard_profile import services_sold_accounts_kb, sold_accounts_kb, account_kb, \
     confirm_del_acc_kb, login_details_kb
-from src.services.database.product_categories.actions import get_sold_accounts_by_account_id, update_account_storage, \
+from src.services.database.categories.actions import get_sold_accounts_by_account_id, update_account_storage, \
     delete_sold_account, get_type_account_service, add_deleted_accounts, get_tg_account_media, update_tg_account_media
-from src.services.database.product_categories.models import SoldAccountFull, AccountStorage
+from src.services.database.categories.models import SoldAccountFull, AccountStorage
 from src.services.database.users.actions import get_user
 from src.services.database.users.models import Users
 from src.services.filesystem.account_actions import move_in_account, get_tdata_tg_acc, get_session_tg_acc

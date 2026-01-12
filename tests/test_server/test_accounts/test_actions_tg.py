@@ -4,8 +4,8 @@ from datetime import datetime, timezone
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from src.services.database.product_categories.models import AccountStorage
-from src.services.database.product_categories.models.product_account import AccountServiceType
+from src.services.database.categories.models import AccountStorage
+from src.services.database.categories.models.product_account import AccountServiceType
 
 
 class TestCheckValidAccounts:

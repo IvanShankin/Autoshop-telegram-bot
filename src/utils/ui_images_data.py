@@ -69,7 +69,7 @@ def get_ui_images():
         # каталог
         "main_catalog": ui_sections / "main_catalog.png",
         "default_catalog_account": ui_sections / "default_catalog_account.png",
-        "account_catalog": ui_sections / "account_catalog.png",
+        "main_category": ui_sections / "main_category.png",
         "confirm_purchase": ui_sections / "confirm_purchase.png",
         "successful_purchase": ui_sections / "successful_purchase.png",
 

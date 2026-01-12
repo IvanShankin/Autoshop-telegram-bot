@@ -14,7 +14,7 @@ from src.config import get_config
 from src.exceptions import CategoryNotFound, NotEnoughAccounts, NotEnoughMoney
 from src.services.database.discounts.events import NewActivatePromoCode
 from src.services.database.discounts.utils.calculation import discount_calculation
-from src.services.database.categories.actions.events.schemas import NewPurchaseAccount, AccountsData
+from src.services.database.categories.events.schemas import NewPurchaseAccount, AccountsData
 from src.services.database.categories.models import PurchaseRequests, PurchaseRequestAccount
 from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.database.users.models.models_users import BalanceHolder

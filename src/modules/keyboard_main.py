@@ -15,7 +15,7 @@ selecting_language = InlineKeyboardMarkup(
 async def main_kb(language: str, user_id: int):
     keyboard_builder = ReplyKeyboardBuilder()
 
-    keyboard_builder.row(KeyboardButton(text = get_text(language, 'kb_start', 'Product catalog')))
+    keyboard_builder.row(KeyboardButton(text = get_text(language, 'kb_start', 'Product categories')))
     keyboard_builder.row(
         KeyboardButton(text = get_text(language, 'kb_start', 'Profile')),
         KeyboardButton(text = get_text(language, 'kb_start', 'Information'))

@@ -11,7 +11,7 @@ from sqlalchemy import MetaData, Table
 from src.broker.producer import publish_event
 from src.config import get_config
 from src.services.database.discounts.models import Vouchers
-from src.services.database.categories.actions.events.schemas import NewPurchaseAccount, AccountsData
+from src.services.database.categories.events.schemas import NewPurchaseAccount, AccountsData
 from src.services.database.system.actions import get_settings, update_settings
 from src.services.database.users.models import Replenishments, Users, WalletTransaction, UserAuditLogs
 from src.services.database.replenishments_event.schemas import ReplenishmentFailed, ReplenishmentCompleted, NewReplenishment

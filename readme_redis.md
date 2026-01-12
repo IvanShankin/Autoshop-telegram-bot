@@ -137,6 +137,7 @@
     
     "is_main": "bool", 
     "is_product_storage": "bool",
+    "allow_multiple_purchase": "bool",
     
     // только для тех кто хранит товары,
     "product_type": "str", 
@@ -169,6 +170,7 @@
     
     "is_main": "bool",
     "is_product_storage": "bool",
+    "allow_multiple_purchase": "bool",
     
     // только для тех кто хранит товары,
     "product_type": "str", 
@@ -200,6 +202,7 @@
     
     "is_main": "bool", 
     "is_product_storage": "bool", 
+    "allow_multiple_purchase": "bool",
     
     // только для тех кто хранит товары,
     "product_type": "str", 

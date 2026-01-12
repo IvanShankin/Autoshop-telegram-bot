@@ -22,7 +22,7 @@ router = Router()
 
 
 @router.callback_query(F.data == "services_editor")
-async def show_catalog_services_accounts(callback: CallbackQuery, state: FSMContext, user: Users):
+async def show_main_categories(callback: CallbackQuery, state: FSMContext, user: Users):
     await state.clear()
     await edit_message(
         chat_id=callback.from_user.id,

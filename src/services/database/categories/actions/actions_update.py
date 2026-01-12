@@ -23,6 +23,7 @@ async def update_category(
         file_data: bytes = None,
         number_buttons_in_row: int = None,
         is_product_storage: bool = None,
+        allow_multiple_purchase: bool = None,
         price_one_account: int = None,
         cost_price_one_account: int = None,
 ) -> Categories:
@@ -37,9 +38,9 @@ async def update_category(
     Необходимо извлечь их для применения изменений
     """
     if price_one_account is not None and price_one_account <= 0:
-        raise IncorrectedAmountSale("Цена аккаунтов должна быть положительным числом")
+        raise IncorrectedAmountSale("Цена товара должна быть положительным числом")
     if cost_price_one_account is not None and cost_price_one_account < 0:
-        raise IncorrectedCostPrice("Себестоимость аккаунтов должна быть положительным числом")
+        raise IncorrectedCostPrice("Себестоимость товара должна быть положительным числом")
     if number_buttons_in_row is not None and (number_buttons_in_row < 1 or number_buttons_in_row > 8):
         raise IncorrectedNumberButton("Количество кнопок в строке, должно быть в диапазоне от 1 до 8")
 
@@ -74,12 +75,14 @@ async def update_category(
                 product_account: ProductAccounts = result.scalars().first()
                 if product_account: # если данная категория хранит аккаунты
                     raise TheCategoryStorageAccount(
-                        f"Категория с id = {category_id} хранит аккаунты. "
+                        f"Категория с id = {category_id} хранит товары. "
                         f"Необходимо извлечь их для применения изменений"
                     )
 
 
             update_data["is_product_storage"] = is_product_storage
+        if allow_multiple_purchase is not None:
+            update_data["allow_multiple_purchase"] = show
         if show is not None:
             update_data["show"] = show
         if price_one_account is not None:
@@ -161,14 +164,14 @@ async def update_category(
     return category
 
 
-async def update_account_category_translation(
+async def update_category_translation(
         category_id: int,
         language: str,
         name: str = None,
         description: str = None
 ) -> CategoryFull:
     """
-    :except AccountCategoryNotFound: Категория аккаунтов с id = {category_id} не найдена
+    :except AccountCategoryNotFound: Категория с id = {category_id} не найдена
     """
     async with get_db() as session:
         # загружаем текущий объект
@@ -177,7 +180,7 @@ async def update_account_category_translation(
         )
         category: Categories = result.scalar_one_or_none()
         if not category:
-            raise AccountCategoryNotFound(f"Категория аккаунтов с id = {category_id} не найдена")
+            raise AccountCategoryNotFound(f"Категория с id = {category_id} не найдена")
 
         result = await session.execute(
             select(CategoryTranslation)

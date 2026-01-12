@@ -32,6 +32,7 @@ class Categories(Base):
     is_product_storage = Column(Boolean, nullable=False, server_default=text('false')) # если это хранилище товаров
 
     # есть только когда is_product_storage == True
+    allow_multiple_purchase = Column(Boolean, nullable=False, server_default=text("true"))
     product_type = Column(Enum("account", "universal", "file", name="product_type"), nullable=True)
     type_account_service = type_account_service = Column(
         Enum(

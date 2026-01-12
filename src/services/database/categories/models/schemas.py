@@ -29,8 +29,8 @@ class StartPurchaseAccount(BaseModel):
     user_balance_before: int
     user_balance_after: int
 
-
     model_config = ConfigDict(arbitrary_types_allowed=True)
+
 
 class CategoryFull(BaseModel):
     category_id: int
@@ -46,6 +46,7 @@ class CategoryFull(BaseModel):
 
     is_main: bool
     is_product_storage: bool
+    allow_multiple_purchase: bool
 
     product_type: str | None
     type_account_service: AccountServiceType | None
@@ -77,6 +78,7 @@ class CategoryFull(BaseModel):
             name=category.get_name(lang, fallback),
             description=category.get_description(lang, fallback),
             is_product_storage=category.is_product_storage,
+            allow_multiple_purchase=category.allow_multiple_purchase,
 
             product_type=category.product_type,
             type_account_service=category.type_account_service,

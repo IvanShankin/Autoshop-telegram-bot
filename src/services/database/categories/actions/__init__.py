@@ -6,7 +6,7 @@ from src.services.database.categories.actions.actions_delete import (
     delete_category, delete_product_account, delete_sold_account, delete_translate_category
 )
 from src.services.database.categories.actions.actions_update import (
-    update_category, update_account_category_translation, update_account_storage,
+    update_category, update_category_translation, update_account_storage,
     update_tg_account_media
 )
 from src.services.database.categories.actions.actions_get import (
@@ -29,7 +29,7 @@ __all__ = [
     'delete_product_account',
     'delete_sold_account',
     'update_category',
-    'update_account_category_translation',
+    'update_category_translation',
     'update_account_storage',
     'update_tg_account_media',
     'get_categories_by_category_id',

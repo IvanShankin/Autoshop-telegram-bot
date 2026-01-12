@@ -20,7 +20,7 @@ from src.modules.admin_actions.services import upload_account
 from src.modules.admin_actions.state import UpdateNameForCategory, \
     UpdateDescriptionForCategory, UpdateCategoryImage, UpdateNumberInCategory
 from src.services.database.categories.actions import update_category, \
-    update_account_category_translation
+    update_category_translation
 from src.services.database.system.actions import update_ui_image
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
@@ -122,7 +122,7 @@ async def acc_category_update_name(callback: CallbackQuery, state: FSMContext, u
 async def get_name_for_update(message: Message, state: FSMContext, user: Users):
     data = UpdateNameForCategoryData( **(await state.get_data()))
     try:
-        await update_account_category_translation(
+        await update_category_translation(
             category_id=data.category_id,
             language=data.language,
             name=message.text,
@@ -167,7 +167,7 @@ async def acc_category_update_descr(callback: CallbackQuery, state: FSMContext, 
 async def get_description_for_update(message: Message, state: FSMContext, user: Users):
     data = UpdateDescriptionForCategoryData( **(await state.get_data()))
     try:
-        await update_account_category_translation(
+        await update_category_translation(
             category_id=data.category_id,
             language=data.language,
             description=message.text,

@@ -142,14 +142,14 @@ class TestUpdateCategory:
 class TestUpdateAccountCategoryTranslation:
     @pytest.mark.asyncio
     async def test_update_account_category_translation_success(self,create_category):
-        from src.services.database.categories.actions import update_account_category_translation
+        from src.services.database.categories.actions import update_category_translation
 
         full_category = await create_category(filling_redis=True, language="ru", name="orig", description="orig")
 
         # обновляем перевод
         new_name = "новое имя"
         new_description = "новое описание"
-        updated = await update_account_category_translation(
+        updated = await update_category_translation(
             category_id=full_category.category_id,
             language="ru",
             name=new_name,
@@ -195,17 +195,17 @@ class TestUpdateAccountCategoryTranslation:
 
     @pytest.mark.asyncio
     async def test_update_account_category_translation_errors(self, create_category):
-        from src.services.database.categories.actions import update_account_category_translation
+        from src.services.database.categories.actions import update_category_translation
         # несуществующая категория
         with pytest.raises(AccountCategoryNotFound):
-            await update_account_category_translation(category_id=999999, language="ru", name="x")
+            await update_category_translation(category_id=999999, language="ru", name="x")
 
         # создаём реальную категорию с переводом "ru"
         full_category = await create_category(filling_redis=False, language="ru", name="orig")
 
         # пытаемся обновить перевод на языке которого нет (например 'en') -> ожидаем ValueError
         with pytest.raises(ValueError):
-            await update_account_category_translation(category_id=full_category.category_id, language="en", name="x")
+            await update_category_translation(category_id=full_category.category_id, language="en", name="x")
 
 
 class TestUpdateAccountStorage:

@@ -4,13 +4,13 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.config import get_config
+from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.keyboards.keyboard_with_pages import pagination_keyboard
 from src.services.database.discounts.actions import get_valid_voucher_by_page
 from src.services.database.discounts.actions import get_count_voucher
 from src.services.database.referrals.actions import get_referral_income_page, get_count_referral_income
 from src.services.database.categories.actions import get_sold_account_by_page
-from src.services.database.categories.actions.actions_get import get_count_sold_account, \
-    get_union_type_account_service_id, get_all_account_services, get_all_types_account_service, get_type_account_service
+from src.services.database.categories.actions.actions_get import get_count_sold_account, get_categories
 from src.services.database.system.actions.actions import get_all_types_payments
 from src.services.database.users.actions.action_other_with_user import get_wallet_transaction_page, \
     get_count_wallet_transaction
@@ -72,56 +72,56 @@ def back_in_type_replenishment_kb(language: str):
 
 async def services_sold_accounts_kb(language: str, user_id: int):
     """Отобразит только те сервисы в которых у пользователя есть купленные аккаунты"""
-    union_type_service_ids = await get_union_type_account_service_id(user_id)
-    account_services = await get_all_account_services(return_not_show=True)
-
-    # определяем id типа сервиса 'other'
-    all_type_services = await get_all_types_account_service()
-    type_service_other_id = next(
-        (s.type_account_service_id for s in all_type_services if s.name == 'other'),
-        -1
-    )
-
-    keyboard = InlineKeyboardBuilder()
-
-    # сперва пытаемся получить имя с созданных сервисов
-    used_type_service = []
-    for service in account_services:
-        if (service.type_account_service_id in union_type_service_ids and
-            service.type_account_service_id != type_service_other_id):
-
-            keyboard.row(InlineKeyboardButton(
-                text=service.name,
-                callback_data=f'all_sold_accounts:1:{service.type_account_service_id}')
-            )
-            used_type_service.append(service.type_account_service_id)
-
-
-    # если нет некоторых созданных сервисов, то устанавливаем имя которое находится в типе сервиса
-    unused_ids = [service_id for service_id in union_type_service_ids if service_id not in used_type_service]
-    for type_service_id in unused_ids:
-        if type_service_id != type_service_other_id:
-
-            for type_service in all_type_services:
-                if type_service.type_account_service_id == type_service_id:
-                    keyboard.row(InlineKeyboardButton(
-                        text=type_service.name,
-                        callback_data=f'all_sold_accounts:1:{type_service_id}')
-                    )
-                    break
-
-    # тип сервиса "other" должен быть всегда последним
-    if type_service_other_id in union_type_service_ids:
-        keyboard.row(InlineKeyboardButton(
-            text=get_text(language, 'kb_profile', 'Others'),
-            callback_data=f'all_sold_accounts:1:{type_service_other_id}')
-        )
-
-    keyboard.row(
-        InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'profile'),
-    )
-
-    return keyboard.as_markup()
+    # union_type_service_ids = await get_union_type_account_service_id(user_id)
+    # account_services = await get_all_account_services(return_not_show=True)
+    #
+    # # определяем id типа сервиса 'other'
+    # all_type_services = await get_all_types_account_service()
+    # type_service_other_id = next(
+    #     (s.type_account_service_id for s in all_type_services if s.name == 'other'),
+    #     -1
+    # )
+    #
+    # keyboard = InlineKeyboardBuilder()
+    #
+    # # сперва пытаемся получить имя с созданных сервисов
+    # used_type_service = []
+    # for service in account_services:
+    #     if (service.type_account_service_id in union_type_service_ids and
+    #         service.type_account_service_id != type_service_other_id):
+    #
+    #         keyboard.row(InlineKeyboardButton(
+    #             text=service.name,
+    #             callback_data=f'all_sold_accounts:1:{service.type_account_service_id}')
+    #         )
+    #         used_type_service.append(service.type_account_service_id)
+    #
+    #
+    # # если нет некоторых созданных сервисов, то устанавливаем имя которое находится в типе сервиса
+    # unused_ids = [service_id for service_id in union_type_service_ids if service_id not in used_type_service]
+    # for type_service_id in unused_ids:
+    #     if type_service_id != type_service_other_id:
+    #
+    #         for type_service in all_type_services:
+    #             if type_service.type_account_service_id == type_service_id:
+    #                 keyboard.row(InlineKeyboardButton(
+    #                     text=type_service.name,
+    #                     callback_data=f'all_sold_accounts:1:{type_service_id}')
+    #                 )
+    #                 break
+    #
+    # # тип сервиса "other" должен быть всегда последним
+    # if type_service_other_id in union_type_service_ids:
+    #     keyboard.row(InlineKeyboardButton(
+    #         text=get_text(language, 'kb_profile', 'Others'),
+    #         callback_data=f'all_sold_accounts:1:{type_service_other_id}')
+    #     )
+    #
+    # keyboard.row(
+    #     InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'profile'),
+    # )
+    #
+    # return keyboard.as_markup()
 
 
 async def sold_accounts_kb(language: str, current_page: int, type_account_service_id: int, user_id: int):
@@ -170,10 +170,9 @@ def account_kb(language: str, sold_account_id: int, type_account_service_id: int
     ])
 
 
-async def login_details_kb(language: str, sold_account_id: int, type_account_service_id: int, current_page: int):
-    type_service = await get_type_account_service(type_account_service_id)
+async def login_details_kb(language: str, sold_account_id: int, type_account_service: AccountServiceType, current_page: int):
     keyboard = InlineKeyboardBuilder()
-    if type_service.name == "telegram":
+    if type_account_service == AccountServiceType.TELEGRAM:
         keyboard.row(
             InlineKeyboardButton(
                 text=get_text(language, 'kb_profile', 'Get code'),
@@ -204,7 +203,10 @@ async def login_details_kb(language: str, sold_account_id: int, type_account_ser
     keyboard.row(
         InlineKeyboardButton(
             text=get_text(language, "kb_general", "Back"),
-            callback_data=f'sold_account:{sold_account_id}:{type_account_service_id}:{current_page}'
+            # callback_data=f'sold_account:{sold_account_id}:{type_account_service_id}:{current_page}'
+            # переделать
+            # переделать
+            # переделать
         ),
     )
     return keyboard.as_markup()

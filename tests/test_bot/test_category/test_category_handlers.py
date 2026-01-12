@@ -19,11 +19,10 @@ async def test_show_account_category_sets_state_and_edits_message_when_accounts_
     Если категория хранит аккаунты (is_product_storage=True) и доступно достаточное количество аккаунтов,
     то show_account_category должен:
       - записать в state данные (category_id, quantity_for_buying, old_message_id)
-      - установить state в BuyAccount.quantity_accounts (проверяем, что state изменился)
+      - установить state в BuyProduct.quantity_products (проверяем, что state изменился)
       - отредактировать исходное сообщение (edit_message_account_category вызван)
     """
-    # импорт внутри теста (чтобы не ломать импорты при запуске других тестов)
-    from src.modules.catalog.selling_accounts import sel_account_handlers as module
+    from src.modules.categories.handlers.handler_categories import show_category
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
@@ -36,11 +35,11 @@ async def test_show_account_category_sets_state_and_edits_message_when_accounts_
     for _ in range(quantity):
         await create_product_account(category_id=category_id)
 
-    cb = FakeCallbackQuery(data=f"show_account_category:{category_id}:{quantity}", chat_id=user.user_id, username=user.username)
+    cb = FakeCallbackQuery(data=f"show_category:{category_id}:{quantity}", chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=123)
 
     fsm = FakeFSMContext()
-    await module.show_account_category(cb, fsm, user)
+    await show_category(cb, fsm, user)
 
     # state должен быть установлен (точный класс состояния проверять не будем, проверим, что state не None)
     assert fsm.state is not None, "FSM state не установлен"
@@ -63,7 +62,7 @@ async def test_show_account_category_non_storage_clears_state_and_edits_message(
     """
     Для категорий не-хранилищ (is_product_storage=False) — state очищается и edit_message_account_category вызывается.
     """
-    from src.modules.catalog.selling_accounts import sel_account_handlers as module
+    from src.modules.categories.handlers.handler_categories import show_category
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
@@ -71,14 +70,14 @@ async def test_show_account_category_non_storage_clears_state_and_edits_message(
     category = await create_category(is_product_storage=False)
     category_id = category.category_id
 
-    cb = FakeCallbackQuery(data=f"show_account_category:{category_id}:1", chat_id=user.user_id, username=user.username)
+    cb = FakeCallbackQuery(data=f"show_category:{category_id}:1", chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=222, photo=None)
 
     fsm = FakeFSMContext()
     # предварительно задам какие-то данные в state, чтобы убедиться, что handler их перезапишет/очистит
     await fsm.update_data(old_message_id=999, category_id=999, quantity_for_buying=5)
 
-    await module.show_account_category(cb, fsm, user)
+    await show_category(cb, fsm, user)
 
     # state должен быть установлен в некоторую форму (мы ожидаем, что данные обновлены на текущую категорию)
     data = await fsm.get_data()
@@ -97,11 +96,11 @@ async def test_set_quantity_accounts_invalid_and_exceeds_stock_behaviour(
     create_product_account,
 ):
     """
-    Проверяем два кейса для set_quantity_accounts:
+    Проверяем два кейса для set_quantity_products:
       1) нечисловой ввод -> отправляется "Incorrect value entered. Please try again" и state остаётся на том же шаге
       2) ввод больше чем есть на складе -> отправляется "No longer in stock"
     """
-    from src.modules.catalog.selling_accounts import sel_account_handlers as module
+    from src.modules.categories.handlers.handler_categories import set_quantity_products
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
@@ -113,7 +112,7 @@ async def test_set_quantity_accounts_invalid_and_exceeds_stock_behaviour(
     # подготовим state как будто пользователь уже выбрал категорию
     await fsm1.update_data(category_id=category_id, old_message_id=11, quantity_for_buying=0)
     msg_bad = FakeMessage(text="not_a_number", chat_id=user.user_id, username=user.username)
-    await module.set_quantity_accounts(msg_bad, fsm1, user)
+    await set_quantity_products(msg_bad, fsm1, user)
 
     bad_text = get_text(user.language, 'miscellaneous',"Incorrect value entered. Please try again")
     assert fake_bot.get_message(chat_id=user.user_id, text=bad_text), "Не отправилось сообщение об ошибочном вводе"
@@ -124,9 +123,9 @@ async def test_set_quantity_accounts_invalid_and_exceeds_stock_behaviour(
     await fsm2.update_data(category_id=category_id, old_message_id=22, quantity_for_buying=0)
     # на текущий момент quantity_product_account скорее всего 0, запросим 5
     msg_too_many = FakeMessage(text="5", chat_id=user.user_id, username=user.username)
-    await module.set_quantity_accounts(msg_too_many, fsm2, user)
+    await set_quantity_products(msg_too_many, fsm2, user)
 
-    no_stock_text = get_text(user.language, 'catalog', "No longer in stock")
+    no_stock_text = get_text(user.language, 'categories', "No longer in stock")
     assert fake_bot.get_message(chat_id=user.user_id, text=no_stock_text), "Не отправилось сообщение о нехватке на складе"
 
 
@@ -143,7 +142,7 @@ async def test_set_quantity_accounts_success_updates_state_and_edits_message(
       - state.update_data(quantity_for_buying=...) обновлён
       - edit_message_account_category вызван и отредактировал исходное сообщение
     """
-    from src.modules.catalog.selling_accounts import sel_account_handlers as module
+    from src.modules.categories.handlers.handler_categories import set_quantity_products
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
@@ -162,7 +161,7 @@ async def test_set_quantity_accounts_success_updates_state_and_edits_message(
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage
     msg = FakeMessage(text="3", chat_id=user.user_id, username=user.username)
 
-    await module.set_quantity_accounts(msg, fsm, user)
+    await set_quantity_products(msg, fsm, user)
 
     data = await fsm.get_data()
     assert int(data.get("quantity_for_buying")) == 3 or data.get("quantity_for_buying") == "3"
@@ -180,9 +179,9 @@ async def test_enter_promo_sets_state_and_edits_message(
 ):
     """
     Callback enter_promo: должен отредактировать сообщение с просьбой ввести код
-    и установить state BuyAccount.promo_code, сохранив old_message_id в state.
+    и установить state BuyProduct.promo_code, сохранив old_message_id в state.
     """
-    from src.modules.catalog.selling_accounts import sel_account_handlers as module
+    from src.modules.categories.handlers.handler_categories import enter_promo
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
@@ -195,15 +194,15 @@ async def test_enter_promo_sets_state_and_edits_message(
     cb.message = SimpleNamespace(message_id=77)
 
     fsm = FakeFSMContext()
-    await module.enter_promo(cb, fsm, user)
+    await enter_promo(cb, fsm, user)
 
-    # state должен быть установлен в BuyAccount.promo_code (мы только проверим, что state не None)
+    # state должен быть установлен в BuyProduct.promo_code (мы только проверим, что state не None)
     assert fsm.state is not None, "FSM state не установлен"
 
     data = await fsm.get_data()
     assert int(data.get("old_message_id")) == cb.message.message_id or data.get("old_message_id") == cb.message.message_id
 
-    expected = get_text(user.language, 'catalog', "Enter the activation code")
+    expected = get_text(user.language, 'categories', "Enter the activation code")
 
     # проверяем, что сообщение редактировалось и содержало просьбу ввести код
     assert fake_bot.get_edited_message(user.user_id, cb.message.message_id, expected), "Не отредактировалось сообщение с просьбой ввести промокод"
@@ -219,9 +218,9 @@ async def test_set_promo_code_not_found_shows_error_and_keeps_state(
     """
     Ввод несуществующего/истёкшего промокода:
       - редактируется исходное сообщение с уведомлением об ошибке
-      - FSM остаётся на BuyAccount.promo_code
+      - FSM остаётся на BuyProduct.promo_code
     """
-    from src.modules.catalog.selling_accounts import sel_account_handlers as module
+    from src.modules.categories.handlers.handler_categories import set_promo_code
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
@@ -234,7 +233,7 @@ async def test_set_promo_code_not_found_shows_error_and_keeps_state(
     # вводим случайный код которого нет
     msg = FakeMessage(text="NOT_EXISTING_CODE", chat_id=user.user_id, username=user.username)
 
-    await module.set_promo_code(msg, fsm, user)
+    await set_promo_code(msg, fsm, user)
 
     # FSM должен остаться на шаге promo_code
     assert fsm.state is not None, "FSM state неожиданно очищен"
@@ -259,7 +258,7 @@ async def test_set_promo_code_success_updates_state_and_notifies_user(
       - edit_message_account_category вызывается (редактирование сообщения категории)
       - пользователю отправляется одноразовое уведомление 'The promo code has been successfully activated'
     """
-    from src.modules.catalog.selling_accounts import sel_account_handlers as module
+    from src.modules.categories.handlers.handler_categories import set_promo_code
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage, FakeFSMContext
 
     fake_bot = replacement_fake_bot_fix
@@ -273,7 +272,7 @@ async def test_set_promo_code_success_updates_state_and_notifies_user(
 
     msg = FakeMessage(text=promo.activation_code, chat_id=user.user_id, username=user.username)
 
-    await module.set_promo_code(msg, fsm, user)
+    await set_promo_code(msg, fsm, user)
 
     data = await fsm.get_data()
     # проверим что promo_code_id и promo_code попали в state
@@ -295,19 +294,19 @@ async def test_confirm_buy_acc_invalid_quantity_answers_user_and_no_edit(
     create_category,
 ):
     """
-    Если quantity_account <= 0 — callback должен вызвать callback.answer и не редактировать сообщение.
+    Если BuyProduct.quantity_products <= 0 — callback должен вызвать callback.answer и не редактировать сообщение.
     Мы проверяем отсутствие редактирования сообщения (т. к. fake callback.answer сложно инспектировать).
     """
-    from src.modules.catalog.selling_accounts import sel_account_handlers as module
+    from src.modules.categories.handlers.handler_categories import confirm_buy_category
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
     category = await create_category(is_product_storage=True)
 
-    cb = FakeCallbackQuery(data=f"confirm_buy_acc:{category.category_id}:0:None", chat_id=user.user_id, username=user.username)
+    cb = FakeCallbackQuery(data=f"confirm_buy_category:{category.category_id}:0:None", chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=12)
 
-    await module.confirm_buy_acc(cb, user)
+    await confirm_buy_category(cb, user)
 
     # не было редактирования сообщения (так как quantity <= 0)
     assert not fake_bot.check_str_in_edited_messages("Confirm your purchase"), "Сообщение неожиданно отредактировалось при некорректном количестве"
@@ -325,28 +324,28 @@ async def test_confirm_buy_acc_with_promo_applies_discount_and_edits_message(
     confirm_buy_acc с promo_code_id должен применить скидку и отредактировать сообщение с ожидаемой суммой.
     (используем create_promo_code: amount=100, min_order_amount=100)
     """
-    from src.modules.catalog.selling_accounts import sel_account_handlers as module
+    from src.modules.categories.handlers.handler_categories import confirm_buy_category
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user(balance=1000)
     # категоря с price_one_account по умолчанию 150 в фабрике — убедимся что она достаточна
-    category = await create_category(price_one_account=150, is_product_storage=True)
+    category = await create_category(price=150, is_product_storage=True)
     promo = await create_promo_code() # amount=100
 
     quantity = 1
     # total_sum before discount = 150, discount = 100 => due = 50
-    cb = FakeCallbackQuery(data=f"confirm_buy_acc:{category.category_id}:{quantity}:{promo.promo_code_id}", chat_id=user.user_id, username=user.username)
+    cb = FakeCallbackQuery(data=f"confirm_buy_category:{category.category_id}:{quantity}:{promo.promo_code_id}", chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=99)
 
-    await module.confirm_buy_acc(cb, user)
+    await confirm_buy_category(cb, user)
 
     # Проверим, что сообщение редактировалось и в нём указана верная сумма after discount (Due: 50)
     text = get_text(
         user.language,
-        domain='catalog',
+        domain='categories',
         key="Confirm your purchase\n\n"
         "{category_name}\n"
-        "Accounts will be received: {quantity_account}\n"
+        "Product will be received: {quantity_products}\n"
         "Your balance: {balance}\n"
         "Due: {total_sum}"
     )
@@ -366,12 +365,12 @@ async def test_confirm_buy_acc_invalid_promo_alerts_user(
     В этом случае handler должен вызвать callback.answer с show_alert=True.
     Мы проверяем, что сообщение НЕ редактируется (handler ответил alert'ом).
     """
-    from src.modules.catalog.selling_accounts import sel_account_handlers as module
+    from src.modules.categories.handlers.handler_categories import confirm_buy_category
     from src.exceptions import InvalidPromoCode
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
-    category = await create_category(price_one_account=100, is_product_storage=True)
+    category = await create_category(price=100, is_product_storage=True)
 
     # заставим discount_calculation бросать InvalidPromoCode
     async def fake_discount_calculation(amount, promo_code_id=None):
@@ -380,209 +379,10 @@ async def test_confirm_buy_acc_invalid_promo_alerts_user(
     from src.services.database.discounts.utils import calculation
     monkeypatch.setattr(calculation, "discount_calculation", fake_discount_calculation)
 
-    cb = FakeCallbackQuery(data=f"confirm_buy_acc:{category.category_id}:1:9999", chat_id=user.user_id, username=user.username)
+    cb = FakeCallbackQuery(data=f"confirm_buy_category:{category.category_id}:1:9999", chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=55)
 
-    await module.confirm_buy_acc(cb, user)
+    await confirm_buy_category(cb, user)
 
     # handler реагирует alert'ом — в тестах мы проверим, что сообщение не было отредактировано
     assert not fake_bot.check_str_in_edited_messages("Confirm your purchase"), "При невалидном промокоде сообщение неожиданно отредактировалось"
-
-
-class TestBuyAccount:
-    @pytest.mark.asyncio
-    async def test_buy_acc_not_enough_accounts_alerts_user(
-            self,
-            patch_fake_aiogram,
-            replacement_fake_bot_fix,
-            create_new_user,
-            create_category,
-    ):
-        """
-        Если category.quantity_product < quantity_account — показывается alert,
-        сообщение не редактируется.
-        """
-        from src.modules.catalog.selling_accounts import sel_account_handlers as module
-        fake_bot = replacement_fake_bot_fix
-        user = await create_new_user(balance=1000)
-        category = await create_category(is_product_storage=True)
-        # quantity_product_account по умолчанию 0, так что условия нехватки выполняются
-
-        cb = FakeCallbackQuery(data=f"buy_acc:{category.category_id}:5:None", chat_id=user.user_id,
-                               username=user.username)
-        cb.message = SimpleNamespace(message_id=10)
-
-        await module.buy_acc(cb, user)
-
-        # Проверяем: сообщение не редактировалось (только alert)
-        assert not fake_bot.check_str_in_edited_messages("Thank you for your purchase"), \
-            "Сообщение неожиданно отредактировалось, хотя должно быть только alert о нехватке аккаунтов"
-
-    @pytest.mark.asyncio
-    async def test_buy_acc_min_amount_for_promo_not_reached(
-            self,
-            patch_fake_aiogram,
-            replacement_fake_bot_fix,
-            create_new_user,
-            create_category,
-            create_promo_code,
-    ):
-        """
-        Если promo_code.min_order_amount > total_sum — показывается alert о минимальной сумме.
-        """
-        from src.modules.catalog.selling_accounts import sel_account_handlers as module
-
-        fake_bot = replacement_fake_bot_fix
-        user = await create_new_user(balance=10000)
-        category = await create_category(price_one_account=50, is_product_storage=True)
-        promo = await create_promo_code()  # min_order_amount=100
-
-        # quantity_account = 1 => total_sum = 50 < 100
-        cb = FakeCallbackQuery(data=f"buy_acc:{category.category_id}:1:{promo.promo_code_id}",
-                               chat_id=user.user_id, username=user.username)
-        cb.message = SimpleNamespace(message_id=20)
-
-        await module.buy_acc(cb, user)
-
-        # Проверяем отсутствие редактирования (был alert)
-        assert not fake_bot.check_str_in_edited_messages("Thank you for your purchase"), \
-            "Неожиданное редактирование сообщения при недостижении минимальной суммы промокода"
-
-    @pytest.mark.asyncio
-    async def test_buy_acc_invalid_promo_code_alert(
-            self,
-            patch_fake_aiogram,
-            replacement_fake_bot_fix,
-            create_new_user,
-            create_category,
-            monkeypatch,
-    ):
-        """
-        Если discount_calculation выбрасывает InvalidPromoCode — показывается alert,
-        сообщение не редактируется.
-        """
-        from src.modules.catalog.selling_accounts import sel_account_handlers as module
-        from src.exceptions import InvalidPromoCode
-
-        fake_bot = replacement_fake_bot_fix
-        user = await create_new_user(balance=10000)
-        category = await create_category(is_product_storage=True)
-
-        async def fake_discount_calculation(amount, promo_code_id=None):
-            raise InvalidPromoCode()
-
-        from src.services.database.discounts.utils import calculation
-        monkeypatch.setattr(calculation, "discount_calculation", fake_discount_calculation)
-
-        cb = FakeCallbackQuery(data=f"buy_acc:{category.category_id}:1:9999",
-                               chat_id=user.user_id, username=user.username)
-        cb.message = SimpleNamespace(message_id=30)
-
-        await module.buy_acc(cb, user)
-
-        assert not fake_bot.check_str_in_edited_messages("Thank you for your purchase"), \
-            "Сообщение не должно было редактироваться при невалидном промокоде"
-
-    @pytest.mark.asyncio
-    async def test_buy_acc_not_enough_money_edits_message(
-            self,
-            patch_fake_aiogram,
-            replacement_fake_bot_fix,
-            create_new_user,
-            create_category,
-            create_product_account
-    ):
-        """
-        Если balance < total_sum — редактируется сообщение о нехватке средств.
-        """
-        from src.modules.catalog.selling_accounts import sel_account_handlers as module
-
-        fake_bot = replacement_fake_bot_fix
-        user = await create_new_user(balance=50)
-        category = await create_category(price_one_account=200, is_product_storage=True)
-        _ = await create_product_account(category_id=category.category_id)
-
-        cb = FakeCallbackQuery(data=f"buy_acc:{category.category_id}:1:None",
-                               chat_id=user.user_id, username=user.username)
-        cb.message = SimpleNamespace(message_id=40)
-
-        await module.buy_acc(cb, user)
-
-        expected_text = get_text(user.language, 'miscellaneous', "Insufficient funds: {amount}").format(amount=150)
-
-        assert fake_bot.get_edited_message(user.user_id, cb.message.message_id, expected_text), \
-            "Не отредактировалось сообщение о нехватке средств"
-
-    @pytest.mark.asyncio
-    async def test_buy_acc_successful_purchase(
-            self,
-            patch_fake_aiogram,
-            replacement_fake_bot_fix,
-            create_new_user,
-            create_category,
-            create_product_account,
-            monkeypatch,
-    ):
-        """
-        Успешная покупка: purchase_accounts возвращает True -> сообщение 'Thank you for your purchase...'
-        """
-        from src.modules.catalog.selling_accounts import sel_account_handlers as module
-
-        fake_bot = replacement_fake_bot_fix
-        user = await create_new_user(balance=1000)
-        category = await create_category(price_one_account=100, is_product_storage=True)
-        _ = await create_product_account(category_id=category.category_id)
-
-        async def fake_purchase_accounts(**kwargs):
-            return True
-
-        from src.modules import catalog
-        monkeypatch.setattr(catalog, "categories", fake_purchase_accounts)
-
-        cb = FakeCallbackQuery(data=f"buy_acc:{category.category_id}:1:None",
-                               chat_id=user.user_id, username=user.username)
-        cb.message = SimpleNamespace(message_id=50)
-
-        await module.buy_acc(cb, user)
-
-        assert fake_bot.check_str_in_edited_messages("Thank you for your purchase"), \
-            "Не появилось сообщение об успешной покупке"
-
-    @pytest.mark.asyncio
-    async def test_buy_acc_purchase_failed_shows_no_enough_accounts_message(
-            self,
-            patch_fake_aiogram,
-            replacement_fake_bot_fix,
-            create_new_user,
-            create_category,
-            create_product_account,
-            monkeypatch,
-    ):
-        """
-        Если purchase_accounts возвращает False — должно отредактироваться сообщение с текстом
-        'There are not enough accounts on the server...'
-        """
-        from src.modules.catalog.selling_accounts import sel_account_handlers as module
-
-        fake_bot = replacement_fake_bot_fix
-        user = await create_new_user(balance=1000)
-        category = await create_category(price_one_account=100, is_product_storage=True)
-        _ = await create_product_account(category_id=category.category_id)
-
-        async def fake_purchase_accounts(**kwargs):
-            return False
-
-        from src.modules import catalog
-        monkeypatch.setattr(catalog, "categories", fake_purchase_accounts)
-
-        cb = FakeCallbackQuery(data=f"buy_acc:{category.category_id}:1:None",
-                               chat_id=user.user_id, username=user.username)
-        cb.message = SimpleNamespace(message_id=60)
-
-        await module.buy_acc(cb, user)
-
-        assert fake_bot.check_str_in_edited_messages("There are not enough accounts on the server"), \
-            "Не появилось сообщение о нехватке аккаунтов при result=False"
-
-
-

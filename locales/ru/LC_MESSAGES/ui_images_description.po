@@ -103,8 +103,8 @@ msgstr "При представлении счёта на оплату"
 msgid "main_catalog"
 msgstr "При показе главного каталога со всеми товарами"
 
-msgid "account_catalog"
-msgstr "При показе каталога с аккаунтами"
+msgid "main_category"
+msgstr "При показе категории, которые не являются подкатегориями (Главные категории)"
 
 msgid "confirm_purchase"
 msgstr "При подтверждении покупки"

@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 
-class BuyAccountsData(BaseModel):
+class BuyProductsData(BaseModel):
     quantity_for_buying: int = 0
     old_message_id: int = 0
     category_id: int = 0

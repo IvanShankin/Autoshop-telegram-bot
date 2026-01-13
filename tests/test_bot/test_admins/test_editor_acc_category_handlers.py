@@ -112,7 +112,7 @@ async def test_update_data_valid_price(
 
 
 @pytest.mark.asyncio
-async def test_add_acc_category_name_prompts_next_language(
+async def test_add_category_name_prompts_next_language(
     monkeypatch,
     patch_fake_aiogram,
     replacement_fake_bot_fix,
@@ -125,7 +125,7 @@ async def test_add_acc_category_name_prompts_next_language(
       - отправить сообщение с просьбой указать имя для следующего языка
       - установить state в GetDataForCategory.category_name
     """
-    from src.modules.admin_actions.handlers.editor.category.create_handlers import add_acc_category_name
+    from src.modules.admin_actions.handlers.editor.category.create_handlers import add_category_name
     from src.modules.admin_actions.state import GetDataForCategory
 
     user = await create_new_user()
@@ -143,7 +143,7 @@ async def test_add_acc_category_name_prompts_next_language(
     msg = FakeMessage(text="My default name", chat_id=user.user_id, username=user.username)
 
     # вызов хендлера
-    await add_acc_category_name(msg, state, user)
+    await add_category_name(msg, state, user)
 
     # проверим, что state снова в ожидании имени (т.е. заполнение ещё не закончено)
     assert await state.get_state() == GetDataForCategory.category_name.state
@@ -170,7 +170,7 @@ async def test_service_update_index_updates_storage_flag(
     Если update_category проходит успешно, то флаг is_product_storage должен измениться в БД.
     Мы проверяем изменение напрямую через фабрику/базу данных.
     """
-    from src.modules.admin_actions.handlers.editor.category.update_handlers import acc_category_update_storage
+    from src.modules.admin_actions.handlers.editor.category.update_handlers import category_update_storage
     from src.services.database.categories.actions import get_categories_by_category_id
 
     # создаём категорию (по умолчанию фабрика возвращает is_product_storage=False)
@@ -178,12 +178,12 @@ async def test_service_update_index_updates_storage_flag(
     user = await create_new_user()
 
     # подготовим callback: установить is_storage = 1
-    cb = FakeCallbackQuery(data=f"acc_category_update_storage:{category.category_id}:1",
+    cb = FakeCallbackQuery(data=f"category_update_storage:{category.category_id}:1",
                            chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=777)
 
     # вызов handler'а
-    await acc_category_update_storage(cb, user)
+    await category_update_storage(cb, user)
 
     # проверим, что в БД значение изменилось
     updated = await get_categories_by_category_id(
@@ -196,7 +196,7 @@ async def test_service_update_index_updates_storage_flag(
 
 
 @pytest.mark.asyncio
-async def test_delete_acc_category_success_edit_message(
+async def test_delete_category_success_edit_message(
     monkeypatch,
     patch_fake_aiogram,
     replacement_fake_bot_fix,
@@ -207,16 +207,16 @@ async def test_delete_acc_category_success_edit_message(
     Успешное удаление категории должно привести к вызову edit_message
     с текстом 'Category successfully removed!'.
     """
-    from src.modules.admin_actions.handlers.editor.category.delete_handlers import delete_acc_category
+    from src.modules.admin_actions.handlers.editor.category.delete_handlers import delete_category
 
     category = await create_category()
     user = await create_new_user()
 
-    cb = FakeCallbackQuery(data=f"delete_acc_category:{category.category_id}",
+    cb = FakeCallbackQuery(data=f"delete_category:{category.category_id}",
                            chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=321)
 
-    await delete_acc_category(cb, user)
+    await delete_category(cb, user)
 
     # edit_message вызывается — ищем строку подтверждения
     assert replacement_fake_bot_fix.check_str_in_edited_messages(

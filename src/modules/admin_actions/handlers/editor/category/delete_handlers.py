@@ -6,7 +6,7 @@ from src.exceptions import AccountCategoryNotFound, \
     TheCategoryStorageAccount, CategoryStoresSubcategories
 from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category
 from src.modules.admin_actions.keyboards import to_services_kb, delete_category_kb, back_in_category_kb, \
-    delete_accounts_kb
+    delete_product_kb
 from src.modules.admin_actions.services import safe_get_category
 from src.modules.admin_actions.services import upload_account
 from src.services.database.categories.actions.actions_delete import delete_category, \
@@ -18,8 +18,8 @@ router = Router()
 
 
 
-@router.callback_query(F.data.startswith("acc_category_confirm_delete:"))
-async def acc_category_confirm_delete(callback: CallbackQuery, user: Users):
+@router.callback_query(F.data.startswith("category_confirm_delete:"))
+async def category_confirm_delete(callback: CallbackQuery, user: Users):
     category_id = int(callback.data.split(':')[1])
 
     await edit_message(
@@ -35,8 +35,8 @@ async def acc_category_confirm_delete(callback: CallbackQuery, user: Users):
     )
 
 
-@router.callback_query(F.data.startswith("delete_acc_category:"))
-async def delete_acc_category(callback: CallbackQuery, user: Users):
+@router.callback_query(F.data.startswith("delete_category:"))
+async def delete_category(callback: CallbackQuery, user: Users):
     category_id = int(callback.data.split(':')[1])
     reply_markup = None
 
@@ -63,8 +63,8 @@ async def delete_acc_category(callback: CallbackQuery, user: Users):
     )
 
 
-@router.callback_query(F.data.startswith("confirm_del_all_acc:"))
-async def confirm_del_all_acc(callback: CallbackQuery, user: Users):
+@router.callback_query(F.data.startswith("confirm_del_all_products:"))
+async def confirm_del_all_products(callback: CallbackQuery, user: Users):
     category_id = int(callback.data.split(':')[1])
     await edit_message(
         chat_id=user.user_id,
@@ -75,12 +75,12 @@ async def confirm_del_all_acc(callback: CallbackQuery, user: Users):
             "Are you sure you want to permanently delete all accounts currently for sale?"
             "\n\nNote: They will be uploaded to this chat before deletion"
         ),
-        reply_markup=delete_accounts_kb(user.language, category_id)
+        reply_markup=delete_product_kb(user.language, category_id)
     )
 
 
-@router.callback_query(F.data.startswith("delete_all_account:"))
-async def delete_all_account(callback: CallbackQuery, user: Users):
+@router.callback_query(F.data.startswith("delete_all_products:"))
+async def delete_all_products(callback: CallbackQuery, user: Users):
     category_id = int(callback.data.split(':')[1])
     category = await safe_get_category(category_id, user=user, callback=None)
     if not category:

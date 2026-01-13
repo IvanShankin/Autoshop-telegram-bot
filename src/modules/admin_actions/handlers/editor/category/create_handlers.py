@@ -14,29 +14,37 @@ from src.modules.admin_actions.state import GetDataForCategory
 from src.services.database.categories.actions import add_category, \
     add_translation_in_category
 from src.services.database.users.models import Users
+from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_text
 
 router = Router()
 
 
-@router.callback_query(F.data.startswith("add_main_acc_category:"))
-async def add_main_acc_category(callback: CallbackQuery, state: FSMContext, user: Users):
+@router.callback_query(F.data.startswith("add_main_category:"))
+async def add_main_category(callback: CallbackQuery, state: FSMContext, user: Users):
     service_id = int(callback.data.split(':')[1])
     await set_state_create_category(state, user, parent_id=None, service_id=service_id)
 
 
-@router.callback_query(F.data.startswith("add_acc_category:"))
-async def add_acc_category(callback: CallbackQuery, state: FSMContext, user: Users):
-    category_id = int(callback.data.split(':')[1])
-    category = await safe_get_category(category_id, user=user, callback=callback)
-    if not category:
-        return
+@router.callback_query(F.data.startswith("add_category:"))
+async def add_category(callback: CallbackQuery, state: FSMContext, user: Users):
+    category_id = safe_int_conversion(callback.data.split(':')[1])
+
+    if category_id: # если передали значение, иначе это будет is_main
+        category = await safe_get_category(category_id, user=user, callback=callback)
+        if not category:
+            return
+
+
+    # ДОПИСАТЬ ЛОГИКУУ КОГДАНЕ ПЕРЕДАЛИ ЗНАЧЕНИЕ category_id И КАТЕГОРИЯ ДОЛЖНА СТАТЬ ГЛАВНОЙ (IS_MAIN)
+    # ДОПИСАТЬ ЛОГИКУУ КОГДАНЕ ПЕРЕДАЛИ ЗНАЧЕНИЕ category_id И КАТЕГОРИЯ ДОЛЖНА СТАТЬ ГЛАВНОЙ (IS_MAIN)
+    # ДОПИСАТЬ ЛОГИКУУ КОГДАНЕ ПЕРЕДАЛИ ЗНАЧЕНИЕ category_id И КАТЕГОРИЯ ДОЛЖНА СТАТЬ ГЛАВНОЙ (IS_MAIN)
 
     await set_state_create_category(state, user, parent_id=category_id, service_id=category.account_service_id)
 
 
 @router.message(GetDataForCategory.category_name)
-async def add_acc_category_name(message: Message, state: FSMContext, user: Users):
+async def add_category_name(message: Message, state: FSMContext, user: Users):
     # добавление нового перевода
     data = GetDataForCategoryData(**(await state.get_data()))
     data.data_name.update({data.requested_language: message.text})

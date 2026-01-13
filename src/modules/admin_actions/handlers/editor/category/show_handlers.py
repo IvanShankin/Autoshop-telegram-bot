@@ -3,7 +3,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
 from src.bot_actions.messages import edit_message, send_message
-from src.modules.admin_actions.keyboards import show_account_category_admin_kb, change_category_data_kb
+from src.modules.admin_actions.keyboards import show_category_admin_kb, change_category_data_kb
+from src.modules.admin_actions.keyboards.editors.category_kb import show_main_categories_kb
 from src.modules.admin_actions.services import safe_get_category
 from src.services.database.system.actions import get_ui_image
 from src.services.database.users.models import Users
@@ -13,11 +14,11 @@ router = Router()
 
 
 async def show_category(
-        user: Users,
-        category_id: int,
-        send_new_message: bool = False,
-        message_id: int = None,
-        callback: CallbackQuery = None
+    user: Users,
+    category_id: int,
+    send_new_message: bool = False,
+    message_id: int = None,
+    callback: CallbackQuery = None
 ):
     category = await safe_get_category(category_id=category_id, user=user, callback=callback)
     if not category:
@@ -28,6 +29,7 @@ async def show_category(
         "admins_editor_category",
         "Category \n\nName: {name}\nIndex: {index}\nShow: {show} \n\nStores accounts: {is_account_storage}"
     ).format(name=category.name, index=category.index, show=category.show, is_account_storage=category.is_product_storage)
+    
     if category.is_product_storage:
         price_one_acc = category.price_one_account  if category.price_one_account else 0
         cost_price_acc = category.cost_price_one_account  if category.cost_price_one_account else 0
@@ -49,16 +51,14 @@ async def show_category(
             total_profit=total_sum_acc - total_cost_price_acc,
         )
 
-
-    reply_markup = await show_account_category_admin_kb(
+    reply_markup = await show_category_admin_kb(
         language=user.language,
         current_show=category.show,
         current_index=category.index,
-        service_id=category.account_service_id,
         category_id=category_id,
         parent_category_id=category.parent_id if category.parent_id else None,
         is_main=category.is_main,
-        is_account_storage=category.is_product_storage,
+        is_product_storage=category.is_product_storage,
     )
 
     if send_new_message:
@@ -69,6 +69,7 @@ async def show_category(
             image_key='admin_panel',
         )
         return
+    
     await edit_message(
         chat_id=user.user_id,
         message_id=message_id,
@@ -137,9 +138,25 @@ async def show_category_update_data(
     )
 
 
-@router.callback_query(F.data.startswith("show_acc_category_admin:"))
-async def show_acc_category_admin(callback: CallbackQuery, state: FSMContext, user: Users):
+@router.callback_query(F.data.startswith("show_category_admin:"))
+async def show_category_admin(callback: CallbackQuery, state: FSMContext, user: Users):
     await state.clear()
     category_id = int(callback.data.split(':')[1])
     await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
 
+
+@router.callback_query(F.data == "show_main_categories")
+async def show_main_categories(callback: CallbackQuery, state: FSMContext, user: Users):
+    await state.clear()
+    await edit_message(
+        chat_id=user.user_id,
+        message_id=callback.message.message_id,
+        message=get_text(
+            user.language,
+            "admins_editor_category",
+            "Category Editor \n\n"
+                "This is where the main categories are located, which the user sees when they navigate to the 'Categories' section"
+        ),
+        image_key="admin_panel",
+        reply_markup=await show_main_categories_kb(user.language)
+    )

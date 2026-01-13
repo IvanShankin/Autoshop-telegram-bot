@@ -12,8 +12,8 @@ msgstr ""
 msgid "Editors"
 msgstr "Редакторы"
 
-msgid "Services and Categories"
-msgstr "Сервисы и категории"
+msgid "Categories"
+msgstr "Категории"
 
 msgid "Services replenishments"
 msgstr "Сервисы пополнения"

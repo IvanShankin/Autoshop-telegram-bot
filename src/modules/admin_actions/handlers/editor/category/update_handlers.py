@@ -28,8 +28,8 @@ from src.utils.i18n import get_text
 router = Router()
 
 
-@router.callback_query(F.data.startswith("acc_category_update_storage:"))
-async def acc_category_update_storage(callback: CallbackQuery, user: Users):
+@router.callback_query(F.data.startswith("category_update_storage:"))
+async def category_update_storage(callback: CallbackQuery, user: Users):
     category_id = int(callback.data.split(':')[1])
     is_storage = bool(int(callback.data.split(':')[2])) # что необходимо установить
 
@@ -51,7 +51,7 @@ async def acc_category_update_storage(callback: CallbackQuery, user: Users):
     await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
 
 
-@router.callback_query(F.data.startswith("acc_category_update_index:"))
+@router.callback_query(F.data.startswith("category_update_index:"))
 async def service_update_index(callback: CallbackQuery, user: Users):
     category_id = int(callback.data.split(':')[1])
     new_index = int(callback.data.split(':')[2])
@@ -62,7 +62,7 @@ async def service_update_index(callback: CallbackQuery, user: Users):
     await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
 
 
-@router.callback_query(F.data.startswith("acc_category_update_show:"))
+@router.callback_query(F.data.startswith("category_update_show:"))
 async def service_update_show(callback: CallbackQuery, user: Users):
     category_id = int(callback.data.split(':')[1])
     show = bool(int(callback.data.split(':')[2]))
@@ -79,8 +79,8 @@ async def category_update_data(callback: CallbackQuery, state: FSMContext, user:
     await show_category_update_data(user, category_id, callback=callback)
 
 
-@router.callback_query(F.data.startswith("acc_category_update_name_or_des:"))
-async def acc_category_update_name_or_des(callback: CallbackQuery, user: Users):
+@router.callback_query(F.data.startswith("category_update_name_or_des:"))
+async def category_update_name_or_des(callback: CallbackQuery, user: Users):
     category_id = int(callback.data.split(':')[1])
 
     await edit_message(
@@ -95,8 +95,8 @@ async def acc_category_update_name_or_des(callback: CallbackQuery, user: Users):
     )
 
 
-@router.callback_query(F.data.startswith("acc_category_update_name:"))
-async def acc_category_update_name(callback: CallbackQuery, state: FSMContext, user: Users):
+@router.callback_query(F.data.startswith("category_update_name:"))
+async def category_update_name(callback: CallbackQuery, state: FSMContext, user: Users):
     category_id = int(callback.data.split(':')[1])
     lang = callback.data.split(':')[2]
     category = await safe_get_category(category_id, user=user, callback=callback)
@@ -140,8 +140,8 @@ async def get_name_for_update(message: Message, state: FSMContext, user: Users):
     )
 
 
-@router.callback_query(F.data.startswith("acc_category_update_descr:"))
-async def acc_category_update_descr(callback: CallbackQuery, state: FSMContext, user: Users):
+@router.callback_query(F.data.startswith("category_update_descr:"))
+async def category_update_descr(callback: CallbackQuery, state: FSMContext, user: Users):
     category_id = int(callback.data.split(':')[1])
     lang = callback.data.split(':')[2]
     category = await safe_get_category(category_id, user=user, callback=callback)
@@ -197,8 +197,8 @@ async def update_show_ui_default_category(callback: CallbackQuery, user: Users):
     await show_category_update_data(user=user, category_id=category_id, callback=callback)
 
 
-@router.callback_query(F.data.startswith("acc_category_update_image:"))
-async def acc_category_update_image(callback: CallbackQuery, state: FSMContext, user: Users):
+@router.callback_query(F.data.startswith("category_update_image:"))
+async def category_update_image(callback: CallbackQuery, state: FSMContext, user: Users):
     category_id = int(callback.data.split(':')[1])
     await edit_message(
         chat_id=user.user_id,
@@ -258,8 +258,8 @@ async def update_category_image(message: Message, state: FSMContext, user: Users
     )
 
 
-@router.callback_query(F.data.startswith("acc_category_update_price:"))
-async def acc_category_update_price(callback: CallbackQuery, state: FSMContext, user: Users):
+@router.callback_query(F.data.startswith("category_update_price:"))
+async def category_update_price(callback: CallbackQuery, state: FSMContext, user: Users):
     await update_message_query_data(
         callback, state, user,
         i18n_key="Please send an integer - the price per account",
@@ -267,8 +267,8 @@ async def acc_category_update_price(callback: CallbackQuery, state: FSMContext, 
     )
 
 
-@router.callback_query(F.data.startswith("acc_category_update_cost_price:"))
-async def acc_category_update_cost_price(callback: CallbackQuery, state: FSMContext, user: Users):
+@router.callback_query(F.data.startswith("category_update_cost_price:"))
+async def category_update_cost_price(callback: CallbackQuery, state: FSMContext, user: Users):
     await update_message_query_data(
         callback, state, user,
         i18n_key="Please send an integer - the cost price per account",
@@ -276,8 +276,8 @@ async def acc_category_update_cost_price(callback: CallbackQuery, state: FSMCont
     )
 
 
-@router.callback_query(F.data.startswith("acc_category_update_number_button:"))
-async def acc_category_update_number_button(callback: CallbackQuery, state: FSMContext, user: Users):
+@router.callback_query(F.data.startswith("category_update_number_button:"))
+async def category_update_number_button(callback: CallbackQuery, state: FSMContext, user: Users):
     await update_message_query_data(
         callback, state, user,
         i18n_key="Please send an integer - the number of buttons in one line for the category \n\nAllowed: from 1 to 8",
@@ -286,7 +286,7 @@ async def acc_category_update_number_button(callback: CallbackQuery, state: FSMC
 
 
 @router.message(UpdateNumberInCategory.price)
-async def acc_category_update_price(message: Message, state: FSMContext, user: Users):
+async def category_update_price(message: Message, state: FSMContext, user: Users):
     await update_data(message, state, user)
 
 
@@ -300,8 +300,8 @@ async def acc_category_number_button(message: Message, state: FSMContext, user: 
     await update_data(message, state, user)
 
 
-@router.callback_query(F.data.startswith("acc_category_upload_acc:"))
-async def acc_category_upload_acc(callback: CallbackQuery, user: Users):
+@router.callback_query(F.data.startswith("category_upload_products:"))
+async def category_upload_products(callback: CallbackQuery, user: Users):
     category_id = int(callback.data.split(':')[1])
     category = await safe_get_category(category_id, user=user, callback=None)
     if not category:

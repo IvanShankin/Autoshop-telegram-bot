@@ -28,12 +28,12 @@ async def show_service_acc_admin_kb(language: str, current_show: bool, current_i
 
     for cat in categories:
         keyboard.row(
-            InlineKeyboardButton(text=str(cat.name), callback_data=f'show_acc_category_admin:{cat.category_id}'))
+            InlineKeyboardButton(text=str(cat.name), callback_data=f'show_category_admin:{cat.category_id}'))
 
     keyboard.row(InlineKeyboardButton(text=get_config().app.solid_line, callback_data='none'))
     keyboard.row(InlineKeyboardButton(
         text=get_text(language, "kb_admin_panel","Add Category"),
-        callback_data=f'add_main_acc_category:{service_id}')
+        callback_data=f'add_main_category:{service_id}')
     )
     keyboard.row(
         InlineKeyboardButton(

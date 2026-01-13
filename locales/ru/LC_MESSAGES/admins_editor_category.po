@@ -10,6 +10,11 @@ msgstr ""
 
 
 
+msgid "Category Editor \n\n"
+"This is where the main categories are located, which the user sees when they navigate to the 'Categories' section"
+msgstr "Редактор категорий \n\n"
+"Здесь расположены главные категории, которые пользователь видит при переходе в раздел 'Категории'"
+
 msgid "Specify the category name for this language: {language}"
 msgstr "Укажите имя категории для этого языка: {language}"
 

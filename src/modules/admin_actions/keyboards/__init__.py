@@ -10,8 +10,8 @@ from src.modules.admin_actions.keyboards.editors.promo_codes_kb import admin_pro
     back_in_admin_promo_kb, back_in_start_creating_promo_code_kb
 from src.modules.admin_actions.keyboards.editors.service_kb import all_services_account_admin_kb, show_service_acc_admin_kb, \
     all_services_types_kb, to_services_kb, delete_service_kb, back_in_service_kb
-from src.modules.admin_actions.keyboards.editors.category_kb import show_account_category_admin_kb, change_category_data_kb, \
-    select_lang_category_kb, name_or_description_kb, delete_accounts_kb, delete_category_kb, back_in_category_update_data_kb, \
+from src.modules.admin_actions.keyboards.editors.category_kb import show_category_admin_kb, change_category_data_kb, \
+    select_lang_category_kb, name_or_description_kb, delete_category_kb, delete_product_kb, back_in_category_update_data_kb, \
     back_in_category_kb
 from src.modules.admin_actions.keyboards.settings_kb import admin_settings_kb, back_in_admin_settings_kb, \
     change_admin_settings_kb, back_in_change_admin_settings_kb
@@ -31,11 +31,11 @@ __all__ = [
     "to_services_kb",
     "delete_service_kb",
     "back_in_service_kb",
-    "show_account_category_admin_kb",
+    "show_category_admin_kb",
     "change_category_data_kb",
     "select_lang_category_kb",
     "name_or_description_kb",
-    "delete_accounts_kb",
+    "delete_product_kb",
     "delete_category_kb",
     "back_in_category_update_data_kb",
     "back_in_category_kb",

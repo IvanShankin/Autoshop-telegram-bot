@@ -28,8 +28,8 @@ from src.utils.i18n import get_text
 router = Router()
 
 
-@router.callback_query(F.data.startswith("acc_category_load_acc:"))
-async def acc_category_load_acc(callback: CallbackQuery, state: FSMContext, user: Users):
+@router.callback_query(F.data.startswith("category_load_products:"))
+async def category_load_products(callback: CallbackQuery, state: FSMContext, user: Users):
     category_id = int(callback.data.split(':')[1])
     category = await safe_get_category(category_id, user=user, callback=None)
     if not category:

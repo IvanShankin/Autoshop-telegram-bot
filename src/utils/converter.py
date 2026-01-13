@@ -80,6 +80,7 @@ def safe_parse_datetime(
     return default
 
 def safe_int_conversion(value, default=None, positive=False) -> int:
+    """Попытается преобразовать в int, если не получится, то вернёт аргумент default, иначе преобразованное число"""
     try:
         value_in_int = int(value)
         if value_in_int > 123456789012345678901234567890: # если больше BigInt
@@ -93,6 +94,7 @@ def safe_int_conversion(value, default=None, positive=False) -> int:
 
 
 def safe_float_conversion(value, default=None, positive=False) -> float:
+    """Попытается преобразовать в float, если не получится, то вернёт аргумент default, иначе преобразованное число"""
     try:
         value_in_float = float(value)
         if value_in_float > 123456789012345678901234567890: # если больше BigInt

@@ -63,6 +63,10 @@ msgstr "Введена некорректная сумма \n\nМаксимум:
 
 # ---- Купленные аккаунты ----
 
+
+msgid "Select account type"
+msgstr "Выберите тип аккаунта"
+
 msgid "Phone: {phone_number}\n\n"
 "Name: {name}\n"
 "Description: {description}\n\n"
@@ -82,6 +86,9 @@ msgstr "Не валидный"
 
 msgid "Account not found"
 msgstr "Аккаунт не найден"
+
+msgid "Service not found"
+msgstr "Сервис не найден"
 
 msgid "Confirm deletion of this account?\n\n"
 "Phone number: {phone_number}\n"

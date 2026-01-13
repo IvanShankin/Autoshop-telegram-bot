@@ -35,10 +35,12 @@ async def handler_profile(
             reply_markup=profile_kb(user.language, user.user_id)
         )
 
+
 @router_with_repl_kb.message(I18nKeyFilter("Profile"))
 async def handle_profile_message(message: Message, state: FSMContext, user: Users):
     await state.clear()
     await handler_profile(user=user)
+
 
 @router.callback_query(F.data == "profile")
 async def handle_profile_callback(callback: CallbackQuery, state: FSMContext, user: Users):

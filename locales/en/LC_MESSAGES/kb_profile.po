@@ -16,8 +16,8 @@ msgstr "В профиль"
 msgid "Top up your balance"
 msgstr "💸 Пополнить баланс"
 
-msgid "Purchased accounts"
-msgstr "👥 Купленные аккаунты"
+msgid "Purchases"
+msgstr "Покупки"
 
 msgid "Balance transfer"
 msgstr "🔁 Передача баланса"

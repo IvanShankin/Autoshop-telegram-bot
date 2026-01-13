@@ -13,7 +13,7 @@ from src.services.database.categories.actions.actions_get import (
     get_categories_by_category_id, get_product_account_by_category_id,
     get_product_account_by_account_id, get_sold_accounts_by_owner_id, get_sold_accounts_by_account_id,
     get_sold_account_by_page, get_tg_account_media, get_all_phone_in_account_storage,
-    get_quantity_products_in_category, get_categories
+    get_quantity_products_in_category, get_categories, get_type_service_account
 )
 
 __all__ = [
@@ -41,7 +41,8 @@ __all__ = [
     'get_sold_account_by_page',
     'get_sold_accounts_by_account_id',
     'get_tg_account_media',
-    'get_all_phone_in_account_storage'
+    'get_all_phone_in_account_storage',
+    'get_type_service_account'
 ]
 
 

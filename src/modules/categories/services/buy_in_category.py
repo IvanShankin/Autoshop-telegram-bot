@@ -10,6 +10,7 @@ from src.modules.categories.services.helpers import check_category
 from src.modules.categories.states import BuyProduct
 from src.modules.profile.keyboard_profile import in_profile_kb
 from src.services.database.categories.actions.action_purchase_account import purchase_accounts
+from src.services.database.categories.models.main_category_and_product import ProductType
 from src.services.database.discounts.utils.calculation import discount_calculation
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
@@ -185,9 +186,9 @@ async def buy_product(
             pass
 
     try:
-        if category.product_type == "account":
+        if category.product_type == ProductType.ACCOUNT:
             await _buy_account(user=user, callback=callback, delete_message_def=delete_message, category_id=category_id,promo_code_id=promo_code_id)
-        elif category.product_type == "universal":
+        elif category.product_type == ProductType.UNIVERSAL:
             await _buy_universal()
         # ТУТ ВЫЗЫВАЕМ ФУНЦИЮ ДЛЯ НЕОБХОДИМОГО ТИПА ТОВАРА
 

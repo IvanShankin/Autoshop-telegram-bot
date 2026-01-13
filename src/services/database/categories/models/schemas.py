@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict
 
 from src.services.database.categories.models import SoldAccounts, ProductAccounts
 from src.services.database.categories.models import AccountStorage, Categories, CategoryTranslation
+from src.services.database.categories.models.main_category_and_product import ProductType
 from src.services.database.categories.models.product_account import AccountServiceType
 
 
@@ -48,7 +49,7 @@ class CategoryFull(BaseModel):
     is_product_storage: bool
     allow_multiple_purchase: bool
 
-    product_type: str | None
+    product_type: ProductType | None
     type_account_service: AccountServiceType | None
     price: int | None
     cost_price: int | None

@@ -115,6 +115,9 @@ msgstr "При успешной покупке"
 msgid "entering_promo_code"
 msgstr "При вводе промокода"
 
+msgid "purchases"
+msgstr "При показе купленных товаров"
+
 msgid "purchased_accounts"
 msgstr "При показе купленных аккаунтов"
 

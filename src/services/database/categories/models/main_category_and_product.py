@@ -1,9 +1,16 @@
+import enum
 from typing import Callable, Any
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text, text, UniqueConstraint, inspect, Enum
 from sqlalchemy.orm import relationship
 
 from src.services.database.core.database import Base
 from src.services.database.categories.models.product_account import AccountServiceType
+
+
+class ProductType(enum.Enum):
+    ACCOUNT = "account"
+    UNIVERSAL = "universal"
+    FILE = "file"
 
 
 class Categories(Base):
@@ -33,12 +40,19 @@ class Categories(Base):
 
     # есть только когда is_product_storage == True
     allow_multiple_purchase = Column(Boolean, nullable=False, server_default=text("true"))
-    product_type = Column(Enum("account", "universal", "file", name="product_type"), nullable=True)
-    type_account_service = type_account_service = Column(
+    product_type = Column(
+        Enum(
+            ProductType,
+            values_callable=lambda x: [e.value for e in x],
+            name="product_type"
+        ),
+        nullable=True
+    )
+    type_account_service = Column(
         Enum(
             AccountServiceType,
             values_callable=lambda x: [e.value for e in x],
-            name="accountservicetype"
+            name="account_service_type"
         ),
         nullable=True
     ) # только для категорий хранящие аккаунты

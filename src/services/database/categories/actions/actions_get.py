@@ -10,6 +10,7 @@ from sqlalchemy.orm import selectinload
 from src.config import get_config
 from src.services.database.categories.models import AccountStorage, TgAccountMedia, PurchasesAccounts, \
     ProductUniversal
+from src.services.database.categories.models.main_category_and_product import ProductType
 from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import (
@@ -330,6 +331,27 @@ async def get_product_account_by_account_id(account_id: int) -> ProductAccountFu
     )
 
 
+async def get_types_product_where_the_user_has_product(user_id: int) -> List[ProductType]:
+    result_list: List[ProductType] = []
+
+    if not await get_sold_accounts_by_owner_id(user_id, get_config().app.default_lang) is None:
+        result_list.append(ProductType.ACCOUNT)
+    # ПРИ ДОБАВЛЕНИЕ НОВЫХ ТОВАРОВ, РАСШИРИТЬ ПОИСК
+
+    return result_list
+
+
+async def get_types_account_service_where_the_user_purchase(user_id: int) -> List[AccountServiceType]:
+    result_list: List[AccountServiceType] = []
+
+    all_account = await get_sold_accounts_by_owner_id(user_id, get_config().app.default_lang)
+    for account in all_account:
+        if not account.type_account_service in result_list:
+            result_list.append(account.type_account_service)
+
+    return result_list
+
+
 async def get_sold_accounts_by_owner_id(owner_id: int, language: str) -> List[SoldAccountSmall]:
     """
     Вернёт все аккуанты которы не удалены
@@ -360,7 +382,7 @@ async def get_sold_accounts_by_owner_id(owner_id: int, language: str) -> List[So
 
 async def get_sold_account_by_page(
         user_id: int,
-        type_account_service: str,
+        type_account_service: AccountServiceType,
         page: int,
         language: str,
         page_size: int = None
@@ -405,7 +427,7 @@ async def get_sold_account_by_page(
         return [SoldAccountSmall.from_orm_with_translation(account, lang=language) for account in account_list]
 
 
-async def get_count_sold_account(user_id: int, type_account_service: str) -> int:
+async def get_count_sold_account(user_id: int, type_account_service: AccountServiceType) -> int:
     """Вернёт количество не удалённых аккаунтов"""
     async with get_db() as session_db:
         result = await session_db.execute(
@@ -457,3 +479,14 @@ async def get_purchases_accounts(purchase_id: int) -> PurchasesAccounts | None:
     async with get_db() as session_db:
         result_db = await session_db.execute(select(PurchasesAccounts).where(PurchasesAccounts.purchase_id == purchase_id))
         return result_db.scalar_one_or_none()
+
+
+def get_type_service_account(value: str) -> AccountServiceType | None:
+    """
+        :return: Если тип сервиса не найден, то вернёт None
+    """
+    try:
+        return AccountServiceType(value)
+    except ValueError:
+        return None
+

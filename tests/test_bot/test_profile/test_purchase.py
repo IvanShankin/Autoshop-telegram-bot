@@ -21,7 +21,7 @@ async def test_get_file_for_login_with_existing_tg_media(
     Если TgAccountMedia уже содержит tdata_tg_id, функция должна попытаться отправить документ ботом
     и завершиться (не вызывать func_get_file).
     """
-    from src.modules.profile.handlers.accounts_handlers import get_file_for_login
+    from src.modules.profile.handlers.purchase.accounts_handlers import get_file_for_login
 
     user = await create_new_user()
     sold_small, sold_full = await create_sold_account(owner_id=user.user_id)
@@ -64,7 +64,8 @@ async def test_get_file_for_login_without_prior_file_calls_func_and_updates_medi
     - отправлен документ, взятый из func_get_file
     - update_tg_account_media должен получить новый file_id (реальное обновление происходит через fixture)
     """
-    from src.modules.profile.handlers.accounts_handlers import get_file_for_login, get_tg_account_media
+    from src.modules.profile.handlers.purchase.accounts_handlers import get_file_for_login
+    from src.services.database.categories.actions import get_tg_account_media
 
     user = await create_new_user()
     sold_small, sold_full = await create_sold_account(owner_id=user.user_id)
@@ -108,7 +109,7 @@ async def test_get_code_acc_returns_codes_and_sends_message(
     monkeypatch,
 ):
     """Позитивный сценарий"""
-    from src.modules.profile.handlers.accounts_handlers import get_code_acc
+    from src.modules.profile.handlers.purchase.accounts_handlers import get_code_acc
 
     user = await create_new_user()
     sold_small, sold_full = await create_sold_account(owner_id=user.user_id)
@@ -130,7 +131,7 @@ async def test_get_code_acc_returns_codes_and_sends_message(
             "Date: {date} \nCode: <code>{code}</code>\n\n"
         ).format(date=date.strftime(get_config().different.dt_format), code=code)
 
-    from src.modules.profile.handlers import accounts_handlers as modul
+    from src.modules.profile.handlers.purchase import accounts_handlers as modul
     monkeypatch.setattr(modul, "get_auth_codes", fake_get_auth_codes)
 
     cb = FakeCallbackQuery(data=f"get_code_acc:{sold_full.sold_account_id}", chat_id=user.user_id)
@@ -152,14 +153,15 @@ async def test_get_code_acc_returns_false_shows_unable_to_retrieve(
     """
     Если get_auth_codes возвращает False — должен показаться alert "Unable to retrieve data".
     """
-    from src.modules.profile.handlers.accounts_handlers import get_code_acc
+    from src.modules.profile.handlers.purchase.accounts_handlers import get_code_acc
 
     user = await create_new_user()
     sold_small, sold_full = await create_sold_account(owner_id=user.user_id)
 
     async def fake_get_auth_codes(*_a, **_kw):
         return False
-    from src.modules.profile.handlers import accounts_handlers as modul
+
+    from src.modules.profile.handlers.purchase import accounts_handlers as modul
     monkeypatch.setattr(modul, "get_auth_codes", fake_get_auth_codes)
 
     cb = FakeCallbackQuery(data=f"get_code_acc:{sold_full.sold_account_id}", chat_id=user.user_id)
@@ -186,14 +188,15 @@ async def test_get_code_acc_no_codes_found_alert(
     """
     Если get_auth_codes возвращает пустой список -> alert 'No codes found'.
     """
-    from src.modules.profile.handlers.accounts_handlers import get_code_acc
+    from src.modules.profile.handlers.purchase.accounts_handlers import get_code_acc
 
     user = await create_new_user()
     sold_small, sold_full = await create_sold_account(owner_id=user.user_id)
 
     async def fake_get_auth_codes(*_a, **_kw):
         return []
-    from src.modules.profile.handlers import accounts_handlers as modul
+
+    from src.modules.profile.handlers.purchase import accounts_handlers as modul
     monkeypatch.setattr(modul,"get_auth_codes", fake_get_auth_codes)
 
     cb = FakeCallbackQuery(data=f"get_code_acc:{sold_full.sold_account_id}", chat_id=user.user_id)
@@ -221,7 +224,7 @@ async def test_chek_valid_acc_valid_true_no_change(
     """
     Проверка при result=True и совпадающей валидности — просто alert с текстом "The account is valid".
     """
-    from src.modules.profile.handlers.accounts_handlers import chek_valid_acc
+    from src.modules.profile.handlers.purchase.accounts_handlers import chek_valid_acc
 
     user = await create_new_user()
     sold_small, sold_full = await create_sold_account(owner_id=user.user_id)
@@ -230,11 +233,11 @@ async def test_chek_valid_acc_valid_true_no_change(
     async def fake_check_account_validity(*_a, **_kw):
         return True
 
-    from src.modules.profile.handlers import accounts_handlers as modul
+    from src.modules.profile.handlers.purchase import accounts_handlers as modul
     monkeypatch.setattr(modul,"check_account_validity", fake_check_account_validity)
 
     cb = FakeCallbackQuery(
-        data=f"chek_valid_acc:{sold_full.sold_account_id}:{sold_full.type_account_service_id}:1:1",
+        data=f"chek_valid_acc:{sold_full.sold_account_id}:{sold_full.type_account_service.value}:1:1",
         chat_id=user.user_id
     )
     cb.message = SimpleNamespace(message_id=10)
@@ -261,7 +264,7 @@ async def test_chek_valid_acc_valid_false_updates_and_refreshes_card(
     """
     Проверка при result=False и изменении валидности — должен обновить запись и вызвать show_sold_account.
     """
-    from src.modules.profile.handlers.accounts_handlers import chek_valid_acc
+    from src.modules.profile.handlers.purchase.accounts_handlers import chek_valid_acc
 
     user = await create_new_user()
     sold_small, sold_full = await create_sold_account(owner_id=user.user_id)
@@ -271,7 +274,7 @@ async def test_chek_valid_acc_valid_false_updates_and_refreshes_card(
     async def fake_check_account_validity(*_a, **_kw):
         return False
 
-    from src.modules.profile.handlers import accounts_handlers as modul
+    from src.modules.profile.handlers.purchase import accounts_handlers as modul
     monkeypatch.setattr(modul, "check_account_validity", fake_check_account_validity)
 
     async def fake_show_sold_account(**kw):
@@ -279,7 +282,7 @@ async def test_chek_valid_acc_valid_false_updates_and_refreshes_card(
     monkeypatch.setattr(modul, "show_sold_account", fake_show_sold_account)
 
     cb = FakeCallbackQuery(
-        data=f"chek_valid_acc:{sold_full.sold_account_id}:{sold_full.type_account_service_id}:1:1",
+        data=f"chek_valid_acc:{sold_full.sold_account_id}:{sold_full.type_account_service.value}:1:1",
         chat_id=user.user_id
     )
     cb.message = SimpleNamespace(message_id=12)
@@ -306,13 +309,13 @@ async def test_confirm_del_acc_edits_message(
     """
     Проверяем, что confirm_del_acc вызывает edit_message с нужным текстом.
     """
-    from src.modules.profile.handlers.accounts_handlers import confirm_del_acc
+    from src.modules.profile.handlers.purchase.accounts_handlers import confirm_del_acc
 
     user = await create_new_user()
     sold_small, sold_full = await create_sold_account(owner_id=user.user_id, phone_number="+123456789")
 
     cb = FakeCallbackQuery(
-        data=f"confirm_del_acc:{sold_full.sold_account_id}:{sold_full.type_account_service_id}:2",
+        data=f"confirm_del_acc:{sold_full.sold_account_id}:{sold_full.type_account_service.value}:2",
         chat_id=user.user_id
     )
     cb.message = SimpleNamespace(message_id=20)
@@ -342,7 +345,7 @@ async def test_del_account_successful_flow(
     Проверяем успешное удаление аккаунта: move_in_account -> True,
     должно вызвать show_all_sold_account и alert с текстом "The account has been successfully deleted".
     """
-    from src.modules.profile.handlers.accounts_handlers import del_account
+    from src.modules.profile.handlers.purchase.accounts_handlers import del_account
 
     user = await create_new_user()
     sold_small, sold_full = await create_sold_account(owner_id=user.user_id)
@@ -352,7 +355,7 @@ async def test_del_account_successful_flow(
     async def fake_move_in_account(*_a, **_kw):
         return True
 
-    from src.modules.profile.handlers import accounts_handlers as modul
+    from src.modules.profile.handlers.purchase import accounts_handlers as modul
     monkeypatch.setattr(modul, "move_in_account", fake_move_in_account)
 
     async def fake_show_all_sold_account(**kw):
@@ -360,7 +363,7 @@ async def test_del_account_successful_flow(
     monkeypatch.setattr(modul,"show_all_sold_account", fake_show_all_sold_account)
 
     cb = FakeCallbackQuery(
-        data=f"del_account:{sold_full.sold_account_id}:{sold_full.type_account_service_id}:3",
+        data=f"del_account:{sold_full.sold_account_id}:{sold_full.type_account_service.value}:3",
         chat_id=user.user_id
     )
     cb.message = SimpleNamespace(message_id=30)
@@ -388,7 +391,7 @@ async def test_del_account_move_in_account_fails_shows_alert(
     """
     Проверяем, что если move_in_account возвращает False — вызывается alert "An error occurred, please try again".
     """
-    from src.modules.profile.handlers.accounts_handlers import del_account
+    from src.modules.profile.handlers.purchase.accounts_handlers import del_account
 
     user = await create_new_user()
     sold_small, sold_full = await create_sold_account(owner_id=user.user_id)
@@ -396,11 +399,11 @@ async def test_del_account_move_in_account_fails_shows_alert(
     async def fake_move_in_account(*_a, **_kw):
         return False
 
-    from src.modules.profile.handlers import accounts_handlers as modul
+    from src.modules.profile.handlers.purchase import accounts_handlers as modul
     monkeypatch.setattr(modul, "move_in_account", fake_move_in_account)
 
     cb = FakeCallbackQuery(
-        data=f"del_account:{sold_full.sold_account_id}:{sold_full.type_account_service_id}:5",
+        data=f"del_account:{sold_full.sold_account_id}:{sold_full.type_account_service.value}:5",
         chat_id=user.user_id
     )
     cb.message = SimpleNamespace(message_id=31)

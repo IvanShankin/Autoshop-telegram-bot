@@ -27,7 +27,8 @@ def get_ui_images():
         "profile_settings": ui_sections / "profile_settings.png",
         "notification_settings": ui_sections / "notification_settings.png",
 
-        # аккаунты (профиль)
+        # покупки
+        "purchases": ui_sections / "purchases.png",
         "purchased_accounts": ui_sections / "purchased_accounts.png",
 
         # История операций

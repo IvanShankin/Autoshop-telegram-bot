@@ -11,6 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.services.database.categories.models import AccountStorage, TgAccountMedia
+from src.services.database.categories.models.main_category_and_product import ProductType
 from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling_redis import filling_sold_accounts_by_owner_id, \
@@ -400,7 +401,7 @@ async def create_category_factory(
         show: bool = True,
         is_main: bool = True,
         is_product_storage: bool = False,
-        product_type: str = "account",
+        product_type: str = ProductType.ACCOUNT,
         type_account_service: AccountServiceType = AccountServiceType.TELEGRAM,
         price: int = 150,
         cost_price: int = 100,

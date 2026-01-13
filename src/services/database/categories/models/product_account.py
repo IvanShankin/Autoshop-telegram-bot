@@ -87,7 +87,7 @@ class ProductAccounts(Base):
         Enum(
             AccountServiceType,
             values_callable=lambda x: [e.value for e in x],
-            name="accountservicetype"
+            name="account_service_type"
         ),
         nullable=False
     )
@@ -113,7 +113,7 @@ class SoldAccounts(Base):
         Enum(
             AccountServiceType,
             values_callable=lambda x: [e.value for e in x],
-            name="accountservicetype"
+            name="account_service_type"
         ),
         nullable=False
     )
@@ -205,7 +205,7 @@ class DeletedAccounts(Base):
         Enum(
             AccountServiceType,
             values_callable=lambda x: [e.value for e in x],
-            name="accountservicetype"
+            name="account_service_type"
         ),
         nullable=False
     )

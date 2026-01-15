@@ -349,7 +349,7 @@ async def test_get_statistics(create_new_user, create_replenishment, create_prod
 
     product_accounts = []
     for _ in range(3):
-        _, prod_acc = await create_product_account(price_one_account=100)
+        _, prod_acc = await create_product_account(price=100)
         product_accounts.append(prod_acc)
 
 

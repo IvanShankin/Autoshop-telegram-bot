@@ -24,8 +24,8 @@ async def update_category(
         number_buttons_in_row: int = None,
         is_product_storage: bool = None,
         allow_multiple_purchase: bool = None,
-        price_one_account: int = None,
-        cost_price_one_account: int = None,
+        price: int = None,
+        cost_price: int = None,
 ) -> Categories:
     """
     :param file_data: поток байтов для создания нового ui_image, старый будет удалён
@@ -37,9 +37,9 @@ async def update_category(
     :except CategoryStoresSubcategories: Категория хранит подкатегории.
     Необходимо извлечь их для применения изменений
     """
-    if price_one_account is not None and price_one_account <= 0:
+    if price is not None and price <= 0:
         raise IncorrectedAmountSale("Цена товара должна быть положительным числом")
-    if cost_price_one_account is not None and cost_price_one_account < 0:
+    if cost_price is not None and cost_price < 0:
         raise IncorrectedCostPrice("Себестоимость товара должна быть положительным числом")
     if number_buttons_in_row is not None and (number_buttons_in_row < 1 or number_buttons_in_row > 8):
         raise IncorrectedNumberButton("Количество кнопок в строке, должно быть в диапазоне от 1 до 8")
@@ -85,10 +85,10 @@ async def update_category(
             update_data["allow_multiple_purchase"] = show
         if show is not None:
             update_data["show"] = show
-        if price_one_account is not None:
-            update_data["price_one_account"] = price_one_account
-        if cost_price_one_account is not None:
-            update_data["cost_price_one_account"] = cost_price_one_account
+        if price is not None:
+            update_data["price"] = price
+        if cost_price is not None:
+            update_data["cost_price"] = cost_price
         if number_buttons_in_row is not None:
             update_data["number_buttons_in_row"] = number_buttons_in_row
         if file_data is not None:

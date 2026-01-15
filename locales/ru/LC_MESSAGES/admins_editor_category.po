@@ -70,6 +70,18 @@ msgid "Number of buttons per row: {number_button_in_row}\n\n"
 msgstr "Число кнопок в одной строке: {number_button_in_row}\n\n"
 "👇 Выберите пункт для изменения"
 
+msgid "Select product type"
+msgstr "Выберите тип продукта"
+
+msgid "Selected product type not found"
+msgstr "Выбранный тип продукта не найден"
+
+msgid "Select service account"
+msgstr "Выберите сервис аккаунта"
+
+msgid "Selected service account not found"
+msgstr "Выбранный сервис аккаунта не найден"
+
 msgid "Select the language to change"
 msgstr "Выберите язык для изменения"
 

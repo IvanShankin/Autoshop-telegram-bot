@@ -116,7 +116,7 @@ async def test_move_in_account_success(monkeypatch):
     acc_storage.storage_uuid = uuid
     product = ProductAccounts(account_storage=acc_storage)
 
-    result = await move_in_account(product.account_storage, "telegram", "sold")
+    result = await move_in_account(product.account_storage, AccountServiceType.TELEGRAM, "sold")
     assert result is True
 
     new_path = conf.paths.accounts_dir / "sold" / "telegram" / uuid / "account.enc"

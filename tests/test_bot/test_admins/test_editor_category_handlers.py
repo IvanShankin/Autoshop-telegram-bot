@@ -35,6 +35,7 @@ async def test_safe_get_category_not_found_with_callback(
         get_text(user.language, "admins_editor_category", "The category no longer exists")
     )
 
+
 @pytest.mark.asyncio
 async def test_show_category_sends_new_message(
         monkeypatch, patch_fake_aiogram, replacement_fake_bot_fix,
@@ -78,7 +79,7 @@ async def test_update_data_incorrect_value(
     user = await create_new_user()
     state = FakeFSMContext()
 
-    await state.update_data(category_id=category.category_id)
+    await state.update_data(category_id=category.category_id, )
     await state.set_state(UpdateNumberInCategory.price)
 
     message = FakeMessage(text="не число")
@@ -173,12 +174,11 @@ async def test_service_update_index_updates_storage_flag(
     from src.modules.admin_actions.handlers.editor.category.update_handlers import category_update_storage
     from src.services.database.categories.actions import get_categories_by_category_id
 
-    # создаём категорию (по умолчанию фабрика возвращает is_product_storage=False)
-    category = await create_category(is_product_storage=False)
+    category = await create_category(is_product_storage=True)
     user = await create_new_user()
 
-    # подготовим callback: установить is_storage = 1
-    cb = FakeCallbackQuery(data=f"category_update_storage:{category.category_id}:1",
+    # подготовим callback: установить is_storage = 0
+    cb = FakeCallbackQuery(data=f"category_update_storage:{category.category_id}:0",
                            chat_id=user.user_id, username=user.username)
     cb.message = SimpleNamespace(message_id=777)
 
@@ -192,7 +192,7 @@ async def test_service_update_index_updates_storage_flag(
         return_not_show=True
     )
     assert updated is not None
-    assert updated.is_product_storage is True
+    assert updated.is_product_storage is False
 
 
 @pytest.mark.asyncio

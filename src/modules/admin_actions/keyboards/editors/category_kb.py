@@ -3,6 +3,8 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.config import get_config
 from src.services.database.categories.actions import get_categories
+from src.services.database.categories.models.main_category_and_product import ProductType
+from src.services.database.categories.models.product_account import AccountServiceType
 from src.utils.i18n import get_text
 
 
@@ -25,6 +27,18 @@ async def show_main_categories_kb(language: str,):
     return keyboard.as_markup()
 
 
+def back_in_category_editor_kb(language: str):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'category_editor')]
+    ])
+
+
+def in_category_editor_kb(language: str):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "In category editor"), callback_data=f'category_editor')]
+    ])
+
+
 async def show_category_admin_kb(
     language: str,
     current_show: bool,
@@ -32,7 +46,8 @@ async def show_category_admin_kb(
     category_id: int,
     parent_category_id: int | None,
     is_main: bool,
-    is_product_storage: bool
+    is_product_storage: bool,
+    allow_multiple_purchase: bool
 ):
     categories = await get_categories(
         parent_id=category_id,
@@ -54,12 +69,6 @@ async def show_category_admin_kb(
     )
 
     if is_product_storage:
-        
-        # КАК ДОЛЖНО БЫТЬ: КАКОЕ-ТО ДЕЙСТВИЕ ПОСЫЛАЕТСЯ В HANDLER И ИМЕННО ОН РЕШАЕТ, ЧТО И КАК ДЕЛАТЬ.
-        # КАК ДОЛЖНО БЫТЬ: КАКОЕ-ТО ДЕЙСТВИЕ ПОСЫЛАЕТСЯ В HANDLER И ИМЕННО ОН РЕШАЕТ, ЧТО И КАК ДЕЛАТЬ.
-        # КАК ДОЛЖНО БЫТЬ: КАКОЕ-ТО ДЕЙСТВИЕ ПОСЫЛАЕТСЯ В HANDLER И ИМЕННО ОН РЕШАЕТ, ЧТО И КАК ДЕЛАТЬ.
-        # КАК ДОЛЖНО БЫТЬ: КАКОЕ-ТО ДЕЙСТВИЕ ПОСЫЛАЕТСЯ В HANDLER И ИМЕННО ОН РЕШАЕТ, ЧТО И КАК ДЕЛАТЬ.
-        
         keyboard.row(InlineKeyboardButton(
             text=get_text(language, "kb_admin_panel", "Delete all accounts"),
             callback_data=f'confirm_del_all_products:{category_id}')
@@ -88,6 +97,10 @@ async def show_category_admin_kb(
     keyboard.row(InlineKeyboardButton(
         text=get_text(language, "kb_admin_panel", '{indicator} Show').format(indicator='🟢' if current_show else '🔴'),
         callback_data=f'category_update_show:{category_id}:{0 if current_show else 1}'
+    ))
+    keyboard.row(InlineKeyboardButton(
+        text=get_text(language, "kb_admin_panel", "{indicator} Wholesale purchase").format(indicator='🟢' if allow_multiple_purchase else '🔴'),
+        callback_data=f'category_update_multiple_purchase:{category_id}:{0 if allow_multiple_purchase else 1}'
     ))
     keyboard.row(InlineKeyboardButton(
         text=get_text(language, "kb_admin_panel", 'Update data'),
@@ -139,6 +152,42 @@ def change_category_data_kb(language: str, category_id: int, is_account_storage:
         callback_data=f'category_update_number_button:{category_id}')
     )
 
+
+    keyboard.row(InlineKeyboardButton(
+        text=get_text(language, "kb_general", "Back"),
+        callback_data=f'show_category_admin:{category_id}')
+    )
+
+    return keyboard.as_markup()
+
+
+def select_product_type(language: str, category_id: int):
+    keyboard = InlineKeyboardBuilder()
+    for product_type in ProductType:
+        keyboard.row(
+            InlineKeyboardButton(
+                text=get_text(language, "kb_profile", product_type.value),
+                callback_data=f'choice_product_type:{category_id}:{product_type.value}'
+            )
+        )
+
+    keyboard.row(InlineKeyboardButton(
+        text=get_text(language, "kb_general", "Back"),
+        callback_data=f'show_category_admin:{category_id}')
+    )
+
+    return keyboard.as_markup()
+
+
+def select_account_service_type(language: str, category_id: int):
+    keyboard = InlineKeyboardBuilder()
+    for account_service in AccountServiceType:
+        keyboard.row(
+            InlineKeyboardButton(
+                text=get_text(language, "kb_profile", account_service.value),
+                callback_data=f'choice_account_service:{category_id}:{account_service.value}'
+            )
+        )
 
     keyboard.row(InlineKeyboardButton(
         text=get_text(language, "kb_general", "Back"),

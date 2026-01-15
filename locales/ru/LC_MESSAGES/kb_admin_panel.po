@@ -36,6 +36,9 @@ msgstr "К сервисам"
 msgid "In category"
 msgstr "В категорию"
 
+msgid "In category editor"
+msgstr "В редактор категорий"
+
 msgid "Up index"
 msgstr "⬆️ Индекс"
 
@@ -44,6 +47,9 @@ msgstr "⬇️ Индекс"
 
 msgid "{indicator} Show"
 msgstr "{indicator} Показывать"
+
+msgid "{indicator} Wholesale purchase"
+msgstr "{indicator} Оптовая покупка"
 
 msgid "Rename"
 msgstr "Изменить имя"
@@ -99,7 +105,6 @@ msgstr "Удалить все аккаунты"
 
 msgid "Unload all accounts"
 msgstr "Выгрузить все аккаунты"
-
 
 msgid "Edit commission"
 msgstr "Изменить комиссию"

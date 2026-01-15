@@ -328,7 +328,7 @@ async def test_confirm_buy_acc_with_promo_applies_discount_and_edits_message(
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user(balance=1000)
-    # категоря с price_one_account по умолчанию 150 в фабрике — убедимся что она достаточна
+    # категоря с price по умолчанию 150 в фабрике — убедимся что она достаточна
     category = await create_category(price=150, is_product_storage=True)
     promo = await create_promo_code() # amount=100
 

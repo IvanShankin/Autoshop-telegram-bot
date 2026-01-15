@@ -31,11 +31,11 @@ async def show_category(
     ).format(name=category.name, index=category.index, show=category.show, is_account_storage=category.is_product_storage)
     
     if category.is_product_storage:
-        price_one_acc = category.price_one_account  if category.price_one_account else 0
-        cost_price_acc = category.cost_price_one_account  if category.cost_price_one_account else 0
+        price_one = category.price if category.price else 0
+        cost_price = category.cost_price if category.cost_price else 0
 
-        total_sum_acc = category.quantity_product * price_one_acc
-        total_cost_price_acc = category.quantity_product * cost_price_acc
+        total_sum = category.quantity_product * price_one
+        total_cost_price = category.quantity_product * cost_price
 
         message += get_text(
             user.language,
@@ -46,9 +46,9 @@ async def show_category(
             "Expected profit: {total_profit}"
         ).format(
             total_quantity_acc=category.quantity_product,
-            total_sum_acc=total_sum_acc,
-            total_cost_price_acc=total_cost_price_acc,
-            total_profit=total_sum_acc - total_cost_price_acc,
+            total_sum_acc=total_sum,
+            total_cost_price_acc=total_cost_price,
+            total_profit=total_sum - total_cost_price,
         )
 
     reply_markup = await show_category_admin_kb(
@@ -59,6 +59,7 @@ async def show_category(
         parent_category_id=category.parent_id if category.parent_id else None,
         is_main=category.is_main,
         is_product_storage=category.is_product_storage,
+        allow_multiple_purchase=category.allow_multiple_purchase,
     )
 
     if send_new_message:
@@ -101,7 +102,7 @@ async def show_category_update_data(
             user.language,
             "admins_editor_category",
             "Price per account: {account_price} \nCost per account: {cost_price}\n\n"
-        ).format(account_price=category.price_one_account, cost_price=category.cost_price_one_account)
+        ).format(account_price=category.price, cost_price=category.cost_price)
 
     message += get_text(
         user.language,

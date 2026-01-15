@@ -6,7 +6,7 @@ from src.bot_actions.messages import send_message
 from src.config import get_config
 from src.exceptions import AccountCategoryNotFound, \
     TheCategoryStorageAccount
-from src.modules.admin_actions.keyboards import to_services_kb, back_in_category_kb
+from src.modules.admin_actions.keyboards import back_in_category_kb, in_category_editor_kb
 from src.modules.admin_actions.schemas import GetDataForCategoryData
 from src.modules.admin_actions.services import safe_get_category
 from src.modules.admin_actions.services import set_state_create_category, name_input_prompt_by_language
@@ -20,27 +20,16 @@ from src.utils.i18n import get_text
 router = Router()
 
 
-@router.callback_query(F.data.startswith("add_main_category:"))
-async def add_main_category(callback: CallbackQuery, state: FSMContext, user: Users):
-    service_id = int(callback.data.split(':')[1])
-    await set_state_create_category(state, user, parent_id=None, service_id=service_id)
-
-
 @router.callback_query(F.data.startswith("add_category:"))
 async def add_category(callback: CallbackQuery, state: FSMContext, user: Users):
     category_id = safe_int_conversion(callback.data.split(':')[1])
 
-    if category_id: # если передали значение, иначе это будет is_main
+    if category_id: # если передали значение, значит это подкатегория, иначе это будет главная (is_main)
         category = await safe_get_category(category_id, user=user, callback=callback)
         if not category:
             return
 
-
-    # ДОПИСАТЬ ЛОГИКУУ КОГДАНЕ ПЕРЕДАЛИ ЗНАЧЕНИЕ category_id И КАТЕГОРИЯ ДОЛЖНА СТАТЬ ГЛАВНОЙ (IS_MAIN)
-    # ДОПИСАТЬ ЛОГИКУУ КОГДАНЕ ПЕРЕДАЛИ ЗНАЧЕНИЕ category_id И КАТЕГОРИЯ ДОЛЖНА СТАТЬ ГЛАВНОЙ (IS_MAIN)
-    # ДОПИСАТЬ ЛОГИКУУ КОГДАНЕ ПЕРЕДАЛИ ЗНАЧЕНИЕ category_id И КАТЕГОРИЯ ДОЛЖНА СТАТЬ ГЛАВНОЙ (IS_MAIN)
-
-    await set_state_create_category(state, user, parent_id=category_id, service_id=category.account_service_id)
+    await set_state_create_category(state, user, parent_id=category_id)
 
 
 @router.message(GetDataForCategory.category_name)
@@ -62,7 +51,7 @@ async def add_category_name(message: Message, state: FSMContext, user: Users):
 
     # если найден недостающий язык -> просим ввести по нему
     if next_lang:
-        await name_input_prompt_by_language(user, data.service_id, next_lang)
+        await name_input_prompt_by_language(user, next_lang)
         await state.set_state(GetDataForCategory.category_name)
         return
 
@@ -87,13 +76,13 @@ async def add_category_name(message: Message, state: FSMContext, user: Users):
         reply_markup = back_in_category_kb(user.language, category.category_id, i18n_key="In category")
     except AccountCategoryNotFound:
         message = get_text(user.language, "admins_editor_category","The category no longer exists")
-        reply_markup = to_services_kb(user.language)
+        reply_markup = in_category_editor_kb(user.language)
     except TheCategoryStorageAccount:
         message = get_text(user.language, "admins_editor_category", "The category stores accounts, please extract them first")
         if data.parent_id:
             reply_markup = back_in_category_kb(user.language, data.parent_id)
         else:
-            reply_markup = to_services_kb(user.language)
+            reply_markup = in_category_editor_kb(user.language)
 
     await send_message(
         chat_id=user.user_id,

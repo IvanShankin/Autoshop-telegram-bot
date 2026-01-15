@@ -9,6 +9,7 @@ from sqlalchemy import select
 from telethon.hints import Phone
 
 from src.exceptions import ArchiveNotFount, DirNotFount
+from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.database.core import get_db
 from types import SimpleNamespace
 
@@ -34,7 +35,7 @@ VALID_USER = User(
     fake=False,
     lang_code=None
 )
-# при изменении данного объекта использовать его копию!
+# при изменении VALID_USER использовать его копию!
 # ибо получаем его по ссылке
 
 
@@ -94,7 +95,11 @@ class TestImportAccount:
 
         # запускаем интеграционный импорт (мок только проверки валидности)
         with patch("src.services.accounts.tg.input_account.check_valid_accounts_telethon", new=AsyncMock(side_effect=fake_check)):
-            gen = import_telegram_accounts_from_archive(str(input_zip), category_id=category.category_id, type_account_service="telegram")
+            gen = import_telegram_accounts_from_archive(
+                str(input_zip),
+                category_id=category.category_id,
+                type_account_service=AccountServiceType.TELEGRAM
+            )
 
             # получаем результат (он yield-ит ImportResult)
             result = await gen.__anext__()
@@ -151,7 +156,11 @@ class TestImportAccount:
         category = await create_category(is_product_storage=True)
 
         with patch("src.services.accounts.tg.input_account.check_valid_accounts_telethon", new=AsyncMock(side_effect=fake_check_dup)):
-            gen = import_telegram_accounts_from_archive(str(input_zip), category_id=category.category_id, type_account_service="telegram")
+            gen = import_telegram_accounts_from_archive(
+                str(input_zip),
+                category_id=category.category_id,
+                type_account_service=AccountServiceType.TELEGRAM
+            )
             result = await gen.__anext__()
 
             # должно быть два обработанных, но один дубликат -> duplicate_archive_path не None
@@ -256,7 +265,7 @@ async def test_import_in_db_valid_and_invalid(tmp_path, create_category):
 
         await import_in_db(
             [valid_item, invalid_item],
-            "telegram",
+            AccountServiceType.TELEGRAM,
             str(tmp_path / "invalid_dir"),
             category.category_id
         )
@@ -271,10 +280,8 @@ async def test_import_in_db_valid_and_invalid(tmp_path, create_category):
             assert acc
 
 
-async def test_split_unique_and_duplicates_basic(create_type_account_service):
+async def test_split_unique_and_duplicates_basic():
     from src.services.accounts.tg.input_account import split_unique_and_duplicates
-
-    type_service = await create_type_account_service()
 
     user_1 = VALID_USER
     user_2 = copy(VALID_USER)
@@ -288,7 +295,7 @@ async def test_split_unique_and_duplicates_basic(create_type_account_service):
         BaseAccountProcessingResult(valid=True, user=user_3, phone="123456789", dir_path="c"),  # дубликат
     ]
 
-    unique, duplicates, invalid = await split_unique_and_duplicates(items, type_service.name)
+    unique, duplicates, invalid = await split_unique_and_duplicates(items, AccountServiceType.TELEGRAM)
     assert len(unique) == 2
     assert len(duplicates) == 1
     assert duplicates[0].dir_path == "c"

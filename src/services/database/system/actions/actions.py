@@ -456,9 +456,9 @@ async def get_statistics(interval_days: int) -> StatisticsData:
 
 
         result = await session_db.execute(
-            select(func.coalesce(func.sum(Categories.price_one_account), 0))
+            select(func.coalesce(func.sum(Categories.price), 0))
             .select_from(ProductAccounts)
-            .join(ProductAccounts.account_category)
+            .join(ProductAccounts.category)
         )
         funds_in_bot = result.scalar()
 

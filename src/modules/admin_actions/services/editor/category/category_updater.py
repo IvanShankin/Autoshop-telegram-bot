@@ -1,15 +1,17 @@
 import asyncio
 
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 
 from src.bot_actions.messages import send_message
 from src.exceptions import IncorrectedAmountSale, IncorrectedCostPrice, \
-    IncorrectedNumberButton
-from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category_update_data
+    IncorrectedNumberButton, AccountCategoryNotFound, TheCategoryStorageAccount, CategoryStoresSubcategories
+from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category_update_data, show_category
 from src.modules.admin_actions.schemas import UpdateCategoryOnlyId
 from src.modules.admin_actions.state import UpdateNumberInCategory
 from src.services.database.categories.actions import update_category
+from src.services.database.categories.models.main_category_and_product import ProductType
+from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.database.users.models import Users
 from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_text
@@ -31,9 +33,9 @@ async def update_data(message: Message, state: FSMContext, user: Users):
     else:
         try:
             if await state.get_state() == UpdateNumberInCategory.price.state:
-                await update_category(data.category_id, price_one_account=new_number)
+                await update_category(data.category_id, price=new_number)
             elif await state.get_state() == UpdateNumberInCategory.cost_price.state:
-                await update_category(data.category_id, cost_price_one_account=new_number)
+                await update_category(data.category_id, cost_price=new_number)
             elif await state.get_state() == UpdateNumberInCategory.number_button.state:
                 await update_category(data.category_id, number_buttons_in_row=new_number)
         except (IncorrectedAmountSale, IncorrectedCostPrice, IncorrectedNumberButton):
@@ -63,4 +65,56 @@ async def update_data(message: Message, state: FSMContext, user: Users):
     except Exception:
         pass
 
+
+async def update_category_storage(
+    category_id: int,
+    is_storage: bool,
+    user: Users,
+    callback: CallbackQuery,
+    product_type: ProductType | None = None,
+    type_account_service: AccountServiceType | None = None,
+):
+    """
+    Обновит у категории возможность хранения продукта и выведет сообщение с результатом
+
+    Если передать is_storage == True, то необходимо указать product_type.
+    Если product_type - это аккаунты, то необходимо передать type_account_service.
+    При несоблюдении любого требования будет вызвано исключение ValueError
+
+    :raise ValueError:
+    """
+    update_value = {}
+
+    if is_storage:
+        if not product_type:
+            raise ValueError("При установки хранилища необходимо указать тип продукта 'product_type'")
+
+        if product_type == ProductType.ACCOUNT and not type_account_service:
+            raise ValueError(
+                "При установки хранилища аккаунтов необходимо указать тип сервиса аккаунтов 'type_account_service'"
+            )
+
+        if product_type:
+            update_value["product_type"] = product_type
+        if type_account_service:
+            update_value["type_account_service"] = type_account_service
+
+    try:
+        await update_category(category_id, is_product_storage=is_storage, **update_value)
+        message = get_text(user.language, "miscellaneous", "Successfully updated")
+    except AccountCategoryNotFound:
+        try:
+            await callback.message.delete()
+        except Exception:
+            pass
+        message = get_text(user.language, "admins_editor_category", "The category no longer exists")
+    except TheCategoryStorageAccount:
+        message = get_text(user.language, "admins_editor_category",
+                           "The category stores accounts, please extract them first")
+    except CategoryStoresSubcategories:
+        message = get_text(user.language, "admins_editor_category",
+                           "The category stores subcategories, delete them first")
+
+    await callback.answer(message, show_alert=True)
+    await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
 

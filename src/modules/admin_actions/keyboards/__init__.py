@@ -8,11 +8,10 @@ from src.modules.admin_actions.keyboards.editors.promo_codes_kb import admin_pro
     select_promo_code_type_kb, skip_number_activations_promo_or_in_start_kb, skip_expire_at_promo_or_in_start_kb, \
     show_admin_promo_kb, in_show_admin_promo_kb, confirm_deactivate_promo_code_kb, back_in_all_admin_promo_kb, \
     back_in_admin_promo_kb, back_in_start_creating_promo_code_kb
-from src.modules.admin_actions.keyboards.editors.service_kb import all_services_account_admin_kb, show_service_acc_admin_kb, \
-    all_services_types_kb, to_services_kb, delete_service_kb, back_in_service_kb
 from src.modules.admin_actions.keyboards.editors.category_kb import show_category_admin_kb, change_category_data_kb, \
-    select_lang_category_kb, name_or_description_kb, delete_category_kb, delete_product_kb, back_in_category_update_data_kb, \
-    back_in_category_kb
+    select_lang_category_kb, name_or_description_kb, delete_category_kb, delete_product_kb, \
+    back_in_category_update_data_kb, \
+    back_in_category_kb, in_category_editor_kb
 from src.modules.admin_actions.keyboards.settings_kb import admin_settings_kb, back_in_admin_settings_kb, \
     change_admin_settings_kb, back_in_change_admin_settings_kb
 from src.modules.admin_actions.keyboards.show_data_kb import data_by_id_by_page_kb, back_in_show_data_by_id_kb
@@ -25,12 +24,7 @@ from src.modules.admin_actions.keyboards.editors.vouchers_kb import admin_vouche
     back_in_start_creating_admin_vouchers_kb
 
 __all__ = [
-    "all_services_account_admin_kb",
-    "show_service_acc_admin_kb",
-    "all_services_types_kb",
-    "to_services_kb",
-    "delete_service_kb",
-    "back_in_service_kb",
+    "in_category_editor_kb",
     "show_category_admin_kb",
     "change_category_data_kb",
     "select_lang_category_kb",

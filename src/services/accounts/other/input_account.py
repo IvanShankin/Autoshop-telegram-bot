@@ -7,12 +7,17 @@ from src.exceptions import InvalidFormatRows, CategoryNotFound, TheCategoryNotSt
 from src.services.accounts.other.shemas import AccountImportData, ImportResult, REQUIRED_HEADERS
 from src.services.accounts.utils.helper_imports import get_unique_among_db
 from src.services.database.categories.actions import add_account_storage, add_product_account
+from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.filesystem.input_account import make_csv_bytes
 from src.utils.core_logger import get_logger
 from src.services.secrets import encrypt_text, make_account_key, get_crypto_context
 
 
-async def input_other_account(stream: io.BytesIO, category_id: int, type_account_service: str) -> ImportResult:
+async def input_other_account(
+    stream: io.BytesIO,
+    category_id: int,
+    type_account_service: AccountServiceType
+) -> ImportResult:
     """
     Добавит аккаунты из csv файла. В файле должны содержаться заголовки: phone, email, password
     :param stream: Поток байт из csv файла содержащий данные для входа в аккаунт
@@ -85,7 +90,7 @@ async def input_other_account(stream: io.BytesIO, category_id: int, type_account
 
 async def split_unique_and_duplicates(
     account_data: List[AccountImportData],
-    type_account_service: str
+    type_account_service: AccountServiceType
 ) -> Tuple[List[AccountImportData], List[AccountImportData]]:
     """
     :return: Tuple[Уникальные, Дубликаты]
@@ -109,7 +114,7 @@ async def split_unique_and_duplicates(
 
 async def import_in_db(
     account_data: List[AccountImportData],
-    type_account_service: str,
+    type_account_service: AccountServiceType,
     category_id: int
 ) ->  List[AccountImportData]:
     """
@@ -139,6 +144,7 @@ async def import_in_db(
                 password_nonce=password_nonce,
             )
             await add_product_account(
+                type_account_service=type_account_service,
                 category_id=category_id,
                 account_storage_id=acc.account_storage_id
             )

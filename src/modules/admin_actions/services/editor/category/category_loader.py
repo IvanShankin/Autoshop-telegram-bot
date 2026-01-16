@@ -4,9 +4,8 @@ from aiogram.types import CallbackQuery
 
 from src.bot_actions.messages import send_message
 from src.bot_actions.bot_instance import get_bot
-from src.modules.admin_actions.keyboards import to_services_kb
-from src.services.database.categories.actions import get_categories_by_category_id, \
-    get_account_service, get_type_account_service
+from src.modules.admin_actions.keyboards import in_category_editor_kb
+from src.services.database.categories.actions import get_categories_by_category_id
 from src.services.database.categories.models import CategoryFull
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
@@ -34,19 +33,19 @@ async def safe_get_category(category_id: int, user: Users, callback: CallbackQue
     return category
 
 
-async def safe_get_service_name(category: CategoryFull, user: Users, message_id: int) -> str | None:
-    """Произведёт поиск по сервисам, если не найдёт, то удалит сообщение и отошлёт соответствующие сообщение"""
-    service_name = None
-    service = await get_account_service(category.account_service_id, return_not_show=True)
-    if service:
-        type_service = await get_type_account_service(service.type_account_service_id)
-        if type_service:
-            return type_service.name
-
-    if not service_name:
-        await service_not_found(user, message_id)
-
-    return None
+# async def safe_get_service_name(category: CategoryFull, user: Users, message_id: int) -> str | None:
+#     """Произведёт поиск по сервисам, если не найдёт, то удалит сообщение и отошлёт соответствующие сообщение"""
+#     service_name = None
+#     service = await get_account_service(category.account_service_id, return_not_show=True)
+#     if service:
+#         type_service = await get_type_account_service(service.type_account_service_id)
+#         if type_service:
+#             return type_service.name
+#
+#     if not service_name:
+#         await service_not_found(user, message_id)
+#
+#     return None
 
 
 async def service_not_found(user: Users, message_id_delete: Optional[int] = None):
@@ -60,5 +59,5 @@ async def service_not_found(user: Users, message_id_delete: Optional[int] = None
     await send_message(
         chat_id=user.user_id,
         message=get_text(user.language, "admins_editor_category", "This services no longer exists, please choose another one"),
-        reply_markup=to_services_kb(language=user.language)
+        reply_markup=in_category_editor_kb(language=user.language)
     )

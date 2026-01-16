@@ -9,6 +9,7 @@ from src.exceptions import ArchiveNotFount, DirNotFount
 from src.services.accounts.utils.helper_imports import get_unique_among_db
 from src.services.database.categories.actions import add_account_storage, add_product_account, \
     update_account_storage
+from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.filesystem.actions import extract_archive_to_temp, make_archive
 from src.services.filesystem.input_account import encrypted_tg_account, cleanup_used_data, archive_if_not_empty
 from src.services.accounts.tg.actions import check_valid_accounts_telethon
@@ -23,7 +24,7 @@ SEM = asyncio.Semaphore(7)
 async def import_telegram_accounts_from_archive(
     archive_path: str,
     category_id: int,
-    type_account_service: str
+    type_account_service: AccountServiceType
 ) -> AsyncGenerator[ImportResult, Any]:
     """
     При первом вызове интегрирует аккаунты в бота,
@@ -91,7 +92,7 @@ async def import_telegram_accounts_from_archive(
 
 async def import_in_db(
     all_items: List[BaseAccountProcessingResult],
-    type_account_service: str,
+    type_account_service: AccountServiceType,
     invalid_dir: str,
     category_id: int
 ) -> int:
@@ -144,7 +145,7 @@ async def import_in_db(
             encrypted_key_nonce=enc.encrypted_key_nonce,
         )
 
-        await add_product_account(category_id, acc.account_storage_id)
+        await add_product_account(type_account_service, category_id, acc.account_storage_id)
         successfully_added += 1
 
     return successfully_added
@@ -152,7 +153,7 @@ async def import_in_db(
 
 async def split_unique_and_duplicates(
     items: List[BaseAccountProcessingResult],
-    type_account_service: str
+    type_account_service: AccountServiceType
 ) -> Tuple[List[BaseAccountProcessingResult], List[BaseAccountProcessingResult], List[BaseAccountProcessingResult] ]:
     """
     Отберёт уникальные аккаунты

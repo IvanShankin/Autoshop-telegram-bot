@@ -114,10 +114,10 @@ class TestUpdateCategory:
 
         # Проверка на нормальную цену
         with pytest.raises(IncorrectedAmountSale):
-            await update_category(cat.category_id, price_one_account=-1)
+            await update_category(cat.category_id, price=-1)
 
         with pytest.raises(IncorrectedCostPrice):
-            await update_category(cat.category_id, cost_price_one_account=-1)
+            await update_category(cat.category_id, cost_price=-1)
 
         updated = await update_category(cat.category_id, show=False)
         assert updated.show is False

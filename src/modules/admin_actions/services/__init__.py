@@ -1,5 +1,4 @@
-from src.modules.admin_actions.services.editor.category.category_loader import safe_get_category, safe_get_service_name, \
-    service_not_found
+from src.modules.admin_actions.services.editor.category.category_loader import safe_get_category, service_not_found
 from src.modules.admin_actions.services.editor.category.category_messages import message_info_load_file, make_result_msg
 from src.modules.admin_actions.services.editor.category.category_updater import update_data
 from src.modules.admin_actions.services.editor.category.category_utils import name_input_prompt_by_language, \
@@ -11,13 +10,11 @@ from src.modules.admin_actions.services.editor.replenishment.replenishment_loade
 from src.modules.admin_actions.services.editor.replenishment.replenishments_messages import message_type_payment
 from src.modules.admin_actions.services.editor.service_acc import service_validator
 
-from src.modules.admin_actions.services.editor.service_acc.service_validator import show_service
 
 from src.modules.admin_actions.services.user_managent.management_messages import message_about_user
 
 __all__ = [
     "safe_get_category",
-    "safe_get_service_name",
     "service_not_found",
     "message_info_load_file",
     "make_result_msg",
@@ -30,7 +27,6 @@ __all__ = [
     "upload_account",
     "safe_get_type_payment",
     "message_type_payment",
-    "show_service",
     "message_about_user",
     "service_validator",
 ]

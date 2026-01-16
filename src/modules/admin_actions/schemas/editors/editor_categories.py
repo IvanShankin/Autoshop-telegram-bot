@@ -1,6 +1,7 @@
 from typing import Dict
-
 from pydantic import BaseModel
+
+from src.services.database.categories.models.product_account import AccountServiceType
 
 
 class GetServiceNameData(BaseModel):
@@ -12,7 +13,6 @@ class RenameServiceData(BaseModel):
 
 
 class GetDataForCategoryData(BaseModel):
-    service_id: int
     parent_id: int | None
     requested_language: str # входить в get_config().app.allowed_langs
     data_name: Dict[str, str] # код языка и по нему имя
@@ -34,4 +34,4 @@ class UpdateCategoryOnlyId(BaseModel):
 
 class ImportAccountsData(BaseModel):
     category_id: int
-    type_account_service: str
+    type_account_service: AccountServiceType

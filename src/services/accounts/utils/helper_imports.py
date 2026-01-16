@@ -1,9 +1,8 @@
 from typing import List, Tuple, TypeVar
 
-from src.exceptions import TypeAccountServiceNotFound
 from src.services.accounts.shemas import HasPhone
-from src.services.database.categories.actions import get_all_types_account_service, \
-    get_all_phone_in_account_storage
+from src.services.database.categories.actions import get_all_phone_in_account_storage
+from src.services.database.categories.models.product_account import AccountServiceType
 from src.utils.core_logger import get_logger
 from src.utils.pars_number import phone_in_e164
 
@@ -13,7 +12,7 @@ T = TypeVar("T", bound=HasPhone)
 
 async def get_unique_among_db(
     account_data: List[T],
-    type_account_service: str
+    type_account_service: AccountServiceType
 ) -> Tuple[List[T], List[T]]:
     """
     Отберёт уникальные аккаунты среди БД.

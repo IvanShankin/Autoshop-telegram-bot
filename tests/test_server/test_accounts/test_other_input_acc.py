@@ -2,16 +2,15 @@ import io
 import pytest
 
 from src.services.accounts.other.shemas import AccountImportData
+from src.services.database.categories.models.product_account import AccountServiceType
 
 # Если вы используете pytest-asyncio, включите эту метку
 pytestmark = pytest.mark.asyncio
 
 
 async def test_split_unique_and_duplicates_in_memory_and_db_duplicates(
-    create_type_account_service,
-    create_account_service,
     create_category,
-    create_product_account  # fixture — фабрика/создатель записи в БД
+    create_product_account
 ):
     """
     Проверяем поведение split_unique_and_duplicates:
@@ -20,9 +19,7 @@ async def test_split_unique_and_duplicates_in_memory_and_db_duplicates(
     """
     from src.services.accounts.other.input_account import split_unique_and_duplicates
 
-    type_service = await create_type_account_service()
-    service = await create_account_service(type_account_service_id=type_service.type_account_service_id)
-    category = await create_category(account_service_id=service.account_service_id)
+    category = await create_category(type_account_service=AccountServiceType.TELEGRAM)
 
     # Создаём уже существующую запись в БД — это будет дубль по телефону
     existing_phone = "+79990001122"
@@ -40,7 +37,7 @@ async def test_split_unique_and_duplicates_in_memory_and_db_duplicates(
     # Преобразуем к AccountImportData как ожидает split_unique_and_duplicates
     account_objs = [AccountImportData(**r) for r in rows]
 
-    unique_items, duplicates = await split_unique_and_duplicates(account_objs, type_service.name)
+    unique_items, duplicates = await split_unique_and_duplicates(account_objs, category.type_account_service)
 
     # Ожидаем: уникальные — один (unique1) если DB дубль и локальный дубль уходит в duplicates
     # duplicates включает: локальный дубль (same phone twice) и дубль, обнаруженный в БД (existing_phone)
@@ -53,8 +50,6 @@ async def test_split_unique_and_duplicates_in_memory_and_db_duplicates(
 
 
 async def test_input_other_account_full_flow_create_and_return_reports(
-    create_type_account_service,
-    create_account_service,
     create_category,
     create_product_account
 ):
@@ -70,9 +65,7 @@ async def test_input_other_account_full_flow_create_and_return_reports(
     from src.services.accounts.other.input_account import input_other_account
     from src.services.filesystem.input_account import make_csv_bytes
 
-    type_service = await create_type_account_service()
-    service = await create_account_service(type_account_service_id=type_service.type_account_service_id)
-    category = await create_category(account_service_id=service.account_service_id, is_product_storage=True)
+    category = await create_category(type_account_service=AccountServiceType.TELEGRAM, is_product_storage=True)
 
     # Телефон, который уже есть в БД
     phone_existing = "+71230000000"
@@ -89,7 +82,7 @@ async def test_input_other_account_full_flow_create_and_return_reports(
     stream = io.BytesIO(csv_bytes)
 
     # Запускаем импортер
-    result = await input_other_account(stream, category.category_id, type_service.name)
+    result = await input_other_account(stream, category.category_id, category.type_account_service)
 
     # total_processed — число строк (csv.DictReader.line_num - 1 в коде)
     assert result.total_processed == 3

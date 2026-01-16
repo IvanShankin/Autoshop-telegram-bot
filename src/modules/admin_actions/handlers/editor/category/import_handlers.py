@@ -13,17 +13,16 @@ from src.exceptions import TypeAccountServiceNotFound, InvalidFormatRows
 from src.modules.admin_actions.keyboards import back_in_category_kb, \
     name_or_description_kb
 from src.modules.admin_actions.schemas import ImportAccountsData
-from src.modules.admin_actions.services import safe_get_category, service_not_found, \
-    safe_get_service_name
+from src.modules.admin_actions.services import safe_get_category, service_not_found
 from src.modules.admin_actions.services import message_info_load_file, make_result_msg
 from src.modules.admin_actions.services import check_valid_file, check_category_is_acc_storage
 from src.modules.admin_actions.state import ImportTgAccounts, ImportOtherAccounts
 from src.services.accounts.other.input_account import input_other_account
 from src.services.accounts.tg.input_account import import_telegram_accounts_from_archive
+from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.database.users.models import Users
 from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text
-
 
 router = Router()
 
@@ -35,9 +34,7 @@ async def category_load_products(callback: CallbackQuery, state: FSMContext, use
     if not category:
         return
 
-    service_name = await safe_get_service_name(category, user, callback.message.message_id)
-
-    if service_name == "telegram":
+    if category.type_account_service == AccountServiceType.TELEGRAM:
         await edit_message(
             chat_id=user.user_id,
             message_id=callback.message.message_id,
@@ -50,8 +47,8 @@ async def category_load_products(callback: CallbackQuery, state: FSMContext, use
             reply_markup=back_in_category_kb(user.language, category_id)
         )
         await state.set_state(ImportTgAccounts.archive)
-        await state.update_data(category_id=category_id, type_account_service=service_name)
-    elif service_name ==  "other":
+        await state.update_data(category_id=category_id, type_account_service=category.type_account_service)
+    elif category.type_account_service == AccountServiceType.OTHER:
         await edit_message(
             chat_id=user.user_id,
             message_id=callback.message.message_id,
@@ -68,11 +65,9 @@ async def category_load_products(callback: CallbackQuery, state: FSMContext, use
             reply_markup=back_in_category_kb(user.language, category_id)
         )
         await state.set_state(ImportOtherAccounts.csv_file)
-        await state.update_data(category_id=category_id, type_account_service=service_name)
+        await state.update_data(category_id=category_id, type_account_service=category.type_account_service)
     else:
         await service_not_found(user, callback.message.message_id)
-
-
 
 
 @router.callback_query(F.data.startswith("choice_lang_category_data:"))

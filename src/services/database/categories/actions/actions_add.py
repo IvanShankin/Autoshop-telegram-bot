@@ -171,7 +171,7 @@ async def add_category(
 
 
 async def add_account_storage(
-    type_service_name: str,
+    type_service_name: AccountServiceType,
     checksum: str,
     encrypted_key: str,
     encrypted_key_nonce: str,
@@ -201,14 +201,14 @@ async def add_account_storage(
     :param password_encrypted: Зашифрованный Пароль
     :param password_nonce:  используемый nonce при шифровании
     """
-    if type_service_name not in [member.value for member in AccountServiceType]:
+    if not type_service_name in AccountServiceType:
         raise ValueError(f"type_service_name = {type_service_name} не найден")
 
     # только для аккаунтов телеграмм формируем путь
-    storage_uuid = str(uuid.uuid4()) if type_service_name == 'telegram' else None
-    file_path = Path(status) / type_service_name / str(storage_uuid) / 'account.zip.enc' if type_service_name == 'telegram' else None
+    storage_uuid = str(uuid.uuid4()) if type_service_name == type_service_name.TELEGRAM else None
+    file_path = Path(status) / type_service_name.value / str(storage_uuid) / 'account.zip.enc' if type_service_name == AccountServiceType.TELEGRAM else None
 
-    if type_service_name != 'telegram' and (login_encrypted is None or password_encrypted is None):
+    if type_service_name != AccountServiceType.TELEGRAM and (login_encrypted is None or password_encrypted is None):
         raise ValueError(f"Необходимо указать login_encrypted и password_encrypted")
 
     new_account_storage = AccountStorage(
@@ -232,7 +232,7 @@ async def add_account_storage(
         await session_db.commit()
         await session_db.refresh(new_account_storage)
 
-    if type_service_name == 'telegram':
+    if type_service_name == type_service_name.TELEGRAM:
         tg_media = TgAccountMedia(
             account_storage_id=new_account_storage.account_storage_id
         )

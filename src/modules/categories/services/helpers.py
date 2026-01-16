@@ -61,7 +61,7 @@ async def edit_message_category(
             'categories',
             "{name} \n\n"
             "Description: {description}\n"
-            "Price per product: {price_one_account} ₽ \n\n"
+            "Price per product: {price} ₽ \n\n"
             "Products selected: {selected_accounts}\n"
             "{discount}"
             "Total: {total_price}\n\n"
@@ -69,7 +69,7 @@ async def edit_message_category(
         ).format(
             name=category.name,
             description=category.description,
-            price_one_account=category.price,
+            price=category.price,
             selected_accounts=data.quantity_for_buying,
             discount=message_discount,
             total_price=total_price

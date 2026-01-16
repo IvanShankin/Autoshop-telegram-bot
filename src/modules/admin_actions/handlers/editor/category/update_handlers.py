@@ -6,21 +6,24 @@ from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.messages import edit_message, send_message
 from src.config import get_config
-from src.exceptions import AccountCategoryNotFound, \
-    TheCategoryStorageAccount, CategoryStoresSubcategories
+from src.exceptions import AccountCategoryNotFound
 from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category, show_category_update_data
-from src.modules.admin_actions.keyboards import to_services_kb, select_lang_category_kb, \
-    back_in_category_update_data_kb
+from src.modules.admin_actions.keyboards import select_lang_category_kb, back_in_category_update_data_kb
+from src.modules.admin_actions.keyboards.editors.category_kb import back_in_category_editor_kb, \
+    select_account_service_type
 from src.modules.admin_actions.schemas import UpdateNameForCategoryData, \
     UpdateDescriptionForCategoryData, UpdateCategoryOnlyId
 from src.modules.admin_actions.services import safe_get_category
 from src.modules.admin_actions.services import update_data
 from src.modules.admin_actions.services import update_message_query_data
 from src.modules.admin_actions.services import upload_account
+from src.modules.admin_actions.services.editor.category.category_updater import update_category_storage
 from src.modules.admin_actions.state import UpdateNameForCategory, \
     UpdateDescriptionForCategory, UpdateCategoryImage, UpdateNumberInCategory
 from src.services.database.categories.actions import update_category, \
     update_category_translation
+from src.services.database.categories.models.main_category_and_product import ProductType
+from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.database.system.actions import update_ui_image
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
@@ -33,22 +36,73 @@ async def category_update_storage(callback: CallbackQuery, user: Users):
     category_id = int(callback.data.split(':')[1])
     is_storage = bool(int(callback.data.split(':')[2])) # что необходимо установить
 
-    try:
-        await update_category(category_id, is_product_storage=is_storage)
-        message = get_text(user.language, "miscellaneous", "Successfully updated")
-    except AccountCategoryNotFound:
-        try:
-            await callback.message.delete()
-        except Exception:
-            pass
-        message = get_text(user.language, "admins_editor_category", "The category no longer exists")
-    except TheCategoryStorageAccount:
-        message = get_text(user.language, "admins_editor_category", "The category stores accounts, please extract them first")
-    except CategoryStoresSubcategories:
-        message = get_text(user.language, "admins_editor_category","The category stores subcategories, delete them first")
+    if not is_storage:  # если необходимо убрать возможность хранения
+        await update_category_storage(
+            category_id=category_id,
+            is_storage=is_storage,
+            user=user,
+            callback=callback
+        )
+        return
 
-    await callback.answer(message, show_alert=True)
-    await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
+    await edit_message(
+        chat_id=user.user_id,
+        message_id=callback.message.message_id,
+        message=get_text(
+            user.language,
+            "admins_editor_category",
+            "Select product type"
+        ),
+        reply_markup=select_lang_category_kb(user.language, category_id)
+    )
+
+
+@router.callback_query(F.data.startswith("choice_product_type:"))
+async def choice_product_type(callback: CallbackQuery, user: Users):
+    category_id = int(callback.data.split(':')[1])
+    product_type = callback.data.split(':')[2]
+
+    if not any(product_type == prod_tp.value for prod_tp in ProductType):
+        await callback.answer(
+            get_text(user.language, "admins_editor_category", "Selected product type not found")
+        )
+        await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
+        return
+
+    if product_type == ProductType.ACCOUNT.value:
+        await edit_message(
+            chat_id=user.user_id,
+            message_id=callback.message.message_id,
+            message=get_text(
+                user.language,
+                "admins_editor_category",
+                "Select service account"
+            ),
+            reply_markup=select_account_service_type(user.language, category_id)
+        )
+    # ПРИ РАСШИРЕНИИ ПРОДУКТОВ ДОБАВИТЬ БОЛЬШЕ УСЛОВИЙ
+
+
+@router.callback_query(F.data.startswith("choice_account_service:"))
+async def choice_account_service(callback: CallbackQuery, user: Users):
+    category_id = int(callback.data.split(':')[1])
+    account_service = callback.data.split(':')[2]
+
+    if not any(account_service == acc_ser.value for acc_ser in AccountServiceType):
+        await callback.answer(
+            get_text(user.language, "admins_editor_category", "Selected service account not found")
+        )
+        await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
+        return
+
+    await update_category_storage(
+        category_id=category_id,
+        is_storage=True,
+        product_type=ProductType.ACCOUNT,
+        type_account_service=AccountServiceType(account_service),
+        user=user,
+        callback=callback
+    )
 
 
 @router.callback_query(F.data.startswith("category_update_index:"))
@@ -69,6 +123,16 @@ async def service_update_show(callback: CallbackQuery, user: Users):
 
     await update_category(category_id, show=show)
     await callback.answer(get_text(user.language, "miscellaneous","Successfully updated"))
+    await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
+
+
+@router.callback_query(F.data.startswith("category_update_multiple_purchase:"))
+async def service_update_show(callback: CallbackQuery, user: Users):
+    category_id = int(callback.data.split(':')[1])
+    allow_multiple_purchase = bool(int(callback.data.split(':')[2]))
+
+    await update_category(category_id, allow_multiple_purchase=allow_multiple_purchase)
+    await callback.answer(get_text(user.language, "miscellaneous", "Successfully updated"))
     await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
 
 
@@ -131,7 +195,7 @@ async def get_name_for_update(message: Message, state: FSMContext, user: Users):
         reply_markup = back_in_category_update_data_kb(user.language, data.category_id)
     except AccountCategoryNotFound:
         message = get_text(user.language, "admins_editor_category","The category no longer exists")
-        reply_markup=to_services_kb(user.language)
+        reply_markup = back_in_category_editor_kb(user.language)
 
     await send_message(
         chat_id=user.user_id,
@@ -176,7 +240,7 @@ async def get_description_for_update(message: Message, state: FSMContext, user: 
         reply_markup = back_in_category_update_data_kb(user.language, data.category_id)
     except AccountCategoryNotFound:
         message = get_text(user.language, "admins_editor_category","The category no longer exists")
-        reply_markup=to_services_kb(user.language)
+        reply_markup=back_in_category_editor_kb(user.language)
 
     await send_message(
         chat_id=user.user_id,

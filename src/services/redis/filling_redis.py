@@ -74,12 +74,16 @@ async def filling_all_redis():
 
 async def _get_quantity_products_in_category(category_id: int) -> int:
     async with get_db() as session:
-        stmt = (
+        stmt = select(
             select(func.count())
-            .select_from(Categories)
-            .outerjoin(ProductAccounts, ProductAccounts.category_id == Categories.category_id)
-            .outerjoin(ProductUniversal, ProductUniversal.category_id == Categories.category_id)
-            .where(Categories.category_id == category_id)
+            .select_from(ProductAccounts)
+            .where(ProductAccounts.category_id == category_id)
+            .scalar_subquery()
+            +
+            select(func.count())
+            .select_from(ProductUniversal)
+            .where(ProductUniversal.category_id == category_id)
+            .scalar_subquery()
         )
 
         result = await session.execute(stmt)

@@ -34,14 +34,14 @@ async def test_get_promo_code(use_redis, create_promo_code):
     promo_code = await create_promo_code()
     promo = await get_promo_code(promo_code.activation_code)
 
-    await comparison_models(promo_code, promo)
+    assert comparison_models(promo_code, promo)
 
 @pytest.mark.asyncio
 async def test_get_promo_code_by_id(create_promo_code):
     from src.services.database.discounts.actions import get_promo_code
     promo_code = await create_promo_code()
     promo = await get_promo_code(promo_code_id=promo_code.promo_code_id)
-    await comparison_models(promo_code, promo)
+    assert comparison_models(promo_code, promo)
 
 
 @pytest.mark.asyncio
@@ -77,14 +77,14 @@ async def test_get_valid_voucher_by_code(use_redis, create_voucher):
     from src.services.database.discounts.actions import get_valid_voucher_by_code
     voucher = await create_voucher(filling_redis=use_redis)
     voucher = await get_valid_voucher_by_code(voucher.activation_code)
-    await comparison_models(voucher, voucher)
+    assert comparison_models(voucher, voucher)
 
 @pytest.mark.asyncio
 async def test_get_voucher_by_id(create_voucher):
     from src.services.database.discounts.actions import get_voucher_by_id
     voucher = await create_voucher()
     voucher = await get_voucher_by_id(voucher.voucher_id)
-    await comparison_models(voucher, voucher)
+    assert comparison_models(voucher, voucher)
 
 @pytest.mark.asyncio
 async def test_create_promo_code(create_promo_code, create_new_user):
@@ -116,9 +116,9 @@ async def test_create_promo_code(create_promo_code, create_new_user):
     async with get_redis() as session_redis:
         promo_redis = orjson.loads(await session_redis.get(f'promo_code:{new_promo_code.activation_code}'))
 
-    await comparison_models(new_promo_code, promo_returned, ['promo_code_id', 'start_at'])
-    await comparison_models(promo_returned, promo_db)
-    await comparison_models(promo_returned, promo_redis)
+    assert comparison_models(new_promo_code, promo_returned, ['promo_code_id', 'start_at'])
+    assert comparison_models(promo_returned, promo_db)
+    assert comparison_models(promo_returned, promo_redis)
 
 
 @pytest.mark.asyncio
@@ -154,9 +154,9 @@ async def test_create_voucher(create_voucher):
     async with get_redis() as session_redis:
         voucher_redis = orjson.loads(await session_redis.get(f'voucher:{voucher_returned.activation_code}'))
 
-    await comparison_models(new_voucher, voucher_returned, ['voucher_id', 'start_at', 'activation_code'])
-    await comparison_models(voucher_returned, voucher)
-    await comparison_models(voucher_returned, voucher_redis)
+    assert comparison_models(new_voucher, voucher_returned, ['voucher_id', 'start_at', 'activation_code'])
+    assert comparison_models(voucher_returned, voucher)
+    assert comparison_models(voucher_returned, voucher_redis)
 
 
 @pytest.mark.asyncio

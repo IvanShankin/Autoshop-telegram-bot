@@ -219,7 +219,7 @@ class TestImportAccount:
             gen = import_telegram_accounts_from_archive(
                 str(input_zip),
                 category_id=category.category_id,
-                type_account_service="telegram"
+                type_account_service= AccountServiceType.TELEGRAM
             )
 
             result = await gen.__anext__()

@@ -23,7 +23,7 @@ async def test_filling_main_categories(create_category):
 
     category.product_type = category.product_type.value
     category.type_account_service = category.type_account_service.value
-    await comparison_models(category.model_dump(), orjson.loads(val)[0], ['quantity_product_account'])
+    assert comparison_models(category.model_dump(), orjson.loads(val)[0], ['quantity_product_account'])
 
 @pytest.mark.asyncio
 async def test_filling_categories_by_parent(create_category):
@@ -40,7 +40,7 @@ async def test_filling_categories_by_parent(create_category):
 
     category.product_type = category.product_type.value
     category.type_account_service = category.type_account_service.value
-    await comparison_models(category.model_dump(), orjson.loads(val)[0], ['quantity_product_account'])
+    assert comparison_models(category.model_dump(), orjson.loads(val)[0], ['quantity_product_account'])
 
 
 @pytest.mark.asyncio
@@ -56,7 +56,7 @@ async def test_filling_category_by_category(create_category):
 
     category.product_type = category.product_type.value
     category.type_account_service = category.type_account_service.value
-    await comparison_models(category.model_dump(), orjson.loads(val), ['quantity_product_account'])
+    assert comparison_models(category.model_dump(), orjson.loads(val), ['quantity_product_account'])
 
 
 @pytest.mark.asyncio
@@ -82,7 +82,7 @@ async def test_filling_product_accounts_by_category_id(create_category, create_p
         redis_result = orjson.loads(val)
 
     for prod in account_products:
-        assert any(await comparison_models(prod.to_dict(), redis)  for redis in redis_result )
+        assert any(comparison_models(prod.to_dict(), redis)  for redis in redis_result )
 
     assert not other_account_product in redis_result
 
@@ -101,7 +101,7 @@ async def test_filling_product_account_by_account_id(create_product_account, cre
         val = await session_redis.get(f"product_account:{product.account_id}")
 
     product.type_account_service = product.type_account_service.value
-    await comparison_models(product.model_dump(), orjson.loads(val))
+    assert comparison_models(product.model_dump(), orjson.loads(val))
 
 
 @pytest.mark.asyncio
@@ -126,7 +126,7 @@ async def test_filling_sold_accounts_by_owner_id(create_new_user, create_sold_ac
     assert 2 == len(items)
 
     sold_account_2.type_account_service = sold_account_2.type_account_service.value
-    await comparison_models(sold_account_2.model_dump(), items[0])
+    assert comparison_models(sold_account_2.model_dump(), items[0])
 
 
 @pytest.mark.asyncio
@@ -142,7 +142,7 @@ async def test_filling_sold_account_by_account_id(create_sold_account):
     data = orjson.loads(val)
 
     sold_account.type_account_service = sold_account.type_account_service.value
-    await comparison_models(sold_account.model_dump(), data)
+    assert comparison_models(sold_account.model_dump(), data)
 
 
 class TestFillRedisSingleObjects():
@@ -186,7 +186,7 @@ class TestFillRedisSingleObjects():
         async with get_redis() as session_redis:
             val = await session_redis.get(f"promo_code:{promo_code.activation_code}")
 
-        await comparison_models(promo_code.to_dict(), orjson.loads(val))
+        assert comparison_models(promo_code.to_dict(), orjson.loads(val))
 
     @pytest.mark.asyncio
     async def test_filling_vouchers(self, create_new_user, create_voucher):
@@ -198,27 +198,8 @@ class TestFillRedisSingleObjects():
         async with get_redis() as session_redis:
             val = await session_redis.get(f"voucher:{voucher.activation_code}")
 
-        await comparison_models(voucher.to_dict(), orjson.loads(val))
+        assert comparison_models(voucher.to_dict(), orjson.loads(val))
 
-
-# @pytest.mark.asyncio
-# async def test_filling_product_by_category_id(create_product_account, create_category):
-#     category = await create_category(filling_redis=False)
-#     create_product_account_1, _ = await create_product_account(filling_redis=False, category_id = category.category_id)
-#     create_product_account_2, _ = await create_product_account(filling_redis=False, category_id = category.category_id)
-#
-#     # Execute
-#     await filling.filling_product_by_category_id()
-#
-#     # Assert
-#     async with get_redis() as session_redis:
-#         val = await session_redis.get(f"product_accounts_by_category_id:{category.category_id}")
-#
-#     data = orjson.loads(val)
-#     assert len(data) == 2
-#
-#     await comparison_models(create_product_account_1.to_dict(), data[0])
-#     await comparison_models(create_product_account_2.to_dict(), data[1])
 
 @pytest.mark.asyncio
 async def test_filling_user(create_new_user):
@@ -227,7 +208,7 @@ async def test_filling_user(create_new_user):
 
     async with get_redis() as session_redis:
         user_redis = await session_redis.get(f'user:{user.user_id}')
-        await comparison_models(user, orjson.loads(user_redis))
+        assert comparison_models(user, orjson.loads(user_redis))
 
 
 @pytest.mark.asyncio

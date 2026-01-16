@@ -55,13 +55,14 @@ async def _buy_account(
     callback: CallbackQuery,
     delete_message_def: Callable[[], Coroutine[Any, Any, Any]],
     category_id: int,
-    promo_code_id: int
+    promo_code_id: int,
+    quantity_products: int,
 ):
     try:
         result = await purchase_accounts(
             user_id=user.user_id,
             category_id=category_id,
-            quantity_accounts=BuyProduct.quantity_products,
+            quantity_accounts=quantity_products,
             promo_code_id=promo_code_id
         )
     except NotEnoughAccounts as e:
@@ -104,7 +105,7 @@ async def _buy_account(
             reply_markup=back_in_account_category_kb(
                 language=user.language,
                 category_id=category_id,
-                quantity_for_buying=BuyProduct.quantity_products,
+                quantity_for_buying=quantity_products,
             )
         )
 
@@ -172,7 +173,7 @@ async def buy_product(
         await _show_not_enough_money(
             total_sum - user.balance,
             category_id=category_id,
-            quantity_products=BuyProduct.quantity_products,
+            quantity_products=quantity_products,
             callback=callback,
             user=user
         )
@@ -187,7 +188,14 @@ async def buy_product(
 
     try:
         if category.product_type == ProductType.ACCOUNT:
-            await _buy_account(user=user, callback=callback, delete_message_def=delete_message, category_id=category_id,promo_code_id=promo_code_id)
+            await _buy_account(
+                user=user,
+                callback=callback,
+                delete_message_def=delete_message,
+                category_id=category_id,
+                promo_code_id=promo_code_id,
+                quantity_products=quantity_products
+            )
         elif category.product_type == ProductType.UNIVERSAL:
             await _buy_universal()
         # ТУТ ВЫЗЫВАЕМ ФУНЦИЮ ДЛЯ НЕОБХОДИМОГО ТИПА ТОВАРА
@@ -210,7 +218,7 @@ async def buy_product(
         await _show_not_enough_money(
             e.need_money,
             category_id=category_id,
-            quantity_products=BuyProduct.quantity_products,
+            quantity_products=quantity_products,
             callback=callback,
             user=user
         )

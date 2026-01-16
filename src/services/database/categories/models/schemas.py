@@ -54,7 +54,7 @@ class CategoryFull(BaseModel):
     price: int | None
     cost_price: int | None
 
-    # Число товаров на продаже которое хранит в себе. Есть только у категорий хранящие аккаунты
+    # Число товаров на продаже которое хранит в себе. Есть только у категорий хранящие продукты
     quantity_product: int
 
     model_config = ConfigDict(from_attributes=True)
@@ -162,7 +162,7 @@ class SoldAccountFull(BaseModel):
     type_account_service: AccountServiceType
 
     name: str
-    description: str
+    description: str | None
 
     sold_at: datetime
 
@@ -189,7 +189,7 @@ class SoldAccountSmall(BaseModel):
 
     phone_number: str
     name: str
-    description: str
+    description: str | None
 
     sold_at: datetime
 

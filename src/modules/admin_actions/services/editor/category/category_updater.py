@@ -6,8 +6,8 @@ from aiogram.types import Message, CallbackQuery
 from src.bot_actions.messages import send_message
 from src.exceptions import IncorrectedAmountSale, IncorrectedCostPrice, \
     IncorrectedNumberButton, AccountCategoryNotFound, TheCategoryStorageAccount, CategoryStoresSubcategories
-from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category_update_data, show_category
 from src.modules.admin_actions.schemas import UpdateCategoryOnlyId
+from src.modules.admin_actions.services.editor.category.show_message import show_category_update_data, show_category
 from src.modules.admin_actions.state import UpdateNumberInCategory
 from src.services.database.categories.actions import update_category
 from src.services.database.categories.models.main_category_and_product import ProductType
@@ -86,14 +86,6 @@ async def update_category_storage(
     update_value = {}
 
     if is_storage:
-        if not product_type:
-            raise ValueError("При установки хранилища необходимо указать тип продукта 'product_type'")
-
-        if product_type == ProductType.ACCOUNT and not type_account_service:
-            raise ValueError(
-                "При установки хранилища аккаунтов необходимо указать тип сервиса аккаунтов 'type_account_service'"
-            )
-
         if product_type:
             update_value["product_type"] = product_type
         if type_account_service:

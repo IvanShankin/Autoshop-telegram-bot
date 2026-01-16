@@ -170,12 +170,16 @@ def _has_accounts_in_subtree(category: CategoryFull, all_categories: list[Catego
 
 async def get_quantity_products_in_category(category_id: int) -> int:
     async with get_db() as session:
-        stmt = (
+        stmt = select(
             select(func.count())
-            .select_from(Categories)
-            .outerjoin(ProductAccounts, ProductAccounts.category_id == Categories.category_id)
-            .outerjoin(ProductUniversal, ProductUniversal.category_id == Categories.category_id)
-            .where(Categories.category_id == category_id)
+            .select_from(ProductAccounts)
+            .where(ProductAccounts.category_id == category_id)
+            .scalar_subquery()
+            +
+            select(func.count())
+            .select_from(ProductUniversal)
+            .where(ProductUniversal.category_id == category_id)
+            .scalar_subquery()
         )
 
         result = await session.execute(stmt)
@@ -334,7 +338,7 @@ async def get_product_account_by_account_id(account_id: int) -> ProductAccountFu
 async def get_types_product_where_the_user_has_product(user_id: int) -> List[ProductType]:
     result_list: List[ProductType] = []
 
-    if not await get_sold_accounts_by_owner_id(user_id, get_config().app.default_lang) is None:
+    if await get_sold_accounts_by_owner_id(user_id, get_config().app.default_lang):
         result_list.append(ProductType.ACCOUNT)
     # ПРИ ДОБАВЛЕНИЕ НОВЫХ ТОВАРОВ, РАСШИРИТЬ ПОИСК
 

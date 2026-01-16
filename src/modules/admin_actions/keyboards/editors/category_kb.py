@@ -13,11 +13,11 @@ async def show_main_categories_kb(language: str,):
     keyboard = InlineKeyboardBuilder()
 
     for cat in categories:
-        keyboard.row(InlineKeyboardButton(text=str(cat.name), callback_data=f'show_main_categories'))
+        keyboard.row(InlineKeyboardButton(text=str(cat.name), callback_data=f"show_category_admin:{cat.category_id}"))
 
     keyboard.row(InlineKeyboardButton(text=get_config().app.solid_line, callback_data=f'none'))
     keyboard.row(InlineKeyboardButton(
-        text=get_text(language, "kb_admin_panel", "Add subcategory"),
+        text=get_text(language, "kb_admin_panel", "Add Category"),
         callback_data=f'add_category:None')
     )
     keyboard.row(InlineKeyboardButton(

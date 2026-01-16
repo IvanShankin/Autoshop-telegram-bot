@@ -15,12 +15,13 @@ from src.utils.core_logger import setup_logging, get_logger
 
 
 async def on_startup():
+    init_config()  # конфиги необходимо до init_crypto_context
+
     try:
         init_crypto_context()
-    except RuntimeError: # если уже есть
+    except RuntimeError as e: # если уже есть
+        print(f"\n\n{str(e)}\n\n")
         pass
-
-    init_config()
 
     setup_logging(get_config().paths.log_file)
     await create_database()

@@ -321,8 +321,8 @@ async def test_money_transfer(replacement_fake_bot_fix, create_new_user):
         sender_redis = await session_redis.get(f"user:{sender.user_id}")
         recipient_redis = await session_redis.get(f"user:{recipient.user_id}")
 
-    await comparison_models(sender, orjson.loads(sender_redis))
-    await comparison_models(recipient, orjson.loads(recipient_redis))
+    assert comparison_models(sender, orjson.loads(sender_redis))
+    assert comparison_models(recipient, orjson.loads(recipient_redis))
 
 
 @pytest.mark.asyncio
@@ -419,7 +419,7 @@ async def test_get_replenishment(replacement_fake_bot_fix, create_new_user, crea
     replenishment = await create_replenishment(amount=100)
     replenishment_res = await get_replenishment(replenishment.replenishment_id)
 
-    await comparison_models(replenishment, replenishment_res)
+    assert comparison_models(replenishment, replenishment_res)
 
 @pytest.mark.asyncio
 async def test_create_replenishment(replacement_fake_bot_fix, create_new_user, create_type_payment):
@@ -441,7 +441,7 @@ async def test_create_replenishment(replacement_fake_bot_fix, create_new_user, c
             .where(Replenishments.replenishment_id == replenishment.replenishment_id))
         replenishment_db = result.scalar_one()
 
-    await comparison_models(replenishment, replenishment_db)
+    assert comparison_models(replenishment, replenishment_db)
 
 @pytest.mark.asyncio
 async def test_update_replenishment(replacement_fake_bot_fix, create_new_user, create_replenishment):
@@ -462,7 +462,7 @@ async def test_update_replenishment(replacement_fake_bot_fix, create_new_user, c
             .where(Replenishments.replenishment_id == replenishment.replenishment_id))
         replenishment_db = result.scalar_one()
 
-    await comparison_models(replenishment, replenishment_db)
+    assert comparison_models(replenishment, replenishment_db)
 
 
 @pytest.mark.asyncio

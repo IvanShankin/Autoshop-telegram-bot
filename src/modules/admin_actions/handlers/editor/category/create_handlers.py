@@ -8,11 +8,9 @@ from src.exceptions import AccountCategoryNotFound, \
     TheCategoryStorageAccount
 from src.modules.admin_actions.keyboards import back_in_category_kb, in_category_editor_kb
 from src.modules.admin_actions.schemas import GetDataForCategoryData
-from src.modules.admin_actions.services import safe_get_category
-from src.modules.admin_actions.services import set_state_create_category, name_input_prompt_by_language
+from src.modules.admin_actions.services import safe_get_category, set_state_create_category, name_input_prompt_by_language
 from src.modules.admin_actions.state import GetDataForCategory
-from src.services.database.categories.actions import add_category, \
-    add_translation_in_category
+from src.services.database.categories.actions import add_category, add_translation_in_category
 from src.services.database.users.models import Users
 from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_text
@@ -21,7 +19,7 @@ router = Router()
 
 
 @router.callback_query(F.data.startswith("add_category:"))
-async def add_category(callback: CallbackQuery, state: FSMContext, user: Users):
+async def add_category_handler(callback: CallbackQuery, state: FSMContext, user: Users):
     category_id = safe_int_conversion(callback.data.split(':')[1])
 
     if category_id: # если передали значение, значит это подкатегория, иначе это будет главная (is_main)

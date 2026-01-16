@@ -3,13 +3,18 @@ from typing import Type
 from dateutil.parser import parse
 from pydantic import BaseModel
 
+from src.utils.core_logger import get_logger
 
-async def comparison_models(Expected: Type | dict, Actual: Type | dict, keys_not_checked: list = []):
+
+def comparison_models(Expected: Type | dict, Actual: Type | dict, keys_not_checked: list = []):
     """Сравнивает две модели БД"""
     if not isinstance(Expected, dict):
         Expected: dict = Expected.to_dict()
     if not isinstance(Actual, dict):
         Actual: dict = Actual.to_dict()
+
+    if not Actual:
+        return False
 
     for key in Expected.keys():
         if not key in keys_not_checked:
@@ -17,9 +22,13 @@ async def comparison_models(Expected: Type | dict, Actual: Type | dict, keys_not
             if isinstance(Expected[key], datetime) and not isinstance(Actual[key], datetime):
                 assert Expected[key] == parse(Actual[key])
             elif isinstance(Expected[key], dict) and isinstance(Actual[key], dict):
-                await comparison_models(Expected[key], Actual[key])
+                comparison_models(Expected[key], Actual[key])
             else:
-                assert Expected[key] == Actual[key],f'ключ "{key}" не совпал'
+                if not Expected[key] == Actual[key]:
+                    get_logger(__name__).info(f"ключ '{key}' не совпал")
+                    return False
+
+        return True
 
 
 def convert_to_dict(data) -> dict:

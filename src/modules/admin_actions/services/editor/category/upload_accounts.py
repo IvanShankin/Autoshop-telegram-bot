@@ -8,12 +8,12 @@ from src.modules.admin_actions.keyboards import back_in_category_kb
 from src.services.accounts.other.upload_account import upload_other_account
 from src.services.accounts.tg.upload_account import upload_tg_account
 from src.services.database.categories.models import CategoryFull
+from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
 
 
 async def upload_account(category: CategoryFull, user: Users, callback: CallbackQuery):
-    service_name = await safe_get_service_name(category, user, callback.message.message_id)
     bot = await get_bot()
 
     await send_message(
@@ -26,12 +26,12 @@ async def upload_account(category: CategoryFull, user: Users, callback: Callback
     )
 
     try:
-        if service_name == "telegram":
-            async for archive_path in upload_tg_account(category.account_service_id):
+        if category.type_account_service == AccountServiceType.TELEGRAM:
+            async for archive_path in upload_tg_account(category.category_id):
                 file = FSInputFile(archive_path)
                 await bot.send_document(callback.from_user.id, document=file)
-        elif service_name == "other":
-            stream_csv = await upload_other_account(category.account_service_id)
+        elif category.type_account_service == AccountServiceType.OTHER:
+            stream_csv = await upload_other_account(category.category_id)
             await bot.send_document(
                 user.user_id,
                 document=BufferedInputFile(

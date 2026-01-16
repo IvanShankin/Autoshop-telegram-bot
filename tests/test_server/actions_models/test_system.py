@@ -32,7 +32,7 @@ async def test_get_settings(use_redis, create_settings):
 
     selected_settings = await get_settings()
 
-    await comparison_models(create_settings, selected_settings, ['settings_id'])
+    assert comparison_models(create_settings, selected_settings, ['settings_id'])
 
 @pytest.mark.asyncio
 async def test_update_settings(create_settings):
@@ -46,15 +46,15 @@ async def test_update_settings(create_settings):
     async with get_db() as session_db:
         settings_db = (await session_db.execute(select(Settings))).scalars().first()
 
-    await comparison_models(settings, settings_db, ['settings_id'])# проверка БД
-    await comparison_models(settings, updated_settings, ['settings_id'])# проверка возвращаемого объекта
+    assert comparison_models(settings, settings_db, ['settings_id'])# проверка БД
+    assert comparison_models(settings, updated_settings, ['settings_id'])# проверка возвращаемого объекта
 
     # проверка Redis
     async with get_redis() as session_redis:
         redis_data = await session_redis.get(f"settings")
         assert redis_data is not None
         redis_settings = Settings(**orjson.loads(redis_data))
-        await comparison_models(settings, redis_settings, ['settings_id'])# проверка redis
+        assert comparison_models(settings, redis_settings, ['settings_id'])# проверка redis
 
 
 @pytest.mark.asyncio
@@ -84,7 +84,7 @@ async def test_create_ui_image_new_record(tmp_path, monkeypatch):
         data_redis = await session_redis.get(f"ui_image:{fake_key}")
         ui_image_redis = orjson.loads(data_redis)
 
-    await comparison_models(ui_image.to_dict(), ui_image_redis)
+    assert comparison_models(ui_image.to_dict(), ui_image_redis)
 
 
 @pytest.mark.asyncio
@@ -110,7 +110,7 @@ async def test_create_ui_image_existing_record(replacement_needed_modules, monke
         data_redis = await session_redis.get(f"ui_image:{origin_ui_image.key}")
         ui_image_redis = orjson.loads(data_redis)
 
-    await comparison_models(ui_image.to_dict(), ui_image_redis)
+    assert comparison_models(ui_image.to_dict(), ui_image_redis)
 
 
 @pytest.mark.asyncio

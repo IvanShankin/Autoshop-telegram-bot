@@ -26,7 +26,9 @@ def get_storage_client() -> SecretsStorageClient:
 
 def init_crypto_context():
     # для тестов и разработки
+    logger = get_logger(__name__)
     runtime = get_runtime()
+
     if runtime.mode in {"DEV", "TEST"}:
         set_crypto_context(
             CryptoContext(
@@ -35,6 +37,7 @@ def init_crypto_context():
                 nonce_b64_dek="AAAAAAAAAAAA"  # 12 байт base64
             )
         )
+        logger.info("crypto_context initialized for DEV/TEST")
         return
 
 
@@ -56,6 +59,7 @@ def init_crypto_context():
     set_crypto_context(
         CryptoContext(kek=kek, dek=dek, nonce_b64_dek=payload["nonce"])
     )
+    logger.info("crypto_context initialized for PROD")
 
 
 def check_storage_service() -> bool:

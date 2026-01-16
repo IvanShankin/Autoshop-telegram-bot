@@ -107,8 +107,8 @@ async def test_get_product_account_by_category_id(use_redis, create_category, cr
     list_account = [account.to_dict() for account in list_account]
 
     assert len(list_account) == 2
-    assert any(await comparison_models(account_1, account) for account in list_account)
-    assert any(await comparison_models(account_2, account) for account in list_account)
+    assert any(comparison_models(account_1, account) for account in list_account)
+    assert any(comparison_models(account_2, account) for account in list_account)
 
 
 @pytest.mark.asyncio
@@ -124,8 +124,8 @@ async def test_get_full_product_account_by_category_id(create_category, create_p
     list_account = [account.model_dump() for account in list_account]
 
     assert len(list_account) == 2
-    assert any(await comparison_models(account_1, account) for account in list_account)
-    assert any(await comparison_models(account_2, account) for account in list_account)
+    assert any(comparison_models(account_1.model_dump(), account) for account in list_account)
+    assert any(comparison_models(account_2.model_dump(), account) for account in list_account)
 
 
 @pytest.mark.asyncio

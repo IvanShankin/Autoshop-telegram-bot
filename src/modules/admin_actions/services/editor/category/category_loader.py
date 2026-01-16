@@ -33,21 +33,6 @@ async def safe_get_category(category_id: int, user: Users, callback: CallbackQue
     return category
 
 
-# async def safe_get_service_name(category: CategoryFull, user: Users, message_id: int) -> str | None:
-#     """Произведёт поиск по сервисам, если не найдёт, то удалит сообщение и отошлёт соответствующие сообщение"""
-#     service_name = None
-#     service = await get_account_service(category.account_service_id, return_not_show=True)
-#     if service:
-#         type_service = await get_type_account_service(service.type_account_service_id)
-#         if type_service:
-#             return type_service.name
-#
-#     if not service_name:
-#         await service_not_found(user, message_id)
-#
-#     return None
-
-
 async def service_not_found(user: Users, message_id_delete: Optional[int] = None):
     if message_id_delete:
         try:

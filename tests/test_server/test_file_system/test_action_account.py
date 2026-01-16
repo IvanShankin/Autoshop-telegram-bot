@@ -138,7 +138,7 @@ async def test_move_in_account_fail(monkeypatch):
     acc_storage.account_storage_id = 99
     account = ProductAccounts(account_storage=acc_storage)
 
-    result = await move_in_account(account.account_storage, "telegram", "sold")
+    result = await move_in_account(account.account_storage,  AccountServiceType.TELEGRAM, "sold")
     assert result is False
 
 

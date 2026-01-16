@@ -119,7 +119,7 @@ class TestHandlerNewReplenishment:
         async with get_redis() as session_redis:
             result_redis = orjson.loads(await session_redis.get(f'user:{updated_user.user_id}'))
 
-        await comparison_models(updated_user, result_redis)
+        assert comparison_models(updated_user, result_redis)
 
         # проверяем, что ReplenishmentFailed отработал
 
@@ -392,7 +392,7 @@ class TestHandlerNewIncomeRef:
         async with get_redis() as session_redis:
             redis_data = orjson.loads(await session_redis.get(f"user:{owner.user_id}"))
 
-        await comparison_models(updated_user, redis_data)
+        assert comparison_models(updated_user, redis_data)
 
         # --- проверяем, что пользователю ушло сообщение ---
         percent = None

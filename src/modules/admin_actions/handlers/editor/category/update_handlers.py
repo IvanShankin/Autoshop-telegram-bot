@@ -7,10 +7,10 @@ from aiogram.types import CallbackQuery, Message
 from src.bot_actions.messages import edit_message, send_message
 from src.config import get_config
 from src.exceptions import AccountCategoryNotFound
-from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category, show_category_update_data
+from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category
 from src.modules.admin_actions.keyboards import select_lang_category_kb, back_in_category_update_data_kb
 from src.modules.admin_actions.keyboards.editors.category_kb import back_in_category_editor_kb, \
-    select_account_service_type
+    select_account_service_type, select_product_type
 from src.modules.admin_actions.schemas import UpdateNameForCategoryData, \
     UpdateDescriptionForCategoryData, UpdateCategoryOnlyId
 from src.modules.admin_actions.services import safe_get_category
@@ -18,6 +18,7 @@ from src.modules.admin_actions.services import update_data
 from src.modules.admin_actions.services import update_message_query_data
 from src.modules.admin_actions.services import upload_account
 from src.modules.admin_actions.services.editor.category.category_updater import update_category_storage
+from src.modules.admin_actions.services.editor.category.show_message import show_category_update_data
 from src.modules.admin_actions.state import UpdateNameForCategory, \
     UpdateDescriptionForCategory, UpdateCategoryImage, UpdateNumberInCategory
 from src.services.database.categories.actions import update_category, \
@@ -53,7 +54,7 @@ async def category_update_storage(callback: CallbackQuery, user: Users):
             "admins_editor_category",
             "Select product type"
         ),
-        reply_markup=select_lang_category_kb(user.language, category_id)
+        reply_markup=select_product_type(user.language, category_id)
     )
 
 
@@ -112,6 +113,7 @@ async def service_update_index(callback: CallbackQuery, user: Users):
 
     if new_index >= 0:
         await update_category(category_id, index=new_index)
+
     await callback.answer(get_text(user.language, "miscellaneous","Successfully updated"))
     await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
 

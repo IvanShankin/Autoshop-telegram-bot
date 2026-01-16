@@ -8,6 +8,8 @@ from sqlalchemy.orm import selectinload
 from src.exceptions import AccountCategoryNotFound, TheCategoryStorageAccount, \
     IncorrectedNumberButton, IncorrectedCostPrice, IncorrectedAmountSale, CategoryStoresSubcategories
 from src.services.database.categories.models import AccountStorage, TgAccountMedia
+from src.services.database.categories.models.main_category_and_product import ProductType
+from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.database.system.actions import create_ui_image, delete_ui_image
 from src.services.redis.filling_redis import filling_all_keys_category, filling_product_account_by_account_id, \
     filling_sold_account_by_account_id, filling_sold_accounts_by_owner_id
@@ -26,6 +28,8 @@ async def update_category(
         allow_multiple_purchase: bool = None,
         price: int = None,
         cost_price: int = None,
+        product_type: ProductType | None = None,
+        type_account_service: AccountServiceType | None = None,
 ) -> Categories:
     """
     :param file_data: поток байтов для создания нового ui_image, старый будет удалён
@@ -68,6 +72,14 @@ async def update_category(
                     raise CategoryStoresSubcategories(
                         f"Категория с id = {category_id} хранит подкатегории. Сперва удалите их"
                     )
+
+                if not product_type:
+                    raise ValueError("При установки хранилища необходимо указать тип продукта 'product_type'")
+
+                if product_type == ProductType.ACCOUNT and not type_account_service:
+                    raise ValueError(
+                        "При установки хранилища аккаунтов необходимо указать тип сервиса аккаунтов 'type_account_service'"
+                    )
             else: # если хотим убрать хранилище аккаунтов
                 result = await session.execute(
                     select(ProductAccounts).where(ProductAccounts.category_id == category_id)
@@ -82,7 +94,7 @@ async def update_category(
 
             update_data["is_product_storage"] = is_product_storage
         if allow_multiple_purchase is not None:
-            update_data["allow_multiple_purchase"] = show
+            update_data["allow_multiple_purchase"] = allow_multiple_purchase
         if show is not None:
             update_data["show"] = show
         if price is not None:
@@ -91,6 +103,10 @@ async def update_category(
             update_data["cost_price"] = cost_price
         if number_buttons_in_row is not None:
             update_data["number_buttons_in_row"] = number_buttons_in_row
+        if product_type is not None:
+            update_data["product_type"] = product_type
+        if type_account_service is not None:
+            update_data["type_account_service"] = type_account_service
         if file_data is not None:
             ui_image = await create_ui_image(
                 key=str(uuid.uuid4()),

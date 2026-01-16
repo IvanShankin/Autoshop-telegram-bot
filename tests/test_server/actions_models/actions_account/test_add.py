@@ -132,7 +132,7 @@ async def test_add_translation_in_sold_account(replacement_needed_modules):
     from src.services.database.categories.actions import add_account_storage
 
     new_acc = await add_account_storage(
-        type_service_name='telegram',
+        type_service_name=AccountServiceType.TELEGRAM,
         checksum='checksum',
         encrypted_key='fgdshjyte3',
         encrypted_key_nonce='encrypted_key_nonce',

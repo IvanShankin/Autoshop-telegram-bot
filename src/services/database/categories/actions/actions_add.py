@@ -109,7 +109,6 @@ async def add_category(
     ниже по иерархии. Если не указывать, то будет категорией которая находится сразу после сервиса (главной).
     :param number_buttons_in_row: Количество кнопок для перехода в другую категорию на одну строку от 1 до 8.
     :return: Categories: только что созданный.
-    :exception AccountServiceNotFound: Если account_service_id не найден.
     :exception TheCategoryStorageAccount: Если parent_id не является хранилищем аккаунтов.
     Для задания категории как хранилище товаров, используйте метод update
     """
@@ -263,11 +262,11 @@ async def add_product_account(
         )
     elif category.type_account_service != type_account_service:
         raise TheAccountServiceDoesNotMatch(
-            f"у категории сервис: {category.type_account_service}, но вы пытаетесь добавить: {type_account_service}"
+            f"у категории сервис: {category.type_account_service}, но вы пытаетесь добавить: {type_account_service.value}"
         )
 
     if not any(type_account_service == member for member in AccountServiceType):
-        raise ValueError(f"Тип сервиса = {type_account_service} не найден")
+        raise ValueError(f"Тип сервиса = {type_account_service.value} не найден")
 
     new_product_account = ProductAccounts(
         type_account_service = type_account_service,
@@ -360,7 +359,7 @@ async def add_sold_account(
         raise ValueError(f"Пользователь с ID = {owner_id} не найден")
 
     if not any(type_account_service == member for member in AccountServiceType):
-        raise ValueError(f"Тип сервиса = {type_account_service} не найден")
+        raise ValueError(f"Тип сервиса = {type_account_service.value} не найден")
 
     new_sold_account = SoldAccounts(
         owner_id = owner_id,
@@ -388,7 +387,7 @@ async def add_deleted_accounts(
 ) -> DeletedAccounts:
 
     if not any(type_account_service == member for member in AccountServiceType):
-        raise ValueError(f"Тип сервиса = {type_account_service} не найден")
+        raise ValueError(f"Тип сервиса = {type_account_service.value} не найден")
 
     async with get_db() as session_db:
         new_deleted_account = DeletedAccounts(

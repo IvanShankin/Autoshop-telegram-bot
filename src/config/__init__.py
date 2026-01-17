@@ -1,4 +1,3 @@
-import os
 from asyncio import Semaphore
 from typing import Optional
 

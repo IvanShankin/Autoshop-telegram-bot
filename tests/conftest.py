@@ -35,7 +35,7 @@ MODE = os.getenv('MODE')
 RABBITMQ_URL = os.getenv('RABBITMQ_URL')
 
 import pytest_asyncio
-from src.services.database.core.filling_database import create_table
+from src.services.database.core.filling_database import create_table, create_database
 
 consumer_started = False
 
@@ -97,11 +97,11 @@ async def create_database_fixture(replacement_needed_modules):
         raise Exception("Используется основная БД!")
 
     # Создаем БД
-    await create_table()
+    await create_database()
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
-async def clean_db(monkeypatch):
+async def clean_db(monkeypatch, create_database_fixture):
     conf = get_config()
     # создаём новый engine для теста
     test_engine = create_async_engine(conf.db_connection.sql_db_url, future=True)
@@ -119,6 +119,7 @@ async def clean_db(monkeypatch):
     yield
 
     await test_engine.dispose()
+
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def clean_redis(replacement_redis_fix):
@@ -175,7 +176,6 @@ async def get_engine():
     engine = create_async_engine(get_config().db_connection.sql_db_url)
     yield engine
     await engine.dispose()
-
 
 
 @pytest_asyncio.fixture(scope="session", autouse=True)

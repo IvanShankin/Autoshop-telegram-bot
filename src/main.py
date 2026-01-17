@@ -20,7 +20,6 @@ async def on_startup():
     try:
         init_crypto_context()
     except RuntimeError as e: # если уже есть
-        print(f"\n\n{str(e)}\n\n")
         pass
 
     setup_logging(get_config().paths.log_file)

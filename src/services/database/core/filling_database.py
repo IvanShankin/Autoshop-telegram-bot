@@ -54,6 +54,7 @@ async def create_database():
     for key in ui_images:
         await filling_ui_image(key=key, path=str(ui_images[key]))
 
+
 async def create_table():
     """создает таблицы в целевой базе данных"""
     engine = create_async_engine(get_config().db_connection.sql_db_url)
@@ -68,6 +69,7 @@ async def create_table():
     finally:
         await engine.dispose()
 
+
 async def filling_settings():
     async with get_db() as session_db:
         result = await session_db.execute(select(Settings))
@@ -77,6 +79,7 @@ async def filling_settings():
             new_settings = Settings()
             session_db.add(new_settings)
             await session_db.commit()
+
 
 async def filling_ui_image(key: str, path: str):
     async with get_db() as session_db:
@@ -103,6 +106,7 @@ async def filling_referral_lvl():
 
             await session_db.commit()
 
+
 async def filling_admins(admin_id: int):
     """Создаст нового админа. Если в БД нет админа, то создаст его, если в БД нет, пользователя, то создаст его и уведомления для него"""
     async with get_db() as session_db:
@@ -124,6 +128,7 @@ async def filling_admins(admin_id: int):
                 await session_db.commit()
 
         await create_admin(admin_id)
+
 
 async def filling_type_payment(type_payments: str):
     async with get_db() as session_db:

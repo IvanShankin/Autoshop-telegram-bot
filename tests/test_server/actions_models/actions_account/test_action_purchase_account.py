@@ -13,8 +13,8 @@ from tests.helpers.helper_functions import comparison_models
 from src.exceptions import NotEnoughAccounts, NotEnoughMoney
 from src.services.database.core import get_db
 from src.services.database.categories.models import PurchaseRequests, PurchaseRequestAccount, \
-    AccountStorage, ProductAccounts, SoldAccounts, PurchasesAccounts
-from src.services.database.categories.models.schemas import StartPurchaseAccount, ProductAccountFull
+    AccountStorage, ProductAccounts, SoldAccounts, Purchases
+from src.services.database.categories.models.shemas.product_account_schem import StartPurchaseAccount, ProductAccountFull
 from src.services.database.users.models import Users
 from src.services.database.users.models.models_users import BalanceHolder
 from src.services.redis.core_redis import get_redis
@@ -33,7 +33,7 @@ async def test_purchase_accounts_success(
     """
     Интеграционный тест: если все аккаунты валидны (check_valid_accounts_telethon -> True),
     то purchase_accounts завершает процесс покупки:
-      - создаются SoldAccounts / PurchasesAccounts,
+      - создаются SoldAccounts / Purchases,
       - PurchaseRequests.status -> 'completed', BalanceHolder.status -> 'used',
       - user.balance уменьшен на total_amount,
       - AccountStorage.status -> 'bought',
@@ -90,8 +90,8 @@ async def test_purchase_accounts_success(
         sold = q.scalars().all()
         assert len(sold) == quantity, "SoldAccounts должно быть создано quantity штук"
 
-        # PurchasesAccounts - должны быть созданы
-        q = await session.execute(select(PurchasesAccounts).where(PurchasesAccounts.user_id == user.user_id))
+        # Purchases - должны быть созданы
+        q = await session.execute(select(Purchases).where(Purchases.user_id == user.user_id))
         purchases = q.scalars().all()
         assert len(purchases) >= quantity
 
@@ -1005,7 +1005,7 @@ class TestCancelPurchase:
     ):
         """
         Проверяем что:
-        - SoldAccounts и PurchasesAccounts удаляются при передаче sold_account_ids
+        - SoldAccounts и Purchases удаляются при передаче sold_account_ids
         - остальные восстановительные операции тоже выполняются
         """
         from src.services.database.categories.actions import action_purchase_account as action_mod
@@ -1020,9 +1020,9 @@ class TestCancelPurchase:
             type_account_service=prod.type_account_service
         )
 
-        # создаём SoldAccounts и PurchasesAccounts записи, которые должны быть удалены
+        # создаём SoldAccounts и Purchases записи, которые должны быть удалены
         async with get_db() as session:
-            pa = PurchasesAccounts(
+            pa = Purchases(
                 user_id=user.user_id,
                 account_storage_id=sold.account_storage.account_storage_id,
                 original_price = 120,
@@ -1087,8 +1087,8 @@ class TestCancelPurchase:
             q = await session.execute(select(SoldAccounts).where(SoldAccounts.account_storage_id == sold.account_storage.account_storage_id))
             assert q.scalars().first() is None
 
-            # PurchasesAccounts удалены
-            q = await session.execute(select(PurchasesAccounts).where(PurchasesAccounts.account_storage_id == sold.account_storage.account_storage_id))
+            # Purchases удалены
+            q = await session.execute(select(Purchases).where(Purchases.account_storage_id == sold.account_storage.account_storage_id))
             assert q.scalars().first() is None
 
             # PurchaseRequests status / BalanceHolder status
@@ -1120,7 +1120,7 @@ class TestFinalizePurchase:
         Успешное выполнение finalize_purchase:
         - move_file возвращает True (создаём temp файл),
         - rename_file возвращает True (перемещаем temp->final),
-        - созданы SoldAccounts и PurchasesAccounts,
+        - созданы SoldAccounts и Purchases,
         - AccountStorage.status == 'bought',
         - PurchaseRequests.status == 'completed', BalanceHolder.status == 'used',
         - publish_event вызван как для промокода, так и для account.purchase.
@@ -1196,8 +1196,8 @@ class TestFinalizePurchase:
             sold = q.scalars().all()
             assert len(sold) >= 1
 
-            # PurchasesAccounts должен существовать для созданного sold_account
-            q2 = await session.execute(select(PurchasesAccounts).where(PurchasesAccounts.user_id == user.user_id))
+            # Purchases должен существовать для созданного sold_account
+            q2 = await session.execute(select(Purchases).where(Purchases.user_id == user.user_id))
             purchases = q2.scalars().all()
             assert len(purchases) >= 1
 
@@ -1306,7 +1306,7 @@ class TestFinalizePurchase:
         """
         Если rename_file вернул False после успешного commit, finalize_purchase должен вызвать cancel_purchase_request.
         Здесь позволим cancel_purchase_request выполнить реальные откаты (не мокируем).
-        После выполнения ожидаем, что SoldAccounts/PurchasesAccounts удалены и PurchaseRequests.status == 'failed'
+        После выполнения ожидаем, что SoldAccounts/Purchases удалены и PurchaseRequests.status == 'failed'
         """
         from src.services.database.categories.actions import action_purchase_account as action_mod
 
@@ -1357,12 +1357,12 @@ class TestFinalizePurchase:
         # Выполнение finalize — в теле rename_file вернёт False, finalize вызовет cancel_purchase_request (реальную)
         await action_mod.finalize_purchase(user.user_id, data)
 
-        # После этого SoldAccounts и PurchasesAccounts должны быть удалены (cancel_purchase_request делает это)
+        # После этого SoldAccounts и Purchases должны быть удалены (cancel_purchase_request делает это)
         async with get_db() as session:
             q = await session.execute(select(SoldAccounts).where(SoldAccounts.owner_id == user.user_id))
             assert q.scalars().first() is None
 
-            q2 = await session.execute(select(PurchasesAccounts).where(PurchasesAccounts.user_id == user.user_id))
+            q2 = await session.execute(select(Purchases).where(Purchases.user_id == user.user_id))
             assert q2.scalars().first() is None
 
             # PurchaseRequests должен быть помечен как failed

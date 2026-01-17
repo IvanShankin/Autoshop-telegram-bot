@@ -26,9 +26,9 @@ from src.services.redis.filling_redis import filling_product_account_by_account_
 from src.services.database.core.database import get_db
 from src.services.database.categories.actions import get_categories_by_category_id, \
     update_account_storage, delete_product_account, add_deleted_accounts, get_product_account_by_category_id
-from src.services.database.categories.models import ProductAccounts, SoldAccounts, PurchasesAccounts, \
+from src.services.database.categories.models import ProductAccounts, SoldAccounts, Purchases, \
     SoldAccountsTranslation, CategoryTranslation, AccountStorage
-from src.services.database.categories.models.schemas import StartPurchaseAccount
+from src.services.database.categories.models.shemas.product_account_schem import StartPurchaseAccount
 from src.services.database.users.actions import get_user
 from src.services.database.users.models import Users
 from src.utils.core_logger import get_logger
@@ -493,7 +493,7 @@ async def cancel_purchase_request(
      - temp_path: временный путь куда мы переместили файл до коммита
      - final_path: финальный путь (куда будет переименован после commit)
     :param sold_account_ids: список уже созданных sold_account (если есть) — удалим их и вернём product-строки
-    :param purchase_ids: список purchases_accounts — удалим PurchasesAccounts
+    :param purchase_ids: список purchases_accounts — удалим Purchases
     :param product_accounts: Список orm объектов с обязательно подгруженными account_storage
     """
     user = None
@@ -529,9 +529,9 @@ async def cancel_purchase_request(
                     update(Users).where(Users.user_id == user_id).values(balance=new_balance)
                 )
 
-            # Удалим PurchasesAccounts и SoldAccounts
+            # Удалим Purchases и SoldAccounts
             if purchase_ids:
-                await session.execute(delete(PurchasesAccounts).where(PurchasesAccounts.purchase_id.in_(purchase_ids)))
+                await session.execute(delete(Purchases).where(Purchases.purchase_id.in_(purchase_ids)))
             if sold_account_ids:
                 await session.execute(delete(SoldAccounts).where(SoldAccounts.sold_account_id.in_(sold_account_ids)))
 
@@ -671,7 +671,7 @@ async def finalize_purchase(user_id: int, data: StartPurchaseAccount):
                         ))
 
                     # purchases row
-                    new_purchase = PurchasesAccounts(
+                    new_purchase = Purchases(
                         user_id=user_id,
                         account_storage_id=account.account_storage.account_storage_id,
                         original_price=data.original_price_one_acc,

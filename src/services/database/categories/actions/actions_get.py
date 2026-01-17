@@ -8,7 +8,7 @@ from sqlalchemy import select, inspect as sa_inspect, DateTime, func
 from sqlalchemy.orm import selectinload
 
 from src.config import get_config
-from src.services.database.categories.models import AccountStorage, TgAccountMedia, PurchasesAccounts, \
+from src.services.database.categories.models import AccountStorage, TgAccountMedia, Purchases, \
     ProductUniversal
 from src.services.database.categories.models.main_category_and_product import ProductType
 from src.services.database.categories.models.product_account import AccountServiceType
@@ -479,9 +479,9 @@ async def get_tg_account_media(account_storage_id: int) -> TgAccountMedia:
         return result_db.scalar_one_or_none()
 
 
-async def get_purchases_accounts(purchase_id: int) -> PurchasesAccounts | None:
+async def get_purchases_accounts(purchase_id: int) -> Purchases | None:
     async with get_db() as session_db:
-        result_db = await session_db.execute(select(PurchasesAccounts).where(PurchasesAccounts.purchase_id == purchase_id))
+        result_db = await session_db.execute(select(Purchases).where(Purchases.purchase_id == purchase_id))
         return result_db.scalar_one_or_none()
 
 

@@ -57,7 +57,7 @@ class AccountStorage(Base):
     sold_account = relationship("SoldAccounts", back_populates="account_storage", cascade="all, delete-orphan", uselist=False)
     deleted_account = relationship("DeletedAccounts", back_populates="account_storage", cascade="all, delete-orphan", uselist=False)
     purchase_request_accounts = relationship("PurchaseRequestAccount", back_populates="account_storage", uselist=False)
-    purchase = relationship("PurchasesAccounts", back_populates="account_storage", uselist=False)
+    purchase = relationship("Purchases", back_populates="account_storage", uselist=False)
     tg_account_media = relationship("TgAccountMedia", back_populates="account_storage", cascade="all, delete-orphan", uselist=False)
 
 
@@ -169,28 +169,6 @@ class SoldAccountsTranslation(Base):
     description = Column(Text, nullable=True) # берётся с Categories
 
     sold_account = relationship("SoldAccounts", back_populates="translations")
-
-
-class PurchasesAccounts(Base):
-    """если запись есть, то это покупка совершённая"""
-    __tablename__ = "purchases_accounts"
-    __table_args__ = (
-        Index('ix_purchase_date', 'user_id', 'purchase_date'),
-    )
-
-    purchase_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
-    account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id", ondelete="CASCADE"), nullable=False)
-
-    original_price = Column(Integer, nullable=False)  # Цена на момент покупки (без учёта промокода)
-    purchase_price = Column(Integer, nullable=False)  # Цена на момент покупки (с учётом промокода)
-    cost_price = Column(Integer, nullable=False)  # Себестоимость на момент покупки
-
-    net_profit = Column(Integer, nullable=False)  # Чистая прибыль
-    purchase_date = Column(DateTime(timezone=True), server_default=func.now())
-
-    user = relationship("Users", back_populates="purchases")
-    account_storage = relationship("AccountStorage", back_populates="purchase")
 
 
 class DeletedAccounts(Base):

@@ -23,7 +23,7 @@ from src.services.database.discounts.models import Vouchers, PromoCodes, Activat
 from src.services.database.referrals.utils import create_unique_referral_code
 from src.services.database.categories.models import SoldAccounts, SoldAccountsTranslation, \
     Categories, CategoryTranslation, ProductAccounts, \
-    SoldAccountFull, CategoryFull, SoldAccountSmall, ProductAccountFull, PurchasesAccounts
+    SoldAccountFull, CategoryFull, SoldAccountSmall, ProductAccountFull, Purchases
 from src.services.database.system.models import UiImages, BackupLogs
 from src.services.database.users.models import Users, Replenishments, NotificationSettings, WalletTransaction, \
     TransferMoneys
@@ -640,14 +640,14 @@ async def create_tg_account_media_factory(
         return new_tg_media
 
 
-async def create_purchase_account_fabric(
+async def create_purchase_fabric(
     user_id: int = None,
     account_storage_id: int = None,
     original_price: int = 110,
     purchase_price: int = 100,
     cost_price: int = 50,
     net_profit: int = 50,
-) -> PurchasesAccounts:
+) -> Purchases:
     if user_id is None:
         user = await create_new_user_fabric()
         user_id = user.user_id
@@ -657,7 +657,7 @@ async def create_purchase_account_fabric(
         account_storage_id = acc_storage.account_storage_id
 
     async with get_db() as session_db:
-        new_purchase_account = PurchasesAccounts(
+        new_purchase_account = Purchases(
             user_id = user_id,
             account_storage_id = account_storage_id,
             original_price = original_price,

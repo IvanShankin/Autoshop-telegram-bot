@@ -1,6 +1,7 @@
 import enum
 from typing import Callable, Any
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text, text, UniqueConstraint, inspect, Enum
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text, text, UniqueConstraint, inspect, Enum, \
+    BigInteger, Index, DateTime, func
 from sqlalchemy.orm import relationship
 
 from src.services.database.core.database import Base
@@ -10,7 +11,6 @@ from src.services.database.categories.models.product_account import AccountServi
 class ProductType(enum.Enum):
     ACCOUNT = "account"
     UNIVERSAL = "universal"
-    FILE = "file"
 
 
 class Categories(Base):
@@ -56,6 +56,10 @@ class Categories(Base):
         ),
         nullable=True
     ) # только для категорий хранящие аккаунты
+
+    # Можно использовать один товар для продажи много раз. Будет браться первый стоящий на продажу
+    reuse_product = Column(Boolean, nullable=True, server_default=text("false")) # только для категорий хранящие универсальные товары
+
     price = Column(Integer, nullable=True, server_default=text("0"))
     cost_price = Column(Integer, nullable=True, server_default=text("0"))
 
@@ -111,3 +115,36 @@ class CategoryTranslation(Base):
     description = Column(Text, nullable=True)
 
     category = relationship("Categories", back_populates="translations")
+
+
+class Purchases(Base):
+    """если запись есть, то это покупка совершённая"""
+    __tablename__ = "purchases"
+    __table_args__ = (
+        Index('ix_purchase_date', 'user_id', 'purchase_date'),
+    )
+
+    purchase_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
+
+    product_type = Column(
+        Enum(
+            ProductType,
+            values_callable=lambda x: [e.value for e in x],
+            name="product_type"
+        ),
+        nullable=True
+    )
+
+    account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id"), nullable=True)
+    universal_storage_id = Column(Integer, ForeignKey("universal_storage.universal_storage_id"), nullable=True)
+
+    original_price = Column(Integer, nullable=False)  # Цена на момент покупки (без учёта промокода)
+    purchase_price = Column(Integer, nullable=False)  # Цена на момент покупки (с учётом промокода)
+    cost_price = Column(Integer, nullable=False)  # Себестоимость на момент покупки
+    net_profit = Column(Integer, nullable=False)  # Чистая прибыль
+
+    purchase_date = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("Users", back_populates="purchases")
+    account_storage = relationship("AccountStorage", back_populates="purchase")

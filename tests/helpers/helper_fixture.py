@@ -5,7 +5,7 @@ from tests.helpers.func_fabric import create_new_user_fabric, create_admin_fabri
     create_voucher_factory, create_category_factory, create_account_storage_factory, \
     create_product_account_factory, create_sold_account_factory, create_ui_image_factory, \
     create_wallet_transaction_fabric, create_tg_account_media_factory, create_promo_codes_fabric, \
-    create_sent_mass_message_fabric, create_purchase_account_fabric, create_transfer_moneys_fabric, \
+    create_sent_mass_message_fabric, create_purchase_fabric, create_transfer_moneys_fabric, \
     create_promo_code_activation_fabric, create_backup_log_fabric, create_translate_category_factory
 from src.services.database.system.models import  Settings
 from src.services.database.core.database import get_db
@@ -112,8 +112,8 @@ async def create_product_account():
 
 
 @pytest_asyncio.fixture
-async def create_purchase_account():
-    return create_purchase_account_fabric
+async def create_purchase():
+    return create_purchase_fabric
 
 
 @pytest_asyncio.fixture

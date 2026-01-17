@@ -8,7 +8,7 @@ import orjson
 from sqlalchemy import select, update, delete, func, desc
 
 from src.config import get_config
-from src.services.database.categories.models import PurchasesAccounts, ProductAccounts, Categories
+from src.services.database.categories.models import Purchases, ProductAccounts, Categories
 from src.services.database.system.shemas.shemas import StatisticsData, ReplenishmentPaymentSystem
 from src.services.database.users.models import Users, Replenishments
 from src.services.redis.filling_redis import filling_types_payments_by_id, filling_all_types_payments, \
@@ -412,8 +412,8 @@ async def get_statistics(interval_days: int) -> StatisticsData:
         result_db = await session_db.execute(select(func.count()).select_from(Users))
         total_users = result_db.scalar()
 
-        result_db = await session_db.execute(select(PurchasesAccounts).where(PurchasesAccounts.purchase_date >= up_to_date))
-        needs_sale_accounts: List[PurchasesAccounts] = result_db.scalars().all()
+        result_db = await session_db.execute(select(Purchases).where(Purchases.purchase_date >= up_to_date))
+        needs_sale_accounts: List[Purchases] = result_db.scalars().all()
 
         quantity_sale_accounts = max(len(needs_sale_accounts), 0)
 

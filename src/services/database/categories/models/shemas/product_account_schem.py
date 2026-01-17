@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import List
 from typing import Optional
 from datetime import datetime
@@ -51,6 +50,7 @@ class CategoryFull(BaseModel):
 
     product_type: ProductType | None
     type_account_service: AccountServiceType | None
+    reuse_product: bool | None
     price: int | None
     cost_price: int | None
 
@@ -83,6 +83,7 @@ class CategoryFull(BaseModel):
 
             product_type=category.product_type,
             type_account_service=category.type_account_service,
+            reuse_product=category.reuse_product,
             price=category.price,
             cost_price=category.cost_price,
 
@@ -153,7 +154,6 @@ class ProductAccountFull(BaseModel):
             created_at=product_account.created_at,
             account_storage= AccountStoragePydantic(**storage_account.to_dict()),
         )
-
 
 
 class SoldAccountFull(BaseModel):

@@ -342,10 +342,10 @@ async def test_add_backup_log_creates_record():
 
 
 @pytest.mark.asyncio
-async def test_get_statistics(create_new_user, create_replenishment, create_product_account, create_purchase_account):
+async def test_get_statistics(create_new_user, create_replenishment, create_product_account, create_purchase):
     users = [await create_new_user() for _ in range(3)]
     replenishments = [await create_replenishment(user_id=users[0].user_id) for _ in range(3)]
-    purchase_account = [await create_purchase_account(user_id=users[0].user_id) for _ in range(3)]
+    purchase_account = [await create_purchase(user_id=users[0].user_id) for _ in range(3)]
 
     product_accounts = []
     for _ in range(3):

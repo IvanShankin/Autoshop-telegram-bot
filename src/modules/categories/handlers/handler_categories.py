@@ -12,6 +12,8 @@ from src.modules.categories.keyboards import subscription_prompt_kb, back_in_acc
 from src.modules.categories.services import check_category, edit_message_category, buy_product
 from src.modules.categories.shemas import BuyProductsData
 from src.modules.categories.states import BuyProduct
+from src.modules.keyboard_main import support_kb
+from src.services.database.categories.actions import get_categories
 from src.services.database.discounts.actions import get_promo_code
 from src.services.database.discounts.actions.actions_promo import check_activate_promo_code
 from src.services.database.discounts.utils.calculation import discount_calculation
@@ -42,17 +44,34 @@ async def handle_catalog_message(message: Message, state: FSMContext, user: User
         )
         return
 
+    await message_in_main_category(user)
+
+
+async def message_in_main_category(user: Users, old_message_id: int | None = None):
+    """
+    :param user: пользователь
+    :param old_message_id: если указать, то сообщение с данным id будет отредактировано, иначе отправится новое
+    """
+
+    if not await get_categories(language=user.language):
+        await send_message(
+            chat_id=user.user_id,
+            message=get_text(user.language, "categories", "There are no categories at the moment"),
+            reply_markup=await support_kb(user.language)
+        )
+        return
+
+    if old_message_id:
+        await edit_message(
+            message_id=old_message_id,
+            chat_id=user.user_id,
+            image_key='main_category',
+            fallback_image_key="default_catalog_account",
+            reply_markup=await main_categories_kb(user.language)
+        )
+        return
+
     await send_message(
-        chat_id=user.user_id,
-        image_key='main_category',
-        fallback_image_key="default_catalog_account",
-        reply_markup=await main_categories_kb(user.language)
-    )
-
-
-async def edit_message_in_main_category(user: Users, old_message_id: int):
-    await edit_message(
-        message_id=old_message_id,
         chat_id=user.user_id,
         image_key='main_category',
         fallback_image_key="default_catalog_account",
@@ -65,7 +84,7 @@ async def skip_subscription(callback: CallbackQuery, state: FSMContext, user: Us
     await state.clear()
     await delete_subscription_prompt(callback.from_user.id) # больше не просим подписаться
 
-    await edit_message_in_main_category(
+    await message_in_main_category(
         user=user,
         old_message_id=callback.message.message_id
     )
@@ -74,7 +93,7 @@ async def skip_subscription(callback: CallbackQuery, state: FSMContext, user: Us
 @router.callback_query(F.data == "show_main_categories")
 async def show_main_categories(callback: CallbackQuery, state: FSMContext, user: Users):
     await state.clear()
-    await edit_message_in_main_category(
+    await message_in_main_category(
         user=user,
         old_message_id=callback.message.message_id
     )
@@ -283,7 +302,7 @@ async def confirm_buy_category(callback: CallbackQuery, user: Users):
     promo_code_id = safe_int_conversion(callback.data.split(':')[3], positive=True) # либо int, либо "None"
 
     if quantity_products <= 0:
-        await callback.answer(get_text(user.language, 'categories',"Select at least one account"))
+        await callback.answer(get_text(user.language, 'categories',"Select at least one product"))
         return
 
     category = await check_category(

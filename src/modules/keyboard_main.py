@@ -30,6 +30,9 @@ async def support_kb(language: str, support_username: str = None):
         settings = await get_settings()
         support_username = settings.support_username
 
+    if not support_username:
+        return None
+
     support_name = get_text(language, 'kb_start', 'Support')
 
     keyboard = InlineKeyboardBuilder()

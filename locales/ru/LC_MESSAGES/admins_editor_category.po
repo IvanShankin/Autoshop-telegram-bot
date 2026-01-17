@@ -28,23 +28,23 @@ msgid "There is no longer a payment method"
 msgstr "Типа оплаты больше нет"
 
 
-msgid "Category \n\nName: {name}\nIndex: {index}\nShow: {show} \n\nStores accounts: {is_account_storage}"
-msgstr "Категория \n\nИмя: {name}\nИндекс: {index}\nПоказывать: {show} \n\nХранит аккаунты: {is_account_storage}"
+msgid "Category \n\nName: {name}\nIndex: {index}\nShow: {show} \n\nStores items: {is_storage}"
+msgstr "Категория \n\nИмя: {name}\nИндекс: {index}\nПоказывать: {show} \n\nХранит товары: {is_storage}"
 
-msgid "\n\nNumber of stored accounts: {total_quantity_acc}\n"
-"Sum of all stored accounts: {total_sum_acc}\n"
-"Cost of all stored accounts: {total_cost_price_acc}\n"
+msgid "\n\nNumber of items in stock: {total_quantity}\n"
+"Sum of all items in stock: {total_sum}\n"
+"Cost of all items in stock: {total_cost_price}\n"
 "Expected profit: {total_profit}"
-msgstr "\n\nКоличество хранящихся аккаунтов: {total_quantity_acc} \n"
-"Сумма всех хранящихся аккаунтов: {total_sum_acc}\n"
-"Себестоимость всех хранящихся аккаунтов: {total_cost_price_acc}\n"
+msgstr "\n\nКоличество хранящихся товаров: {total_quantity} \n"
+"Сумма всех хранящихся товаров: {total_sum}\n"
+"Себестоимость всех хранящихся товаров: {total_cost_price}\n"
 "Ожидаемая прибыль: {total_profit}"
 
 
 msgid "Are you sure you want to delete this category? \n\n"
-"⚠️ Before deleting, make sure this category doesn't contain any subcategories or store accounts!"
+"Before deleting, make sure this category does not contain any subcategories or products!"
 msgstr "Вы действительно хотите удалить эту категорию? \n\n"
-"⚠️ Перед удаление убедитесь что данная категория не содержит в себе подкатегорий и не хранит аккаунты!"
+"⚠️ Перед удаление убедитесь что данная категория не содержит в себе подкатегорий и не хранит товары!"
 
 msgid "The category stores accounts, please extract them first"
 msgstr "Категория хранит аккаунты, сперва извлеките их"
@@ -62,8 +62,8 @@ msgstr "Категория успешно создана!"
 msgid "Name: {name} \nDescription: {description} \n\n"
 msgstr "Имя: {name} \nОписание: {description} \n\n"
 
-msgid "Price per account: {account_price} \nCost per account: {cost_price}\n\n"
-msgstr "Цена одного аккаунта: {account_price} \nСебестоимость одного аккаунта: {cost_price}\n\n"
+msgid "Price of one product: {price} \nCost of one product: {cost_price}\n\n"
+msgstr "Цена одного товара: {price} \nСебестоимость одного товара: {cost_price}\n\n"
 
 msgid "Number of buttons per row: {number_button_in_row}\n\n"
 "👇 Select the item to edit"
@@ -112,11 +112,11 @@ msgstr "Это не изображение. Отправь фото как до�
 msgid "Image installed successfully"
 msgstr "Изображение успешно установленно"
 
-msgid "Please send an integer - the price per account"
-msgstr "Пришлите целое число - цену за один аккаунт"
+msgid "Please send an integer - the price for one product"
+msgstr "Пришлите целое число - цену за один продукт"
 
-msgid "Please send an integer - the cost price per account"
-msgstr "Пришлите целое число - себестоимость за один аккаунт "
+msgid "Send an integer - the cost price for one product"
+msgstr "Пришлите целое число - себестоимость за один продукт"
 
 msgid "Please send an integer - the number of buttons in one line for the category \n\nAllowed: from 1 to 8"
 msgstr "Пришлите целое число - количество кнопок в одной строке для категории \n\nРазрешено: от 1 до 8"
@@ -161,8 +161,8 @@ msgstr "В полученном файле некорректный формат
 "Внимательно изучите прикреплённое фото и попытайтесь ещё разn \n\n"
 "Необходимые Заголовки(можно скопировать): \n'<code>phone</code>', '<code>login</code>', '<code>password</code>'"
 
-msgid "First, make this category an account storage"
-msgstr "Сперва сделайте данную категорию хранилищем аккаунтов"
+msgid "First, make this category a food storage area"
+msgstr "Сперва сделайте данную категорию хранилищем продуктов"
 
 msgid "Account integration was successful. \n\nSuccessfully added: {successfully_added} \nTotal processed: {total_processed}"
 msgstr "Интеграция аккаунтов прошла успешно. \n\nУспешно добавлено: {successfully_added} \nВсего обработано: {total_processed}"
@@ -199,10 +199,22 @@ msgstr "Выгрузка аккаунтов закончена"
 msgid "Account not found!"
 msgstr "Аккаунты не найдены!"
 
-msgid "Are you sure you want to permanently delete all accounts currently for sale?"
+msgid "Are you sure you want to permanently delete all products currently on sale?"
 "\n\nNote: They will be uploaded to this chat before deletion"
-msgstr "Вы действительно хотите удалить безвозвратно все акаунты стоящие на продаже?"
+msgstr "Вы действительно хотите удалить безвозвратно все продукты стоящие на продаже?"
 "\n\nПримечание: перед удалением они будут выгружены в этот чат"
 
-msgid "Accounts successfully deleted"
-msgstr "Аккаунты успешно удалены"
+msgid "Products successfully deleted"
+msgstr "Продукты успешно удалены"
+
+
+msgid "Error downloading file to server, try again.\n\n"
+"Possible causes:\n"
+"- Telegram servers are under load\n"
+"- Slow internet connection on the server where the bot is located\n"
+"- The file is too large and didn't download within the allotted time\n"
+msgstr "Ошибка при скачивании файла на сервер, попробуйте ещё раз.\n\n"
+"Возможные причины:\n"
+"- Сервера телеграмма нагружены \n"
+"- Медленный интернет на сервере где расположен бот \n"
+"- файл слишком большой и не успел скачаться за отведённое время \n"

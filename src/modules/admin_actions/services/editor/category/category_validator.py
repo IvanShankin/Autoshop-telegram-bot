@@ -54,7 +54,7 @@ async def check_category_is_acc_storage(category: CategoryFull, user: Users) -> 
     if not category.is_product_storage:
         await send_message(
             user.user_id,
-            get_text(user.language,"admins_editor_category","First, make this category an account storage"),
+            get_text(user.language,"admins_editor_category","First, make this category a food storage area"),
             reply_markup=back_in_category_kb(
                 language=user.language,
                 category_id=category.category_id,

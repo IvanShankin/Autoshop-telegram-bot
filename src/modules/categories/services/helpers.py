@@ -62,7 +62,7 @@ async def edit_message_category(
             "{name} \n\n"
             "Description: {description}\n"
             "Price per product: {price} ₽ \n\n"
-            "Products selected: {selected_accounts}\n"
+            "Products selected: {selected_products}\n"
             "{discount}"
             "Total: {total_price}\n\n"
             "To specify the required quantity, send the bot a number"
@@ -70,7 +70,7 @@ async def edit_message_category(
             name=category.name,
             description=category.description,
             price=category.price,
-            selected_accounts=data.quantity_for_buying,
+            selected_products=data.quantity_for_buying,
             discount=message_discount,
             total_price=total_price
         )

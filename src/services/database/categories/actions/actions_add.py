@@ -387,7 +387,7 @@ async def add_deleted_accounts(
 ) -> DeletedAccounts:
 
     if not any(type_account_service == member for member in AccountServiceType):
-        raise ValueError(f"Тип сервиса = {type_account_service.value} не найден")
+        raise ValueError(f"Тип сервиса = {type_account_service} не найден")
 
     async with get_db() as session_db:
         new_deleted_account = DeletedAccounts(

@@ -29,7 +29,7 @@ async def category_confirm_delete(callback: CallbackQuery, user: Users):
             user.language,
             "admins_editor_category",
             "Are you sure you want to delete this category? \n\n"
-            "⚠️ Before deleting, make sure this category doesn't contain any subcategories or store accounts!"
+            "Before deleting, make sure this category does not contain any subcategories or products!"
         ),
         reply_markup=delete_category_kb(user.language, category_id)
     )
@@ -72,7 +72,7 @@ async def confirm_del_all_products(callback: CallbackQuery, user: Users):
         message=get_text(
             user.language,
             "admins_editor_category",
-            "Are you sure you want to permanently delete all accounts currently for sale?"
+            "Are you sure you want to permanently delete all products currently on sale?"
             "\n\nNote: They will be uploaded to this chat before deletion"
         ),
         reply_markup=delete_product_kb(user.language, category_id)
@@ -89,5 +89,5 @@ async def delete_all_products(callback: CallbackQuery, user: Users):
     await upload_account(category, user, callback)
     await delete_product_accounts_by_category(category_id)
 
-    await callback.answer("Accounts successfully deleted", show_alert=True)
+    await callback.answer("Products successfully deleted", show_alert=True)
     await show_category(user, category_id, send_new_message=True)

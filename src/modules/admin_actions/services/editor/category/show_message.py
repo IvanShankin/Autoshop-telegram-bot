@@ -37,9 +37,8 @@ async def show_category(
     message = get_text(
         user.language,
         "admins_editor_category",
-        "Category \n\nName: {name}\nIndex: {index}\nShow: {show} \n\nStores accounts: {is_account_storage}"
-    ).format(name=category.name, index=category.index, show=category.show,
-             is_account_storage=category.is_product_storage)
+        "Category \n\nName: {name}\nIndex: {index}\nShow: {show} \n\nStores items: {is_storage}"
+    ).format(name=category.name, index=category.index, show=category.show,is_storage=category.is_product_storage)
 
     if category.is_product_storage:
         price_one = category.price if category.price else 0
@@ -51,14 +50,14 @@ async def show_category(
         message += get_text(
             user.language,
             "admins_editor_category",
-            "\n\nNumber of stored accounts: {total_quantity_acc}\n"
-            "Sum of all stored accounts: {total_sum_acc}\n"
-            "Cost of all stored accounts: {total_cost_price_acc}\n"
+            "\n\nNumber of items in stock: {total_quantity}\n"
+            "Sum of all items in stock: {total_sum}\n"
+            "Cost of all items in stock: {total_cost_price}\n"
             "Expected profit: {total_profit}"
         ).format(
-            total_quantity_acc=category.quantity_product,
+            total_quantity=category.quantity_product,
             total_sum_acc=total_sum,
-            total_cost_price_acc=total_cost_price,
+            total_cost_price=total_cost_price,
             total_profit=total_sum - total_cost_price,
         )
 
@@ -112,8 +111,8 @@ async def show_category_update_data(
         message += get_text(
             user.language,
             "admins_editor_category",
-            "Price per account: {account_price} \nCost per account: {cost_price}\n\n"
-        ).format(account_price=category.price, cost_price=category.cost_price)
+            "Price of one product: {price} \nCost of one product: {cost_price}\n\n"
+        ).format(price=category.price, cost_price=category.cost_price)
 
     message += get_text(
         user.language,

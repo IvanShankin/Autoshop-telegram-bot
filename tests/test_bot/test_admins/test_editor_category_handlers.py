@@ -55,7 +55,7 @@ async def test_show_category_update_data_edit(
         monkeypatch, patch_fake_aiogram, replacement_fake_bot_fix,
         create_new_user, create_category
 ):
-    from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category_update_data
+    from src.modules.admin_actions.services.editor.category.show_message import show_category_update_data
 
     category = await create_category()
     user = await create_new_user()

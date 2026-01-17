@@ -328,7 +328,7 @@ async def update_category_image(message: Message, state: FSMContext, user: Users
 async def category_update_price(callback: CallbackQuery, state: FSMContext, user: Users):
     await update_message_query_data(
         callback, state, user,
-        i18n_key="Please send an integer - the price per account",
+        i18n_key="Please send an integer - the price for one product",
         set_state=UpdateNumberInCategory.price
     )
 
@@ -337,7 +337,7 @@ async def category_update_price(callback: CallbackQuery, state: FSMContext, user
 async def category_update_cost_price(callback: CallbackQuery, state: FSMContext, user: Users):
     await update_message_query_data(
         callback, state, user,
-        i18n_key="Please send an integer - the cost price per account",
+        i18n_key="Send an integer - the cost price for one product",
         set_state=UpdateNumberInCategory.cost_price
     )
 

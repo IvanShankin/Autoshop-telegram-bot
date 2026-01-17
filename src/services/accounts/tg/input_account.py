@@ -209,6 +209,8 @@ async def process_inappropriate_acc(inappropriate_items, archive_dir):
 
             # теперь архивируем ЭТУ копию
             await make_archive(str(dst), str(dst.with_suffix(".zip")))
+
+            shutil.rmtree(dst)
         except Exception as e:
             logger = get_logger(__name__)
             logger.exception("Ошибка при архивировании неподходящего аккаунта", exc_info=e)

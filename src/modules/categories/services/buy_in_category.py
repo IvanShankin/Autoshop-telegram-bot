@@ -90,7 +90,7 @@ async def _buy_account(
         get_text(
             user.language,
             'categories',
-            "There are not enough accounts on the server, please change the number of accounts to purchase"
+            "There are not enough products on the server, please change the number of accounts to purchase"
         ),
         await edit_message(
             chat_id=callback.from_user.id,
@@ -98,7 +98,7 @@ async def _buy_account(
             message=get_text(
                 user.language,
                 'categories',
-                "There are not enough accounts on the server, please change the number of accounts to purchase"
+                "There are not enough products on the server, please change the number of accounts to purchase"
             ),
             image_key='successful_purchase',
             fallback_image_key="default_catalog_account",

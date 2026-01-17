@@ -1,3 +1,4 @@
+import asyncio
 import io
 import os
 from pathlib import Path
@@ -129,7 +130,24 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
 
     gen_mes_info = message_info_load_file(user)
     await gen_mes_info.__anext__()
-    await message.bot.download_file(file.file_path, destination=save_path) # Скачиваем файл на диск
+
+    try:
+        await message.bot.download_file(file.file_path, destination=save_path) # Скачиваем файл на диск
+    except asyncio.TimeoutError:
+        await send_message(
+            chat_id=user.user_id,
+            message=get_text(
+                user.language,
+                "admins_editor_category",
+                "Error downloading file to server, try again.\n\n"
+                    "Possible causes:\n"
+                    "- Telegram servers are under load\n"
+                    "- Slow internet connection on the server where the bot is located\n"
+                    "- The file is too large and didn't download within the allotted time\n"
+            )
+        )
+        return
+
     message_info = await gen_mes_info.__anext__()
 
     try:

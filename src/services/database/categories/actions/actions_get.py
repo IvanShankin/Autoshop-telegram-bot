@@ -13,7 +13,7 @@ from src.services.database.categories.models import AccountStorage, TgAccountMed
 from src.services.database.categories.models.main_category_and_product import ProductType
 from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.redis.core_redis import get_redis
-from src.services.redis.filling_redis import (
+from src.services.redis.filling import (
     filling_product_account_by_account_id,
     filling_sold_account_by_account_id, filling_sold_accounts_by_owner_id, filling_category_by_category,
     filling_categories_by_parent, filling_main_categories, filling_product_accounts_by_category_id

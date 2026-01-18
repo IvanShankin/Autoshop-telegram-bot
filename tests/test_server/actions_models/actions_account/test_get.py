@@ -2,7 +2,7 @@ import pytest
 
 from tests.helpers.helper_functions import comparison_models
 from src.services.database.categories.models.product_account import AccountServiceType
-from src.services.redis.filling_redis import filling_category_by_category
+from src.services.redis.filling import filling_category_by_category
 
 
 

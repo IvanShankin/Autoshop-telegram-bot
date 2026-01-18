@@ -11,7 +11,7 @@ from src.config import get_config
 from src.services.database.categories.models import Purchases, ProductAccounts, Categories
 from src.services.database.system.shemas.shemas import StatisticsData, ReplenishmentPaymentSystem
 from src.services.database.users.models import Users, Replenishments
-from src.services.redis.filling_redis import filling_types_payments_by_id, filling_all_types_payments, \
+from src.services.redis.filling import filling_types_payments_by_id, filling_all_types_payments, \
     filling_ui_image
 from src.services.redis.time_storage import TIME_SETTINGS
 from src.services.database.system.models import Settings, TypePayments, BackupLogs

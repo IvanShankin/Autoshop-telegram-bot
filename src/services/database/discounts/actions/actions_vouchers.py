@@ -9,7 +9,7 @@ from src.broker.producer import publish_event
 from src.config import get_config
 from src.exceptions import NotEnoughMoney
 from src.services.redis.core_redis import get_redis
-from src.services.redis.filling_redis import filling_voucher_by_user_id, filling_user
+from src.services.redis.filling import filling_voucher_by_user_id, filling_user
 from src.services.database.admins.models import AdminActions
 from src.services.database.core.database import get_db
 from src.services.database.discounts.events import NewActivationVoucher

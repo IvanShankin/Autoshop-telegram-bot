@@ -140,8 +140,12 @@
     "allow_multiple_purchase": "bool",
     
     // только для тех кто хранит товары,
-    "product_type": "str", 
-    "type_account_service": "str", 
+    "product_type": "ProductType", 
+    "type_account_service": "AccountServiceType", 
+    
+    // только для категорий которые хранят универсальные товары 
+    "reuse_product": "str",
+    
     "price": "int",
     "cost_price": "int",
     
@@ -173,8 +177,12 @@
     "allow_multiple_purchase": "bool",
     
     // только для тех кто хранит товары,
-    "product_type": "str", 
-    "type_account_service": "str", 
+    "product_type": "ProductType", 
+    "type_account_service": "AccountServiceType", 
+    
+    // только для категорий которые хранят универсальные товары 
+    "reuse_product": "str",
+    
     "price": "int",
     "cost_price": "int",
     
@@ -205,8 +213,12 @@
     "allow_multiple_purchase": "bool",
     
     // только для тех кто хранит товары,
-    "product_type": "str", 
-    "type_account_service": "str", 
+    "product_type": "ProductType", 
+    "type_account_service": "AccountServiceType", 
+  
+    // только для категорий которые хранят универсальные товары 
+    "reuse_product": "str",
+  
     "price": "int",
     "cost_price": "int",
     
@@ -283,7 +295,7 @@
     {
         "sold_account_id": "int",
         "owner_id": "int",
-        "type_account_service": "str",
+        "type_account_service": "AccountServiceType",
         
         "phone_number": "str",
         "name": "str",
@@ -304,7 +316,7 @@
 {
     "sold_account_id": "int",
     "owner_id": "int",
-    "type_account_service": "str",
+    "type_account_service": "AccountServiceType",
     
     "name": "str",
     "description": "str",
@@ -335,6 +347,119 @@
         
         "added_at": "2024-01-15T10:30:45+03:00",
         "last_check_at": "2024-01-15T10:30:45+03:00"
+    }
+}
+```
+**TTL:** 6 часов
+
+
+## ProductUniversal по category_id
+**Ключ:** `product_universal_by_category:{category_id}`
+**Значение:**
+```json
+[
+  {
+    "product_universal_id": "int",
+    "universal_storage_id": "int",
+    "category_id": "int",
+    "created_at": "2024-01-15T10:30:45+03:00"
+  }
+]
+```
+**TTL:** навсегда
+
+
+## ProductUniversal по product_universal_id
+**Ключ:** `product_universal:{product_universal_id}`
+**Значение:**
+```json
+{
+    "product_universal_id": "int",
+    "universal_storage_id": "int",
+    "category_id": "int",
+    "created_at": "2024-01-15T10:30:45+03:00",
+  
+    "universal_storage": {
+        "universal_storage_id": "int",
+        "storage_uuid": "str",
+        
+        "file_path": "str | None",
+        "encrypted_tg_file_id": "str | None",
+        "encrypted_tg_file_id_nonce": "str | None",
+        "checksum": "str",
+        
+        "encrypted_key": "str",
+        "encrypted_key_nonce": "str",
+        "key_version": "int",
+        "encryption_algo": "str",
+        
+        "media_type": "UniversalMediaType",
+        "name": "str",
+        "encrypted_description": "str | None",
+        "encrypted_description_nonce": "str | None",
+        
+        "is_active": "bool",
+        
+        "created_at": "2024-01-15T10:30:45+03:00"
+    }
+}
+```
+**TTL:** навсегда
+
+
+### Проданные универсальные товары по id владельца (SoldUniversal)
+**Важно:** хранит только НЕ удалённые аккаунты (is_active == False)  
+**Ключ:** `sold_universal_by_owner_id:{owner_id}:{language}`  
+**Значение:** 
+```json
+[
+    {
+        "sold_universal_id": "int",
+        "owner_id": "int",
+        "universal_storage_id": "int",
+        
+        "name": "str",
+        
+        "sold_at": "2024-01-15T10:30:45+03:00"
+    }
+]
+```
+**TTL:** 6 часов
+
+### Проданные универсальные товары по id аккаунта (SoldUniversal)
+**Важно:** хранит только НЕ удалённые аккаунты (is_active == False)  
+**Ключ:** `sold_universal:{sold_universal_id}:{language}`  
+**Значение:** 
+```json
+{
+    "sold_universal_id": "int",
+    "owner_id": "int",
+    "universal_storage_id": "int",
+    
+    "sold_at": "2024-01-15T10:30:45+03:00",
+    
+    "universal_storage": {
+        "universal_storage_id": "int",
+        "storage_uuid": "str",
+        
+        "file_path": "str | None",
+        "encrypted_tg_file_id": "str | None",
+        "encrypted_tg_file_id_nonce": "str | None",
+        "checksum": "str",
+        
+        "encrypted_key": "str",
+        "encrypted_key_nonce": "str",
+        "key_version": "int",
+        "encryption_algo": "str",
+        
+        "media_type": "UniversalMediaType",
+        "name": "str",
+        "encrypted_description": "str | None",
+        "encrypted_description_nonce": "str | None",
+        
+        "is_active": "bool",
+        
+        "created_at": "2024-01-15T10:30:45+03:00"
     }
 }
 ```

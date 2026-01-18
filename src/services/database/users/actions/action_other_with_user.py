@@ -7,7 +7,7 @@ from sqlalchemy import select, update, delete, func
 
 from src.config import get_config
 from src.exceptions import UserNotFound, NotEnoughMoney
-from src.services.redis.filling_redis import filling_user
+from src.services.redis.filling import filling_user
 from src.services.database.admins.models import AdminActions
 from src.services.database.referrals.utils import create_unique_referral_code
 from src.services.database.users.actions.action_user import get_user

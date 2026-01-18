@@ -8,8 +8,7 @@ from src.config import get_config
 from src.exceptions import CategoryStoresSubcategories, \
     AccountCategoryNotFound, TheCategoryStorageAccount
 from src.services.database.system.actions import delete_ui_image
-from src.services.redis.core_redis import get_redis
-from src.services.redis.filling_redis import filling_all_keys_category, filling_sold_accounts_by_owner_id, \
+from src.services.redis.filling import filling_all_keys_category, filling_sold_accounts_by_owner_id, \
     filling_product_account_by_account_id, filling_product_accounts_by_category_id, filling_sold_account_by_account_id
 from src.services.database.core.database import get_db
 from src.services.database.categories.models import Categories, ProductAccounts, \

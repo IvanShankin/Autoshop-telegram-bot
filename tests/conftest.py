@@ -35,7 +35,7 @@ MODE = os.getenv('MODE')
 RABBITMQ_URL = os.getenv('RABBITMQ_URL')
 
 import pytest_asyncio
-from src.services.database.core.filling_database import create_table, create_database
+from src.services.database.core.filling_database import create_database
 
 consumer_started = False
 
@@ -123,7 +123,7 @@ async def clean_db(monkeypatch, create_database_fixture):
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def clean_redis(replacement_redis_fix):
-    from src.services.redis.filling_redis import filling_all_redis
+    from src.services.redis.filling import filling_all_redis
     async with get_redis() as session_redis:
         await session_redis.flushdb()
 

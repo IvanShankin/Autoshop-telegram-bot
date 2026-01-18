@@ -1,12 +1,13 @@
 import pytest_asyncio
 
-from tests.helpers.func_fabric import create_new_user_fabric, create_admin_fabric, create_referral_fabric, \
+from tests.helpers.func_fabrics import create_new_user_fabric, create_admin_fabric, create_referral_fabric, \
     create_income_from_referral_fabric, create_replenishment_fabric, create_type_payment_factory, \
     create_voucher_factory, create_category_factory, create_account_storage_factory, \
     create_product_account_factory, create_sold_account_factory, create_ui_image_factory, \
     create_wallet_transaction_fabric, create_tg_account_media_factory, create_promo_codes_fabric, \
     create_sent_mass_message_fabric, create_purchase_fabric, create_transfer_moneys_fabric, \
-    create_promo_code_activation_fabric, create_backup_log_fabric, create_translate_category_factory
+    create_promo_code_activation_fabric, create_backup_log_fabric, create_translate_category_factory, \
+    create_universal_storage_factory, create_product_universal_factory, create_sold_universal_factory
 from src.services.database.system.models import  Settings
 from src.services.database.core.database import get_db
 
@@ -119,6 +120,21 @@ async def create_purchase():
 @pytest_asyncio.fixture
 async def create_sold_account():
     return create_sold_account_factory
+
+
+@pytest_asyncio.fixture
+async def create_universal_storage():
+    return create_universal_storage_factory
+
+
+@pytest_asyncio.fixture
+async def create_product_universal():
+    return create_product_universal_factory
+
+
+@pytest_asyncio.fixture
+async def create_sold_universal():
+    return create_sold_universal_factory
 
 
 @pytest_asyncio.fixture

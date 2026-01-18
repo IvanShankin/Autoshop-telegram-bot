@@ -1,7 +1,7 @@
 from typing import List
 from typing import Optional
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from src.services.database.categories.models import SoldAccounts, ProductAccounts
 from src.services.database.categories.models import AccountStorage, Categories, CategoryTranslation
@@ -152,7 +152,7 @@ class ProductAccountFull(BaseModel):
             category_id=product_account.category_id,
             type_account_service=product_account.type_account_service,
             created_at=product_account.created_at,
-            account_storage= AccountStoragePydantic(**storage_account.to_dict()),
+            account_storage=AccountStoragePydantic(**storage_account.to_dict()),
         )
 
 
@@ -169,7 +169,7 @@ class SoldAccountFull(BaseModel):
     account_storage: AccountStoragePydantic
 
     @classmethod
-    async def from_orm_with_translation(cls, account: SoldAccounts, lang: str, fallback: str | None = None):
+    def from_orm_with_translation(cls, account: SoldAccounts, lang: str, fallback: str | None = None):
         """orm модель превратит в SoldAccountsFull"""
         return cls(
             sold_account_id=account.sold_account_id,

@@ -6,8 +6,7 @@ from src.services.database.discounts.actions import get_voucher_by_id, get_promo
 from src.services.database.discounts.actions.actions_promo import get_activated_promo_code
 from src.services.database.discounts.actions.actions_vouchers import get_activate_voucher
 from src.services.database.referrals.actions.actions_ref import get_referral, get_income_from_referral
-from src.services.database.categories.actions.actions_get import get_purchases_accounts, \
-    get_sold_accounts_by_account_id
+from src.services.database.categories.actions import get_purchases, get_sold_accounts_by_account_id
 from src.services.database.users.actions import get_replenishment
 from src.services.database.users.actions.action_other_with_user import get_transfer_money, get_wallet_transaction
 from src.services.database.users.models import Users
@@ -96,7 +95,7 @@ async def get_message_replenishment(replenishment_id: int, language: str) -> str
 
 
 async def get_message_purchase_account(purchase_id: int, language: str) -> str | None:
-    purchase_account = await get_purchases_accounts(purchase_id)
+    purchase_account = await get_purchases(purchase_id)
 
     if not purchase_account:
         return None

@@ -144,6 +144,7 @@ async def create_sold_universal_factory(
     filling_redis: bool = True,
     owner_id: int | None = None,
     universal_storage_id: int | None = None,
+    is_active: bool = True,
     language: str = "ru",
 ) -> tuple[SoldUniversalSmall, SoldUniversalFull]:
 
@@ -154,7 +155,7 @@ async def create_sold_universal_factory(
             owner_id = user.user_id
 
         if universal_storage_id is None:
-            storage, _ = await create_universal_storage_factory(language=language)
+            storage, _ = await create_universal_storage_factory(language=language, is_active=is_active)
             universal_storage_id = storage.universal_storage_id
 
         new_sold = SoldUniversal(

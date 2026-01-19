@@ -7,9 +7,8 @@ from src.bot_actions.messages import edit_message, send_message
 from src.exceptions import InvalidPromoCode, CategoryNotFound, NotEnoughMoney, NotEnoughAccounts
 from src.modules.categories.keyboards import replenishment_and_back_in_cat, back_in_account_category_kb
 from src.modules.categories.services.helpers import check_category
-from src.modules.categories.states import BuyProduct
 from src.modules.profile.keyboard_profile import in_profile_kb
-from src.services.database.categories.actions.action_purchase_account import purchase_accounts
+from src.services.database.categories.actions import purchase_accounts
 from src.services.database.categories.models.main_category_and_product import ProductType
 from src.services.database.discounts.utils.calculation import discount_calculation
 from src.services.database.users.models import Users

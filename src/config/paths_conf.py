@@ -5,11 +5,17 @@ from pydantic import BaseModel
 
 class PathSettings(BaseModel):
     base_dir: Path
+
     locales_dir: Path
     media_dir: Path
+
     log_dir: Path
     log_file: Path
+
+    products_dir: Path
     accounts_dir: Path
+    universals_dir: Path
+
     temp_file_dir: Path
     sent_mass_msg_image_dir: Path
     ui_sections_dir: Path
@@ -25,8 +31,13 @@ class PathSettings(BaseModel):
     def build(cls, mode: str) -> "PathSettings":
         base = Path(__file__).resolve().parents[2]
         media = base / "media"
-
+        products = media / "products"
         cert_dir = base / "certs"
+
+        os.makedirs(media, exist_ok=True)
+        os.makedirs(products, exist_ok=True)
+        os.makedirs(cert_dir, exist_ok=True)
+
         ssl_client_cert_file = cert_dir / "client" / "client_cert.pem"
         ssl_client_key_file = cert_dir / "client" / "client_key.pem"
         ssl_ca_file = cert_dir / "ca" / "client_ca_chain.pem"
@@ -34,7 +45,6 @@ class PathSettings(BaseModel):
         if (
             not mode in {"DEV", "TEST"} and
             (
-                not os.path.isdir(str(cert_dir)) or
                 not os.path.isfile(str(ssl_client_cert_file)) or
                 not os.path.isfile(str(ssl_client_key_file)) or
                 not os.path.isfile(str(ssl_ca_file))
@@ -48,7 +58,9 @@ class PathSettings(BaseModel):
             media_dir=media,
             log_dir=media / "logs",
             log_file=media / "logs" / "auto_shop_bot.log",
-            accounts_dir=media / "accounts",
+            products_dir=products,
+            accounts_dir=products / "accounts",
+            universals_dir=products / "universals",
             temp_file_dir=media / "temp",
             sent_mass_msg_image_dir=media / "sent_mass_msg_image",
             ui_sections_dir=media  / "ui_sections",

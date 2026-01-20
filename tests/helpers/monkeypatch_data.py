@@ -86,20 +86,27 @@ def replacement_fake_bot(monkeypatch):
     return fake_bot
 
 
-def replacement_pyth_account():
+def replacement_pyth_product():
     conf = get_config()
 
-    new_account_dir = get_config().paths.media_dir / "accounts_test"
+    product_dir = conf.paths.media_dir / "product_test"
+    new_account_dir = product_dir / "accounts_test"
+    new_universal_dir = product_dir / "universals_test"
+
+    conf.paths.products_dir = product_dir
     conf.paths.accounts_dir = new_account_dir
+    conf.paths.universals_dir = new_universal_dir
 
     set_config(conf)
 
+    os.makedirs(product_dir, exist_ok=True)
     os.makedirs(new_account_dir, exist_ok=True)
+    os.makedirs(new_universal_dir, exist_ok=True)
 
     yield
 
-    if os.path.isdir(new_account_dir):
-        shutil.rmtree(new_account_dir) # удаляет директорию созданную для тестов
+    if os.path.isdir(product_dir):
+        shutil.rmtree(product_dir) # удаляет директорию созданную для тестов
 
 
 def replacement_pyth_ui_image(tmp_path):
@@ -132,7 +139,6 @@ def replacement_pyth_sent_mass_msg_image(tmp_path):
 
     if os.path.isdir(new_sent_mass_msg_dir):
         shutil.rmtree(new_sent_mass_msg_dir)  # удаляет директорию созданную для тестов
-
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)

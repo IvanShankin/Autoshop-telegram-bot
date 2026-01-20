@@ -13,7 +13,7 @@ from src.config import init_config, get_config, set_config
 from tests.helpers.monkeypatch_data import (
     replacement_redis,
     replacement_fake_bot,
-    replacement_pyth_account,
+    replacement_pyth_product,
     replacement_pyth_ui_image,
     replacement_pyth_sent_mass_msg_image,
     create_crypto_context_fix,
@@ -73,8 +73,8 @@ async def replacement_fake_bot_fix(monkeypatch, replacement_pyth_ui_image_fix):
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
-async def replacement_pyth_account_fix(monkeypatch, replacement_pyth_ui_image_fix):
-    for _ in replacement_pyth_account():
+async def replacement_pyth_product_fix(monkeypatch, replacement_pyth_ui_image_fix):
+    for _ in replacement_pyth_product():
         yield
 
 

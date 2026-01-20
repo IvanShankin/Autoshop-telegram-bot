@@ -6,6 +6,9 @@
 class CategoryNotFound(Exception):
     pass
 
+class UniversalStorageNotFound(Exception):
+    pass
+
 class TypeAccountServiceNotFound(Exception):
     pass
 

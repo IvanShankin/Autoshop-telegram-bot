@@ -67,7 +67,7 @@ async def add_account_storage(
 
     new_account_storage = AccountStorage(
         storage_uuid = storage_uuid,
-        file_path = str(file_path), # относительный путь к зашифрованному файлу (относительно accounts/)
+        file_path = str(file_path), # относительный путь к зашифрованному файлу (относительно media/accounts/)
         checksum = checksum,
         status = status,
         encrypted_key = encrypted_key,
@@ -233,6 +233,7 @@ async def add_sold_account(
         name=name,
         description=description
     )
+
 
 async def add_deleted_accounts(
         type_account_service: AccountServiceType,

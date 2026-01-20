@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
@@ -9,10 +9,29 @@ from src.services.database.categories.actions.helpers_func import _get_grouped_o
 from src.services.database.categories.models import ProductUniversal
 from src.services.database.categories.models.product_universal import UniversalStorage, SoldUniversal
 from src.services.database.categories.models.shemas.product_universal_schem import ProductUniversalFull, \
-    SoldUniversalSmall, SoldUniversalFull, ProductUniversalSmall
+    SoldUniversalSmall, SoldUniversalFull, ProductUniversalSmall, UniversalStoragePydantic
 from src.services.database.core import get_db
 from src.services.redis.filling.filling_universal import filling_product_universal_by_category, \
     filling_universal_by_product_id, filling_sold_universal_by_owner_id, filling_sold_universal_by_universal_id
+
+
+
+async def get_universal_storage(
+    universal_storage_id: int,
+    language: Optional[str] = None
+) -> UniversalStoragePydantic | None:
+    if language is None:
+        language = get_config().app.default_lang
+
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            select(UniversalStorage)
+            .options(selectinload(UniversalStorage.translations))
+            .where(UniversalStorage.universal_storage_id == universal_storage_id)
+        )
+        storage = result_db.scalar_one_or_none()
+
+        return UniversalStoragePydantic.from_orm_model(storage, language) if storage else None
 
 
 async def get_product_universal_by_category_id(

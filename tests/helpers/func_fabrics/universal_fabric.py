@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from src.services.redis.filling import filling_all_keys_category
 from tests.helpers.func_fabrics.category_fabric import create_category_factory
 from tests.helpers.func_fabrics.other_fabric import create_new_user_fabric
 from src.services.database.categories.models.product_universal import UniversalMediaType, UniversalStorage, \
@@ -136,6 +137,7 @@ async def create_product_universal_factory(
     if filling_redis:
         await filling_product_universal_by_category()
         await filling_universal_by_product_id(full.product_universal_id)
+        await filling_all_keys_category(full.category_id)
 
     return small, full
 

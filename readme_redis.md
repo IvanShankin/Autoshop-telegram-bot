@@ -129,6 +129,7 @@
     "ui_image_key": "str",
     "parent_id": "int",
     
+    "language": "str",
     "name": "str",
     "description": "str",
     "index": "int",
@@ -149,7 +150,7 @@
     "price": "int",
     "cost_price": "int",
     
-    "products_count": "int"
+    "quantity_product": "int"
   }
 ]
 ```
@@ -166,6 +167,7 @@
     "ui_image_key": "str",
     "parent_id": "int",
     
+    "language": "str",
     "name": "str",
     "description": "str",
     "index": "int",
@@ -186,7 +188,7 @@
     "price": "int",
     "cost_price": "int",
     
-    "products_count": "int"
+    "quantity_product": "int"
   }
 ]
 ```
@@ -202,6 +204,7 @@
     "ui_image_key": "str",
     "parent_id": "int",
     
+    "language": "str",
     "name": "str",
     "description": "str",
     "index": "int",
@@ -222,7 +225,7 @@
     "price": "int",
     "cost_price": "int",
     
-    "products_count": "int"
+    "quantity_product": "int"
 }
 ```
 **TTL:** навсегда

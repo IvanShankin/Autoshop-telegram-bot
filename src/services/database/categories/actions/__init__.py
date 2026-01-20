@@ -15,6 +15,8 @@ from src.services.database.categories.actions.products.accounts.actions_get impo
     get_types_account_service_where_the_user_purchase
 from src.services.database.categories.actions.products.accounts.actions_update import update_account_storage, \
     update_tg_account_media
+from src.services.database.categories.actions.products.universal.action_delete import delete_prod_universal, \
+    delete_sold_universal
 from src.services.database.categories.actions.products.universal.action_update import update_universal_storage
 from src.services.database.categories.actions.products.universal.actions_add import add_translate_in_universal_storage, \
     add_product_universal, add_universal_storage, add_sold_universal
@@ -42,6 +44,9 @@ __all__ = [
     'delete_category',
     'delete_product_account',
     'delete_sold_account',
+
+    "delete_prod_universal",
+    "delete_sold_universal",
 
     'update_category',
     'update_category_translation',

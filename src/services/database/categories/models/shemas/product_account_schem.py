@@ -37,6 +37,7 @@ class CategoryFull(BaseModel):
     ui_image_key: str
     parent_id: Optional[int]
 
+    language: str
     name: str
     description: Optional[str]
 
@@ -76,8 +77,11 @@ class CategoryFull(BaseModel):
             show=category.show,
             number_buttons_in_row=category.number_buttons_in_row,
             is_main=category.is_main,
+
+            language=lang,
             name=category.get_name(lang, fallback),
             description=category.get_description(lang, fallback),
+
             is_product_storage=category.is_product_storage,
             allow_multiple_purchase=category.allow_multiple_purchase,
 

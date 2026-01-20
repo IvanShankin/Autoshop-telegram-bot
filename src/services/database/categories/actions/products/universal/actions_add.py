@@ -12,6 +12,7 @@ from src.services.database.categories.models.product_universal import UniversalM
 from src.services.database.categories.models.shemas.product_universal_schem import UniversalStoragePydantic
 from src.services.database.core import get_db
 from src.services.database.users.actions import get_user
+from src.services.redis.filling import filling_all_keys_category
 from src.services.redis.filling.filling_universal import filling_sold_universal_by_owner_id, \
     filling_sold_universal_by_universal_id, filling_product_universal_by_category, filling_universal_by_product_id
 
@@ -187,6 +188,7 @@ async def add_product_universal(
 
     await filling_universal_by_product_id(new_product.product_universal_id)
     await filling_product_universal_by_category()
+    await filling_all_keys_category(category_id)
 
 
 async def add_sold_universal(

@@ -15,6 +15,7 @@ from src.services.database.categories.actions.products.accounts.actions_get impo
     get_types_account_service_where_the_user_purchase
 from src.services.database.categories.actions.products.accounts.actions_update import update_account_storage, \
     update_tg_account_media
+from src.services.database.categories.actions.products.universal.action_update import update_universal_storage
 from src.services.database.categories.actions.products.universal.actions_add import add_translate_in_universal_storage, \
     add_product_universal, add_universal_storage, add_sold_universal
 from src.services.database.categories.actions.products.universal.actions_get import \
@@ -46,6 +47,8 @@ __all__ = [
     'update_category_translation',
     'update_account_storage',
     'update_tg_account_media',
+
+    'update_universal_storage',
 
     'get_categories_by_category_id',
     'get_quantity_products_in_category',

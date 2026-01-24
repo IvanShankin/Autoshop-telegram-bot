@@ -47,7 +47,7 @@ class PurchaseAccountSchema(BaseModel):
 
 class ResultCheckCategory(BaseModel):
     category: CategoryFull
-    category_translations: List[CategoryTranslation]
+    translations_category: List[CategoryTranslation]
     final_total: int     # конечная сумма которую должен заплатить пользователь
     user_balance_before: int
 

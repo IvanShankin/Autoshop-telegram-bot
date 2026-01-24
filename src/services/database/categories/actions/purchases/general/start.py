@@ -52,7 +52,7 @@ async def check_category_and_money(
 
     return ResultCheckCategory(
         category=category,
-        category_translations=translations_category,
+        translations_category=translations_category,
         final_total=final_total,
         user_balance_before=user_balance_before
     )

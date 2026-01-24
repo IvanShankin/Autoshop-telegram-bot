@@ -9,7 +9,6 @@ from opentele.api import UseCurrentSession
 from opentele.td import TDesktop
 from telethon.tl.types import Message, User
 
-from src.config import get_config
 from src.services.database.categories.models import AccountStorage
 from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.filesystem.account_actions import decryption_tg_account

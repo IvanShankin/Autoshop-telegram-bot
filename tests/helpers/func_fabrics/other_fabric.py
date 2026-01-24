@@ -6,6 +6,7 @@ import orjson
 from sqlalchemy import select
 
 from src.services.database.admins.models import Admins, SentMasMessages, MessageForSending
+from src.services.database.categories.models import PurchaseRequests
 from src.services.database.core.database import get_db
 from src.services.database.discounts.models import Vouchers, PromoCodes, ActivatedPromoCodes
 from src.services.database.referrals.models import Referrals, IncomeFromReferrals
@@ -14,6 +15,7 @@ from src.services.database.system.models import TypePayments
 from src.services.database.system.models import UiImages, BackupLogs
 from src.services.database.users.models import Users, Replenishments, NotificationSettings, WalletTransaction, \
     TransferMoneys
+from src.services.database.users.models.models_users import BalanceHolder
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling import filling_all_types_payments, \
     filling_types_payments_by_id
@@ -453,3 +455,56 @@ async def create_backup_log_fabric(
         await session_db.refresh(log)
 
     return log
+
+
+async def create_purchase_request_fabric(
+    user_id: int = None,
+    promo_code_id: int = None,
+    quantity: int = 1,
+    total_amount: int = 100,
+    status: str = 'processing',
+):
+    if user_id is None:
+        user = await create_new_user_fabric()
+        user_id = user.user_id
+
+    async with get_db() as session_db:
+        new_request = PurchaseRequests(
+            user_id=user_id,
+            promo_code_id=promo_code_id,
+            quantity=quantity,
+            total_amount=total_amount,
+            status=status
+        )
+        session_db.add(new_request)
+        await session_db.commit()
+        await session_db.refresh(new_request)
+
+    return new_request
+
+
+async def create_balance_holder_factory(
+    purchase_request_id: int = None,
+    user_id: int = None,
+    amount: int = 100,
+    status: str = 'held',
+):
+    if user_id is None:
+        user = await create_new_user_fabric()
+        user_id = user.user_id
+
+    if purchase_request_id is None:
+        purchase_request = await create_purchase_request_fabric(user_id=user_id)
+        purchase_request_id = purchase_request.purchase_request_id
+
+    async with get_db() as session_db:
+        balance_holder = BalanceHolder(
+            purchase_request_id=purchase_request_id,
+            user_id=user_id,
+            amount=amount,
+            status=status,
+        )
+        session_db.add(balance_holder)
+        await session_db.commit()
+        await session_db.refresh(balance_holder)
+

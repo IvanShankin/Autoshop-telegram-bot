@@ -53,7 +53,12 @@ async def purchase_accounts(
     :except NotEnoughAccounts: Если у категории недостаточно аккаунтов
     """
     result = False
-    data = await start_purchase_account(user_id, category_id, quantity_accounts, promo_code_id)
+    data = await start_purchase_account(
+        user_id=user_id,
+        promo_code_id=promo_code_id,
+        quantity_products=quantity_accounts,
+        category_id=category_id
+    )
     valid_list = await verify_reserved_accounts(data.product_accounts, data.type_service_account, data.purchase_request_id)
     if valid_list is False:
         await cancel_purchase_request_accounts(
@@ -93,7 +98,13 @@ async def purchase_universal(
     promo_code_id: Optional[int] = None,
 ) -> bool:
     result = False
-    data = await start_purchase_universal(user_id, category_id, quantity_products, promo_code_id, language)
+    data = await start_purchase_universal(
+        user_id=user_id,
+        category_id=category_id,
+        quantity_products=quantity_products,
+        promo_code_id=promo_code_id,
+        language=language
+    )
 
     if isinstance(data, StartPurchaseUniversal):
         full_products = await verify_reserved_universal_different(data.full_reserved_products, data.purchase_request_id)

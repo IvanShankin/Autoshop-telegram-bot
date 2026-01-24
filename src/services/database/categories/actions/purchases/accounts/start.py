@@ -60,7 +60,7 @@ async def _set_reserved_accounts(
 
 async def start_purchase_account(
     user_id: int,
-    promo_code_id: int,
+    promo_code_id: int | None,
     quantity_products: int,
     category_id: int,
 ) -> StartPurchaseAccount:

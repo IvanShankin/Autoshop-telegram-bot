@@ -4,7 +4,7 @@ import tempfile
 from typing import AsyncGenerator
 
 from src.config import get_config
-from src.services.accounts.utils.helper_upload import get_account_storage_by_category_id
+from src.services.products.accounts.utils.helper_upload import get_account_storage_by_category_id
 from src.services.filesystem.account_actions import decryption_tg_account
 from src.services.filesystem.actions import get_dir_size, make_archive
 from src.services.secrets import get_crypto_context

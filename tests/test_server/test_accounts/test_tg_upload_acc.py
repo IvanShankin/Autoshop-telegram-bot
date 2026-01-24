@@ -5,7 +5,7 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_upload_tg_account_chunks(monkeypatch, create_product_account, tmp_path):
-    from src.services.accounts.tg.upload_account import upload_tg_account
+    from src.services.products.accounts.tg import upload_tg_account
 
     # создаём реальные аккаунты через фикстуру
     accounts = []
@@ -20,7 +20,7 @@ async def test_upload_tg_account_chunks(monkeypatch, create_product_account, tmp
     def fake_get_dir_size(path: str):
         return 20 * 1024 * 1024 # 20 мб
 
-    from src.services.accounts.tg import upload_account as modul
+    from src.services.products.accounts.tg import upload_account as modul
     monkeypatch.setattr(modul, "get_account_storage_by_category_id",fake_get_storage)
     monkeypatch.setattr(modul, "get_dir_size",fake_get_dir_size)
 

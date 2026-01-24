@@ -10,6 +10,10 @@ class NotEnoughAccounts(Exception):
     """Если пользователь пытается приобрести аккаунтов больше чем имеется"""
     pass
 
+class NotEnoughProducts(Exception):
+    """Если пользователь пытается приобрести универсальные товары больше чем имеется"""
+    pass
+
 class NotEnoughMoney(Exception):
     """Если у пользователя недостаточно средств"""
     def __init__(self, message, need_money: int):

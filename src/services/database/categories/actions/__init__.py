@@ -1,4 +1,4 @@
-from src.services.database.categories.actions.action_purchase_account import purchase_accounts
+from src.services.database.categories.actions.purchases.main_purchase import purchase_accounts
 from src.services.database.categories.actions.actions_add import add_translation_in_category, add_category
 from src.services.database.categories.actions.actions_delete import delete_category, delete_translate_category
 from src.services.database.categories.actions.actions_get import get_categories_by_category_id, \
@@ -25,7 +25,7 @@ from src.services.database.categories.actions.products.universal.actions_get imp
     get_sold_universal_by_page, get_count_sold_universal, get_sold_universal_by_universal_id
 
 __all__ = [
-    "purchase_accounts",
+    "purchase",
 
     'add_translation_in_category',
     'add_category',

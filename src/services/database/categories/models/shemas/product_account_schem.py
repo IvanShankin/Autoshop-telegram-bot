@@ -1,35 +1,11 @@
-from typing import List
 from typing import Optional
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict
 
 from src.services.database.categories.models import SoldAccounts, ProductAccounts
 from src.services.database.categories.models import AccountStorage, Categories, CategoryTranslation
 from src.services.database.categories.models.main_category_and_product import ProductType
 from src.services.database.categories.models.product_account import AccountServiceType
-
-
-class PurchaseAccountSchema(BaseModel):
-    ids_deleted_product_account: List[int]
-    ids_new_sold_account: List[int]
-
-
-class StartPurchaseAccount(BaseModel):
-    purchase_request_id: int
-    category_id: int
-    type_service_account: AccountServiceType
-    promo_code_id: int | None
-    product_accounts: List[ProductAccounts] # ОБЯЗАТЕЛЬНО с подгруженными AccountStorage
-    translations_category: List[CategoryTranslation]
-    original_price_one_acc: int  # Цена на момент покупки (без учёта промокода)
-    purchase_price_one_acc: int  # Цена на момент покупки (с учётом промокода)
-    cost_price_one_acc: int  # Себестоимость на момент покупки
-    total_amount: int  # цена которую заплатил пользователь
-
-    user_balance_before: int
-    user_balance_after: int
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class CategoryFull(BaseModel):
@@ -47,7 +23,7 @@ class CategoryFull(BaseModel):
 
     is_main: bool
     is_product_storage: bool
-    allow_multiple_purchase: bool
+    allow_multiple_purchase: bool # разрешена продажа одного товара много раз
 
     product_type: ProductType | None
     type_account_service: AccountServiceType | None

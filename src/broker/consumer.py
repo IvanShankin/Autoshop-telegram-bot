@@ -9,7 +9,7 @@ from src.config import get_config
 from src.services.database.discounts.events import promo_code_event_handler, voucher_event_handler
 from src.services.database.referrals.events import referral_event_handler
 from src.services.database.replenishments_event.event_handlers_replenishments import replenishment_event_handler
-from src.services.database.categories.events.even_handlers_acc import account_purchase_event_handler
+from src.services.database.categories.events.even_handlers import purchase_event_handler
 from src.utils.core_logger import get_logger
 
 # глобальные переменные для управления задачей
@@ -147,8 +147,8 @@ async def handle_event(event: dict):
             await referral_event_handler(event)
         elif event["event"].startswith("replenishment."):
             await replenishment_event_handler(event)
-        elif event["event"].startswith("account."):
-            await account_purchase_event_handler(event)
+        elif event["event"].startswith("purchase."):
+            await purchase_event_handler(event)
 
     except aiormq.exceptions.ChannelInvalidStateError as e:
         logger = get_logger(__name__)

@@ -5,10 +5,10 @@ from sqlalchemy.orm import selectinload
 
 from src.exceptions import UserNotFound, TranslationAlreadyExists
 from src.exceptions.domain import UniversalStorageNotFound, CategoryNotFound
-from src.services.database.categories.actions import get_categories_by_category_id
+from src.services.database.categories.actions.actions_get import get_categories_by_category_id
 from src.services.database.categories.actions.products.universal.actions_get import get_universal_storage
 from src.services.database.categories.models.product_universal import UniversalMediaType, UniversalStorage, \
-    UniversalStorageTranslation, ProductUniversal, SoldUniversal
+    UniversalStorageTranslation, ProductUniversal, SoldUniversal, DeletedUniversal
 from src.services.database.categories.models.shemas.product_universal_schem import UniversalStoragePydantic
 from src.services.database.core import get_db
 from src.services.database.users.actions import get_user
@@ -89,6 +89,7 @@ async def add_universal_storage(
 
     storage_uuid: str = None,
     file_path: str = None,
+    original_filename: str = None,
     encrypted_tg_file_id: str = None,
     encrypted_tg_file_id_nonce: str = None,
     checksum: str = None,
@@ -116,18 +117,19 @@ async def add_universal_storage(
     """
 
     if file_path and (
-        storage_uuid is None and
-        encrypted_tg_file_id is None and
-        encrypted_tg_file_id_nonce is None and
-        checksum is None and
-        encrypted_key is None and
+        original_filename is None or
+        storage_uuid is None or
+        encrypted_tg_file_id is None or
+        encrypted_tg_file_id_nonce is None or
+        checksum is None or
+        encrypted_key is None or
         encrypted_key_nonce is None
     ):
         raise ValueError("Не переданы все необходимые данные для шифрования")
 
     if encrypted_description and (
-        encrypted_description_nonce is None and
-        encrypted_key is None and
+        encrypted_description_nonce is None or
+        encrypted_key is None or
         encrypted_key_nonce is None
     ):
         raise ValueError(
@@ -141,6 +143,7 @@ async def add_universal_storage(
     new_storage = UniversalStorage(
         storage_uuid=storage_uuid,
         file_path=file_path,
+        original_filename=original_filename,
         encrypted_tg_file_id=encrypted_tg_file_id,
         encrypted_tg_file_id_nonce=encrypted_tg_file_id_nonce,
         checksum=checksum,
@@ -214,3 +217,17 @@ async def add_sold_universal(
 
     await filling_sold_universal_by_owner_id(owner_id)
     await filling_sold_universal_by_universal_id(new_sold.sold_universal_id)
+
+
+async def add_deleted_universal(universal_storage_id: int):
+    async with get_db() as session_db:
+        new_deleted = DeletedUniversal(
+            universal_storage_id=universal_storage_id,
+        )
+
+        session_db.add(new_deleted)
+        await session_db.commit()
+        await session_db.refresh(new_deleted)
+
+    return new_deleted
+

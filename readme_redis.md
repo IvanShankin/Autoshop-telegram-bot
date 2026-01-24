@@ -387,6 +387,7 @@
         "storage_uuid": "str",
         
         "file_path": "str | None",
+        "original_filename": "str | None",
         "encrypted_tg_file_id": "str | None",
         "encrypted_tg_file_id_nonce": "str | None",
         "checksum": "str",
@@ -396,6 +397,7 @@
         "key_version": "int",
         "encryption_algo": "str",
         
+        "status": "UniversalStorageStatus",
         "media_type": "UniversalMediaType",
         "name": "str",
         "encrypted_description": "str | None",
@@ -446,6 +448,7 @@
         "storage_uuid": "str",
         
         "file_path": "str | None",
+        "original_filename": "str | None",
         "encrypted_tg_file_id": "str | None",
         "encrypted_tg_file_id_nonce": "str | None",
         "checksum": "str",
@@ -455,6 +458,7 @@
         "key_version": "int",
         "encryption_algo": "str",
         
+        "status": "UniversalStorageStatus",
         "media_type": "UniversalMediaType",
         "name": "str",
         "encrypted_description": "str | None",

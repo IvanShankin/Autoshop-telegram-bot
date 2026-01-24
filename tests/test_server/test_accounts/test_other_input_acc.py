@@ -1,7 +1,7 @@
 import io
 import pytest
 
-from src.services.accounts.other.shemas import AccountImportData
+from src.services.products.accounts.other.shemas import AccountImportData
 from src.services.database.categories.models.product_account import AccountServiceType
 
 # Если вы используете pytest-asyncio, включите эту метку
@@ -17,7 +17,7 @@ async def test_split_unique_and_duplicates_in_memory_and_db_duplicates(
     - дубликаты в пределах CSV (same phone twice) должны попасть в `duplicate_items`
     - если телефон уже есть в БД — он попадёт в дубликаты, т.к. get_unique_among_db проверит DB
     """
-    from src.services.accounts.other.input_account import split_unique_and_duplicates
+    from src.services.products.accounts import split_unique_and_duplicates
 
     category = await create_category(type_account_service=AccountServiceType.TELEGRAM)
 
@@ -62,7 +62,7 @@ async def test_input_other_account_full_flow_create_and_return_reports(
         total_processed == общее количество строк в CSV
         duplicates_csv_bytes != None
     """
-    from src.services.accounts.other.input_account import input_other_account
+    from src.services.products.accounts import input_other_account
     from src.services.filesystem.input_account import make_csv_bytes
 
     category = await create_category(type_account_service=AccountServiceType.TELEGRAM, is_product_storage=True)

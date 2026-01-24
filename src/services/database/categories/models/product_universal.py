@@ -8,6 +8,13 @@ from sqlalchemy.orm import relationship
 from src.services.database.core.database import Base
 
 
+class UniversalStorageStatus(enum.Enum):
+    FOR_SALE = "for_sale"
+    RESERVED = "reserved"
+    BOUGHT = "bought"
+    DELETED = "deleted"
+
+
 class UniversalMediaType(enum.Enum):
     IMAGE = "image"
     VIDEO = "video"
@@ -39,6 +46,7 @@ class UniversalStorage(Base):
 
     # локальное хранение
     file_path = Column(Text, nullable=True)
+    original_filename = Column(Text, nullable=True) # с расширением
 
     # Telegram CDN
     encrypted_tg_file_id = Column(Text, nullable=True)
@@ -53,6 +61,14 @@ class UniversalStorage(Base):
     key_version = Column(Integer, nullable=False, server_default=text("1"))
     encryption_algo = Column(String(32), nullable=False, server_default=text("'AES-GCM-256'"))
 
+    status = Column(
+        Enum(
+            UniversalStorageStatus,
+            values_callable=lambda x: [e.value for e in x],
+            name="universal_storage_type"
+        ),
+        nullable=False
+    )
     media_type = Column(
         Enum(
             UniversalMediaType,
@@ -66,7 +82,9 @@ class UniversalStorage(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     sold_universal = relationship("SoldUniversal", back_populates="storage")
+    purchase_request_universal = relationship("PurchaseRequestUniversal", back_populates="storage")
     product = relationship("ProductUniversal", back_populates="storage")
+    deleted = relationship("DeletedUniversal", back_populates="storage")
     translations = relationship("UniversalStorageTranslation", back_populates="storage")
 
 
@@ -129,10 +147,36 @@ class SoldUniversal(Base):
 
     sold_universal_id = Column(Integer, primary_key=True, autoincrement=True)
     owner_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
-
     universal_storage_id = Column(ForeignKey("universal_storage.universal_storage_id"), nullable=False)
 
     sold_at = Column(DateTime(timezone=True), server_default=func.now())
 
     storage = relationship("UniversalStorage", back_populates="sold_universal")
     user = relationship("Users", back_populates="sold_universal")
+
+
+class DeletedUniversal(Base):
+    """
+    Универсальные товары, которые удалены либо пользователем, либо серверной частью по причине их не валидности
+    """
+    __tablename__ = "deleted_universal"
+
+    deleted_universal_id = Column(Integer, primary_key=True, autoincrement=True)
+    universal_storage_id = Column(Integer, ForeignKey("universal_storage.universal_storage_id", ondelete="CASCADE"), nullable=False)
+
+    create_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    storage = relationship("UniversalStorage", back_populates="deleted")
+
+
+class PurchaseRequestUniversal(Base):
+    __tablename__ = "purchase_request_universal"
+
+    purchase_request_universal_id = Column(Integer, primary_key=True)
+    purchase_request_id = Column(ForeignKey("purchase_requests.purchase_request_id"), nullable=False)
+    universal_storage_id = Column(ForeignKey("universal_storage.universal_storage_id", ondelete="CASCADE"), nullable=False)
+
+    purchase_request = relationship("PurchaseRequests", back_populates="purchase_request_universal")
+    storage = relationship("UniversalStorage", back_populates="purchase_request_universal")
+
+

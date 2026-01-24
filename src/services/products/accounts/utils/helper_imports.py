@@ -1,6 +1,6 @@
 from typing import List, Tuple, TypeVar
 
-from src.services.accounts.shemas import HasPhone
+from src.services.products.accounts.shemas import HasPhone
 from src.services.database.categories.actions import get_all_phone_in_account_storage
 from src.services.database.categories.models.product_account import AccountServiceType
 from src.utils.core_logger import get_logger

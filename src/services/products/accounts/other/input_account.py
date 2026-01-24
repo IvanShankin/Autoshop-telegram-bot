@@ -4,8 +4,8 @@ from typing import List, Tuple
 
 from src.bot_actions.messages import send_log
 from src.exceptions import InvalidFormatRows, CategoryNotFound, TheCategoryNotStorageAccount
-from src.services.accounts.other.shemas import AccountImportData, ImportResult, REQUIRED_HEADERS
-from src.services.accounts.utils.helper_imports import get_unique_among_db
+from src.services.products.accounts.other.shemas import AccountImportData, ImportResult, REQUIRED_HEADERS
+from src.services.products.accounts.utils.helper_imports import get_unique_among_db
 from src.services.database.categories.actions import add_account_storage, add_product_account
 from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.filesystem.input_account import make_csv_bytes

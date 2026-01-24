@@ -5,7 +5,7 @@ import shutil
 from pathlib import Path
 from typing import Optional, List, Sequence, Dict
 
-from src.services.accounts.tg.shemas import CreatedEncryptedArchive, BaseAccountProcessingResult
+from src.services.products.accounts.tg import CreatedEncryptedArchive, BaseAccountProcessingResult
 from src.services.filesystem.actions import _sync_cleanup_used_data
 from src.utils.core_logger import get_logger
 from src.services.secrets import encrypt_folder, make_account_key, sha256_file, get_crypto_context

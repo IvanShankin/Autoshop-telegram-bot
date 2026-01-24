@@ -1,16 +1,18 @@
 from src.services.database.categories.models.main_category_and_product import (
-    Categories, CategoryTranslation, Purchases
+    Categories, CategoryTranslation, Purchases, PurchaseRequests
 )
 from src.services.database.categories.models.product_account import ProductAccounts, SoldAccountsTranslation, \
     SoldAccounts, DeletedAccounts, TgAccountMedia, \
-    PurchaseRequests, PurchaseRequestAccount, AccountStorage
+    PurchaseRequestAccount, AccountStorage
 from src.services.database.categories.models.product_universal import ProductUniversal
 
 from src.services.database.categories.models.shemas.product_account_schem import (
     AccountStoragePydantic, SoldAccountFull,CategoryFull, SoldAccountSmall, ProductAccountSmall,
-    ProductAccountFull, PurchaseAccountSchema
+    ProductAccountFull
 )
 
+from src.services.database.categories.models.shemas.purshanse_schem import ResultCheckCategory, StartPurchaseAccount, \
+    PurchaseAccountSchema
 
 __all__ = [
     'Categories',
@@ -25,7 +27,6 @@ __all__ = [
     'TgAccountMedia',
     'PurchaseRequests',
     'PurchaseRequestAccount',
-    'PurchaseAccountSchema',
     'AccountStorage',
     'AccountStoragePydantic',
     'ProductAccountSmall',
@@ -33,4 +34,9 @@ __all__ = [
     'SoldAccountSmall',
     'SoldAccountFull',
     'CategoryFull',
+
+    "PurchaseAccountSchema",
+    "StartPurchaseAccount",
+    "ResultCheckCategory",
 ]
+

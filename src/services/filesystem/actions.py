@@ -200,11 +200,12 @@ def get_dir_size(path: str) -> int:
     return total
 
 
-def copy_file(src: str, dst_dir: str) -> str:
+def copy_file(src: str, dst_dir: str, file_name: str = None) -> str:
     """
     Копирует файл в указанную директорию.
     Создаёт директорию, если её нет.
     Возвращает путь к новому файлу.
+    :param file_name: Если необходимо установить имя файла. Передавать с расширением
     """
     if not os.path.isfile(src):
         raise FileNotFoundError(f"Файл не найден: {src}")
@@ -212,7 +213,7 @@ def copy_file(src: str, dst_dir: str) -> str:
     os.makedirs(dst_dir, exist_ok=True)
 
     # Имя файла сохраняем
-    filename = os.path.basename(src)
+    filename = file_name if file_name else os.path.basename(src)
     dst_path = os.path.join(dst_dir, filename)
 
     shutil.copy2(src, dst_path)

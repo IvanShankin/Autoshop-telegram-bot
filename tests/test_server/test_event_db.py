@@ -829,14 +829,14 @@ async def test_handler_new_purchase_creates_wallet_and_logs(
     clean_db
 ):
     """
-    Прямой вызов handler_new_purchase:
+    Прямой вызов handler_new_purchase_account:
     - создаётся WalletTransaction
     - создаются UserAuditLogs (по каждому account_movement)
     - обновляется redis (sold_account и sold_accounts_by_owner_id)
     - отправляются логи (проверяется fake_bot)
     """
 
-    from src.services.database.categories.events.even_handlers_acc import handler_new_purchase
+    from src.services.database.categories.events.even_handlers import handler_new_purchase_account
     # подготовка данных
     user = await create_new_user()
     # создаём sold_account в БД и перевод для языка 'ru'
@@ -845,9 +845,9 @@ async def test_handler_new_purchase_creates_wallet_and_logs(
     # параметры покупки (имитация того, что уже произошла основная транзакция и purchase_id = 777)
     account_movement = [
         AccountsData(
-            id_account_storage=sold_full.account_storage.account_storage_id,
-            id_new_sold_account=sold_full.sold_account_id,
-            id_purchase_account=777,
+            account_storage_id=sold_full.account_storage.account_storage_id,
+            new_sold_account_id=sold_full.sold_account_id,
+            purchase_id=777,
             cost_price=10,
             purchase_price=100,
             net_profit=90
@@ -861,11 +861,11 @@ async def test_handler_new_purchase_creates_wallet_and_logs(
         account_movement=account_movement,
         user_balance_before=1000,
         user_balance_after=900,
-        accounts_left=3,
+        product_left=3,
     )
 
     # вызов тестируемой функции
-    await handler_new_purchase(new_purchase)
+    await handler_new_purchase_account(new_purchase)
 
     # ---- проверки в БД ----
     async with get_db() as session_db:
@@ -889,16 +889,16 @@ async def test_handler_new_purchase_creates_wallet_and_logs(
         # проверим одну запись на соответствие деталям
         found = False
         for l in logs:
-            if l.action_type == "purchase_account" and l.details.get("id_new_sold_account") == sold_full.sold_account_id:
+            if l.action_type == "purchase_account" and l.details.get("new_sold_account_id") == sold_full.sold_account_id:
                 found = True
-                assert l.details["id_account_storage"] == sold_full.account_storage.account_storage_id
-                assert l.details["id_purchase_account"] == 777
+                assert l.details["account_storage_id"] == sold_full.account_storage.account_storage_id
+                assert l.details["purchase_id"] == 777
                 assert l.details["profit"] == 90
                 break
         assert found, "Лог покупки с нужными деталями не найден"
 
     # ---- проверка отправленных логов (send_log должен был использовать fake bot) ----
-    # формируется текст в handler_new_purchase, проверим что хотя бы кусок текста попал в сообщения
+    # формируется текст в handler_new_purchase_account, проверим что хотя бы кусок текста попал в сообщения
     expected_substring = f"Аккаунт на продаже с id (StorageAccount) = {sold_full.account_storage.account_storage_id} продан!"
     assert fake_bot.check_str_in_messages(expected_substring) or fake_bot.check_str_in_messages(expected_substring[:30])
 
@@ -911,18 +911,18 @@ async def test_account_purchase_event_handler_parses_and_calls_handler(
     clean_db
 ):
     """
-    Проверяем, что account_purchase_event_handler корректно парсит dict-ивент
-    и вызывает handler_new_purchase (через этот wrapper вставится Pydantic->handler).
+    Проверяем, что purchase_event_handler корректно парсит dict-ивент
+    и вызывает handler_new_purchase_account (через этот wrapper вставится Pydantic->handler).
     """
-    from src.services.database.categories.events.even_handlers_acc import account_purchase_event_handler
+    from src.services.database.categories.events.even_handlers import purchase_event_handler
     user = await create_new_user()
     _, sold_full = await create_sold_account(filling_redis=False, owner_id=user.user_id, language='ru')
 
     account_movement = [
         AccountsData(
-            id_account_storage=sold_full.account_storage.account_storage_id,
-            id_new_sold_account=sold_full.sold_account_id,
-            id_purchase_account=777,
+            account_storage_id=sold_full.account_storage.account_storage_id,
+            new_sold_account_id=sold_full.sold_account_id,
+            purchase_id=777,
             cost_price=10,
             purchase_price=100,
             net_profit=90
@@ -936,13 +936,13 @@ async def test_account_purchase_event_handler_parses_and_calls_handler(
         account_movement=account_movement,
         user_balance_before=1000,
         user_balance_after=900,
-        accounts_left=3,
+        product_left=3,
     ).model_dump()
 
-    event = {"event": "account.purchase", "payload": payload}
+    event = {"event": "purchase.account", "payload": payload}
 
     # вызываем через event handler (имитируем приход события из брокера)
-    await account_purchase_event_handler(event)
+    await purchase_event_handler(event)
 
     # даём немного времени на асинхронные операции (send_log / redis)
     await asyncio.sleep(0.05)

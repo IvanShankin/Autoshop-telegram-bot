@@ -195,23 +195,6 @@ class DeletedAccounts(Base):
     account_storage = relationship("AccountStorage", back_populates="deleted_account")
 
 
-class PurchaseRequests(Base):
-    __tablename__ = "purchase_requests"
-
-    purchase_request_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
-    promo_code_id = Column(Integer, ForeignKey("promo_codes.promo_code_id"), nullable=True)
-    quantity = Column(Integer, nullable=False)
-    total_amount = Column(Integer, nullable=False)
-    status = Column(Enum('processing', 'completed', 'failed', name='status_request'), server_default='processing')
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-    purchase_request_accounts = relationship("PurchaseRequestAccount", back_populates="purchase_request")
-    promo_code = relationship("PromoCodes", back_populates="purchase_requests")
-    user = relationship("Users", back_populates="purchase_requests")
-    balance_holder = relationship("BalanceHolder", back_populates="purchase_requests")
-
-
 class PurchaseRequestAccount(Base):
     __tablename__ = "purchase_request_accounts"
 

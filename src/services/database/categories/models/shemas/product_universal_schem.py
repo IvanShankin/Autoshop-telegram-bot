@@ -4,7 +4,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 from src.services.database.categories.models.product_universal import UniversalMediaType, UniversalStorage, \
-    ProductUniversal, SoldUniversal
+    ProductUniversal, SoldUniversal, UniversalStorageStatus
 
 
 class UniversalStoragePydantic(BaseModel):
@@ -12,6 +12,7 @@ class UniversalStoragePydantic(BaseModel):
     storage_uuid: str
 
     file_path: Optional[str] = None
+    original_filename: Optional[str] = None
     encrypted_tg_file_id: Optional[str] = None
     encrypted_tg_file_id_nonce: Optional[str] = None
     checksum: str
@@ -20,6 +21,7 @@ class UniversalStoragePydantic(BaseModel):
     encrypted_key_nonce: str
     key_version: int
     encryption_algo: str
+    status: UniversalStorageStatus
     media_type: UniversalMediaType
 
     name: str
@@ -50,6 +52,7 @@ class UniversalStoragePydantic(BaseModel):
             key_version=universal_storage.key_version,
             encryption_algo=universal_storage.encryption_algo,
 
+            status=universal_storage.status,
             media_type=universal_storage.media_type,
             name=universal_storage.get_name(language),
             encrypted_description=encrypted_description,

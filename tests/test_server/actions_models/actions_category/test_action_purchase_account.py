@@ -14,7 +14,7 @@ from src.exceptions import NotEnoughAccounts, NotEnoughMoney
 from src.services.database.core import get_db
 from src.services.database.categories.models import PurchaseRequests, PurchaseRequestAccount, \
     AccountStorage, ProductAccounts, SoldAccounts, Purchases
-from src.services.database.categories.models.shemas.product_account_schem import StartPurchaseAccount, ProductAccountFull
+from src.services.database.categories.models import StartPurchaseAccount, ProductAccountFull
 from src.services.database.users.models import Users
 from src.services.database.users.models.models_users import BalanceHolder
 from src.services.redis.core_redis import get_redis
@@ -22,7 +22,7 @@ from src.services.redis.core_redis import get_redis
 
 @pytest.mark.asyncio
 async def test_purchase_accounts_success(
-    replacement_pyth_account_fix,
+    replacement_pyth_product_fix,
     patch_fake_aiogram,
     replacement_fake_bot_fix,
     monkeypatch,
@@ -39,8 +39,8 @@ async def test_purchase_accounts_success(
       - AccountStorage.status -> 'bought',
       - файлы переехали в финальный путь (create_path_account(...)).
     """
-    from src.services.database.categories.actions import action_purchase_account as action_mod
-    from src.services.accounts.tg import actions
+    from src.services.database.categories.actions.purchases import main_purchase as action_mod
+    from src.services.products.accounts.tg import actions
     from src.services.filesystem.account_actions import create_path_account
 
     # подготовка: пользователь + категория + N аккаунтов
@@ -65,7 +65,7 @@ async def test_purchase_accounts_success(
     monkeypatch.setattr(action_mod, "publish_event", noop_publish)
 
     # вызов
-    result = await action_mod.purchase_accounts(user.user_id, category_id, quantity, None)
+    result = await action_mod.purchase_accounts(user.user_id, category_id, quantity,None)
     assert result == True, "В тестируемой функции что-то пошло не так"
 
     # проверяем в БД
@@ -127,7 +127,7 @@ async def test_purchase_accounts_success(
 
 @pytest.mark.asyncio
 async def test_purchase_accounts_fail_no_replacement(
-    replacement_pyth_account_fix,
+    replacement_pyth_product_fix,
     patch_fake_aiogram,
     replacement_fake_bot_fix,
     monkeypatch,
@@ -142,8 +142,8 @@ async def test_purchase_accounts_fail_no_replacement(
       - AccountStorage.status возвращён в 'for_sale'
       - баланс пользователя восстановлен
     """
-    from src.services.database.categories.actions import action_purchase_account as action_mod
-    from src.services.accounts.tg import actions
+    from src.services.database.categories.actions.purchases import main_purchase as action_mod
+    from src.services.products.accounts.tg import actions
     from src.services.filesystem.account_actions import create_path_account
 
     # подготовка: пользователь + категория + N аккаунтов
@@ -168,7 +168,7 @@ async def test_purchase_accounts_fail_no_replacement(
     monkeypatch.setattr(action_mod, "publish_event", noop_publish)
 
     # вызов
-    await action_mod.purchase_accounts(user.user_id, category_id, quantity, None)
+    await action_mod.purchase_accounts(user.user_id, category_id, quantity,None)
 
     # проверки в БД: должна быть заявка, но статус 'failed', balance holder 'released'
     async with get_db() as session:
@@ -192,7 +192,7 @@ async def test_purchase_accounts_fail_no_replacement(
 
         # баланс пользователя восстановлен (в create_new_user он уже был установлен)
         db_user = await session.get(Users, user.user_id)
-        # так как в start_purchase_request баланс уменьшался, а в cancel_purchase_request возвращается,
+        # так как в start_purchase_account баланс уменьшался, а в cancel_purchase_request_accounts возвращается,
         # итоговый баланс должен быть равен исходному (fixture user.balance)
         assert db_user.balance == user.balance
 
@@ -239,7 +239,7 @@ class TestStartPurchaseRequest:
         - AccountStorage.status -> 'reserved' для задействованных аккаунтов
         - возвращаемый StartPurchaseAccount содержит согласованные поля
         """
-        from src.services.database.categories.actions.action_purchase_account import start_purchase_request
+        from src.services.database.categories.actions.purchases.main_purchase import start_purchase_account
         # подготовка
         user = await create_new_user(balance=10_000)
         full_category = await create_category(price=100)
@@ -259,7 +259,7 @@ class TestStartPurchaseRequest:
             balance_before = db_user.balance
 
         # вызов тестируемой функции
-        result = await start_purchase_request(
+        result = await start_purchase_account(
             user_id=user.user_id,
             category_id=category_id,
             quantity_accounts=quantity,
@@ -337,12 +337,12 @@ class TestStartPurchaseRequest:
         create_promo_code,
     ):
         """
-        Проверяет корректную работу функции start_purchase_request с применением промокода:
+        Проверяет корректную работу функции start_purchase_account с применением промокода:
         - скидка применяется (total_amount уменьшен)
         - создаётся PurchaseRequests с промокодом
         - баланс списывается с учётом скидки
         """
-        from src.services.database.categories.actions.action_purchase_account import start_purchase_request
+        from src.services.database.categories.actions.purchases.main_purchase import start_purchase_account
 
         # подготовка данных
         user = await create_new_user(balance=10_000)
@@ -358,7 +358,7 @@ class TestStartPurchaseRequest:
             balance_before = db_user.balance
 
         # вызов тестируемой функции
-        result = await start_purchase_request(
+        result = await start_purchase_account(
             user_id=user.user_id,
             category_id=category.category_id,
             quantity_accounts=quantity,
@@ -392,7 +392,7 @@ class TestStartPurchaseRequest:
         """
         Если в категории меньше аккаунтов, чем требуется — возникает NotEnoughAccounts.
         """
-        from src.services.database.categories.actions.action_purchase_account import start_purchase_request
+        from src.services.database.categories.actions.purchases.main_purchase import start_purchase_account
         user = await create_new_user(balance=10000)
         full_category = await create_category()
         category_id = full_category.category_id
@@ -400,7 +400,7 @@ class TestStartPurchaseRequest:
         # создаём только 1 аккаунт, а запросим 5
         await create_product_account(category_id=category_id)
         with pytest.raises(NotEnoughAccounts):
-            await start_purchase_request(
+            await start_purchase_account(
                 user_id=user.user_id,
                 category_id=category_id,
                 quantity_accounts=5,
@@ -420,7 +420,7 @@ class TestStartPurchaseRequest:
         """
         Если у пользователя не хватает денег — возникает NotEnoughMoney.
         """
-        from src.services.database.categories.actions.action_purchase_account import start_purchase_request
+        from src.services.database.categories.actions.purchases.main_purchase import start_purchase_account
         user = await create_new_user(balance=10)  # маленький баланс
         full_category = await create_category(price=1000)
         category_id = full_category.category_id
@@ -429,7 +429,7 @@ class TestStartPurchaseRequest:
         await create_product_account(category_id=category_id)
 
         with pytest.raises(NotEnoughMoney):
-            await start_purchase_request(
+            await start_purchase_account(
                 user_id=user.user_id,
                 category_id=category_id,
                 quantity_accounts=1,
@@ -438,7 +438,7 @@ class TestStartPurchaseRequest:
 
 @pytest.mark.asyncio
 async def test__check_account_validity_async_success(
-    replacement_pyth_account_fix,
+    replacement_pyth_product_fix,
     patch_fake_aiogram,
     create_product_account,
     create_category,
@@ -450,8 +450,8 @@ async def test__check_account_validity_async_success(
     - вызвать check_valid_accounts_telethon (мокаем) и вернуть True,
     - вызвать shutil.rmtree в finally (мокаем).
     """
-    from src.services.database.categories.actions import action_purchase_account as action_mod
-    from src.services.accounts.tg import actions
+    from src.services.database.categories.actions.purchases import main_purchase as action_mod
+    from src.services.products.accounts.tg import actions
 
     # создаём тестовую категорию и продукт (этот шаг даёт нам AccountStorage)
     cat = await create_category()
@@ -520,7 +520,7 @@ class TestVerifyReservedAccounts:
         Интеграционный: verify_reserved_accounts возвращает список тех же ProductAccounts,
         если все слоты валидны.
         """
-        from src.services.database.categories.actions import action_purchase_account as action_mod
+        from src.services.database.categories.actions.purchases import main_purchase as action_mod
         # Подготовка: пользователь + purchase_request в БД
         user = await create_new_user()
         cat = await create_category()
@@ -572,7 +572,7 @@ class TestVerifyReservedAccounts:
         - bad slot помечается удалённым (через вызовы update_account_storage/delete_product_account)
         - найден valid candidate, который возвращается в списке
         """
-        from src.services.database.categories.actions import action_purchase_account as action_mod
+        from src.services.database.categories.actions.purchases import main_purchase as action_mod
         user = await create_new_user()
         category = await create_category()
 
@@ -624,7 +624,7 @@ class TestVerifyReservedAccounts:
         Ожидаем: verify_reserved_accounts возвращает пустой список,
         AccountStorage у невалидных аккаунтов помечен как 'deleted'.
         """
-        from src.services.database.categories.actions import action_purchase_account as action_mod
+        from src.services.database.categories.actions.purchases import main_purchase as action_mod
 
         user = await create_new_user()
         cat = await create_category()
@@ -680,7 +680,7 @@ class TestVerifyReservedAccounts:
         Сценарий: часть аккаунтов невалидны, и нет замены.
         Ожидаем: Возвращается False т.к. пользователю не найдённо необходимое количество.
         """
-        from src.services.database.categories.actions import action_purchase_account as action_mod
+        from src.services.database.categories.actions.purchases import main_purchase as action_mod
 
         user = await create_new_user()
         cat = await create_category()
@@ -733,7 +733,7 @@ class TestVerifyReservedAccounts:
         Сценарий: Пользователю необходим 1 аккаунт. есть 3 невалидных аккаунта и только 1 кандидат.
         Ожидаем: возвращается 1 аккаунт (замена), остальные невалидные удалены.
         """
-        from src.services.database.categories.actions import action_purchase_account as action_mod
+        from src.services.database.categories.actions.purchases import main_purchase as action_mod
 
         user = await create_new_user()
         cat = await create_category()
@@ -802,7 +802,7 @@ class TestVerifyReservedAccounts:
         В БД есть 3 валидных кандидата.
         Ожидаем: Возьмёт с БД один аккаунт.
         """
-        from src.services.database.categories.actions import action_purchase_account as action_mod
+        from src.services.database.categories.actions.purchases import main_purchase as action_mod
 
         user = await create_new_user()
         cat = await create_category()
@@ -898,7 +898,7 @@ class TestCancelPurchase:
         - AccountStorage.status -> 'for_sale';
         - ProductAccounts строки восстановлены (если их удалить заранее).
         """
-        from src.services.database.categories.actions import action_purchase_account as action_mod
+        from src.services.database.categories.actions.purchases import main_purchase as action_mod
 
         # подготовка: пользователь
         user = await create_new_user(balance=100)
@@ -941,16 +941,16 @@ class TestCancelPurchase:
             product_accounts=[prod],  # с загруженным account_storage
             type_service_account=AccountServiceType.TELEGRAM,
             translations_category=[],
-            original_price_one_acc=100,
-            purchase_price_one_acc=50,
-            cost_price_one_acc=10,
+            original_price_one=100,
+            purchase_price_one=50,
+            cost_price_one=10,
             total_amount=50,
             user_balance_before=user.balance,
             user_balance_after=user.balance + 50
         )
 
         # Вызов
-        await action_mod.cancel_purchase_request(
+        await action_mod.cancel_purchase_request_accounts(
             user_id=user.user_id,
             mapping=mapping,
             sold_account_ids=[],
@@ -1008,7 +1008,7 @@ class TestCancelPurchase:
         - SoldAccounts и Purchases удаляются при передаче sold_account_ids
         - остальные восстановительные операции тоже выполняются
         """
-        from src.services.database.categories.actions import action_purchase_account as action_mod
+        from src.services.database.categories.actions.purchases import main_purchase as action_mod
 
         user = await create_new_user(balance=200)
         cat = await create_category()
@@ -1057,16 +1057,16 @@ class TestCancelPurchase:
             product_accounts=[prod],
             type_service_account=AccountServiceType.TELEGRAM,
             translations_category=[],
-            original_price_one_acc=100,
-            purchase_price_one_acc=30,
-            cost_price_one_acc=10,
+            original_price_one=100,
+            purchase_price_one=30,
+            cost_price_one=10,
             total_amount=30,
             user_balance_before=user.balance,
             user_balance_after=user.balance + 30
         )
 
         # вызов с sold_account_ids
-        await action_mod.cancel_purchase_request(
+        await action_mod.cancel_purchase_request_accounts(
             user_id=user.user_id,
             mapping=mapping,
             sold_account_ids=[sold.sold_account_id],
@@ -1123,9 +1123,9 @@ class TestFinalizePurchase:
         - созданы SoldAccounts и Purchases,
         - AccountStorage.status == 'bought',
         - PurchaseRequests.status == 'completed', BalanceHolder.status == 'used',
-        - publish_event вызван как для промокода, так и для account.purchase.
+        - publish_event вызван как для промокода, так и для purchase.account.
         """
-        from src.services.database.categories.actions import action_purchase_account as action_mod
+        from src.services.database.categories.actions.purchases import main_purchase as action_mod
 
         # подготовка: пользователь, категория, продукт
         user = await create_new_user(balance=1000)
@@ -1178,9 +1178,9 @@ class TestFinalizePurchase:
             product_accounts=[prod],
             type_service_account=AccountServiceType.TELEGRAM,
             translations_category=[],
-            original_price_one_acc=100,
-            purchase_price_one_acc=50,
-            cost_price_one_acc=10,
+            original_price_one=100,
+            purchase_price_one=50,
+            cost_price_one=10,
             total_amount=50,
             user_balance_before=user.balance,
             user_balance_after=user.balance - 50,
@@ -1215,10 +1215,10 @@ class TestFinalizePurchase:
             db_bh = qb.scalars().first()
             assert db_bh.status == "used"
 
-        # publish_event должен был вызваться хотя бы дважды (promo activation + account.purchase)
+        # publish_event должен был вызваться хотя бы дважды (promo activation + purchase.account)
         topics = [t for t, p in publish_calls]
         assert any("promo_code.activated" == t for t in topics)
-        assert any("account.purchase" == t for t in topics)
+        assert any("purchase.account" == t for t in topics)
 
 
     @pytest.mark.asyncio
@@ -1231,10 +1231,10 @@ class TestFinalizePurchase:
         monkeypatch,
     ):
         """
-        Если move_file вернул False — должен вызвать send_log и cancel_purchase_request, и не создать SoldAccounts.
-        Здесь мы мокируем cancel_purchase_request, чтобы проверить только факт вызова.
+        Если move_file вернул False — должен вызвать send_log и cancel_purchase_request_accounts, и не создать SoldAccounts.
+        Здесь мы мокируем cancel_purchase_request_accounts, чтобы проверить только факт вызова.
         """
-        from src.services.database.categories.actions import action_purchase_account as action_mod
+        from src.services.database.categories.actions.purchases import main_purchase as action_mod
 
         user = await create_new_user()
         cat = await create_category()
@@ -1260,7 +1260,7 @@ class TestFinalizePurchase:
             called["logged"] = True
 
         monkeypatch.setattr(action_mod, "move_file", fake_move_file)
-        monkeypatch.setattr(action_mod, "cancel_purchase_request", fake_cancel)
+        monkeypatch.setattr(action_mod, "cancel_purchase_request_accounts", fake_cancel)
         monkeypatch.setattr(action_mod, "send_log", fake_send_log)
 
         # заглушки для rename/fill/publish
@@ -1274,9 +1274,9 @@ class TestFinalizePurchase:
             product_accounts=[prod],
             type_service_account=AccountServiceType.TELEGRAM,
             translations_category=[],
-            original_price_one_acc=100,
-            purchase_price_one_acc=50,
-            cost_price_one_acc=10,
+            original_price_one=100,
+            purchase_price_one=50,
+            cost_price_one=10,
             total_amount=50,
             user_balance_before=user.balance,
             user_balance_after=user.balance,
@@ -1304,11 +1304,11 @@ class TestFinalizePurchase:
         monkeypatch,
     ):
         """
-        Если rename_file вернул False после успешного commit, finalize_purchase должен вызвать cancel_purchase_request.
-        Здесь позволим cancel_purchase_request выполнить реальные откаты (не мокируем).
+        Если rename_file вернул False после успешного commit, finalize_purchase должен вызвать cancel_purchase_request_accounts.
+        Здесь позволим cancel_purchase_request_accounts выполнить реальные откаты (не мокируем).
         После выполнения ожидаем, что SoldAccounts/Purchases удалены и PurchaseRequests.status == 'failed'
         """
-        from src.services.database.categories.actions import action_purchase_account as action_mod
+        from src.services.database.categories.actions.purchases import main_purchase as action_mod
 
         user = await create_new_user()
         cat = await create_category()
@@ -1346,18 +1346,18 @@ class TestFinalizePurchase:
             product_accounts=[prod],
             type_service_account=AccountServiceType.TELEGRAM,
             translations_category=[],
-            original_price_one_acc=100,
-            purchase_price_one_acc=50,
-            cost_price_one_acc=10,
+            original_price_one=100,
+            purchase_price_one=50,
+            cost_price_one=10,
             total_amount=50,
             user_balance_before=user.balance,
             user_balance_after=user.balance - 50,
         )
 
-        # Выполнение finalize — в теле rename_file вернёт False, finalize вызовет cancel_purchase_request (реальную)
+        # Выполнение finalize — в теле rename_file вернёт False, finalize вызовет cancel_purchase_request_accounts (реальную)
         await action_mod.finalize_purchase(user.user_id, data)
 
-        # После этого SoldAccounts и Purchases должны быть удалены (cancel_purchase_request делает это)
+        # После этого SoldAccounts и Purchases должны быть удалены (cancel_purchase_request_accounts делает это)
         async with get_db() as session:
             q = await session.execute(select(SoldAccounts).where(SoldAccounts.owner_id == user.user_id))
             assert q.scalars().first() is None

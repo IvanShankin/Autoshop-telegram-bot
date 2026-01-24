@@ -1,11 +1,16 @@
+import tempfile
+import uuid
+from pathlib import Path
+
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.services.redis.filling import filling_all_keys_category
+from src.services.secrets.encrypt import encrypt_file
 from tests.helpers.func_fabrics.category_fabric import create_category_factory
 from tests.helpers.func_fabrics.other_fabric import create_new_user_fabric
 from src.services.database.categories.models.product_universal import UniversalMediaType, UniversalStorage, \
-    UniversalStorageTranslation, ProductUniversal, SoldUniversal
+    UniversalStorageTranslation, ProductUniversal, SoldUniversal, UniversalStorageStatus
 from src.services.database.categories.models.shemas.product_universal_schem import UniversalStoragePydantic, \
     ProductUniversalSmall, ProductUniversalFull, SoldUniversalSmall, SoldUniversalFull
 from src.services.database.core.database import get_db
@@ -15,32 +20,69 @@ from src.services.redis.filling.filling_universal import filling_product_univers
 from src.services.secrets import encrypt_text, get_crypto_context, make_account_key
 
 
+async def _make_encrypted_universal_storage_file(
+    dek: bytes,
+    status: UniversalStorageStatus,
+    uuid: str,
+    file_path: str = None
+):
+    from src.services.products.universals.actions import create_path_universal_storage
+    if file_path is None:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=".enc") as f:
+            f.write("Данные о продукте")
+            file_path = f.name
+            f.close()
+
+    encrypt_file(
+        file_path=file_path,
+        encrypted_path=create_path_universal_storage(status, uuid, ),
+        dek=dek,
+    )
+
+    return str(Path(status.value) / Path(uuid) / Path("file.enc"))
+
+
 async def create_universal_storage_factory(
     media_type: UniversalMediaType = UniversalMediaType.DOCUMENT,
-    file_path: str = "file_path",
+    file_path: str | None = True,
     is_active: bool = True,
 
     language: str = "ru",
     name: str = "Universal product name",
     description: str = "Universal product description",
 
-    encrypted_tg_file_id: str | None = None,
+    encrypted_tg_file_id: str | None = "fb3425dh12hbf34bfd5dh7sjg5f",
     encrypted_tg_file_id_nonce: str | None = None,
 
     checksum: str = "checksum",
 
     key_version: int = 1,
     encryption_algo: str = "AES-GCM-256",
+    status: UniversalStorageStatus = UniversalStorageStatus.FOR_SALE,
 ) -> tuple[UniversalStorage, UniversalStoragePydantic]:
 
     crypto = get_crypto_context()
-    encrypted_key_b64, account_key, encrypted_key_nonce = make_account_key(crypto.kek)
+    encrypted_key_b64, key, encrypted_key_nonce = make_account_key(crypto.kek)
 
-    encrypted_description, encrypted_description_nonce, _ = encrypt_text(description, account_key)
+    encrypted_description, encrypted_description_nonce, _ = encrypt_text(description, key)
+
+    storage_uuid = str(uuid.uuid4())
+
+    if encrypted_tg_file_id:
+        encrypted_tg_file_id, encrypted_tg_file_id_nonce_new, _ = encrypt_text(encrypted_tg_file_id, key)
+
+        if encrypted_tg_file_id_nonce is None:
+            encrypted_tg_file_id_nonce = encrypted_tg_file_id_nonce_new
+
+
+    if file_path is True:
+        file_path = await _make_encrypted_universal_storage_file(dek=key, status=status, uuid=storage_uuid)
+
 
     async with get_db() as session_db:
 
         new_storage = UniversalStorage(
+            storage_uuid=storage_uuid,
             file_path=file_path,
             encrypted_tg_file_id=encrypted_tg_file_id,
             encrypted_tg_file_id_nonce=encrypted_tg_file_id_nonce,
@@ -51,6 +93,7 @@ async def create_universal_storage_factory(
             encrypted_key_nonce=encrypted_key_nonce,
             key_version=key_version,
             encryption_algo=encryption_algo,
+            status=status,
 
             media_type=media_type,
             is_active=is_active,
@@ -95,6 +138,8 @@ async def create_universal_storage_factory(
 async def create_product_universal_factory(
     filling_redis: bool = True,
     universal_storage_id: int | None = None,
+    encrypted_tg_file_id_nonce: str = None,
+    status: UniversalStorageStatus = UniversalStorageStatus.FOR_SALE,
     category_id: int | None = None,
     language: str = "ru",
 ) -> tuple[ProductUniversalSmall, ProductUniversalFull]:
@@ -102,7 +147,11 @@ async def create_product_universal_factory(
     async with get_db() as session_db:
 
         if universal_storage_id is None:
-            storage, _ = await create_universal_storage_factory(language=language)
+            storage, _ = await create_universal_storage_factory(
+                language=language,
+                encrypted_tg_file_id_nonce= encrypted_tg_file_id_nonce if encrypted_tg_file_id_nonce else None,
+                status=status
+            )
             universal_storage_id = storage.universal_storage_id
 
         if category_id is None:

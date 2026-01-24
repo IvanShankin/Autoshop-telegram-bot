@@ -153,7 +153,7 @@ class TestBuyAccount:
             return True
 
         from src.modules.categories.services import buy_in_category
-        monkeypatch.setattr(buy_in_category, "purchase_accounts", fake_purchase_accounts)
+        monkeypatch.setattr(buy_in_category, "purchase", fake_purchase_accounts)
 
         cb = FakeCallbackQuery(data=f"buy_in_category:{category.category_id}:1:None",
                                chat_id=user.user_id, username=user.username)
@@ -196,7 +196,7 @@ class TestBuyAccount:
             return False
 
         from src.modules.categories.services import buy_in_category
-        monkeypatch.setattr(buy_in_category, "purchase_accounts", fake_purchase_accounts)
+        monkeypatch.setattr(buy_in_category, "purchase", fake_purchase_accounts)
 
         cb = FakeCallbackQuery(data=f"buy_in_category:{category.category_id}:1:None",
                                chat_id=user.user_id, username=user.username)

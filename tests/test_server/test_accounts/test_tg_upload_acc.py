@@ -5,7 +5,7 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_upload_tg_account_chunks(monkeypatch, create_product_account, tmp_path):
-    from src.services.products.accounts.tg import upload_tg_account
+    from src.services.products.accounts.tg.upload_account import upload_tg_account
 
     # создаём реальные аккаунты через фикстуру
     accounts = []

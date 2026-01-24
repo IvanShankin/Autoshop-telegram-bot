@@ -18,8 +18,8 @@ from src.modules.admin_actions.services import safe_get_category, service_not_fo
 from src.modules.admin_actions.services import message_info_load_file, make_result_msg
 from src.modules.admin_actions.services import check_valid_file, check_category_is_acc_storage
 from src.modules.admin_actions.state import ImportTgAccounts, ImportOtherAccounts
-from src.services.products.accounts import input_other_account
-from src.services.products.accounts.tg import import_telegram_accounts_from_archive
+from src.services.products.accounts.other.input_account import input_other_account
+from src.services.products.accounts.tg.input_account import import_telegram_accounts_from_archive
 from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.database.users.models import Users
 from src.utils.core_logger import get_logger

@@ -1,6 +1,7 @@
 from typing import Optional
 
 from src.bot_actions.messages import send_log
+from src.exceptions.business import InvalidQuantityProducts
 from src.services.database.categories.actions.purchases.accounts.cancel import cancel_purchase_request_accounts
 from src.services.database.categories.actions.purchases.accounts.finalize import finalize_purchase_accounts
 from src.services.database.categories.actions.purchases.accounts.start import start_purchase_account
@@ -27,6 +28,9 @@ async def purchase(
     product_type: ProductType,
     language: str,
 ) -> bool:
+    if quantity_products <= 0:
+        raise InvalidQuantityProducts()
+
     if product_type == ProductType.ACCOUNT:
         return await purchase_accounts(user_id, category_id, quantity_products, promo_code_id)
     elif product_type == ProductType.UNIVERSAL:

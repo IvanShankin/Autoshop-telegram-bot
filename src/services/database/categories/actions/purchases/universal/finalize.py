@@ -1,4 +1,4 @@
-import shutil
+import asyncio
 import shutil
 import uuid
 from pathlib import Path
@@ -19,7 +19,7 @@ from src.services.database.categories.models import PurchaseRequests
 from src.services.database.categories.models import Purchases
 from src.services.database.categories.models.main_category_and_product import ProductType
 from src.services.database.categories.models.product_universal import UniversalStorageStatus, ProductUniversal, \
-    SoldUniversal, UniversalStorage, UniversalStorageTranslation
+    SoldUniversal, UniversalStorage, UniversalStorageTranslation, PurchaseRequestUniversal
 from src.services.database.categories.models.shemas.product_universal_schem import ProductUniversalFull, \
     UniversalStoragePydantic
 from src.services.database.categories.models.shemas.purshanse_schem import StartPurchaseUniversal, \
@@ -92,6 +92,10 @@ async def _copy_universal_storage_prepare(
         final_path = None
         if src_storage.file_path:
             # создаём целевой путь (полный), но не трогаем БД
+            src_path = create_path_universal_storage(
+                status=src_storage.status,
+                uuid=src_storage.storage_uuid,
+            )
             final_path = create_path_universal_storage(
                 status=new_status,
                 uuid=new_uuid,
@@ -99,8 +103,15 @@ async def _copy_universal_storage_prepare(
             )
             # ensure dir exists
             final_path.parent.mkdir(parents=True, exist_ok=True)
+
             # copy file (blocking or async wrapper)
-            copy_file(src=src_storage.file_path, dst_dir=str(final_path.parent), file_name=final_path.name)
+            await asyncio.to_thread(
+                copy_file,
+                src=src_path,
+                dst_dir=str(final_path.parent),
+                file_name=final_path.name
+            )
+
 
         storage = UniversalStorage(
             storage_uuid=new_uuid,
@@ -133,21 +144,21 @@ async def _copy_universal_storage_prepare(
 
 async def finalize_purchase_universal_one(user_id: int, data: StartPurchaseUniversalOne) -> bool:
     # подготовка (IO) — копируем файлы в final paths до транзакции
-    translations = await get_translations_universal_storage(data.full_product.universal_storage_id)
-
-    prepared = await _copy_universal_storage_prepare(
-        src_storage=data.full_product.universal_storage,
-        translations=translations,
-        new_status=UniversalStorageStatus.BOUGHT,
-        quantity=data.quantity_products
-    )
-
     created_storages = []
     sold_ids = []
     purchase_ids = []
     product_movement = []
 
+    translations = await get_translations_universal_storage(data.full_product.universal_storage_id)
+
     try:
+        prepared = await _copy_universal_storage_prepare(
+            src_storage=data.full_product.universal_storage,
+            translations=translations,
+            new_status=UniversalStorageStatus.BOUGHT,
+            quantity=data.quantity_products
+        )
+
         async with get_db() as session:
             async with session.begin():
                 for final_path, new_storage, translations in prepared:
@@ -162,6 +173,12 @@ async def finalize_purchase_universal_one(user_id: int, data: StartPurchaseUnive
                     # создание нового sold и purchase
                     new_sold = SoldUniversal(owner_id=user_id, universal_storage_id=new_storage.universal_storage_id)
                     session.add(new_sold)
+
+                    new_purchase_request = PurchaseRequestUniversal(
+                        purchase_request_id=data.purchase_request_id,
+                        universal_storage_id=new_storage.universal_storage_id
+                    )
+                    session.add(new_purchase_request)
 
                     new_purchase = Purchases(
                         user_id=user_id,
@@ -203,7 +220,11 @@ async def finalize_purchase_universal_one(user_id: int, data: StartPurchaseUnive
                 )
         # commit происходит тут
 
-        await _filling_redis_universal(user_id, sold_ids, [data.full_product])
+        await _filling_redis_universal(
+            user_id=user_id,
+            full_reserved_products=[data.full_product],
+            sold_product_ids=sold_ids,
+        )
         await _publish_purchase_universal(user_id, "Бесконечно ...", data, product_movement)
         return True
     except Exception as e:
@@ -220,7 +241,6 @@ async def finalize_purchase_universal_one(user_id: int, data: StartPurchaseUnive
             product_universal=data.full_product
         )
         return False
-
 
 
 async def finalize_purchase_universal_different(user_id: int, data: StartPurchaseUniversal):

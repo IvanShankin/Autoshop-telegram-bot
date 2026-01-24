@@ -10,7 +10,7 @@ from apscheduler.triggers.cron import CronTrigger
 from src.config import get_config
 from src.services.database.system.actions.actions import add_backup_log, get_all_backup_logs_desc, delete_backup_log
 from src.services.secrets import get_crypto_context
-from src.services.secrets.encrypt import encrypt_dump_file, wrap_dek
+from src.services.secrets.encrypt import encrypt_file, wrap_dek
 from src.services.secrets.loader import get_storage_client
 from src.services.secrets.utils import extract_nonce_b64, calc_sha256_b64
 from src.utils.core_logger import get_logger
@@ -97,9 +97,9 @@ async def backup_database():
             output_file=dump_file,
         )
 
-        encrypt_dump_file(
-            dump_path=dump_file,
-            encrypted_path=encrypted_file,
+        encrypt_file(
+            file_path=str(dump_file),
+            encrypted_path=str(encrypted_file),
             dek=dek,
         )
 

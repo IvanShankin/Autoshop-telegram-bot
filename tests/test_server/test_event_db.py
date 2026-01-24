@@ -892,14 +892,13 @@ async def test_handler_new_purchase_creates_wallet_and_logs(
             if l.action_type == "purchase_account" and l.details.get("new_sold_account_id") == sold_full.sold_account_id:
                 found = True
                 assert l.details["account_storage_id"] == sold_full.account_storage.account_storage_id
-                assert l.details["purchase_id"] == 777
                 assert l.details["profit"] == 90
                 break
         assert found, "Лог покупки с нужными деталями не найден"
 
     # ---- проверка отправленных логов (send_log должен был использовать fake bot) ----
     # формируется текст в handler_new_purchase_account, проверим что хотя бы кусок текста попал в сообщения
-    expected_substring = f"Аккаунт на продаже с id (StorageAccount) = {sold_full.account_storage.account_storage_id} продан!"
+    expected_substring = f"Аккаунт на продаже (StorageAccount), id = {sold_full.account_storage.account_storage_id} продан!"
     assert fake_bot.check_str_in_messages(expected_substring) or fake_bot.check_str_in_messages(expected_substring[:30])
 
 

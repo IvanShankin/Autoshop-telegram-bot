@@ -1,4 +1,4 @@
-from src.services.database.categories.actions.purchases.main_purchase import purchase_accounts
+from src.services.database.categories.actions.purchases.main_purchase import purchase_accounts, purchase
 from src.services.database.categories.actions.actions_add import add_translation_in_category, add_category
 from src.services.database.categories.actions.actions_delete import delete_category, delete_translate_category
 from src.services.database.categories.actions.actions_get import get_categories_by_category_id, \

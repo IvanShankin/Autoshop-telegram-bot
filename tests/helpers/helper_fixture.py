@@ -1,6 +1,6 @@
 import pytest_asyncio
 
-from helpers.func_fabrics.other_fabric import create_purchase_request_fabric, create_balance_holder_factory
+from tests.helpers.func_fabrics.other_fabric import create_purchase_request_fabric, create_balance_holder_factory
 from tests.helpers.func_fabrics import create_new_user_fabric, create_admin_fabric, create_referral_fabric, \
     create_income_from_referral_fabric, create_replenishment_fabric, create_type_payment_factory, \
     create_voucher_factory, create_category_factory, create_account_storage_factory, \

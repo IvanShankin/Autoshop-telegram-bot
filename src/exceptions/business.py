@@ -28,6 +28,9 @@ class UnableRemoveMainAdmin(Exception):
 class InvalidPromoCode(Exception):
     pass
 
+class InvalidQuantityProducts(Exception):
+    pass
+
 class PromoCodeAlreadyActivated(Exception):
     pass
 

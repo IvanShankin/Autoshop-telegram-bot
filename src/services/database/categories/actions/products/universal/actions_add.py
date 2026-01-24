@@ -8,7 +8,7 @@ from src.exceptions.domain import UniversalStorageNotFound, CategoryNotFound
 from src.services.database.categories.actions.actions_get import get_categories_by_category_id
 from src.services.database.categories.actions.products.universal.actions_get import get_universal_storage
 from src.services.database.categories.models.product_universal import UniversalMediaType, UniversalStorage, \
-    UniversalStorageTranslation, ProductUniversal, SoldUniversal, DeletedUniversal
+    UniversalStorageTranslation, ProductUniversal, SoldUniversal, DeletedUniversal, UniversalStorageStatus
 from src.services.database.categories.models.shemas.product_universal_schem import UniversalStoragePydantic
 from src.services.database.core import get_db
 from src.services.database.users.actions import get_user
@@ -151,7 +151,8 @@ async def add_universal_storage(
         encrypted_key_nonce=encrypted_key_nonce,
         key_version=key_version,
         encryption_algo=encryption_algo,
-        media_type=media_type
+        media_type=media_type,
+        status=UniversalStorageStatus.FOR_SALE
     )
 
     async with get_db() as session_db:

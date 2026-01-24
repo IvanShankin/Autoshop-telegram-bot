@@ -11,7 +11,7 @@ from src.services.database.categories.actions.actions_get import get_categories_
 from src.services.database.categories.actions.products.universal.action_delete import delete_prod_universal
 from src.services.database.categories.actions.products.universal.action_update import update_universal_storage
 from src.services.database.categories.actions.products.universal.actions_add import add_deleted_universal
-from src.services.database.categories.models import PurchaseRequests, PurchaseRequestAccount
+from src.services.database.categories.models import PurchaseRequests
 from src.services.database.categories.models.product_universal import UniversalStorageStatus, \
     ProductUniversal, UniversalStorage, PurchaseRequestUniversal
 from src.services.database.categories.models.shemas.product_universal_schem import ProductUniversalFull
@@ -148,7 +148,7 @@ async def verify_reserved_universal_different(
         if isinstance(res, Exception):
             # на проверке упало исключение — считаем невалидным
             logger.exception("Validation task exception: %s", res)
-            # не имеем прямой ProductAccounts здесь — пропускаем (безопаснее: fail later)
+            # не имеем прямой ProductUniversal здесь — пропускаем (безопаснее: fail later)
             # безопаснее получить index, для простоты — вернуть False
             return False
         prod, ok = res
@@ -181,7 +181,7 @@ async def verify_reserved_universal_different(
                 async with session_db.begin():
                     q = (
                         select(ProductUniversal)
-                        .options(selectinload(ProductUniversal.storage), selectinload(UniversalStorage.translations))
+                        .options(selectinload(ProductUniversal.storage).selectinload(UniversalStorage.translations))
                         .where(
                             (ProductUniversal.category_id == bad_queue[0].category_id) &  # выбираем по категории текущей «дыры»
                             (UniversalStorage.is_active == True) &
@@ -254,7 +254,7 @@ async def verify_reserved_universal_different(
 
                         # обновляем связующую таблицу заявки: заменяем bad -> chosen
                         await session_db.execute(
-                            update(PurchaseRequestAccount)
+                            update(PurchaseRequestUniversal)
                             .where(
                                 (PurchaseRequestUniversal.purchase_request_id == purchase_request_id) &
                                 (PurchaseRequestUniversal.universal_storage_id == bad.universal_storage.universal_storage_id)

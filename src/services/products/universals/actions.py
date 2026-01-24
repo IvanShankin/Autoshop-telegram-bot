@@ -18,6 +18,8 @@ async def check_valid_universal_product(
     config: Config,
 ) -> bool:
     # если есть файл проверяем, что мы можем его дешифровать
+    logger = get_logger(__name__)
+
     try:
         if product.universal_storage.file_path:
             # Расшифровываем DEK (account_key)
@@ -26,10 +28,11 @@ async def check_valid_universal_product(
                 nonce_b64=product.universal_storage.encrypted_key_nonce,
                 kek=crypto.kek
             )
-            abs_path = (config.paths.accounts_dir / Path(product.universal_storage.file_path)).resolve()
+            abs_path = (config.paths.universals_dir / Path(product.universal_storage.file_path)).resolve()
 
             decrypt_file_to_bytes(abs_path, key)  # Расшифровываем архив DEK-ом
-    except Exception:
+    except Exception as e:
+        logger.exception(f"Ошибка дешифрования файла универсального товара: {e}")
         return False
 
     try:
@@ -44,7 +47,8 @@ async def check_valid_universal_product(
                 nonce_b64=product.universal_storage.encrypted_tg_file_id_nonce,
                 dek=key
             )
-    except Exception:
+    except Exception as e:
+        logger.exception(f"Ошибка дешифрования данных 1 универсального товара: {e}")
         return False
 
     try:
@@ -59,7 +63,8 @@ async def check_valid_universal_product(
                 nonce_b64=product.universal_storage.encrypted_description_nonce,
                 dek=key
             )
-    except Exception:
+    except Exception as e:
+        logger.exception(f"Ошибка дешифрования данных 2 универсального товара: {e}")
         return False
 
     return True

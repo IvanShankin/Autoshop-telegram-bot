@@ -264,6 +264,7 @@ async def create_tg_account_media_factory(
 async def create_purchase_fabric(
     user_id: int = None,
     account_storage_id: int = None,
+    universal_storage_id: int = None,
     original_price: int = 110,
     purchase_price: int = 100,
     cost_price: int = 50,
@@ -281,6 +282,7 @@ async def create_purchase_fabric(
         new_purchase_account = Purchases(
             user_id = user_id,
             account_storage_id = account_storage_id,
+            universal_storage_id = universal_storage_id,
             original_price = original_price,
             purchase_price = purchase_price,
             cost_price = cost_price,

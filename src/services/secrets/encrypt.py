@@ -108,13 +108,23 @@ def encrypt_folder(folder_path: str, encrypted_path: str, dek: bytes):
     shutil.rmtree(folder_path)
 
 
-def encrypt_dump_file(
-    dump_path: Path,
-    encrypted_path: Path,
+def encrypt_file(
+    file_path: str,
+    encrypted_path: str,
     dek: bytes,
 ):
-    with open(dump_path, "rb") as f:
+    """
+    Открывает файл полностью!!! Использовать только для небольших файлов
+    :param file_path: Путь к незашифрованному файлу
+    :param encrypted_path: новый путь к зашифрованному файлу
+    :return:
+    """
+    with open(file_path, "rb") as f:
         data = f.read()
+
+    encrypted_dir = os.path.dirname(encrypted_path)
+    if encrypted_dir:  # Проверяем, что путь содержит директорию
+        os.makedirs(encrypted_dir, exist_ok=True)
 
     encrypted = encrypt_bytes(data, dek)
 

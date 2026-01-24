@@ -33,7 +33,7 @@ async def _set_reserved_universal(
     """
     q = (
         select(ProductUniversal)
-        .options(selectinload(ProductUniversal.storage), selectinload(UniversalStorage.translations))
+        .options(selectinload(ProductUniversal.storage).selectinload(UniversalStorage.translations))
         .join(ProductUniversal.storage)
         .where(
             (ProductUniversal.category_id == category_id) &

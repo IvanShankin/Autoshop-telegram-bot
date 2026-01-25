@@ -114,10 +114,8 @@ class TestStartPurchaseRequest:
             for account in created_products_full:
                 account.account_storage.status = "reserved" # аккаунт должен стать зарезервированным
                 account_redis = await session_redis.get(f'product_account:{account.account_id}')
-                account_dict = orjson.loads(account_redis)
+                assert not account_redis
 
-                # преобразовываем так что бы сервис принял правильный тип данных
-                assert comparison_models(account.model_dump(), ProductAccountFull(**account_dict).model_dump())
 
     @pytest.mark.asyncio
     async def test_start_purchase_request_with_promo_code(

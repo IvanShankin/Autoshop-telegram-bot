@@ -38,6 +38,7 @@ class AccountStorage(Base):
     encryption_algo = Column(String(32), nullable=False, server_default=text("'AES-GCM-256'")) # Алгоритм шифрования
 
     # === Основные поля ===
+    tg_id = Column(BigInteger, nullable=True)          # только для ТГ аккаунтов
     phone_number = Column(String(100), nullable=False) # Пример: +79161234567
     login_encrypted = Column(Text, nullable=True)
     login_nonce = Column(Text, nullable=True)
@@ -139,15 +140,15 @@ class SoldAccounts(Base):
         else:
             return None
 
-    def get_name(self, lang: str, fallback: str = None)->str:
+    def get_name(self, lang: str, fallback: str = None) -> str:
         """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
         return self._get_field_with_translation(lambda translations: translations.name, lang, fallback)
 
-    def get_description(self, lang: str, fallback: str = None)->str:
+    def get_description(self, lang: str, fallback: str = None) -> str:
         """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
         return self._get_field_with_translation(lambda translations: translations.description, lang, fallback)
 
-    def to_localized_dict(self, language: str = None)->dict:
+    def to_localized_dict(self, language: str = None) -> dict:
         new_dict = {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
         new_dict.update({'name': self.get_name(language)})
         new_dict.update({'description': self.get_description(language)})

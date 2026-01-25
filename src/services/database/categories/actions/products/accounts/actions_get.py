@@ -15,7 +15,7 @@ from src.services.redis.filling import filling_product_account_by_account_id, fi
     filling_sold_accounts_by_owner_id, filling_product_accounts_by_category_id
 
 
-async def get_all_phone_in_account_storage(type_account_service: AccountServiceType) -> Set[str]:
+async def get_all_phone_in_account_storage(type_account_service: AccountServiceType) -> List[str]:
     """Вернёт все номера телефонов которые хранятся в БД у определённого типа сервиса"""
     async with get_db() as session_db:
         # получение данных с БД
@@ -32,7 +32,21 @@ async def get_all_phone_in_account_storage(type_account_service: AccountServiceT
         )
 
         result = await session_db.execute(stmt)
-        return (result.scalars().all())
+        return result.scalars().all()
+
+
+async def get_all_tg_id_in_account_storage() -> List[str]:
+    """Вернёт все tg id которые хранятся в БД у телеграмм аккаунтов"""
+    async with get_db() as session_db:
+        # получение данных с БД
+        stmt = (
+            select(AccountStorage.tg_id)
+            .where(AccountStorage.tg_id.is_not(None))
+            .distinct()
+        )
+
+        result = await session_db.execute(stmt)
+        return result.scalars().all()
 
 
 async def get_product_account_by_category_id(

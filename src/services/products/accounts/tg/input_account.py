@@ -6,7 +6,7 @@ from typing import List, AsyncGenerator, Any, Tuple
 
 from src.config import get_config
 from src.exceptions import ArchiveNotFount, DirNotFount
-from src.services.products.accounts.utils.helper_imports import get_unique_among_db
+from src.services.products.accounts.utils.helper_imports import get_unique_tg_acc_among_db
 from src.services.database.categories.actions import add_account_storage, add_product_account, \
     update_account_storage
 from src.services.database.categories.models.product_account import AccountServiceType
@@ -159,7 +159,7 @@ async def split_unique_and_duplicates(
     Отберёт уникальные аккаунты
     :return: Tuple[Уникальные аккаунты, Дубликаты, Невалидные аккаунты]
     """
-    unique_items = []
+    unique_items: List[BaseAccountProcessingResult] = []
     duplicate_items = []
     invalid_item = []
 
@@ -192,7 +192,7 @@ async def split_unique_and_duplicates(
 
         unique_items.append(item)
 
-    unique_items, duplicate_items_2 = await get_unique_among_db(unique_items, type_account_service)
+    unique_items, duplicate_items_2 = await get_unique_tg_acc_among_db(unique_items, type_account_service)
 
     return unique_items, duplicate_items + duplicate_items_2, invalid_item
 

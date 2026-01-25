@@ -957,5 +957,5 @@ async def test_account_purchase_event_handler_parses_and_calls_handler(
         assert len(logs) >= 1
 
     # проверка на отправленные логи
-    expected_substring = f"Аккаунт на продаже с id (StorageAccount) = {sold_full.account_storage.account_storage_id} продан!"
+    expected_substring = f"Аккаунт на продаже (StorageAccount), id = {sold_full.account_storage.account_storage_id} продан!"
     assert fake_bot.check_str_in_messages(expected_substring) or fake_bot.check_str_in_messages(expected_substring[:30])

@@ -272,6 +272,7 @@
         "key_version": "int",
         "encryption_algo": "str",
         
+        "tg_id": "int",
         "phone_number": "str",
         "login_encrypted": "str | None",
         "login_nonce": "str | None",
@@ -339,6 +340,7 @@
         "key_version": "int",
         "encryption_algo": "str",
         
+        "tg_id": "int",
         "phone_number": "str",
         "login_encrypted": "str | None",
         "login_nonce": "str | None",

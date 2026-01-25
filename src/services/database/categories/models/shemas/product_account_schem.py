@@ -3,7 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 from src.services.database.categories.models import SoldAccounts, ProductAccounts
-from src.services.database.categories.models import AccountStorage, Categories, CategoryTranslation
+from src.services.database.categories.models import AccountStorage, Categories
 from src.services.database.categories.models.main_category_and_product import ProductType
 from src.services.database.categories.models.product_account import AccountServiceType
 
@@ -84,6 +84,7 @@ class AccountStoragePydantic(BaseModel):
     key_version: int
     encryption_algo: str
 
+    tg_id: int | None
     phone_number: str
     login_encrypted: Optional[str] = None
     login_nonce: Optional[str] = None

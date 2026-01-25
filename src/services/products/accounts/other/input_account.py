@@ -5,7 +5,6 @@ from typing import List, Tuple
 from src.bot_actions.messages import send_log
 from src.exceptions import InvalidFormatRows, CategoryNotFound, TheCategoryNotStorageAccount
 from src.services.products.accounts.other.shemas import AccountImportData, ImportResult, REQUIRED_HEADERS
-from src.services.products.accounts.utils.helper_imports import get_unique_among_db
 from src.services.database.categories.actions import add_account_storage, add_product_account
 from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.filesystem.input_account import make_csv_bytes
@@ -59,8 +58,6 @@ async def input_other_account(
 
         accounts.append(account_data)
 
-    accounts, duplicates = await split_unique_and_duplicates(accounts, type_account_service)
-
     errors_added = await import_in_db(
         account_data=accounts,
         type_account_service=type_account_service,
@@ -75,10 +72,6 @@ async def input_other_account(
         need_list = [acc.model_dump() for acc in errors_account]
         errors_csv_bytes = make_csv_bytes(need_list, REQUIRED_HEADERS)
 
-    if duplicates:
-        need_list = [acc.model_dump() for acc in duplicates]
-        duplicates_csv_bytes = make_csv_bytes(need_list, REQUIRED_HEADERS)
-
 
     return ImportResult(
         successfully_added=len(accounts),
@@ -86,30 +79,6 @@ async def input_other_account(
         errors_csv_bytes=errors_csv_bytes,
         duplicates_csv_bytes=duplicates_csv_bytes
     )
-
-
-async def split_unique_and_duplicates(
-    account_data: List[AccountImportData],
-    type_account_service: AccountServiceType
-) -> Tuple[List[AccountImportData], List[AccountImportData]]:
-    """
-    :return: Tuple[Уникальные, Дубликаты]
-    """
-    unique_items = []
-    duplicate_items = []
-
-    seen_phones = set()
-
-    for account in account_data:
-        if account.phone in seen_phones:
-            duplicate_items.append(account)
-
-        seen_phones.add(account.phone)
-        unique_items.append(account)
-
-    # отбор уникальных среди БД
-    unique_items, duplicate_2 = await get_unique_among_db(unique_items, type_account_service)
-    return unique_items, duplicate_items + duplicate_2
 
 
 async def import_in_db(

@@ -87,6 +87,7 @@ async def _get_grouped_objects(
     redis_key: str,
     call_fun_filling: Callable[[], Awaitable[None]],
     options: tuple = None,
+    join = None,
     filter_expr = None,
     order_by = None,
     post_process: Callable[[Any], Any] | None = None
@@ -95,6 +96,7 @@ async def _get_grouped_objects(
     Ищет группированные объекты, такие как: List[dict]. Ищет в redis, если нет то в БД.
     :param model_db: Модель БД которую необходимо вернуть.
     :param redis_key: Ключ для поиска по redis.
+    :param join: join запрос.
     :param filter_expr: SQLAlchemy-выражение фильтрации (например, Model.id == 123).
     :param call_fun_filling: Асинхронная функция для заполнения Redis.
     :param post_process: Асинхронная функция для преобразования в особый класс.
@@ -116,13 +118,15 @@ async def _get_grouped_objects(
         query = select(model_db)
         if options is not None:
             query = query.options(*options)
+        if join is not None:
+            query = query.join(join)
         if filter_expr is not None:
             query = query.where(filter_expr)
         if order_by is not None:
             query = query.order_by(order_by)
 
         result_db = await session_db.execute(query)
-        result = result_db.scalars().all()
+        result = result_db.scalars().unique().all()
 
         if result:
             await call_fun_filling()  # заполнение redis

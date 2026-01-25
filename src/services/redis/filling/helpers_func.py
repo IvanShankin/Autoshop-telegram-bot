@@ -1,16 +1,18 @@
 from datetime import timedelta
-from typing import Type, Any, Optional, Callable, Tuple, Iterable
+from typing import Type, Any, Optional, Callable, Iterable
 
 import orjson
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
 from src.config import get_config
-from src.services.database.categories.models import Categories, ProductAccounts
+from src.services.database.categories.models import Categories, ProductAccounts, AccountStorage
 from src.services.database.categories.models import ProductUniversal
+from src.services.database.categories.models.product_universal import UniversalStorage, UniversalStorageStatus
 from src.services.database.categories.models.shemas.product_account_schem import CategoryFull
 from src.services.database.core.database import get_db, Base
 from src.services.redis.core_redis import get_redis
+
 
 
 async def _get_quantity_products_in_category(category_id: int) -> int:
@@ -18,13 +20,23 @@ async def _get_quantity_products_in_category(category_id: int) -> int:
         stmt = select(
             select(func.count())
             .select_from(ProductAccounts)
-            .where(ProductAccounts.category_id == category_id)
+            .join(ProductAccounts.account_storage)
+            .where(
+                (ProductAccounts.category_id == category_id) &
+                (AccountStorage.status == "for_sale")
+            )
             .scalar_subquery()
             +
             select(func.count())
             .select_from(ProductUniversal)
-            .where(ProductUniversal.category_id == category_id)
+            .join(ProductUniversal.storage)
+            .where(
+                (ProductUniversal.category_id == category_id) &
+                (UniversalStorage.status == UniversalStorageStatus.FOR_SALE)
+            )
             .scalar_subquery()
+
+            # ПРИ ДОБАВЛЕНИЕ НОВЫХ ТОВАРОВ, РАСШИРИТЬ ПОИСК
         )
 
         result = await session.execute(stmt)
@@ -154,7 +166,13 @@ async def _filling_categories(
                 await pipe.execute()
 
 
-async def _filling_product_by_category_id(model_db: Type[Base], key_prefix: str):
+async def _filling_product_by_category_id(
+    model_db: Type[Base],
+    key_prefix: str,
+    options: tuple = None,
+    filter_expr: Any = None,
+    join: Any = None
+):
     """
     Заполнит redis по category_id. Результат - это список по category_id.
 
@@ -171,9 +189,15 @@ async def _filling_product_by_category_id(model_db: Type[Base], key_prefix: str)
         account_category_ids = result_db.scalars().all()
 
         for category_id in account_category_ids:
-            result_db = await session_db.execute(
-                select(model_db).where(model_db.category_id == category_id)
-            )
+            query = select(model_db).where(model_db.category_id == category_id)
+            if join is not None:
+                query = query.join(join)
+            if options is not None:
+                query = query.options(*options)
+            if filter_expr is not None:
+                query = query.where(filter_expr)
+
+            result_db = await session_db.execute(query)
             products = result_db.scalars().all()
 
             if products:

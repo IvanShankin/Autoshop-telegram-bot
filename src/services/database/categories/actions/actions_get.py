@@ -1,15 +1,16 @@
 from typing import List
 
-from sqlalchemy import func, select
+from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
 from src.config import get_config
 from src.services.database.categories.actions.helpers_func import _has_accounts_in_subtree, _get_grouped_objects, \
     _get_single_obj
 from src.services.database.categories.actions.products.accounts.actions_get import get_sold_accounts_by_owner_id
-from src.services.database.categories.models import Categories, CategoryFull, ProductUniversal
+from src.services.database.categories.models import Categories, CategoryFull, ProductUniversal, AccountStorage, \
+    ProductAccounts
 from src.services.database.categories.models.main_category_and_product import ProductType, Purchases
-from src.services.database.categories.models.product_account import ProductAccounts
+from src.services.database.categories.models.product_universal import UniversalStorage, UniversalStorageStatus
 from src.services.database.core import get_db
 from src.services.redis.filling import (
     filling_category_by_category,
@@ -115,12 +116,20 @@ async def get_quantity_products_in_category(category_id: int) -> int:
         stmt = select(
             select(func.count())
             .select_from(ProductAccounts)
-            .where(ProductAccounts.category_id == category_id)
+            .join(ProductAccounts.account_storage)
+            .where(
+                (ProductAccounts.category_id == category_id) &
+                (AccountStorage.status == "for_sale")
+            )
             .scalar_subquery()
             +
             select(func.count())
             .select_from(ProductUniversal)
-            .where(ProductUniversal.category_id == category_id)
+            .join(ProductUniversal.storage)
+            .where(
+                (ProductUniversal.category_id == category_id) &
+                (UniversalStorage.status == UniversalStorageStatus.FOR_SALE)
+            )
             .scalar_subquery()
 
             # ПРИ ДОБАВЛЕНИЕ НОВЫХ ТОВАРОВ, РАСШИРИТЬ ПОИСК

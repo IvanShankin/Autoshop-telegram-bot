@@ -32,6 +32,8 @@ async def test_filling_product_universal_by_category(create_category, create_pro
         )
         redis_result = orjson.loads(val)
 
+        assert len(redis_result) == 3
+
     for prod in products:
         assert any(comparison_models(prod.model_dump(), redis) for redis in redis_result)
 

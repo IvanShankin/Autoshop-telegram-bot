@@ -4,7 +4,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.exceptions import AccountCategoryNotFound, IncorrectedNumberButton, TheCategoryStorageAccount
-from src.services.database.categories.actions.actions_get import get_categories_by_category_id, get_quantity_products_in_category
+from src.services.database.categories.actions.actions_get import get_quantity_products_in_category
+from src.services.database.categories.actions.actions_get import get_categories_by_category_id
 from src.services.database.categories.models import Categories, CategoryTranslation, \
     CategoryFull
 from src.services.database.core.database import get_db

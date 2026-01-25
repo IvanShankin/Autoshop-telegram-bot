@@ -14,7 +14,13 @@ from src.services.redis.time_storage import TIME_SOLD_ACCOUNTS_BY_OWNER, TIME_SO
 
 
 async def filling_product_accounts_by_category_id():
-    await _filling_product_by_category_id(ProductAccounts, "product_accounts_by_category")
+    await _filling_product_by_category_id(
+        ProductAccounts,
+        "product_accounts_by_category",
+        join=ProductAccounts.account_storage,
+        options=(selectinload(ProductAccounts.account_storage),),
+        filter_expr=(AccountStorage.status == 'for_sale')
+    )
 
 
 async def filling_product_account_by_account_id(account_id: int):
@@ -24,7 +30,13 @@ async def filling_product_account_by_account_id(account_id: int):
         account: ProductAccounts = result_db.scalar_one_or_none()
         if not account: return
 
-        result_db = await session_db.execute(select(AccountStorage).where(AccountStorage.account_storage_id == account.account_storage_id))
+        result_db = await session_db.execute(
+            select(AccountStorage)
+            .where(
+                (AccountStorage.account_storage_id == account.account_storage_id) &
+                (AccountStorage.status == 'for_sale')
+            )
+        )
         storage_account: AccountStorage = result_db.scalar_one_or_none()
         if not storage_account: return
 

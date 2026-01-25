@@ -4,7 +4,8 @@ from sqlalchemy.orm import selectinload
 
 from src.config import get_config
 from src.services.database.categories.models import ProductUniversal
-from src.services.database.categories.models.product_universal import UniversalStorage, SoldUniversal
+from src.services.database.categories.models.product_universal import UniversalStorage, SoldUniversal, \
+    UniversalStorageStatus
 from src.services.database.categories.models.shemas.product_universal_schem import ProductUniversalFull, \
     SoldUniversalSmall, SoldUniversalFull
 from src.services.database.core import get_db
@@ -15,7 +16,13 @@ from src.services.redis.time_storage import TIME_SOLD_UNIVERSAL_PRODUCT_BY_OWNER
 
 
 async def filling_product_universal_by_category():
-    await _filling_product_by_category_id(ProductUniversal, "product_universal_by_category")
+    await _filling_product_by_category_id(
+        ProductUniversal,
+        "product_universal_by_category",
+        join=ProductUniversal.storage,
+        options=(selectinload(ProductUniversal.storage),),
+        filter_expr=(UniversalStorage.status == UniversalStorageStatus.FOR_SALE)
+    )
 
 
 async def filling_universal_by_product_id(product_universal_id: int):

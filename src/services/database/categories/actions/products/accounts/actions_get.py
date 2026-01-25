@@ -39,12 +39,17 @@ async def get_product_account_by_category_id(
     category_id: int,
     get_full: bool = False
 ) -> List[ProductAccounts | ProductAccountFull]:
+    """Вернёт только те продукты которые выставлены на продажу 'for_sale'"""
     if get_full:
         async with get_db() as session_db:
             result_db = await session_db.execute(
                 select(ProductAccounts)
+                .join(ProductAccounts.account_storage)
                 .options(selectinload(ProductAccounts.account_storage))
-                .where(ProductAccounts.category_id == category_id)
+                .where(
+                    (ProductAccounts.category_id == category_id) &
+                    (AccountStorage.status == 'for_sale')
+                )
             )
             accounts: List[ProductAccounts] = result_db.scalars().all()
 
@@ -54,12 +59,15 @@ async def get_product_account_by_category_id(
     return await _get_grouped_objects(
         model_db=ProductAccounts,
         redis_key=f'product_accounts_by_category:{category_id}',
-        filter_expr=ProductAccounts.category_id == category_id,
+        join=ProductAccounts.account_storage,
+        options=(selectinload(ProductAccounts.account_storage),),
+        filter_expr=(ProductAccounts.category_id == category_id) & (AccountStorage.status == 'for_sale'),
         call_fun_filling=filling_product_accounts_by_category_id,
     )
 
 
 async def get_product_account_by_account_id(account_id: int) -> ProductAccountFull:
+    """При наличии вернёт продукт в не зависимости от статуса"""
     def post_process(obj):
         # если пришёл словарь (из кеша), создаём DTO напрямую
         if isinstance(obj, dict):
@@ -75,7 +83,7 @@ async def get_product_account_by_account_id(account_id: int) -> ProductAccountFu
         model_db=ProductAccounts,
         redis_key=f'product_account:{account_id}',
         options=(selectinload(ProductAccounts.account_storage), ),
-        filter_expr=ProductAccounts.account_id == account_id,
+        filter_expr=(ProductAccounts.account_id == account_id),
         post_process=post_process,
         call_fun_filling=call_fun_filling
     )

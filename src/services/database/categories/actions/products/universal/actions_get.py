@@ -8,7 +8,7 @@ from src.services.database.categories.actions.helpers_func import _get_grouped_o
     get_sold_items_by_page
 from src.services.database.categories.models import ProductUniversal
 from src.services.database.categories.models.product_universal import UniversalStorage, SoldUniversal, \
-    UniversalStorageTranslation
+    UniversalStorageTranslation, UniversalStorageStatus
 from src.services.database.categories.models.shemas.product_universal_schem import ProductUniversalFull, \
     SoldUniversalSmall, SoldUniversalFull, ProductUniversalSmall, UniversalStoragePydantic
 from src.services.database.core import get_db
@@ -49,6 +49,7 @@ async def get_product_universal_by_category_id(
     language: str = False,
 ) -> List[ProductUniversalSmall | ProductUniversalFull]:
     """
+    Вернёт только те продукты которые не выставлены на продажу == "for_sale"
     :param get_full: При установки True вернёт ProductUniversalFull
     :param language: Только если get_full == True. Если не передать будет взять язык по умолчанию
     :return: Если get_full == False, то вернёт ProductUniversal иначе ProductUniversalFull
@@ -57,11 +58,15 @@ async def get_product_universal_by_category_id(
         async with get_db() as session_db:
             result_db = await session_db.execute(
                 select(ProductUniversal)
+                .join(ProductUniversal.storage)
                 .options(
                     selectinload(ProductUniversal.storage)
                     .selectinload(UniversalStorage.translations)
                 )
-                .where(ProductUniversal.category_id == category_id)
+                .where(
+                    (ProductUniversal.category_id == category_id) &
+                    (UniversalStorage.status == UniversalStorageStatus.FOR_SALE)
+                )
             )
             products: List[ProductUniversal] = result_db.scalars().all()
 
@@ -78,13 +83,20 @@ async def get_product_universal_by_category_id(
     return await _get_grouped_objects(
         model_db=ProductUniversal,
         redis_key=f'product_universal_by_category:{category_id}',
-        filter_expr=ProductUniversal.category_id == category_id,
+        options=(selectinload(ProductUniversal.storage),),
+        filter_expr=(
+                    (ProductUniversal.category_id == category_id)
+                    & ProductUniversal.storage.has(
+                UniversalStorage.status == UniversalStorageStatus.FOR_SALE
+            )
+        ),
         call_fun_filling=filling_product_universal_by_category,
         post_process=post_process
     )
 
 
 async def get_product_universal_by_product_id(product_universal_id: int):
+    """При наличие вернёт продукт в не зависимости от его статуса"""
     def post_process(obj):
         # если пришёл словарь (из кеша), создаём DTO напрямую
         if isinstance(obj, dict):

@@ -141,8 +141,8 @@ async def add_product_account(
     await filling_product_accounts_by_category_id()
 
     # категории
-    await filling_main_categories()
-    await filling_categories_by_parent()
+    await filling_main_categories(category_id)
+    await filling_categories_by_parent(category_id)
     await filling_category_by_category([category.category_id])
     return new_product_account
 

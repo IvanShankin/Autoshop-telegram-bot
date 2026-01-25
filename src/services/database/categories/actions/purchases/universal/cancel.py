@@ -13,7 +13,7 @@ from src.services.database.categories.models.shemas.product_universal_schem impo
 from src.services.database.core.database import get_db
 from src.services.database.users.models import Users
 from src.services.products.universals.actions import create_path_universal_storage
-from src.services.redis.filling import filling_user
+from src.services.redis.filling import filling_user, filling_all_keys_category
 from src.services.redis.filling.filling_universal import filling_product_universal_by_category, \
     filling_sold_universal_by_owner_id, filling_sold_universal_by_universal_id, filling_universal_by_product_id
 from src.utils.core_logger import get_logger
@@ -36,6 +36,8 @@ async def _filling_redis_universal(
         await filling_sold_universal_by_universal_id(sid)
     for prod in product_universal:
         await filling_universal_by_product_id(prod.product_universal_id)
+
+    await filling_all_keys_category(product_universal[0].category_id)
 
 
 async def cancel_purchase_universal_one(

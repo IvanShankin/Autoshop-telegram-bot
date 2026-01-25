@@ -74,9 +74,9 @@ async def add_translation_in_category(
         )
 
     if full_category.is_main:
-        await filling_main_categories()
+        await filling_main_categories(category_id)
     else:
-        await filling_categories_by_parent()
+        await filling_categories_by_parent(category_id)
 
     await filling_category_by_category([full_category.category_id])
 

@@ -11,7 +11,7 @@ from src.services.database.categories.models import ProductAccounts, AccountStor
     StartPurchaseAccount
 from src.services.database.categories.models import PurchaseRequestAccount
 from src.services.database.core.database import get_db
-from src.services.redis.filling import filling_product_account_by_account_id, filling_user
+from src.services.redis.filling import filling_product_account_by_account_id, filling_user, filling_all_keys_category
 
 
 async def _set_reserved_accounts(
@@ -110,6 +110,8 @@ async def start_purchase_account(
 
         for ac_id in [account.account_id for account in product_accounts]:
             await filling_product_account_by_account_id(ac_id)
+
+        await filling_all_keys_category(category_id)
 
     return StartPurchaseAccount(
         purchase_request_id = new_purchase_request.purchase_request_id,

@@ -11,7 +11,7 @@ from src.services.database.core.database import get_db
 from src.services.database.users.models import Users
 from src.services.filesystem.account_actions import create_path_account
 from src.services.redis.filling import filling_product_account_by_account_id, filling_sold_accounts_by_owner_id, \
-    filling_sold_account_by_account_id, filling_user, filling_product_accounts_by_category_id
+    filling_sold_account_by_account_id, filling_user, filling_product_accounts_by_category_id, filling_all_keys_category
 from src.utils.core_logger import get_logger
 
 
@@ -107,6 +107,8 @@ async def cancel_purchase_request_accounts(
         await filling_sold_account_by_account_id(sid)
     for pid in product_accounts:
         await filling_product_account_by_account_id(pid.account_id)
+
+    await filling_all_keys_category(product_accounts[0].category_id)
 
     logger.info("cancel_purchase_request_accounts finished for purchase %s", purchase_request_id)
 

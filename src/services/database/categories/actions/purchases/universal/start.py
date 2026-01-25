@@ -160,7 +160,9 @@ async def _purchase_universal_different(
         await filling_product_universal_by_category()
         for prod_id in [product.product_universal_id for product in reserved_products]:
             await filling_universal_by_product_id(prod_id)
-            await filling_all_keys_category()
+
+        await filling_all_keys_category(category_id)
+
 
     return StartPurchaseUniversal(
         purchase_request_id=new_purchase_request.purchase_request_id,

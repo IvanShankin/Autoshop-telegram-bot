@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 import orjson
 from sqlalchemy import select
@@ -14,19 +14,25 @@ from src.services.redis.filling.helpers_func import _filling_categories, \
 from src.utils.core_logger import get_logger
 
 
-async def filling_main_categories():
+async def filling_main_categories(category_id: Optional[int] = None):
+    if not category_id is None:
+        field_condition = ((Categories.is_main == True) & (Categories.category_id == category_id))
+    else:
+        field_condition = (Categories.is_main == True)
+
     await _filling_categories(
         key_prefix="main_categories",
-        field_condition=(Categories.is_main == True)
+        field_condition=field_condition
     )
 
 
-async def filling_categories_by_parent():
+async def filling_categories_by_parent(category_id: Optional[int] = None):
     async with get_db() as session_db:
-        result_db = await session_db.execute(
-            select(Categories)
-            .where(Categories.parent_id.is_not(None))
-        )
+        query = select(Categories).where(Categories.parent_id.is_not(None))
+        if not category_id is None:
+            query.where(Categories.category_id == category_id)
+
+        result_db = await session_db.execute(query)
         categories: list[Categories] = result_db.scalars().all()
 
     for cat in categories:
@@ -97,8 +103,8 @@ async def filling_category_by_category(category_ids: List):
 async def filling_all_keys_category(category_id: int = None):
     """Заполняет redis всеми ключами для категорий
     :param category_id: Если передать, то заполнит по всем значениям, которые связаны с ним"""
-    await filling_main_categories()
-    await filling_categories_by_parent()
+    await filling_main_categories(category_id)
+    await filling_categories_by_parent(category_id)
 
     category_ids_for_dilling = []
     if category_id is None:

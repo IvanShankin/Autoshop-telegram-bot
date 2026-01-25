@@ -12,7 +12,7 @@ async def test_filling_main_categories(create_category):
     category = await create_category(filling_redis=False, is_main=True)
 
     # Execute
-    await filling_main_categories()
+    await filling_main_categories(category.category_id)
 
     async with get_redis() as session_redis:
         val = await session_redis.get(
@@ -27,7 +27,7 @@ async def test_filling_categories_by_parent(create_category):
     category = await create_category(filling_redis=False, parent_id=category_parent.category_id)
 
     # Execute
-    await filling_categories_by_parent()
+    await filling_categories_by_parent(category.category_id)
 
     async with get_redis() as session_redis:
         val = await session_redis.get(

@@ -68,6 +68,9 @@ jobs:
           TOKEN_CRYPTO_BOT: ${{ secrets.TOKEN_CRYPTO_BOT }}
           MAIN_ADMIN: ${{ secrets.MAIN_ADMIN }}
 
+          RABBITMQ_URL: ${{ secrets.RABBITMQ_URL }}
+          STORAGE_SERVER_URL: ${{ secrets.STORAGE_SERVER_URL }}
+
           # Redis
           REDIS_HOST: localhost
           REDIS_PORT: 6379

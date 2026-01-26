@@ -17,6 +17,7 @@ from src.utils.core_logger import get_logger
 
 async def cancel_purchase_request_accounts(
     user_id: int,
+    category_id: int,
     mapping: List[Tuple[str, str, str]],
     sold_account_ids: List[int],
     purchase_ids: List[int],
@@ -108,7 +109,7 @@ async def cancel_purchase_request_accounts(
     for pid in product_accounts:
         await filling_product_account_by_account_id(pid.account_id)
 
-    await filling_all_keys_category(product_accounts[0].category_id)
+    await filling_all_keys_category(category_id)
 
     logger.info("cancel_purchase_request_accounts finished for purchase %s", purchase_request_id)
 

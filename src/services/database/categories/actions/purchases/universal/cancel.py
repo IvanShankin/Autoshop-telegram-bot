@@ -22,6 +22,7 @@ from src.utils.core_logger import get_logger
 async def _filling_redis_universal(
     user: Users | None,
     user_id: int,
+    category_id: int,
     sold_universal_ids: List[int],
     product_universal: List[ProductUniversalFull]
 ):
@@ -37,11 +38,12 @@ async def _filling_redis_universal(
     for prod in product_universal:
         await filling_universal_by_product_id(prod.product_universal_id)
 
-    await filling_all_keys_category(product_universal[0].category_id)
+    await filling_all_keys_category(category_id)
 
 
 async def cancel_purchase_universal_one(
     user_id: int,
+    category_id: int,
     paths_created_storage: List[Path],
     sold_universal_ids: List[int],
     storage_universal_ids: List[int],
@@ -87,13 +89,14 @@ async def cancel_purchase_universal_one(
                 purchase_request_id=purchase_request_id
             )
 
-    await _filling_redis_universal(user, user_id, sold_universal_ids, [product_universal])
+    await _filling_redis_universal(user, user_id, category_id, sold_universal_ids, [product_universal])
 
     logger.info("cancel_purchase_universal_one finished for purchase %s", purchase_request_id)
 
 
 async def cancel_purchase_universal_different(
     user_id: int,
+    category_id: int,
     mapping: List[Tuple[str, str, str]],
     sold_universal_ids: List[int],
     purchase_ids: List[int],
@@ -182,6 +185,6 @@ async def cancel_purchase_universal_different(
                 purchase_request_id=purchase_request_id
             )
 
-    await _filling_redis_universal(user, user_id, sold_universal_ids, product_universal)
+    await _filling_redis_universal(user, user_id, category_id, sold_universal_ids, product_universal)
 
     logger.info("cancel_purchase_universal_different finished for purchase %s", purchase_request_id)

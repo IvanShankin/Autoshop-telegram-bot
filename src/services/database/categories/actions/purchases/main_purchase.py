@@ -66,7 +66,8 @@ async def purchase_accounts(
     valid_list = await verify_reserved_accounts(data.product_accounts, data.type_service_account, data.purchase_request_id)
     if valid_list is False:
         await cancel_purchase_request_accounts(
-            user_id = user_id,
+            user_id=user_id,
+            category_id=category_id,
             mapping = [],
             sold_account_ids = [],
             purchase_ids = [],
@@ -115,6 +116,7 @@ async def purchase_universal(
         if full_products is False:
             await cancel_purchase_universal_different(
                 user_id=user_id,
+                category_id=category_id,
                 mapping=[],
                 sold_universal_ids=[],
                 purchase_ids=[],
@@ -133,6 +135,7 @@ async def purchase_universal(
         if valid is False:
             await cancel_purchase_universal_one(
                 user_id=user_id,
+                category_id=category_id,
                 paths_created_storage=[],
                 sold_universal_ids=[],
                 storage_universal_ids=[],

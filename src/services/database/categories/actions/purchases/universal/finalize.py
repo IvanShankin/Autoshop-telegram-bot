@@ -38,6 +38,7 @@ from src.utils.core_logger import get_logger
 
 async def _filling_redis_universal(
     user_id: int,
+    category_id: int,
     full_reserved_products: List[ProductUniversalFull],
     sold_product_ids: List[int]
 ):
@@ -49,7 +50,7 @@ async def _filling_redis_universal(
     for sold in sold_product_ids:
         await filling_sold_universal_by_universal_id(sold)
 
-    await filling_all_keys_category(full_reserved_products[0].category_id)
+    await filling_all_keys_category(category_id)
 
 
 async def _publish_purchase_universal(
@@ -225,6 +226,7 @@ async def finalize_purchase_universal_one(user_id: int, data: StartPurchaseUnive
 
         await _filling_redis_universal(
             user_id=user_id,
+            category_id=data.category_id,
             full_reserved_products=[data.full_product],
             sold_product_ids=sold_ids,
         )
@@ -235,6 +237,7 @@ async def finalize_purchase_universal_one(user_id: int, data: StartPurchaseUnive
         # Созданные хранилища могут иметь идентификаторы; удалить их строки из базы данных и файлы
         await cancel_purchase_universal_one(
             user_id=user_id,
+            category_id=data.category_id,
             paths_created_storage=[Path(s.file_path) for s in created_storages if s.file_path],
             sold_universal_ids=sold_ids,
             storage_universal_ids=[s.universal_storage_id for s in created_storages if s.universal_storage_id],
@@ -282,6 +285,7 @@ async def finalize_purchase_universal_different(user_id: int, data: StartPurchas
                 # сразу откатываем — возвращаем то что успели переместить
                 await cancel_purchase_universal_different(
                     user_id=user_id,
+                    category_id=data.category_id,
                     mapping=mapping,
                     sold_universal_ids=sold_product_ids,
                     purchase_ids=purchase_ids,
@@ -385,6 +389,7 @@ async def finalize_purchase_universal_different(user_id: int, data: StartPurchas
             # Попробуем откатить DB изменения и вернуть файлы обратно
             await cancel_purchase_universal_different(
                 user_id=user_id,
+                category_id=data.category_id,
                 mapping=mapping,
                 sold_universal_ids=sold_product_ids,
                 purchase_ids=purchase_ids,
@@ -394,7 +399,7 @@ async def finalize_purchase_universal_different(user_id: int, data: StartPurchas
             )
             return False
 
-        await _filling_redis_universal(user_id, data.full_reserved_products, sold_product_ids)
+        await _filling_redis_universal(user_id, data.category_id, data.full_reserved_products, sold_product_ids)
 
         products_universal = await get_product_universal_by_category_id(data.category_id)
         await _publish_purchase_universal(
@@ -412,6 +417,7 @@ async def finalize_purchase_universal_different(user_id: int, data: StartPurchas
 
         await cancel_purchase_universal_different(
             user_id=user_id,
+            category_id=data.category_id,
             mapping=mapping,
             sold_universal_ids=sold_product_ids,
             purchase_ids=purchase_ids,

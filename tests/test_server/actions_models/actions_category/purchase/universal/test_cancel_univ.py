@@ -80,6 +80,7 @@ class TestCancelPurchaseUniversalDifferent:
         # --- вызов ---
         await cancel_purchase_universal_different(
             user_id=user.user_id,
+            category_id=category.category_id,
             mapping=mapping,
             sold_universal_ids=[],
             purchase_ids=[],
@@ -194,6 +195,7 @@ class TestCancelPurchaseUniversalDifferent:
         # вызов
         await cancel_purchase_universal_different(
             user_id=user.user_id,
+            category_id=category.category_id,
             mapping=mapping,
             sold_universal_ids=[sold.sold_universal_id],
             purchase_ids=[purchase.purchase_id],

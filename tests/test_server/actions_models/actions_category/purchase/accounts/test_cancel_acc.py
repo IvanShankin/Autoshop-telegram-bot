@@ -78,6 +78,7 @@ class TestCancelPurchase:
         # Вызов
         await cancel_purchase_request_accounts(
             user_id=user.user_id,
+            category_id=cat.category_id,
             mapping=mapping,
             sold_account_ids=[],
             purchase_ids=[],
@@ -186,6 +187,7 @@ class TestCancelPurchase:
         # вызов с sold_account_ids
         await cancel_purchase_request_accounts(
             user_id=user.user_id,
+            category_id=cat.category_id,
             mapping=mapping,
             sold_account_ids=[sold.sold_account_id],
             purchase_ids=[pa.purchase_id],

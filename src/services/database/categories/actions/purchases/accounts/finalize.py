@@ -58,6 +58,7 @@ async def finalize_purchase_accounts(user_id: int, data: StartPurchaseAccount):
                 # сразу откатываем — возвращаем то что успели переместить
                 await cancel_purchase_request_accounts(
                     user_id=user_id,
+                    category_id=data.category_id,
                     mapping=mapping,
                     sold_account_ids=sold_account_ids,
                     purchase_ids=purchase_ids,
@@ -164,6 +165,7 @@ async def finalize_purchase_accounts(user_id: int, data: StartPurchaseAccount):
             # Попробуем откатить DB изменения и вернуть файлы обратно
             await cancel_purchase_request_accounts(
                 user_id=user_id,
+                category_id=data.category_id,
                 mapping=mapping,
                 sold_account_ids=sold_account_ids,
                 purchase_ids=purchase_ids,
@@ -211,6 +213,7 @@ async def finalize_purchase_accounts(user_id: int, data: StartPurchaseAccount):
 
         await cancel_purchase_request_accounts(
             user_id=user_id,
+            category_id=data.category_id,
             mapping=mapping,
             sold_account_ids=sold_account_ids,
             purchase_ids=purchase_ids,

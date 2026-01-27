@@ -12,6 +12,7 @@ from src.modules.admin_actions.state import UpdateNumberInCategory
 from src.services.database.categories.actions import update_category
 from src.services.database.categories.models.main_category_and_product import ProductType
 from src.services.database.categories.models.product_account import AccountServiceType
+from src.services.database.categories.models.product_universal import UniversalMediaType
 from src.services.database.users.models import Users
 from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_text
@@ -73,6 +74,7 @@ async def update_category_storage(
     callback: CallbackQuery,
     product_type: ProductType | None = None,
     type_account_service: AccountServiceType | None = None,
+    media_type: UniversalMediaType | None = None,
 ):
     """
     Обновит у категории возможность хранения продукта и выведет сообщение с результатом
@@ -90,6 +92,8 @@ async def update_category_storage(
             update_value["product_type"] = product_type
         if type_account_service:
             update_value["type_account_service"] = type_account_service
+        if media_type:
+            update_value["media_type"] = media_type
 
     try:
         await update_category(category_id, is_product_storage=is_storage, **update_value)

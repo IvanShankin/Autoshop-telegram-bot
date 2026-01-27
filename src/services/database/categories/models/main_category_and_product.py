@@ -4,6 +4,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text, text,
     BigInteger, Index, DateTime, func
 from sqlalchemy.orm import relationship
 
+from src.services.database.categories.models.product_universal import UniversalMediaType
 from src.services.database.core.database import Base
 from src.services.database.categories.models.product_account import AccountServiceType
 
@@ -56,6 +57,14 @@ class Categories(Base):
         ),
         nullable=True
     ) # только для категорий хранящие аккаунты
+    media_type = Column(
+        Enum(
+            UniversalMediaType,
+            values_callable=lambda x: [e.value for e in x],
+            name="universal_media_type"
+        ),
+        nullable=True
+    ) # только для категорий хранящие универсальные товары
 
     # Можно использовать один товар для продажи много раз. Будет браться первый стоящий на продажу
     reuse_product = Column(Boolean, nullable=True, server_default=text("false")) # только для категорий хранящие универсальные товары

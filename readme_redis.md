@@ -143,6 +143,7 @@
     // только для тех кто хранит товары,
     "product_type": "ProductType", 
     "type_account_service": "AccountServiceType", 
+    "media_type": "UniversalMediaType", 
     
     // только для категорий которые хранят универсальные товары 
     "reuse_product": "str",
@@ -180,7 +181,8 @@
     
     // только для тех кто хранит товары,
     "product_type": "ProductType", 
-    "type_account_service": "AccountServiceType", 
+    "type_account_service": "AccountServiceType",  
+    "media_type": "UniversalMediaType", 
     
     // только для категорий которые хранят универсальные товары 
     "reuse_product": "str",
@@ -217,7 +219,8 @@
     
     // только для тех кто хранит товары,
     "product_type": "ProductType", 
-    "type_account_service": "AccountServiceType", 
+    "type_account_service": "AccountServiceType",  
+    "media_type": "UniversalMediaType", 
   
     // только для категорий которые хранят универсальные товары 
     "reuse_product": "str",

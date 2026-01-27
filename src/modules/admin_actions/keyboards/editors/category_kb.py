@@ -3,8 +3,10 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.config import get_config
 from src.services.database.categories.actions import get_categories
-from src.services.database.categories.models.main_category_and_product import ProductType
+from src.services.database.categories.models import CategoryFull
+from src.services.database.categories.models.main_category_and_product import ProductType, Categories
 from src.services.database.categories.models.product_account import AccountServiceType
+from src.services.database.categories.models.product_universal import UniversalMediaType
 from src.utils.i18n import get_text
 
 
@@ -41,13 +43,8 @@ def in_category_editor_kb(language: str):
 
 async def show_category_admin_kb(
     language: str,
-    current_show: bool,
-    current_index: int,
     category_id: int,
-    parent_category_id: int | None,
-    is_main: bool,
-    is_product_storage: bool,
-    allow_multiple_purchase: bool
+    category: Categories | CategoryFull,
 ):
     categories = await get_categories(
         parent_id=category_id,
@@ -64,11 +61,11 @@ async def show_category_admin_kb(
         callback_data=f'add_category:{category_id}')
     )
     keyboard.row(InlineKeyboardButton(
-        text=get_text(language, "kb_admin_panel", f"{"Remove storage" if is_product_storage else "Make storage"}"),
-        callback_data=f'category_update_storage:{category_id}:{0 if is_product_storage else 1}')
+        text=get_text(language, "kb_admin_panel", f"{"Remove storage" if category.is_product_storage else "Make storage"}"),
+        callback_data=f'category_update_storage:{category_id}:{0 if category.is_product_storage else 1}')
     )
 
-    if is_product_storage:
+    if category.is_product_storage:
         keyboard.row(InlineKeyboardButton(
             text=get_text(language, "kb_admin_panel", "Delete all accounts"),
             callback_data=f'confirm_del_all_products:{category_id}')
@@ -86,21 +83,28 @@ async def show_category_admin_kb(
     keyboard.row(
         InlineKeyboardButton(
             text=get_text(language, "kb_admin_panel", 'Up index'),
-            callback_data=f'category_update_index:{category_id}:{current_index + 1}'
+            callback_data=f'category_update_index:{category_id}:{category.index + 1}'
         ),
         InlineKeyboardButton(
             text=get_text(language, "kb_admin_panel", 'Down index'),
-            callback_data=f'category_update_index:{category_id}:{current_index - 1}'
+            callback_data=f'category_update_index:{category_id}:{category.index - 1}'
         )
     )
 
     keyboard.row(InlineKeyboardButton(
-        text=get_text(language, "kb_admin_panel", '{indicator} Show').format(indicator='🟢' if current_show else '🔴'),
-        callback_data=f'category_update_show:{category_id}:{0 if current_show else 1}'
+        text=get_text(language, "kb_admin_panel", '{indicator} Show').format(indicator='🟢' if category.show else '🔴'),
+        callback_data=f'category_update_show:{category_id}:{0 if category.show else 1}'
     ))
+
+    if category.product_type == ProductType.UNIVERSAL:
+        keyboard.row(InlineKeyboardButton(
+            text=get_text(language, "kb_admin_panel", "{indicator} Multiple Sale").format(indicator='🟢' if category.reuse_product else '🔴'),
+            callback_data=f'category_update_reuse_product:{category_id}:{0 if category.reuse_product else 1}'
+        ))
+
     keyboard.row(InlineKeyboardButton(
-        text=get_text(language, "kb_admin_panel", "{indicator} Wholesale purchase").format(indicator='🟢' if allow_multiple_purchase else '🔴'),
-        callback_data=f'category_update_multiple_purchase:{category_id}:{0 if allow_multiple_purchase else 1}'
+        text=get_text(language, "kb_admin_panel", "{indicator} Wholesale purchase").format(indicator='🟢' if category.allow_multiple_purchase else '🔴'),
+        callback_data=f'category_update_multiple_purchase:{category_id}:{0 if category.allow_multiple_purchase else 1}'
     ))
     keyboard.row(InlineKeyboardButton(
         text=get_text(language, "kb_admin_panel", 'Update data'),
@@ -112,12 +116,12 @@ async def show_category_admin_kb(
     )
     keyboard.row(InlineKeyboardButton(
         text=get_text(language, "kb_general", "Back"),
-        callback_data=f'category_editor' if is_main else f'show_category_admin:{parent_category_id}')
+        callback_data=f'category_editor' if category.is_main else f'show_category_admin:{category.parent_id}')
     )
     return keyboard.as_markup()
 
 
-def change_category_data_kb(language: str, category_id: int, is_account_storage: bool, show_default: bool):
+def change_category_data_kb(language: str, category_id: int, is_product_storage: bool, show_default: bool):
     keyboard = InlineKeyboardBuilder()
 
     keyboard.row(InlineKeyboardButton(
@@ -137,7 +141,7 @@ def change_category_data_kb(language: str, category_id: int, is_account_storage:
         callback_data=f'category_update_image:{category_id}')
     )
 
-    if is_account_storage:
+    if is_product_storage:
         keyboard.row(InlineKeyboardButton(
             text=get_text(language, "kb_admin_panel", 'Price one account'),
             callback_data=f'category_update_price:{category_id}')
@@ -186,6 +190,24 @@ def select_account_service_type(language: str, category_id: int):
             InlineKeyboardButton(
                 text=get_text(language, "kb_profile", account_service.value),
                 callback_data=f'choice_account_service:{category_id}:{account_service.value}'
+            )
+        )
+
+    keyboard.row(InlineKeyboardButton(
+        text=get_text(language, "kb_general", "Back"),
+        callback_data=f'show_category_admin:{category_id}')
+    )
+
+    return keyboard.as_markup()
+
+
+def select_universal_media_type(language: str, category_id: int):
+    keyboard = InlineKeyboardBuilder()
+    for media in UniversalMediaType:
+        keyboard.row(
+            InlineKeyboardButton(
+                text=get_text(language, "universal_media_type", media.value),
+                callback_data=f'choice_universal_media_type:{category_id}:{media.value}'
             )
         )
 

@@ -48,6 +48,9 @@ msgstr "⬇️ Индекс"
 msgid "{indicator} Show"
 msgstr "{indicator} Показывать"
 
+msgid "{indicator} Multiple Sale"
+msgstr "{indicator} Многократная продажа"
+
 msgid "{indicator} Wholesale purchase"
 msgstr "{indicator} Оптовая покупка"
 

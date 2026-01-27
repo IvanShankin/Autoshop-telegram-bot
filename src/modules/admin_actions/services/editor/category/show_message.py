@@ -4,6 +4,7 @@ from src.modules.admin_actions.keyboards.editors.category_kb import show_main_ca
 from src.bot_actions.messages import edit_message, send_message
 from src.modules.admin_actions.keyboards import show_category_admin_kb, change_category_data_kb
 from src.modules.admin_actions.services import safe_get_category
+from src.services.database.categories.models.main_category_and_product import ProductType
 from src.services.database.system.actions import get_ui_image
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
@@ -40,6 +41,21 @@ async def show_category(
         "Category \n\nName: {name}\nIndex: {index}\nShow: {show} \n\nStores items: {is_storage}"
     ).format(name=category.name, index=category.index, show=category.show,is_storage=category.is_product_storage)
 
+    if category.product_type == ProductType.UNIVERSAL:
+        message += get_text(
+            user.language,
+            "admins_editor_category",
+             "\nAllow resale of product {reuse_product}"
+                "\nMedia Type: {media_type}"
+        ).format(
+            reuse_product=category.reuse_product,
+            media_type=get_text(
+                user.language,
+                "admins_editor_category",
+                 str(category.media_type.value)
+            )
+        )
+
     if category.is_product_storage:
         price_one = category.price if category.price else 0
         cost_price = category.cost_price if category.cost_price else 0
@@ -56,20 +72,15 @@ async def show_category(
             "Expected profit: {total_profit}"
         ).format(
             total_quantity=category.quantity_product,
-            total_sum_acc=total_sum,
+            total_sum=total_sum,
             total_cost_price=total_cost_price,
             total_profit=total_sum - total_cost_price,
         )
 
     reply_markup = await show_category_admin_kb(
         language=user.language,
-        current_show=category.show,
-        current_index=category.index,
         category_id=category_id,
-        parent_category_id=category.parent_id if category.parent_id else None,
-        is_main=category.is_main,
-        is_product_storage=category.is_product_storage,
-        allow_multiple_purchase=category.allow_multiple_purchase,
+        category=category
     )
 
     if send_new_message:
@@ -124,7 +135,7 @@ async def show_category_update_data(
     reply_markup = change_category_data_kb(
         user.language,
         category_id=category_id,
-        is_account_storage=category.is_product_storage,
+        is_product_storage=category.is_product_storage,
         show_default=False if (ui_image and ui_image.show) else True
     )
 

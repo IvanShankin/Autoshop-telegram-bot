@@ -16,9 +16,11 @@ class UniversalStorageStatus(enum.Enum):
 
 
 class UniversalMediaType(enum.Enum):
-    IMAGE = "image"
-    VIDEO = "video"
-    DOCUMENT = "document"
+    DESCRIPTION = "description"     # только описание
+    IMAGE = "image"                 # будет отсылаться как фото
+    VIDEO = "video"                 # будет отсылаться как видео
+    DOCUMENT = "document"           # будет отсылаться как документ
+    MIXED = "mixed"                 # файл + описание
 
 
 class ProductUniversal(Base):

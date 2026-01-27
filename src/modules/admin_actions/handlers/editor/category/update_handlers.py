@@ -6,11 +6,11 @@ from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.messages import edit_message, send_message
 from src.config import get_config
-from src.exceptions import AccountCategoryNotFound
+from src.exceptions import AccountCategoryNotFound, TheCategoryStorageProducts
 from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category
 from src.modules.admin_actions.keyboards import select_lang_category_kb, back_in_category_update_data_kb
 from src.modules.admin_actions.keyboards.editors.category_kb import back_in_category_editor_kb, \
-    select_account_service_type, select_product_type
+    select_account_service_type, select_product_type, select_universal_media_type
 from src.modules.admin_actions.schemas import UpdateNameForCategoryData, \
     UpdateDescriptionForCategoryData, UpdateCategoryOnlyId
 from src.modules.admin_actions.services import safe_get_category
@@ -25,6 +25,7 @@ from src.services.database.categories.actions import update_category, \
     update_category_translation
 from src.services.database.categories.models.main_category_and_product import ProductType
 from src.services.database.categories.models.product_account import AccountServiceType
+from src.services.database.categories.models.product_universal import UniversalMediaType
 from src.services.database.system.actions import update_ui_image
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
@@ -70,18 +71,39 @@ async def choice_product_type(callback: CallbackQuery, user: Users):
         await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
         return
 
+    message = None
+    reply_markup = None
     if product_type == ProductType.ACCOUNT.value:
-        await edit_message(
-            chat_id=user.user_id,
-            message_id=callback.message.message_id,
-            message=get_text(
+        message = get_text(
+            user.language,
+            "admins_editor_category",
+            "Select service account"
+        ),
+        reply_markup = select_account_service_type(user.language, category_id)
+    elif product_type == ProductType.UNIVERSAL.value:
+        message = get_text(
+            user.language,
+            "admins_editor_category",
+            "Select the product's media type\n\n"
+            "What the user will receive upon purchase:"
+        )
+        for media in UniversalMediaType:
+            message += get_text(
                 user.language,
                 "admins_editor_category",
-                "Select service account"
-            ),
-            reply_markup=select_account_service_type(user.language, category_id)
-        )
+                media.value
+            )
+
+        reply_markup = select_universal_media_type(user.language, category_id)
+
     # ПРИ РАСШИРЕНИИ ПРОДУКТОВ ДОБАВИТЬ БОЛЬШЕ УСЛОВИЙ
+
+    await edit_message(
+        chat_id=user.user_id,
+        message_id=callback.message.message_id,
+        message=message if message else "None",
+        reply_markup=reply_markup
+    )
 
 
 @router.callback_query(F.data.startswith("choice_account_service:"))
@@ -101,6 +123,28 @@ async def choice_account_service(callback: CallbackQuery, user: Users):
         is_storage=True,
         product_type=ProductType.ACCOUNT,
         type_account_service=AccountServiceType(account_service),
+        user=user,
+        callback=callback
+    )
+
+
+@router.callback_query(F.data.startswith("choice_universal_media_type:"))
+async def choice_universal_media_type(callback: CallbackQuery, user: Users):
+    category_id = int(callback.data.split(':')[1])
+    universal_media_type = callback.data.split(':')[2]
+
+    if not any(universal_media_type == acc_ser.value for acc_ser in UniversalMediaType):
+        await callback.answer(
+            get_text(user.language, "admins_editor_category", "Selected type not found")
+        )
+        await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
+        return
+
+    await update_category_storage(
+        category_id=category_id,
+        is_storage=True,
+        product_type=ProductType.UNIVERSAL,
+        media_type=UniversalMediaType(universal_media_type),
         user=user,
         callback=callback
     )
@@ -128,6 +172,25 @@ async def service_update_show(callback: CallbackQuery, user: Users):
     await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
 
 
+@router.callback_query(F.data.startswith("category_update_reuse_product:"))
+async def service_update_show(callback: CallbackQuery, user: Users):
+    category_id = int(callback.data.split(':')[1])
+    reuse_product = bool(int(callback.data.split(':')[2]))
+
+    try:
+        await update_category(category_id, reuse_product=reuse_product)
+        await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
+    except TheCategoryStorageProducts:
+        await callback.answer(
+            get_text(
+                user.language,
+                "admins_editor_category",
+                "To set this flag, the category must not contain any products"
+            ),
+            show_alert=True
+        )
+
+
 @router.callback_query(F.data.startswith("category_update_multiple_purchase:"))
 async def service_update_show(callback: CallbackQuery, user: Users):
     category_id = int(callback.data.split(':')[1])
@@ -135,7 +198,6 @@ async def service_update_show(callback: CallbackQuery, user: Users):
 
     await update_category(category_id, allow_multiple_purchase=allow_multiple_purchase)
     await callback.answer(get_text(user.language, "miscellaneous", "Successfully updated"))
-    await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
 
 
 @router.callback_query(F.data.startswith("category_update_data:"))

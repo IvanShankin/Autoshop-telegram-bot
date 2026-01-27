@@ -37,11 +37,8 @@ class PromoCodeAlreadyActivated(Exception):
 class TranslationAlreadyExists(Exception):
     pass
 
-class ServiceTypeBusy(Exception):
-    pass
-
-class ServiceContainsCategories(Exception):
-    """Сервис хранит категории"""
+class TheCategoryStorageProducts(Exception):
+    """Категория хранит продукты"""
     pass
 
 class CategoryStoresSubcategories(Exception):
@@ -54,10 +51,6 @@ class TheCategoryStorageAccount(Exception):
 
 class TheCategoryNotStorageAccount(Exception):
     """Категория НЕ хранит аккаунты"""
-    pass
-
-class TheAccountServiceDoesNotMatch(Exception):
-    """Не совпадает сервис аккаунтов"""
     pass
 
 class IncorrectedNumberButton(Exception):

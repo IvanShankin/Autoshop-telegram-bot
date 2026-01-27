@@ -6,6 +6,7 @@ from src.services.database.categories.models import SoldAccounts, ProductAccount
 from src.services.database.categories.models import AccountStorage, Categories
 from src.services.database.categories.models.main_category_and_product import ProductType
 from src.services.database.categories.models.product_account import AccountServiceType
+from src.services.database.categories.models.product_universal import UniversalMediaType
 
 
 class CategoryFull(BaseModel):
@@ -27,6 +28,7 @@ class CategoryFull(BaseModel):
 
     product_type: ProductType | None
     type_account_service: AccountServiceType | None
+    media_type: UniversalMediaType | None
     reuse_product: bool | None
     price: int | None
     cost_price: int | None
@@ -63,6 +65,7 @@ class CategoryFull(BaseModel):
 
             product_type=category.product_type,
             type_account_service=category.type_account_service,
+            media_type=category.media_type,
             reuse_product=category.reuse_product,
             price=category.price,
             cost_price=category.cost_price,

@@ -4,11 +4,14 @@ from sqlalchemy import select, update, func
 from sqlalchemy.orm import selectinload
 
 from src.exceptions import AccountCategoryNotFound, TheCategoryStorageAccount, \
-    IncorrectedNumberButton, IncorrectedCostPrice, IncorrectedAmountSale, CategoryStoresSubcategories
+    IncorrectedNumberButton, IncorrectedCostPrice, IncorrectedAmountSale, CategoryStoresSubcategories, \
+    TheCategoryStorageProducts
+from src.services.database.categories.actions import get_quantity_products_in_category
 from src.services.database.categories.models import Categories, ProductAccounts, \
     CategoryTranslation, CategoryFull
 from src.services.database.categories.models.main_category_and_product import ProductType
 from src.services.database.categories.models.product_account import AccountServiceType
+from src.services.database.categories.models.product_universal import UniversalMediaType
 from src.services.database.core.database import get_db
 from src.services.database.system.actions import create_ui_image, delete_ui_image
 from src.services.redis.filling import filling_all_keys_category
@@ -21,11 +24,13 @@ async def update_category(
         file_data: bytes = None,
         number_buttons_in_row: int = None,
         is_product_storage: bool = None,
+        reuse_product: bool = None,
         allow_multiple_purchase: bool = None,
         price: int = None,
         cost_price: int = None,
         product_type: ProductType | None = None,
         type_account_service: AccountServiceType | None = None,
+        media_type: UniversalMediaType | None = None,
 ) -> Categories:
     """
     :param file_data: поток байтов для создания нового ui_image, старый будет удалён
@@ -35,6 +40,7 @@ async def update_category(
     :except AccountCategoryNotFound: Категория аккаунтов не найдена
     :except TheCategoryStorageAccount: Категория хранит аккаунты.
     :except CategoryStoresSubcategories: Категория хранит подкатегории.
+    :except TheCategoryStorageProducts: При установке флага reuse_product == True, если имеются товары в категории.
     Необходимо извлечь их для применения изменений
     """
     if price is not None and price <= 0:
@@ -76,6 +82,12 @@ async def update_category(
                     raise ValueError(
                         "При установки хранилища аккаунтов необходимо указать тип сервиса аккаунтов 'type_account_service'"
                     )
+
+                if product_type == ProductType.UNIVERSAL and not media_type:
+                    raise ValueError(
+                        "При установки хранилища универсальных товаров необходимо указать медиа тип товаров 'media_type'"
+                    )
+
             else: # если хотим убрать хранилище аккаунтов
                 result = await session.execute(
                     select(ProductAccounts).where(ProductAccounts.category_id == category_id)
@@ -89,6 +101,11 @@ async def update_category(
 
 
             update_data["is_product_storage"] = is_product_storage
+        if reuse_product is not None:
+            if reuse_product and await get_quantity_products_in_category(category_id) > 0:
+                raise TheCategoryStorageProducts()
+
+            update_data["reuse_product"] = reuse_product
         if allow_multiple_purchase is not None:
             update_data["allow_multiple_purchase"] = allow_multiple_purchase
         if show is not None:
@@ -103,6 +120,8 @@ async def update_category(
             update_data["product_type"] = product_type
         if type_account_service is not None:
             update_data["type_account_service"] = type_account_service
+        if media_type is not None:
+            update_data["media_type"] = media_type
         if file_data is not None:
             ui_image = await create_ui_image(
                 key=str(uuid.uuid4()),

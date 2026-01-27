@@ -31,6 +31,36 @@ msgstr "Типа оплаты больше нет"
 msgid "Category \n\nName: {name}\nIndex: {index}\nShow: {show} \n\nStores items: {is_storage}"
 msgstr "Категория \n\nИмя: {name}\nИндекс: {index}\nПоказывать: {show} \n\nХранит товары: {is_storage}"
 
+
+# для универсальных товаров
+
+msgid "\nAllow resale of product {reuse_product}"
+"\nMedia Type: {media_type}"
+msgstr "\nРазрешить повторную продажу товара {reuse_product}"
+"\nТип Медиа: {media_type}"
+
+msgid "description"
+msgstr "\n\n<b>Описание</b> - Только описание"
+
+msgid "image"
+msgstr "\n\n<b>Изображение</b> - Только изображение отосланное как фото"
+
+msgid "video"
+msgstr "\n\n<b>Видео</b> - Только видео отосланное как видео"
+
+msgid "document"
+msgstr "\n\n<b>Документ</b> - Только документ отосланное как файл"
+
+msgid "mixed"
+msgstr "\n\n<b>Смешанный</b> - Файл + Описание. Файл может отправиться как фото, видео или просто документ в зависимости от его расширения"
+
+
+msgid "To set this flag, the category must not contain any products"
+msgstr "Для установки этого флага в категории не должны храниться товары"
+
+# для универсальных товаров
+
+
 msgid "\n\nNumber of items in stock: {total_quantity}\n"
 "Sum of all items in stock: {total_sum}\n"
 "Cost of all items in stock: {total_cost_price}\n"
@@ -81,6 +111,14 @@ msgstr "Выберите сервис аккаунта"
 
 msgid "Selected service account not found"
 msgstr "Выбранный сервис аккаунта не найден"
+
+msgid "Select the product's media type\n\n"
+"What the user will receive upon purchase:"
+msgstr "Выберите медиа тип товара\n\n"
+"Что получит пользователь при покупки:"
+
+msgid "Selected type not found"
+msgstr "Выбранный тип не найден"
 
 msgid "Select the language to change"
 msgstr "Выберите язык для изменения"

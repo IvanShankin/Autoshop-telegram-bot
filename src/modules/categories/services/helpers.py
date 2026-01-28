@@ -2,7 +2,7 @@ from src.bot_actions.bot_instance import get_bot
 from src.bot_actions.messages import edit_message, send_message
 from src.modules.categories.keyboards.keyboard_categories import account_category_kb
 from src.modules.categories.shemas import BuyProductsData
-from src.services.database.categories.actions import get_categories_by_category_id
+from src.services.database.categories.actions import get_category_by_category_id
 from src.services.database.categories.models import CategoryFull
 from src.services.database.system.actions import get_ui_image
 from src.services.database.users.models import Users
@@ -14,7 +14,7 @@ async def check_category(category_id: int, old_message_id: int, user_id: int, la
     Если есть категория, то вернёт её, если не найдена, то отошлёт соответсвующее сообщение и удалит прошлое
     :return: Если есть категория, то вернёт CategoryFull, иначе None
     """
-    category = await get_categories_by_category_id(category_id, language=language)
+    category = await get_category_by_category_id(category_id, language=language)
     if not category:
         try:
             bot = await get_bot()

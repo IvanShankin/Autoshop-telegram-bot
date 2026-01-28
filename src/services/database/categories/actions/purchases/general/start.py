@@ -4,7 +4,7 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.exceptions import CategoryNotFound, NotEnoughMoney
-from src.services.database.categories.actions.actions_get import get_categories_by_category_id
+from src.services.database.categories.actions.actions_get import get_category_by_category_id
 from src.services.database.categories.models import CategoryTranslation
 from src.services.database.categories.models import PurchaseRequests
 from src.services.database.categories.models import ResultCheckCategory
@@ -22,7 +22,7 @@ async def check_category_and_money(
     promo_code_id: Optional[int]
 ) -> ResultCheckCategory:
     # получаем категорию
-    category = await get_categories_by_category_id(category_id)
+    category = await get_category_by_category_id(category_id)
 
     async with get_db() as session_db:
         result_db = await session_db.execute(

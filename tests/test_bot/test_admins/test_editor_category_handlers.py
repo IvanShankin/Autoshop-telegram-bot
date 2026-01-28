@@ -172,7 +172,7 @@ async def test_service_update_index_updates_storage_flag(
     Мы проверяем изменение напрямую через фабрику/базу данных.
     """
     from src.modules.admin_actions.handlers.editor.category.update_handlers import category_update_storage
-    from src.services.database.categories.actions import get_categories_by_category_id
+    from src.services.database.categories.actions import get_category_by_category_id
 
     category = await create_category(is_product_storage=True)
     user = await create_new_user()
@@ -186,7 +186,7 @@ async def test_service_update_index_updates_storage_flag(
     await category_update_storage(cb, user)
 
     # проверим, что в БД значение изменилось
-    updated = await get_categories_by_category_id(
+    updated = await get_category_by_category_id(
         category_id=category.category_id,
         language=user.language,
         return_not_show=True

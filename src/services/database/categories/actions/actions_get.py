@@ -8,7 +8,7 @@ from src.services.database.categories.actions.helpers_func import _has_accounts_
     _get_single_obj
 from src.services.database.categories.actions.products.accounts.actions_get import get_sold_accounts_by_owner_id
 from src.services.database.categories.models import Categories, CategoryFull, ProductUniversal, AccountStorage, \
-    ProductAccounts
+    ProductAccounts, CategoryTranslation
 from src.services.database.categories.models.main_category_and_product import ProductType, Purchases
 from src.services.database.categories.models.product_universal import UniversalStorage, UniversalStorageStatus
 from src.services.database.core import get_db
@@ -18,7 +18,16 @@ from src.services.redis.filling import (
 )
 
 
-async def get_categories_by_category_id(
+async def get_all_translations_category(category_id: int) -> List[CategoryTranslation]:
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            select(CategoryTranslation)
+            .where(CategoryTranslation.category_id == category_id)
+        )
+        return result_db.scalars().all()
+
+
+async def get_category_by_category_id(
     category_id: int,
     language: str = 'ru',
     return_not_show: bool = False

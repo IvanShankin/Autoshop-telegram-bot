@@ -5,7 +5,7 @@ from aiogram.types import CallbackQuery
 from src.bot_actions.messages import send_message
 from src.bot_actions.bot_instance import get_bot
 from src.modules.admin_actions.keyboards import in_category_editor_kb
-from src.services.database.categories.actions import get_categories_by_category_id
+from src.services.database.categories.actions import get_category_by_category_id
 from src.services.database.categories.models import CategoryFull
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
@@ -13,7 +13,7 @@ from src.utils.i18n import get_text
 
 async def safe_get_category(category_id: int, user: Users, callback: CallbackQuery | None = None) -> CategoryFull | None:
     """Проверит наличие категории, если нет, то удалит сообщение (если имеется callback) и отошлёт соответствующие сообщение"""
-    category = await get_categories_by_category_id(
+    category = await get_category_by_category_id(
         category_id=category_id,
         language=user.language,
         return_not_show=True

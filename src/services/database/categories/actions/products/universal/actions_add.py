@@ -5,7 +5,7 @@ from sqlalchemy.orm import selectinload
 
 from src.exceptions import UserNotFound, TranslationAlreadyExists
 from src.exceptions.domain import UniversalStorageNotFound, CategoryNotFound
-from src.services.database.categories.actions.actions_get import get_categories_by_category_id
+from src.services.database.categories.actions.actions_get import get_category_by_category_id
 from src.services.database.categories.actions.products.universal.actions_get import get_universal_storage
 from src.services.database.categories.models.product_universal import UniversalMediaType, UniversalStorage, \
     UniversalStorageTranslation, ProductUniversal, SoldUniversal, DeletedUniversal, UniversalStorageStatus
@@ -119,8 +119,6 @@ async def add_universal_storage(
     if file_path and (
         original_filename is None or
         storage_uuid is None or
-        encrypted_tg_file_id is None or
-        encrypted_tg_file_id_nonce is None or
         checksum is None or
         encrypted_key is None or
         encrypted_key_nonce is None
@@ -176,7 +174,7 @@ async def add_product_universal(
     if not await get_universal_storage(universal_storage_id):
         raise UniversalStorageNotFound()
 
-    if not await get_categories_by_category_id(category_id):
+    if not await get_category_by_category_id(category_id):
         raise CategoryNotFound()
 
     new_product = ProductUniversal(

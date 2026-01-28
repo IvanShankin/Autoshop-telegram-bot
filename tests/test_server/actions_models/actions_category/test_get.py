@@ -20,8 +20,8 @@ async def test_get_quantity_products_in_category(create_category, create_product
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
-async def test_get_categories_by_category_id(use_redis, create_category, create_product_account):
-    from src.services.database.categories.actions import get_categories_by_category_id
+async def test_get_category_by_category_id(use_redis, create_category, create_product_account):
+    from src.services.database.categories.actions import get_category_by_category_id
 
     category_1 = await create_category(filling_redis=use_redis)
     category_other = await create_category(filling_redis=use_redis)
@@ -30,7 +30,7 @@ async def test_get_categories_by_category_id(use_redis, create_category, create_
     if use_redis:
         await filling_category_by_category([category_1.category_id]) # для поддержания актуальных данных в redis
 
-    result_category = await get_categories_by_category_id(category_1.category_id, return_not_show=True)
+    result_category = await get_category_by_category_id(category_1.category_id, return_not_show=True)
 
     assert category_1 == result_category
 

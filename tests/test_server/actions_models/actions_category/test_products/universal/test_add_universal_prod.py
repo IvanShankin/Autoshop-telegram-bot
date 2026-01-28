@@ -99,7 +99,7 @@ async def test_add_translate_in_universal_storage(create_universal_storage):
 @pytest.mark.asyncio
 async def test_add_product_universal(create_category, create_universal_storage):
     from src.services.database.categories.actions import add_product_universal
-    from src.services.database.categories.actions import get_categories_by_category_id
+    from src.services.database.categories.actions import get_category_by_category_id
 
     category = await create_category(is_product_storage=True)
     storage, pyd = await create_universal_storage()
@@ -132,7 +132,7 @@ async def test_add_product_universal(create_category, create_universal_storage):
         assert val_single is not None, f"missing redis key {key_single}"
 
         # тут данные с redis
-        cat = await get_categories_by_category_id(category.category_id)
+        cat = await get_category_by_category_id(category.category_id)
         assert cat.quantity_product == 1
 
 

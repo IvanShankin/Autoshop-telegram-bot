@@ -6,7 +6,7 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
 from src.bot_actions.messages import send_log
-from src.services.database.categories.actions.actions_get import get_categories_by_category_id
+from src.services.database.categories.actions.actions_get import get_category_by_category_id
 from src.services.database.categories.actions.products.accounts.actions_add import add_deleted_accounts
 from src.services.database.categories.actions.products.accounts.actions_delete import delete_product_account
 from src.services.database.categories.actions.products.accounts.actions_update import update_account_storage
@@ -28,7 +28,7 @@ async def _delete_account(account_storage: List[ProductAccounts], type_service_a
     """Проведёт всю необходимую работу с БД и переместит аккаунты с for_sale в deleted"""
 
     if account_storage:
-        category = await get_categories_by_category_id(
+        category = await get_category_by_category_id(
             category_id=account_storage[0].category_id,
             return_not_show=True
         )

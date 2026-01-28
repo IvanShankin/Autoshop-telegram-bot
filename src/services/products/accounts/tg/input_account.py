@@ -119,6 +119,7 @@ async def import_in_db(
             encrypted_key="",  # пока пусто
             encrypted_key_nonce="",  # пока пусто
             phone_number=phone,
+            tg_id=user.id
         )
 
         # Полный путь к будущему зашифрованному файлу

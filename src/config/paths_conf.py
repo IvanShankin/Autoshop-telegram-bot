@@ -26,17 +26,21 @@ class PathSettings(BaseModel):
     ssl_client_key_file: Path
     ssl_ca_file: Path
 
+    example_zip_for_universal_import: Path
+
 
     @classmethod
     def build(cls, mode: str) -> "PathSettings":
         base = Path(__file__).resolve().parents[2]
         media = base / "media"
         products = media / "products"
+        examples = media / "examples"
         cert_dir = base / "certs"
 
         os.makedirs(media, exist_ok=True)
         os.makedirs(products, exist_ok=True)
         os.makedirs(cert_dir, exist_ok=True)
+        os.makedirs(examples, exist_ok=True)
 
         ssl_client_cert_file = cert_dir / "client" / "client_cert.pem"
         ssl_client_key_file = cert_dir / "client" / "client_key.pem"
@@ -69,4 +73,6 @@ class PathSettings(BaseModel):
             ssl_client_cert_file=ssl_client_cert_file,
             ssl_client_key_file=ssl_client_key_file,
             ssl_ca_file=ssl_ca_file,
+
+            example_zip_for_universal_import=examples / "example_zip_for_universal_import.zip",
         )

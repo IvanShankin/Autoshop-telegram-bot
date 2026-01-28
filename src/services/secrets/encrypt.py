@@ -3,7 +3,6 @@ import os
 import base64
 import shutil
 import tempfile
-from pathlib import Path
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 

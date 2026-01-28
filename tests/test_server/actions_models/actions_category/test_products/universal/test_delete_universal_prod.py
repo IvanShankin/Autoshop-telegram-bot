@@ -11,7 +11,7 @@ from src.services.redis.core_redis import get_redis
 @pytest.mark.asyncio
 async def test_delete_prod_universal_success_and_error(create_product_universal, create_category):
     from src.services.database.categories.actions import delete_prod_universal
-    from src.services.database.categories.actions import get_categories_by_category_id
+    from src.services.database.categories.actions import get_category_by_category_id
 
     category = await create_category(filling_redis=True)
 
@@ -40,7 +40,7 @@ async def test_delete_prod_universal_success_and_error(create_product_universal,
         assert await r.get(f"product_universal:{pid}:ru") is None
 
         # тут данные с redis
-        cat = await get_categories_by_category_id(category.category_id)
+        cat = await get_category_by_category_id(category.category_id)
         assert cat.quantity_product == 1
 
     # ошибка

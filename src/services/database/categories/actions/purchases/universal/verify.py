@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 
 from src.bot_actions.messages import send_log
 from src.config import get_config
-from src.services.database.categories.actions.actions_get import get_categories_by_category_id
+from src.services.database.categories.actions.actions_get import get_category_by_category_id
 from src.services.database.categories.actions.products.universal.action_delete import delete_prod_universal
 from src.services.database.categories.actions.products.universal.action_update import update_universal_storage
 from src.services.database.categories.actions.products.universal.actions_add import add_deleted_universal
@@ -28,7 +28,7 @@ REPLACEMENT_QUERY_LIMIT = 5  # сколько кандидатов брать з
 
 async def _delete_universal(universal_product: List[ProductUniversalFull]):
     if universal_product:
-        category = await get_categories_by_category_id(
+        category = await get_category_by_category_id(
             category_id=universal_product[0].category_id,
             return_not_show=True
         )
@@ -87,7 +87,7 @@ async def verify_reserved_universal_one(
 
     if not result_check:
         await _delete_universal([product_universal])
-        category = await get_categories_by_category_id(product_universal.category_id, return_not_show=True)
+        category = await get_category_by_category_id(product_universal.category_id, return_not_show=True)
         text = (
             "\n#Невалидный_продукт \n"
             "При покупке был найден невалидный универсальный продукт, он удалён с продажи \n"

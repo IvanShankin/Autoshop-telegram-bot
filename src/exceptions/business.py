@@ -53,6 +53,10 @@ class TheCategoryNotStorageAccount(Exception):
     """Категория НЕ хранит аккаунты"""
     pass
 
+class TheAccountServiceDoesNotMatch(Exception):
+    """Не совпадает сервис аккаунтов"""
+    pass
+
 class IncorrectedNumberButton(Exception):
     """Некорректное число кнопок в одной строке. Ограничение: от 1 до 8 """
     pass
@@ -98,3 +102,11 @@ class TextTooLong(Exception):
 class TextNotLinc(Exception):
     """Указанный текст не является ссылкой"""
     pass
+
+class ImportUniversalFileNotFound(Exception):
+    """Если нет файл который указан в импорте универсального товара"""
+    def __init__(self, file_name: str):
+        self.file_name = file_name
+
+class ImportUniversalInvalidMediaData(Exception):
+    """При указании неверных данных при импорте универсальных товаров. Пример: нет описания, когда это требуется"""

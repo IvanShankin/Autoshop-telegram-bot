@@ -1,18 +1,5 @@
 from src.config import get_config
-from io import BytesIO
-from PIL import Image
 
-
-
-def get_default_image_bytes(color: str = "white", size: tuple[int, int] = (500, 500)) -> bytes:
-    """
-    Создаёт изображение-заглушку и возвращает его в виде байтов (PNG).
-    Подходит для передачи в create_ui_image как file_data.
-    """
-    img = Image.new("RGB", size, color=color)
-    buf = BytesIO()
-    img.save(buf, format="PNG")
-    return buf.getvalue()
 
 def get_ui_images():
     ui_sections = get_config().paths.ui_sections_dir

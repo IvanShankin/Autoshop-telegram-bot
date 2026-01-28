@@ -72,7 +72,7 @@ class TestUpdateCategory:
             create_ui_image
     ):
         from src.services.database.categories.actions import update_category
-        from src.utils.ui_images_data import get_default_image_bytes
+        from src.services.filesystem.actions import get_default_image_bytes
 
         old_ui_image, _ = await create_ui_image()
         cat = await create_category(

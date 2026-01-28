@@ -9,7 +9,7 @@ from src.exceptions import TranslationAlreadyExists, \
     CategoryNotFound, \
     TheCategoryNotStorageAccount
 from src.exceptions.business import TheAccountServiceDoesNotMatch
-from src.services.database.categories.actions.actions_get import get_categories_by_category_id
+from src.services.database.categories.actions.actions_get import get_category_by_category_id
 from src.services.database.categories.models import AccountStorage
 from src.services.database.categories.models import ProductAccounts, SoldAccounts, SoldAccountsTranslation, \
     DeletedAccounts, SoldAccountSmall
@@ -38,6 +38,7 @@ async def add_account_storage(
     login_nonce: str = None,
     password_encrypted: str = None,
     password_nonce: str = None,
+    tg_id: int = None,
 ) -> AccountStorage:
     """
     Путь сформируется только для аккаунтов телеграмма т.к. только их данные хранятся в файле.
@@ -53,7 +54,8 @@ async def add_account_storage(
     :param login_encrypted: Зашифрованный логин
     :param login_nonce: используемый nonce при шифровании
     :param password_encrypted: Зашифрованный Пароль
-    :param password_nonce:  используемый nonce при шифровании
+    :param password_nonce: используемый nonce при шифровании
+    :param tg_id: ID аккаунта в телеграмме. Только для ТГ аккаунтов
     """
     if not type_service_name in AccountServiceType:
         raise ValueError(f"type_service_name = {type_service_name} не найден")
@@ -78,7 +80,8 @@ async def add_account_storage(
         login_encrypted = login_encrypted,
         login_nonce = login_nonce,
         password_encrypted = password_encrypted,
-        password_nonce = password_nonce
+        password_nonce = password_nonce,
+        tg_id = tg_id
     )
 
     async with get_db() as session_db:
@@ -107,7 +110,7 @@ async def add_product_account(
     У аккаунта будет присвоен тип сервиса такой же как у категории
     """
 
-    category = await get_categories_by_category_id(category_id, return_not_show=True)
+    category = await get_category_by_category_id(category_id, return_not_show=True)
     if not category:
         raise CategoryNotFound(f"Категория аккаунтов с id = {category_id} не найдена")
     elif not category.is_product_storage:

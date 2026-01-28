@@ -3,6 +3,8 @@ import os
 import shutil
 import tempfile
 import zipfile
+from io import BytesIO
+from PIL import Image
 from pathlib import Path
 from typing import Optional, List, AsyncGenerator
 
@@ -242,3 +244,14 @@ async def split_file_on_chunk(file_path: str) -> AsyncGenerator[str, None]:
 
             os.remove(temp_path)
             part += 1
+
+
+def get_default_image_bytes(color: str = "white", size: tuple[int, int] = (500, 500)) -> bytes:
+    """
+    Создаёт изображение-заглушку и возвращает его в виде байтов (PNG).
+    Подходит для передачи в create_ui_image как file_data.
+    """
+    img = Image.new("RGB", size, color=color)
+    buf = BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue()

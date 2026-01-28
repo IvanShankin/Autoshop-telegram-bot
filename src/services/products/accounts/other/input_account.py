@@ -1,9 +1,10 @@
 import csv
 import io
-from typing import List, Tuple
+from typing import List
 
 from src.bot_actions.messages import send_log
 from src.exceptions import InvalidFormatRows, CategoryNotFound, TheCategoryNotStorageAccount
+from src.services.filesystem.csv_parse import parse_csv_from_bytes
 from src.services.products.accounts.other.shemas import AccountImportData, ImportResult, REQUIRED_HEADERS
 from src.services.database.categories.actions import add_account_storage, add_product_account
 from src.services.database.categories.models.product_account import AccountServiceType
@@ -24,9 +25,7 @@ async def input_other_account(
     :except TheCategoryNotStorageAccount: Категория не хранит аккаунты
     :except TypeAccountServiceNotFound: Тип сервиса не найден
     """
-    text = stream.read().decode("utf-8").lstrip("\ufeff")
-    dialect = csv.Sniffer().sniff(text)
-    reader = csv.DictReader(io.StringIO(text), dialect=dialect)
+    reader = parse_csv_from_bytes(stream)
 
     # Проверяем заголовки
     if not REQUIRED_HEADERS <= list(reader.fieldnames or []):
@@ -39,19 +38,17 @@ async def input_other_account(
     duplicates_csv_bytes = None
 
     for i, row in enumerate(reader, start=1):
-        print(row)
         account_data = AccountImportData(
             phone=(row.get("phone") or "").strip(),
             login = (row.get("login") or "").strip(),
             password = (row.get("password") or "").strip()
         )
 
-        # 100 символов в телефоне это ограничение для БД
         if (
             not account_data.phone or
             not account_data.login or
             not account_data.password or
-            (len(account_data.phone) > 100)
+            (len(account_data.phone) > 100) # 100 символов в телефоне это ограничение для БД
         ):
             errors_account.append(account_data)
             continue

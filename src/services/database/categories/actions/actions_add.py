@@ -5,14 +5,14 @@ from sqlalchemy.orm import selectinload
 
 from src.exceptions import AccountCategoryNotFound, IncorrectedNumberButton, TheCategoryStorageAccount
 from src.services.database.categories.actions.actions_get import get_quantity_products_in_category
-from src.services.database.categories.actions.actions_get import get_categories_by_category_id
+from src.services.database.categories.actions.actions_get import get_category_by_category_id
 from src.services.database.categories.models import Categories, CategoryTranslation, \
     CategoryFull
 from src.services.database.core.database import get_db
 from src.services.database.system.actions.actions import create_ui_image
+from src.services.filesystem.actions import get_default_image_bytes
 from src.services.redis.filling import filling_main_categories, filling_categories_by_parent, \
     filling_category_by_category
-from src.utils.ui_images_data import get_default_image_bytes
 
 
 async def add_translation_in_category(
@@ -105,7 +105,7 @@ async def add_category(
         raise IncorrectedNumberButton("Количество кнопок в строке, должно быть в диапазоне от 1 до 8")
 
     if parent_id:
-        parent_category = await get_categories_by_category_id(parent_id, return_not_show=True)
+        parent_category = await get_category_by_category_id(parent_id, return_not_show=True)
         if not parent_category:
             raise AccountCategoryNotFound()
         if parent_category.is_product_storage:

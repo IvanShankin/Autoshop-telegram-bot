@@ -1,9 +1,10 @@
 from src.services.database.categories.actions.purchases.main_purchase import purchase_accounts, purchase
 from src.services.database.categories.actions.actions_add import add_translation_in_category, add_category
 from src.services.database.categories.actions.actions_delete import delete_category, delete_translate_category
-from src.services.database.categories.actions.actions_get import get_categories_by_category_id, \
+from src.services.database.categories.actions.actions_get import get_category_by_category_id, \
     get_sold_accounts_by_owner_id, get_categories, \
-    get_types_product_where_the_user_has_product, get_purchases, get_quantity_products_in_category
+    get_types_product_where_the_user_has_product, get_purchases, get_quantity_products_in_category, \
+    get_all_translations_category
 from src.services.database.categories.actions.actions_update import update_category, update_category_translation
 from src.services.database.categories.actions.products.accounts.actions_add import add_product_account, \
     add_translation_in_sold_account, add_account_storage, add_sold_account, add_deleted_accounts
@@ -55,7 +56,8 @@ __all__ = [
 
     'update_universal_storage',
 
-    'get_categories_by_category_id',
+    'get_all_translations_category',
+    'get_category_by_category_id',
     'get_quantity_products_in_category',
     'get_categories',
     'get_product_account_by_category_id',

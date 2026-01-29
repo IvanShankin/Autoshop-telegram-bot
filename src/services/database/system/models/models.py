@@ -30,6 +30,15 @@ class UiImages(Base):
     message_for_sending = relationship("MessageForSending", back_populates="ui_image")
 
 
+class Files(Base):
+    __tablename__ = "files"
+
+    key = Column(String(500), primary_key=True)
+    file_path = Column(Text, nullable=False)  # относительный путь от директории files/
+    file_tg_id = Column(Text, nullable=True)  # id в телеграмме
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
 class TypePayments(Base):
     __tablename__ = "type_payments"
 

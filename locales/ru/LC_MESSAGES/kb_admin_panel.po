@@ -109,8 +109,8 @@ msgstr "Удалить все продукты"
 msgid "Unload all products"
 msgstr "Выгрузить все продукты"
 
-msgid "Получить пример"
-msgstr "Get example"
+msgid "Get example"
+msgstr "Получить пример"
 
 msgid "Edit commission"
 msgstr "Изменить комиссию"

@@ -1,7 +1,7 @@
 from datetime import datetime, UTC, timedelta
 import os
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import aiofiles
 import orjson
@@ -9,6 +9,7 @@ from sqlalchemy import select, update, delete, func, desc
 
 from src.config import get_config
 from src.services.database.categories.models import Purchases, ProductAccounts, Categories
+from src.services.database.system.models.models import Files
 from src.services.database.system.shemas.shemas import StatisticsData, ReplenishmentPaymentSystem
 from src.services.database.users.models import Users, Replenishments
 from src.services.redis.filling import filling_types_payments_by_id, filling_all_types_payments, \
@@ -108,6 +109,49 @@ async def get_ui_images_by_page(page: int, page_size: int = None) -> List[str]:
 
     # Возвращаем ключи нужной страницы
     return filtered_keys[start:end]
+
+
+async def get_file(key: str) -> Files | None:
+    async with get_db() as session_db:
+        result = await session_db.execute(select(Files).where(Files.key == key))
+        return result.scalar_one_or_none()
+
+
+async def create_file(key: str, file_path: str, file_tg_id: Optional[str]):
+    async with get_db() as session_db:
+        file = Files(
+            key=key,
+            file_path=file_path,
+            file_tg_id=file_tg_id,
+        )
+        session_db.add(file)
+        await session_db.commit()
+
+
+async def update_file(key: str, file_path: Optional[str] = None, file_tg_id: Optional[str] = False):
+    update_data = {}
+
+    if not file_path is None:
+        update_data["file_path"] = file_path
+    if not file_tg_id is False:
+        update_data["file_tg_id"] = file_tg_id
+
+    if update_data:
+        async with get_db() as session_db:
+            await session_db.execute(
+                update(Files)
+                .where(Files.key == key)
+                .values(**update_data)
+            )
+            await session_db.commit()
+
+
+async def delete_file(key: str):
+    async with get_db() as session_db:
+        await session_db.execute(
+            delete(Files)
+            .where(Files.key == key)
+        )
 
 
 async def create_ui_image(key: str, file_data: bytes, show: bool = True, file_id: str = None) -> UiImages:

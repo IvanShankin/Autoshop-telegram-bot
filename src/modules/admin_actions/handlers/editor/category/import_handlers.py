@@ -9,6 +9,7 @@ from aiogram.types import CallbackQuery, Message, FSInputFile, BufferedInputFile
 
 from src.bot_actions.messages import edit_message, send_message, send_log
 from src.bot_actions.bot_instance import get_bot
+from src.bot_actions.messages.send import send_file
 from src.config import get_config
 from src.exceptions import TypeAccountServiceNotFound, InvalidFormatRows
 from src.exceptions.business import ImportUniversalInvalidMediaData, ImportUniversalFileNotFound
@@ -24,6 +25,7 @@ from src.modules.admin_actions.state import ImportTgAccounts, ImportOtherAccount
 from src.modules.admin_actions.state.editors.editor_categories import ImportUniversalProducts
 from src.services.database.categories.models.main_category_and_product import ProductType
 from src.services.filesystem.actions import create_temp_dir
+from src.services.filesystem.input_universal import generate_example_zip_for_import
 from src.services.products.accounts.other.input_account import input_other_account
 from src.services.products.accounts.tg.input_account import import_telegram_accounts_from_archive
 from src.services.database.categories.models.product_account import AccountServiceType
@@ -91,6 +93,22 @@ async def category_load_products(callback: CallbackQuery, state: FSMContext, use
         )
         await state.set_state(ImportUniversalProducts.archive)
         await state.update_data(category_id=category_id)
+
+
+@router.callback_query(F.data == "get_example_import_universals")
+async def get_example_import_universals(callback: CallbackQuery, user: Users):
+    conf = get_config()
+    try:
+        await send_file(
+            chat_id=user.user_id,
+            file_key=conf.file_keys.example_zip_for_universal_import_key.key,
+        )
+    except FileNotFoundError:
+        await generate_example_zip_for_import()
+        await send_file(
+            chat_id=user.user_id,
+            file_key=conf.file_keys.example_zip_for_universal_import_key.key,
+        )
 
 
 @router.callback_query(F.data.startswith("choice_lang_category_data:"))

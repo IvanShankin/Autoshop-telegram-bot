@@ -20,7 +20,8 @@ async def generate_example_zip_for_import() -> Path:
         └── image_003.png
     """
     conf = get_config()
-    zip_path = conf.paths.example_zip_for_universal_import
+    zip_path = conf.file_keys.example_zip_for_universal_import_key.path
+
     if os.path.isfile(zip_path):
         shutil.rmtree(zip_path.parent, ignore_errors=True)
 

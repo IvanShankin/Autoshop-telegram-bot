@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 from src.config import get_config
 from src.services.database.admins.actions import create_admin
+from src.services.database.system.models.models import Files
 from src.utils.ui_images_data import get_ui_images
 from src.services.database.users.models import Users, NotificationSettings
 from src.services.database.system.models import Settings, TypePayments, UiImages
@@ -46,13 +47,16 @@ async def create_database():
     # заполнение таблиц
     await filling_settings()
     await filling_referral_lvl()
-    await filling_admins(get_config().env.main_admin)
-    for type_payment in get_config().app.type_payments:
+    await filling_admins(conf.env.main_admin)
+    for type_payment in conf.app.type_payments:
         await filling_type_payment(type_payment)
 
     ui_images = get_ui_images()
     for key in ui_images:
         await filling_ui_image(key=key, path=str(ui_images[key]))
+
+    example_univers_import = conf.file_keys.example_zip_for_universal_import_key
+    await filling_files(key=example_univers_import.key, path=example_univers_import.name_in_dir_with_files)
 
 
 async def create_table():
@@ -90,6 +94,19 @@ async def filling_ui_image(key: str, path: str):
             image = UiImages( key=key, file_path=path)
             session_db.add(image)
             await session_db.commit()
+
+
+async def filling_files(key: str, path: str):
+    async with get_db() as session_db:
+        result = await session_db.execute(select(Files).where(Files.key == key))
+        result_file = result.scalar_one_or_none()
+
+        if result_file:
+            return
+
+        file = Files(key=key, file_path=path)
+        session_db.add(file)
+        await session_db.commit()
 
 
 async def filling_referral_lvl():

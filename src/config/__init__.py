@@ -5,6 +5,7 @@ from src.config.base import init_env
 from src.config.db_conf import DbConnectionSettings
 from src.config.env_conf import EnvSettings, Mode
 from src.config.app_conf import AppConfig
+from src.config.file_keys_conf import FileKeysConf, FilePathAndKey
 from src.config.miscellaneous_conf import MiscellaneousConf
 from src.config.paths_conf import PathSettings
 from src.config.secrets_conf import load_secrets
@@ -43,6 +44,13 @@ class Config:
             db_password=self.secrets.db_password,
             db_host=self.env.db_host,
             db_name=self.env.db_name
+        )
+        self.file_keys = FileKeysConf(
+            example_zip_for_universal_import_key=FilePathAndKey(
+                key="example_zip_for_universal_import",
+                path=self.paths.files_dir / "example_zip_for_universal_import.zip",
+                name_in_dir_with_files="example_zip_for_universal_import.zip"
+            )
         )
 
 

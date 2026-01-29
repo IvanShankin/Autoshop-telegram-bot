@@ -277,7 +277,7 @@ def get_example_import_product_kb(language: str, category_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(
-                text=get_text(language, 'kb_general', "Get example"),
+                text=get_text(language, 'kb_admin_panel', "Get example"),
                 callback_data=f"get_example_import_universals"
             )
         ],

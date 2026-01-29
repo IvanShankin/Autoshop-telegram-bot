@@ -107,7 +107,7 @@ async def _persist_product(
         language=default_lang,
         storage_uuid=prepared.storage_uuid,
         file_path=prepared.file_path,
-        original_filename=prepared.file_path,
+        original_filename=prepared.original_filename,
         checksum=prepared.checksum,
         encrypted_key=prepared.encrypted_key_b64,
         encrypted_key_nonce=prepared.encrypted_key_nonce,

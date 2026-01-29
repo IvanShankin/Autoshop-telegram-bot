@@ -292,11 +292,11 @@ msgstr "Аккаунты дубликаты"
 msgid "Account upload has begun. Wait for the message about the completion of the upload"
 msgstr "Выгрузка аккаунтов начата. Дождитесь сообщения об окончании выгрузке"
 
-msgid "Account upload complete"
-msgstr "Выгрузка аккаунтов закончена"
+msgid "Products upload complete"
+msgstr "Выгрузка товаров закончена"
 
-msgid "Account not found!"
-msgstr "Аккаунты не найдены!"
+msgid "Products not found!"
+msgstr "Продукты не найдены!"
 
 msgid "Are you sure you want to permanently delete all products currently on sale?"
 "\n\nNote: They will be uploaded to this chat before deletion"

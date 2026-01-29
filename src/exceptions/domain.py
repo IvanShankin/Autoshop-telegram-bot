@@ -30,6 +30,9 @@ class AccountCategoryNotFound(Exception):
 class ProductAccountNotFound(Exception):
     pass
 
+class ProductNotFound(Exception):
+    pass
+
 class ArchiveNotFount(Exception):
     pass
 

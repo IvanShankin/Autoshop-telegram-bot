@@ -11,7 +11,7 @@ from src.services.database.categories.actions import add_account_storage, add_pr
     update_account_storage
 from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.filesystem.actions import extract_archive_to_temp, make_archive
-from src.services.filesystem.input_account import encrypted_tg_account, cleanup_used_data, archive_if_not_empty
+from src.services.filesystem.account_products import encrypted_tg_account, cleanup_used_data, archive_if_not_empty
 from src.services.products.accounts.tg.actions import check_valid_accounts_telethon
 from src.services.products.accounts.tg.shemas import ArchiveProcessingResult, ArchivesBatchResult, BaseAccountProcessingResult, \
      DirsBatchResult, ImportResult

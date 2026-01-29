@@ -7,8 +7,7 @@ from src.exceptions import AccountCategoryNotFound, \
 from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category
 from src.modules.admin_actions.keyboards import delete_category_kb, back_in_category_kb, \
     delete_product_kb, in_category_editor_kb
-from src.modules.admin_actions.services import safe_get_category
-from src.modules.admin_actions.services import upload_account
+from src.modules.admin_actions.services import safe_get_category, upload_category
 from src.services.database.categories.actions import delete_category as delete_category_service, \
     delete_product_accounts_by_category
 from src.services.database.users.models import Users
@@ -86,7 +85,7 @@ async def delete_all_products(callback: CallbackQuery, user: Users):
     if not category:
         return
 
-    await upload_account(category, user, callback)
+    await upload_category(category, user, callback)
     await delete_product_accounts_by_category(category_id)
 
     await callback.answer("Products successfully deleted", show_alert=True)

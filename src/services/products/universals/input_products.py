@@ -2,12 +2,12 @@ import os.path
 import shutil
 import uuid
 from pathlib import Path
-from typing import List, Dict, Tuple
+from typing import List, Dict
 
 from src.config import get_config
 from src.exceptions import InvalidFormatRows, CategoryNotFound
 from src.exceptions.business import ImportUniversalFileNotFound, ImportUniversalInvalidMediaData
-from src.services.database.categories.actions import get_category_by_category_id, get_all_translations_category
+from src.services.database.categories.actions import get_all_translations_category
 from src.services.database.categories.actions.products.universal.actions_add import add_universal_storage, \
     add_translate_in_universal_storage, add_product_universal
 from src.services.database.categories.models import CategoryTranslation

@@ -2,28 +2,36 @@ from aiogram.types import CallbackQuery, FSInputFile, BufferedInputFile
 
 from src.bot_actions.messages import send_message
 from src.bot_actions.bot_instance import get_bot
-from src.exceptions import ProductAccountNotFound
+from src.exceptions import ProductAccountNotFound, ProductNotFound
 from src.modules.admin_actions.services.editor.category.category_loader import service_not_found
 from src.modules.admin_actions.keyboards import back_in_category_kb
+from src.services.database.categories.models.main_category_and_product import ProductType
 from src.services.products.accounts.other.upload_account import upload_other_account
 from src.services.products.accounts.tg.upload_account import upload_tg_account
 from src.services.database.categories.models import CategoryFull
 from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.database.users.models import Users
+from src.services.products.universals.upload_products import upload_universal_products
 from src.utils.i18n import get_text
 
-
-async def upload_account(category: CategoryFull, user: Users, callback: CallbackQuery):
-    bot = await get_bot()
-
+async def complete_upload(category: CategoryFull, user: Users):
     await send_message(
         user.user_id,
         get_text(
             user.language,
             "admins_editor_category",
-            "Account upload has begun. Wait for the message about the completion of the upload"
+            "Products upload complete"
+        ),
+        reply_markup=back_in_category_kb(
+            language=user.language,
+            category_id=category.category_id,
+            i18n_key="In category"
         )
     )
+
+
+async def _upload_account(category: CategoryFull, user: Users, callback: CallbackQuery):
+    bot = await get_bot()
 
     try:
         if category.type_account_service == AccountServiceType.TELEGRAM:
@@ -43,18 +51,39 @@ async def upload_account(category: CategoryFull, user: Users, callback: Callback
             await service_not_found(user, callback.message.message_id)
             return
     except ProductAccountNotFound:
-        await send_message(user.user_id, get_text(user.language, "admins_editor_category", "Account not found!"))
+        await send_message(user.user_id, get_text(user.language, "admins_editor_category", "Products not found!"))
 
+    await complete_upload(category, user)
+
+
+async def _upload_universal(category: CategoryFull, user: Users, callback: CallbackQuery):
+    bot = await get_bot()
+
+    try:
+        gen = upload_universal_products(category)
+        archive_path = await anext(gen)
+
+        file = FSInputFile(archive_path)
+        await bot.send_document(callback.from_user.id, document=file)
+
+        await anext(gen) # удаление
+    except ProductNotFound:
+        await send_message(user.user_id, get_text(user.language, "admins_editor_category", "Products not found!"))
+
+    await complete_upload(category, user)
+
+
+async def upload_category(category: CategoryFull, user: Users, callback: CallbackQuery):
     await send_message(
         user.user_id,
         get_text(
             user.language,
             "admins_editor_category",
-            "Account upload complete"
-        ),
-        reply_markup=back_in_category_kb(
-            language=user.language,
-            category_id=category.category_id,
-            i18n_key="In category"
+            "Account upload has begun. Wait for the message about the completion of the upload"
         )
     )
+
+    if category.product_type == ProductType.ACCOUNT:
+        await _upload_account(category, user, callback)
+    elif category.product_type == ProductType.UNIVERSAL:
+        await _upload_universal(category, user, callback)

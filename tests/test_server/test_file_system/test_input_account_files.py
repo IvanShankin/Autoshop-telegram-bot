@@ -59,7 +59,7 @@ async def test_make_archive_nonexistent_source():
 
 @pytest.mark.asyncio
 async def test_encrypted_tg_account_success(tmp_path):
-    from src.services.filesystem.input_account import encrypted_tg_account
+    from src.services.filesystem.account_products import encrypted_tg_account
     src_dir = tmp_path / "account"
     src_dir.mkdir()
     (src_dir / "file.txt").write_text("test")
@@ -76,7 +76,7 @@ async def test_encrypted_tg_account_success(tmp_path):
 
 @pytest.mark.asyncio
 async def test_archive_if_not_empty_creates_archive(tmp_path):
-    from src.services.filesystem.input_account import archive_if_not_empty
+    from src.services.filesystem.account_products import archive_if_not_empty
     d = tmp_path / "folder"
     d.mkdir()
     (d / "file.txt").write_text("data")
@@ -88,7 +88,7 @@ async def test_archive_if_not_empty_creates_archive(tmp_path):
 
 @pytest.mark.asyncio
 async def test_archive_if_not_empty_empty_dir(tmp_path):
-    from src.services.filesystem.input_account import archive_if_not_empty
+    from src.services.filesystem.account_products import archive_if_not_empty
     d = tmp_path / "empty"
     d.mkdir()
     archive_path = await archive_if_not_empty(str(d))
@@ -98,7 +98,7 @@ async def test_archive_if_not_empty_empty_dir(tmp_path):
 
 @pytest.mark.asyncio
 async def test_cleanup_used_data(tmp_path):
-    from src.services.filesystem.input_account import cleanup_used_data
+    from src.services.filesystem.account_products import cleanup_used_data
     # создаём папки и файлы
     base_dir = tmp_path / "base"
     base_dir.mkdir()
@@ -137,7 +137,7 @@ async def test_cleanup_used_data(tmp_path):
 
 
 def test_make_csv_bytes_happy_path():
-    from src.services.filesystem.input_account import make_csv_bytes
+    from src.services.filesystem.account_products import make_csv_bytes
     data = [
         {"phone": "+79991234567", "login": "user1", "password": "p1"},
         {"phone": "+380501234567", "login": "user2", "password": "p2"},
@@ -155,6 +155,6 @@ def test_make_csv_bytes_happy_path():
 
 
 def test_make_csv_bytes_empty_raises():
-    from src.services.filesystem.input_account import make_csv_bytes
+    from src.services.filesystem.account_products import make_csv_bytes
     with pytest.raises(ValueError):
         make_csv_bytes([], [])

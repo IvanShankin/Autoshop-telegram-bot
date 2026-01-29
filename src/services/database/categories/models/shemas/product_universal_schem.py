@@ -11,7 +11,7 @@ class UniversalStoragePydantic(BaseModel):
     universal_storage_id: int
     storage_uuid: str
 
-    file_path: Optional[str] = None
+    file_path: Optional[str] = None     # относительный путь
     original_filename: Optional[str] = None
     encrypted_tg_file_id: Optional[str] = None
     encrypted_tg_file_id_nonce: Optional[str] = None
@@ -43,6 +43,7 @@ class UniversalStoragePydantic(BaseModel):
             storage_uuid=universal_storage.storage_uuid,
 
             file_path=universal_storage.file_path,
+            original_filename=universal_storage.original_filename,
             encrypted_tg_file_id=universal_storage.encrypted_tg_file_id,
             encrypted_tg_file_id_nonce=universal_storage.encrypted_tg_file_id_nonce,
             checksum=universal_storage.checksum,

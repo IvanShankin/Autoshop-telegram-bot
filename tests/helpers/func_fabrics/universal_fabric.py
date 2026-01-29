@@ -25,7 +25,7 @@ async def _make_encrypted_universal_storage_file(
     status: UniversalStorageStatus,
     uuid: str,
     file_path: str = None
-):
+) -> Path:
     from src.services.products.universals.actions import create_path_universal_storage
     if file_path is None:
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=".enc") as f:
@@ -35,11 +35,11 @@ async def _make_encrypted_universal_storage_file(
 
     encrypt_file(
         file_path=file_path,
-        encrypted_path=create_path_universal_storage(status, uuid, ),
+        encrypted_path=create_path_universal_storage(status, uuid),
         dek=dek,
     )
 
-    return str(Path(status.value) / Path(uuid) / Path("file.enc"))
+    return Path(status.value) / Path(uuid) / Path("file.enc")
 
 
 async def create_universal_storage_factory(
@@ -76,7 +76,7 @@ async def create_universal_storage_factory(
 
 
     if file_path is True:
-        file_path = await _make_encrypted_universal_storage_file(dek=key, status=status, uuid=storage_uuid)
+        file_path = str(await _make_encrypted_universal_storage_file(dek=key, status=status, uuid=storage_uuid))
 
 
     async with get_db() as session_db:

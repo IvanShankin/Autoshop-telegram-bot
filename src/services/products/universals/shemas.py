@@ -29,3 +29,8 @@ class PreparedUniversalProduct:
     encrypted_key_b64: str
     encrypted_key_nonce: str
     encrypted_descriptions: Dict[str, Tuple[str, str]]
+
+
+class UploadUniversalProduct(BaseModel):
+    file_name: str
+    descriptions: Dict[str, str] # Dict[код языка, описание]

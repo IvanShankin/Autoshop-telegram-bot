@@ -1,6 +1,6 @@
 from src.config import get_config
 from src.services.database.users.actions.action_other_with_user import get_all_user_audit_logs
-from src.services.filesystem.input_account import make_csv_bytes
+from src.services.filesystem.account_products import make_csv_bytes
 
 
 async def get_user_audit_log_bites(user_id: int) -> bytes:

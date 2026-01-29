@@ -1,7 +1,7 @@
 import os.path
 import pytest
 
-from src.services.filesystem.input_universal import generate_example_zip_for_import
+from src.services.filesystem.universals_products import generate_example_zip_for_import
 
 
 @pytest.mark.asyncio

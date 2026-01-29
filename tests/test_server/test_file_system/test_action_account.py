@@ -164,7 +164,7 @@ async def test_encrypt_decrypt_directory_roundtrip(
     Полный round-trip:
     directory -> encrypt -> decrypt -> directory
     """
-    from src.services.filesystem.input_account import encrypted_tg_account
+    from src.services.filesystem.account_products import encrypted_tg_account
     from src.services.filesystem.account_actions import decryption_tg_account
 
     conf = get_config()

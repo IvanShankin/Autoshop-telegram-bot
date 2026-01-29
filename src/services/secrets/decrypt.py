@@ -67,3 +67,26 @@ def decrypt_folder(encrypted_path: str, dek: bytes) -> str:
     os.remove(tmp_zip.name)
     return extract_dir
 
+
+def decrypt_file(
+    dek: bytes,
+    encrypted_path: str,
+    decrypted_path: str,
+):
+    """
+    Дешифрует файл. Открывает файл полностью!
+    :param encrypted_path: Путь к зашифрованному файлу
+    :param decrypted_path: Путь к файлу который будет создан после дешифрации
+    :return:
+    """
+    with open(encrypted_path, "rb") as f:
+        encrypted_data = f.read()
+
+    decrypted_data = decrypt_bytes(encrypted_data, dek)
+
+    decrypted_dir = os.path.dirname(decrypted_path)
+    if decrypted_dir:  # Проверяем, что путь содержит директорию
+        os.makedirs(decrypted_dir, exist_ok=True)
+
+    with open(decrypted_path, "wb") as f:
+        f.write(decrypted_data)

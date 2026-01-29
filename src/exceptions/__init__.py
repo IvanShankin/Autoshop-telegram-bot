@@ -31,7 +31,7 @@ from src.exceptions.domain import (
     AccountCategoryNotFound,
     ProductAccountNotFound,
     ArchiveNotFount,
-    DirNotFount,
+    DirNotFount, ProductNotFound,
 )
 # Инфраструктурные исключения
 from src.exceptions.infrastructure import (
@@ -55,6 +55,7 @@ __all__ = [
     'AdminNotFound',
     'AccountCategoryNotFound',
     'ProductAccountNotFound',
+    'ProductNotFound',
     'ArchiveNotFount',
     'DirNotFount',
 

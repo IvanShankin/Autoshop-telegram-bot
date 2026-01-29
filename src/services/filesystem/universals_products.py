@@ -4,10 +4,11 @@ import os.path
 import shutil
 import zipfile
 from pathlib import Path
+from typing import List
 
 from src.config import get_config
-from src.services.filesystem.actions import get_default_image_bytes
-from src.services.products.universals.shemas import get_import_universal_headers
+from src.services.filesystem.actions import get_default_image_bytes, create_temp_dir
+from src.services.products.universals.shemas import get_import_universal_headers, UploadUniversalProduct
 
 
 async def generate_example_zip_for_import() -> Path:
@@ -81,3 +82,47 @@ async def generate_example_zip_for_import() -> Path:
         )
 
     return zip_path
+
+
+def create_import_zip(
+    base_dir: Path,
+    zip_path: Path
+) -> None:
+    """
+    Упаковывает manifest.csv и files/ в zip
+    """
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for path in base_dir.rglob("*"):
+            if path.is_file():
+                zipf.write(
+                    path,
+                    arcname=path.relative_to(base_dir)
+                )
+
+
+def create_manifest_csv(
+    csv_path: Path,
+    headers: List[str],
+    products: List[UploadUniversalProduct]
+) -> None:
+    """
+    Создаёт manifest.csv с товарами
+    """
+    with csv_path.open("w", newline="", encoding="utf-8-sig") as f:
+        writer = csv.DictWriter(
+            f,
+            fieldnames=headers,
+            delimiter=";",
+            quoting=csv.QUOTE_MINIMAL
+        )
+        writer.writeheader()
+
+        for product in products:
+            row = {"filename": product.file_name or ""}
+
+            for header in headers:
+                if header.startswith("description_"):
+                    lang = header.replace("description_", "")
+                    row[header] = product.descriptions.get(lang, "")
+
+            writer.writerow(row)

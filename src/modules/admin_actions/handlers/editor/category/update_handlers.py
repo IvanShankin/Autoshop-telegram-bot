@@ -13,10 +13,7 @@ from src.modules.admin_actions.keyboards.editors.category_kb import back_in_cate
     select_account_service_type, select_product_type, select_universal_media_type
 from src.modules.admin_actions.schemas import UpdateNameForCategoryData, \
     UpdateDescriptionForCategoryData, UpdateCategoryOnlyId
-from src.modules.admin_actions.services import safe_get_category
-from src.modules.admin_actions.services import update_data
-from src.modules.admin_actions.services import update_message_query_data
-from src.modules.admin_actions.services import upload_account
+from src.modules.admin_actions.services import safe_get_category, update_data, update_message_query_data, upload_category
 from src.modules.admin_actions.services.editor.category.category_updater import update_category_storage
 from src.modules.admin_actions.services.editor.category.show_message import show_category_update_data
 from src.modules.admin_actions.state import UpdateNameForCategory, \
@@ -435,4 +432,4 @@ async def category_upload_products(callback: CallbackQuery, user: Users):
     if not category:
         return
 
-    await upload_account(category, user, callback)
+    await upload_category(category, user, callback)

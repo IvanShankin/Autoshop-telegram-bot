@@ -182,6 +182,7 @@ async def verify_reserved_universal_different(
                     q = (
                         select(ProductUniversal)
                         .options(selectinload(ProductUniversal.storage).selectinload(UniversalStorage.translations))
+                        .join(ProductUniversal.storage)
                         .where(
                             (ProductUniversal.category_id == bad_queue[0].category_id) &  # выбираем по категории текущей «дыры»
                             (UniversalStorage.is_active == True) &

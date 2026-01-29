@@ -67,15 +67,15 @@ async def show_category_admin_kb(
 
     if category.is_product_storage:
         keyboard.row(InlineKeyboardButton(
-            text=get_text(language, "kb_admin_panel", "Delete all accounts"),
+            text=get_text(language, "kb_admin_panel", "Delete all products"),
             callback_data=f'confirm_del_all_products:{category_id}')
         )
         keyboard.row(InlineKeyboardButton(
-            text=get_text(language, "kb_admin_panel", "Unload all accounts"),
+            text=get_text(language, "kb_admin_panel", "Unload all products"),
             callback_data=f'category_upload_products:{category_id}')
         )
         keyboard.row(InlineKeyboardButton(
-            text=get_text(language, "kb_admin_panel", "Load accounts"),
+            text=get_text(language, "kb_admin_panel", "Load products"),
             callback_data=f'category_load_products:{category_id}')
         )
 
@@ -143,11 +143,11 @@ def change_category_data_kb(language: str, category_id: int, is_product_storage:
 
     if is_product_storage:
         keyboard.row(InlineKeyboardButton(
-            text=get_text(language, "kb_admin_panel", 'Price one account'),
+            text=get_text(language, "kb_admin_panel", 'Price one product'),
             callback_data=f'category_update_price:{category_id}')
         )
         keyboard.row(InlineKeyboardButton(
-            text=get_text(language, "kb_admin_panel", 'Cost Price one account'),
+            text=get_text(language, "kb_admin_panel", 'Cost Price one product'),
             callback_data=f'category_update_cost_price:{category_id}')
         )
 
@@ -270,6 +270,23 @@ def delete_category_kb(language: str, category_id: int):
             text=get_text(language, "kb_general", "Back"),
             callback_data=f'show_category_admin:{category_id}'
         )]
+    ])
+
+
+def get_example_import_product_kb(language: str, category_id: int):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text=get_text(language, 'kb_general', "Get example"),
+                callback_data=f"get_example_import_universals"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text=get_text(language, 'kb_general', "Back"),
+                callback_data=f'show_category_admin:{category_id}'
+            )
+        ]
     ])
 
 

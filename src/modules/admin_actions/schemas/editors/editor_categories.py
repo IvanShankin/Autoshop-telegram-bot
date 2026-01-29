@@ -35,3 +35,7 @@ class UpdateCategoryOnlyId(BaseModel):
 class ImportAccountsData(BaseModel):
     category_id: int
     type_account_service: AccountServiceType
+
+
+class ImportUniversalsData(BaseModel):
+    category_id: int

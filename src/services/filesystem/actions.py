@@ -2,6 +2,7 @@ import asyncio
 import os
 import shutil
 import tempfile
+import uuid
 import zipfile
 from io import BytesIO
 from PIL import Image
@@ -255,3 +256,12 @@ def get_default_image_bytes(color: str = "white", size: tuple[int, int] = (500, 
     buf = BytesIO()
     img.save(buf, format="PNG")
     return buf.getvalue()
+
+
+def create_temp_dir(name: str = None) -> Path:
+    conf = get_config()
+
+    temp_dir_path = conf.paths.temp_file_dir / str(name if name else uuid.uuid4())
+    os.mkdir(temp_dir_path)
+
+    return temp_dir_path

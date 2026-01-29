@@ -144,6 +144,7 @@ async def _import_in_db(
     files_dir: Path,
     category_id: int
 ):
+    total_added = 0
     crypto = get_crypto_context()
 
     translations = await get_all_translations_category(category_id)
@@ -164,13 +165,16 @@ async def _import_in_db(
             media_type=media_type,
             category_id=category_id
         )
+        total_added += 1
+
+    return total_added
 
 
 async def input_universal_products(
     path_to_archive: str,
     media_type: UniversalMediaType,
     category_id: int,
-):
+) -> int:
     """
     :param path_to_archive:
     :param media_type:
@@ -179,6 +183,7 @@ async def input_universal_products(
     :except ImportUniversalFileNotFound: Если указанный файл в .csv не найден.
     :except ImportUniversalInvalidMediaData: Если данные в файле .csv не совпадают с `media_type`.
     :except CategoryNotFound: Если категория не найдена.
+    :return int: Число добавленных продуктов.
     """
     if not os.path.isfile(path_to_archive):
         raise FileNotFoundError("Архив не найден")
@@ -201,6 +206,7 @@ async def input_universal_products(
         raise InvalidFormatRows()
 
     new_products: List[UniversalProductsParse] = []
+    total_added = 0
 
     try:
         for i, row in enumerate(reader, start=1):
@@ -217,7 +223,7 @@ async def input_universal_products(
 
             new_products.append(new_prod)
 
-        await _import_in_db(
+        total_added = await _import_in_db(
             new_products=new_products,
             media_type=media_type,
             files_dir=files_dir,
@@ -228,4 +234,6 @@ async def input_universal_products(
         raise e
 
     shutil.rmtree(unpacked_archive, ignore_errors=True)
+
+    return total_added
 

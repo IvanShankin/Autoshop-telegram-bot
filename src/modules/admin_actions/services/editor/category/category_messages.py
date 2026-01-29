@@ -14,7 +14,7 @@ async def message_info_load_file(user: Users) -> AsyncGenerator[Message, None]:
         get_text(
             user.language,
             "admins_editor_category",
-            "Please wait for the accounts to load and don't touch anything!"
+            "Please wait for the products to load and don't touch anything!"
         )
     )
     message_info = await send_message(
@@ -30,7 +30,7 @@ async def message_info_load_file(user: Users) -> AsyncGenerator[Message, None]:
         get_text(
             user.language,
             "admins_editor_category",
-            "The file has been successfully uploaded. The accounts are currently being checked for validity and integrated into the bot"
+            "The file has been successfully uploaded. The products are currently being checked for validity and integrated into the bot"
         )
     )
 
@@ -49,7 +49,7 @@ def make_result_msg(
     result_message = get_text(
         user.language,
         "admins_editor_category",
-        "Account integration was successful. \n\nSuccessfully added: {successfully_added} \nTotal processed: {total_processed}"
+        "Products integration was successful. \n\nSuccessfully added: {successfully_added} \nTotal processed: {total_processed}"
     ).format(successfully_added=successfully_added, total_processed=total_processed)
     if mark_invalid_acc:
         result_message += get_text(

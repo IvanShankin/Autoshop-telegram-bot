@@ -11,17 +11,25 @@ from src.bot_actions.messages import edit_message, send_message, send_log
 from src.bot_actions.bot_instance import get_bot
 from src.config import get_config
 from src.exceptions import TypeAccountServiceNotFound, InvalidFormatRows
+from src.exceptions.business import ImportUniversalInvalidMediaData, ImportUniversalFileNotFound
 from src.modules.admin_actions.keyboards import back_in_category_kb, \
     name_or_description_kb
+from src.modules.admin_actions.keyboards.editors.category_kb import get_example_import_product_kb
 from src.modules.admin_actions.schemas import ImportAccountsData
+from src.modules.admin_actions.schemas.editors.editor_categories import ImportUniversalsData
 from src.modules.admin_actions.services import safe_get_category, service_not_found
 from src.modules.admin_actions.services import message_info_load_file, make_result_msg
 from src.modules.admin_actions.services import check_valid_file, check_category_is_acc_storage
 from src.modules.admin_actions.state import ImportTgAccounts, ImportOtherAccounts
+from src.modules.admin_actions.state.editors.editor_categories import ImportUniversalProducts
+from src.services.database.categories.models.main_category_and_product import ProductType
+from src.services.filesystem.actions import create_temp_dir
 from src.services.products.accounts.other.input_account import input_other_account
 from src.services.products.accounts.tg.input_account import import_telegram_accounts_from_archive
 from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.database.users.models import Users
+from src.services.products.universals.input_products import input_universal_products
+from src.services.products.universals.shemas import get_import_universal_headers
 from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text
 
@@ -34,41 +42,55 @@ async def category_load_products(callback: CallbackQuery, state: FSMContext, use
     category = await safe_get_category(category_id, user=user, callback=None)
     if not category:
         return
-
-    if category.type_account_service == AccountServiceType.TELEGRAM:
+    if category.product_type == ProductType.ACCOUNT:
+        if category.type_account_service == AccountServiceType.TELEGRAM:
+            await edit_message(
+                chat_id=user.user_id,
+                message_id=callback.message.message_id,
+                message=get_text(
+                    user.language,
+                    "admins_editor_category",
+                    "Send the archive with the exact folder and archive structure as shown in the photo"
+                ),
+                image_key="info_add_accounts",
+                reply_markup=back_in_category_kb(user.language, category_id)
+            )
+            await state.set_state(ImportTgAccounts.archive)
+            await state.update_data(category_id=category_id, type_account_service=category.type_account_service)
+        elif category.type_account_service == AccountServiceType.OTHER:
+            await edit_message(
+                chat_id=user.user_id,
+                message_id=callback.message.message_id,
+                message=get_text(
+                    user.language,
+                    "admins_editor_category",
+                    "Send a file with the '.csv' extension.\n\n"
+                    "It must have the structure shown in the photo.\n"
+                    "Please pay attention to the headers; they must be strictly followed!\n\n"
+                    "Required Headers (can be copied):\n'<code>phone</code>', '<code>login</code>', '<code>password</code>'\n\n"
+                    "Note: To create a '.csv' file, create an exal workbook and save it as '.csv'"
+                ),
+                image_key="example_csv",
+                reply_markup=back_in_category_kb(user.language, category_id)
+            )
+            await state.set_state(ImportOtherAccounts.csv_file)
+            await state.update_data(category_id=category_id, type_account_service=category.type_account_service)
+        else:
+            await service_not_found(user, callback.message.message_id)
+    elif category.product_type == ProductType.UNIVERSAL:
+        headers_csv = [f"<code>{head}</code>" for head in get_import_universal_headers()]
         await edit_message(
             chat_id=user.user_id,
             message_id=callback.message.message_id,
             message=get_text(
                 user.language,
                 "admins_editor_category",
-                "Send the archive with the exact folder and archive structure as shown in the photo"
-            ),
-            image_key="info_add_accounts",
-            reply_markup=back_in_category_kb(user.language, category_id)
+                "universal_products_import_instructions"
+            ).format(headers_csv=str(headers_csv), media_type=str(category.media_type.name)),
+            reply_markup=get_example_import_product_kb(user.language, category_id)
         )
-        await state.set_state(ImportTgAccounts.archive)
-        await state.update_data(category_id=category_id, type_account_service=category.type_account_service)
-    elif category.type_account_service == AccountServiceType.OTHER:
-        await edit_message(
-            chat_id=user.user_id,
-            message_id=callback.message.message_id,
-            message=get_text(
-                user.language,
-                "admins_editor_category",
-                "Send a file with the '.csv' extension.\n\n"
-                "It must have the structure shown in the photo.\n"
-                "Please pay attention to the headers; they must be strictly followed!\n\n"
-                "Required Headers (can be copied):\n'<code>phone</code>', '<code>login</code>', '<code>password</code>'\n\n"
-                "Note: To create a '.csv' file, create an exal workbook and save it as '.csv'"
-            ),
-            image_key="example_csv",
-            reply_markup=back_in_category_kb(user.language, category_id)
-        )
-        await state.set_state(ImportOtherAccounts.csv_file)
-        await state.update_data(category_id=category_id, type_account_service=category.type_account_service)
-    else:
-        await service_not_found(user, callback.message.message_id)
+        await state.set_state(ImportUniversalProducts.archive)
+        await state.update_data(category_id=category_id)
 
 
 @router.callback_query(F.data.startswith("choice_lang_category_data:"))
@@ -279,6 +301,95 @@ async def import_other_account(message: Message, state: FSMContext, user: Users)
         await service_not_found(user)
     except Exception as e:
         text = f"#Ошибка_при_добавлении_аккаунтов  [import_other_account]. \nОшибка='{str(e)}'"
+        logger = get_logger(__name__)
+        logger.exception(text)
+        await send_log(text)
+        await send_message(
+            message.from_user.id,
+            get_text(user.language,"admins_editor_category", "An error occurred inside the server, see the logs!")
+        )
+
+
+@router.message(ImportUniversalProducts.archive, F.document)
+async def import_universal_products(message: Message, state: FSMContext, user: Users):
+    data = ImportUniversalsData(**(await state.get_data()))
+    category = await safe_get_category(data.category_id, user=user, callback=None)
+    if not category:
+        return
+
+    await check_category_is_acc_storage(category, user)
+
+    doc = message.document
+    valid_file = await check_valid_file(
+        doc=doc,
+        user=user,
+        state=state,
+        expected_formats=["zip"],
+        set_state=ImportUniversalProducts.archive
+    )
+    if not valid_file:
+        return
+
+    gen_mes_info = message_info_load_file(user)
+    await gen_mes_info.__anext__()
+
+    temp_dir = create_temp_dir()
+    archive_path = Path(temp_dir) / doc.file_name
+
+    file = await message.bot.get_file(doc.file_id)
+    await message.bot.download_file(
+        file_path=file.file_path,
+        destination=archive_path
+    )
+
+    if not archive_path.exists() or archive_path.stat().st_size == 0:
+        raise InvalidFormatRows("Не удалось скачать архив")
+
+    message_info = await gen_mes_info.__anext__()
+
+    try:
+        total_added = await input_universal_products(
+            path_to_archive=str(archive_path),
+            media_type=category.media_type,
+            category_id=category.category_id
+        )
+        await edit_message(
+            chat_id=user.user_id,
+            message_id=message_info.message_id,
+            message=get_text(
+                user.language,
+                "admins_editor_category",
+                "Products integration was successful. \n\nSuccessfully added: {successfully_added} \nTotal processed: {total_processed}"
+            ).format(successfully_added=total_added, total_processed=total_added),
+            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="In category")
+        )
+
+    except ImportUniversalFileNotFound as e:
+        await edit_message(
+            chat_id=user.user_id,
+            message_id=message_info.message_id,
+            message=get_text(
+                user.language,
+                "admins_editor_category",
+                "error_import_universal_file_not_found"
+            ).format(file_name=e.file_name),
+            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="In category")
+        )
+        await state.set_state(ImportUniversalProducts.archive)
+    except ImportUniversalInvalidMediaData:
+        await edit_message(
+            chat_id=user.user_id,
+            message_id=message_info.message_id,
+            message=get_text(
+                user.language,
+                "admins_editor_category",
+                "error_import_universal_media_type"
+            ).format(media_type=str(category.media_type.name)),
+            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="In category")
+        )
+        await state.set_state(ImportUniversalProducts.archive)
+    except Exception as e:
+        text = f"#Ошибка_при_добавлении_товара  [import_universal_products]. \nОшибка='{str(e)}'"
         logger = get_logger(__name__)
         logger.exception(text)
         await send_log(text)

@@ -38,3 +38,7 @@ class ImportTgAccounts(StatesGroup):
 
 class ImportOtherAccounts(StatesGroup):
     csv_file = State()
+
+
+class ImportUniversalProducts(StatesGroup):
+    archive = State()

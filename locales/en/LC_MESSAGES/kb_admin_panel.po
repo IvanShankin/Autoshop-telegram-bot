@@ -63,8 +63,8 @@ msgstr "Убрать хранилище"
 msgid "Update data"
 msgstr "Изменить данные"
 
-msgid "Load accounts"
-msgstr "Загрузить аккаунты"
+msgid "Load products"
+msgstr "Загрузить продукты"
 
 
 msgid "Name / Description"
@@ -79,11 +79,11 @@ msgstr "Описание"
 msgid "Image"
 msgstr "Фото"
 
-msgid "Price one account"
-msgstr "Цена одного аккаунта"
+msgid "Price one product"
+msgstr "Цена одного продукта"
 
-msgid "Cost Price one account"
-msgstr "Себестоимость одного аккаунта"
+msgid "Cost Price one product"
+msgstr "Себестоимость одного продукта"
 
 msgid "Number button in row"
 msgstr "Число кнопок в строке"
@@ -94,11 +94,11 @@ msgstr "{indicator} Показывать по умолчанию"
 msgid "To the data"
 msgstr "К данным"
 
-msgid "Delete all accounts"
-msgstr "Удалить все аккаунты"
+msgid "Delete all products"
+msgstr "Удалить все продукты"
 
-msgid "Unload all accounts"
-msgstr "Выгрузить все аккаунты"
+msgid "Unload all products"
+msgstr "Выгрузить все продукты"
 
 
 msgid "Edit commission"

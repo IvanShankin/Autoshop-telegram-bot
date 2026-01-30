@@ -164,7 +164,7 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
         return
 
 
-    save_path = str(Path(get_config().paths.temp_file_dir) / doc.file_name)
+    save_path = str(Path(get_config().paths.temp_dir) / doc.file_name)
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     file = await message.bot.get_file(doc.file_id) # Получаем объект файла
 

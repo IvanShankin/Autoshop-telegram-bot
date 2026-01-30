@@ -1,6 +1,8 @@
 import asyncio
 import os
 import sys
+from pathlib import Path
+
 import aio_pika
 
 from contextlib import suppress
@@ -10,14 +12,12 @@ from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from src.config import init_config, get_config, set_config
+from src.utils.core_logger import setup_logging
 from tests.helpers.monkeypatch_data import (
     replacement_redis,
     replacement_fake_bot,
-    replacement_pyth_product,
-    replacement_pyth_ui_image,
-    replacement_pyth_sent_mass_msg_image,
     create_crypto_context_fix,
-    fake_storage,
+    fake_storage, replace_paths,
 )
 
 
@@ -53,8 +53,8 @@ async def replacement_needed_modules(
         replacement_redis_fix,
         replacement_fake_bot_fix,
         patch_fake_aiogram,
-        replacement_pyth_ui_image_fix,
-        replacement_pyth_sent_mass_msg_image_fix,
+        replacement_paths_fix,
+        replacement_logger_fix,
 ):
     """Заменит все необходимые модули"""
     yield
@@ -68,27 +68,21 @@ async def replacement_redis_fix(monkeypatch):
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
-async def replacement_fake_bot_fix(monkeypatch, replacement_pyth_ui_image_fix):
+async def replacement_fake_bot_fix(monkeypatch, replacement_paths_fix):
     return replacement_fake_bot(monkeypatch)
 
 
-@pytest_asyncio.fixture(scope="function", autouse=True)
-async def replacement_pyth_product_fix(monkeypatch, replacement_pyth_ui_image_fix):
-    for _ in replacement_pyth_product():
-        yield
+@pytest_asyncio.fixture(scope="session")
+async def replacement_logger_fix():
+    path_log_file = get_config().paths.log_file
+    new_path = path_log_file.parent / Path("auto_shop_bot_tests.log")
+    setup_logging(new_path)
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
-async def replacement_pyth_ui_image_fix(monkeypatch, tmp_path):
-    for _ in replacement_pyth_ui_image(tmp_path):
+async def replacement_paths_fix():
+    for _ in replace_paths():
         yield
-
-
-@pytest_asyncio.fixture(scope="function", autouse=True)
-async def replacement_pyth_sent_mass_msg_image_fix(monkeypatch, tmp_path):
-    for _ in replacement_pyth_sent_mass_msg_image(tmp_path):
-        yield
-
 
 
 @pytest_asyncio.fixture(scope='function', autouse=True)

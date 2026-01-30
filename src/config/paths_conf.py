@@ -18,7 +18,7 @@ class PathSettings(BaseModel):
     accounts_dir: Path
     universals_dir: Path
 
-    temp_file_dir: Path
+    temp_dir: Path
     sent_mass_msg_image_dir: Path
     ui_sections_dir: Path
 
@@ -65,7 +65,7 @@ class PathSettings(BaseModel):
             products_dir=products,
             accounts_dir=products / Path("accounts"),
             universals_dir=products / Path("universals"),
-            temp_file_dir=media / Path("temp"),
+            temp_dir=media / Path("temp"),
             sent_mass_msg_image_dir=media / Path("sent_mass_msg_image"),
             ui_sections_dir=media  / Path("ui_sections"),
 

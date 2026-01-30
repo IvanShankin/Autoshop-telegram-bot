@@ -12,7 +12,6 @@ from src.services.database.core import get_db
 
 @pytest.mark.asyncio
 async def test_check_account_validity_async_success(
-    replacement_pyth_product_fix,
     patch_fake_aiogram,
     create_product_account,
     create_category,

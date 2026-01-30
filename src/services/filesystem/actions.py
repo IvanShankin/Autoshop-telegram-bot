@@ -237,7 +237,7 @@ async def split_file_on_chunk(file_path: str) -> AsyncGenerator[str, None]:
             if not chunk:
                 break
 
-            temp_path = get_config().paths.temp_file_dir / f"log_file_part_{part}.log"
+            temp_path = get_config().paths.temp_dir / f"log_file_part_{part}.log"
             with open(temp_path, "wb") as out:
                 out.write(chunk)
 
@@ -261,7 +261,7 @@ def get_default_image_bytes(color: str = "white", size: tuple[int, int] = (500, 
 def create_temp_dir(name: str = None) -> Path:
     conf = get_config()
 
-    temp_dir_path = conf.paths.temp_file_dir / str(name if name else uuid.uuid4())
+    temp_dir_path = conf.paths.temp_dir / str(name if name else uuid.uuid4())
     os.mkdir(temp_dir_path)
 
     return temp_dir_path

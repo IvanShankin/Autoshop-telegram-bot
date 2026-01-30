@@ -27,7 +27,7 @@ class ProductUniversal(Base):
     __tablename__ = "product_universal"
 
     product_universal_id = Column(Integer, primary_key=True, autoincrement=True)
-    universal_storage_id = Column(ForeignKey("universal_storage.universal_storage_id"), nullable=False)
+    universal_storage_id = Column(ForeignKey("universal_storage.universal_storage_id", ondelete="CASCADE"), nullable=False)
     category_id = Column(ForeignKey("categories.category_id"), nullable=False)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -83,11 +83,11 @@ class UniversalStorage(Base):
     is_active = Column(Boolean, nullable=False, server_default=text("true")) # логическое удаление
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    sold_universal = relationship("SoldUniversal", back_populates="storage")
+    sold_universal = relationship("SoldUniversal", back_populates="storage", cascade="all, delete-orphan")
     purchase_request_universal = relationship("PurchaseRequestUniversal", back_populates="storage")
-    product = relationship("ProductUniversal", back_populates="storage")
-    deleted = relationship("DeletedUniversal", back_populates="storage")
-    translations = relationship("UniversalStorageTranslation", back_populates="storage")
+    product = relationship("ProductUniversal", back_populates="storage", cascade="all, delete-orphan")
+    deleted = relationship("DeletedUniversal", back_populates="storage", cascade="all, delete-orphan")
+    translations = relationship("UniversalStorageTranslation", back_populates="storage", cascade="all, delete-orphan")
 
 
     def _get_field_with_translation(self,field: Callable[[Any], Any], lang: str, fallback: str = None) -> str | None:
@@ -149,7 +149,7 @@ class SoldUniversal(Base):
 
     sold_universal_id = Column(Integer, primary_key=True, autoincrement=True)
     owner_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=False)
-    universal_storage_id = Column(ForeignKey("universal_storage.universal_storage_id"), nullable=False)
+    universal_storage_id = Column(ForeignKey("universal_storage.universal_storage_id", ondelete="CASCADE"), nullable=False)
 
     sold_at = Column(DateTime(timezone=True), server_default=func.now())
 

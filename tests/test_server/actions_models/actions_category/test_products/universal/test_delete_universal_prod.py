@@ -1,9 +1,11 @@
+from pathlib import Path
+
 import pytest
 from orjson import orjson
 from sqlalchemy import select
 
 from src.services.database.categories.models import ProductUniversal
-from src.services.database.categories.models.product_universal import SoldUniversal
+from src.services.database.categories.models.product_universal import SoldUniversal, UniversalStorage
 from src.services.database.core import get_db
 from src.services.redis.core_redis import get_redis
 
@@ -83,3 +85,62 @@ async def test_delete_sold_universal_success_and_error(create_sold_universal):
     # ошибка
     with pytest.raises(ValueError):
         await delete_sold_universal(9999999)
+
+
+
+@pytest.mark.asyncio
+async def test_delete_product_accounts_by_category_success(
+        monkeypatch,
+        tmp_path,
+        create_product_universal,
+        create_category,
+):
+    from src.services.database.categories.actions import delete_product_universal_by_category
+    from src.services.products.universals.actions import create_path_universal_storage
+
+    # Создаём категорию
+    category = await create_category(filling_redis=True)
+
+    # Создаём 2 product аккаунта
+    _, prod1 = await create_product_universal(
+        filling_redis=True,
+        category_id=category.category_id
+    )
+    _, prod2 = await create_product_universal(
+        filling_redis=True,
+        category_id=category.category_id
+    )
+
+    # Выполняем
+    await delete_product_universal_by_category(category.category_id)
+
+    #  Проверка БД
+    async with get_db() as s:
+        res = await s.execute(
+            select(UniversalStorage).where(
+                UniversalStorage.universal_storage_id.in_(
+                    [prod1.universal_storage_id, prod2.universal_storage_id]
+                )
+            )
+        )
+        assert res.scalars().all() == []
+
+        res_prod = await s.execute(
+            select(ProductUniversal).where(
+                ProductUniversal.product_universal_id.in_([prod1.product_universal_id, prod2.product_universal_id])
+            )
+        )
+        assert res_prod.scalars().all() == []
+
+    # Проверка удаления с диска
+    assert not Path(
+        create_path_universal_storage(prod1.universal_storage.status, prod1.universal_storage.storage_uuid)
+    ).exists()
+    assert not Path(
+        create_path_universal_storage(prod2.universal_storage.status, prod2.universal_storage.storage_uuid)
+    ).exists()
+
+    # Проверка Redis
+    async with get_redis() as r:
+        assert await r.get(f"product_universal:{prod1.product_universal_id}") is None
+        assert await r.get(f"product_universal:{prod2.product_universal_id}") is None

@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery
 
 from src.bot_actions.messages import edit_message
-from src.modules.profile.keyboard_profile import profile_settings_kb, settings_language_kb, \
+from src.modules.profile.keyboards import profile_settings_kb, settings_language_kb, \
     setting_notification_kb
 from src.services.database.users.actions import get_user, update_user
 from src.services.database.users.actions.action_other_with_user import get_notification, update_notification

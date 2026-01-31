@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery
 from src.bot_actions.messages import edit_message
 from src.bot_actions.bot_instance import get_bot
 from src.config import get_config
-from src.modules.profile.keyboard_profile import back_in_wallet_transactions_kb, back_in_accrual_ref_list_kb
+from src.modules.profile.keyboards import back_in_wallet_transactions_kb, back_in_accrual_ref_list_kb
 from src.services.database.discounts.actions import get_valid_voucher_by_page
 from src.services.database.referrals.actions import get_referral_lvl
 from src.services.database.referrals.models import IncomeFromReferrals

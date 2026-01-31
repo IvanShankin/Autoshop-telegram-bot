@@ -5,6 +5,7 @@ from src.services.database.admins.actions import check_admin
 from src.services.database.system.actions import get_settings
 from src.utils.i18n import get_text
 
+
 selecting_language = InlineKeyboardMarkup(
     inline_keyboard = [
             [InlineKeyboardButton(text = "Русский", callback_data="set_language_after_start:ru")],
@@ -24,6 +25,7 @@ async def main_kb(language: str, user_id: int):
         keyboard_builder.row(KeyboardButton(text=get_text(language, 'kb_start', 'Admin panel')))
 
     return keyboard_builder.as_markup(resize_keyboard=True)
+
 
 async def support_kb(language: str, support_username: str = None):
     if not support_username:

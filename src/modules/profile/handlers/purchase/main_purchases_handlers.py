@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery
 
 from src.bot_actions.messages import edit_message
-from src.modules.profile.keyboard_profile import type_product_in_purchases_kb
+from src.modules.profile.keyboards import type_product_in_purchases_kb
 from src.services.database.users.models import Users
 
 router = Router()

@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery, BufferedInputFile
 
 from src.bot_actions.messages import edit_message
 from src.bot_actions.bot_instance import get_bot
-from src.modules.profile.keyboard_profile import ref_system_kb, accrual_ref_list_kb, back_in_ref_system_kb
+from src.modules.profile.keyboards import ref_system_kb, accrual_ref_list_kb, back_in_ref_system_kb
 from src.modules.profile.services.profile_message import message_income_ref, message_ref_system
 from src.services.database.referrals.actions import get_all_referrals, get_income_from_referral
 from src.services.database.referrals.reports import generate_referral_report_excel

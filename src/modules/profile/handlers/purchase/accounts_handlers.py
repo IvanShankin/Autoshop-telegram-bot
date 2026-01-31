@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery
 
 from src.bot_actions.messages import edit_message, send_message
 from src.config import get_config
-from src.modules.profile.keyboard_profile import confirm_del_acc_kb, login_details_kb
+from src.modules.profile.keyboards import confirm_del_acc_kb, login_details_kb
 from src.modules.profile.services.purchases import show_all_sold_account, show_sold_account, get_file_for_login, \
     check_sold_account, show_types_services_sold_account
 from src.services.products.accounts.tg.actions import check_account_validity, get_auth_codes

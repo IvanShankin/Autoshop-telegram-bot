@@ -4,7 +4,7 @@ from aiogram.types import Message, CallbackQuery
 
 from src.bot_actions.messages import send_message, edit_message
 from src.middlewares.aiogram_middleware import I18nKeyFilter
-from src.modules.profile.keyboard_profile import profile_kb
+from src.modules.profile.keyboards import profile_kb
 from src.modules.profile.services.profile_message import get_main_message_profile
 from src.services.database.users.models import Users
 

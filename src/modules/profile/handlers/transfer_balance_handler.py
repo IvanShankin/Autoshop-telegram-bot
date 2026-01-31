@@ -5,7 +5,7 @@ from aiogram.types import CallbackQuery, Message
 from src.bot_actions.messages import edit_message, send_message
 from src.bot_actions.checking_data import checking_availability_money, checking_correctness_number
 from src.exceptions import UserNotFound, NotEnoughMoney
-from src.modules.profile.keyboard_profile import balance_transfer_kb, \
+from src.modules.profile.keyboards import balance_transfer_kb, \
     back_in_balance_transfer_kb, replenishment_and_back_in_transfer_kb, confirmation_transfer_kb
 from src.modules.profile.schemas import TransferData
 from src.modules.profile.state import TransferMoney

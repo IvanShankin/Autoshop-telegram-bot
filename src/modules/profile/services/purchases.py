@@ -5,7 +5,7 @@ from aiogram.types import CallbackQuery, FSInputFile
 from src.bot_actions.bot_instance import get_bot
 from src.bot_actions.messages import edit_message, send_message
 from src.config import get_config
-from src.modules.profile.keyboard_profile import sold_accounts_kb, account_kb, sold_account_type_service_kb
+from src.modules.profile.keyboards import sold_accounts_kb, account_kb, sold_account_type_service_kb
 from src.services.database.categories.actions import get_sold_accounts_by_account_id, get_tg_account_media, \
     update_tg_account_media
 from src.services.database.categories.models import SoldAccountFull, AccountStorage

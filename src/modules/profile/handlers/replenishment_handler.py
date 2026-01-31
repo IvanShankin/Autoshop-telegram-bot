@@ -5,7 +5,7 @@ from aiogram.types import CallbackQuery, Message
 from src.bot_actions.messages import edit_message, send_message
 from src.bot_actions.checking_data import checking_correctness_number
 from src.config import get_config
-from src.modules.profile.keyboard_profile import type_replenishment_kb, back_in_type_replenishment_kb, payment_invoice
+from src.modules.profile.keyboards import type_replenishment_kb, back_in_type_replenishment_kb, payment_invoice
 from src.modules.profile.schemas.replenishment import GetAmountData
 from src.modules.profile.state.replenishment import GetAmount
 from src.services.database.system.actions.actions import get_type_payment

@@ -1,8 +1,5 @@
-import os.path
-from pathlib import Path
 from typing import Optional
 
-from aiogram.exceptions import TelegramBadRequest
 
 from src.bot_actions.bot_instance import get_bot_logger
 from src.config import get_config, get_global_rate_limit
@@ -10,9 +7,10 @@ from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboa
     Message
 
 from src.bot_actions.bot_instance import get_bot
-from src.services.database.system.actions import get_ui_image, update_ui_image, get_file, update_file
+from src.services.database.system.actions import get_ui_image, update_ui_image
 from src.services.database.system.actions import get_settings
 from src.services.filesystem.actions import check_file_exists
+from src.services.filesystem.media_paths import create_path_ui_image
 from src.utils.core_logger import get_logger
 
 
@@ -37,7 +35,9 @@ async def send_message(
     logger = get_logger(__name__)
     if image_key:
         ui_image = await get_ui_image(image_key)
+
         if ui_image and (ui_image.show or always_show_photos): # если есть изображение по данному пути и его можно показывать
+            file_path = create_path_ui_image(file_name=ui_image.file_name)
             try:
                 # Если уже есть file_id — отправляем без загрузки
                 if ui_image.file_id:
@@ -54,9 +54,9 @@ async def send_message(
                         if "file" in str(e).lower() or "not found" in str(e).lower():
                             logger.warning(f"[send_message] file_id недействителен для {ui_image.key}, переотправляем файл.")
 
-                        if check_file_exists(ui_image.file_path):
+                        if check_file_exists(file_path):
                             # отправляем файл с диска
-                            photo = FSInputFile(ui_image.file_path)
+                            photo = FSInputFile(file_path)
                             msg = await bot.send_photo(
                                 chat_id=chat_id,
                                 photo=photo,
@@ -71,9 +71,9 @@ async def send_message(
 
                             return msg
 
-                elif check_file_exists(ui_image.file_path):
+                elif check_file_exists(file_path):
                     # Иначе — отправляем файл с диска
-                    photo = FSInputFile(ui_image.file_path)
+                    photo = FSInputFile(file_path)
                     msg = await bot.send_photo(
                         chat_id=chat_id,
                         photo=photo,
@@ -104,6 +104,7 @@ async def send_message(
 
             ui_image = await get_ui_image(fallback_image_key)
             if ui_image:
+                file_path = create_path_ui_image(file_name=ui_image.file_name)
                 if ui_image.file_id:
                     return await bot.send_photo(
                         chat_id=chat_id,
@@ -112,8 +113,8 @@ async def send_message(
                         parse_mode=parse_mode,
                         reply_markup=reply_markup
                     )
-                elif check_file_exists(ui_image.file_path):
-                    photo = FSInputFile(ui_image.file_path)
+                elif check_file_exists(file_path):
+                    photo = FSInputFile(file_path)
                     msg = await bot.send_photo(chat_id, photo=photo, caption=message, parse_mode=parse_mode, reply_markup=reply_markup)
 
                     # Сохраняем file_id для будущего использования

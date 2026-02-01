@@ -53,7 +53,7 @@ async def create_database():
 
     ui_images = get_ui_images()
     for key in ui_images:
-        await filling_ui_image(key=key, path=str(ui_images[key]))
+        await filling_ui_image(key=key)
 
     example_univers_import = conf.file_keys.example_zip_for_universal_import_key
     await filling_files(key=example_univers_import.key, path=example_univers_import.name_in_dir_with_files)
@@ -85,13 +85,13 @@ async def filling_settings():
             await session_db.commit()
 
 
-async def filling_ui_image(key: str, path: str):
+async def filling_ui_image(key: str):
     async with get_db() as session_db:
         result = await session_db.execute(select(UiImages).where(UiImages.key == key))
         result_image = result.scalar_one_or_none()
 
         if result_image is None:
-            image = UiImages( key=key, file_path=path)
+            image = UiImages(key=key, file_name=f"{key}.png")
             session_db.add(image)
             await session_db.commit()
 

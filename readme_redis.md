@@ -25,7 +25,7 @@
 ```json
 {
     "key": "str", 
-    "file_path": "str", 
+    "file_name": "str", 
     "show": "bool",
     "updated_at": "str"
 }

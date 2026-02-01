@@ -105,7 +105,7 @@ class TestEditMessage:
         from src.bot_actions.messages import edit as bot_actions
         ui_image, _ = await create_ui_image(key="missing_local", show=True, file_id=None)
         # делаем несуществующий путь
-        ui_image.file_path = str(tmp_path / "no_such_file.png")
+        ui_image.file_name = "no_such_file.png"
 
         # Подменим FSInputFile в модуле на функцию, которая бросает FileNotFoundError
         def fake_FSInputFile(path):

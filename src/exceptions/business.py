@@ -113,3 +113,6 @@ class ImportUniversalInvalidMediaData(Exception):
 
 class CsvHasMoreThanTwoProducts(Exception):
     """При импорте универсальных товаров который должен иметь только один продукт внутри себя"""
+
+class InvalidImage(Exception):
+    """При установках неверного формата фото"""

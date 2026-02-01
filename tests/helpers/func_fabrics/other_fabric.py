@@ -83,8 +83,6 @@ async def create_admin_fabric(filling_redis: bool = True, user_id: int = None) -
     return new_admin
 
 
-
-
 async def create_referral_fabric(owner_id: int = None, referral_id: int = None) -> (Referrals, Users, Users):
     """
        Создаёт тестовый реферала (у нового пользователя появляется владелец)
@@ -275,17 +273,18 @@ async def create_ui_image_factory(key: str = "main_menu", show: bool = True, fil
     """
        сохраняет запись UiImages в БД и возвращает (ui_image, abs_path).
     """
-    from src.utils.ui_images_data import get_config
+    from src.config import get_config
+    from src.services.filesystem.media_paths import create_path_ui_image
     # Подготовим директорию и файл
     conf = get_config()
 
-    file_abs = conf.paths.ui_sections_dir / f"{key}.png"
+    file_abs = create_path_ui_image(f"{key}.png")
     file_abs.write_bytes(b"fake-image-bytes")       # создаём тестовый файл
 
     async with get_db() as session:
         ui_image = UiImages(
             key=key,
-            file_path=str(file_abs),
+            file_name=f"{key}.png",
             file_id=file_id,
             show=show,
             updated_at=datetime.now(timezone.utc)

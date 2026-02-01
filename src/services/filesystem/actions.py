@@ -1,4 +1,5 @@
 import asyncio
+import io
 import os
 import shutil
 import tempfile
@@ -10,6 +11,7 @@ from pathlib import Path
 from typing import Optional, List, AsyncGenerator
 
 from src.config import get_config
+from src.exceptions.business import InvalidImage
 from src.utils.core_logger import get_logger
 
 
@@ -265,3 +267,16 @@ def create_temp_dir(name: str = None) -> Path:
     os.mkdir(temp_dir_path)
 
     return temp_dir_path
+
+
+def get_ext_image(file_data: bytes) -> str:
+    """
+    :param file_data: Поток байт
+    :return: Расширение изображения
+    :except InvalidImage: При неудачном получении формата
+    """
+    try:
+        image = Image.open(io.BytesIO(file_data))
+        return image.format.lower()
+    except Exception:
+        raise InvalidImage()

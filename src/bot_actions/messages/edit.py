@@ -11,6 +11,7 @@ from src.bot_actions.bot_instance import get_bot
 from src.bot_actions.messages import send_log, send_message
 from src.services.database.system.actions import get_ui_image, update_ui_image
 from src.services.filesystem.actions import check_file_exists
+from src.services.filesystem.media_paths import create_path_ui_image
 from src.utils.core_logger import get_logger
 
 
@@ -105,19 +106,22 @@ async def _try_edit_media_by_file(
     ) -> bool:
     """Пробуем заменить media, загрузив файл с диска. При успехе сохраняем новый file_id (если есть)."""
     logger = get_logger(__name__)
+    file_path = create_path_ui_image(file_name=ui_image.file_name)
     try:
-        photo = FSInputFile(ui_image.file_path)
+        photo = FSInputFile(file_path)
     except (FileNotFoundError, AttributeError):
-        logger.warning(f"[edit_message] Local file not found: {ui_image.file_path}")
+        logger.warning(f"[edit_message] Local file not found: {file_path}")
         if fallback_image_key:
             ui_image = await get_ui_image(fallback_image_key)
+
             if ui_image:
+                file_path = create_path_ui_image(file_name=ui_image.file_name)
                 if ui_image.file_id:
                     ok = await _try_edit_media_by_file_id(bot, chat_id, message_id, ui_image.file_id, caption, reply_markup)
                     if ok:
                         return True # успешно
 
-                if not os.path.isfile(ui_image.file_path):
+                if not os.path.isfile(file_path):
                     await send_log(f"#Не_найдено_фото [edit_message]. \nget_ui_image='{ui_image.key}'")  # лучше после отправки пользователю
                 else:
                     ok = await _try_edit_media_by_file(bot, chat_id, message_id, ui_image, caption, reply_markup)
@@ -226,7 +230,9 @@ async def edit_message(
     # Если есть image_key — пробуем редактировать/заменить media
     if image_key:
         ui_image = await get_ui_image(image_key)
+
         if ui_image and (ui_image.show or always_show_photos):
+            file_path = create_path_ui_image(file_name=ui_image.file_name)
             # сначала file_id
             if ui_image.file_id:
                 ok = await _try_edit_media_by_file_id(bot, chat_id, message_id, ui_image.file_id, message, reply_markup, parse_mode)
@@ -251,7 +257,7 @@ async def edit_message(
                     reply_markup=reply_markup
                 )
                 return
-            elif check_file_exists(ui_image.file_path):
+            elif check_file_exists(file_path):
                 # пробуем редактировать media с загрузкой файла
                 ok = await _try_edit_media_by_file(bot, chat_id, message_id, ui_image, message, reply_markup, parse_mode)
                 if ok:
@@ -285,14 +291,16 @@ async def edit_message(
 
             # если не нашли ui_image или не надо отсылать его
             ui_image = await get_ui_image(fallback_image_key)
+
             if ui_image:
+                file_path = create_path_ui_image(file_name=ui_image.file_name)
                 if ui_image.file_id:
                     ok = await _try_edit_media_by_file_id(bot, chat_id, message_id, ui_image.file_id, message, reply_markup, parse_mode)
                     if ok:
                         if not ui_image:
                             await send_log(text)
                         return  # успешно
-                elif check_file_exists(ui_image.file_path):
+                elif check_file_exists(file_path):
                     # пробуем редактировать media с загрузкой файла
                     ok = await _try_edit_media_by_file(bot, chat_id, message_id, ui_image, message, reply_markup, parse_mode)
                     if ok:

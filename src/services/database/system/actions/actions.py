@@ -1,6 +1,5 @@
 from datetime import datetime, UTC, timedelta
 import os
-from pathlib import Path
 from typing import List, Optional
 
 import aiofiles
@@ -12,6 +11,8 @@ from src.services.database.categories.models import Purchases, ProductAccounts, 
 from src.services.database.system.models.models import Files
 from src.services.database.system.shemas.shemas import StatisticsData, ReplenishmentPaymentSystem
 from src.services.database.users.models import Users, Replenishments
+from src.services.filesystem.actions import get_ext_image
+from src.services.filesystem.media_paths import create_path_ui_image
 from src.services.redis.filling import filling_types_payments_by_id, filling_all_types_payments, \
     filling_ui_image
 from src.services.redis.time_storage import TIME_SETTINGS
@@ -23,7 +24,7 @@ from src.utils.ui_images_data import get_ui_images, UI_IMAGES_IGNORE_ADMIN
 
 
 def _check_file_exists(ui_image: UiImages) -> UiImages | None:
-    return ui_image if os.path.exists(ui_image.file_path) else None
+    return ui_image if os.path.exists(create_path_ui_image(file_name=ui_image.file_name)) else None
 
 
 async def get_settings() -> Settings:
@@ -93,24 +94,6 @@ async def update_settings(
     return None
 
 
-async def get_ui_images_by_page(page: int, page_size: int = None) -> List[str]:
-    # Получаем все ключи, исключив админские
-    if not page_size:
-        page_size = get_config().different.page_size
-
-    filtered_keys = [
-        key for key in get_ui_images().keys()
-        if key not in UI_IMAGES_IGNORE_ADMIN
-    ]
-
-    # Считаем границы страницы
-    start = (page - 1) * page_size
-    end = start + page_size
-
-    # Возвращаем ключи нужной страницы
-    return filtered_keys[start:end]
-
-
 async def get_file(key: str) -> Files | None:
     async with get_db() as session_db:
         result = await session_db.execute(select(Files).where(Files.key == key))
@@ -154,6 +137,24 @@ async def delete_file(key: str):
         )
 
 
+async def get_ui_images_by_page(page: int, page_size: int = None) -> List[str]:
+    # Получаем все ключи, исключив админские
+    if not page_size:
+        page_size = get_config().different.page_size
+
+    filtered_keys = [
+        key for key in get_ui_images()
+        if key not in UI_IMAGES_IGNORE_ADMIN
+    ]
+
+    # Считаем границы страницы
+    start = (page - 1) * page_size
+    end = start + page_size
+
+    # Возвращаем ключи нужной страницы
+    return filtered_keys[start:end]
+
+
 async def create_ui_image(key: str, file_data: bytes, show: bool = True, file_id: str = None) -> UiImages:
     """
     Сохраняет файл локально с именем в аргументе "key" и создаёт запись в БД UiImages.
@@ -164,7 +165,11 @@ async def create_ui_image(key: str, file_data: bytes, show: bool = True, file_id
     :param file_id: id в телеграмме
     :return:
     """
-    new_path = get_config().paths.ui_sections_dir / f"{key}.png"
+
+    ext = get_ext_image(file_data)
+    file_name = f"{key}.{ext}"
+
+    new_path = create_path_ui_image(file_name=file_name)
     new_path.parent.mkdir(parents=True, exist_ok=True) # создаём директорию, если её нет
 
     async with get_db() as session_db:
@@ -172,12 +177,17 @@ async def create_ui_image(key: str, file_data: bytes, show: bool = True, file_id
         ui_image = result.scalar_one_or_none()
 
         if ui_image:
-            # Перезаписываем файл, но не создаём новую запись
+            last_path = create_path_ui_image(file_name=ui_image.file_name)
+            last_path.unlink(missing_ok=True)
+
             async with aiofiles.open(new_path, "wb") as f:
                 await f.write(file_data)
-            ui_image.file_path = str(new_path)
+
+            ui_image.file_name = file_name
+
             await session_db.commit()
             await update_ui_image(key=key, show=ui_image.show, file_id=file_id)
+
             return ui_image
         else:
             # Иначе создаём новую запись
@@ -186,7 +196,7 @@ async def create_ui_image(key: str, file_data: bytes, show: bool = True, file_id
 
             ui_image = UiImages(
                 key=key,
-                file_path=str(new_path),
+                file_name=file_name,
                 file_id=file_id,
                 show=show,
             )
@@ -255,9 +265,10 @@ async def delete_ui_image(key: str) -> UiImages | None:
         deleted_ui_image: UiImages = result.scalar_one_or_none()
         await session_db.commit()
 
-        if deleted_ui_image and deleted_ui_image.file_path:
+        if deleted_ui_image:
             # можно не проверять его существование
-            Path(deleted_ui_image.file_path).unlink(missing_ok=True)
+            file_path = create_path_ui_image(file_name=deleted_ui_image.file_name)
+            file_path.unlink(missing_ok=True)
 
     async with get_redis() as session_redis:
         await session_redis.delete(f'ui_image:{key}')

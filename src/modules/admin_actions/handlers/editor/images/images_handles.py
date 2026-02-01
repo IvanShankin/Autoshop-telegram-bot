@@ -6,12 +6,14 @@ from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.messages import edit_message, send_message
 from src.config import get_config
+from src.exceptions.business import InvalidImage
 from src.modules.admin_actions.keyboards import images_list_kb, image_editor, back_in_image_editor
 from src.modules.admin_actions.schemas import GetNewImageData
 from src.modules.admin_actions.state import GetNewImage
 from src.services.database.system.actions.actions import  update_ui_image, get_ui_image, \
     delete_ui_image, create_ui_image
 from src.services.database.users.models import Users
+from src.services.filesystem.actions import get_ext_image
 from src.utils.i18n import get_text
 
 router = Router()
@@ -101,7 +103,11 @@ async def change_ui_image(callback: CallbackQuery, state: FSMContext, user: User
     await edit_message(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
-        message="Send a new image. \n\nNote: Please provide a document for best photo quality",
+        message=get_text(
+            user.language,
+            "admins_editor_images",
+            "Send a new image. \n\nNote: Please provide a document for best photo quality"
+        ),
         reply_markup=await back_in_image_editor(user.language, ui_image_key, current_page)
     )
     await state.update_data(ui_image_key=ui_image_key, current_page=current_page)
@@ -132,12 +138,16 @@ async def change_ui_image_result(message: Message, state: FSMContext, user: User
 
         # Преобразуем поток  bytes
         file_bytes = byte_stream.getvalue()
+        try:
+            get_ext_image(file_bytes)
 
-        await delete_ui_image(key=data.ui_image_key)
-        await create_ui_image(key=data.ui_image_key, file_data=file_bytes)
+            await delete_ui_image(key=data.ui_image_key)
+            await create_ui_image(key=data.ui_image_key, file_data=file_bytes)
 
-        await show_image_editor(ui_image_key=data.ui_image_key,current_page=data.current_page,user=user,new_message=True)
-        return
+            await show_image_editor(ui_image_key=data.ui_image_key,current_page=data.current_page,user=user,new_message=True)
+            return
+        except InvalidImage:
+            text = get_text(user.language, "admins_editor_images", "This is not an image. Send it as a document")
 
     # тут только отсылка о неуспехе
     await send_message(

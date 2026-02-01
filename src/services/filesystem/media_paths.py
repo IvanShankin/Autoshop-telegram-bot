@@ -24,3 +24,13 @@ def create_path_universal_storage(status: UniversalStorageStatus, uuid: str, ret
     """
     path = Path(get_config().paths.universals_dir) / Path(status.value) / Path(uuid) / "file.enc"
     return path if return_path_obj else str(path)
+
+
+def create_path_ui_image(file_name: str, return_path_obj: bool = True) -> Path | str:
+    """
+        Создаст путь к изображению.
+        :param return_path_obj: Вернёт экземпляр объекта Path
+        :return: Полный путь. Пример: .../ui_sections/example.png
+    """
+    path = Path(get_config().paths.ui_sections_dir) / Path(file_name)
+    return path if return_path_obj else str(path)

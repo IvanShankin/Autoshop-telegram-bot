@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import pytest
 import orjson
 from sqlalchemy import select
@@ -9,10 +7,7 @@ from src.services.database.system.actions import get_ui_image
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
 
-from src.services.database.categories.models import (
-    Categories, CategoryTranslation,
-    ProductAccounts, SoldAccounts, SoldAccountsTranslation, AccountStorage
-)
+from src.services.database.categories.models import Categories, CategoryTranslation
 
 
 

@@ -1,6 +1,8 @@
 from types import SimpleNamespace
 import pytest
 
+from src.services.filesystem.media_paths import create_path_ui_image
+
 
 class TestSendMessage:
     @pytest.mark.asyncio
@@ -35,7 +37,7 @@ class TestSendMessage:
         ui_image, file_abs = await create_ui_image(key="error_case", file_id="bad_file_id")
 
         # Перемещаем тестовый файл туда, где send_message его ожидает
-        target_path = media_dir / ui_image.file_path
+        target_path = create_path_ui_image(file_name=ui_image.file_name)
         target_path.parent.mkdir(parents=True, exist_ok=True)
         target_path.write_bytes(b"fake-image-bytes")
 

@@ -19,6 +19,7 @@ from src.modules.admin_actions.state.editors.editor_mass_mailing import GetBtnUr
 from src.services.database.admins.actions import get_message_for_sending, update_message_for_sending
 from src.services.database.users.actions.action_user import get_quantity_users
 from src.services.database.users.models import Users
+from src.services.filesystem.media_paths import create_path_ui_image
 from src.utils.i18n import get_text
 
 router = Router()
@@ -119,7 +120,7 @@ async def start_mass_mailing(callback: CallbackQuery, user: Users):
         async for user_id, ok, exc in broadcast_message_generator(
             text=message_data.content,
             admin_id=user.user_id,
-            photo_path=message_data.ui_image.file_path,
+            photo_path=create_path_ui_image(file_name=message_data.ui_image.file_name),
             button_url=message_data.button_url,
         ):
             i += 1

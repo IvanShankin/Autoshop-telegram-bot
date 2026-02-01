@@ -9,6 +9,7 @@ from src.services.database.system.actions.actions import get_all_types_payments,
 from src.services.database.system.models import Settings, BackupLogs, TypePayments
 from src.services.database.system.actions import get_settings, update_settings
 from src.services.database.core.database import get_db
+from src.services.filesystem.media_paths import create_path_ui_image
 from src.services.redis.core_redis import get_redis
 from src.services.database.system.models import UiImages
 
@@ -61,14 +62,13 @@ async def test_update_settings(create_settings):
 async def test_create_ui_image_new_record(tmp_path, monkeypatch):
     """Проверяет, что функция создаёт новую запись и файл, если key не существует."""
     from src.services.database.system.actions import create_ui_image
-    from src.utils.ui_images_data import get_config
-
-    conf = get_config()
+    from src.services.filesystem.actions import get_default_image_bytes
 
     # Подготовка
     fake_key = "banner"
-    fake_data = b"test_image_bytes"
-    fake_path = conf.paths.ui_sections_dir / (fake_key + '.png')
+    fake_name = "banner.png"
+    fake_data = get_default_image_bytes()
+    fake_path = create_path_ui_image(fake_name)
 
     # Действие
     result = await create_ui_image(fake_key, fake_data)
@@ -78,7 +78,7 @@ async def test_create_ui_image_new_record(tmp_path, monkeypatch):
     async with get_db() as session_db:
         result_db = await session_db.execute(select(UiImages).where(UiImages.key == fake_key))
         ui_image: UiImages = result_db.scalar_one_or_none()
-        assert ui_image.file_path == str(fake_path)
+        assert ui_image.file_name == fake_name
 
     async with get_redis() as session_redis:
         data_redis = await session_redis.get(f"ui_image:{fake_key}")
@@ -91,20 +91,21 @@ async def test_create_ui_image_new_record(tmp_path, monkeypatch):
 async def test_create_ui_image_existing_record(replacement_needed_modules, monkeypatch, tmp_path, create_ui_image):
     """Проверяет, что при существующей записи файл перезаписывается и запись обновляется."""
     from src.services.database.system.actions import create_ui_image as testing_fun
+    from src.services.filesystem.actions import get_default_image_bytes
 
-    fake_data = b"new_bytes"
+    fake_data = get_default_image_bytes()
     origin_ui_image, abs_path = await create_ui_image(key="existing_banner")
 
     # Действие
     result = await testing_fun(origin_ui_image.key, fake_data)
 
     # Проверки
-    assert os.path.isfile(origin_ui_image.file_path), "Файл должен быть перезаписан"
+    assert os.path.isfile(create_path_ui_image(file_name=origin_ui_image.file_name)), "Файл должен быть перезаписан"
 
     async with get_db() as session_db:
         result_db = await session_db.execute(select(UiImages).where(UiImages.key == origin_ui_image.key))
         ui_image: UiImages = result_db.scalar_one_or_none()
-        assert ui_image.file_path == str(abs_path)
+        assert ui_image.file_name == origin_ui_image.file_name
 
     async with get_redis() as session_redis:
         data_redis = await session_redis.get(f"ui_image:{origin_ui_image.key}")
@@ -129,6 +130,7 @@ async def test_get_ui_image_from_redis(create_ui_image):
     assert result.key == ui_image.key
     assert os.path.exists(abs_path)
 
+
 @pytest.mark.asyncio
 async def test_get_ui_image_from_db(create_ui_image):
     """Проверяет, что get_ui_image берёт из БД, если в Redis нет"""
@@ -139,7 +141,7 @@ async def test_get_ui_image_from_db(create_ui_image):
 
     result = await get_ui_image(ui_image.key)
     assert result is not None
-    assert result.file_path.endswith(str(abs_path))
+    assert result.file_name == ui_image.file_name
 
 
 @pytest.mark.asyncio
@@ -176,7 +178,7 @@ async def test_delete_ui_image(create_ui_image):
     from src.services.database.system.actions import delete_ui_image
 
     ui_image, _ = await create_ui_image(key="test_ui_image")
-    assert os.path.isfile(ui_image.file_path) # что бы убедиться что файл был
+    assert os.path.isfile(create_path_ui_image(ui_image.file_name)) # что бы убедиться что файл был
 
     await delete_ui_image(ui_image.key)
 
@@ -190,7 +192,7 @@ async def test_delete_ui_image(create_ui_image):
         redis_data = await r.get(f"ui_image:{ui_image.key}")
         assert redis_data is None
 
-    assert not os.path.isfile(ui_image.file_path)
+    assert not os.path.isfile(create_path_ui_image(ui_image.file_name))
 
 
 

@@ -9,6 +9,7 @@ from src.config import get_config
 from src.services.database.categories.models import AccountStorage, AccountStoragePydantic
 from src.services.database.categories.models.product_account import AccountServiceType
 from src.services.filesystem.actions import move_file
+from src.services.filesystem.media_paths import create_path_account
 from src.utils.core_logger import get_logger
 from src.services.secrets import decrypt_folder, get_crypto_context, unwrap_dek, CryptoContext
 
@@ -66,17 +67,6 @@ def rename_sync(src: str, dst: str) -> bool:
 
 async def rename_file(src: str, dst: str) -> bool:
     return await asyncio.to_thread(rename_sync, src, dst)
-
-
-def create_path_account(status: str, type_account_service: AccountServiceType, uuid: str) -> str:
-    """
-    Создаст путь к аккаунту.
-
-    type_account_service брать с get_config().app.type_account_services (config)
-
-    :return: Полный путь. Пример: .../accounts/for_sale/telegram/gbgbfd-dnnjcs/account.enc
-    """
-    return str(Path(get_config().paths.accounts_dir) / status / type_account_service.value / uuid / 'account.enc')
 
 
 def decryption_tg_account(

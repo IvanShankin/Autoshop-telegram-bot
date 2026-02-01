@@ -11,7 +11,7 @@ from src.services.database.categories.models.product_universal import UniversalS
 from src.services.database.categories.models.shemas.product_universal_schem import SoldUniversalFull
 from src.services.database.users.models import Users
 from src.services.filesystem.universals_products import move_in_universal
-from src.services.products.universals.actions import create_path_universal_storage
+from src.services.filesystem.media_paths import create_path_universal_storage
 from src.services.secrets import decrypt_text, unwrap_dek, get_crypto_context
 from src.utils.i18n import get_text
 

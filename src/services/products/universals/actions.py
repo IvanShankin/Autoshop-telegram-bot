@@ -8,6 +8,7 @@ from src.services.database.categories.models.product_universal import UniversalS
 from src.services.database.categories.models.shemas.product_universal_schem import ProductUniversalFull, \
     UniversalStoragePydantic
 from src.services.filesystem.actions import move_file
+from src.services.filesystem.media_paths import create_path_universal_storage
 from src.services.secrets import unwrap_dek, CryptoContext, decrypt_text, decrypt_file_to_bytes
 from src.utils.core_logger import get_logger
 
@@ -68,16 +69,6 @@ async def check_valid_universal_product(
         return False
 
     return True
-
-
-def create_path_universal_storage(status: UniversalStorageStatus, uuid: str, return_path_obj: bool = False) -> str | Path:
-    """
-        Создаст путь к универсальному файлу.
-        :param return_path_obj: Вернёт экземпляр объекта Path
-        :return: Полный путь. Пример: .../universal/for_sale/gbgbfd-dnnjcs/file.enc
-    """
-    path = Path(get_config().paths.universals_dir) / Path(status.value) / Path(uuid) / "file.enc"
-    return path if return_path_obj else str(path)
 
 
 async def move_universal_storage(storage: UniversalStoragePydantic, new_status: UniversalStorageStatus) -> Path | bool:

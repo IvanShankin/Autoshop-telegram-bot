@@ -10,7 +10,7 @@ from src.services.database.categories.models import CategoryFull
 from src.services.database.categories.models.shemas.product_universal_schem import ProductUniversalFull
 from src.services.filesystem.actions import create_temp_dir
 from src.services.filesystem.universals_products import create_manifest_csv, create_import_zip
-from src.services.products.universals.actions import create_path_universal_storage
+from src.services.filesystem.media_paths import create_path_universal_storage
 from src.services.products.universals.shemas import UploadUniversalProduct, get_import_universal_headers
 from src.services.secrets import get_crypto_context, unwrap_dek
 from src.services.secrets.decrypt import decrypt_file, decrypt_text

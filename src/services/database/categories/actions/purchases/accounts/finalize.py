@@ -18,7 +18,8 @@ from src.services.database.categories.models.main_category_and_product import Pr
 from src.services.database.core.database import get_db
 from src.services.database.discounts.events import NewActivatePromoCode
 from src.services.database.users.models.models_users import BalanceHolder
-from src.services.filesystem.account_actions import create_path_account, rename_file
+from src.services.filesystem.media_paths import create_path_account
+from src.services.filesystem.account_actions import rename_file
 from src.services.filesystem.actions import move_file
 from src.services.redis.filling import filling_product_account_by_account_id, filling_sold_accounts_by_owner_id, \
     filling_sold_account_by_account_id, filling_all_keys_category

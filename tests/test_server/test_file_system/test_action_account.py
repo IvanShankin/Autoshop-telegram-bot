@@ -89,7 +89,7 @@ async def test_rename_file_async(tmp_path):
 
 
 def test_create_path_account_builds_correct_path(monkeypatch):
-    from src.services.filesystem.account_actions import create_path_account
+    from src.services.filesystem.media_paths import create_path_account
 
     conf = get_config()
     result = create_path_account("sold",  AccountServiceType.TELEGRAM, "1234")

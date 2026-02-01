@@ -11,7 +11,7 @@ from src.config import get_config
 from src.services.database.categories.models.product_universal import UniversalStorageStatus
 from src.services.database.categories.models.shemas.product_universal_schem import SoldUniversalFull
 from src.services.filesystem.actions import get_default_image_bytes, move_file
-from src.services.products.universals.actions import create_path_universal_storage
+from src.services.filesystem.media_paths import create_path_universal_storage
 from src.services.products.universals.shemas import get_import_universal_headers, UploadUniversalProduct
 from src.utils.core_logger import get_logger
 

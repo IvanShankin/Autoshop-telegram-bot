@@ -29,7 +29,7 @@ async def test_purchase_accounts_success(
     """
     from src.services.database.categories.actions.purchases import main_purchase as action_mod
     from src.services.products.accounts.tg import actions
-    from src.services.filesystem.account_actions import create_path_account
+    from src.services.filesystem.media_paths import create_path_account
 
     # подготовка: пользователь + категория + N аккаунтов
     user = await create_new_user(balance=10_000)
@@ -126,7 +126,7 @@ async def test_purchase_accounts_fail_no_replacement(
     """
     from src.services.database.categories.actions.purchases.main_purchase import purchase_accounts
     from src.services.products.accounts.tg import actions
-    from src.services.filesystem.account_actions import create_path_account
+    from src.services.filesystem.media_paths import create_path_account
 
     # подготовка: пользователь + категория + N аккаунтов
     user = await create_new_user(balance=5_000)

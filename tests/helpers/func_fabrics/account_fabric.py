@@ -38,7 +38,7 @@ def make_fake_encrypted_archive_for_test(
         └── loans.txt
     """
 
-    from src.services.filesystem.account_actions import create_path_account
+    from src.services.filesystem.media_paths import create_path_account
     # генерируем UUID
     # === 1. Генерация UUID и путей ===
     account_uuid = str(uuid.uuid4())

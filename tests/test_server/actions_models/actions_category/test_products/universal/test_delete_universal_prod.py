@@ -96,7 +96,7 @@ async def test_delete_product_accounts_by_category_success(
         create_category,
 ):
     from src.services.database.categories.actions import delete_product_universal_by_category
-    from src.services.products.universals.actions import create_path_universal_storage
+    from src.services.filesystem.media_paths import create_path_universal_storage
 
     # Создаём категорию
     category = await create_category(filling_redis=True)

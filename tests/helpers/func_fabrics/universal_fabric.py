@@ -26,7 +26,7 @@ async def _make_encrypted_universal_storage_file(
     uuid: str,
     file_path: str = None
 ) -> Path:
-    from src.services.products.universals.actions import create_path_universal_storage
+    from src.services.filesystem.media_paths import create_path_universal_storage
     if file_path is None:
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=".enc") as f:
             f.write("Данные о продукте")

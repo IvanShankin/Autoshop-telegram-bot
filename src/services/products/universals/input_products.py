@@ -17,7 +17,7 @@ from src.services.database.categories.models import CategoryTranslation
 from src.services.database.categories.models.product_universal import UniversalMediaType, UniversalStorageStatus
 from src.services.filesystem.actions import extract_archive_to_temp
 from src.services.filesystem.csv_parse import parse_csv_from_file
-from src.services.products.universals.actions import create_path_universal_storage
+from src.services.filesystem.media_paths import create_path_universal_storage
 from src.services.products.universals.shemas import UniversalProductsParse, \
     get_import_universal_headers, PreparedUniversalProduct
 from src.services.secrets import encrypt_text, make_account_key, get_crypto_context, sha256_file, CryptoContext

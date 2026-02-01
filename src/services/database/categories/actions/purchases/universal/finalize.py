@@ -29,7 +29,7 @@ from src.services.database.discounts.events import NewActivatePromoCode
 from src.services.database.users.models.models_users import BalanceHolder
 from src.services.filesystem.account_actions import rename_file
 from src.services.filesystem.actions import move_file, copy_file
-from src.services.products.universals.actions import create_path_universal_storage
+from src.services.filesystem.media_paths import create_path_universal_storage
 from src.services.redis.filling import filling_all_keys_category
 from src.services.redis.filling.filling_universal import filling_sold_universal_by_owner_id, \
     filling_product_universal_by_category, filling_universal_by_product_id, filling_sold_universal_by_universal_id

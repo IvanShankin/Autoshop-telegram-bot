@@ -110,3 +110,6 @@ class ImportUniversalFileNotFound(Exception):
 
 class ImportUniversalInvalidMediaData(Exception):
     """При указании неверных данных при импорте универсальных товаров. Пример: нет описания, когда это требуется"""
+
+class CsvHasMoreThanTwoProducts(Exception):
+    """При импорте универсальных товаров который должен иметь только один продукт внутри себя"""

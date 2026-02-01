@@ -94,5 +94,11 @@ async def delete_all_products(callback: CallbackQuery, user: Users):
     if category.product_type == ProductType.UNIVERSAL:
         await delete_product_universal_by_category(category_id)
 
-    await callback.answer("Products successfully deleted", show_alert=True)
+    await callback.answer(get_text(
+            user.language,
+            "admins_editor_category",
+            "Products successfully deleted"
+        ),
+        show_alert=True
+    )
     await show_category(user, category_id, send_new_message=True)

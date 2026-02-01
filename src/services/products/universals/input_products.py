@@ -1,15 +1,18 @@
 import os.path
 import shutil
 import uuid
+from csv import DictReader
 from pathlib import Path
 from typing import List, Dict
 
 from src.config import get_config
 from src.exceptions import InvalidFormatRows, CategoryNotFound
-from src.exceptions.business import ImportUniversalFileNotFound, ImportUniversalInvalidMediaData
+from src.exceptions.business import ImportUniversalFileNotFound, ImportUniversalInvalidMediaData, \
+    CsvHasMoreThanTwoProducts
 from src.services.database.categories.actions import get_all_translations_category
 from src.services.database.categories.actions.products.universal.actions_add import add_universal_storage, \
     add_translate_in_universal_storage, add_product_universal
+from src.services.database.categories.actions.products.universal.actions_get import get_product_universal_by_category_id
 from src.services.database.categories.models import CategoryTranslation
 from src.services.database.categories.models.product_universal import UniversalMediaType, UniversalStorageStatus
 from src.services.filesystem.actions import extract_archive_to_temp
@@ -171,18 +174,18 @@ async def _import_in_db(
 
 
 async def input_universal_products(
-    path_to_archive: str,
+    path_to_archive: Path,
     media_type: UniversalMediaType,
     category_id: int,
+    only_one: bool = False,
 ) -> int:
     """
-    :param path_to_archive:
-    :param media_type:
-    :param category_id:
-    :return:
+    :param only_one: Если необходимо импортировать только один продукт
+    :return: Число добавленных продуктов.
     :except ImportUniversalFileNotFound: Если указанный файл в .csv не найден.
     :except ImportUniversalInvalidMediaData: Если данные в файле .csv не совпадают с `media_type`.
     :except CategoryNotFound: Если категория не найдена.
+    :except CsvHasMoreThanTwoProducts: Если имеется флаг `only_one` и продуктов для импорта более одного.
     :return int: Число добавленных продуктов.
     """
     if not os.path.isfile(path_to_archive):
@@ -200,6 +203,10 @@ async def input_universal_products(
         raise NotADirectoryError("Директория для файлов не найдена")
 
     reader = parse_csv_from_file(manifest_file)
+    rows = [
+        row for row in reader
+        if any(value.strip() for value in row.values() if value)
+    ]
     conf = get_config()
 
     if not get_import_universal_headers() <= list(reader.fieldnames or []):
@@ -208,8 +215,15 @@ async def input_universal_products(
     new_products: List[UniversalProductsParse] = []
     total_added = 0
 
+    if only_one:
+        if await get_product_universal_by_category_id(category_id):
+            raise CsvHasMoreThanTwoProducts()
+
+        if len(rows) > 1:
+            raise CsvHasMoreThanTwoProducts()
+
     try:
-        for i, row in enumerate(reader, start=1):
+        for i, row in enumerate(rows, start=1):
             descriptions = {}
             for lang in conf.app.allowed_langs:
                 descriptions[lang] = row["description_" + lang]
@@ -231,9 +245,11 @@ async def input_universal_products(
         )
     except Exception as e:
         shutil.rmtree(unpacked_archive, ignore_errors=True)
+        shutil.rmtree(path_to_archive.parent, ignore_errors=True)
         raise e
 
     shutil.rmtree(unpacked_archive, ignore_errors=True)
+    shutil.rmtree(path_to_archive.parent, ignore_errors=True)
 
     return total_added
 

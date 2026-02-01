@@ -1,6 +1,7 @@
 import asyncio
 import io
 import os
+import shutil
 from pathlib import Path
 
 from aiogram import Router, F
@@ -12,7 +13,8 @@ from src.bot_actions.bot_instance import get_bot
 from src.bot_actions.messages import send_file_by_file_key
 from src.config import get_config
 from src.exceptions import TypeAccountServiceNotFound, InvalidFormatRows
-from src.exceptions.business import ImportUniversalInvalidMediaData, ImportUniversalFileNotFound
+from src.exceptions.business import ImportUniversalInvalidMediaData, ImportUniversalFileNotFound, \
+    CsvHasMoreThanTwoProducts
 from src.modules.admin_actions.keyboards import back_in_category_kb, \
     name_or_description_kb
 from src.modules.admin_actions.keyboards.editors.category_kb import get_example_import_product_kb
@@ -88,7 +90,15 @@ async def category_load_products(callback: CallbackQuery, state: FSMContext, use
                 user.language,
                 "admins_editor_category",
                 "universal_products_import_instructions"
-            ).format(headers_csv=str(headers_csv), media_type=str(category.media_type.name)),
+            ).format(
+                headers_csv=str(headers_csv),
+                media_type=str(category.media_type.name),
+                info_reuse_product=get_text(
+                    user.language,
+                "admins_editor_category",
+                "info_reuse_product"
+                ) if category.reuse_product else ""
+            ),
             reply_markup=get_example_import_product_kb(user.language, category_id)
         )
         await state.set_state(ImportUniversalProducts.archive)
@@ -367,9 +377,10 @@ async def import_universal_products(message: Message, state: FSMContext, user: U
 
     try:
         total_added = await input_universal_products(
-            path_to_archive=str(archive_path),
+            path_to_archive=archive_path,
             media_type=category.media_type,
-            category_id=category.category_id
+            category_id=category.category_id,
+            only_one=True if category.reuse_product else False
         )
         await edit_message(
             chat_id=user.user_id,
@@ -402,6 +413,18 @@ async def import_universal_products(message: Message, state: FSMContext, user: U
                 user.language,
                 "admins_editor_category",
                 "error_import_universal_media_type"
+            ).format(media_type=str(category.media_type.name)),
+            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="In category")
+        )
+        await state.set_state(ImportUniversalProducts.archive)
+    except CsvHasMoreThanTwoProducts:
+        await edit_message(
+            chat_id=user.user_id,
+            message_id=message_info.message_id,
+            message=get_text(
+                user.language,
+                "admins_editor_category",
+                "error_import_universal_has_more_two"
             ).format(media_type=str(category.media_type.name)),
             reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="In category")
         )

@@ -19,7 +19,7 @@ async def test_input_universal_products(create_category):
     zip_path = await generate_example_zip_for_import()
 
     await input_universal_products(
-        path_to_archive=str(zip_path),
+        path_to_archive=zip_path,
         media_type=UniversalMediaType.MIXED,
         category_id=cat.category_id,
     )

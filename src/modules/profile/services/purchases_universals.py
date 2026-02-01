@@ -1,18 +1,15 @@
 from aiogram.types import CallbackQuery
 
 from src.bot_actions.messages import edit_message, send_document, send_message
-from src.bot_actions.messages import send_file_by_file_key
 from src.config import get_config
 from src.modules.profile.keyboards.purchased_universals_kb import sold_universal_kb, universal_kb
 from src.services.database.categories.actions.products.universal.action_delete import delete_sold_universal
 from src.services.database.categories.actions.products.universal.action_update import update_universal_storage
 from src.services.database.categories.actions.products.universal.actions_add import add_deleted_universal
 from src.services.database.categories.actions.products.universal.actions_get import get_sold_universal_by_universal_id
-from src.services.database.categories.models import AccountStorage
 from src.services.database.categories.models.product_universal import UniversalStorageStatus
 from src.services.database.categories.models.shemas.product_universal_schem import SoldUniversalFull
 from src.services.database.users.models import Users
-from src.services.filesystem.account_actions import move_in_account
 from src.services.filesystem.universals_products import move_in_universal
 from src.services.products.universals.actions import create_path_universal_storage
 from src.services.secrets import decrypt_text, unwrap_dek, get_crypto_context

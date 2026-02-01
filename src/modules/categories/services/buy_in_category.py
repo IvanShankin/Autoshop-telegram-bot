@@ -5,10 +5,12 @@ from aiogram.types import CallbackQuery
 from src.bot_actions.bot_instance import get_bot
 from src.bot_actions.messages import edit_message, send_message
 from src.exceptions import InvalidPromoCode, CategoryNotFound, NotEnoughMoney, NotEnoughAccounts
+from src.exceptions.business import NotEnoughProducts
 from src.modules.categories.keyboards import replenishment_and_back_in_cat, back_in_account_category_kb
 from src.modules.categories.services.helpers import check_category
 from src.modules.profile.keyboards import in_profile_kb
 from src.services.database.categories.actions import purchase
+from src.services.database.categories.models import CategoryFull
 from src.services.database.categories.models.main_category_and_product import ProductType
 from src.services.database.discounts.utils.calculation import discount_calculation
 from src.services.database.users.models import Users
@@ -36,41 +38,45 @@ async def _show_not_enough_money(
     )
 
 
-async def _show_no_enough_accounts(
+async def _show_no_enough_products(
     callback: CallbackQuery,
     user: Users
 ):
-    await callback.answer(get_text(
-        user.language,
-        'categories',
-        "There are not enough accounts on the server, please change the number of accounts to purchase"
-    ),
+    await callback.answer(
+        get_text(
+            user.language,
+            'categories',
+            "There are not enough products on the server, please change the number of accounts to purchase"
+        ),
         show_alert=True
     )
 
 
-async def _buy_account(
+async def _buy(
     user: Users,
     callback: CallbackQuery,
     delete_message_def: Callable[[], Coroutine[Any, Any, Any]],
-    category_id: int,
+    category: CategoryFull,
     promo_code_id: int,
     quantity_products: int,
 ):
     try:
         result = await purchase(
             user_id=user.user_id,
-            category_id=category_id,
-            quantity_accounts=quantity_products,
-            promo_code_id=promo_code_id
+            category_id=category.category_id,
+            quantity_products=quantity_products,
+            promo_code_id=promo_code_id,
+            product_type=category.product_type,
+            language=user.language
         )
-    except NotEnoughAccounts as e:
+    except (NotEnoughAccounts, NotEnoughProducts ):
         await delete_message_def()
-        await _show_no_enough_accounts(
+        await _show_no_enough_products(
             callback=callback,
             user=user
         )
         return
+
 
     await delete_message_def()
 
@@ -103,14 +109,10 @@ async def _buy_account(
             fallback_image_key="default_catalog_account",
             reply_markup=back_in_account_category_kb(
                 language=user.language,
-                category_id=category_id,
+                category_id=category.category_id,
                 quantity_for_buying=quantity_products,
             )
         )
-
-
-async def _buy_universal():
-    pass
 
 
 async def buy_product(
@@ -130,9 +132,9 @@ async def buy_product(
     if category is None:
         return
 
-    # если на сервере недостаточно аккаунтов
+    # если на сервере недостаточно продуктов
     if category.quantity_product < quantity_products:
-        await _show_no_enough_accounts(
+        await _show_no_enough_products(
             callback=callback,
             user=user
         )
@@ -178,7 +180,7 @@ async def buy_product(
         )
         return
 
-    message_load = await send_message(user.user_id, get_text(user.language,'categories',"Test accounts..."))
+    message_load = await send_message(user.user_id, get_text(user.language,'categories',"Test products..."))
     async def delete_message():
         try:
             await message_load.delete()
@@ -186,18 +188,14 @@ async def buy_product(
             pass
 
     try:
-        if category.product_type == ProductType.ACCOUNT:
-            await _buy_account(
-                user=user,
-                callback=callback,
-                delete_message_def=delete_message,
-                category_id=category_id,
-                promo_code_id=promo_code_id,
-                quantity_products=quantity_products
-            )
-        elif category.product_type == ProductType.UNIVERSAL:
-            await _buy_universal()
-        # ТУТ ВЫЗЫВАЕМ ФУНЦИЮ ДЛЯ НЕОБХОДИМОГО ТИПА ТОВАРА
+        await _buy(
+            user=user,
+            callback=callback,
+            delete_message_def=delete_message,
+            category=category,
+            promo_code_id=promo_code_id,
+            quantity_products=quantity_products
+        )
 
     except CategoryNotFound as e:
         await delete_message()

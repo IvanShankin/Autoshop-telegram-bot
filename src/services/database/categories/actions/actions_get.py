@@ -7,6 +7,7 @@ from src.config import get_config
 from src.services.database.categories.actions.helpers_func import _has_accounts_in_subtree, _get_grouped_objects, \
     _get_single_obj
 from src.services.database.categories.actions.products.accounts.actions_get import get_sold_accounts_by_owner_id
+from src.services.database.categories.actions.products.universal.actions_get import get_sold_universal_by_owner_id
 from src.services.database.categories.models import Categories, CategoryFull, ProductUniversal, AccountStorage, \
     ProductAccounts, CategoryTranslation
 from src.services.database.categories.models.main_category_and_product import ProductType, Purchases
@@ -115,6 +116,10 @@ async def get_types_product_where_the_user_has_product(user_id: int) -> List[Pro
 
     if await get_sold_accounts_by_owner_id(user_id, get_config().app.default_lang):
         result_list.append(ProductType.ACCOUNT)
+
+    if await get_sold_universal_by_owner_id(user_id, get_config().app.default_lang):
+        result_list.append(ProductType.UNIVERSAL)
+
     # ПРИ ДОБАВЛЕНИЕ НОВЫХ ТОВАРОВ, РАСШИРИТЬ ПОИСК
 
     return result_list

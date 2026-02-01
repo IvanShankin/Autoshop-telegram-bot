@@ -4,7 +4,7 @@ from src.modules.profile.keyboards.main_kb import (
     in_profile_kb
 )
 
-from src.modules.profile.keyboards.purchased_products_kb import (
+from src.modules.profile.keyboards.purchased_accounts_kb import (
     type_product_in_purchases_kb,
     sold_account_type_service_kb,
     sold_accounts_kb,

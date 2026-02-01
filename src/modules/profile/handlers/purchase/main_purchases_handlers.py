@@ -13,6 +13,6 @@ async def purchases(callback: CallbackQuery, user: Users):
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
-        image_key='purchased_accounts',
+        image_key='purchases',
         reply_markup=await type_product_in_purchases_kb(user.language, user.user_id)
     )

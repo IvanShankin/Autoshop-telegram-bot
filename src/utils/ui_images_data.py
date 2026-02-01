@@ -17,6 +17,7 @@ def get_ui_images():
         # покупки
         "purchases": ui_sections / "purchases.png",
         "purchased_accounts": ui_sections / "purchased_accounts.png",
+        "purchased_universal": ui_sections / "purchased_universal.png",
 
         # История операций
         "history_transections": ui_sections / "history_transections.png",

@@ -9,7 +9,7 @@ from aiogram.types import CallbackQuery, Message, FSInputFile, BufferedInputFile
 
 from src.bot_actions.messages import edit_message, send_message, send_log
 from src.bot_actions.bot_instance import get_bot
-from src.bot_actions.messages.send import send_file
+from src.bot_actions.messages import send_file_by_file_key
 from src.config import get_config
 from src.exceptions import TypeAccountServiceNotFound, InvalidFormatRows
 from src.exceptions.business import ImportUniversalInvalidMediaData, ImportUniversalFileNotFound
@@ -99,13 +99,13 @@ async def category_load_products(callback: CallbackQuery, state: FSMContext, use
 async def get_example_import_universals(callback: CallbackQuery, user: Users):
     conf = get_config()
     try:
-        await send_file(
+        await send_file_by_file_key(
             chat_id=user.user_id,
             file_key=conf.file_keys.example_zip_for_universal_import_key.key,
         )
     except FileNotFoundError:
         await generate_example_zip_for_import()
-        await send_file(
+        await send_file_by_file_key(
             chat_id=user.user_id,
             file_key=conf.file_keys.example_zip_for_universal_import_key.key,
         )

@@ -6,9 +6,55 @@ import zipfile
 from pathlib import Path
 from typing import List
 
+from src.bot_actions.messages import send_log
 from src.config import get_config
-from src.services.filesystem.actions import get_default_image_bytes, create_temp_dir
+from src.services.database.categories.models.product_universal import UniversalStorageStatus
+from src.services.database.categories.models.shemas.product_universal_schem import SoldUniversalFull
+from src.services.filesystem.actions import get_default_image_bytes, move_file
+from src.services.products.universals.actions import create_path_universal_storage
 from src.services.products.universals.shemas import get_import_universal_headers, UploadUniversalProduct
+from src.utils.core_logger import get_logger
+
+
+async def move_in_universal(universal: SoldUniversalFull, status: UniversalStorageStatus) -> bool:
+    """
+    Перенос универсального товара к `status` удалив исходное местоположение.
+    :param status: статус продукта который будет в конечном пути
+    :return: Если возникнет ошибка или аккаунт не переместится, то вернёт False
+    """
+    orig = None
+    final = None
+    try:
+        orig = create_path_universal_storage(
+            status=universal.universal_storage.status,
+            uuid=universal.universal_storage.storage_uuid
+        )
+        final = create_path_universal_storage(
+            status=status,
+            uuid=universal.universal_storage.storage_uuid
+        )
+
+        moved = await move_file(orig, final)
+        if not moved:
+            return False
+
+        # Удаление директории где хранится товар (uui). Директория уже будет пустой
+        if os.path.isdir(str(Path(orig).parent)):
+            shutil.rmtree(str(Path(orig).parent))
+
+        return True
+    except Exception as e:
+        text = (
+            f"#Ошибка при переносе универсального товара к {status}. \n"
+            f"Исходный путь: {orig if orig else "none"} \n"
+            f"Финальный путь: {final if final else "none"} \n"
+            f"universal_storage_id: {universal.universal_storage_id if universal.universal_storage_id else "none"} \n"
+            f"Ошибка: {str(e)}"
+        )
+        logger = get_logger(__name__)
+        logger.exception(f"Ошибка при переносе универсального товара к {status} %s", universal.universal_storage_id)
+        await send_log(text)
+        return False
 
 
 async def generate_example_zip_for_import() -> Path:

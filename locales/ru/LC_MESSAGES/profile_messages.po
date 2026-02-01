@@ -67,12 +67,16 @@ msgstr "Введена некорректная сумма \n\nМаксимум:
 msgid "Select account type"
 msgstr "Выберите тип аккаунта"
 
-msgid "Phone: {phone_number}\n\n"
+msgid ""
+"ID product: {product_id}\n\n"
+"Phone: {phone_number}\n\n"
 "Name: {name}\n"
 "Description: {description}\n\n"
 "{valid}\n"
 "Purchased: {sold_at}"
-msgstr "Телефон: {phone_number}\n\n"
+msgstr ""
+"ID товара: {product_id}\n\n"
+"Телефон: {phone_number}\n\n"
 "Имя: {name}\n"
 "Описание: {description}\n\n"
 "{valid}\n"
@@ -129,6 +133,34 @@ msgstr "Коды не найдены"
 
 msgid "Login: <code>{login}</code> \nPassword: <code>{password}</code>"
 msgstr "Логин: <code>{login}</code> \Пароль: <code>{password}</code>"
+
+
+# ---- Купленные универсальные товары ----
+
+msgid "Product not found"
+msgstr "Продукт не найден"
+
+msgid ""
+"ID product: {product_id}\n\n"
+"Name: {name}\n"
+"Purchased: {sold_at}"
+msgstr ""
+"ID товара: {product_id}\n\n"
+"Имя: {name}\n"
+"Куплен: {sold_at}"
+
+msgid "Confirm deletion of this product\n\n"
+"ID product: {sold_universal_id}\n"
+"Name: {name}"
+msgstr "Подтвердите удаление этого товара\n\n"
+"ID товара: {sold_universal_id}\n"
+"Имя: {name}"
+
+msgid "The product has been successfully deleted"
+msgstr "Продукт успешно удалён"
+
+msgid "Description: \n\n{description}"
+msgstr "Описание: \n\n{description}"
 
 # ---- Настройки ----
 

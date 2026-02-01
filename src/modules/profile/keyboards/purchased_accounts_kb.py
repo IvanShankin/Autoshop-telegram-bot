@@ -14,8 +14,6 @@ from src.utils.i18n import get_text
 from src.utils.pars_number import e164_to_pretty
 
 
-# ---- Купленные товары ----
-
 async def type_product_in_purchases_kb(language: str, user_id: int) -> InlineKeyboardMarkup:
     """Отобразит только те сервисы в которых у пользователя есть купленные товары"""
 
@@ -25,14 +23,14 @@ async def type_product_in_purchases_kb(language: str, user_id: int) -> InlineKey
 
     if ProductType.ACCOUNT in type_products:
         keyboard.row(InlineKeyboardButton(
-            text=ProductType.ACCOUNT.value,
+            text=get_text(language, "kb_profile", ProductType.ACCOUNT.value),
             callback_data=f'services_sold_account')
         )
 
     if ProductType.UNIVERSAL in type_products:
         keyboard.row(InlineKeyboardButton(
-            text=ProductType.UNIVERSAL.value,
-            callback_data=f'all_universal_product')
+            text=get_text(language, "kb_profile", ProductType.UNIVERSAL.value),
+            callback_data=f'all_sold_universal:1')
         )
     # ПРИ ДОБАВЛЕНИЕ НОВЫХ ТОВАРОВ, РАСШИРИТЬ ПОИСК
 

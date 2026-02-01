@@ -459,6 +459,9 @@ class BaseMiddleware:
 class FakeTelegramForbiddenError(Exception):
     message="error"
 
+class FakeTelegramAPIError(Exception):
+    message="error"
+
 class FakeTelegramBadRequest(Exception):
     message="error"
 

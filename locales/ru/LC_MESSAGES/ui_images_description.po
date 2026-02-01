@@ -121,5 +121,8 @@ msgstr "При показе купленных товаров"
 msgid "purchased_accounts"
 msgstr "При показе купленных аккаунтов"
 
+msgid "purchased_universal"
+msgstr "При показе купленных универсальных товаров"
+
 msgid "admin_panel"
 msgstr "Панель админа"

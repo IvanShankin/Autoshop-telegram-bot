@@ -63,7 +63,7 @@ async def show_all_sold_account(
 async def show_sold_account(
     callback: CallbackQuery,
     user: Users,
-    account:  SoldAccountFull,
+    account: SoldAccountFull,
     language: str,
     current_page: int,
     type_account_service: AccountServiceType | None
@@ -81,12 +81,14 @@ async def show_sold_account(
         message=get_text(
             language,
             'profile_messages',
+            "ID product: {id_product}\n\n"
             "Phone: {phone_number}\n\n"
             "Name: {name}\n"
             "Description: {description}\n\n"
             "{valid}\n"
             "Purchased: {sold_at}"
         ).format(
+            product_id=account.sold_account_id,
             phone_number=e164_to_pretty(account.account_storage.phone_number),
             name=account.name,
             description=account.description,

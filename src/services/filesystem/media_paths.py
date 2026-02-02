@@ -1,8 +1,7 @@
 from pathlib import Path
 
 from src.config import get_config
-from src.services.database.categories.models.product_account import AccountServiceType
-from src.services.database.categories.models.product_universal import UniversalStorageStatus
+from src.services.database.categories.models import AccountServiceType, StorageStatus
 
 
 def create_path_account(status: str, type_account_service: AccountServiceType, uuid: str) -> str:
@@ -16,7 +15,7 @@ def create_path_account(status: str, type_account_service: AccountServiceType, u
     return str(Path(get_config().paths.accounts_dir) / status / type_account_service.value / uuid / 'account.enc')
 
 
-def create_path_universal_storage(status: UniversalStorageStatus, uuid: str, return_path_obj: bool = False) -> str | Path:
+def create_path_universal_storage(status: StorageStatus, uuid: str, return_path_obj: bool = False) -> str | Path:
     """
         Создаст путь к универсальному файлу.
         :param return_path_obj: Вернёт экземпляр объекта Path

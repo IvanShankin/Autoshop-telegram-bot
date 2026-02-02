@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import select
 
 from src.services.database.categories.models import AccountStorage
-from src.services.database.categories.models.product_account import AccountServiceType
+from src.services.database.categories.models import AccountServiceType
 from src.services.database.core import get_db
 
 

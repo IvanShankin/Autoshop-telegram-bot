@@ -1,8 +1,8 @@
 from sqlalchemy import update, select
 from sqlalchemy.orm import selectinload
 
-from src.services.database.categories.models.product_universal import UniversalMediaType, UniversalStorage, \
-    UniversalStorageStatus
+from src.services.database.categories.models import UniversalMediaType, UniversalStorage, \
+    StorageStatus
 from src.services.database.core import get_db
 from src.services.redis.filling.filling_universal import filling_product_universal_by_category, \
     filling_universal_by_product_id, filling_sold_universal_by_owner_id, filling_sold_universal_by_universal_id
@@ -19,7 +19,7 @@ async def update_universal_storage(
     encrypted_key_nonce: str = None,
     key_version: int = None,
     encryption_algo: str = None,
-    status: UniversalStorageStatus = None,
+    status: StorageStatus = None,
     media_type: UniversalMediaType = None,
     is_active: bool = None
 ) -> UniversalStorage | None:

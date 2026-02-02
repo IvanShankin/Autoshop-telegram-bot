@@ -10,11 +10,8 @@ from src.exceptions import TranslationAlreadyExists, \
     TheCategoryNotStorageAccount
 from src.exceptions.business import TheAccountServiceDoesNotMatch
 from src.services.database.categories.actions.actions_get import get_category_by_category_id
-from src.services.database.categories.models import AccountStorage
 from src.services.database.categories.models import ProductAccounts, SoldAccounts, SoldAccountsTranslation, \
-    DeletedAccounts, SoldAccountSmall
-from src.services.database.categories.models import TgAccountMedia
-from src.services.database.categories.models.product_account import AccountServiceType
+    DeletedAccounts, SoldAccountSmall, AccountServiceType, TgAccountMedia, AccountStorage
 from src.services.database.core.database import get_db
 from src.services.database.users.actions import get_user
 from src.services.redis.filling import filling_product_account_by_account_id, \

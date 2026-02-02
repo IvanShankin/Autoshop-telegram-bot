@@ -3,8 +3,8 @@ import shutil
 from pathlib import Path
 
 from src.bot_actions.messages import send_log
-from src.services.database.categories.models.product_universal import UniversalStorageStatus
-from src.services.database.categories.models.shemas.product_universal_schem import ProductUniversalFull, \
+from src.services.database.categories.models import StorageStatus
+from src.services.database.categories.models import ProductUniversalFull, \
     UniversalStoragePydantic
 from src.services.filesystem.actions import move_file
 from src.services.filesystem.media_paths import create_path_universal_storage
@@ -14,7 +14,7 @@ from src.utils.core_logger import get_logger
 
 async def check_valid_universal_product(
     product: ProductUniversalFull,
-    status: UniversalStorageStatus,
+    status: StorageStatus,
     crypto: CryptoContext,
 ) -> bool:
     """
@@ -77,7 +77,7 @@ async def check_valid_universal_product(
     return True
 
 
-async def move_universal_storage(storage: UniversalStoragePydantic, new_status: UniversalStorageStatus) -> Path | bool:
+async def move_universal_storage(storage: UniversalStoragePydantic, new_status: StorageStatus) -> Path | bool:
     """
     Перенос аккаунтов к `status` удалив исходное местоположение.
     :param status: Статус товара который будет в конечном пути

@@ -7,9 +7,9 @@ from sqlalchemy import select, update, delete
 from src.services.database.categories.actions.purchases.general.cancel import return_files, \
     update_purchaseRequests_and_balance_holder
 from src.services.database.categories.models import Purchases
-from src.services.database.categories.models.product_universal import SoldUniversal, UniversalStorage, \
-    UniversalStorageStatus, ProductUniversal
-from src.services.database.categories.models.shemas.product_universal_schem import ProductUniversalFull
+from src.services.database.categories.models import SoldUniversal, UniversalStorage, \
+    StorageStatus, ProductUniversal
+from src.services.database.categories.models import ProductUniversalFull
 from src.services.database.core.database import get_db
 from src.services.database.users.models import Users
 from src.services.redis.filling import filling_user, filling_all_keys_category
@@ -154,7 +154,7 @@ async def cancel_purchase_universal_different(
                         update(UniversalStorage)
                         .where(UniversalStorage.universal_storage_id == s.universal_storage_id)
                         .values(
-                            status=UniversalStorageStatus.FOR_SALE,
+                            status=StorageStatus.FOR_SALE,
                         )
                     )
 

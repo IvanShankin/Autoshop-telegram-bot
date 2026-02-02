@@ -6,10 +6,8 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
 from src.config import get_config
-from src.services.database.categories.models import Categories, ProductAccounts, AccountStorage
-from src.services.database.categories.models import ProductUniversal
-from src.services.database.categories.models.product_universal import UniversalStorage, UniversalStorageStatus
-from src.services.database.categories.models.shemas.product_account_schem import CategoryFull
+from src.services.database.categories.models import Categories, ProductAccounts, AccountStorage, ProductUniversal, \
+    UniversalStorage, StorageStatus, CategoryFull
 from src.services.database.core.database import get_db, Base
 from src.services.redis.core_redis import get_redis
 
@@ -32,7 +30,7 @@ async def _get_quantity_products_in_category(category_id: int) -> int:
             .join(ProductUniversal.storage)
             .where(
                 (ProductUniversal.category_id == category_id) &
-                (UniversalStorage.status == UniversalStorageStatus.FOR_SALE)
+                (UniversalStorage.status == StorageStatus.FOR_SALE)
             )
             .scalar_subquery()
 

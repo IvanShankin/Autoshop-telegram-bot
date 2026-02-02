@@ -17,10 +17,10 @@ from src.services.database.categories.events.schemas import UniversalProductData
     NewPurchaseUniversal
 from src.services.database.categories.models import PurchaseRequests
 from src.services.database.categories.models import Purchases
-from src.services.database.categories.models.main_category_and_product import ProductType
-from src.services.database.categories.models.product_universal import UniversalStorageStatus, ProductUniversal, \
+from src.services.database.categories.models import ProductType
+from src.services.database.categories.models import StorageStatus, ProductUniversal, \
     SoldUniversal, UniversalStorage, UniversalStorageTranslation, PurchaseRequestUniversal
-from src.services.database.categories.models.shemas.product_universal_schem import ProductUniversalFull, \
+from src.services.database.categories.models import ProductUniversalFull, \
     UniversalStoragePydantic
 from src.services.database.categories.models.shemas.purshanse_schem import StartPurchaseUniversal, \
     StartPurchaseUniversalOne
@@ -82,7 +82,7 @@ async def _publish_purchase_universal(
 async def _copy_universal_storage_prepare(
     src_storage: UniversalStoragePydantic,
     translations: List[UniversalStorageTranslation],
-    new_status: UniversalStorageStatus,
+    new_status: StorageStatus,
     quantity: int = 1,
 ) -> List[Tuple[Path, UniversalStorage, List[UniversalStorageTranslation]]]:
     """
@@ -97,7 +97,7 @@ async def _copy_universal_storage_prepare(
         if src_storage.original_filename:
             # создаём целевой путь (полный), но не трогаем БД
             src_path = create_path_universal_storage(
-                status=UniversalStorageStatus.FOR_SALE,
+                status=StorageStatus.FOR_SALE,
                 uuid=src_storage.storage_uuid,
             )
             final_path = create_path_universal_storage(
@@ -158,7 +158,7 @@ async def finalize_purchase_universal_one(user_id: int, data: StartPurchaseUnive
         prepared = await _copy_universal_storage_prepare(
             src_storage=data.full_product.universal_storage,
             translations=translations,
-            new_status=UniversalStorageStatus.BOUGHT,
+            new_status=StorageStatus.BOUGHT,
             quantity=data.quantity_products
         )
 
@@ -238,7 +238,7 @@ async def finalize_purchase_universal_one(user_id: int, data: StartPurchaseUnive
             user_id=user_id,
             category_id=data.category_id,
             paths_created_storage=[
-                create_path_universal_storage(status=UniversalStorageStatus.FOR_SALE, uuid=s.storage_uuid)
+                create_path_universal_storage(status=StorageStatus.FOR_SALE, uuid=s.storage_uuid)
                 for s in created_storages if s.original_filename
             ],
             sold_universal_ids=sold_ids,
@@ -271,11 +271,11 @@ async def finalize_purchase_universal_different(user_id: int, data: StartPurchas
                 continue
 
             orig = create_path_universal_storage(
-                status=UniversalStorageStatus.FOR_SALE,
+                status=StorageStatus.FOR_SALE,
                 uuid=product.universal_storage.storage_uuid
             )
             final = create_path_universal_storage(
-                status=UniversalStorageStatus.BOUGHT,
+                status=StorageStatus.BOUGHT,
                 uuid=product.universal_storage.storage_uuid
             )
             temp = final + ".part"  # временный файл рядом с финальным
@@ -343,7 +343,7 @@ async def finalize_purchase_universal_different(user_id: int, data: StartPurchas
                         update(UniversalStorage)
                         .where(UniversalStorage.universal_storage_id == product.universal_storage_id)
                         .values(
-                            status=UniversalStorageStatus.BOUGHT,
+                            status=StorageStatus.BOUGHT,
                         )
                     )
 

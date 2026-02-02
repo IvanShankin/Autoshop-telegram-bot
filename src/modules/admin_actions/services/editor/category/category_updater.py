@@ -10,9 +10,7 @@ from src.modules.admin_actions.schemas import UpdateCategoryOnlyId
 from src.modules.admin_actions.services.editor.category.show_message import show_category_update_data, show_category
 from src.modules.admin_actions.state import UpdateNumberInCategory
 from src.services.database.categories.actions import update_category
-from src.services.database.categories.models.main_category_and_product import ProductType
-from src.services.database.categories.models.product_account import AccountServiceType
-from src.services.database.categories.models.product_universal import UniversalMediaType
+from src.services.database.categories.models import ProductType, AccountServiceType, UniversalMediaType
 from src.services.database.users.models import Users
 from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_text

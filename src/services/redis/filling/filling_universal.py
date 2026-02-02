@@ -3,11 +3,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.config import get_config
-from src.services.database.categories.models import ProductUniversal
-from src.services.database.categories.models.product_universal import UniversalStorage, SoldUniversal, \
-    UniversalStorageStatus
-from src.services.database.categories.models.shemas.product_universal_schem import ProductUniversalFull, \
-    SoldUniversalSmall, SoldUniversalFull
+from src.services.database.categories.models import UniversalStorage, SoldUniversal, \
+    StorageStatus, ProductUniversal, ProductUniversalFull, SoldUniversalSmall, SoldUniversalFull
 from src.services.database.core import get_db
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling.helpers_func import _delete_keys_by_pattern, _filling_product_by_category_id, \
@@ -21,7 +18,7 @@ async def filling_product_universal_by_category():
         "product_universal_by_category",
         join=ProductUniversal.storage,
         options=(selectinload(ProductUniversal.storage),),
-        filter_expr=(UniversalStorage.status == UniversalStorageStatus.FOR_SALE)
+        filter_expr=(UniversalStorage.status == StorageStatus.FOR_SALE)
     )
 
 

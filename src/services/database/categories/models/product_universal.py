@@ -5,22 +5,9 @@ from typing import Callable, Any, Tuple
 from sqlalchemy import Column, String, ForeignKey, Integer, Boolean, text, Text, DateTime, func, BigInteger, Enum
 from sqlalchemy.orm import relationship
 
+from src.services.database.categories.models import StorageStatus
+from src.services.database.categories.models.main_category_and_product import UniversalMediaType
 from src.services.database.core.database import Base
-
-
-class UniversalStorageStatus(enum.Enum):
-    FOR_SALE = "for_sale"
-    RESERVED = "reserved"
-    BOUGHT = "bought"
-    DELETED = "deleted"
-
-
-class UniversalMediaType(enum.Enum):
-    DESCRIPTION = "description"     # только описание
-    IMAGE = "image"                 # будет отсылаться как фото
-    VIDEO = "video"                 # будет отсылаться как видео
-    DOCUMENT = "document"           # будет отсылаться как документ
-    MIXED = "mixed"                 # файл + описание
 
 
 class ProductUniversal(Base):
@@ -64,7 +51,7 @@ class UniversalStorage(Base):
 
     status = Column(
         Enum(
-            UniversalStorageStatus,
+            StorageStatus,
             values_callable=lambda x: [e.value for e in x],
             name="universal_storage_type"
         ),

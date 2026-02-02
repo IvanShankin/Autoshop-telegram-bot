@@ -3,8 +3,7 @@ from typing import List
 
 from sqlalchemy import select, delete
 
-from src.services.database.categories.models import ProductUniversal
-from src.services.database.categories.models.product_universal import SoldUniversal, UniversalStorage
+from src.services.database.categories.models import ProductUniversal, SoldUniversal, UniversalStorage
 from src.services.database.core import get_db
 from src.services.filesystem.media_paths import create_path_universal_storage
 from src.services.redis.filling import filling_all_keys_category, filling_product_accounts_by_category_id

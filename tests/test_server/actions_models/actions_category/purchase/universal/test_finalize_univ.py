@@ -9,9 +9,9 @@ from src.services.database.categories.models import (
     PurchaseRequests,
     Purchases,
 )
-from src.services.database.categories.models.product_universal import (
+from src.services.database.categories.models import (
     UniversalStorage,
-    UniversalStorageStatus,
+    StorageStatus,
     SoldUniversal,
     PurchaseRequestUniversal, ProductUniversal, UniversalMediaType,
 )
@@ -118,7 +118,7 @@ class TestFinalizePurchaseUniversalOne:
             # UniversalStorage (BOUGHT)
             q = await session.execute(
                 select(UniversalStorage).where(
-                    UniversalStorage.status == UniversalStorageStatus.BOUGHT
+                    UniversalStorage.status == StorageStatus.BOUGHT
                 )
             )
             storages = q.scalars().all()
@@ -372,7 +372,7 @@ class TestFinalizePurchaseUniversalDifferent:
             # UniversalStorage BOUGHT
             q = await session.execute(select(UniversalStorage))
             storages = q.scalars().all()
-            assert all(s.status == UniversalStorageStatus.BOUGHT for s in storages)
+            assert all(s.status == StorageStatus.BOUGHT for s in storages)
 
             # PurchaseRequests
             pr_db = await session.get(PurchaseRequests, pr.purchase_request_id)

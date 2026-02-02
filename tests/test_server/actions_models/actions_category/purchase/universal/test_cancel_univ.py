@@ -4,9 +4,9 @@ import pytest
 from sqlalchemy import select
 
 from src.services.database.categories.models import PurchaseRequests, Purchases
-from src.services.database.categories.models.product_universal import (
+from src.services.database.categories.models import (
     UniversalStorage,
-    UniversalStorageStatus,
+    StorageStatus,
     ProductUniversal,
     SoldUniversal,
 )
@@ -114,7 +114,7 @@ class TestCancelPurchaseUniversalDifferent:
 
             # UniversalStorage.status -> FOR_SALE
             us = await session.get(UniversalStorage, storage.universal_storage_id)
-            assert us.status == UniversalStorageStatus.FOR_SALE
+            assert us.status == StorageStatus.FOR_SALE
             assert us.original_filename is not None
 
             # ProductUniversal восстановлен
@@ -240,4 +240,4 @@ class TestCancelPurchaseUniversalDifferent:
 
             # UniversalStorage -> FOR_SALE
             us = await session.get(UniversalStorage, storage.universal_storage_id)
-            assert us.status == UniversalStorageStatus.FOR_SALE
+            assert us.status == StorageStatus.FOR_SALE

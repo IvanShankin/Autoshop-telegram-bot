@@ -25,12 +25,12 @@ from src.modules.admin_actions.services import message_info_load_file, make_resu
 from src.modules.admin_actions.services import check_valid_file, check_category_is_acc_storage
 from src.modules.admin_actions.state import ImportTgAccounts, ImportOtherAccounts
 from src.modules.admin_actions.state.editors.editor_categories import ImportUniversalProducts
-from src.services.database.categories.models.main_category_and_product import ProductType
+from src.services.database.categories.models import ProductType
 from src.services.filesystem.actions import create_temp_dir
 from src.services.filesystem.universals_products import generate_example_zip_for_import
 from src.services.products.accounts.other.input_account import input_other_account
 from src.services.products.accounts.tg.input_account import import_telegram_accounts_from_archive
-from src.services.database.categories.models.product_account import AccountServiceType
+from src.services.database.categories.models import AccountServiceType
 from src.services.database.users.models import Users
 from src.services.products.universals.input_products import input_universal_products
 from src.services.products.universals.shemas import get_import_universal_headers

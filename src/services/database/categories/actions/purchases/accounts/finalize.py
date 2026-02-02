@@ -14,7 +14,7 @@ from src.services.database.categories.models import ProductAccounts, SoldAccount
     SoldAccountsTranslation, AccountStorage
 from src.services.database.categories.models import PurchaseRequests
 from src.services.database.categories.models import StartPurchaseAccount
-from src.services.database.categories.models.main_category_and_product import ProductType
+from src.services.database.categories.models import ProductType
 from src.services.database.core.database import get_db
 from src.services.database.discounts.events import NewActivatePromoCode
 from src.services.database.users.models.models_users import BalanceHolder

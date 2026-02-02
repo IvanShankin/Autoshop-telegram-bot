@@ -12,9 +12,9 @@ from src.services.database.categories.actions.products.universal.action_delete i
 from src.services.database.categories.actions.products.universal.action_update import update_universal_storage
 from src.services.database.categories.actions.products.universal.actions_add import add_deleted_universal
 from src.services.database.categories.models import PurchaseRequests
-from src.services.database.categories.models.product_universal import UniversalStorageStatus, \
+from src.services.database.categories.models import StorageStatus, \
     ProductUniversal, UniversalStorage, PurchaseRequestUniversal
-from src.services.database.categories.models.shemas.product_universal_schem import ProductUniversalFull
+from src.services.database.categories.models import ProductUniversalFull
 from src.services.database.core.database import get_db
 from src.services.products.universals.actions import check_valid_universal_product, move_universal_storage
 from src.services.secrets import get_crypto_context
@@ -36,14 +36,14 @@ async def _delete_universal(universal_product: List[ProductUniversalFull]):
         for bad_prod in universal_product:
             result_path = await move_universal_storage(
                 storage=bad_prod.universal_storage,
-                new_status=UniversalStorageStatus.DELETED
+                new_status=StorageStatus.DELETED
             )
 
             # помечаем первоначальный плохо прошедший продукт как deleted сразу
             try:
                 await update_universal_storage(
                     universal_storage_id=bad_prod.universal_storage.universal_storage_id,
-                    status=UniversalStorageStatus.DELETED,
+                    status=StorageStatus.DELETED,
                     is_active=False
                 )
                 await delete_prod_universal(bad_prod.product_universal_id)
@@ -83,7 +83,7 @@ async def verify_reserved_universal_one(
 
     result_check = await check_valid_universal_product(
         product=product_universal,
-        status=UniversalStorageStatus.FOR_SALE,
+        status=StorageStatus.FOR_SALE,
         crypto=crypto
     )
 
@@ -126,7 +126,7 @@ async def verify_reserved_universal_different(
     async def validate_slot(product: ProductUniversalFull) -> Tuple[ProductUniversalFull, bool]:
         """Проверка одного ProductAccounts -> возвращает (pa, is_valid)"""
         async with sem:
-            return product, await check_valid_universal_product(product, UniversalStorageStatus.FOR_SALE, crypto)
+            return product, await check_valid_universal_product(product, StorageStatus.FOR_SALE, crypto)
 
     # Получим purchase_request (чтобы иметь доступ к balance_holder)
     async with get_db() as session_db:
@@ -188,7 +188,7 @@ async def verify_reserved_universal_different(
                         .where(
                             (ProductUniversal.category_id == bad_queue[0].category_id) &  # выбираем по категории текущей «дыры»
                             (UniversalStorage.is_active == True) &
-                            (UniversalStorage.status == UniversalStorageStatus.FOR_SALE)
+                            (UniversalStorage.status == StorageStatus.FOR_SALE)
                         )
                         .with_for_update()
                         .limit(to_fetch)
@@ -210,7 +210,7 @@ async def verify_reserved_universal_different(
                         await session_db.execute(
                             update(UniversalStorage)
                             .where(UniversalStorage.universal_storage_id.in_(storage_ids))
-                            .values(status=UniversalStorageStatus.RESERVED)
+                            .values(status=StorageStatus.RESERVED)
                         )
                         # commit произойдёт по выходу из session_db.begin()
             except Exception as e:
@@ -227,7 +227,7 @@ async def verify_reserved_universal_different(
             async def validate_candidate(candidates_full: ProductUniversalFull) -> Tuple[ProductUniversalFull, bool]:
                 async with sem:
                     try:
-                        ok = await check_valid_universal_product(candidates_full, UniversalStorageStatus.FOR_SALE, crypto)
+                        ok = await check_valid_universal_product(candidates_full, StorageStatus.FOR_SALE, crypto)
                         return candidates_full, ok
                     except Exception as e:
                         logger.exception(
@@ -274,7 +274,7 @@ async def verify_reserved_universal_different(
                         await session_db.execute(
                             update(UniversalStorage)
                             .where(UniversalStorage.universal_storage_id.in_(keep_ids))
-                            .values(status=UniversalStorageStatus.FOR_SALE)
+                            .values(status=StorageStatus.FOR_SALE)
                         )
                 # конец session_db.begin() — commit
             except Exception as e:
@@ -285,7 +285,7 @@ async def verify_reserved_universal_different(
                     await session_db.execute(
                         update(UniversalStorage)
                         .where(UniversalStorage.universal_storage_id.in_(ids))
-                        .values(status=UniversalStorageStatus.FOR_SALE)
+                        .values(status=StorageStatus.FOR_SALE)
                     )
                 except Exception:
                     logger.exception("Failed to revert candidate statuses after error")

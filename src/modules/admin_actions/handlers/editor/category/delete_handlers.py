@@ -12,7 +12,7 @@ from src.services.database.categories.actions import delete_category as delete_c
     delete_product_accounts_by_category
 from src.services.database.categories.actions.products.universal.action_delete import \
     delete_product_universal_by_category
-from src.services.database.categories.models.main_category_and_product import ProductType
+from src.services.database.categories.models import ProductType
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
 

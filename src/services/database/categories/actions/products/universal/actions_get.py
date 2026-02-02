@@ -6,10 +6,8 @@ from sqlalchemy.orm import selectinload
 from src.config import get_config
 from src.services.database.categories.actions.helpers_func import _get_grouped_objects, _get_single_obj, \
     get_sold_items_by_page
-from src.services.database.categories.models import ProductUniversal
-from src.services.database.categories.models.product_universal import UniversalStorage, SoldUniversal, \
-    UniversalStorageTranslation, UniversalStorageStatus
-from src.services.database.categories.models.shemas.product_universal_schem import ProductUniversalFull, \
+from src.services.database.categories.models import UniversalStorage, SoldUniversal, \
+    UniversalStorageTranslation, StorageStatus, ProductUniversal, ProductUniversalFull, \
     SoldUniversalSmall, SoldUniversalFull, ProductUniversalSmall, UniversalStoragePydantic
 from src.services.database.core import get_db
 from src.services.redis.filling.filling_universal import filling_product_universal_by_category, \
@@ -65,7 +63,7 @@ async def get_product_universal_by_category_id(
                 )
                 .where(
                     (ProductUniversal.category_id == category_id) &
-                    (UniversalStorage.status == UniversalStorageStatus.FOR_SALE)
+                    (UniversalStorage.status == StorageStatus.FOR_SALE)
                 )
             )
             products: List[ProductUniversal] = result_db.scalars().all()
@@ -87,7 +85,7 @@ async def get_product_universal_by_category_id(
         filter_expr=(
                     (ProductUniversal.category_id == category_id)
                     & ProductUniversal.storage.has(
-                UniversalStorage.status == UniversalStorageStatus.FOR_SALE
+                UniversalStorage.status == StorageStatus.FOR_SALE
             )
         ),
         call_fun_filling=filling_product_universal_by_category,

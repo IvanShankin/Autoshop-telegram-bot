@@ -3,7 +3,7 @@ from orjson import orjson
 from sqlalchemy import select
 from src.services.database.categories.models import DeletedAccounts, SoldAccounts, \
     ProductAccounts,  SoldAccountsTranslation, AccountStorage
-from src.services.database.categories.models.product_account import AccountServiceType, TgAccountMedia
+from src.services.database.categories.models import AccountServiceType, TgAccountMedia
 
 from src.exceptions import TranslationAlreadyExists, TheCategoryNotStorageAccount
 from src.services.database.core.database import get_db

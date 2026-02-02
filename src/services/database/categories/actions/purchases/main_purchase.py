@@ -13,7 +13,7 @@ from src.services.database.categories.actions.purchases.universal.finalize impor
 from src.services.database.categories.actions.purchases.universal.start import start_purchase_universal
 from src.services.database.categories.actions.purchases.universal.verify import verify_reserved_universal_different, \
     verify_reserved_universal_one
-from src.services.database.categories.models.main_category_and_product import ProductType
+from src.services.database.categories.models import ProductType
 from src.services.database.categories.models.shemas.purshanse_schem import StartPurchaseUniversal, \
     StartPurchaseUniversalOne
 from src.services.redis.filling import filling_all_keys_category

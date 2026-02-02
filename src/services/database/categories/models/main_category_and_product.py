@@ -4,14 +4,32 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text, text,
     BigInteger, Index, DateTime, func
 from sqlalchemy.orm import relationship
 
-from src.services.database.categories.models.product_universal import UniversalMediaType
 from src.services.database.core.database import Base
-from src.services.database.categories.models.product_account import AccountServiceType
 
 
 class ProductType(enum.Enum):
     ACCOUNT = "account"
     UNIVERSAL = "universal"
+
+
+class StorageStatus(enum.Enum):
+    FOR_SALE = "for_sale"
+    RESERVED = "reserved"
+    BOUGHT = "bought"
+    DELETED = "deleted"
+
+
+class UniversalMediaType(enum.Enum):
+    DESCRIPTION = "description"     # только описание
+    IMAGE = "image"                 # будет отсылаться как фото
+    VIDEO = "video"                 # будет отсылаться как видео
+    DOCUMENT = "document"           # будет отсылаться как документ
+    MIXED = "mixed"                 # файл + описание
+
+
+class AccountServiceType(enum.Enum):
+    TELEGRAM = "telegram"
+    OTHER = "other"
 
 
 class Categories(Base):

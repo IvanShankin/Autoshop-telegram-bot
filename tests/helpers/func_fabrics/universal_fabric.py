@@ -9,9 +9,9 @@ from src.services.redis.filling import filling_all_keys_category
 from src.services.secrets.encrypt import encrypt_file
 from tests.helpers.func_fabrics.category_fabric import create_category_factory
 from tests.helpers.func_fabrics.other_fabric import create_new_user_fabric
-from src.services.database.categories.models.product_universal import UniversalMediaType, UniversalStorage, \
-    UniversalStorageTranslation, ProductUniversal, SoldUniversal, UniversalStorageStatus
-from src.services.database.categories.models.shemas.product_universal_schem import UniversalStoragePydantic, \
+from src.services.database.categories.models import UniversalMediaType, UniversalStorage, \
+    UniversalStorageTranslation, ProductUniversal, SoldUniversal, StorageStatus
+from src.services.database.categories.models import UniversalStoragePydantic, \
     ProductUniversalSmall, ProductUniversalFull, SoldUniversalSmall, SoldUniversalFull
 from src.services.database.core.database import get_db
 from src.services.redis.filling.filling_universal import filling_product_universal_by_category, \
@@ -22,7 +22,7 @@ from src.services.secrets import encrypt_text, get_crypto_context, make_account_
 
 async def _make_encrypted_universal_storage_file(
     dek: bytes,
-    status: UniversalStorageStatus,
+    status: StorageStatus,
     uuid: str,
     file_path: str = None
 ) -> Path:
@@ -58,7 +58,7 @@ async def create_universal_storage_factory(
 
     key_version: int = 1,
     encryption_algo: str = "AES-GCM-256",
-    status: UniversalStorageStatus = UniversalStorageStatus.FOR_SALE,
+    status: StorageStatus = StorageStatus.FOR_SALE,
 ) -> tuple[UniversalStorage, UniversalStoragePydantic]:
 
     crypto = get_crypto_context()
@@ -140,7 +140,7 @@ async def create_product_universal_factory(
     filling_redis: bool = True,
     universal_storage_id: int | None = None,
     encrypted_tg_file_id_nonce: str = None,
-    status: UniversalStorageStatus = UniversalStorageStatus.FOR_SALE,
+    status: StorageStatus = StorageStatus.FOR_SALE,
     category_id: int | None = None,
     language: str = "ru",
 ) -> tuple[ProductUniversalSmall, ProductUniversalFull]:

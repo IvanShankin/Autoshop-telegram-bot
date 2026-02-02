@@ -4,9 +4,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from src.config import get_config
 from src.services.database.categories.actions import get_categories
 from src.services.database.categories.models import CategoryFull
-from src.services.database.categories.models.main_category_and_product import ProductType, Categories
-from src.services.database.categories.models.product_account import AccountServiceType
-from src.services.database.categories.models.product_universal import UniversalMediaType
+from src.services.database.categories.models import ProductType, Categories, UniversalMediaType, AccountServiceType
 from src.utils.i18n import get_text
 
 

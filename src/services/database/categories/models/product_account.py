@@ -7,12 +7,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import uuid
 
+from src.services.database.categories.models.main_category_and_product import AccountServiceType
 from src.services.database.core.database import Base
-
-
-class AccountServiceType(enum.Enum):
-    TELEGRAM = "telegram"
-    OTHER = "other"
 
 
 class AccountStorage(Base):

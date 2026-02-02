@@ -4,12 +4,13 @@ from typing import List
 import pytest
 from sqlalchemy import select
 
-from src.services.database.categories.models import PurchaseRequests, Purchases
-from src.services.database.categories.models.main_category_and_product import ProductType
-from src.services.database.categories.models.product_universal import (
+from src.services.database.categories.models import (
     SoldUniversal,
+    ProductType,
+    PurchaseRequests,
+    Purchases,
     UniversalStorage,
-    UniversalStorageStatus,
+    StorageStatus,
 )
 from src.services.database.core import get_db
 from src.services.database.users.models import Users
@@ -102,7 +103,7 @@ class TestDifferentPurchase:
                 )
             )
             storages = q.scalars().all()
-            assert all(s.status == UniversalStorageStatus.BOUGHT for s in storages)
+            assert all(s.status == StorageStatus.BOUGHT for s in storages)
 
             # баланс уменьшен
             db_user = await session.get(Users, user.user_id)
@@ -111,11 +112,11 @@ class TestDifferentPurchase:
         # файлы реально переехали
         for p in products:
             final = create_path_universal_storage(
-                status=UniversalStorageStatus.BOUGHT,
+                status=StorageStatus.BOUGHT,
                 uuid=p.universal_storage.storage_uuid,
             )
             original = create_path_universal_storage(
-                status=UniversalStorageStatus.FOR_SALE,
+                status=StorageStatus.FOR_SALE,
                 uuid=p.universal_storage.storage_uuid,
             )
 
@@ -196,18 +197,18 @@ class TestDifferentPurchase:
                 )
             )
             storages = q.scalars().all()
-            assert all(s.status == UniversalStorageStatus.FOR_SALE for s in storages)
+            assert all(s.status == StorageStatus.FOR_SALE for s in storages)
 
             db_user = await session.get(Users, user.user_id)
             assert db_user.balance == user.balance
 
         for p in products:
             bought = create_path_universal_storage(
-                status=UniversalStorageStatus.BOUGHT,
+                status=StorageStatus.BOUGHT,
                 uuid=p.universal_storage.storage_uuid,
             )
             sale = create_path_universal_storage(
-                status=UniversalStorageStatus.FOR_SALE,
+                status=StorageStatus.FOR_SALE,
                 uuid=p.universal_storage.storage_uuid,
             )
 
@@ -297,7 +298,7 @@ class TestOnePurchase:
                 UniversalStorage,
                 product.universal_storage_id,
             )
-            assert storage_db.status == UniversalStorageStatus.FOR_SALE
+            assert storage_db.status == StorageStatus.FOR_SALE
 
             q = await session.execute(
                 select(UniversalStorage)
@@ -308,7 +309,7 @@ class TestOnePurchase:
 
             storage_paths_files: List[str] = []
             for storage in purchases_storage:
-                assert storage.status == UniversalStorageStatus.BOUGHT
+                assert storage.status == StorageStatus.BOUGHT
                 storage_paths_files.append(
                         create_path_universal_storage(
                             status=storage.status,
@@ -322,7 +323,7 @@ class TestOnePurchase:
 
         # файл товара который стоит на продаже не должен переместиться
         final_path = create_path_universal_storage(
-            status=UniversalStorageStatus.FOR_SALE,
+            status=StorageStatus.FOR_SALE,
             uuid=product.universal_storage.storage_uuid,
         )
 
@@ -392,21 +393,21 @@ class TestOnePurchase:
                 UniversalStorage,
                 product.universal_storage_id,
             )
-            assert storage_db.status == UniversalStorageStatus.DELETED
+            assert storage_db.status == StorageStatus.DELETED
 
             db_user = await session.get(Users, user.user_id)
             assert db_user.balance == user.balance
 
         bought_path = create_path_universal_storage(
-            status=UniversalStorageStatus.BOUGHT,
+            status=StorageStatus.BOUGHT,
             uuid=product.universal_storage.storage_uuid,
         )
         sale_path = create_path_universal_storage(
-            status=UniversalStorageStatus.FOR_SALE,
+            status=StorageStatus.FOR_SALE,
             uuid=product.universal_storage.storage_uuid,
         )
         deleted_path = create_path_universal_storage(
-            status=UniversalStorageStatus.DELETED,
+            status=StorageStatus.DELETED,
             uuid=product.universal_storage.storage_uuid,
         )
         assert not os.path.exists(bought_path)

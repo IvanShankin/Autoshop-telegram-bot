@@ -4,9 +4,8 @@ from pydantic import BaseModel, ConfigDict
 
 from src.services.database.categories.models import SoldAccounts, ProductAccounts
 from src.services.database.categories.models import AccountStorage, Categories
-from src.services.database.categories.models.main_category_and_product import ProductType
-from src.services.database.categories.models.product_account import AccountServiceType
-from src.services.database.categories.models.product_universal import UniversalMediaType
+from src.services.database.categories.models import ProductType
+from src.services.database.categories.models.main_category_and_product import AccountServiceType, UniversalMediaType
 
 
 class CategoryFull(BaseModel):

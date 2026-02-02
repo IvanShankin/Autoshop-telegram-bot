@@ -1,6 +1,6 @@
 import pytest
 
-from src.services.database.categories.models.product_account import AccountServiceType
+from src.services.database.categories.models import AccountServiceType
 from src.services.redis.filling import filling_category_by_category
 
 

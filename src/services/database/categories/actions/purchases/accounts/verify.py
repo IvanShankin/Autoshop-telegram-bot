@@ -10,9 +10,8 @@ from src.services.database.categories.actions.actions_get import get_category_by
 from src.services.database.categories.actions.products.accounts.actions_add import add_deleted_accounts
 from src.services.database.categories.actions.products.accounts.actions_delete import delete_product_account
 from src.services.database.categories.actions.products.accounts.actions_update import update_account_storage
-from src.services.database.categories.models import ProductAccounts, AccountStorage
-from src.services.database.categories.models import PurchaseRequests, PurchaseRequestAccount
-from src.services.database.categories.models.product_account import AccountServiceType
+from src.services.database.categories.models import ProductAccounts, AccountStorage, PurchaseRequests, \
+    PurchaseRequestAccount, AccountServiceType
 from src.services.database.core.database import get_db
 from src.services.filesystem.account_actions import move_in_account
 from src.services.products.accounts.tg.actions import check_account_validity

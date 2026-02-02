@@ -4,7 +4,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 from src.services.database.categories.models.product_universal import UniversalMediaType, UniversalStorage, \
-    ProductUniversal, SoldUniversal, UniversalStorageStatus
+    ProductUniversal, SoldUniversal, StorageStatus
 
 
 class UniversalStoragePydantic(BaseModel):
@@ -20,7 +20,7 @@ class UniversalStoragePydantic(BaseModel):
     encrypted_key_nonce: str
     key_version: int
     encryption_algo: str
-    status: UniversalStorageStatus
+    status: StorageStatus
     media_type: UniversalMediaType
 
     name: str

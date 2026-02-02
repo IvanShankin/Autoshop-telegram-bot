@@ -8,7 +8,7 @@ from pathlib import Path
 from sqlalchemy import select
 
 from src.exceptions import ArchiveNotFount, DirNotFount
-from src.services.database.categories.models.product_account import AccountServiceType
+from src.services.database.categories.models import AccountServiceType
 from src.services.database.core import get_db
 from types import SimpleNamespace
 

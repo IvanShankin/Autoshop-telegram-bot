@@ -11,7 +11,6 @@ from src.modules.categories.services.helpers import check_category
 from src.modules.profile.keyboards import in_profile_kb
 from src.services.database.categories.actions import purchase
 from src.services.database.categories.models import CategoryFull
-from src.services.database.categories.models.main_category_and_product import ProductType
 from src.services.database.discounts.utils.calculation import discount_calculation
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text

@@ -1,5 +1,5 @@
 import pytest
-from src.services.database.categories.models.product_universal import UniversalStorageStatus
+from src.services.database.categories.models import StorageStatus
 
 
 @pytest.mark.asyncio
@@ -15,11 +15,11 @@ async def test_move_in_account_success(monkeypatch, create_sold_universal):
     )
     assert orig_file.exists()
 
-    result = await move_in_universal(universal, UniversalStorageStatus.BOUGHT)
+    result = await move_in_universal(universal, StorageStatus.BOUGHT)
     assert result is True
 
     new_path = create_path_universal_storage(
-        status=UniversalStorageStatus.BOUGHT,
+        status=StorageStatus.BOUGHT,
         uuid=universal.universal_storage.storage_uuid,
         return_path_obj=True
     )

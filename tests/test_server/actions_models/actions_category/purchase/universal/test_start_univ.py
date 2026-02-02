@@ -7,9 +7,9 @@ from src.exceptions.domain import UniversalProductNotFound
 from src.services.database.categories.models import (
     PurchaseRequests
 )
-from src.services.database.categories.models.product_universal import (
+from src.services.database.categories.models import (
     UniversalStorage,
-    UniversalStorageStatus,
+    StorageStatus,
     PurchaseRequestUniversal,
 )
 from src.services.database.core.database import get_db
@@ -112,7 +112,7 @@ class TestStartPurchaseUniversalDifferent:
                 .where(UniversalStorage.universal_storage_id.in_(storage_ids))
             )
             storages_db = q.scalars().all()
-            assert all(s.status == UniversalStorageStatus.RESERVED for s in storages_db)
+            assert all(s.status == StorageStatus.RESERVED for s in storages_db)
 
             user_after = await session.get(Users, user.user_id)
             assert user_after.balance == balance_before - result.total_amount
@@ -226,7 +226,7 @@ class TestStartPurchaseUniversalOne:
                 storage.universal_storage_id,
             )
             # статус НЕ должен измениться
-            assert storage_db.status == UniversalStorageStatus.FOR_SALE
+            assert storage_db.status == StorageStatus.FOR_SALE
 
 
     @pytest.mark.asyncio

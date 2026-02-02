@@ -5,7 +5,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from src.config import get_config
 from src.services.database.categories.actions.products.universal.actions_get import get_sold_universal_by_page, \
     get_count_sold_universal
-from src.services.database.categories.models.shemas.product_universal_schem import SoldUniversalSmall
+from src.services.database.categories.models import SoldUniversalSmall
 from src.services.keyboards.keyboard_with_pages import pagination_keyboard
 from src.utils.i18n import get_text
 

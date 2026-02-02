@@ -8,15 +8,15 @@ from typing import List
 
 from src.bot_actions.messages import send_log
 from src.config import get_config
-from src.services.database.categories.models.product_universal import UniversalStorageStatus
-from src.services.database.categories.models.shemas.product_universal_schem import SoldUniversalFull
+from src.services.database.categories.models.product_universal import StorageStatus
+from src.services.database.categories.models import SoldUniversalFull
 from src.services.filesystem.actions import get_default_image_bytes, move_file
 from src.services.filesystem.media_paths import create_path_universal_storage
 from src.services.products.universals.shemas import get_import_universal_headers, UploadUniversalProduct
 from src.utils.core_logger import get_logger
 
 
-async def move_in_universal(universal: SoldUniversalFull, status: UniversalStorageStatus) -> bool:
+async def move_in_universal(universal: SoldUniversalFull, status: StorageStatus) -> bool:
     """
     Перенос универсального товара к `status` удалив исходное местоположение.
     :param status: статус продукта который будет в конечном пути

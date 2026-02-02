@@ -14,7 +14,7 @@ from src.services.database.categories.actions.products.universal.actions_add imp
     add_translate_in_universal_storage, add_product_universal
 from src.services.database.categories.actions.products.universal.actions_get import get_product_universal_by_category_id
 from src.services.database.categories.models import CategoryTranslation
-from src.services.database.categories.models.product_universal import UniversalMediaType, UniversalStorageStatus
+from src.services.database.categories.models import UniversalMediaType, StorageStatus
 from src.services.filesystem.actions import extract_archive_to_temp
 from src.services.filesystem.csv_parse import parse_csv_from_file
 from src.services.filesystem.media_paths import create_path_universal_storage
@@ -64,7 +64,7 @@ def _prepare_product(
     if product.file_name:
         storage_uuid = str(uuid.uuid4())
         file_path = create_path_universal_storage(
-            UniversalStorageStatus.FOR_SALE,
+            StorageStatus.FOR_SALE,
             storage_uuid
         )
 

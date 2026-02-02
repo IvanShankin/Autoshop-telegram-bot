@@ -11,9 +11,9 @@ from src.services.database.categories.actions.purchases.general.start import wri
     create_new_purchase_request, check_category_and_money
 from src.services.database.categories.models import ProductUniversal
 from src.services.database.categories.models import ResultCheckCategory
-from src.services.database.categories.models.product_universal import UniversalStorageStatus, PurchaseRequestUniversal, \
+from src.services.database.categories.models import StorageStatus, PurchaseRequestUniversal, \
     UniversalStorage
-from src.services.database.categories.models.shemas.product_universal_schem import ProductUniversalFull
+from src.services.database.categories.models import ProductUniversalFull
 from src.services.database.categories.models.shemas.purshanse_schem import StartPurchaseUniversal, \
     StartPurchaseUniversalOne
 from src.services.database.core.database import get_db
@@ -37,7 +37,7 @@ async def _set_reserved_universal(
         .join(ProductUniversal.storage)
         .where(
             (ProductUniversal.category_id == category_id) &
-            (UniversalStorage.status == UniversalStorageStatus.FOR_SALE)
+            (UniversalStorage.status == StorageStatus.FOR_SALE)
         )
         .order_by(ProductUniversal.created_at.desc())
         .with_for_update()
@@ -53,7 +53,7 @@ async def _set_reserved_universal(
     await session_db.execute(
         update(UniversalStorage)
         .where(UniversalStorage.universal_storage_id.in_(storages_ids))
-        .values(status=UniversalStorageStatus.RESERVED)
+        .values(status=StorageStatus.RESERVED)
     )
 
     for id in storages_ids:

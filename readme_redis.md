@@ -401,7 +401,7 @@
         "key_version": "int",
         "encryption_algo": "str",
         
-        "status": "UniversalStorageStatus",
+        "status": "StorageStatus",
         "media_type": "UniversalMediaType",
         "name": "str",
         "encrypted_description": "str | None",
@@ -461,7 +461,7 @@
         "key_version": "int",
         "encryption_algo": "str",
         
-        "status": "UniversalStorageStatus",
+        "status": "StorageStatus",
         "media_type": "UniversalMediaType",
         "name": "str",
         "encrypted_description": "str | None",

@@ -2,9 +2,9 @@ import pytest
 from sqlalchemy import select
 
 from src.services.database.core.database import get_db
-from src.services.database.categories.models.product_universal import (
+from src.services.database.categories.models import (
     UniversalStorage,
-    UniversalStorageStatus,
+    StorageStatus,
 )
 
 
@@ -64,7 +64,7 @@ class TestVerifyReservedUniversalOne:
                 UniversalStorage,
                 product_full.universal_storage.universal_storage_id,
             )
-            assert storage.status == UniversalStorageStatus.DELETED
+            assert storage.status == StorageStatus.DELETED
             assert storage.is_active is False
 
 
@@ -146,7 +146,7 @@ class TestVerifyReservedUniversalDifferent:
                 UniversalStorage,
                 bad.universal_storage.universal_storage_id,
             )
-            assert bad_storage.status == UniversalStorageStatus.DELETED
+            assert bad_storage.status == StorageStatus.DELETED
 
     @pytest.mark.asyncio
     async def test_all_invalid_no_candidates(
@@ -191,7 +191,7 @@ class TestVerifyReservedUniversalDifferent:
                 )
             )
             storages = q.scalars().all()
-            assert all(s.status == UniversalStorageStatus.DELETED for s in storages)
+            assert all(s.status == StorageStatus.DELETED for s in storages)
 
     @pytest.mark.asyncio
     async def test_partial_invalid_not_enough_replacements(
@@ -212,8 +212,8 @@ class TestVerifyReservedUniversalDifferent:
 
         category = await create_category(allow_multiple_purchase=False)
 
-        _, valid = await create_product_universal(category_id=category.category_id, status=UniversalStorageStatus.RESERVED)
-        _, bad = await create_product_universal(category_id=category.category_id, status=UniversalStorageStatus.RESERVED)
+        _, valid = await create_product_universal(category_id=category.category_id, status=StorageStatus.RESERVED)
+        _, bad = await create_product_universal(category_id=category.category_id, status=StorageStatus.RESERVED)
 
         pr = await create_purchase_request(quantity=2, total_amount=0)
         pr_id = pr.purchase_request_id

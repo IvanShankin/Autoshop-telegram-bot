@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock
 
 from src.config import get_config
 from src.services.database.categories.models import AccountStorage, ProductAccounts
-from src.services.database.categories.models.product_account import AccountServiceType
+from src.services.database.categories.models import AccountServiceType
 from src.services.secrets import get_crypto_context
 
 

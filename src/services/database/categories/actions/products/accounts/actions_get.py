@@ -6,10 +6,8 @@ from sqlalchemy.orm import selectinload
 from src.config import get_config
 from src.services.database.categories.actions.helpers_func import _get_grouped_objects, _get_single_obj, \
     get_sold_items_by_page
-from src.services.database.categories.models import AccountStorage, TgAccountMedia
 from src.services.database.categories.models import ProductAccounts, SoldAccounts, SoldAccountSmall, SoldAccountFull, \
-    ProductAccountFull
-from src.services.database.categories.models.product_account import AccountServiceType
+    ProductAccountFull, AccountServiceType, AccountStorage, TgAccountMedia
 from src.services.database.core.database import get_db
 from src.services.redis.filling import filling_product_account_by_account_id, filling_sold_account_by_account_id, \
     filling_sold_accounts_by_owner_id, filling_product_accounts_by_category_id

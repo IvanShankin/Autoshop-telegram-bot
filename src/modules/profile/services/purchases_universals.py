@@ -7,8 +7,8 @@ from src.services.database.categories.actions.products.universal.action_delete i
 from src.services.database.categories.actions.products.universal.action_update import update_universal_storage
 from src.services.database.categories.actions.products.universal.actions_add import add_deleted_universal
 from src.services.database.categories.actions.products.universal.actions_get import get_sold_universal_by_universal_id
-from src.services.database.categories.models.product_universal import UniversalStorageStatus
-from src.services.database.categories.models.shemas.product_universal_schem import SoldUniversalFull
+from src.services.database.categories.models import StorageStatus
+from src.services.database.categories.models import SoldUniversalFull
 from src.services.database.users.models import Users
 from src.services.filesystem.universals_products import move_in_universal
 from src.services.filesystem.media_paths import create_path_universal_storage
@@ -140,7 +140,7 @@ async def delete_sold_universal_han(
     universal: SoldUniversalFull,
     current_page: int,
 ):
-    result = await move_in_universal(universal=universal, status=UniversalStorageStatus.DELETED)
+    result = await move_in_universal(universal=universal, status=StorageStatus.DELETED)
     if not result:
         await callback.answer(
             get_text(user.language, 'profile_messages', "An error occurred, please try again"),
@@ -150,7 +150,7 @@ async def delete_sold_universal_han(
 
     await update_universal_storage(
         universal_storage_id=universal.universal_storage_id,
-        status=UniversalStorageStatus.DELETED,
+        status=StorageStatus.DELETED,
         is_active=False
     )
     await delete_sold_universal(universal.sold_universal_id)

@@ -9,9 +9,7 @@ from src.exceptions import AccountCategoryNotFound, TheCategoryStorageAccount, \
 from src.services.database.categories.actions import get_quantity_products_in_category
 from src.services.database.categories.models import Categories, ProductAccounts, \
     CategoryTranslation, CategoryFull
-from src.services.database.categories.models.main_category_and_product import ProductType
-from src.services.database.categories.models.product_account import AccountServiceType
-from src.services.database.categories.models.product_universal import UniversalMediaType
+from src.services.database.categories.models import ProductType, AccountServiceType, UniversalMediaType
 from src.services.database.core.database import get_db
 from src.services.database.system.actions import create_ui_image, delete_ui_image
 from src.services.redis.filling import filling_all_keys_category

@@ -6,7 +6,7 @@ from sqlalchemy import select
 
 from src.services.database.categories.models import PurchaseRequests, AccountStorage, SoldAccounts, Purchases
 from src.services.database.categories.models import StartPurchaseAccount
-from src.services.database.categories.models.product_account import AccountServiceType
+from src.services.database.categories.models import AccountServiceType
 from src.services.database.core import get_db
 from src.services.database.users.models.models_users import BalanceHolder
 

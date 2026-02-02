@@ -2,7 +2,7 @@ import pytest
 import orjson
 from sqlalchemy import select
 
-from src.services.database.categories.models.product_universal import (
+from src.services.database.categories.models import (
     UniversalStorage,
     UniversalStorageTranslation,
     ProductUniversal,

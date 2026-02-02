@@ -14,7 +14,7 @@ from src.services.database.categories.models import AccountStorage, TgAccountMed
 from src.services.database.categories.models import SoldAccounts, SoldAccountsTranslation, \
     ProductAccounts, \
     SoldAccountFull, SoldAccountSmall, ProductAccountFull
-from src.services.database.categories.models.product_account import AccountServiceType
+from src.services.database.categories.models import AccountServiceType
 from src.services.database.core.database import get_db
 from src.services.redis.filling import filling_sold_accounts_by_owner_id, \
     filling_sold_account_by_account_id, filling_all_keys_category, filling_product_account_by_account_id

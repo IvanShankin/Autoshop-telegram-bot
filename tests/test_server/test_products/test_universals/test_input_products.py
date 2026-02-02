@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.services.database.categories.models import ProductUniversal
-from src.services.database.categories.models.product_universal import UniversalMediaType
+from src.services.database.categories.models import UniversalMediaType
 from src.services.database.core import get_db
 from src.services.filesystem.universals_products import generate_example_zip_for_import
 from src.services.filesystem.media_paths import create_path_universal_storage

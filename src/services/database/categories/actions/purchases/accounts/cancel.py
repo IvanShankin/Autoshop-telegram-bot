@@ -5,8 +5,7 @@ from sqlalchemy import select, update, delete
 from src.services.database.categories.actions.purchases.general.cancel import \
     update_purchaseRequests_and_balance_holder, return_files
 from src.services.database.categories.models import ProductAccounts, SoldAccounts, Purchases, \
-    AccountStorage
-from src.services.database.categories.models.product_account import AccountServiceType
+    AccountStorage, AccountServiceType
 from src.services.database.core.database import get_db
 from src.services.database.users.models import Users
 from src.services.filesystem.media_paths import create_path_account

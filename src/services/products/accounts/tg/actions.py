@@ -10,7 +10,7 @@ from opentele.td import TDesktop
 from telethon.tl.types import Message, User
 
 from src.services.database.categories.models import AccountStorage
-from src.services.database.categories.models.product_account import AccountServiceType
+from src.services.database.categories.models import AccountServiceType
 from src.services.filesystem.account_actions import decryption_tg_account
 from src.utils.core_logger import get_logger
 from src.services.secrets import get_crypto_context

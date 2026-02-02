@@ -1,7 +1,6 @@
 from pydantic import ConfigDict
 
-from src.services.database.categories.models import ProductAccounts
-from src.services.database.categories.models.product_account import AccountServiceType
+from src.services.database.categories.models import ProductAccounts, AccountServiceType
 from typing import List
 from pydantic import BaseModel
 from src.services.database.categories.models import CategoryFull, CategoryTranslation

@@ -82,7 +82,7 @@ async def delete_product_universal_by_category(category_id: int):
 
     for storage in delete_storages:
 
-        if not storage.file_path: # если нет путь значит у всех остальных аккаунтов тоже нет
+        if not storage.original_filename:
             continue
 
         folder = create_path_universal_storage(

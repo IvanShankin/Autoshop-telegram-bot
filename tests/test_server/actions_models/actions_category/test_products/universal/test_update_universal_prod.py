@@ -16,7 +16,7 @@ async def test_add_product_universal(create_category, create_product_universal):
 
     await update_universal_storage(
         prod_full.universal_storage_id,
-        file_path="new_file_path",
+        checksum="checksum_new",
         is_active=False
     )
 
@@ -26,7 +26,7 @@ async def test_add_product_universal(create_category, create_product_universal):
         )
         storage_db: UniversalStorage = result.scalar_one_or_none()
         assert storage_db is not None
-        assert storage_db.file_path == "new_file_path"
+        assert storage_db.checksum == "checksum_new"
         assert storage_db.is_active == False
 
     async with get_redis() as session_redis:
@@ -34,7 +34,7 @@ async def test_add_product_universal(create_category, create_product_universal):
         assert result_redis
 
         prod_redis = orjson.loads(result_redis)
-        assert prod_redis["universal_storage"]["file_path"] == "new_file_path"
+        assert prod_redis["universal_storage"]["checksum"] == "checksum_new"
         assert prod_redis["universal_storage"]["is_active"] == False
 
 

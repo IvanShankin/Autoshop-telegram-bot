@@ -113,12 +113,14 @@ async def test_cleanup_used_data(tmp_path):
     duplicate_dir.mkdir()
     (duplicate_dir / "dup.txt").write_text("y")
 
+    dir_with_archive = tmp_path / "archive_dir"
     archive_path = tmp_path / "archive.zip"
     archive_path.write_text("zip")
 
     all_items = [type("Item", (), {"dir_path": str(base_dir)})()]
 
     await cleanup_used_data(
+        dir_with_archive=str(dir_with_archive),
         archive_path=str(archive_path),
         base_dir=str(base_dir),
         invalid_dir=str(invalid_dir),

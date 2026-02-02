@@ -58,15 +58,15 @@ async def upload_universal_products(category: CategoryFull) -> AsyncGenerator[Pa
             kek=crypto.kek
         )
 
-        if product.universal_storage.file_path:
+        if product.universal_storage.original_filename:
             path = create_path_universal_storage(
                 product.universal_storage.status,
                 product.universal_storage.storage_uuid,
                 return_path_obj=True
             )
             if os.path.isfile(path):
-                stem = Path(product.universal_storage.original_filename).stem if product.universal_storage.original_filename else "file"
-                suffix = Path(product.universal_storage.original_filename).suffix if product.universal_storage.original_filename else ""
+                stem = Path(product.universal_storage.original_filename).stem
+                suffix = Path(product.universal_storage.original_filename).suffix
 
                 attempt = 0
                 while True:

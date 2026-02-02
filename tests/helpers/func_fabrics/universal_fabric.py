@@ -44,7 +44,7 @@ async def _make_encrypted_universal_storage_file(
 
 async def create_universal_storage_factory(
     media_type: UniversalMediaType = UniversalMediaType.DOCUMENT,
-    file_path: str | None = True,
+    original_filename: str | None = True,
     is_active: bool = True,
 
     language: str = "ru",
@@ -75,15 +75,16 @@ async def create_universal_storage_factory(
             encrypted_tg_file_id_nonce = encrypted_tg_file_id_nonce_new
 
 
-    if file_path is True:
-        file_path = str(await _make_encrypted_universal_storage_file(dek=key, status=status, uuid=storage_uuid))
+    if original_filename is True:
+        file_path = await _make_encrypted_universal_storage_file(dek=key, status=status, uuid=storage_uuid)
+        original_filename = file_path.name
 
 
     async with get_db() as session_db:
 
         new_storage = UniversalStorage(
             storage_uuid=storage_uuid,
-            file_path=file_path,
+            original_filename=original_filename,
             encrypted_tg_file_id=encrypted_tg_file_id,
             encrypted_tg_file_id_nonce=encrypted_tg_file_id_nonce,
 

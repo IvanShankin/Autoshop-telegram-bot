@@ -12,7 +12,6 @@ from src.services.database.categories.models.product_universal import SoldUniver
 from src.services.database.categories.models.shemas.product_universal_schem import ProductUniversalFull
 from src.services.database.core.database import get_db
 from src.services.database.users.models import Users
-from src.services.filesystem.media_paths import create_path_universal_storage
 from src.services.redis.filling import filling_user, filling_all_keys_category
 from src.services.redis.filling.filling_universal import filling_product_universal_by_category, \
     filling_sold_universal_by_owner_id, filling_sold_universal_by_universal_id, filling_universal_by_product_id
@@ -151,13 +150,11 @@ async def cancel_purchase_universal_different(
                 storages: List[UniversalStorage] = result.scalars().all()
 
                 for s in storages:
-                    new_path = create_path_universal_storage(status=s.status, uuid=s.storage_uuid)
                     await session.execute(
                         update(UniversalStorage)
                         .where(UniversalStorage.universal_storage_id == s.universal_storage_id)
                         .values(
                             status=UniversalStorageStatus.FOR_SALE,
-                            file_path=new_path
                         )
                     )
 

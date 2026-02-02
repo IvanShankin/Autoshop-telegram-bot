@@ -24,7 +24,6 @@ async def test_add_universal_storage(create_category):
     pydantic = await add_universal_storage(
         name="test name",
         language="ru",
-        file_path=None,
         encrypted_description="enc_desc",
         encrypted_description_nonce="enc_nonce",
         encrypted_key="enc_key",

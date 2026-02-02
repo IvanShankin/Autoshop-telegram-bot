@@ -42,7 +42,6 @@ async def _delete_universal(universal_product: List[ProductUniversalFull]):
             # помечаем первоначальный плохо прошедший продукт как deleted сразу
             try:
                 await update_universal_storage(
-                    file_path=str(result_path),
                     universal_storage_id=bad_prod.universal_storage.universal_storage_id,
                     status=UniversalStorageStatus.DELETED,
                     is_active=False
@@ -80,10 +79,13 @@ async def verify_reserved_universal_one(
 ) -> bool:
     """Для покупки товара когда у категории стоит флаг allow_multiple_purchase"""
 
-    conf = get_config()
     crypto = get_crypto_context()
 
-    result_check = await check_valid_universal_product(product_universal, crypto, conf)
+    result_check = await check_valid_universal_product(
+        product=product_universal,
+        status=UniversalStorageStatus.FOR_SALE,
+        crypto=crypto
+    )
 
     if not result_check:
         await _delete_universal([product_universal])
@@ -124,7 +126,7 @@ async def verify_reserved_universal_different(
     async def validate_slot(product: ProductUniversalFull) -> Tuple[ProductUniversalFull, bool]:
         """Проверка одного ProductAccounts -> возвращает (pa, is_valid)"""
         async with sem:
-            return product, await check_valid_universal_product(product, crypto, conf)
+            return product, await check_valid_universal_product(product, UniversalStorageStatus.FOR_SALE, crypto)
 
     # Получим purchase_request (чтобы иметь доступ к balance_holder)
     async with get_db() as session_db:
@@ -225,7 +227,7 @@ async def verify_reserved_universal_different(
             async def validate_candidate(candidates_full: ProductUniversalFull) -> Tuple[ProductUniversalFull, bool]:
                 async with sem:
                     try:
-                        ok = await check_valid_universal_product(candidates_full, crypto, conf)
+                        ok = await check_valid_universal_product(candidates_full, UniversalStorageStatus.FOR_SALE, crypto)
                         return candidates_full, ok
                     except Exception as e:
                         logger.exception(

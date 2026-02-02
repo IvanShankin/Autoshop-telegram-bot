@@ -47,7 +47,6 @@ class UniversalStorage(Base):
     storage_uuid = Column(String(36), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
 
     # локальное хранение
-    file_path = Column(Text, nullable=True)
     original_filename = Column(Text, nullable=True) # с расширением
 
     # Telegram CDN

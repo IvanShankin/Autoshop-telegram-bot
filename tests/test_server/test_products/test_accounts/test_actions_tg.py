@@ -57,6 +57,9 @@ async def test_check_account_validity_true(tmp_path, monkeypatch):
         async def __aenter__(self): return self
         async def __aexit__(self, *a): return None
         async def get_me(self): return type("User", (), {"id": 1})
+        async def connect(self): return True
+        async def disconnect(self): return True
+        async def is_user_authorized(self): return True
 
     class FakeTDesktop:
         async def ToTelethon(self, *a, **kw): return FakeClient()

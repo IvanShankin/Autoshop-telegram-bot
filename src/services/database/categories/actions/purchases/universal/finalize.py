@@ -94,10 +94,10 @@ async def _copy_universal_storage_prepare(
     for _ in range(quantity):
         new_uuid = str(uuid.uuid4())
         final_path = None
-        if src_storage.file_path:
+        if src_storage.original_filename:
             # создаём целевой путь (полный), но не трогаем БД
             src_path = create_path_universal_storage(
-                status=src_storage.status,
+                status=UniversalStorageStatus.FOR_SALE,
                 uuid=src_storage.storage_uuid,
             )
             final_path = create_path_universal_storage(
@@ -119,7 +119,6 @@ async def _copy_universal_storage_prepare(
 
         storage = UniversalStorage(
             storage_uuid=new_uuid,
-            file_path=str(final_path) if final_path else None,
             original_filename=src_storage.original_filename,
             encrypted_tg_file_id=src_storage.encrypted_tg_file_id,
             encrypted_tg_file_id_nonce=src_storage.encrypted_tg_file_id_nonce,
@@ -148,7 +147,7 @@ async def _copy_universal_storage_prepare(
 
 async def finalize_purchase_universal_one(user_id: int, data: StartPurchaseUniversalOne) -> bool:
     # подготовка (IO) — копируем файлы в final paths до транзакции
-    created_storages = []
+    created_storages: list [UniversalStorage] = []
     sold_ids = []
     purchase_ids = []
     product_movement = []
@@ -238,7 +237,10 @@ async def finalize_purchase_universal_one(user_id: int, data: StartPurchaseUnive
         await cancel_purchase_universal_one(
             user_id=user_id,
             category_id=data.category_id,
-            paths_created_storage=[Path(s.file_path) for s in created_storages if s.file_path],
+            paths_created_storage=[
+                create_path_universal_storage(status=UniversalStorageStatus.FOR_SALE, uuid=s.storage_uuid)
+                for s in created_storages if s.original_filename
+            ],
             sold_universal_ids=sold_ids,
             storage_universal_ids=[s.universal_storage_id for s in created_storages if s.universal_storage_id],
             purchase_ids=purchase_ids,
@@ -265,10 +267,13 @@ async def finalize_purchase_universal_different(user_id: int, data: StartPurchas
     try:
         # Подготовим перемещения в temp (вне транзакции) — НЕ изменяем DB
         for product in data.full_reserved_products:
-            if not product.universal_storage.file_path:
+            if not product.universal_storage.original_filename:
                 continue
 
-            orig = str(Path(get_config().paths.universals_dir) / product.universal_storage.file_path) # полный путь
+            orig = create_path_universal_storage(
+                status=UniversalStorageStatus.FOR_SALE,
+                uuid=product.universal_storage.storage_uuid
+            )
             final = create_path_universal_storage(
                 status=UniversalStorageStatus.BOUGHT,
                 uuid=product.universal_storage.storage_uuid
@@ -333,21 +338,12 @@ async def finalize_purchase_universal_different(user_id: int, data: StartPurchas
                     await session.flush()
                     purchase_ids.append(new_purchase.purchase_id)
 
-                    if product.universal_storage.file_path:
-                        file_path = create_path_universal_storage(
-                            status=UniversalStorageStatus.BOUGHT,
-                            uuid=product.universal_storage.storage_uuid
-                        )
-                    else:
-                        file_path = None
-
                     # Обновляем UniversalStorage.status = 'bought' через update (на всякий случай)
                     await session.execute(
                         update(UniversalStorage)
                         .where(UniversalStorage.universal_storage_id == product.universal_storage_id)
                         .values(
                             status=UniversalStorageStatus.BOUGHT,
-                            file_path=file_path
                         )
                     )
 

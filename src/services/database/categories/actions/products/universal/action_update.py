@@ -11,7 +11,6 @@ from src.services.redis.filling.filling_universal import filling_product_univers
 async def update_universal_storage(
     universal_storage_id: int,
     storage_uuid: str = None,
-    file_path: str = None,
     original_filename: str = None,
     encrypted_tg_file_id: str = None,
     encrypted_tg_file_id_nonce: str = None,
@@ -27,8 +26,6 @@ async def update_universal_storage(
     update_data = {}
     if not storage_uuid is None:
         update_data["storage_uuid"] = storage_uuid
-    if not file_path is None:
-        update_data["file_path"] = file_path
     if not original_filename is None:
         update_data["original_filename"] = original_filename
     if not encrypted_tg_file_id is None:

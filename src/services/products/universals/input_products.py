@@ -109,7 +109,6 @@ async def _persist_product(
         name=translations_category_by_lang.get(conf.app.default_lang).name,
         language=default_lang,
         storage_uuid=prepared.storage_uuid,
-        file_path=prepared.file_path,
         original_filename=prepared.original_filename,
         checksum=prepared.checksum,
         encrypted_key=prepared.encrypted_key_b64,

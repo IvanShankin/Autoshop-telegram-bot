@@ -391,7 +391,6 @@
         "universal_storage_id": "int",
         "storage_uuid": "str",
         
-        "file_path": "str | None",
         "original_filename": "str | None",
         "encrypted_tg_file_id": "str | None",
         "encrypted_tg_file_id_nonce": "str | None",
@@ -452,7 +451,6 @@
         "universal_storage_id": "int",
         "storage_uuid": "str",
         
-        "file_path": "str | None",
         "original_filename": "str | None",
         "encrypted_tg_file_id": "str | None",
         "encrypted_tg_file_id_nonce": "str | None",

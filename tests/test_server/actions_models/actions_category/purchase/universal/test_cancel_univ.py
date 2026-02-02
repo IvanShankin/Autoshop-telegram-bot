@@ -115,7 +115,7 @@ class TestCancelPurchaseUniversalDifferent:
             # UniversalStorage.status -> FOR_SALE
             us = await session.get(UniversalStorage, storage.universal_storage_id)
             assert us.status == UniversalStorageStatus.FOR_SALE
-            assert us.file_path is not None
+            assert us.original_filename is not None
 
             # ProductUniversal восстановлен
             q = await session.execute(

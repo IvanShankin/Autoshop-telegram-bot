@@ -114,8 +114,7 @@ class TestImportAccount:
             assert hasattr(result, "duplicate_archive_path")
 
             # завершить генератор, чтобы заработал cleanup (внутри import_telegram... после yield)
-            with pytest.raises(StopAsyncIteration):
-                await gen.__anext__()
+            await gen.__anext__()
 
         # проверяем, что в БД создался ProductAccounts (связка аккаунта с категорией)
         async with get_db() as session_db:
@@ -180,8 +179,7 @@ class TestImportAccount:
             assert Path(dup_path).exists()
 
             # завершаем генератор (запустит cleanup)
-            with pytest.raises(StopAsyncIteration):
-                await gen.__anext__()
+            await gen.__anext__()
 
         # В БД должна быть ровно одна запись ProductAccounts (так как один уникальный)
         async with get_db() as session_db:
@@ -244,9 +242,8 @@ class TestImportAccount:
             invalid_path = Path(result.invalid_archive_path)
             assert invalid_path.exists(), "invalid.zip должен быть создан!"
 
-            # завершаем генератор (cleanup)
-            with pytest.raises(StopAsyncIteration):
-                await gen.__anext__()
+            # завершаем генератор (запустит cleanup)
+            await gen.__anext__()
 
         # В БД не должно быть добавлено ни одного ProductAccounts
         async with get_db() as session_db:

@@ -88,7 +88,6 @@ async def add_universal_storage(
     language: str,
 
     storage_uuid: str = None,
-    file_path: str = None,
     original_filename: str = None,
     encrypted_tg_file_id: str = None,
     encrypted_tg_file_id_nonce: str = None,
@@ -104,7 +103,6 @@ async def add_universal_storage(
     """
     :param name: имя категории
     :param storage_uuid: uuid использовавшийся для создания пути
-    :param file_path: путь к файлу
     :param encrypted_tg_file_id: зашифрованный file_id в телеграмме
     :param encrypted_tg_file_id_nonce: nonce для зашифрованного encrypted_tg_file_id
     :param checksum: Контроль целостности (SHA256 зашифрованного файла)
@@ -116,8 +114,7 @@ async def add_universal_storage(
     :param encrypted_description_nonce: nonce для зашифрованного encrypted_description
     """
 
-    if file_path and (
-        original_filename is None or
+    if original_filename and (
         storage_uuid is None or
         checksum is None or
         encrypted_key is None or
@@ -135,12 +132,11 @@ async def add_universal_storage(
             "'encrypted_description_nonce', 'encrypted_key', 'encrypted_key_nonce'"
         )
 
-    if (file_path is None) and (encrypted_description is None):
+    if (original_filename is None) and (encrypted_description is None):
         raise ValueError("Продукт должен содержать либо файл либо описание")
 
     new_storage = UniversalStorage(
         storage_uuid=storage_uuid,
-        file_path=file_path,
         original_filename=original_filename,
         encrypted_tg_file_id=encrypted_tg_file_id,
         encrypted_tg_file_id_nonce=encrypted_tg_file_id_nonce,

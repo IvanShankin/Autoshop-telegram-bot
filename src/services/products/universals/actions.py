@@ -3,7 +3,6 @@ import shutil
 from pathlib import Path
 
 from src.bot_actions.messages import send_log
-from src.config import Config, get_config
 from src.services.database.categories.models.product_universal import UniversalStorageStatus
 from src.services.database.categories.models.shemas.product_universal_schem import ProductUniversalFull, \
     UniversalStoragePydantic
@@ -15,23 +14,30 @@ from src.utils.core_logger import get_logger
 
 async def check_valid_universal_product(
     product: ProductUniversalFull,
+    status: UniversalStorageStatus,
     crypto: CryptoContext,
-    config: Config,
 ) -> bool:
+    """
+    :param status: Статус товара в пути хранения. Будет использовать этот статус для поиска файла товара
+    """
     # если есть файл проверяем, что мы можем его дешифровать
     logger = get_logger(__name__)
 
     try:
-        if product.universal_storage.file_path:
+        if product.universal_storage.original_filename:
             # Расшифровываем DEK (account_key)
             key = unwrap_dek(
                 encrypted_data_b64=product.universal_storage.encrypted_key,
                 nonce_b64=product.universal_storage.encrypted_key_nonce,
                 kek=crypto.kek
             )
-            abs_path = (config.paths.universals_dir / Path(product.universal_storage.file_path)).resolve()
+            abs_path = create_path_universal_storage(
+                status=status,
+                uuid=product.universal_storage.storage_uuid,
+                return_path_obj=True
+            ).resolve()
 
-            decrypt_file_to_bytes(abs_path, key)  # Расшифровываем архив DEK-ом
+            decrypt_file_to_bytes(str(abs_path), key)  # Расшифровываем архив DEK-ом
     except Exception as e:
         logger.exception(f"Ошибка дешифрования файла универсального товара: {e}")
         return False
@@ -80,26 +86,30 @@ async def move_universal_storage(storage: UniversalStoragePydantic, new_status: 
     orig = None
     final = None
     try:
-        orig = str(Path(get_config().paths.universals_dir) / storage.file_path)  # полный путь
+        orig = create_path_universal_storage(
+            status=storage.status,
+            uuid=storage.storage_uuid,
+            return_path_obj=True
+        )
         final = create_path_universal_storage(
             status=new_status,
             uuid=storage.storage_uuid,
             return_path_obj=True
         )
 
-        moved = await move_file(orig, str(final))
+        moved = await move_file(str(orig), str(final))
         if not moved:
             return False
 
         # Удаление директории где хранится аккаунт (uui). Директория уже будет пустой
-        if os.path.isdir(str(Path(orig).parent)):
-            shutil.rmtree(str(Path(orig).parent))
+        if os.path.isdir(str(orig.parent)):
+            shutil.rmtree(str(orig.parent))
 
         return final
     except Exception as e:
         text = (
             f"#Ошибка при переносе универсального товара к {new_status}. \n"
-            f"Исходный путь: {orig if orig else "none"} \n"
+            f"Исходный путь: {str(orig) if str(orig) else "none"} \n"
             f"Финальный путь: {str(final) if str(final) else "none"} \n"
             f"account_storage_id: {storage.universal_storage_id if storage.universal_storage_id else "none"} \n"
             f"Ошибка: {str(e)}"

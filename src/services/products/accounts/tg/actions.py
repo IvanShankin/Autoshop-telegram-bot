@@ -9,7 +9,7 @@ from opentele.api import UseCurrentSession
 from opentele.td import TDesktop
 from telethon.tl.types import Message, User
 
-from src.services.database.categories.models import AccountStorage
+from src.services.database.categories.models import AccountStorage, StorageStatus
 from src.services.database.categories.models import AccountServiceType
 from src.services.filesystem.account_actions import decryption_tg_account
 from src.utils.core_logger import get_logger
@@ -59,9 +59,14 @@ async def check_valid_accounts_telethon(folder_path: str) -> User | bool:
         return False
 
 
-async def check_account_validity(account_storage: AccountStorage, type_account_service: AccountServiceType) -> bool:
+async def check_account_validity(
+    account_storage: AccountStorage,
+    type_account_service: AccountServiceType,
+    status: StorageStatus
+) -> bool:
     """
     Дешифровка + проверка валидности — обёртка, возвращает True/False. Создаст временное хранилище и после удалит его
+    :param status: Используется для формирования путь к зашифрованному файлу
     """
     if not any(type_account_service.value == member.value for member in AccountServiceType): # если нет такого типа сервиса
         return False
@@ -70,7 +75,7 @@ async def check_account_validity(account_storage: AccountStorage, type_account_s
     try:
         # decryption heavy IO в thread
         crypto = get_crypto_context()
-        temp_folder = await asyncio.to_thread(decryption_tg_account, account_storage, crypto)
+        temp_folder = await asyncio.to_thread(decryption_tg_account, account_storage, crypto, status)
         # проверка уже асинхронная
         is_valid = await check_valid_accounts_telethon(temp_folder)
         return bool(is_valid)
@@ -95,7 +100,7 @@ async def get_auth_codes(account_storage: AccountStorage, limit: int = 100) -> L
     temp_account_path = None
     try:
         crypto = get_crypto_context()
-        temp_account_path = decryption_tg_account(account_storage, crypto)
+        temp_account_path = decryption_tg_account(account_storage, crypto, account_storage.status)
         tdata_path = str(Path(temp_account_path) / 'tdata')
         tdesk = TDesktop(tdata_path)
 
@@ -117,8 +122,9 @@ async def get_auth_codes(account_storage: AccountStorage, limit: int = 100) -> L
 
                 if code:
                     result_list.append((msg.date, code))
-    except Exception:
+    except Exception as e:
         # попадаем сюда если с аккаунтом проблемы
+        get_logger(__name__).warning(f"[get_auth_codes] - Ошибка при получении кода с аккаунта: {str(e)}")
         return False
     finally:
         if temp_account_path:

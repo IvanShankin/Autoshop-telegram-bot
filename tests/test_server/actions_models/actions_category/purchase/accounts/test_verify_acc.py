@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from sqlalchemy import select
 
-from src.services.database.categories.models import AccountStorage
+from src.services.database.categories.models import AccountStorage, StorageStatus
 from src.services.database.categories.models import AccountServiceType
 from src.services.database.core import get_db
 
@@ -35,7 +35,7 @@ async def test_check_account_validity_async_success(
     # СДЕЛАЕМ decryption синхронным (то, что ожидает asyncio.to_thread)
     temp_folder_path = Path.cwd() / "tmp_test_account_folder"
 
-    def fake_decryption_tg_account(account_storage_arg, kek):
+    def fake_decryption_tg_account(account_storage_arg, kek, *args, **kwargs):
         # создаём папку, чтобы rmtree мог ее удалить (проверим вызов)
         os.makedirs(temp_folder_path, exist_ok=True)
         return temp_folder_path
@@ -69,7 +69,7 @@ async def test_check_account_validity_async_success(
     monkeypatch.setattr(shutil, "rmtree", fake_rmtree)
 
     # Вызов тестируемой функции
-    ok = await check_account_validity(account_storage, AccountServiceType.TELEGRAM)
+    ok = await check_account_validity(account_storage, AccountServiceType.TELEGRAM, status=account_storage.status)
 
     assert ok is True
     # rmtree должен быть вызван в finally
@@ -112,7 +112,7 @@ class TestVerifyReservedAccounts:
 
 
         # Мокаем check_account_validity чтобы вернуть True для всех
-        async def always_ok(account_storage, type_service_account):
+        async def always_ok(account_storage, type_service_account, *args, **kwargs):
             return True
         monkeypatch.setattr(verify_mod, "check_account_validity", always_ok)
 
@@ -154,7 +154,7 @@ class TestVerifyReservedAccounts:
         # создаём кандидата (в БД должен быть candidate with status 'for_sale')
         cand_prod, _ = await create_product_account(
             category_id=category.category_id,
-            type_account_service=bad_prod.type_account_service
+            type_account_service=bad_prod.account_storage.type_account_service
         )
 
         # добавим purchase_request в БД
@@ -163,7 +163,7 @@ class TestVerifyReservedAccounts:
         purchase_request_id = pr.purchase_request_id
 
         # Мокаем check_account_validity: плохой -> False, кандидат -> True
-        async def check_by_storage(storage, type_service_account):
+        async def check_by_storage(storage, type_service_account, *args, **kwargs):
             sid = getattr(storage, "account_storage_id", None)
             bad_sid = bad_prod.account_storage.account_storage_id
             if sid == bad_sid:
@@ -173,7 +173,9 @@ class TestVerifyReservedAccounts:
         monkeypatch.setattr(verify_mod, "check_account_validity", check_by_storage)
 
         # Вызов: подаём список с одним 'плохим' аккаунтом
-        result = await verify_reserved_accounts([bad_prod], bad_prod.type_account_service , purchase_request_id)
+        result = await verify_reserved_accounts(
+            [bad_prod], bad_prod.account_storage.type_account_service , purchase_request_id
+        )
 
         # Ожидаем список валидных аккаунтов, содержащий кандидата (cand_prod)
         assert isinstance(result, list)
@@ -233,7 +235,7 @@ class TestVerifyReservedAccounts:
             ids = [p.account_storage.account_storage_id for p in bad_accounts]
             q = await session.execute(select(AccountStorage).where(AccountStorage.account_storage_id.in_(ids)))
             storages = q.scalars().all()
-            assert all(s.status == "deleted" for s in storages)
+            assert all(s.status == StorageStatus.DELETED for s in storages)
             # только один аккаунт устанвливается невалидным (первый )
 
 
@@ -258,9 +260,9 @@ class TestVerifyReservedAccounts:
         cat = await create_category()
 
         # создадим 3 аккаунта
-        acc1, _ = await create_product_account(category_id=cat.category_id, status="reserved")
-        acc2, _ = await create_product_account(category_id=cat.category_id, status="reserved")
-        acc3, _ = await create_product_account(category_id=cat.category_id, status="reserved")
+        acc1, acc1_full = await create_product_account(category_id=cat.category_id, status=StorageStatus.RESERVED)
+        acc2, acc2_full = await create_product_account(category_id=cat.category_id, status=StorageStatus.RESERVED)
+        acc3, acc3_full = await create_product_account(category_id=cat.category_id, status=StorageStatus.RESERVED)
         accounts = [acc1, acc2, acc3]
 
         pr = await create_purchase_request(user_id=user.user_id, quantity=3, total_amount=0, status="processing")
@@ -273,7 +275,7 @@ class TestVerifyReservedAccounts:
 
         monkeypatch.setattr(verify_mod, "check_account_validity", validity_check)
 
-        result = await verify_reserved_accounts(accounts, acc1.type_account_service, pr_id)
+        result = await verify_reserved_accounts(accounts, acc1_full.account_storage.type_account_service, pr_id)
 
         assert result == False
 
@@ -281,10 +283,10 @@ class TestVerifyReservedAccounts:
         async with get_db() as session:
             q = await session.execute(
                 select(AccountStorage)
-                .where(AccountStorage.account_storage_id == acc2.account_storage.account_storage_id)
+                .where(AccountStorage.account_storage_id == acc2_full.account_storage.account_storage_id)
             )
             storage = q.scalar()
-            assert storage.status == "deleted"
+            assert storage.status == StorageStatus.DELETED
 
 
     @pytest.mark.asyncio
@@ -314,6 +316,9 @@ class TestVerifyReservedAccounts:
             )
             for _ in range(3)
         ]
+        _, first_acc = bad_accounts[0]
+        type_account_service = first_acc.account_storage.type_account_service
+
         bad_accounts = [b[0] for b in bad_accounts]
 
         # создаём только одного кандидата (status='for_sale')
@@ -335,7 +340,7 @@ class TestVerifyReservedAccounts:
 
         result = await verify_reserved_accounts(
             [bad_accounts[0]],
-            bad_accounts[0].type_account_service,
+            type_account_service,
             pr_id
         )
 
@@ -348,7 +353,7 @@ class TestVerifyReservedAccounts:
             ids = [b.account_storage.account_storage_id for b in bad_accounts]
             q = await session.execute(select(AccountStorage).where(AccountStorage.account_storage_id.in_(ids)))
             storages = q.scalars().all()
-            assert all(s.status == "deleted" for s in storages)
+            assert all(s.status == StorageStatus.DELETED for s in storages)
 
 
     @pytest.mark.asyncio
@@ -377,7 +382,7 @@ class TestVerifyReservedAccounts:
             await create_product_account(
                 category_id=cat.category_id,
                 type_account_service=AccountServiceType.TELEGRAM,
-                status='reserved',
+                status=StorageStatus.RESERVED,
             )
             for _ in range(2)
         ]
@@ -425,15 +430,15 @@ class TestVerifyReservedAccounts:
             ids = [ca.account_storage.account_storage_id for ca in candidates]
             q = await session.execute(select(AccountStorage).where(AccountStorage.account_storage_id.in_(ids)))
             storages = q.scalars().all()
-            assert 2 == len([acc for acc in storages if acc.status == "for_sale"])
-            assert 1 == len([acc for acc in storages if acc.status == "reserved"])
+            assert 2 == len([acc for acc in storages if acc.status == StorageStatus.FOR_SALE])
+            assert 1 == len([acc for acc in storages if acc.status == StorageStatus.RESERVED])
 
             # невалидный аккаунт должен стать удалённым
             q = await session.execute(
                 select(AccountStorage)
                 .where(
                     (AccountStorage.account_storage_id == bad_account.account_id) &
-                    (AccountStorage.status == 'deleted')
+                    (AccountStorage.status == StorageStatus.DELETED)
                 )
             )
             assert q.scalar_one_or_none()

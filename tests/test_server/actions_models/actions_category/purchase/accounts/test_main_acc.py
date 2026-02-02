@@ -3,7 +3,8 @@ import os
 import pytest
 from sqlalchemy import select
 
-from src.services.database.categories.models import PurchaseRequests, AccountStorage, SoldAccounts, Purchases
+from src.services.database.categories.models import PurchaseRequests, AccountStorage, SoldAccounts, Purchases, \
+    StorageStatus
 from src.services.database.core import get_db
 from src.services.database.users.models import Users
 from src.services.database.users.models.models_users import BalanceHolder
@@ -83,7 +84,7 @@ async def test_purchase_accounts_success(
         storage_ids = [p.account_storage.account_storage_id for p in products]
         q = await session.execute(select(AccountStorage).where(AccountStorage.account_storage_id.in_(storage_ids)))
         storages = q.scalars().all()
-        assert all(s.status == "bought" for s in storages), "AccountStorage статусы не стали 'bought'"
+        assert all(s.status == StorageStatus.BOUGHT for s in storages), "AccountStorage статусы не стали 'bought'"
 
         # баланс пользователя уменьшился
         db_user = await session.get(Users, user.user_id)
@@ -92,13 +93,13 @@ async def test_purchase_accounts_success(
     # проверяем, что файлы перемещены в bought (проверяем финальные пути)
     for p in products:
         final = create_path_account(
-            status="bought",
-            type_account_service=p.type_account_service,
+            status=StorageStatus.BOUGHT,
+            type_account_service=p.account_storage.type_account_service,
             uuid=str(p.account_storage.storage_uuid)
         )
         where = create_path_account(
-            status="for_sale",
-            type_account_service=p.type_account_service,
+            status=StorageStatus.FOR_SALE,
+            type_account_service=p.account_storage.type_account_service,
             uuid=str(p.account_storage.storage_uuid)
         )
 
@@ -165,7 +166,7 @@ async def test_purchase_accounts_fail_no_replacement(
         storage_ids = [p.account_storage.account_storage_id for p in products]
         q = await session.execute(select(AccountStorage).where(AccountStorage.account_storage_id.in_(storage_ids)))
         storages = q.scalars().all()
-        assert all(s.status == "deleted" for s in storages), "AccountStorage не установленны 'deleted'"
+        assert all(s.status == StorageStatus.DELETED for s in storages), "AccountStorage не установленны 'deleted'"
 
         # баланс пользователя восстановлен (в create_new_user он уже был установлен)
         db_user = await session.get(Users, user.user_id)
@@ -176,18 +177,18 @@ async def test_purchase_accounts_fail_no_replacement(
     # проверяем, что аккаунты переместились к deleted
     for p in products:
         not_dir = create_path_account(
-            status="bought",
-            type_account_service=p.type_account_service,
+            status=StorageStatus.BOUGHT,
+            type_account_service=p.account_storage.type_account_service,
             uuid=str(p.account_storage.storage_uuid)
         )
         not_dir_2 = create_path_account(
-            status="for_sale",
-            type_account_service=p.type_account_service,
+            status=StorageStatus.FOR_SALE,
+            type_account_service=p.account_storage.type_account_service,
             uuid=str(p.account_storage.storage_uuid)
         )
         there_is_dir = create_path_account(
-            status="deleted",
-            type_account_service=p.type_account_service,
+            status=StorageStatus.DELETED,
+            type_account_service=p.account_storage.type_account_service,
             uuid=str(p.account_storage.storage_uuid)
         )
 

@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import select
 
 from src.services.database.categories.models import PurchaseRequests, AccountStorage, ProductAccounts, SoldAccounts, \
-    Purchases, StartPurchaseAccount
+    Purchases, StartPurchaseAccount, StorageStatus
 from src.services.database.categories.models import AccountServiceType
 from src.services.database.core import get_db
 from src.services.database.users.models import Users
@@ -85,7 +85,6 @@ class TestCancelPurchase:
             total_amount=data.total_amount,
             purchase_request_id=data.purchase_request_id,
             product_accounts=data.product_accounts,
-            type_service_account=data.type_service_account
         )
 
         # --- проверки файлов ---
@@ -112,7 +111,7 @@ class TestCancelPurchase:
             account_storage_id = prod.account_storage.account_storage_id
             q = await session.execute(select(AccountStorage).where(AccountStorage.account_storage_id == account_storage_id))
             storage = q.scalars().one()
-            assert storage.status == "for_sale"
+            assert storage.status == StorageStatus.FOR_SALE
 
             # ProductAccounts row был восстановлен (т.к. мы удаляли её заранее)
             q = await session.execute(select(ProductAccounts).where(ProductAccounts.account_storage_id == account_storage_id))
@@ -147,7 +146,7 @@ class TestCancelPurchase:
         prod, prod_full = await create_product_account(category_id=cat.category_id)
         _, sold = await create_sold_account(
             owner_id=user.user_id,
-            type_account_service=prod.type_account_service
+            type_account_service=prod_full.account_storage.type_account_service
         )
         pa = await create_purchase(
             user_id=user.user_id,
@@ -194,7 +193,6 @@ class TestCancelPurchase:
             total_amount=data.total_amount,
             purchase_request_id=data.purchase_request_id,
             product_accounts=data.product_accounts,
-            type_service_account=data.type_service_account
         )
 
         # проверки
@@ -221,4 +219,4 @@ class TestCancelPurchase:
             # AccountStorage status -> for_sale
             q = await session.execute(select(AccountStorage).where(AccountStorage.account_storage_id == prod.account_storage.account_storage_id))
             storage = q.scalars().one()
-            assert storage.status == "for_sale"
+            assert storage.status == StorageStatus.FOR_SALE

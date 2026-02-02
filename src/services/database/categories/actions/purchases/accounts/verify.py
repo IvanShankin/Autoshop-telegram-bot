@@ -11,7 +11,7 @@ from src.services.database.categories.actions.products.accounts.actions_add impo
 from src.services.database.categories.actions.products.accounts.actions_delete import delete_product_account
 from src.services.database.categories.actions.products.accounts.actions_update import update_account_storage
 from src.services.database.categories.models import ProductAccounts, AccountStorage, PurchaseRequests, \
-    PurchaseRequestAccount, AccountServiceType
+    PurchaseRequestAccount, AccountServiceType, StorageStatus
 from src.services.database.core.database import get_db
 from src.services.filesystem.account_actions import move_in_account
 from src.services.products.accounts.tg.actions import check_account_validity
@@ -33,13 +33,18 @@ async def _delete_account(account_storage: List[ProductAccounts], type_service_a
         )
 
         for bad_account in account_storage:
-            await move_in_account(account=bad_account.account_storage, type_service_name=type_service_account, status="deleted")
+            bad_account.account_storage.status = StorageStatus.FOR_SALE # аккаунт хранится на данном этапе здесь
+            await move_in_account(
+                account=bad_account.account_storage,
+                type_service_name=type_service_account,
+                status=StorageStatus.DELETED
+            )
 
             # помечаем первоначальный плохо прошедший аккаунт как deleted сразу
             try:
                 await update_account_storage(
                     bad_account.account_storage.account_storage_id,
-                    status='deleted',
+                    status=StorageStatus.DELETED,
                     is_valid=False,
                     is_active=False
                 )
@@ -52,7 +57,6 @@ async def _delete_account(account_storage: List[ProductAccounts], type_service_a
             try:
 
                 await add_deleted_accounts(
-                    type_account_service=bad_account.type_account_service,
                     account_storage_id=bad_account.account_storage.account_storage_id,
                     category_name=category.name,
                     description=category.description
@@ -82,7 +86,7 @@ async def verify_reserved_accounts(
     Проверяет валидность аккаунтов, если невалидный — заменит и логирует.
     Возвращает False, если не удалось собрать нужное количество валидных аккаунтов.
     :param product_accounts: Обязательно ProductAccounts с подгруженными account_storage
-    :param type_service_account: имя типа сервиса
+    :param type_service_account: тип сервиса у аккаунтов
     :param purchase_request_id: id заказа
     :return: List[ProductAccounts] если нашли необходимое количество валидных аккаунтов. False если нет нужного количества аккаунтов
     """
@@ -99,7 +103,7 @@ async def verify_reserved_accounts(
     async def validate_slot(pa: ProductAccounts) -> Tuple[ProductAccounts, bool]:
         """Проверка одного ProductAccounts -> возвращает (pa, is_valid)"""
         async with sem:
-            return pa, await check_account_validity(pa.account_storage, type_service_account)
+            return pa, await check_account_validity(pa.account_storage, type_service_account, StorageStatus.FOR_SALE)
 
     # 2) Получим purchase_request (чтобы иметь доступ к balance_holder)
     async with get_db() as session_db:
@@ -140,18 +144,19 @@ async def verify_reserved_accounts(
     bad_queue = deque(invalid_accounts)
 
     # Начинаем итеративный поиск замен пакетами
-    async with get_db() as session_db:
-        attempts = 0
+    attempts = 0
 
-        if invalid_accounts:
-            # переносим аккаунты к невалидным
-            await _delete_account(invalid_accounts, type_service_account=type_service_account)
+    if invalid_accounts:
+        # переносим аккаунты к невалидным
+        await _delete_account(invalid_accounts, type_service_account=type_service_account)
 
-        while bad_queue and attempts < MAX_REPLACEMENT_ATTEMPTS:
-            attempts += 1
-            # необходимое количество аккаунтов с БД
-            to_fetch = min(max(REPLACEMENT_QUERY_LIMIT, len(bad_queue)), len(bad_queue) * 2)
-            # выбираем пачку кандидатов (atomic select)
+    while bad_queue and attempts < MAX_REPLACEMENT_ATTEMPTS:
+        attempts += 1
+        # необходимое количество аккаунтов с БД
+        to_fetch = min(max(REPLACEMENT_QUERY_LIMIT, len(bad_queue)), len(bad_queue) * 2)
+        # выбираем пачку кандидатов (atomic select)
+
+        async with get_db() as session_db:
             try:
                 async with session_db.begin():
                     q = (
@@ -160,10 +165,10 @@ async def verify_reserved_accounts(
                         .join(ProductAccounts.account_storage)
                         .where(
                             (ProductAccounts.category_id == bad_queue[0].category_id) &  # выбираем по категории текущей «дыры»
-                            (ProductAccounts.type_account_service == bad_queue[0].type_account_service) &
+                            (AccountStorage.type_account_service == type_service_account) &
                             (AccountStorage.is_active == True) &
                             (AccountStorage.is_valid == True) &
-                            (AccountStorage.status == "for_sale")
+                            (AccountStorage.status == StorageStatus.FOR_SALE)
                         )
                         .with_for_update()
                         .limit(to_fetch)
@@ -182,7 +187,7 @@ async def verify_reserved_accounts(
                         await session_db.execute(
                             update(AccountStorage)
                             .where(AccountStorage.account_storage_id.in_(storage_ids))
-                            .values(status='reserved')
+                            .values(status=StorageStatus.RESERVED)
                         )
                         # commit произойдёт по выходу из session_db.begin()
             except Exception as e:
@@ -190,32 +195,33 @@ async def verify_reserved_accounts(
                 await asyncio.sleep(0.2)
                 continue
 
-            if not candidates:
-                return False
+        if not candidates:
+            return False
 
-            # Проверяем пачку кандидатов параллельно (семафор ограничивает нагрузку)
-            async def validate_candidate(candidate: ProductAccounts):
-                async with sem:
-                    try:
-                        ok = await check_account_validity(candidate.account_storage, type_service_account)
-                        return candidate, ok
-                    except Exception as e:
-                        logger.exception("Candidate validation exception for %s: %s",
-                                         getattr(candidate.account_storage, "account_storage_id", None), e)
-                        return candidate, False
+        # Проверяем пачку кандидатов параллельно (семафор ограничивает нагрузку)
+        async def validate_candidate(candidate: ProductAccounts):
+            async with sem:
+                try:
+                    ok = await check_account_validity(candidate.account_storage, type_service_account, StorageStatus.FOR_SALE)
+                    return candidate, ok
+                except Exception as e:
+                    logger.exception("Candidate validation exception for %s: %s",
+                                     getattr(candidate.account_storage, "account_storage_id", None), e)
+                    return candidate, False
 
-            checks = await asyncio.gather(*[validate_candidate(c) for c in candidates], return_exceptions=False)
+        checks = await asyncio.gather(*[validate_candidate(c) for c in candidates], return_exceptions=False)
 
-            # Разделяем валидные и невалидные кандидаты
-            valid_candidates: list[ProductAccounts] = [c for c, ok in checks if ok]
-            invalid_candidates: list[ProductAccounts] = [c for c, ok in checks if not ok]
+        # Разделяем валидные и невалидные кандидаты
+        valid_candidates: list[ProductAccounts] = [c for c, ok in checks if ok]
+        invalid_candidates: list[ProductAccounts] = [c for c, ok in checks if not ok]
 
-            # Теперь применяем изменения в БД: удаляем невалидных, возвращаем неиспользованных валидных в for_sale,
-            # и привязываем нужное количество валидных к заявке (заменяем позиции из bad_queue).
-            try:
-                # удаление невалидных аккаунтов
-                await _delete_account(invalid_candidates, type_service_account=type_service_account)
+        # Теперь применяем изменения в БД: удаляем невалидных, возвращаем неиспользованных валидных в for_sale,
+        # и привязываем нужное количество валидных к заявке (заменяем позиции из bad_queue).
+        try:
+            # удаление невалидных аккаунтов
+            await _delete_account(invalid_candidates, type_service_account=type_service_account)
 
+            async with get_db() as session_db:
                 async with session_db.begin():
                     # Используем столько валидных кандидатов, сколько нужно (по очереди из bad_queue)
                     used = 0
@@ -242,34 +248,35 @@ async def verify_reserved_accounts(
                         await session_db.execute(
                             update(AccountStorage)
                             .where(AccountStorage.account_storage_id.in_(keep_ids))
-                            .values(status='for_sale')
+                            .values(status=StorageStatus.FOR_SALE)
                         )
                 # конец session_db.begin() — commit
-            except Exception as e:
-                logger.exception("DB error while applying candidate results: %s", e)
-                # best-effort: попытаться вернуть reserved -> for_sale
-                try:
+        except Exception as e:
+            logger.exception("DB error while applying candidate results: %s", e)
+            # best-effort: попытаться вернуть reserved -> for_sale
+            try:
+                async with get_db() as session_db:
                     ids = [c.account_storage.account_storage_id for c in candidates]
                     await session_db.execute(
                         update(AccountStorage)
                         .where(AccountStorage.account_storage_id.in_(ids))
-                        .values(status='for_sale')
+                        .values(status=StorageStatus.FOR_SALE)
                     )
-                except Exception:
-                    logger.exception("Failed to revert candidate statuses after error")
-                # подождём и попробуем снова
-                await asyncio.sleep(0.2)
-                continue
+            except Exception:
+                logger.exception("Failed to revert candidate statuses after error")
+            # подождём и попробуем снова
+            await asyncio.sleep(0.2)
+            continue
 
-            # если у нас всё ещё есть bad_queue — цикл продолжится и попробует новую пачку
-            # иначе — мы успешно заменили все дыры
-        # end attempts loop
+        # если у нас всё ещё есть bad_queue — цикл продолжится и попробует новую пачку
+        # иначе — мы успешно заменили все дыры
+    # end attempts loop
 
-        if bad_queue:
-            # не смогли заменить все необходимые аккаунты
-            logger.error("Could not find replacements for %d accounts after %d attempts (request %s)",
-                         len(bad_queue), attempts, purchase_request_id)
-            return False
+    if bad_queue:
+        # не смогли заменить все необходимые аккаунты
+        logger.error("Could not find replacements for %d accounts after %d attempts (request %s)",
+                     len(bad_queue), attempts, purchase_request_id)
+        return False
 
     # Всё ок — для всех невалидных нашли замену (valid_accounts + originally valid) -> должны иметь нужное количество
     return valid_accounts

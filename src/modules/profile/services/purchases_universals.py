@@ -103,7 +103,7 @@ async def send_media_sold_universal(
             dek=dek
         )
 
-    if universal.universal_storage.file_path:
+    if universal.universal_storage.original_filename:
         file_path = create_path_universal_storage(
             status=universal.universal_storage.status,
             uuid=universal.universal_storage.storage_uuid,

@@ -359,7 +359,7 @@ async def get_message_sold_account_full(
         "admins_show_data_by_id",
         "Sold account ID: {sold_account_id}\n"
         "Owner ID: {owner_id}\n"
-        "Account service type ID: {type_account_service_id}\n"
+        "Account service type: {type_account_service}\n"
         "Name: {name}\n"
         "Description: {description}\n"
         "Sold at: {sold_at}\n"
@@ -380,7 +380,7 @@ async def get_message_sold_account_full(
     ).format(
         sold_account_id=sold_account_full.sold_account_id,
         owner_id=sold_account_full.owner_id,
-        type_account_service_id=sold_account_full.type_account_service_id,
+        type_account_service=storage.type_account_service,
         name=sold_account_full.name,
         description=sold_account_full.description,
         sold_at=sold_account_full.sold_at.strftime(get_config().different.dt_format),

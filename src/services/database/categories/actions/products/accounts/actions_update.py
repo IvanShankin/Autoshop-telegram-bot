@@ -1,21 +1,19 @@
 from datetime import datetime
-from typing import Literal
 
 from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
-from src.services.database.categories.models import AccountStorage, TgAccountMedia
+from src.services.database.categories.models import AccountStorage, TgAccountMedia, StorageStatus
 from src.services.database.core.database import get_db
 from src.services.redis.filling import filling_product_account_by_account_id, \
     filling_sold_account_by_account_id, filling_sold_accounts_by_owner_id
 
 
 async def update_account_storage(
-    account_storage_id: int = None,
+    account_storage_id: int,
     storage_uuid: str = None,
-    file_path: str = None,
     checksum: str = None,
-    status: Literal["for_sale", "bought", "deleted"] = None,
+    status: StorageStatus = None,
     encrypted_key: str = None,
     encrypted_key_nonce: str = None,
     key_version: int = None,
@@ -41,8 +39,6 @@ async def update_account_storage(
         update_data = {}
         if storage_uuid is not None:
             update_data['storage_uuid'] = storage_uuid
-        if file_path is not None:
-            update_data['file_path'] = file_path
         if checksum is not None:
             update_data['checksum'] = checksum
         if status is not None:

@@ -55,6 +55,7 @@ async def input_other_account(
 
         accounts.append(account_data)
 
+    successfully_added = len(accounts)
     errors_added = await import_in_db(
         account_data=accounts,
         type_account_service=type_account_service,
@@ -62,7 +63,7 @@ async def input_other_account(
     )
     if errors_added:
         errors_account += errors_added
-        accounts -= errors_added
+        successfully_added -= len(errors_added)
 
 
     if errors_account:
@@ -71,7 +72,7 @@ async def input_other_account(
 
 
     return ImportResult(
-        successfully_added=len(accounts),
+        successfully_added=successfully_added,
         total_processed=reader.line_num - 1,
         errors_csv_bytes=errors_csv_bytes,
         duplicates_csv_bytes=duplicates_csv_bytes
@@ -99,7 +100,8 @@ async def import_in_db(
             password_encrypted, password_nonce, _  = encrypt_text(account.password, account_key)
 
             acc = await add_account_storage(
-                type_service_name=type_account_service,
+                is_file=False,
+                type_account_service=type_account_service,
                 checksum="",  # это не надо для данного типа аккаунтов
                 encrypted_key=encrypted_key_b64,
                 encrypted_key_nonce=nonce,
@@ -110,7 +112,6 @@ async def import_in_db(
                 password_nonce=password_nonce,
             )
             await add_product_account(
-                type_account_service=type_account_service,
                 category_id=category_id,
                 account_storage_id=acc.account_storage_id
             )

@@ -74,7 +74,6 @@ async def purchase_accounts(
             total_amount = data.total_amount,
             purchase_request_id = data.purchase_request_id,
             product_accounts = [],
-            type_service_account=data.type_service_account
         )
         text = (
             "#Недостаточно_аккаунтов \n"

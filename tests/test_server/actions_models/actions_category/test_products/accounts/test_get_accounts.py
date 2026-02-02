@@ -74,11 +74,16 @@ async def test_get_sold_account_by_page(use_redis, create_new_user, create_sold_
     from src.services.database.categories.actions import get_sold_account_by_page
 
     owner = await create_new_user()
-    account_1, _ = await create_sold_account(use_redis, owner_id=owner.user_id)
+    account_1, account_1_full = await create_sold_account(use_redis, owner_id=owner.user_id)
     account_2, _ = await create_sold_account(use_redis, owner_id=owner.user_id)
     account_other, _ = await create_sold_account(use_redis)
 
-    list_account = await get_sold_account_by_page(owner.user_id, account_1.type_account_service, 1, owner.language)
+    list_account = await get_sold_account_by_page(
+        owner.user_id,
+        account_1_full.account_storage.type_account_service,
+        1,
+        owner.language
+    )
     list_account = [account.model_dump() for account in list_account]
 
     # должен быть отсортирован по возрастанию даты

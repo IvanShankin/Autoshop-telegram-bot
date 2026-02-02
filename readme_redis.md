@@ -243,7 +243,6 @@
   {
     "account_id": "int",
     "category_id": "int",
-    "type_account_service": "int",
     "account_storage_id": "int",
     "created_at": "2024-01-15T10:30:45+03:00"
   }
@@ -259,16 +258,18 @@
 {
     "account_id": "int",
     "category_id": "int",
-    "type_account_service": "int",
+    "account_storage_id": "int",
     "created_at": "2024-01-15T10:30:45+03:00",
   
     "account_storage": {
         "account_storage_id": "int",
         "storage_uuid": "str",
         
-        "file_path": "str",
+        "is_file": "str",
         "checksum": "str",
-        "status": "str",
+        
+        "status": "StorageStatus",
+        "type_account_service": "AccountServiceType",
         
         "encrypted_key": "str",
         "encrypted_key_nonce": "str",
@@ -302,14 +303,12 @@
     {
         "sold_account_id": "int",
         "owner_id": "int",
-        "type_account_service": "AccountServiceType",
         
         "phone_number": "str",
         "name": "str",
         "description": "str",
         
         "sold_at": "2024-01-15T10:30:45+03:00"
-        
     }
 ]
 ```
@@ -323,7 +322,6 @@
 {
     "sold_account_id": "int",
     "owner_id": "int",
-    "type_account_service": "AccountServiceType",
     
     "name": "str",
     "description": "str",
@@ -334,9 +332,10 @@
         "account_storage_id": "int",
         "storage_uuid": "str",
         
-        "file_path": "str",
+        "is_file": "str",
         "checksum": "str",
-        "status": "str",
+        "status": "StorageStatus",
+        "type_account_service": "AccountServiceType",
         
         "encrypted_key": "str",
         "encrypted_key_nonce": "str",

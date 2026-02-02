@@ -7,7 +7,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import uuid
 
-from src.services.database.categories.models.main_category_and_product import AccountServiceType
+from src.services.database.categories.models.main_category_and_product import AccountServiceType, StorageStatus
 from src.services.database.core.database import Base
 
 
@@ -23,9 +23,24 @@ class AccountStorage(Base):
     storage_uuid = Column(String(36), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
 
     # === Основные поля ===
-    file_path = Column(Text, nullable=True)     # относительный путь к зашифрованному файлу (относительно accounts/)
+    is_file = Column(Boolean, server_default=text('true'))     # флаг наличия файла
     checksum = Column(String(64), nullable=False) # Контроль целостности (SHA256 зашифрованного файла)
-    status = Column(Enum('for_sale', 'reserved', 'bought', 'deleted', name='account_status'), server_default='for_sale')
+    status = Column(
+        Enum(
+            StorageStatus,
+            values_callable=lambda x: [e.value for e in x],
+            name="account_status"
+        ),
+        nullable=False
+    )
+    type_account_service = Column(
+        Enum(
+            AccountServiceType,
+            values_callable=lambda x: [e.value for e in x],
+            name="account_service_type"
+        ),
+        nullable=False
+    )
 
     # === Шифрование ===
     encrypted_key = Column(Text, nullable=False)       # Персональный ключ аккаунта, зашифрованный мастер-ключом (base64)
@@ -80,14 +95,6 @@ class ProductAccounts(Base):
 
     account_id = Column(Integer, primary_key=True, autoincrement=True)
     category_id = Column(ForeignKey("categories.category_id"), nullable=False)
-    type_account_service = Column(
-        Enum(
-            AccountServiceType,
-            values_callable=lambda x: [e.value for e in x],
-            name="account_service_type"
-        ),
-        nullable=False
-    )
     account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id", ondelete="CASCADE"), nullable=False)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -106,14 +113,6 @@ class SoldAccounts(Base):
     sold_account_id = Column(Integer, primary_key=True, autoincrement=True)
     owner_id = Column(BigInteger, ForeignKey("users.user_id"), nullable=True)
     account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id", ondelete="CASCADE"), nullable=False)
-    type_account_service = Column(
-        Enum(
-            AccountServiceType,
-            values_callable=lambda x: [e.value for e in x],
-            name="account_service_type"
-        ),
-        nullable=False
-    )
 
     sold_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -176,14 +175,7 @@ class DeletedAccounts(Base):
 
     deleted_account_id = Column(Integer, primary_key=True, autoincrement=True)
     account_storage_id = Column(Integer, ForeignKey("account_storage.account_storage_id", ondelete="CASCADE"), nullable=False)
-    type_account_service = Column(
-        Enum(
-            AccountServiceType,
-            values_callable=lambda x: [e.value for e in x],
-            name="account_service_type"
-        ),
-        nullable=False
-    )
+
     category_name = Column(Text, nullable=False)
     description = Column(Text, nullable=True)
 

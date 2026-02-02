@@ -10,7 +10,7 @@ from sqlalchemy.orm import selectinload
 from tests.helpers.func_fabrics.category_fabric import create_category_factory
 from tests.helpers.func_fabrics.other_fabric import create_new_user_fabric
 
-from src.services.database.categories.models import AccountStorage, TgAccountMedia, Purchases
+from src.services.database.categories.models import AccountStorage, TgAccountMedia, Purchases, StorageStatus
 from src.services.database.categories.models import SoldAccounts, SoldAccountsTranslation, \
     ProductAccounts, \
     SoldAccountFull, SoldAccountSmall, ProductAccountFull
@@ -23,7 +23,8 @@ from src.services.secrets import encrypt_text, get_crypto_context, make_account_
 
 def make_fake_encrypted_archive_for_test(
         account_key: bytes,
-        status: str = "for_sale",
+        uuid: str,
+        status: StorageStatus = StorageStatus.FOR_SALE,
         type_account_service: AccountServiceType = AccountServiceType.TELEGRAM
 ) -> str:
     """
@@ -41,8 +42,7 @@ def make_fake_encrypted_archive_for_test(
     from src.services.filesystem.media_paths import create_path_account
     # генерируем UUID
     # === 1. Генерация UUID и путей ===
-    account_uuid = str(uuid.uuid4())
-    encrypted_path = create_path_account(status, type_account_service, account_uuid)
+    encrypted_path = create_path_account(status, type_account_service, uuid)
     account_dir = Path(os.path.dirname(encrypted_path))
     os.makedirs(account_dir, exist_ok=True)
 
@@ -96,19 +96,24 @@ def make_fake_encrypted_archive_for_test(
 async def create_account_storage_factory(
         is_active: bool = True,
         is_valid: bool = True,
-        status: str = 'for_sale',
+        is_file: bool = True,
+        status: StorageStatus = StorageStatus.FOR_SALE,
+        type_account_service: AccountServiceType = AccountServiceType.TELEGRAM,
         phone_number: str = '+7 920 107-42-12'
 ) -> AccountStorage:
     crypto = get_crypto_context()
     encrypted_key_b64, account_key, encrypted_key_nonce = make_account_key(crypto.kek)
-    file_path = make_fake_encrypted_archive_for_test(account_key, status)
+
+    storage_uuid = str(uuid.uuid4())
+    if is_file == True:
+        make_fake_encrypted_archive_for_test(account_key, storage_uuid, status, type_account_service)
 
     login_encrypted, login_nonce, _ = encrypt_text('login_encrypted', account_key)
     password_encrypted, password_nonce, _ = encrypt_text('password_encrypted', account_key)
 
     account_storage = AccountStorage(
-        file_path = file_path,
         checksum = "checksum",
+        storage_uuid = storage_uuid,
 
         encrypted_key = encrypted_key_b64,
         encrypted_key_nonce = encrypted_key_nonce,
@@ -119,9 +124,11 @@ async def create_account_storage_factory(
         password_encrypted = password_encrypted,
         password_nonce = password_nonce,
 
+        is_file = is_file,
         is_active = is_active,
         is_valid = is_valid,
-        status = status
+        status = status,
+        type_account_service = type_account_service
     )
     async with get_db() as session_db:
         session_db.add(account_storage)
@@ -135,7 +142,7 @@ async def create_product_account_factory(
         type_account_service: AccountServiceType = AccountServiceType.TELEGRAM,
         category_id: int = None,
         account_storage_id: int = None,
-        status: str = 'for_sale',
+        status: StorageStatus = StorageStatus.FOR_SALE,
         phone_number: str = '+7 920 107-42-12',
         price: int = 150
 ) -> (ProductAccounts, ProductAccountFull):
@@ -144,14 +151,17 @@ async def create_product_account_factory(
             category = await create_category_factory(filling_redis=filling_redis, price=price)
             category_id = category.category_id
         if account_storage_id is None:
-            account_storage = await create_account_storage_factory(status=status, phone_number=phone_number)
+            account_storage = await create_account_storage_factory(
+                status=status,
+                phone_number=phone_number,
+                type_account_service=type_account_service
+            )
             account_storage_id = account_storage.account_storage_id
         else:
             account_storage = None
 
         new_account = ProductAccounts(
             category_id = category_id,
-            type_account_service = type_account_service,
             account_storage_id = account_storage_id,
         )
         session_db.add(new_account)
@@ -197,13 +207,16 @@ async def create_sold_account_factory(
             owner_id = user.user_id
         if account_storage_id is None:
             account_storage = await create_account_storage_factory(
-                is_active, is_valid, 'bought', phone_number=phone_number
+                is_active=is_active,
+                is_valid=is_valid,
+                status=StorageStatus.BOUGHT,
+                phone_number=phone_number,
+                type_account_service=type_account_service
             )
             account_storage_id = account_storage.account_storage_id
 
         new_sold_account = SoldAccounts(
             owner_id = owner_id,
-            type_account_service = type_account_service,
             account_storage_id = account_storage_id,
         )
 

@@ -11,9 +11,10 @@ from src.exceptions import TranslationAlreadyExists, \
 from src.exceptions.business import TheAccountServiceDoesNotMatch
 from src.services.database.categories.actions.actions_get import get_category_by_category_id
 from src.services.database.categories.models import ProductAccounts, SoldAccounts, SoldAccountsTranslation, \
-    DeletedAccounts, SoldAccountSmall, AccountServiceType, TgAccountMedia, AccountStorage
+    DeletedAccounts, SoldAccountSmall, AccountServiceType, TgAccountMedia, AccountStorage, StorageStatus
 from src.services.database.core.database import get_db
 from src.services.database.users.actions import get_user
+from src.services.filesystem.media_paths import create_path_account
 from src.services.redis.filling import filling_product_account_by_account_id, \
     filling_sold_accounts_by_owner_id, filling_sold_account_by_account_id, \
     filling_main_categories, filling_categories_by_parent, filling_category_by_category, \
@@ -22,13 +23,14 @@ from src.utils.pars_number import phone_in_e164
 
 
 async def add_account_storage(
-    type_service_name: AccountServiceType,
+    is_file: bool,
+    type_account_service: AccountServiceType,
     checksum: str,
     encrypted_key: str,
     encrypted_key_nonce: str,
     phone_number: str,
 
-    status: Literal["for_sale", "bought", "deleted"] = 'for_sale',
+    status: StorageStatus = StorageStatus.FOR_SALE,
     key_version: int = 1,
     encryption_algo: str = 'AES-GCM-256',
     login_encrypted: str = None,
@@ -40,7 +42,7 @@ async def add_account_storage(
     """
     Путь сформируется только для аккаунтов телеграмма т.к. только их данные хранятся в файле.
      Преобразует номер телефона в необходимый формат для хранения (E164)
-    :param type_service_name: Имя сервиса необходимо для формирования пути (должен иметься в get_config().app.type_account_services)
+    :param type_account_service: Тип сервиса
     :param checksum: Контроль целостности (SHA256 зашифрованного файла)
     :param encrypted_key: Персональный ключ аккаунта, зашифрованный мастер-ключом (DEK)
     :param encrypted_key_nonce: nonce, использованный при wrap (Nonce (IV) для AES-GCM (base64))
@@ -54,19 +56,19 @@ async def add_account_storage(
     :param password_nonce: используемый nonce при шифровании
     :param tg_id: ID аккаунта в телеграмме. Только для ТГ аккаунтов
     """
-    if not type_service_name in AccountServiceType:
-        raise ValueError(f"type_service_name = {type_service_name} не найден")
+    if not type_account_service in AccountServiceType:
+        raise ValueError(f"type_account_service = {type_account_service} не найден")
 
     # только для аккаунтов телеграмм формируем путь
-    storage_uuid = str(uuid.uuid4()) if type_service_name == type_service_name.TELEGRAM else None
-    file_path = Path(status) / type_service_name.value / str(storage_uuid) / 'account.zip.enc' if type_service_name == AccountServiceType.TELEGRAM else None
+    storage_uuid = str(uuid.uuid4()) if type_account_service == type_account_service.TELEGRAM else None
 
-    if type_service_name != AccountServiceType.TELEGRAM and (login_encrypted is None or password_encrypted is None):
+    if type_account_service != AccountServiceType.TELEGRAM and (login_encrypted is None or password_encrypted is None):
         raise ValueError(f"Необходимо указать login_encrypted и password_encrypted")
 
     new_account_storage = AccountStorage(
         storage_uuid = storage_uuid,
-        file_path = str(file_path), # относительный путь к зашифрованному файлу (относительно media/accounts/)
+        is_file = is_file,
+        type_account_service = type_account_service,
         checksum = checksum,
         status = status,
         encrypted_key = encrypted_key,
@@ -86,7 +88,7 @@ async def add_account_storage(
         await session_db.commit()
         await session_db.refresh(new_account_storage)
 
-    if type_service_name == type_service_name.TELEGRAM:
+    if type_account_service == type_account_service.TELEGRAM:
         tg_media = TgAccountMedia(
             account_storage_id=new_account_storage.account_storage_id
         )
@@ -98,7 +100,6 @@ async def add_account_storage(
 
 
 async def add_product_account(
-    type_account_service: AccountServiceType,
     category_id: int,
     account_storage_id: int,
 ) -> ProductAccounts:
@@ -115,16 +116,8 @@ async def add_product_account(
             f"Категория аккаунтов с id = {category_id} не является хранилищем аккаунтов. "
             f"для добавления аккаунтов необходимо сделать хранилищем"
         )
-    elif category.type_account_service != type_account_service:
-        raise TheAccountServiceDoesNotMatch(
-            f"у категории сервис: {category.type_account_service}, но вы пытаетесь добавить: {type_account_service.value}"
-        )
-
-    if not any(type_account_service == member for member in AccountServiceType):
-        raise ValueError(f"Тип сервиса = {type_account_service.value} не найден")
 
     new_product_account = ProductAccounts(
-        type_account_service = type_account_service,
         category_id = category_id,
         account_storage_id = account_storage_id,
     )
@@ -133,7 +126,6 @@ async def add_product_account(
         session_db.add(new_product_account)
         await session_db.commit()
         await session_db.refresh(new_product_account)
-
 
     # заполнение redis
     # конкретно аккаунты
@@ -203,7 +195,6 @@ async def add_translation_in_sold_account(
 
 async def add_sold_account(
     owner_id: int,
-    type_account_service: AccountServiceType,
     account_storage_id: int,
     language: str,
     name: str,
@@ -213,13 +204,9 @@ async def add_sold_account(
     if not await get_user(owner_id):
         raise ValueError(f"Пользователь с ID = {owner_id} не найден")
 
-    if not any(type_account_service == member for member in AccountServiceType):
-        raise ValueError(f"Тип сервиса = {type_account_service.value} не найден")
-
     new_sold_account = SoldAccounts(
         owner_id = owner_id,
         account_storage_id = account_storage_id,
-        type_account_service = type_account_service
     )
 
     async with get_db() as session_db:
@@ -236,18 +223,12 @@ async def add_sold_account(
 
 
 async def add_deleted_accounts(
-        type_account_service: AccountServiceType,
-        account_storage_id: int,
-        category_name: str,
-        description: str
+    account_storage_id: int,
+    category_name: str,
+    description: str
 ) -> DeletedAccounts:
-
-    if not any(type_account_service == member for member in AccountServiceType):
-        raise ValueError(f"Тип сервиса = {type_account_service} не найден")
-
     async with get_db() as session_db:
         new_deleted_account = DeletedAccounts(
-            type_account_service = type_account_service,
             account_storage_id = account_storage_id,
             category_name = category_name,
             description = description

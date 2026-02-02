@@ -8,7 +8,7 @@ from src.exceptions import NotEnoughAccounts
 from src.services.database.categories.actions.purchases.general.start import write_off_of_funds, \
     create_new_purchase_request, check_category_and_money
 from src.services.database.categories.models import ProductAccounts, AccountStorage, \
-    StartPurchaseAccount
+    StartPurchaseAccount, StorageStatus
 from src.services.database.categories.models import PurchaseRequestAccount
 from src.services.database.core.database import get_db
 from src.services.redis.filling import filling_product_account_by_account_id, filling_user, filling_all_keys_category
@@ -29,7 +29,7 @@ async def _set_reserved_accounts(
         .join(ProductAccounts.account_storage)
         .where(
             (ProductAccounts.category_id == category_id) &
-            (AccountStorage.status == "for_sale")
+            (AccountStorage.status == StorageStatus.FOR_SALE)
         )
         .order_by(ProductAccounts.created_at.desc())
         .with_for_update()
@@ -45,7 +45,7 @@ async def _set_reserved_accounts(
     await session_db.execute(
         update(AccountStorage)
         .where(AccountStorage.account_storage_id.in_(account_storages_ids))
-        .values(status='reserved')
+        .values(status=StorageStatus.RESERVED)
     )
 
     for id in account_storages_ids:

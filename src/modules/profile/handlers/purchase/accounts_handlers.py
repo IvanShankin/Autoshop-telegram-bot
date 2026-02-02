@@ -9,7 +9,7 @@ from src.modules.profile.services.purchases_accounts import show_all_sold_accoun
 from src.services.products.accounts.tg.actions import check_account_validity, get_auth_codes
 from src.services.database.categories.actions import get_sold_accounts_by_account_id, update_account_storage, \
     delete_sold_account, get_type_service_account, add_deleted_accounts
-from src.services.database.categories.models import AccountStorage
+from src.services.database.categories.models import AccountStorage, StorageStatus
 from src.services.database.users.models import Users
 from src.services.filesystem.account_actions import move_in_account, get_tdata_tg_acc, get_session_tg_acc
 from src.services.secrets import decrypt_text, get_crypto_context, unwrap_dek
@@ -181,7 +181,8 @@ async def chek_valid_acc(callback: CallbackQuery, user: Users):
 
     result = await check_account_validity(
         account_storage=AccountStorage(**account.account_storage.model_dump()),
-        type_account_service=type_account_service
+        type_account_service=type_account_service,
+        status=account.account_storage.status
     )
 
     try:
@@ -265,19 +266,22 @@ async def del_account(callback: CallbackQuery, user: Users):
         return
 
 
-    result = await move_in_account(account=AccountStorage(**account.account_storage.model_dump()), type_service_name=type_account_service, status='deleted')
+    result = await move_in_account(
+        account=AccountStorage(**account.account_storage.model_dump()),
+        type_service_name=type_account_service,
+        status=StorageStatus.DELETED
+    )
     if not result:
         await callback.answer(get_text(user.language, 'profile_messages', "An error occurred, please try again"), show_alert=True)
         return
 
     await update_account_storage(
         account_storage_id=account.account_storage.account_storage_id,
-        status='deleted',
+        status=StorageStatus.DELETED,
         is_active=False
     )
     await delete_sold_account(account.sold_account_id)
     await add_deleted_accounts(
-        type_account_service=type_account_service,
         account_storage_id=account.account_storage.account_storage_id,
         category_name=account.name,
         description=account.description

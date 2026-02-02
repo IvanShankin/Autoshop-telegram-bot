@@ -3,7 +3,7 @@ import pytest
 from sqlalchemy import select
 
 from src.exceptions import NotEnoughAccounts, NotEnoughMoney
-from src.services.database.categories.models import ProductAccountFull
+from src.services.database.categories.models import ProductAccountFull, StorageStatus
 from src.services.database.categories.models import PurchaseRequests, PurchaseRequestAccount, \
     AccountStorage, ProductAccounts
 from src.services.database.core import get_db
@@ -101,7 +101,7 @@ class TestStartPurchaseRequest:
                 select(AccountStorage).where(AccountStorage.account_storage_id.in_(storage_ids))
             )
             storages = q.scalars().all()
-            assert all(s.status == "reserved" for s in storages)
+            assert all(s.status == StorageStatus.RESERVED for s in storages)
 
             # баланс должен уменьшится
             db_user_after = await session.get(Users, user.user_id)
@@ -112,7 +112,7 @@ class TestStartPurchaseRequest:
             assert comparison_models(db_user_after.to_dict(), user_dict)
 
             for account in created_products_full:
-                account.account_storage.status = "reserved" # аккаунт должен стать зарезервированным
+                account.account_storage.status =StorageStatus.RESERVED # аккаунт должен стать зарезервированным
                 account_redis = await session_redis.get(f'product_account:{account.account_id}')
                 assert not account_redis
 

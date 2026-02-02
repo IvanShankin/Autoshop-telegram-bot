@@ -4,7 +4,8 @@ from types import SimpleNamespace
 import pytest
 from sqlalchemy import select
 
-from src.services.database.categories.models import PurchaseRequests, AccountStorage, SoldAccounts, Purchases
+from src.services.database.categories.models import PurchaseRequests, AccountStorage, SoldAccounts, Purchases, \
+    StorageStatus
 from src.services.database.categories.models import StartPurchaseAccount
 from src.services.database.categories.models import AccountServiceType
 from src.services.database.core import get_db
@@ -115,7 +116,7 @@ class TestFinalizePurchase:
             # AccountStorage статус -> 'bought'
             q3 = await session.execute(select(AccountStorage).where(AccountStorage.account_storage_id == prod.account_storage.account_storage_id))
             storage = q3.scalars().one()
-            assert storage.status == "bought"
+            assert storage.status == StorageStatus.BOUGHT
 
             # PurchaseRequests.status == 'completed'
             db_pr = await session.get(PurchaseRequests, pr.purchase_request_id)

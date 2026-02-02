@@ -4,8 +4,8 @@ import tempfile
 from pathlib import Path
 from typing import List, AsyncGenerator, Any, Tuple
 
-from src.config import get_config
 from src.exceptions import ArchiveNotFount, DirNotFount
+from src.services.filesystem.media_paths import create_path_account
 from src.services.products.accounts.utils.helper_imports import get_unique_tg_acc_among_db
 from src.services.database.categories.actions import add_account_storage, add_product_account, \
     update_account_storage
@@ -121,7 +121,8 @@ async def import_in_db(
 
         #  создаём запись в БД
         acc = await add_account_storage(
-            type_service_name=type_account_service,
+            is_file=True,
+            type_account_service=type_account_service,
             checksum="",  # пока пусто
             encrypted_key="",  # пока пусто
             encrypted_key_nonce="",  # пока пусто
@@ -130,7 +131,7 @@ async def import_in_db(
         )
 
         # Полный путь к будущему зашифрованному файлу
-        dest_path = get_config().paths.accounts_dir / acc.file_path
+        dest_path = create_path_account(acc.status, type_account_service, acc.storage_uuid)
 
         #  шифруем
         enc = await encrypted_tg_account(
@@ -153,7 +154,7 @@ async def import_in_db(
             encrypted_key_nonce=enc.encrypted_key_nonce,
         )
 
-        await add_product_account(type_account_service, category_id, acc.account_storage_id)
+        await add_product_account(category_id, acc.account_storage_id)
         successfully_added += 1
 
     return successfully_added

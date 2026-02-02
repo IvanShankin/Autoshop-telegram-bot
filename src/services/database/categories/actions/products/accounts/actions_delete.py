@@ -8,6 +8,7 @@ from src.config import get_config
 from src.services.database.categories.models import ProductAccounts, \
     SoldAccounts, SoldAccountsTranslation, AccountStorage
 from src.services.database.core.database import get_db
+from src.services.filesystem.media_paths import create_path_account
 from src.services.redis.filling import filling_all_keys_category, filling_sold_accounts_by_owner_id, \
     filling_product_account_by_account_id, filling_product_accounts_by_category_id, filling_sold_account_by_account_id
 
@@ -40,13 +41,6 @@ async def delete_sold_account(account_id: int):
         account: SoldAccounts = result_db.scalar_one_or_none()
         if not account:
             raise ValueError(f"Аккаунта с id = {account_id} не найдено")
-
-        result_db = await session_db.execute(
-            select(SoldAccountsTranslation.lang)
-            .where(SoldAccountsTranslation.sold_account_id == account_id)
-            .distinct()
-        )
-        all_lang = result_db.scalars().all()
 
         await session_db.execute(delete(SoldAccounts).where(SoldAccounts.sold_account_id == account_id))
         await session_db.execute(delete(SoldAccountsTranslation).where(SoldAccountsTranslation.sold_account_id == account_id))
@@ -81,10 +75,15 @@ async def delete_product_accounts_by_category(category_id: int):
 
         for acc in delete_acc:
 
-            if not acc.file_path: # если нет путь значит у всех остальных аккаунтов тоже нет
+            if not acc.is_file: # если нет путь значит у всех остальных аккаунтов тоже нет
                 continue
 
-            folder = get_config().paths.accounts_dir / Path(acc.file_path).parent
+            folder = create_path_account(
+                status=acc.status,
+                type_account_service=acc.type_account_service,
+                uuid=acc.storage_uuid,
+                return_path_obj=True
+            ).parent
 
             # удаляем каталог со всем содержимым
             shutil.rmtree(folder, ignore_errors=True)

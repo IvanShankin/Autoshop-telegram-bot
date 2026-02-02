@@ -11,7 +11,7 @@ from src.services.database.categories.actions.products.accounts.actions_get impo
 from src.services.database.categories.actions.purchases.accounts.cancel import cancel_purchase_request_accounts
 from src.services.database.categories.events.schemas import NewPurchaseAccount, AccountsData
 from src.services.database.categories.models import ProductAccounts, SoldAccounts, Purchases, \
-    SoldAccountsTranslation, AccountStorage
+    SoldAccountsTranslation, AccountStorage, StorageStatus
 from src.services.database.categories.models import PurchaseRequests
 from src.services.database.categories.models import StartPurchaseAccount
 from src.services.database.categories.models import ProductType
@@ -42,9 +42,13 @@ async def finalize_purchase_accounts(user_id: int, data: StartPurchaseAccount):
     try:
         # Подготовим перемещения в temp (вне транзакции) — НЕ изменяем DB
         for account in data.product_accounts:
-            orig = str(Path(get_config().paths.accounts_dir) / account.account_storage.file_path) # полный путь
+            orig = create_path_account(
+                status=StorageStatus.FOR_SALE,
+                type_account_service=data.type_service_account,
+                uuid=account.account_storage.storage_uuid
+            )
             final = create_path_account(
-                status="bought",
+                status=StorageStatus.BOUGHT,
                 type_account_service=data.type_service_account,
                 uuid=account.account_storage.storage_uuid
             )
@@ -66,7 +70,6 @@ async def finalize_purchase_accounts(user_id: int, data: StartPurchaseAccount):
                     total_amount=data.total_amount,
                     purchase_request_id=data.purchase_request_id,
                     product_accounts=data.product_accounts,
-                    type_service_account=data.type_service_account
                 )
                 return False
 
@@ -88,7 +91,6 @@ async def finalize_purchase_accounts(user_id: int, data: StartPurchaseAccount):
                     new_sold = SoldAccounts(
                         owner_id=user_id,
                         account_storage_id=account.account_storage.account_storage_id,
-                        type_account_service=data.type_service_account
                     )
                     session.add(new_sold)
                     await session.flush()
@@ -121,14 +123,7 @@ async def finalize_purchase_accounts(user_id: int, data: StartPurchaseAccount):
                     await session.execute(
                         update(AccountStorage)
                         .where(AccountStorage.account_storage_id == account.account_storage.account_storage_id)
-                        .values(
-                            status='bought',
-                            file_path=create_path_account(
-                                status="bought",
-                                type_account_service=data.type_service_account,
-                                uuid=account.account_storage.storage_uuid
-                            )
-                        )
+                        .values(status=StorageStatus.BOUGHT)
                     )
                     account_movement.append(AccountsData(
                         account_storage_id = account.account_storage.account_storage_id,
@@ -173,7 +168,6 @@ async def finalize_purchase_accounts(user_id: int, data: StartPurchaseAccount):
                 total_amount=data.total_amount,
                 purchase_request_id=data.purchase_request_id,
                 product_accounts=data.product_accounts,
-                type_service_account=data.type_service_account
             )
             return False
 
@@ -221,7 +215,6 @@ async def finalize_purchase_accounts(user_id: int, data: StartPurchaseAccount):
             total_amount=data.total_amount,
             purchase_request_id=data.purchase_request_id,
             product_accounts=data.product_accounts,
-            type_service_account=data.type_service_account
         )
         return False
 

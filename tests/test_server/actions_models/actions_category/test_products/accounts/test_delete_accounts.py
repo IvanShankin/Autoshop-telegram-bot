@@ -140,10 +140,18 @@ async def test_delete_product_accounts_by_category_success(
 
     # Проверка удаления с диска
     assert not Path(
-        create_path_account(acc1.account_storage.status, acc1.type_account_service, acc1.account_storage.storage_uuid)
+        create_path_account(
+            acc1.account_storage.status,
+            acc1.account_storage.type_account_service,
+            acc1.account_storage.storage_uuid
+        )
     ).exists()
     assert not Path(
-        create_path_account(acc2.account_storage.status, acc2.type_account_service, acc2.account_storage.storage_uuid)
+        create_path_account(
+            acc2.account_storage.status,
+            acc2.account_storage.type_account_service,
+            acc2.account_storage.storage_uuid
+        )
     ).exists()
 
     # Проверка Redis

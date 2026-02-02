@@ -26,7 +26,7 @@ async def upload_tg_account(category_id: int) -> AsyncGenerator[str, str]:
 
     for acc in accounts:
         crypto = get_crypto_context()
-        decrypted_folder = decryption_tg_account(acc.account_storage, crypto)
+        decrypted_folder = decryption_tg_account(acc.account_storage, crypto, acc.account_storage.status)
         folder_size = get_dir_size(decrypted_folder)
 
         # обрабатывать слишком большие директории (которые превышают get_config().limits.max_upload_file 49 мб) не надо

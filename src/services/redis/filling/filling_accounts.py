@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.services.database.categories.models import SoldAccountFull, SoldAccountSmall, \
-    ProductAccountFull, ProductAccounts, SoldAccounts, AccountStorage
+    ProductAccountFull, ProductAccounts, SoldAccounts, AccountStorage, StorageStatus
 from src.services.database.core.database import get_db
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling.helpers_func import _delete_keys_by_pattern, _filling_product_by_category_id, \
@@ -17,7 +17,7 @@ async def filling_product_accounts_by_category_id():
         "product_accounts_by_category",
         join=ProductAccounts.account_storage,
         options=(selectinload(ProductAccounts.account_storage),),
-        filter_expr=(AccountStorage.status == 'for_sale')
+        filter_expr=(AccountStorage.status == StorageStatus.FOR_SALE)
     )
 
 
@@ -32,7 +32,7 @@ async def filling_product_account_by_account_id(account_id: int):
             select(AccountStorage)
             .where(
                 (AccountStorage.account_storage_id == account.account_storage_id) &
-                (AccountStorage.status == 'for_sale')
+                (AccountStorage.status == StorageStatus.FOR_SALE)
             )
         )
         storage_account: AccountStorage = result_db.scalar_one_or_none()
@@ -66,7 +66,6 @@ async def filling_sold_accounts_by_owner_id(owner_id: int):
         get_translations=lambda obj: obj.translations,
         dto_factory=lambda obj, lang: SoldAccountSmall.from_orm_with_translation(obj, lang=lang),
     )
-
 
 
 async def filling_sold_account_by_account_id(sold_account_id: int):

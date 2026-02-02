@@ -237,7 +237,7 @@ async def test_chek_valid_acc_valid_true_no_change(
     monkeypatch.setattr(modul,"check_account_validity", fake_check_account_validity)
 
     cb = FakeCallbackQuery(
-        data=f"chek_valid_acc:{sold_full.sold_account_id}:{sold_full.type_account_service.value}:1:1",
+        data=f"chek_valid_acc:{sold_full.sold_account_id}:{sold_full.account_storage.type_account_service.value}:1:1",
         chat_id=user.user_id
     )
     cb.message = SimpleNamespace(message_id=10)
@@ -282,7 +282,7 @@ async def test_chek_valid_acc_valid_false_updates_and_refreshes_card(
     monkeypatch.setattr(modul, "show_sold_account", fake_show_sold_account)
 
     cb = FakeCallbackQuery(
-        data=f"chek_valid_acc:{sold_full.sold_account_id}:{sold_full.type_account_service.value}:1:1",
+        data=f"chek_valid_acc:{sold_full.sold_account_id}:{sold_full.account_storage.type_account_service.value}:1:1",
         chat_id=user.user_id
     )
     cb.message = SimpleNamespace(message_id=12)
@@ -315,7 +315,7 @@ async def test_confirm_del_acc_edits_message(
     sold_small, sold_full = await create_sold_account(owner_id=user.user_id, phone_number="+123456789")
 
     cb = FakeCallbackQuery(
-        data=f"confirm_del_acc:{sold_full.sold_account_id}:{sold_full.type_account_service.value}:2",
+        data=f"confirm_del_acc:{sold_full.sold_account_id}:{sold_full.account_storage.type_account_service.value}:2",
         chat_id=user.user_id
     )
     cb.message = SimpleNamespace(message_id=20)
@@ -363,7 +363,7 @@ async def test_del_account_successful_flow(
     monkeypatch.setattr(modul,"show_all_sold_account", fake_show_all_sold_account)
 
     cb = FakeCallbackQuery(
-        data=f"del_account:{sold_full.sold_account_id}:{sold_full.type_account_service.value}:3",
+        data=f"del_account:{sold_full.sold_account_id}:{sold_full.account_storage.type_account_service.value}:3",
         chat_id=user.user_id
     )
     cb.message = SimpleNamespace(message_id=30)
@@ -403,7 +403,7 @@ async def test_del_account_move_in_account_fails_shows_alert(
     monkeypatch.setattr(modul, "move_in_account", fake_move_in_account)
 
     cb = FakeCallbackQuery(
-        data=f"del_account:{sold_full.sold_account_id}:{sold_full.type_account_service.value}:5",
+        data=f"del_account:{sold_full.sold_account_id}:{sold_full.account_storage.type_account_service.value}:5",
         chat_id=user.user_id
     )
     cb.message = SimpleNamespace(message_id=31)

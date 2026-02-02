@@ -19,7 +19,6 @@ async def test_add_product_account(replacement_needed_modules, create_category, 
 
     # Успешное добавление
     new_product = await add_product_account(
-        type_account_service=AccountServiceType.TELEGRAM,
         category_id=category.category_id,
         account_storage_id=account_storage.account_storage_id,
     )
@@ -42,7 +41,6 @@ async def test_add_product_account(replacement_needed_modules, create_category, 
     category_non_storage = await create_category(is_product_storage=False, filling_redis=False)
     with pytest.raises(TheCategoryNotStorageAccount):
         await add_product_account(
-            type_account_service=AccountServiceType.TELEGRAM,
             category_id=category_non_storage.category_id,
             account_storage_id=account_storage.account_storage_id,
         )
@@ -53,7 +51,8 @@ async def test_add_translation_in_sold_account(replacement_needed_modules):
     from src.services.database.categories.actions import add_account_storage
 
     new_acc = await add_account_storage(
-        type_service_name=AccountServiceType.TELEGRAM,
+        is_file=True,
+        type_account_service=AccountServiceType.TELEGRAM,
         checksum='checksum',
         encrypted_key='fgdshjyte3',
         encrypted_key_nonce='encrypted_key_nonce',
@@ -74,7 +73,6 @@ async def test_add_translation_in_sold_account(replacement_needed_modules):
         )
         tg_media = result_db.scalar_one_or_none()
         assert tg_media is not None
-
 
 
 @pytest.mark.asyncio
@@ -133,7 +131,6 @@ async def test_add_sold_account(replacement_needed_modules, create_new_user, cre
     # Успешное добавление
     sold = await add_sold_account(
         owner_id=user.user_id,
-        type_account_service=AccountServiceType.TELEGRAM,
         account_storage_id=account_storage.account_storage_id,
         language="ru",
         name="sold",
@@ -153,7 +150,6 @@ async def test_add_sold_account(replacement_needed_modules, create_new_user, cre
     with pytest.raises(ValueError):
         await add_sold_account(
             owner_id=99999,
-            type_account_service=AccountServiceType.TELEGRAM,
             account_storage_id=account_storage.account_storage_id,
             language="ru",
             name="fail",
@@ -167,7 +163,6 @@ async def test_add_deleted_accounts(replacement_needed_modules, create_account_s
     account_storage = await create_account_storage()
 
     deleted = await add_deleted_accounts(
-        type_account_service=AccountServiceType.TELEGRAM,
         account_storage_id=account_storage.account_storage_id,
         category_name="cat",
         description="desc"
@@ -182,11 +177,4 @@ async def test_add_deleted_accounts(replacement_needed_modules, create_account_s
         assert deleted_db is not None
         assert deleted_db.category_name == "cat"
 
-    # Ошибка при несуществующем типе
-    with pytest.raises(ValueError):
-        await add_deleted_accounts(
-            type_account_service="fake_type_account_service",
-            account_storage_id=account_storage.account_storage_id,
-            category_name="fail",
-            description="fail"
-        )
+

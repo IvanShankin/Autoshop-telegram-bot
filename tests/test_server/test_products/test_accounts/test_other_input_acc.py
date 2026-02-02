@@ -38,14 +38,13 @@ async def test_input_other_account_full_flow_create_and_return_reports(
     stream = io.BytesIO(csv_bytes)
 
     # Запускаем импортер
-    result = await input_other_account(stream, category.category_id, category.type_account_service)
+    result = await input_other_account(stream, category.category_id,  AccountServiceType.OTHER)
 
     # total_processed — число строк (csv.DictReader.line_num - 1 в коде)
     assert result.total_processed == 3
 
     # успешно добавлено — должен быть 3
     assert result.successfully_added >= 3
-
 
     # Если были ошибки — errors_csv_bytes можно проверить как bytes
     if result.errors_csv_bytes is not None:

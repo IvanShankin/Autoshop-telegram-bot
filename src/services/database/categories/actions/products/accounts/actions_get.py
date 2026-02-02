@@ -7,7 +7,7 @@ from src.config import get_config
 from src.services.database.categories.actions.helpers_func import _get_grouped_objects, _get_single_obj, \
     get_sold_items_by_page
 from src.services.database.categories.models import ProductAccounts, SoldAccounts, SoldAccountSmall, SoldAccountFull, \
-    ProductAccountFull, AccountServiceType, AccountStorage, TgAccountMedia
+    ProductAccountFull, AccountServiceType, AccountStorage, TgAccountMedia, StorageStatus
 from src.services.database.core.database import get_db
 from src.services.redis.filling import filling_product_account_by_account_id, filling_sold_account_by_account_id, \
     filling_sold_accounts_by_owner_id, filling_product_accounts_by_category_id
@@ -20,13 +20,7 @@ async def get_all_phone_in_account_storage(type_account_service: AccountServiceT
         stmt = (
             select(AccountStorage.phone_number)
             .select_from(AccountStorage)
-            .join(ProductAccounts, ProductAccounts.account_storage_id == AccountStorage.account_storage_id)
-            .where(ProductAccounts.type_account_service == type_account_service)
-        ).union(
-            select(AccountStorage.phone_number)
-            .select_from(AccountStorage)
-            .join(SoldAccounts, SoldAccounts.account_storage_id == AccountStorage.account_storage_id)
-            .where(SoldAccounts.type_account_service == type_account_service)
+            .where(AccountStorage.type_account_service == type_account_service)
         )
 
         result = await session_db.execute(stmt)
@@ -60,7 +54,7 @@ async def get_product_account_by_category_id(
                 .options(selectinload(ProductAccounts.account_storage))
                 .where(
                     (ProductAccounts.category_id == category_id) &
-                    (AccountStorage.status == 'for_sale')
+                    (AccountStorage.status == StorageStatus.FOR_SALE)
                 )
             )
             accounts: List[ProductAccounts] = result_db.scalars().all()
@@ -73,7 +67,7 @@ async def get_product_account_by_category_id(
         redis_key=f'product_accounts_by_category:{category_id}',
         join=ProductAccounts.account_storage,
         options=(selectinload(ProductAccounts.account_storage),),
-        filter_expr=(ProductAccounts.category_id == category_id) & (AccountStorage.status == 'for_sale'),
+        filter_expr=(ProductAccounts.category_id == category_id) & (AccountStorage.status == StorageStatus.FOR_SALE),
         call_fun_filling=filling_product_accounts_by_category_id,
     )
 
@@ -104,20 +98,42 @@ async def get_product_account_by_account_id(account_id: int) -> ProductAccountFu
 async def get_types_account_service_where_the_user_purchase(user_id: int) -> List[AccountServiceType]:
     result_list: List[AccountServiceType] = []
 
-    all_account = await get_sold_accounts_by_owner_id(user_id, get_config().app.default_lang)
+    all_account: List[SoldAccountFull] = await get_sold_accounts_by_owner_id(
+        user_id,
+        get_config().app.default_lang,
+        get_full=True
+    )
     for account in all_account:
         if not account.type_account_service in result_list:
-            result_list.append(account.type_account_service)
+            result_list.append(account.account_storage.type_account_service)
 
     return result_list
 
 
-async def get_sold_accounts_by_owner_id(owner_id: int, language: str) -> List[SoldAccountSmall]:
+async def get_sold_accounts_by_owner_id(
+    owner_id: int,
+    language: str,
+    get_full: bool = False
+) -> List[SoldAccountSmall | SoldAccountFull]:
     """
     Вернёт все аккуанты которы не удалены
 
     Отсортировано по возрастанию даты создания
     """
+    if get_full:
+        async with get_db() as session_db:
+            result_db = await session_db.execute(
+                select(SoldAccounts)
+                .options(selectinload(SoldAccounts.translations), selectinload(SoldAccounts.account_storage))
+                .where(
+                    (SoldAccounts.owner_id == owner_id) &
+                    (SoldAccounts.account_storage.has(is_active=True))
+                )
+                .order_by(SoldAccounts.sold_at.desc())
+            )
+            accounts = result_db.scalars().all()
+            return [SoldAccountFull.from_orm_with_translation(acc, language) for acc in accounts]
+
     async def filling_list_account():
         await filling_sold_accounts_by_owner_id(owner_id)
 
@@ -151,7 +167,7 @@ async def get_sold_account_by_page(
     if page_size is None:
         page_size = get_config().different.page_size
 
-    def dto_factory(obj):
+    def dto_factory(obj) -> SoldAccountSmall:
         if isinstance(obj, dict):
             return SoldAccountSmall.model_validate(obj)
 
@@ -165,11 +181,11 @@ async def get_sold_account_by_page(
         language=language,
         page_size=page_size,
         redis_key=f"sold_accounts_by_owner_id:{user_id}:{language}",
-        redis_filter=lambda dto: dto.type_account_service == type_account_service,
+        redis_filter=lambda dto: True,
         db_model=SoldAccounts,
         db_filter=(
             (SoldAccounts.owner_id == user_id) &
-            (SoldAccounts.type_account_service == type_account_service) &
+            (SoldAccounts.account_storage.has(type_account_service=type_account_service)) &
             (SoldAccounts.account_storage.has(is_active=True))
         ),
         db_options=(
@@ -179,7 +195,6 @@ async def get_sold_account_by_page(
         dto_factory=dto_factory,
         filling_redis_func=filling_sold_accounts_by_owner_id
     )
-
 
 
 async def get_count_sold_account(user_id: int, type_account_service: AccountServiceType) -> int:

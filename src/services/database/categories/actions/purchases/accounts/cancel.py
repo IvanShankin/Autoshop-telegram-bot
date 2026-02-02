@@ -5,7 +5,7 @@ from sqlalchemy import select, update, delete
 from src.services.database.categories.actions.purchases.general.cancel import \
     update_purchaseRequests_and_balance_holder, return_files
 from src.services.database.categories.models import ProductAccounts, SoldAccounts, Purchases, \
-    AccountStorage, AccountServiceType
+    AccountStorage, AccountServiceType, StorageStatus
 from src.services.database.core.database import get_db
 from src.services.database.users.models import Users
 from src.services.filesystem.media_paths import create_path_account
@@ -22,8 +22,7 @@ async def cancel_purchase_request_accounts(
     purchase_ids: List[int],
     total_amount: int,
     purchase_request_id: int,
-    product_accounts: List[ProductAccounts],
-    type_service_account: AccountServiceType,
+    product_accounts: List[ProductAccounts]
 ):
     """
     получает mapping и пытается вернуть файлы и БД в исходное состояние
@@ -64,14 +63,7 @@ async def cancel_purchase_request_accounts(
                 await session.execute(
                     update(AccountStorage)
                     .where(AccountStorage.account_storage_id.in_(account_storages_ids))
-                    .values(
-                        status="for_sale",
-                        file_path=create_path_account(
-                            status="for_sale",
-                            type_account_service=type_service_account,
-                            uuid=AccountStorage.storage_uuid
-                        )
-                    )
+                    .values(status=StorageStatus.FOR_SALE)
                 )
 
                 existing = await session.execute(
@@ -84,7 +76,6 @@ async def cancel_purchase_request_accounts(
                     aid = account.account_storage.account_storage_id
                     if aid not in existing_ids:
                         session.add(ProductAccounts(
-                            type_account_service=account.type_account_service,
                             category_id=account.category_id,
                             account_storage_id=aid
                         ))

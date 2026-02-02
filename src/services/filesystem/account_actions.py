@@ -6,14 +6,15 @@ from typing import AsyncGenerator
 
 from src.bot_actions.messages import send_log
 from src.config import get_config
-from src.services.database.categories.models import AccountStorage, AccountStoragePydantic, AccountServiceType
+from src.services.database.categories.models import AccountStorage, AccountStoragePydantic, AccountServiceType, \
+    StorageStatus
 from src.services.filesystem.actions import move_file
 from src.services.filesystem.media_paths import create_path_account
 from src.utils.core_logger import get_logger
 from src.services.secrets import decrypt_folder, get_crypto_context, unwrap_dek, CryptoContext
 
 
-async def move_in_account(account: AccountStorage, type_service_name: AccountServiceType, status: str) -> bool:
+async def move_in_account(account: AccountStorage, type_service_name: AccountServiceType, status: StorageStatus) -> bool:
     """
     Перенос аккаунтов к `status` удалив исходное местоположение.
     :param account: AccountStorage.
@@ -24,7 +25,11 @@ async def move_in_account(account: AccountStorage, type_service_name: AccountSer
     orig = None
     final = None
     try:
-        orig = str(Path(get_config().paths.accounts_dir) / account.file_path)  # полный путь
+        orig = create_path_account(
+            status=account.status,
+            type_account_service=account.type_account_service,
+            uuid=account.storage_uuid
+        )
         final = create_path_account(
             status=status,
             type_account_service=type_service_name,
@@ -42,14 +47,14 @@ async def move_in_account(account: AccountStorage, type_service_name: AccountSer
         return True
     except Exception as e:
         text = (
-            f"#Ошибка при переносе аккаунта к {status}. \n"
+            f"#Ошибка при переносе аккаунта к {status.value}. \n"
             f"Исходный путь: {orig if orig else "none"} \n"
             f"Финальный путь: {final if final else "none"} \n"
             f"account_storage_id: {account.account_storage_id if account.account_storage_id else "none"} \n"
             f"Ошибка: {str(e)}"
         )
         logger = get_logger(__name__)
-        logger.exception(f"Ошибка при переносе аккаунта к {status} %s", account.account_storage_id)
+        logger.exception(f"Ошибка при переносе аккаунта к {status.value} %s", account.account_storage_id)
         await send_log(text)
         return False
 
@@ -71,10 +76,11 @@ async def rename_file(src: str, dst: str) -> bool:
 def decryption_tg_account(
     account_storage: AccountStorage | AccountStoragePydantic,
     crypto: CryptoContext,
+    status: StorageStatus,
 ):
     """
     Расшифровывает файлы Telegram-аккаунта во временную директорию.
-    :param kek: (Key Encryption Key) передаётся из runtime.
+    :param status: Статус аккаунта где в данный момент хранятся данные для него. Будет формировать путь используя этот статус.
     """
 
     # Расшифровываем DEK (account_key)
@@ -84,7 +90,11 @@ def decryption_tg_account(
         kek=crypto.kek
     )
 
-    abs_path = (get_config().paths.accounts_dir / Path(account_storage.file_path)).resolve()
+    abs_path = create_path_account(
+        status=status,
+        type_account_service=account_storage.type_account_service,
+        uuid=account_storage.storage_uuid
+    )
 
     folder_path = decrypt_folder(abs_path, account_key) # Расшифровываем архив DEK-ом
 
@@ -99,7 +109,7 @@ async def get_tdata_tg_acc(account_storage: AccountStorage) -> AsyncGenerator[st
     folder_path = None
     try:
         crypto = get_crypto_context()
-        folder_path = decryption_tg_account(account_storage, crypto)
+        folder_path = decryption_tg_account(account_storage, crypto, account_storage.status)
         dir_for_tdata = Path(folder_path) / f'{account_storage.account_storage_id}_tdata'
         dir_for_tdata.mkdir(exist_ok=True)
         result = await move_file(str(Path(folder_path) / 'tdata'), str(dir_for_tdata))
@@ -133,7 +143,7 @@ async def get_session_tg_acc(account_storage: AccountStorage) -> AsyncGenerator[
 
     try:
         crypto = get_crypto_context()
-        folder_path = decryption_tg_account(account_storage, crypto)
+        folder_path = decryption_tg_account(account_storage, crypto, account_storage.status)
         session_path = str(Path(folder_path) / 'session.session')
         if os.path.isfile(session_path):
             yield session_path

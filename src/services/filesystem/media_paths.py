@@ -4,7 +4,12 @@ from src.config import get_config
 from src.services.database.categories.models import AccountServiceType, StorageStatus
 
 
-def create_path_account(status: str, type_account_service: AccountServiceType, uuid: str) -> str:
+def create_path_account(
+    status: StorageStatus,
+    type_account_service: AccountServiceType,
+    uuid: str,
+    return_path_obj: bool = False
+) -> str | Path:
     """
     Создаст путь к аккаунту.
 
@@ -12,7 +17,8 @@ def create_path_account(status: str, type_account_service: AccountServiceType, u
 
     :return: Полный путь. Пример: .../accounts/for_sale/telegram/gbgbfd-dnnjcs/account.enc
     """
-    return str(Path(get_config().paths.accounts_dir) / status / type_account_service.value / uuid / 'account.enc')
+    path = Path(get_config().paths.accounts_dir) / Path(status.value) / Path(type_account_service.value) / Path(uuid) / Path('account.enc')
+    return path if return_path_obj else str(path)
 
 
 def create_path_universal_storage(status: StorageStatus, uuid: str, return_path_obj: bool = False) -> str | Path:

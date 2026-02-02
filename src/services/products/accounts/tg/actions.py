@@ -25,25 +25,37 @@ async def check_valid_accounts_telethon(folder_path: str) -> User | bool:
     :param folder_path: путь к папке с данными для аккаунта. Внутри папки необходимо содержать папку tdata
     :return: результат проверки. True - если валидный
     """
+    logger = get_logger(__name__)
     try:
-        logger = get_logger(__name__)
         tdata_path = str(Path(folder_path) / 'tdata')
+
         tdesk = TDesktop(tdata_path)
 
         client = await tdesk.ToTelethon(
             session=str(Path(folder_path) / "session.session"),
             flag=UseCurrentSession
         )
-        async with client:# вход в аккаунт
-            me = await client.get_me()
-            # бывают ситуации когда можно войти в аккаунт, но он не действителен (данной проверкой покрываем такие случаи)
-            if me.id is not None:
-                logger.info("[check_valid_accounts_telethon] - валидный аккаунт")
-                return me
+
+        await client.connect()
+
+        if not await client.is_user_authorized():
+            logger.info("[check_valid_accounts_telethon] - сессия НЕ авторизована")
+            await client.disconnect()
+            return False
+
+        me = await client.get_me()
+
+        # бывают ситуации когда можно войти в аккаунт, но он не действителен (данной проверкой покрываем такие случаи)
+        if me and me.id is not None:
+            logger.info("[check_valid_accounts_telethon] - валидный аккаунт")
+            return me
 
         logger.info("[check_valid_accounts_telethon] - НЕ валидный аккаунт")
+        await client.disconnect()
+
         return False
-    except:
+    except BaseException as e:
+        logger.exception(f"[check_valid_accounts_telethon] error: {e}")
         return False
 
 

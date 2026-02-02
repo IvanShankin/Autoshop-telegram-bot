@@ -37,6 +37,7 @@ def _sync_create_zip_multiple(paths: list[str], archive_path: str):
 
 # Синхронная теле-очистка, вызывается в thread (не в event loop)
 def _sync_cleanup_used_data(
+    dir_with_archive: Optional[str],
     archive_path: Optional[str],
     base_dir: Optional[str],
     invalid_dir: Optional[str],
@@ -74,8 +75,8 @@ def _sync_cleanup_used_data(
     # удаляем входной распакованный base_dir (если есть)
     _rm_path(base_dir)
 
-    # удаляем исходный архив-файл (если это требуется)
-    _rm_path(archive_path)
+    _rm_path(dir_with_archive) # временная директория с архивом
+    _rm_path(archive_path) # удаляем исходный архив-файл
 
     # удаляем папки invalid/duplicate
     _rm_path(invalid_dir)

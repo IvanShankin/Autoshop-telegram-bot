@@ -173,8 +173,7 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
     if not valid_file:
         return
 
-
-    save_path = str(Path(get_config().paths.temp_dir) / doc.file_name)
+    save_path = str(create_temp_dir() / doc.file_name)
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     file = await message.bot.get_file(doc.file_id) # Получаем объект файла
 
@@ -200,12 +199,12 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
 
     message_info = await gen_mes_info.__anext__()
 
+    gen_import_acc = import_telegram_accounts_from_archive(
+        archive_path=save_path,
+        category_id=data.category_id,
+        type_account_service=data.type_account_service
+    )
     try:
-        gen_import_acc = import_telegram_accounts_from_archive(
-            archive_path=save_path,
-            category_id=data.category_id,
-            type_account_service=data.type_account_service
-        )
         result = await gen_import_acc.__anext__()
 
         result_message = make_result_msg(
@@ -247,6 +246,9 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
             message.from_user.id,
             get_text(user.language,"admins_editor_category", "An error occurred inside the server, see the logs!")
         )
+
+    await gen_import_acc.__anext__() # удаление временных файлов
+
 
 
 @router.message(ImportOtherAccounts.csv_file, F.document)

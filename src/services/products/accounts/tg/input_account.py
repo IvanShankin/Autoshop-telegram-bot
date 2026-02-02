@@ -25,13 +25,17 @@ async def import_telegram_accounts_from_archive(
     archive_path: str,
     category_id: int,
     type_account_service: AccountServiceType
-) -> AsyncGenerator[ImportResult, Any]:
+) -> AsyncGenerator[ImportResult | None, Any]:
     """
     При первом вызове интегрирует аккаунты в бота,
     при втором удалит все созданные временные файлы, так же и архивы с невалидными/дублирующими аккаунтами
     """
+    archive_path_del = Path(archive_path)
+    dir_with_archive = archive_path_del.parent #  временная директория
 
     if not archive_path.lower().endswith(".zip"):
+        shutil.rmtree(dir_with_archive, ignore_errors=True)
+        archive_path_del.unlink(missing_ok=True)
         raise ArchiveNotFount()
 
     base_dir = await extract_archive_to_temp(archive_path)
@@ -80,7 +84,8 @@ async def import_telegram_accounts_from_archive(
 
     # затем асинхронно чистим всё в thread (без блокирования loop)
     await cleanup_used_data(
-        archive_path=archive_path,  # входный .zip (если нужно удалять)
+        dir_with_archive=str(dir_with_archive),
+        archive_path=archive_path,
         base_dir=base_dir,
         invalid_dir=invalid_dir,
         duplicate_dir=duplicate_dir,
@@ -88,6 +93,8 @@ async def import_telegram_accounts_from_archive(
         duplicate_archive=duplicate_archive,
         all_items=all_items,
     )
+
+    yield None
 
 
 async def import_in_db(

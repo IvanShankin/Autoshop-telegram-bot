@@ -71,6 +71,7 @@ async def archive_if_not_empty(directory: str) -> Optional[str]:
 
 # --- Асинхронная-обёртка (вызывать в async коде) ---
 async def cleanup_used_data(
+    dir_with_archive: Optional[str],
     archive_path: Optional[str],
     base_dir: Optional[str],
     invalid_dir: Optional[str],
@@ -82,6 +83,7 @@ async def cleanup_used_data(
     item_dirs = [getattr(it, "dir_path", None) for it in all_items]
     await asyncio.to_thread(
         _sync_cleanup_used_data,
+        dir_with_archive,
         archive_path,
         base_dir,
         invalid_dir,

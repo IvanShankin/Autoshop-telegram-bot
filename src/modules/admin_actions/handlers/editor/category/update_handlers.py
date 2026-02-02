@@ -75,7 +75,7 @@ async def choice_product_type(callback: CallbackQuery, user: Users):
             user.language,
             "admins_editor_category",
             "Select service account"
-        ),
+        )
         reply_markup = select_account_service_type(user.language, category_id)
     elif product_type == ProductType.UNIVERSAL.value:
         message = get_text(

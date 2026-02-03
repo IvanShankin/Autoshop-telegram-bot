@@ -1,5 +1,6 @@
 from typing import Optional
 
+from aiogram.exceptions import TelegramBadRequest
 
 from src.bot_actions.bot_instance import get_bot_logger
 from src.config import get_config, get_global_rate_limit
@@ -21,11 +22,41 @@ async def send_message(
     fallback_image_key: str = None,
     reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | None = None,
     parse_mode: Optional[str] = "HTML",
-    always_show_photos: bool = False
+    always_show_photos: bool = False,
+    message_effect_id: str = None,
+    _retry_without_effect: bool = False
 ) -> Message | None:
     """
     Отправит сообщение по-указанному chat_id, если есть image_key, то отправит фото с сообщением.
+    :param message_effect_id: ID эффекта. Пример: "5104841245755180586" - огонёк, "5044134455711629726" - сердечко
     """
+
+    async def handler_tg_except(error: Exception) -> Message | None:
+        """
+        :return:Message Если обработали ошибку
+        """
+        # если неверный id эффекта -> отправим без него
+        if (
+                "EFFECT_ID_INVALID" in str(error)
+                and message_effect_id
+                and not _retry_without_effect
+        ):
+            logger.warning(f"Указан неверный message_effect_id: {message_effect_id}")
+            await send_log(f"Указан неверный message_effect_id: {message_effect_id}")
+            return await send_message(
+                chat_id=chat_id,
+                message=message,
+                image_key=image_key,
+                fallback_image_key=fallback_image_key,
+                reply_markup=reply_markup,
+                parse_mode=parse_mode,
+                always_show_photos=always_show_photos,
+                message_effect_id=None,
+                _retry_without_effect=True,
+            )
+        else:
+            return None
+
     if not message and not image_key:
         raise ValueError("При отсылке нового сообщения необходимо указать хотя бы 'message' или 'image_key'")
 
@@ -47,9 +78,14 @@ async def send_message(
                             photo=ui_image.file_id,
                             caption=message,
                             parse_mode=parse_mode,
-                            reply_markup=reply_markup
+                            reply_markup=reply_markup,
+                            message_effect_id=message_effect_id,
                         )
                     except Exception as e:
+                        check_invalid_effect = await handler_tg_except(e)
+                        if check_invalid_effect:
+                            return check_invalid_effect
+
                         # file_id устарел или недействителен
                         if "file" in str(e).lower() or "not found" in str(e).lower():
                             logger.warning(f"[send_message] file_id недействителен для {ui_image.key}, переотправляем файл.")
@@ -62,7 +98,8 @@ async def send_message(
                                 photo=photo,
                                 caption=message,
                                 parse_mode=parse_mode,
-                                reply_markup=reply_markup
+                                reply_markup=reply_markup,
+                                message_effect_id=message_effect_id,
                             )
 
                             # Сохраняем file_id для будущего использования
@@ -79,7 +116,8 @@ async def send_message(
                         photo=photo,
                         caption=message,
                         parse_mode=parse_mode,
-                        reply_markup=reply_markup
+                        reply_markup=reply_markup,
+                        message_effect_id=message_effect_id,
                     )
 
                     # Сохраняем file_id для будущего использования
@@ -92,6 +130,8 @@ async def send_message(
                     logger.warning(text)
                     await send_log(text)
 
+            except TelegramBadRequest as e:
+                return await handler_tg_except(e)
             except Exception as e:
                 logger.exception(f"#Ошибка при отправке фото: {str(e)}")
 
@@ -104,27 +144,38 @@ async def send_message(
 
             ui_image = await get_ui_image(fallback_image_key)
             if ui_image:
-                file_path = create_path_ui_image(file_name=ui_image.file_name)
-                if ui_image.file_id:
-                    return await bot.send_photo(
-                        chat_id=chat_id,
-                        photo=ui_image.file_id,
-                        caption=message,
-                        parse_mode=parse_mode,
-                        reply_markup=reply_markup
-                    )
-                elif check_file_exists(file_path):
-                    photo = FSInputFile(file_path)
-                    msg = await bot.send_photo(chat_id, photo=photo, caption=message, parse_mode=parse_mode, reply_markup=reply_markup)
+                try:
+                    file_path = create_path_ui_image(file_name=ui_image.file_name)
+                    if ui_image.file_id:
+                        return await bot.send_photo(
+                            chat_id=chat_id,
+                            photo=ui_image.file_id,
+                            caption=message,
+                            parse_mode=parse_mode,
+                            reply_markup=reply_markup,
+                            message_effect_id=message_effect_id,
+                        )
+                    elif check_file_exists(file_path):
+                        photo = FSInputFile(file_path)
+                        msg = await bot.send_photo(
+                            chat_id,
+                            photo=photo,
+                            caption=message,
+                            parse_mode=parse_mode,
+                            reply_markup=reply_markup,
+                            message_effect_id=message_effect_id,
+                        )
 
-                    # Сохраняем file_id для будущего использования
-                    new_file_id = msg.photo[-1].file_id
-                    await update_ui_image(key=ui_image.key, show=ui_image.show, file_id=new_file_id)
-                    return msg
-                else:
-                    text = f"#Не_найдено_фото [edit_message]. \nget_ui_image='{fallback_image_key}'"
-                    logger.warning(text)
-                    await send_log(text)
+                        # Сохраняем file_id для будущего использования
+                        new_file_id = msg.photo[-1].file_id
+                        await update_ui_image(key=ui_image.key, show=ui_image.show, file_id=new_file_id)
+                        return msg
+                    else:
+                        text = f"#Не_найдено_фото [edit_message]. \nget_ui_image='{fallback_image_key}'"
+                        logger.warning(text)
+                        await send_log(text)
+                except TelegramBadRequest as e:
+                    await handler_tg_except(e)
 
             if not ui_image:
                 await send_log(text) # лучше после отправки пользователю
@@ -138,8 +189,15 @@ async def send_message(
         if not message:
             message = "None"
 
-        return await bot.send_message(chat_id, text=message, parse_mode=parse_mode, reply_markup=reply_markup)
-
+        return await bot.send_message(
+            chat_id,
+            text=message,
+            parse_mode=parse_mode,
+            reply_markup=reply_markup,
+            message_effect_id=message_effect_id,
+        )
+    except TelegramBadRequest as e:
+        await handler_tg_except(e)
     except Exception as e:
         logger.exception(f"#Ошибка при отправке сообщения. Ошибка: {str(e)}")
 

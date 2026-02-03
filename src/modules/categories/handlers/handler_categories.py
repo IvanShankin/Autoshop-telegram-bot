@@ -116,7 +116,8 @@ async def show_category(callback: CallbackQuery, state: FSMContext, user: Users)
     if category.is_product_storage:
         # попадём сюда если пользователь произвёл действия на категории, где хранятся аккаунты
 
-        if category.quantity_product < quantity_products:  # если имеется меньше, чем хочет пользователь
+        # если имеется меньше, чем хочет пользователь и у категории нельзя переиспользовать продукт
+        if category.quantity_product < quantity_products and not category.reuse_product:
             await callback.answer(get_text(user.language, 'categories','No longer in stock'))
             return
         if quantity_products < 0:

@@ -3,14 +3,16 @@ from typing import Callable, Coroutine, Any
 from aiogram.types import CallbackQuery
 
 from src.bot_actions.bot_instance import get_bot
-from src.bot_actions.messages import edit_message, send_message
+from src.bot_actions.messages import edit_message, send_message, like_with_heart
 from src.exceptions import InvalidPromoCode, CategoryNotFound, NotEnoughMoney, NotEnoughAccounts
 from src.exceptions.business import NotEnoughProducts
 from src.modules.categories.keyboards import replenishment_and_back_in_cat, back_in_account_category_kb
 from src.modules.categories.services.helpers import check_category
-from src.modules.profile.keyboards import in_profile_kb
+from src.modules.profile.keyboards import in_purchased_account_kb, in_purchased_universal_product_kb
 from src.services.database.categories.actions import purchase
-from src.services.database.categories.models import CategoryFull
+from src.services.database.categories.actions.products.accounts.actions_get import get_sold_accounts_by_owner_id
+from src.services.database.categories.actions.products.universal.actions_get import get_sold_universal_by_owner_id
+from src.services.database.categories.models import CategoryFull, ProductType
 from src.services.database.discounts.utils.calculation import discount_calculation
 from src.services.database.users.models import Users
 from src.utils.i18n import get_text
@@ -68,7 +70,7 @@ async def _buy(
             product_type=category.product_type,
             language=user.language
         )
-    except (NotEnoughAccounts, NotEnoughProducts ):
+    except (NotEnoughAccounts, NotEnoughProducts):
         await delete_message_def()
         await _show_no_enough_products(
             callback=callback,
@@ -80,22 +82,51 @@ async def _buy(
     await delete_message_def()
 
     if result is True:
-        await edit_message(
+        reply_markup = None
+        if category.product_type == ProductType.ACCOUNT:
+            sold_account_id = None
+
+            if quantity_products == 1:
+                all_sold_acc = await get_sold_accounts_by_owner_id(user.user_id, user.language)
+                if all_sold_acc:
+                    sold_account_id = all_sold_acc[0].sold_account_id
+
+            reply_markup = in_purchased_account_kb(
+                language=user.language,
+                quantity_products=quantity_products,
+                sold_account_id=sold_account_id,
+                type_account_service=category.type_account_service
+            )
+        elif category.product_type == ProductType.UNIVERSAL:
+            sold_universal_id = None
+
+            if quantity_products == 1:
+                all_sold_uni = await get_sold_universal_by_owner_id(user.user_id, user.language)
+                if all_sold_uni:
+                    sold_universal_id = all_sold_uni[0].sold_universal_id
+
+            reply_markup = in_purchased_universal_product_kb(
+                language=user.language,
+                quantity_products=quantity_products,
+                sold_universal_id=sold_universal_id,
+            )
+
+        try:
+            await callback.message.delete()
+        except:
+            pass
+
+        await send_message(
             chat_id=callback.from_user.id,
-            message_id=callback.message.message_id,
             message=get_text(user.language, 'categories',
                              "Thank you for your purchase \nThe account is already in the profile"),
             image_key='successful_purchase',
             fallback_image_key="default_catalog_account",
-            reply_markup=in_profile_kb(language=user.language)
+            reply_markup=reply_markup,
+            message_effect_id="5159385139981059251"
         )
     else:
         # тут будем если нашли невалидные аккаунты и не смогли найти замену им
-        get_text(
-            user.language,
-            'categories',
-            "There are not enough products on the server, please change the number of accounts to purchase"
-        ),
         await edit_message(
             chat_id=callback.from_user.id,
             message_id=callback.message.message_id,
@@ -131,8 +162,8 @@ async def buy_product(
     if category is None:
         return
 
-    # если на сервере недостаточно продуктов
-    if category.quantity_product < quantity_products:
+    # если на сервере недостаточно продуктов и их нельзя переиспользовать
+    if category.quantity_product < quantity_products and not category.reuse_product:
         await _show_no_enough_products(
             callback=callback,
             user=user

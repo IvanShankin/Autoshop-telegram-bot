@@ -3,7 +3,6 @@ import pytest
 from sqlalchemy import select
 
 from src.exceptions.business import NotEnoughProducts
-from src.exceptions.domain import UniversalProductNotFound
 from src.services.database.categories.models import (
     PurchaseRequests
 )

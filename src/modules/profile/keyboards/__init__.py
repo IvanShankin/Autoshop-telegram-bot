@@ -1,7 +1,6 @@
 from src.modules.profile.keyboards.main_kb import (
     profile_kb,
     back_in_profile_kb,
-    in_profile_kb
 )
 
 from src.modules.profile.keyboards.purchased_accounts_kb import (
@@ -10,8 +9,11 @@ from src.modules.profile.keyboards.purchased_accounts_kb import (
     sold_accounts_kb,
     account_kb,
     login_details_kb,
-    confirm_del_acc_kb
+    confirm_del_acc_kb,
+    in_purchased_account_kb
 )
+from src.modules.profile.keyboards.purchased_universals_kb import in_purchased_universal_product_kb, sold_universal_kb, \
+    universal_kb, confirm_del_universal_kb
 
 from src.modules.profile.keyboards.ref_system_kb import (
     ref_system_kb,
@@ -53,9 +55,15 @@ __all__ = [
     # main_kb.py
     "profile_kb",
     "back_in_profile_kb",
-    "in_profile_kb",
 
-    # purchased_products_kb.py
+    # purchased_universals_kb.py
+    "in_purchased_universal_product_kb",
+    "sold_universal_kb",
+    "universal_kb",
+    "confirm_del_universal_kb",
+
+    # purchased_accounts_kb.py
+    "in_purchased_account_kb",
     "type_product_in_purchases_kb",
     "sold_account_type_service_kb",
     "sold_accounts_kb",

@@ -1,4 +1,5 @@
 from math import ceil
+from typing import Optional
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
@@ -7,7 +8,28 @@ from src.services.database.categories.actions.products.universal.actions_get imp
     get_count_sold_universal
 from src.services.database.categories.models import SoldUniversalSmall
 from src.services.keyboards.keyboard_with_pages import pagination_keyboard
-from src.utils.i18n import get_text
+from src.utils.i18n import get_text, n_get_text
+
+
+def in_purchased_universal_product_kb(
+    language: str,
+    quantity_products: int,
+    sold_universal_id: Optional[int | None] = None
+):
+    """
+    Используется при покупке товара
+    :param sold_universal_id: необходим только если приобретается один товар
+    """
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text=n_get_text(language, 'kb_catalog', "To product", "To products", quantity_products),
+            callback_data=(
+                f"sold_universal:{sold_universal_id}:1"
+                if sold_universal_id == 1 and sold_universal_id else
+                f"all_sold_universal:1"
+            )
+        )]
+    ])
 
 
 async def sold_universal_kb(

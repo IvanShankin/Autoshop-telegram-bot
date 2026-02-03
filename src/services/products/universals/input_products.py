@@ -190,7 +190,7 @@ async def input_universal_products(
     if not os.path.isfile(path_to_archive):
         raise FileNotFoundError("Архив не найден")
 
-    unpacked_archive = await extract_archive_to_temp(path_to_archive)
+    unpacked_archive = await extract_archive_to_temp(str(path_to_archive))
 
     manifest_file = Path(unpacked_archive) / Path("manifest.csv")
     files_dir = Path(unpacked_archive) / Path("files")

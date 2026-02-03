@@ -20,7 +20,3 @@ def back_in_profile_kb(language: str):
     ])
 
 
-def in_profile_kb(language: str):
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'kb_profile', 'In profile'), callback_data='profile')]
-    ])

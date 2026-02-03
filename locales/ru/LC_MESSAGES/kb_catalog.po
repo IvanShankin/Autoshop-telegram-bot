@@ -9,7 +9,17 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 
 
+msgid "To account"
+msgid_plural "To accounts"
+msgstr[0] "К аккаунту"
+msgstr[1] "К аккаунтам"
+msgstr[2] "К аккаунтам"
 
+msgid "To product"
+msgid_plural "To products"
+msgstr[0] "К товару"
+msgstr[1] "К товарам"
+msgstr[2] "К товарам"
 
 msgid "Channel"
 msgstr "Канал"

@@ -25,7 +25,7 @@ async def check_valid_file(doc: Document, user: Users, state: FSMContext, expect
                 user.language,
                 "admins_editor_category",
                 "This file format is not supported, please send a file with one of these extensions: {extensions_list}"
-            ).format(extensions_list=".csv")
+            ).format(extensions_list=expected_formats)
         )
         await state.set_state(set_state)
         return False
@@ -43,7 +43,6 @@ async def check_valid_file(doc: Document, user: Users, state: FSMContext, expect
         return False
 
     return True
-
 
 
 async def check_category_is_acc_storage(category: CategoryFull, user: Users) -> bool:

@@ -1,4 +1,5 @@
 from math import ceil
+from typing import Optional
 
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -9,8 +10,31 @@ from src.services.database.categories.actions import get_count_sold_account, \
 from src.services.database.categories.actions import get_sold_account_by_page
 from src.services.database.categories.models import ProductType, AccountServiceType
 from src.services.keyboards.keyboard_with_pages import pagination_keyboard
-from src.utils.i18n import get_text
+from src.utils.i18n import get_text, n_get_text
 from src.utils.pars_number import e164_to_pretty
+
+
+def in_purchased_account_kb(
+    language: str,
+    quantity_products: int,
+    type_account_service: AccountServiceType,
+    sold_account_id: Optional[int | None] = None
+):
+    """
+    Используется при покупке аккаунтов
+    :param sold_account_id: необходим только если приобретается один товар
+    """
+
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text=n_get_text(language, 'kb_catalog', 'In profile', "To accounts", quantity_products),
+            callback_data=(
+                f"sold_account:{sold_account_id}:{type_account_service.value}:1"
+                if quantity_products == 1 and sold_account_id else
+                f"all_sold_accounts:{type_account_service.value}:1"
+            )
+        )]
+    ])
 
 
 async def type_product_in_purchases_kb(language: str, user_id: int) -> InlineKeyboardMarkup:

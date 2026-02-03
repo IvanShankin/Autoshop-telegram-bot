@@ -76,6 +76,9 @@ msgid "Are you sure you want to delete this category? \n\n"
 msgstr "Вы действительно хотите удалить эту категорию? \n\n"
 "⚠️ Перед удаление убедитесь что данная категория не содержит в себе подкатегорий и не хранит товары!"
 
+msgid ""This file format is not supported, please send a file with one of these extensions: {extensions_list}""
+msgstr "Этот формат файла не поддерживается, пожалуйста, отправьте файл с одним из следующих расширений: {extensions_list}"
+
 msgid "The category stores accounts, please extract them first"
 msgstr "Категория хранит аккаунты, сперва извлеките их"
 

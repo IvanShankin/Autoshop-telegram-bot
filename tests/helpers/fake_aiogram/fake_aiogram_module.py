@@ -62,6 +62,9 @@ class FakeState:
     def __repr__(self):
         return f"<State {self.name}>"
 
+    async def clear(self):
+        return True
+
 
 class FakeCommandObject:
     """

@@ -1,3 +1,6 @@
+import shutil
+from pathlib import Path
+
 from aiogram.types import CallbackQuery
 
 from src.bot_actions.messages import edit_message, send_document, send_message
@@ -7,12 +10,15 @@ from src.services.database.categories.actions.products.universal.action_delete i
 from src.services.database.categories.actions.products.universal.action_update import update_universal_storage
 from src.services.database.categories.actions.products.universal.actions_add import add_deleted_universal
 from src.services.database.categories.actions.products.universal.actions_get import get_sold_universal_by_universal_id
-from src.services.database.categories.models import StorageStatus
+from src.services.database.categories.models import StorageStatus, UniversalMediaType
 from src.services.database.categories.models import SoldUniversalFull
 from src.services.database.users.models import Users
+from src.services.filesystem.actions import create_temp_dir
 from src.services.filesystem.universals_products import move_in_universal
 from src.services.filesystem.media_paths import create_path_universal_storage
 from src.services.secrets import decrypt_text, unwrap_dek, get_crypto_context
+from src.services.secrets.decrypt import decrypt_file
+from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text
 
 
@@ -85,53 +91,67 @@ async def send_media_sold_universal(
 ):
     """SoldUniversalFull должен быть с переводом для данного пользователя"""
     file_id = None
-    file_path = None
+    decrypted_file_path = None
     description = None
 
-    crypto = get_crypto_context()
+    try:
+        crypto = get_crypto_context()
 
-    dek = unwrap_dek(
-        encrypted_data_b64=universal.universal_storage.encrypted_key,
-        nonce_b64=universal.universal_storage.encrypted_key_nonce,
-        kek=crypto.kek,
-    )
-
-    if universal.universal_storage.encrypted_tg_file_id:
-        file_id = decrypt_text(
-            encrypted_data_b64=universal.universal_storage.encrypted_tg_file_id,
-            nonce_b64=universal.universal_storage.encrypted_tg_file_id_nonce,
-            dek=dek
+        dek = unwrap_dek(
+            encrypted_data_b64=universal.universal_storage.encrypted_key,
+            nonce_b64=universal.universal_storage.encrypted_key_nonce,
+            kek=crypto.kek,
         )
 
-    if universal.universal_storage.original_filename:
-        file_path = create_path_universal_storage(
-            status=universal.universal_storage.status,
-            uuid=universal.universal_storage.storage_uuid,
-        )
+        if universal.universal_storage.encrypted_tg_file_id:
+            file_id = decrypt_text(
+                encrypted_data_b64=universal.universal_storage.encrypted_tg_file_id,
+                nonce_b64=universal.universal_storage.encrypted_tg_file_id_nonce,
+                dek=dek
+            )
 
-    if universal.universal_storage.encrypted_description:
-        description = decrypt_text(
-            encrypted_data_b64=universal.universal_storage.encrypted_description,
-            nonce_b64=universal.universal_storage.encrypted_description_nonce,
-            dek=dek
-        )
+        if universal.universal_storage.original_filename:
+            file_path = create_path_universal_storage(
+                status=universal.universal_storage.status,
+                uuid=universal.universal_storage.storage_uuid,
+            )
+            decrypted_file_path = create_temp_dir() / Path(universal.universal_storage.original_filename)
+            decrypt_file(
+                dek=dek,
+                encrypted_path=file_path,
+                decrypted_path=str(decrypted_file_path)
+            )
 
-    if file_id or file_path:
-        await send_document(
-            chat_id=user_id,
-            file_id=file_id,
-            file_path=file_path,
-        )
+        if universal.universal_storage.encrypted_description:
+            description = decrypt_text(
+                encrypted_data_b64=universal.universal_storage.encrypted_description,
+                nonce_b64=universal.universal_storage.encrypted_description_nonce,
+                dek=dek
+            )
 
-    if description:
-        await send_message(
-            chat_id=user_id,
-            message=get_text(
-                language,
-                "profile_messages",
-                "Description: \n\n{description}"
-            ).format(description=description),
-        )
+        if file_id or decrypted_file_path:
+            await send_document(
+                chat_id=user_id,
+                file_id=file_id,
+                file_path=decrypted_file_path,
+                type_based=True if universal.universal_storage.media_type == UniversalMediaType.DOCUMENT else True
+            )
+
+
+        if description:
+            await send_message(
+                chat_id=user_id,
+                message=get_text(
+                    language,
+                    "profile_messages",
+                    "Description: \n\n{description}"
+                ).format(description=description),
+            )
+    except Exception as e:
+        get_logger(__name__).exception(f"[send_media_sold_universal] Ошибка выдаче данных о товаре пользователю: {e}")
+
+    if decrypted_file_path:
+        shutil.rmtree(decrypted_file_path.parent, ignore_errors=True)
 
 
 async def delete_sold_universal_han(

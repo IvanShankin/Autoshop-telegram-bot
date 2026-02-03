@@ -242,7 +242,7 @@ class TestOnePurchase:
         category = await create_category(
             price=500,
             product_type=ProductType.UNIVERSAL,
-            allow_multiple_purchase=True,
+            reuse_product=True,
         )
         category_id = category.category_id
 
@@ -356,7 +356,7 @@ class TestOnePurchase:
         category = await create_category(
             price=500,
             product_type=ProductType.UNIVERSAL,
-            allow_multiple_purchase=True,
+            reuse_product=True,
         )
         category_id = category.category_id
 

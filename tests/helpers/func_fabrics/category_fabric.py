@@ -60,6 +60,7 @@ async def create_category_factory(
         allow_multiple_purchase: bool = False,
         product_type: str = ProductType.ACCOUNT,
         type_account_service: AccountServiceType = AccountServiceType.TELEGRAM,
+        reuse_product: bool = False,
         price: int = 150,
         cost_price: int = 100,
         language: str = "ru",
@@ -93,6 +94,7 @@ async def create_category_factory(
             allow_multiple_purchase=allow_multiple_purchase,
             product_type=product_type,
             type_account_service=type_account_service,
+            reuse_product = reuse_product,
             price = price,
             cost_price = cost_price
         )

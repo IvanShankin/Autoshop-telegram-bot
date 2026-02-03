@@ -8,18 +8,21 @@ from src.services.database.core.database import get_db
 from src.services.database.system.models import TypePayments
 from src.services.database.system.models import UiImages
 from src.services.database.users.models import Users
+from src.services.redis.core_redis import get_redis
 from src.services.redis.filling.filling_categories import filling_all_keys_category
 from src.services.redis.filling.filling_other import filling_types_payments_by_id, filling_ui_image, \
     filling_voucher_by_user_id, filling_settings, filling_referral_levels, filling_all_types_payments, filling_users, \
     filling_admins, filling_banned_accounts, filling_promo_code, filling_vouchers
 from src.services.redis.filling.filling_accounts import filling_product_account_by_account_id, \
     filling_sold_accounts_by_owner_id, filling_sold_account_by_account_id, filling_product_accounts_by_category_id
-from src.services.redis.filling.helpers_func import _delete_keys_by_pattern
 from src.utils.core_logger import get_logger
 
 
 async def filling_all_redis():
     """Заполняет redis необходимыми данными. Использовать только после заполнения БД"""
+    async with get_redis() as session_redis:
+        await session_redis.flushall()
+
     async with get_db() as session_db:
         result_db = await session_db.execute(select(TypePayments.type_payment_id))
         types_payments_ids: List[int] = result_db.scalars().all()
@@ -50,8 +53,6 @@ async def filling_all_redis():
         sold_accounts_ids: List[int] = result_db.scalars().all()
         for account_id in sold_accounts_ids:
             await filling_sold_account_by_account_id(account_id)
-
-    await _delete_keys_by_pattern(f"category:*")  # обязательно т.к. могут хранится категории которых уже нет
 
     await filling_settings()
     await filling_referral_levels()

@@ -1,5 +1,7 @@
 import pytest
 from types import SimpleNamespace
+
+from helpers.fake_aiogram.fake_aiogram_module import FakeState
 from src.utils.i18n import get_text
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
 
@@ -26,9 +28,10 @@ class TestBuyAccount:
 
         cb = FakeCallbackQuery(data=f"buy_in_category:{category.category_id}:5:None", chat_id=user.user_id,
                                username=user.username)
+        st = FakeState()
         cb.message = SimpleNamespace(message_id=10)
 
-        await buy_in_category(cb, user)
+        await buy_in_category(cb, st, user)
 
         # Проверяем: сообщение не редактировалось (только alert)
         assert not fake_bot.check_str_in_edited_messages("Thank you for your purchase"), \
@@ -56,9 +59,10 @@ class TestBuyAccount:
         # BuyProduct.quantity_products = 1 => total_sum = 50 < 100
         cb = FakeCallbackQuery(data=f"buy_in_category:{category.category_id}:1:{promo.promo_code_id}",
                                chat_id=user.user_id, username=user.username)
+        st = FakeState()
         cb.message = SimpleNamespace(message_id=20)
 
-        await buy_in_category(cb, user)
+        await buy_in_category(cb, st, user)
 
         # Проверяем отсутствие редактирования (был alert)
         assert not fake_bot.check_str_in_edited_messages("Thank you for your purchase"), \
@@ -92,9 +96,10 @@ class TestBuyAccount:
 
         cb = FakeCallbackQuery(data=f"buy_in_category:{category.category_id}:1:9999",
                                chat_id=user.user_id, username=user.username)
+        st = FakeState()
         cb.message = SimpleNamespace(message_id=30)
 
-        await buy_in_category(cb, user)
+        await buy_in_category(cb, st, user)
 
         assert not fake_bot.check_str_in_edited_messages("Thank you for your purchase"), \
             "Сообщение не должно было редактироваться при невалидном промокоде"
@@ -120,9 +125,10 @@ class TestBuyAccount:
 
         cb = FakeCallbackQuery(data=f"buy_in_category:{category.category_id}:1:None",
                                chat_id=user.user_id, username=user.username)
+        st = FakeState()
         cb.message = SimpleNamespace(message_id=40)
 
-        await buy_in_category(cb, user)
+        await buy_in_category(cb, st,  user)
 
         expected_text = get_text(user.language, 'miscellaneous', "Insufficient funds: {amount}").format(amount=150)
 

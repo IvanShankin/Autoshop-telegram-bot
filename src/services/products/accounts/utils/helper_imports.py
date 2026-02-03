@@ -32,7 +32,7 @@ async def get_unique_tg_acc_among_db(
             continue
 
         if acc_data.user.id in tg_id_in_db:
-            logger.info(f"[get_unique_tg_acc_among_db] - Найден дублик аккаунта по tg_id: {acc_data.id}")
+            logger.info(f"[get_unique_tg_acc_among_db] - Найден дублик аккаунта по tg_id: {acc_data.user.id}")
             duplicate_items.append(acc_data)
             continue
 

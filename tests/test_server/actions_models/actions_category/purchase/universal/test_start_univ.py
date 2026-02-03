@@ -192,7 +192,7 @@ class TestStartPurchaseUniversalOne:
         user = await create_new_user(balance=10_000)
         category = await create_category(
             price=1000,
-            allow_multiple_purchase=True,
+            reuse_product=True,
         )
 
         storage, _ = await create_universal_storage()
@@ -238,7 +238,7 @@ class TestStartPurchaseUniversalOne:
         create_category,
     ):
         """
-        Если get_product_universal_by_category_id вернул пусто → UniversalProductNotFound
+        Если get_product_universal_by_category_id вернул пусто → NotEnoughProducts
         """
         from src.services.database.categories.actions.purchases.universal.start import start_purchase_universal
 
@@ -247,7 +247,7 @@ class TestStartPurchaseUniversalOne:
             allow_multiple_purchase=True,
         )
 
-        with pytest.raises(UniversalProductNotFound):
+        with pytest.raises(NotEnoughProducts):
             await start_purchase_universal(
                 user_id=user.user_id,
                 category_id=category.category_id,

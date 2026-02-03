@@ -44,7 +44,7 @@ def universal_kb(
 ):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'kb_profile', 'Login details'),
+            text=get_text(language, 'kb_profile', 'Details_product'),
             callback_data=f'get_universal_media:{sold_universal_id}')
         ],
         [InlineKeyboardButton(

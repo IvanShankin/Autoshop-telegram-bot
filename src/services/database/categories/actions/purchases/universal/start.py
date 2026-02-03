@@ -203,7 +203,7 @@ async def start_purchase_universal(
     """
     result_check = await check_category_and_money(user_id, category_id, quantity_products, promo_code_id)
 
-    if result_check.category.allow_multiple_purchase:
+    if result_check.category.reuse_product:
         return await _purchase_universal_one(result_check, user_id, promo_code_id, quantity_products, category_id)
 
     return await _purchase_universal_different(result_check, user_id, promo_code_id, quantity_products, category_id, language)

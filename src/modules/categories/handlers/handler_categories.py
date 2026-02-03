@@ -360,7 +360,7 @@ async def confirm_buy_category(callback: CallbackQuery, user: Users):
 
 
 @router.callback_query(F.data.startswith('buy_in_category:'))
-async def buy_in_category(callback: CallbackQuery, user: Users):
+async def buy_in_category(callback: CallbackQuery, state: FSMContext, user: Users):
     category_id = int(callback.data.split(':')[1])
     quantity_products = int(callback.data.split(':')[2])  # число продуктов на приобретение
     promo_code_id = safe_int_conversion(callback.data.split(':')[3], positive=True)  # либо int, либо "None"
@@ -372,3 +372,4 @@ async def buy_in_category(callback: CallbackQuery, user: Users):
         callback=callback,
         user=user,
     )
+    await state.clear()

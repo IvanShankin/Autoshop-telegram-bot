@@ -51,10 +51,13 @@ msgid "other"
 msgstr "Прочее"
 
 
-# ---- Купленные аккаунты ----
+# ---- Купленные товары ----
 
 msgid "Login details"
 msgstr "Данные для входа"
+
+msgid "Details_product"
+msgstr "Данные товара"
 
 msgid "Get code"
 msgstr "Получить код"

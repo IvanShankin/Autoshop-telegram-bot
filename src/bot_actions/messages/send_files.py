@@ -63,7 +63,8 @@ async def send_document(
     Если type_based == True и извест путь (file_path) — выберет метод в зависимости от расширения (photo/video/animation/document).
     В первую очередь пробует отправить через file_id (если задан). При ошибке попробует через file_path (если задан).
 
-    Возвращает aiogram.types.Message или None (если отправить не удалось).
+    :param type_based: Отошлёт файл в зависимости от его типа. Если у него расширение фото, то отошлёт как фото и т.д.
+    :return: Возвращает aiogram.types.Message или None (если отправить не удалось).
     """
     logger = get_logger(__name__)
     bot = await get_bot()

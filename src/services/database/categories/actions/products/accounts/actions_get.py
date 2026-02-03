@@ -104,7 +104,7 @@ async def get_types_account_service_where_the_user_purchase(user_id: int) -> Lis
         get_full=True
     )
     for account in all_account:
-        if not account.type_account_service in result_list:
+        if not account.account_storage.type_account_service in result_list:
             result_list.append(account.account_storage.type_account_service)
 
     return result_list
@@ -202,9 +202,10 @@ async def get_count_sold_account(user_id: int, type_account_service: AccountServ
     async with get_db() as session_db:
         result = await session_db.execute(
             select(func.count(SoldAccounts.sold_account_id))
+            .join(SoldAccounts.account_storage)
             .where(
                 (SoldAccounts.owner_id == user_id) &
-                (SoldAccounts.type_account_service == type_account_service) &
+                (AccountStorage.type_account_service == type_account_service) &
                 (SoldAccounts.account_storage.has(is_active=True))
             )
         )

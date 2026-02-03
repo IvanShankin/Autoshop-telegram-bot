@@ -193,6 +193,7 @@ async def service_update_show(callback: CallbackQuery, user: Users):
 
     await update_category(category_id, allow_multiple_purchase=allow_multiple_purchase)
     await callback.answer(get_text(user.language, "miscellaneous", "Successfully updated"))
+    await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
 
 
 @router.callback_query(F.data.startswith("category_update_data:"))

@@ -250,7 +250,6 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
     await gen_import_acc.__anext__() # удаление временных файлов
 
 
-
 @router.message(ImportOtherAccounts.csv_file, F.document)
 async def import_other_account(message: Message, state: FSMContext, user: Users):
     data = ImportAccountsData(**(await state.get_data()))

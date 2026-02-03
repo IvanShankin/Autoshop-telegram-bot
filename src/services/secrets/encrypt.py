@@ -104,7 +104,6 @@ def encrypt_folder(folder_path: str, encrypted_path: str, dek: bytes):
 
     # очищаем
     os.remove(tmp_zip_path)
-    shutil.rmtree(folder_path)
 
 
 def encrypt_file(

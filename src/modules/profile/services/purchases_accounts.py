@@ -80,7 +80,7 @@ async def show_sold_account(
         message=get_text(
             language,
             'profile_messages',
-            "ID product: {id_product}\n\n"
+            "ID product: {product_id}\n\n"
             "Phone: {phone_number}\n\n"
             "Name: {name}\n"
             "Description: {description}\n\n"

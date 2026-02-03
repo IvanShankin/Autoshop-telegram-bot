@@ -14,6 +14,7 @@ from src.services.redis.filling.filling_other import filling_types_payments_by_i
     filling_admins, filling_banned_accounts, filling_promo_code, filling_vouchers
 from src.services.redis.filling.filling_accounts import filling_product_account_by_account_id, \
     filling_sold_accounts_by_owner_id, filling_sold_account_by_account_id, filling_product_accounts_by_category_id
+from src.services.redis.filling.helpers_func import _delete_keys_by_pattern
 from src.utils.core_logger import get_logger
 
 
@@ -49,6 +50,8 @@ async def filling_all_redis():
         sold_accounts_ids: List[int] = result_db.scalars().all()
         for account_id in sold_accounts_ids:
             await filling_sold_account_by_account_id(account_id)
+
+    await _delete_keys_by_pattern(f"category:*")  # обязательно т.к. могут хранится категории которых уже нет
 
     await filling_settings()
     await filling_referral_levels()

@@ -10,12 +10,23 @@ from src.services.database.discounts.events import promo_code_event_handler, vou
 from src.services.database.referrals.events import referral_event_handler
 from src.services.database.replenishments_event.event_handlers_replenishments import replenishment_event_handler
 from src.services.database.categories.events.even_handlers import purchase_event_handler
+from src.services.filesystem.event_filesystem import filesystem_event_handler
 from src.utils.core_logger import get_logger
 
 # глобальные переменные для управления задачей
 _consumer_task: asyncio.Task | None = None
 _consumer_start_event: asyncio.Event | None = None
 _consumer_stop_event: asyncio.Event | None = None
+
+ROUTING_KEYS = [
+    "promo_code.*",
+    "voucher.*",
+    "referral.*",
+    "replenishment.*",
+    "account.*",
+    "purchase.*",
+    "filesystem.*"
+]
 
 async def start_background_consumer():
     global _consumer_task, _consumer_stop_event, _consumer_start_event
@@ -100,9 +111,7 @@ async def _run_single_consumer_loop(started_event: asyncio.Event, stop_event: as
         exchange = await channel.declare_exchange("events", aio_pika.ExchangeType.TOPIC, durable=True)
         queue = await channel.declare_queue("events_db", durable=True, exclusive=False, auto_delete=False)
 
-        routing_keys = ["promo_code.*", "voucher.*", "referral.*", "replenishment.*", "account.*"]
-
-        for key in routing_keys:
+        for key in ROUTING_KEYS:
             await queue.bind(exchange, routing_key=key)
 
         started_event.set()
@@ -149,6 +158,8 @@ async def handle_event(event: dict):
             await replenishment_event_handler(event)
         elif event["event"].startswith("purchase."):
             await purchase_event_handler(event)
+        elif event["event"].startswith("filesystem."):
+            await filesystem_event_handler(event)
 
     except aiormq.exceptions.ChannelInvalidStateError as e:
         logger = get_logger(__name__)

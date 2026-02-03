@@ -15,7 +15,7 @@ from src.services.database.categories.actions.products.universal.actions_get imp
 from src.services.database.categories.models import CategoryFull, ProductType
 from src.services.database.discounts.utils.calculation import discount_calculation
 from src.services.database.users.models import Users
-from src.utils.i18n import get_text
+from src.utils.i18n import get_text, n_get_text
 
 
 async def _show_not_enough_money(
@@ -118,8 +118,13 @@ async def _buy(
 
         await send_message(
             chat_id=callback.from_user.id,
-            message=get_text(user.language, 'categories',
-                             "Thank you for your purchase \nThe account is already in the profile"),
+            message=n_get_text(
+                user.language,
+                'categories',
+                "Thank you for your purchase \nThe product is already in the profile",
+                "Thank you for your purchase \nThe product is already in the profile",
+                quantity_products
+            ),
             image_key='successful_purchase',
             fallback_image_key="default_catalog_account",
             reply_markup=reply_markup,

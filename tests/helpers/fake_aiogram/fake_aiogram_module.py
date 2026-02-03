@@ -503,3 +503,8 @@ class FakeInputMediaPhoto:
 
     def __repr__(self):
         return f"<FakeInputMediaPhoto media={self.media} caption={self.caption}>"
+
+
+class FakeReactionTypeEmoji:
+    def __init__(self, emoji):
+        pass

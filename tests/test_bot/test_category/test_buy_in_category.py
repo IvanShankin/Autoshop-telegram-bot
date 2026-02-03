@@ -1,8 +1,8 @@
 import pytest
 from types import SimpleNamespace
 
-from helpers.fake_aiogram.fake_aiogram_module import FakeState
-from src.utils.i18n import get_text
+from tests.helpers.fake_aiogram.fake_aiogram_module import FakeState
+from src.utils.i18n import get_text, n_get_text
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
 
 
@@ -173,8 +173,15 @@ class TestBuyAccount:
             user=user
         )
 
-        assert fake_bot.check_str_in_edited_messages("Thank you for your purchase"), \
-            "Не появилось сообщение об успешной покупке"
+        assert fake_bot.check_str_in_messages(
+            n_get_text(
+                user.language,
+                'categories',
+                "Thank you for your purchase \nThe product is already in the profile",
+                "Thank you for your purchase \nThe product is already in the profile",
+                1
+            )
+        ), "Не появилось сообщение об успешной покупке"
 
 
     @pytest.mark.asyncio

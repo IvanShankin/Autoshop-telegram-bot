@@ -9,9 +9,11 @@ from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboa
 
 from src.bot_actions.bot_instance import get_bot
 from src.bot_actions.messages import send_log, send_message
+from src.broker.producer import publish_event
 from src.services.database.system.actions import get_ui_image, update_ui_image
 from src.services.filesystem.actions import check_file_exists
 from src.services.filesystem.media_paths import create_path_ui_image
+from src.services.filesystem.schemas import EventCreateUiImage
 from src.utils.core_logger import get_logger
 
 
@@ -111,6 +113,11 @@ async def _try_edit_media_by_file(
         photo = FSInputFile(file_path)
     except (FileNotFoundError, AttributeError):
         logger.warning(f"[edit_message] Local file not found: {file_path}")
+        await publish_event(
+            EventCreateUiImage(ui_image_key=ui_image.key).model_dump(),
+            "filesystem.create_ui_image"
+        )
+
         if fallback_image_key:
             ui_image = await get_ui_image(fallback_image_key)
 
@@ -122,6 +129,10 @@ async def _try_edit_media_by_file(
                         return True # успешно
 
                 if not os.path.isfile(file_path):
+                    await publish_event(
+                        EventCreateUiImage(ui_image_key=ui_image.key).model_dump(),
+                        "filesystem.create_ui_image"
+                    )
                     await send_log(f"#Не_найдено_фото [edit_message]. \nget_ui_image='{ui_image.key}'")  # лучше после отправки пользователю
                 else:
                     ok = await _try_edit_media_by_file(bot, chat_id, message_id, ui_image, caption, reply_markup)
@@ -280,7 +291,10 @@ async def edit_message(
             else:
                 text = f"#Не_найдено_фото [edit_message]. \nget_ui_image='{image_key}'"
                 logger.warning(text)
-                await send_log(text)
+                await publish_event(
+                    EventCreateUiImage(ui_image_key=ui_image.key).model_dump(),
+                    "filesystem.create_ui_image"
+                )
 
                 # если не нашли ui_image или не надо отсылать его (not ui_image.show)
         elif (not ui_image or ui_image and not ui_image.show) and fallback_image_key:
@@ -310,7 +324,10 @@ async def edit_message(
                 else:
                     text = f"#Не_найдено_фото [edit_message]. \nget_ui_image='{fallback_image_key}'"
                     logger.warning(text)
-                    await send_log(text)
+                    await publish_event(
+                        EventCreateUiImage(ui_image_key=ui_image.key).model_dump(),
+                        "filesystem.create_ui_image"
+                    )
 
             else:
                 await send_log(text)

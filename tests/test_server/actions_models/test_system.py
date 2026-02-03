@@ -161,7 +161,7 @@ async def test_update_ui_image_updates_db_and_redis(create_ui_image):
     ui_image, _ = await create_ui_image(key="profile", show=True)
     new_show_value = False
 
-    result = await update_ui_image(ui_image.key, new_show_value, ui_image.file_id)
+    result = await update_ui_image(ui_image.key, "new_name", new_show_value, ui_image.file_id)
     assert result is not None
     assert result.show is new_show_value
 

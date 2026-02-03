@@ -3,6 +3,7 @@ from typing import Optional
 from aiogram.exceptions import TelegramBadRequest
 
 from src.bot_actions.bot_instance import get_bot_logger
+from src.broker.producer import publish_event
 from src.config import get_config, get_global_rate_limit
 from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply, FSInputFile, \
     Message
@@ -12,6 +13,7 @@ from src.services.database.system.actions import get_ui_image, update_ui_image
 from src.services.database.system.actions import get_settings
 from src.services.filesystem.actions import check_file_exists
 from src.services.filesystem.media_paths import create_path_ui_image
+from src.services.filesystem.schemas import EventCreateUiImage
 from src.utils.core_logger import get_logger
 
 
@@ -127,8 +129,11 @@ async def send_message(
                     return msg
                 else:
                     text = f"#Не_найдено_фото [edit_message]. \nget_ui_image='{image_key}'"
-                    logger.warning(text)
-                    await send_log(text)
+                    logger.info(text)
+                    await publish_event(
+                        EventCreateUiImage(ui_image_key=ui_image.key).model_dump(),
+                        "filesystem.create_ui_image"
+                    )
 
             except TelegramBadRequest as e:
                 return await handler_tg_except(e)
@@ -173,7 +178,10 @@ async def send_message(
                     else:
                         text = f"#Не_найдено_фото [edit_message]. \nget_ui_image='{fallback_image_key}'"
                         logger.warning(text)
-                        await send_log(text)
+                        await publish_event(
+                            EventCreateUiImage(ui_image_key=ui_image.key).model_dump(),
+                            "filesystem.create_ui_image"
+                        )
                 except TelegramBadRequest as e:
                     await handler_tg_except(e)
 

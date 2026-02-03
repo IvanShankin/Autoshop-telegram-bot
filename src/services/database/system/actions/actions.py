@@ -228,11 +228,18 @@ async def get_ui_image(key: str) -> UiImages | None:
         return ui_image
 
 
-async def update_ui_image(key: str, show: bool = None, file_id: str | None = None) -> UiImages | None:
+async def update_ui_image(
+    key: str,
+    file_name: str = None,
+    show: bool = None,
+    file_id: str | None = False
+) -> UiImages | None:
     update_data = {}
+    if file_name is not None:
+        update_data["file_name"] = file_name
     if show is not None:
         update_data["show"] = show
-    if file_id is not None:
+    if file_id is not False:
         update_data["file_id"] = file_id
 
     if update_data:

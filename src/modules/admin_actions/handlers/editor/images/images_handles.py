@@ -141,8 +141,12 @@ async def change_ui_image_result(message: Message, state: FSMContext, user: User
         try:
             get_ext_image(file_bytes)
 
-            await delete_ui_image(key=data.ui_image_key)
-            await create_ui_image(key=data.ui_image_key, file_data=file_bytes)
+            ui_image_deleted = await delete_ui_image(key=data.ui_image_key)
+            await create_ui_image(
+                key=data.ui_image_key,
+                show=ui_image_deleted.show if ui_image_deleted else False,
+                file_data=file_bytes
+            )
 
             await show_image_editor(ui_image_key=data.ui_image_key,current_page=data.current_page,user=user,new_message=True)
             return

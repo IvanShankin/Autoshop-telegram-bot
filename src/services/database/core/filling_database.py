@@ -55,8 +55,9 @@ async def create_database():
     for key in ui_images:
         await filling_ui_image(key=key)
 
-    example_univers_import = conf.file_keys.example_zip_for_universal_import_key
-    await filling_files(key=example_univers_import.key, path=example_univers_import.name_in_dir_with_files)
+    files_data = conf.file_keys.model_dump()
+    for file_key in files_data.keys():
+        await filling_files(key=files_data[file_key]["key"], path=files_data[file_key]["name_in_dir_with_files"])
 
 
 async def create_table():

@@ -1,11 +1,14 @@
 import asyncio
 import csv
 import io
+import random
 import shutil
 from pathlib import Path
 from typing import Optional, List, Sequence, Dict
 
+from src.config import get_config
 from src.services.filesystem.actions import _sync_cleanup_used_data
+from src.services.products.accounts.other.shemas import REQUIRED_HEADERS, HEADERS_DICT
 from src.services.products.accounts.tg.shemas import CreatedEncryptedArchive, BaseAccountProcessingResult
 from src.utils.core_logger import get_logger
 from src.services.secrets import encrypt_folder, make_account_key, sha256_file, get_crypto_context
@@ -124,3 +127,38 @@ def make_csv_bytes(
         return text.encode("utf-8-sig")
     else:
         return text.encode(encoding)
+
+
+def generate_example_import_other_acc() -> None:
+    """Создаёт пример CSV-файла для импорта аккаунтов"""
+
+    data = [
+        {
+            "phone": "+79161234567",
+            "login": "ivan.petrov",
+            "password": "Qwerty123!",
+        },
+        {
+            "phone": "+79169876543",
+            "login": "anna.smirnova",
+            "password": "StrongPass#9",
+        },
+        {
+            "phone": "+79005554433",
+            "login": "test.user",
+            "password": "Test1234",
+        },
+    ]
+
+    bytes_csv = make_csv_bytes(
+        data=data,
+        headers=REQUIRED_HEADERS,
+        excel_compatible=True,
+    )
+
+    conf = get_config()
+    path = Path(conf.file_keys.example_csv_for_import_other_acc_key.path)
+
+    path.write_bytes(bytes_csv)
+
+

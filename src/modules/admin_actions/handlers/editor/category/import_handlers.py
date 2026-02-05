@@ -19,7 +19,8 @@ from src.exceptions.business import ImportUniversalInvalidMediaData, ImportUnive
     CsvHasMoreThanTwoProducts
 from src.modules.admin_actions.keyboards import back_in_category_kb, \
     name_or_description_kb
-from src.modules.admin_actions.keyboards.editors.category_kb import get_example_import_product_kb
+from src.modules.admin_actions.keyboards.editors.category_kb import get_example_import_product_kb, \
+    get_example_import_other_acc_kb
 from src.modules.admin_actions.schemas import ImportAccountsData
 from src.modules.admin_actions.schemas.editors.editor_categories import ImportUniversalsData
 from src.modules.admin_actions.services import safe_get_category, service_not_found
@@ -28,6 +29,7 @@ from src.modules.admin_actions.services import check_valid_file, check_category_
 from src.modules.admin_actions.state import ImportTgAccounts, ImportOtherAccounts
 from src.modules.admin_actions.state.editors.editor_categories import ImportUniversalProducts
 from src.services.database.categories.models import ProductType
+from src.services.filesystem.account_products import generate_example_import_other_acc
 from src.services.filesystem.actions import create_temp_dir
 from src.services.filesystem.universals_products import generate_example_zip_for_import
 from src.services.products.accounts.other.input_account import input_other_account
@@ -77,7 +79,7 @@ async def category_load_products(callback: CallbackQuery, state: FSMContext, use
                     "Note: To create a '.csv' file, create an exal workbook and save it as '.csv'"
                 ),
                 image_key="example_csv",
-                reply_markup=back_in_category_kb(user.language, category_id)
+                reply_markup=get_example_import_other_acc_kb(user.language, category_id)
             )
             await state.set_state(ImportOtherAccounts.csv_file)
             await state.update_data(category_id=category_id, type_account_service=category.type_account_service)
@@ -107,6 +109,22 @@ async def category_load_products(callback: CallbackQuery, state: FSMContext, use
         await state.update_data(category_id=category_id)
 
 
+@router.callback_query(F.data == "get_example_import_other_acc")
+async def get_example_import_other_acc(callback: CallbackQuery, user: Users):
+    conf = get_config()
+    try:
+        await send_file_by_file_key(
+            chat_id=user.user_id,
+            file_key=conf.file_keys.example_csv_for_import_other_acc_key.key,
+        )
+    except FileNotFoundError:
+        generate_example_import_other_acc()
+        await send_file_by_file_key(
+            chat_id=user.user_id,
+            file_key=conf.file_keys.example_zip_for_universal_import_key.key,
+        )
+
+
 @router.callback_query(F.data == "get_example_import_universals")
 async def get_example_import_universals(callback: CallbackQuery, user: Users):
     conf = get_config()
@@ -116,7 +134,7 @@ async def get_example_import_universals(callback: CallbackQuery, user: Users):
             file_key=conf.file_keys.example_zip_for_universal_import_key.key,
         )
     except FileNotFoundError:
-        await generate_example_zip_for_import()
+        generate_example_zip_for_import()
         await send_file_by_file_key(
             chat_id=user.user_id,
             file_key=conf.file_keys.example_zip_for_universal_import_key.key,

@@ -62,7 +62,7 @@ async def move_in_universal(universal: SoldUniversalFull, status: StorageStatus)
         return False
 
 
-async def generate_example_zip_for_import() -> Path:
+def generate_example_zip_for_import() -> Path:
     """
     Генерирует пример ZIP-архива для universal import:
     ├── manifest.csv

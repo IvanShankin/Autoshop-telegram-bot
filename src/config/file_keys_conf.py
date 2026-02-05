@@ -11,4 +11,5 @@ class FilePathAndKey(BaseModel):
 
 class FileKeysConf(BaseModel):
     example_zip_for_universal_import_key: FilePathAndKey
+    example_csv_for_import_other_acc_key: FilePathAndKey
 

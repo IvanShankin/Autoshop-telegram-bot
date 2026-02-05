@@ -16,7 +16,7 @@ async def test_input_universal_products(create_category):
     cat = await create_category()
 
     # создаст необходимую структуру
-    zip_path = await generate_example_zip_for_import()
+    zip_path = generate_example_zip_for_import()
 
     await input_universal_products(
         path_to_archive=zip_path,

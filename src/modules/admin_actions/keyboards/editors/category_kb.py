@@ -271,12 +271,13 @@ def delete_category_kb(language: str, category_id: int):
     ])
 
 
-def get_example_import_product_kb(language: str, category_id: int):
+
+def _get_example_import_kb(language: str, category_id: int, callback_data: str):
     return InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(
                 text=get_text(language, 'kb_admin_panel', "Get example"),
-                callback_data=f"get_example_import_universals"
+                callback_data=callback_data
             )
         ],
         [
@@ -286,6 +287,14 @@ def get_example_import_product_kb(language: str, category_id: int):
             )
         ]
     ])
+
+
+def get_example_import_other_acc_kb(language: str, category_id: int):
+    return _get_example_import_kb(language, category_id, f"get_example_import_other_acc")
+
+
+def get_example_import_product_kb(language: str, category_id: int):
+    return _get_example_import_kb(language, category_id, f"get_example_import_universals")
 
 
 def back_in_category_update_data_kb(language: str, category_id: int):

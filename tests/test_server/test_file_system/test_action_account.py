@@ -8,6 +8,7 @@ from unittest.mock import AsyncMock
 from src.config import get_config
 from src.services.database.categories.models import AccountStorage, ProductAccounts, StorageStatus
 from src.services.database.categories.models import AccountServiceType
+from src.services.filesystem.account_products import generate_example_import_other_acc
 from src.services.filesystem.media_paths import create_path_account
 from src.services.secrets import get_crypto_context
 
@@ -294,3 +295,15 @@ async def test_get_session_tg_acc_missing_file(tmp_path, monkeypatch):
     res = await anext(gen)
     assert res is False
 
+
+async def test_generate_example_import_other_acc():
+    conf = get_config()
+
+    path_file = Path(conf.file_keys.example_csv_for_import_other_acc_key.path)
+    path_file.unlink(missing_ok=True)
+
+    assert not os.path.isfile(path_file)
+
+    generate_example_import_other_acc()
+
+    assert os.path.isfile(path_file)

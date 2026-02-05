@@ -51,6 +51,11 @@ class Config:
                 path=self.paths.files_dir / "example_zip_for_universal_import.zip",
                 name_in_dir_with_files="example_zip_for_universal_import.zip"
             ),
+            example_zip_for_import_tg_acc_key = FilePathAndKey(
+                key="example_zip_for_import_tg_acc",
+                path=self.paths.files_dir / "example_zip_for_import_tg_acc.zip",
+                name_in_dir_with_files="example_zip_for_import_tg_acc.zip"
+            ),
             example_csv_for_import_other_acc_key = FilePathAndKey(
                 key="example_csv_for_import_other_acc",
                 path=self.paths.files_dir / "example_csv_for_import_other_acc.csv",

@@ -1,17 +1,17 @@
 import asyncio
 import io
 import os
-import shutil
 from pathlib import Path
+from typing import Callable, Any
 
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, FSInputFile, BufferedInputFile
 
-from src.bot_actions.messages import edit_message, send_message, send_log
+from src.bot_actions.messages import edit_message, send_message
 from src.bot_actions.bot_instance import get_bot
 from src.bot_actions.messages import send_file_by_file_key
-from src.bot_actions.messages.schemas import EventSentLog, LogLevel
+from src.bot_actions.messages.schemas import EventSentLog
 from src.broker.producer import publish_event
 from src.config import get_config
 from src.exceptions import TypeAccountServiceNotFound, InvalidFormatRows
@@ -20,7 +20,7 @@ from src.exceptions.business import ImportUniversalInvalidMediaData, ImportUnive
 from src.modules.admin_actions.keyboards import back_in_category_kb, \
     name_or_description_kb
 from src.modules.admin_actions.keyboards.editors.category_kb import get_example_import_product_kb, \
-    get_example_import_other_acc_kb
+    get_example_import_other_acc_kb, get_example_import_tg_acc_kb
 from src.modules.admin_actions.schemas import ImportAccountsData
 from src.modules.admin_actions.schemas.editors.editor_categories import ImportUniversalsData
 from src.modules.admin_actions.services import safe_get_category, service_not_found
@@ -29,7 +29,7 @@ from src.modules.admin_actions.services import check_valid_file, check_category_
 from src.modules.admin_actions.state import ImportTgAccounts, ImportOtherAccounts
 from src.modules.admin_actions.state.editors.editor_categories import ImportUniversalProducts
 from src.services.database.categories.models import ProductType
-from src.services.filesystem.account_products import generate_example_import_other_acc
+from src.services.filesystem.account_products import generate_example_import_other_acc, generate_example_import_tg_acc
 from src.services.filesystem.actions import create_temp_dir
 from src.services.filesystem.universals_products import generate_example_zip_for_import
 from src.services.products.accounts.other.input_account import input_other_account
@@ -39,9 +39,24 @@ from src.services.database.users.models import Users
 from src.services.products.universals.input_products import input_universal_products
 from src.services.products.universals.shemas import get_import_universal_headers
 from src.utils.core_logger import get_logger
+from src.utils.helpers_func import maybe_await
 from src.utils.i18n import get_text
 
 router = Router()
+
+
+async def _send_example(file_key: str, user_id: int, func_generate: Callable[[], Any]):
+    try:
+        await send_file_by_file_key(
+            chat_id=user_id,
+            file_key=file_key,
+        )
+    except FileNotFoundError:
+        await maybe_await(func_generate())
+        await send_file_by_file_key(
+            chat_id=user_id,
+            file_key=file_key,
+        )
 
 
 @router.callback_query(F.data.startswith("category_load_products:"))
@@ -61,7 +76,7 @@ async def category_load_products(callback: CallbackQuery, state: FSMContext, use
                     "Send the archive with the exact folder and archive structure as shown in the photo"
                 ),
                 image_key="info_add_accounts",
-                reply_markup=back_in_category_kb(user.language, category_id)
+                reply_markup=get_example_import_tg_acc_kb(user.language, category_id)
             )
             await state.set_state(ImportTgAccounts.archive)
             await state.update_data(category_id=category_id, type_account_service=category.type_account_service)
@@ -109,36 +124,31 @@ async def category_load_products(callback: CallbackQuery, state: FSMContext, use
         await state.update_data(category_id=category_id)
 
 
+@router.callback_query(F.data == "get_example_import_tg_acc")
+async def get_example_import_tg_acc(callback: CallbackQuery, user: Users):
+    await _send_example(
+        file_key=get_config().file_keys.example_zip_for_import_tg_acc_key.key,
+        user_id=user.user_id,
+        func_generate=generate_example_import_tg_acc
+    )
+
+
 @router.callback_query(F.data == "get_example_import_other_acc")
 async def get_example_import_other_acc(callback: CallbackQuery, user: Users):
-    conf = get_config()
-    try:
-        await send_file_by_file_key(
-            chat_id=user.user_id,
-            file_key=conf.file_keys.example_csv_for_import_other_acc_key.key,
-        )
-    except FileNotFoundError:
-        generate_example_import_other_acc()
-        await send_file_by_file_key(
-            chat_id=user.user_id,
-            file_key=conf.file_keys.example_zip_for_universal_import_key.key,
-        )
+    await _send_example(
+        file_key=get_config().file_keys.example_csv_for_import_other_acc_key.key,
+        user_id=user.user_id,
+        func_generate=generate_example_import_other_acc
+    )
 
 
 @router.callback_query(F.data == "get_example_import_universals")
 async def get_example_import_universals(callback: CallbackQuery, user: Users):
-    conf = get_config()
-    try:
-        await send_file_by_file_key(
-            chat_id=user.user_id,
-            file_key=conf.file_keys.example_zip_for_universal_import_key.key,
-        )
-    except FileNotFoundError:
-        generate_example_zip_for_import()
-        await send_file_by_file_key(
-            chat_id=user.user_id,
-            file_key=conf.file_keys.example_zip_for_universal_import_key.key,
-        )
+    await _send_example(
+        file_key=get_config().file_keys.example_zip_for_universal_import_key.key,
+        user_id=user.user_id,
+        func_generate=generate_example_zip_for_import
+    )
 
 
 @router.callback_query(F.data.startswith("choice_lang_category_data:"))

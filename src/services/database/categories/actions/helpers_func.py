@@ -9,15 +9,7 @@ from sqlalchemy import select, inspect as sa_inspect, DateTime
 from src.services.database.categories.models import CategoryFull
 from src.services.database.core.database import get_db
 from src.services.redis.core_redis import get_redis
-
-
-async def _maybe_await(v):
-    try:
-        if inspect_python.isawaitable(v):
-            return await v
-        return v
-    except AttributeError: # если получили синхронную функцию
-        return v
+from src.utils.helpers_func import maybe_await
 
 
 @lru_cache
@@ -62,7 +54,7 @@ async def _get_single_obj(
 
             # если передан post_process - он решает, что делать с dict
             if post_process:
-                return await _maybe_await(post_process(model_in_dict))
+                return await maybe_await(post_process(model_in_dict))
 
             # иначе конструируем ORM модель
             return model_db(**_deserialize_fields(model_db, model_in_dict))
@@ -77,7 +69,7 @@ async def _get_single_obj(
 
         if result:
             await call_fun_filling()  # заполнение redis
-            return await _maybe_await(post_process(result)) if post_process else result
+            return await maybe_await(post_process(result)) if post_process else result
 
     return None
 
@@ -109,7 +101,7 @@ async def _get_grouped_objects(
             objs_list: list[dict] = orjson.loads(result_redis)  # список с redis
             if objs_list:
                 if post_process:
-                    return [await _maybe_await(post_process(obj)) for obj in objs_list]
+                    return [await maybe_await(post_process(obj)) for obj in objs_list]
 
                 list_with_result = [model_db(**_deserialize_fields(model_db, obj)) for obj in objs_list]
                 return list_with_result
@@ -130,7 +122,7 @@ async def _get_grouped_objects(
 
         if result:
             await call_fun_filling()  # заполнение redis
-            return [ await _maybe_await(post_process(obj)) for obj in result] if post_process else result
+            return [ await maybe_await(post_process(obj)) for obj in result] if post_process else result
 
         return result
 

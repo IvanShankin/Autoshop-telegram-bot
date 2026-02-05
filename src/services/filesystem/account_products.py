@@ -3,15 +3,22 @@ import csv
 import io
 import random
 import shutil
+import tempfile
 from pathlib import Path
 from typing import Optional, List, Sequence, Dict
 
 from src.config import get_config
-from src.services.filesystem.actions import _sync_cleanup_used_data
+from src.services.filesystem.actions import _sync_cleanup_used_data, make_archive
 from src.services.products.accounts.other.shemas import REQUIRED_HEADERS, HEADERS_DICT
 from src.services.products.accounts.tg.shemas import CreatedEncryptedArchive, BaseAccountProcessingResult
 from src.utils.core_logger import get_logger
 from src.services.secrets import encrypt_folder, make_account_key, sha256_file, get_crypto_context
+
+
+TXT_FILES = [
+    "example_input_data_1.txt",
+    "example_input_data_2.txt",
+]
 
 
 async def encrypted_tg_account(
@@ -160,5 +167,69 @@ def generate_example_import_other_acc() -> None:
     path = Path(conf.file_keys.example_csv_for_import_other_acc_key.path)
 
     path.write_bytes(bytes_csv)
+
+
+async def generate_example_import_tg_acc() -> bool:
+    """
+    Создаёт пример ZIP-архива для импорта аккаунтов
+    Создаёт архив со структурой:
+    ├── archive_1.zip
+    ├── archive_2.zip
+    └── dir/
+        └── tdata/
+            ├── example_input_data_1.txt
+            └── example_input_data_2.txt
+    """
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_path = Path(tmp_dir)
+
+        #  archive_1
+        archive_1_dir = tmp_path / "archive_1" / "tdata"
+        archive_1_dir.mkdir(parents=True)
+
+        for name in TXT_FILES:
+            (archive_1_dir / name).touch()
+
+        archive_1_zip = tmp_path / "archive_1.zip"
+        ok = await make_archive(
+            data_for_archiving=str(tmp_path / "archive_1"),
+            new_path_archive=str(archive_1_zip),
+        )
+        if not ok:
+            return False
+
+        #  archive_2
+        archive_2_dir = tmp_path / "archive_2" / "tdata"
+        archive_2_dir.mkdir(parents=True)
+
+        for name in TXT_FILES:
+            (archive_2_dir / name).touch()
+
+        archive_2_zip = tmp_path / "archive_2.zip"
+        ok = await make_archive(
+            data_for_archiving=str(tmp_path / "archive_2"),
+            new_path_archive=str(archive_2_zip),
+        )
+        if not ok:
+            return False
+
+        #  dir (НЕ архивируется отдельно)
+        dir_tdata = tmp_path / "dir" / "tdata"
+        dir_tdata.mkdir(parents=True)
+
+        for name in TXT_FILES:
+            (dir_tdata / name).touch()
+
+        conf = get_config()
+        #  финальный архив
+        ok = await make_archive(
+            data_for_archiving=[
+                str(archive_1_zip),
+                str(archive_2_zip),
+                str(tmp_path / "dir"),
+            ],
+            new_path_archive=conf.file_keys.example_zip_for_import_tg_acc_key.path,
+        )
+        return ok
 
 

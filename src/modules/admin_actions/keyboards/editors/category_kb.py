@@ -289,6 +289,10 @@ def _get_example_import_kb(language: str, category_id: int, callback_data: str):
     ])
 
 
+def get_example_import_tg_acc_kb(language: str, category_id: int):
+    return _get_example_import_kb(language, category_id, f"get_example_import_tg_acc")
+
+
 def get_example_import_other_acc_kb(language: str, category_id: int):
     return _get_example_import_kb(language, category_id, f"get_example_import_other_acc")
 

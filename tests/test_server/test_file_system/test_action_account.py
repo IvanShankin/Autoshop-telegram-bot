@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock
 from src.config import get_config
 from src.services.database.categories.models import AccountStorage, ProductAccounts, StorageStatus
 from src.services.database.categories.models import AccountServiceType
-from src.services.filesystem.account_products import generate_example_import_other_acc
+from src.services.filesystem.account_products import generate_example_import_other_acc, generate_example_import_tg_acc
 from src.services.filesystem.media_paths import create_path_account
 from src.services.secrets import get_crypto_context
 
@@ -305,5 +305,18 @@ async def test_generate_example_import_other_acc():
     assert not os.path.isfile(path_file)
 
     generate_example_import_other_acc()
+
+    assert os.path.isfile(path_file)
+
+
+async def test_generate_example_import_tg_acc():
+    conf = get_config()
+
+    path_file = Path(conf.file_keys.example_zip_for_import_tg_acc_key.path)
+    path_file.unlink(missing_ok=True)
+
+    assert not os.path.isfile(path_file)
+
+    await generate_example_import_tg_acc()
 
     assert os.path.isfile(path_file)

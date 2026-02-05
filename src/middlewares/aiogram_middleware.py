@@ -1,8 +1,9 @@
 from aiogram import BaseMiddleware
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import BaseFilter
-from aiogram.types import Message, TelegramObject
+from aiogram.types import Message, TelegramObject, CallbackQuery
 
-from typing import Callable, Dict, Any, Awaitable
+from typing import Callable, Dict, Any, Awaitable, Type
 
 from src.bot_actions.messages import send_message
 from src.config import get_config
@@ -10,6 +11,37 @@ from src.services.database.admins.actions import check_admin
 from src.services.database.system.actions import get_settings
 from src.services.database.users.actions import get_user
 from src.utils.i18n import get_text
+
+
+class DeleteMessageOnErrorMiddleware(BaseMiddleware):
+    def __init__(self, target_error: Type[Exception], text_message_answer: str):
+        self.target_error = target_error
+        self.text_message_answer = text_message_answer
+
+    async def __call__(
+        self,
+        handler: Callable[[Any, Dict[str, Any]], Awaitable[Any]],
+        event: Any,
+        data: Dict[str, Any]
+    ) -> Any:
+
+        try:
+            return await handler(event, data)
+        except self.target_error:
+            # работаем только с callback_query
+            if isinstance(event, CallbackQuery) and event.message:
+                try:
+                    await event.message.delete()
+                except TelegramBadRequest:
+                    pass
+
+            # обязательно закрываем callback
+            if isinstance(event, CallbackQuery):
+                if self.text_message_answer:
+                    await event.answer(self.text_message_answer)
+
+            # ошибка считается обработанной
+            return
 
 
 class UserMiddleware(BaseMiddleware):
@@ -86,10 +118,18 @@ class OnlyAdminsMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: Dict[str, Any]
     ) -> Any:
-        event_user = data.get("event_from_user")
+        user = data.get("event_from_user")
 
-        if await check_admin(event_user.id):
-            return await handler(event, data)
+        if not user:
+            return
+
+        if not await check_admin(user.id):
+            if isinstance(event, CallbackQuery):
+                await event.answer("Access for administrators only", show_alert=True)
+                await event.message.delete()
+            return
+
+        return await handler(event, data)
 
 
 class I18nKeyFilter(BaseFilter):

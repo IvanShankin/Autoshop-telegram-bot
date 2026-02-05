@@ -1,6 +1,8 @@
 import asyncio
 
-from src.middlewares.aiogram_middleware import MaintenanceMiddleware, UserMiddleware, OnlyAdminsMiddleware
+from src.exceptions.business import ForbiddenError
+from src.middlewares.aiogram_middleware import MaintenanceMiddleware, UserMiddleware, OnlyAdminsMiddleware, \
+    DeleteMessageOnErrorMiddleware
 from src.modules.profile.handlers import router_with_repl_kb as profile_router_with_repl_kb, router as profile_router
 from src.modules.categories import router_with_repl_kb as catalog_router_with_repl_kb
 from src.modules.categories import router as catalog_router
@@ -15,6 +17,9 @@ async def _including_router():
     dp = await get_dispatcher()
     dp_logger = await get_dispatcher_logger()
 
+    dp.update.middleware(DeleteMessageOnErrorMiddleware(ForbiddenError, "Insufficient rights"))
+    dp_logger.update.middleware(DeleteMessageOnErrorMiddleware(ForbiddenError, "Insufficient rights"))
+
     dp.include_router(start_router)
     dp.include_router(catalog_router_with_repl_kb)
     dp.include_router(catalog_router)
@@ -26,6 +31,9 @@ async def _including_router():
     # роутер только для админов
     admin_router.message.middleware(OnlyAdminsMiddleware())
     admin_router.callback_query.middleware(OnlyAdminsMiddleware())
+
+    admin_router_with_repl_kb.message.middleware(OnlyAdminsMiddleware())
+    admin_router_with_repl_kb.callback_query.middleware(OnlyAdminsMiddleware())
 
     dp.update.middleware(UserMiddleware())
     dp.update.middleware(MaintenanceMiddleware())

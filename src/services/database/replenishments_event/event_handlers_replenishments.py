@@ -12,7 +12,7 @@ from src.utils.i18n import  get_text, n_get_text
 from src.modules.keyboard_main import support_kb
 from src.services.database.replenishments_event.schemas import ReplenishmentCompleted, ReplenishmentFailed
 from src.utils.core_logger import get_logger
-from src.bot_actions.messages import send_log, send_message
+from src.bot_actions.messages import send_message
 
 
 async def replenishment_event_handler(event):
@@ -21,12 +21,7 @@ async def replenishment_event_handler(event):
     if event["event"] == "replenishment.new_replenishment":
         obj = NewReplenishment.model_validate(payload)
         await handler_new_replenishment(obj)
-    if event["event"] == "replenishment.completed":
-        obj = ReplenishmentCompleted.model_validate(payload)
-        await on_replenishment_completed(obj)
-    if event["event"] == "replenishment.failed":
-        obj = ReplenishmentFailed.model_validate(payload)
-        await on_replenishment_failed(obj)
+
 
 async def handler_new_replenishment(new_replenishment: NewReplenishment):
     """Обрабатывает создание нового пополнения у пользователя"""
@@ -135,7 +130,7 @@ async def handler_new_replenishment(new_replenishment: NewReplenishment):
             language=language,
             username=username
         )
-        await publish_event(event.model_dump(), 'replenishment.completed')  # публикация события
+        await on_replenishment_completed(event)
     else:
         event = ReplenishmentFailed(
             user_id=new_replenishment.user_id,
@@ -144,7 +139,7 @@ async def handler_new_replenishment(new_replenishment: NewReplenishment):
             language=language,
             username=username
         )
-        await publish_event(event.model_dump(), 'replenishment.failed')  # публикация события
+        await on_replenishment_failed(event)
 
 
 async def on_replenishment_completed(event: ReplenishmentCompleted):

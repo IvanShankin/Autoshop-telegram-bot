@@ -1,6 +1,5 @@
 from sqlalchemy import update
 
-from src.bot_actions.bot_instance import get_bot
 from src.bot_actions.messages.schemas import LogLevel, EventSentLog
 from src.broker.producer import publish_event
 from src.config import get_config
@@ -11,8 +10,9 @@ from src.services.database.discounts.events.schemas import NewActivationVoucher
 from src.services.database.discounts.models import Vouchers
 from src.services.database.users.actions import get_user
 from src.services.database.users.models import UserAuditLogs, WalletTransaction
+from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text
-from src.bot_actions.messages import send_log
+from src.bot_actions.messages import send_message
 
 
 async def voucher_event_handler(event):
@@ -55,7 +55,6 @@ async def handler_new_activated_voucher(new_activation_voucher: NewActivationVou
                     True,
                     new_activation_voucher.language
                 )
-
             new_wallet_transaction = WalletTransaction(
                 user_id=new_activation_voucher.user_id,
                 type='voucher',
@@ -79,7 +78,6 @@ async def handler_new_activated_voucher(new_activation_voucher: NewActivationVou
             await session_db.commit()
 
             if not voucher.is_created_admin:
-                bot = await get_bot()
                 owner = await get_user(voucher.creator_id)
                 message_for_user = get_text(
                     owner.language,
@@ -87,9 +85,10 @@ async def handler_new_activated_voucher(new_activation_voucher: NewActivationVou
                     "Voucher with code '{code}' has been activated! \n\nRemaining number of voucher activations: {number_activations}"
                 ).format(code=voucher.activation_code, number_activations=voucher.number_of_activations - voucher.activated_counter)
 
-                await bot.send_message(owner.user_id, message_for_user)
+                await send_message(owner.user_id, message_for_user)
 
     except Exception as e:
+        get_logger(__name__).exception(f"{e}")
         await send_failed(new_activation_voucher.voucher_id, str(e))
 
 

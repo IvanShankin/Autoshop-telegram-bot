@@ -75,8 +75,9 @@ async def replacement_fake_bot_fix(monkeypatch, replacement_paths_fix):
 @pytest_asyncio.fixture(scope="session")
 async def replacement_logger_fix():
     path_log_file = get_config().paths.log_file
-    new_path = path_log_file.parent / Path("auto_shop_bot_tests.log")
-    setup_logging(new_path)
+    test_log_file = path_log_file.parent / "auto_shop_bot_tests.log"
+    setup_logging(test_log_file)
+    yield
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)

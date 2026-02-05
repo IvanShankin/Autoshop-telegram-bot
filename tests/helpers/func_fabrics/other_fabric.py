@@ -160,7 +160,11 @@ async def create_income_from_referral_fabric(
 
 
 
-async def create_replenishment_fabric(amount: int = 110, user_id: int = None) -> Replenishments:
+async def create_replenishment_fabric(
+        amount: int = 110,
+        user_id: int = None,
+        status: str = "completed"
+) -> Replenishments:
     """Создаёт пополнение для пользователя"""
     async with get_db() as session_db:
         if user_id is None:
@@ -186,7 +190,7 @@ async def create_replenishment_fabric(amount: int = 110, user_id: int = None) ->
             type_payment_id=type_payment.type_payment_id,
             origin_amount=100,
             amount=amount, # сумма пополнения
-            status="completed",
+            status=status,
         )
         session_db.add(repl)
         await session_db.commit()
@@ -239,7 +243,9 @@ async def create_voucher_factory(
         filling_redis: bool = True,
         creator_id: int = None,
         expire_at: datetime = datetime.now(timezone.utc) + timedelta(days=1),
-        is_valid: bool = True
+        is_valid: bool = True,
+        is_created_admin: bool = False,
+        number_of_activations: int = 5,
 ) -> Vouchers:
     """Создаст новый ваучер в БД и в redis."""
     if creator_id is None:
@@ -251,9 +257,10 @@ async def create_voucher_factory(
         activation_code="TESTCODE",
         amount=100,
         activated_counter=0,
-        number_of_activations=5,
+        number_of_activations=number_of_activations,
         expire_at=expire_at,
         is_valid=is_valid,
+        is_created_admin=is_created_admin,
     )
 
     async with get_db() as session_db:

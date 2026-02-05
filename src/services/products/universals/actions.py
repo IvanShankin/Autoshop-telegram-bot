@@ -3,6 +3,8 @@ import shutil
 from pathlib import Path
 
 from src.bot_actions.messages import send_log
+from src.bot_actions.messages.schemas import EventSentLog
+from src.broker.producer import publish_event
 from src.services.database.categories.models import StorageStatus
 from src.services.database.categories.models import ProductUniversalFull, \
     UniversalStoragePydantic
@@ -116,6 +118,9 @@ async def move_universal_storage(storage: UniversalStoragePydantic, new_status: 
         )
         logger = get_logger(__name__)
         logger.exception(f"Ошибка при переносе универсального товара к {new_status} %s", storage.universal_storage_id)
-        await send_log(text)
+
+        event = EventSentLog(text=text)
+        await publish_event(event.model_dump(), "message.send_log")
+
         return False
 

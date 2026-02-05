@@ -5,7 +5,8 @@ from pathlib import Path
 from typing import AsyncGenerator
 
 from src.bot_actions.messages import send_log
-from src.config import get_config
+from src.bot_actions.messages.schemas import EventSentLog
+from src.broker.producer import publish_event
 from src.services.database.categories.models import AccountStorage, AccountStoragePydantic, AccountServiceType, \
     StorageStatus
 from src.services.filesystem.actions import move_file
@@ -54,8 +55,11 @@ async def move_in_account(account: AccountStorage, type_service_name: AccountSer
             f"Ошибка: {str(e)}"
         )
         logger = get_logger(__name__)
-        logger.exception(f"Ошибка при переносе аккаунта к {status.value} %s", account.account_storage_id)
-        await send_log(text)
+        logger.exception(text)
+
+        event = EventSentLog(text=text)
+        await publish_event(event.model_dump(), "message.send_log")
+
         return False
 
 

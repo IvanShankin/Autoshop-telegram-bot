@@ -1,10 +1,12 @@
 import asyncio
 from contextlib import suppress
+from typing import Callable, Awaitable, Optional
 
 import aio_pika
 import aiormq
 from orjson import orjson
 
+from src.bot_actions.messages.even_handlers import message_event_handler
 from src.config import get_config
 from src.services.database.discounts.events import promo_code_event_handler, voucher_event_handler
 from src.services.database.referrals.events import referral_event_handler
@@ -26,6 +28,7 @@ ROUTING_KEYS = [
     "account.*",
     "purchase.*",
     "filesystem.*"
+    "message.*"
 ]
 
 async def start_background_consumer():
@@ -160,6 +163,8 @@ async def handle_event(event: dict):
             await purchase_event_handler(event)
         elif event["event"].startswith("filesystem."):
             await filesystem_event_handler(event)
+        elif event["event"].startswith("message."):
+            await message_event_handler(event)
 
     except aiormq.exceptions.ChannelInvalidStateError as e:
         logger = get_logger(__name__)

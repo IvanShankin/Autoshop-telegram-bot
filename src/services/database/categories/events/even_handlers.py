@@ -1,3 +1,5 @@
+from src.bot_actions.messages.schemas import EventSentLog, LogLevel
+from src.broker.producer import publish_event
 from src.services.database.core.database import get_db
 from src.services.database.categories.events.schemas import NewPurchaseAccount, NewPurchaseUniversal
 from src.services.database.users.models import UserAuditLogs, WalletTransaction
@@ -17,18 +19,21 @@ async def handler_new_purchase_account(new_purchase: NewPurchaseAccount):
     """Отошлёт логи в канал, обновит SoldAccount в redis, добавить в БД запись о покупке"""
     logs = []
     for account_data in new_purchase.account_movement:
-        text = (
-            f"#Покупка_аккаунта \n\n"
-            f"Аккаунт на продаже (StorageAccount), id = {account_data.account_storage_id} продан!\n"
-            f"Создана новая запись о проданном аккаунте (SoldAccount), id = {account_data.new_sold_account_id}\n"
-            f"Создан лог о продаже аккаунта, id = {account_data.purchase_id}\n\n"
-            f"Себестоимость: {account_data.cost_price}\n"
-            f"Цена продажи: {account_data.purchase_price}\n"
-            f"Прибыль: {account_data.net_profit}\n\n"
-            f"ID категории: {new_purchase.category_id}\n"
-            f"Осталось аккаунтов в категории: {new_purchase.product_left}\n"
+        event = EventSentLog(
+            text=(
+                f"#Покупка_аккаунта \n\n"
+                f"Аккаунт на продаже (StorageAccount), id = {account_data.account_storage_id} продан!\n"
+                f"Создана новая запись о проданном аккаунте (SoldAccount), id = {account_data.new_sold_account_id}\n"
+                f"Создан лог о продаже аккаунта, id = {account_data.purchase_id}\n\n"
+                f"Себестоимость: {account_data.cost_price}\n"
+                f"Цена продажи: {account_data.purchase_price}\n"
+                f"Прибыль: {account_data.net_profit}\n\n"
+                f"ID категории: {new_purchase.category_id}\n"
+                f"Осталось аккаунтов в категории: {new_purchase.product_left}\n"
+            ),
+            log_lvl=LogLevel.INFO
         )
-        await send_log(text)
+        await publish_event(event.model_dump(), "message.send_log")
 
         new_log = UserAuditLogs(
             user_id= new_purchase.user_id,
@@ -62,18 +67,21 @@ async def handler_new_purchase_account(new_purchase: NewPurchaseAccount):
 async def handler_new_purchase_universal(new_purchase: NewPurchaseUniversal):
     logs = []
     for product_data in new_purchase.product_movement:
-        text = (
-            f"#Покупка \n\n"
-            f"Продукт на продаже (UniversalStorage), id = {product_data.universal_storage_id} продан!\n"
-            f"Создана новая запись о проданном товаре (SoldUniversal), id = {product_data.sold_universal_id}\n"
-            f"Создан лог о продаже аккаунта, id = {product_data.purchase_id}\n\n"
-            f"Себестоимость: {product_data.cost_price}\n"
-            f"Цена продажи: {product_data.purchase_price}\n"
-            f"Прибыль: {product_data.net_profit}\n\n"
-            f"ID категории: {new_purchase.category_id}\n"
-            f"Осталось продуктов в категории: {new_purchase.product_left}\n"
+        event = EventSentLog(
+            text=(
+                f"#Покупка \n\n"
+                f"Продукт на продаже (UniversalStorage), id = {product_data.universal_storage_id} продан!\n"
+                f"Создана новая запись о проданном товаре (SoldUniversal), id = {product_data.sold_universal_id}\n"
+                f"Создан лог о продаже аккаунта, id = {product_data.purchase_id}\n\n"
+                f"Себестоимость: {product_data.cost_price}\n"
+                f"Цена продажи: {product_data.purchase_price}\n"
+                f"Прибыль: {product_data.net_profit}\n\n"
+                f"ID категории: {new_purchase.category_id}\n"
+                f"Осталось продуктов в категории: {new_purchase.product_left}\n"
+            ),
+            log_lvl=LogLevel.INFO
         )
-        await send_log(text)
+        await publish_event(event.model_dump(), "message.send_log")
 
         new_log = UserAuditLogs(
             user_id=new_purchase.user_id,

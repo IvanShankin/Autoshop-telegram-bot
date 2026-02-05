@@ -5,6 +5,7 @@ import orjson
 from dateutil.parser import parse
 from sqlalchemy import update, select, func
 
+from src.bot_actions.messages.schemas import LogLevel, EventSentLog
 from src.broker.producer import publish_event
 from src.config import get_config
 from src.exceptions import NotEnoughMoney
@@ -207,13 +208,18 @@ async def create_voucher(
             )
             session_db.add(new_admin_actions)
             await session_db.commit()
-            await send_log(
-                f"🛠️\n"
-                f'#Админ_создал_ваучер \n\n'
-                f'Сумма: {amount} \n'
-                f'Число активаций: {number_of_activations} \n'
-                f'Годен до: {expire_at}'
+
+            event = EventSentLog(
+                text=(
+                    f"🛠️\n"
+                    f'#Админ_создал_ваучер \n\n'
+                    f'Сумма: {amount} \n'
+                    f'Число активаций: {number_of_activations} \n'
+                    f'Годен до: {expire_at}'
+                ),
+                log_lvl=LogLevel.INFO
             )
+            await publish_event(event.model_dump(), "message.send_log")
         else:
             new_user_log = UserAuditLogs(
                 user_id=user.user_id,
@@ -289,7 +295,11 @@ async def deactivate_voucher(voucher_id: int) -> int:
 
             # если создатель ваучера админ
             if voucher.is_created_admin:
-                await send_log(f"#Деактивация_ваучера_созданным_админом \n\nID: {voucher.voucher_id}")
+                event = EventSentLog(
+                    text=f"#Деактивация_ваучера_созданным_админом \n\nID: {voucher.voucher_id}",
+                    log_lvl=LogLevel.INFO
+                )
+                await publish_event(event.model_dump(), "message.send_log")
                 return 0
 
             await filling_voucher_by_user_id(owner_id)
@@ -347,7 +357,9 @@ async def deactivate_voucher(voucher_id: int) -> int:
             "#Error_refunding_money_from_voucher \n\nVoucher ID: {voucher_id} \nOwner ID: {owner_id} \nError: {error}"
         ).format(voucher_id=voucher_id, owner_id=owner_id, error=str(e))
 
-        await send_log(log_message)
+        event = EventSentLog(text=log_message)
+        await publish_event(event.model_dump(), "message.send_log")
+
         raise e
 
 

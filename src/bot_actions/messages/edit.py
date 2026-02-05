@@ -8,7 +8,8 @@ from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboa
     InputMediaPhoto
 
 from src.bot_actions.bot_instance import get_bot
-from src.bot_actions.messages import send_log, send_message
+from src.bot_actions.messages import send_message
+from src.bot_actions.messages.schemas import EventSentLog, LogLevel
 from src.broker.producer import publish_event
 from src.services.database.system.actions import get_ui_image, update_ui_image
 from src.services.filesystem.actions import check_file_exists
@@ -133,7 +134,11 @@ async def _try_edit_media_by_file(
                         EventCreateUiImage(ui_image_key=ui_image.key).model_dump(),
                         "filesystem.create_ui_image"
                     )
-                    await send_log(f"#Не_найдено_фото [edit_message]. \nget_ui_image='{ui_image.key}'")  # лучше после отправки пользователю
+                    event = EventSentLog(
+                        text=f"#Не_найдено_фото [edit_message]. \nget_ui_image='{ui_image.key}'",
+                        log_lvl=LogLevel.WARNING
+                    )
+                    await publish_event(event.model_dump(), "message.send_log")
                 else:
                     ok = await _try_edit_media_by_file(bot, chat_id, message_id, ui_image, caption, reply_markup)
                     if ok:
@@ -290,7 +295,6 @@ async def edit_message(
                 return
             else:
                 text = f"#Не_найдено_фото [edit_message]. \nget_ui_image='{image_key}'"
-                logger.warning(text)
                 await publish_event(
                     EventCreateUiImage(ui_image_key=ui_image.key).model_dump(),
                     "filesystem.create_ui_image"
@@ -312,14 +316,22 @@ async def edit_message(
                     ok = await _try_edit_media_by_file_id(bot, chat_id, message_id, ui_image.file_id, message, reply_markup, parse_mode)
                     if ok:
                         if not ui_image:
-                            await send_log(text)
+                            event = EventSentLog(
+                                text=text,
+                                log_lvl=LogLevel.WARNING
+                            )
+                            await publish_event(event.model_dump(), "message.send_log")
                         return  # успешно
                 elif check_file_exists(file_path):
                     # пробуем редактировать media с загрузкой файла
                     ok = await _try_edit_media_by_file(bot, chat_id, message_id, ui_image, message, reply_markup, parse_mode)
                     if ok:
                         if not ui_image:
-                            await send_log(text)
+                            event = EventSentLog(
+                                text=text,
+                                log_lvl=LogLevel.WARNING
+                            )
+                            await publish_event(event.model_dump(), "message.send_log")
                         return  # успешно
                 else:
                     text = f"#Не_найдено_фото [edit_message]. \nget_ui_image='{fallback_image_key}'"
@@ -330,12 +342,19 @@ async def edit_message(
                     )
 
             else:
-                await send_log(text)
+                event = EventSentLog(
+                    text=text,
+                    log_lvl=LogLevel.WARNING
+                )
+                await publish_event(event.model_dump(), "message.send_log")
         elif not ui_image:
             # если нет замены для фото
             text = f"#Не_найдено_фото [edit_message]. \nget_ui_image='{image_key}'"
-            logger.warning(text)
-            await send_log(text)
+            event = EventSentLog(
+                text=text,
+                log_lvl=LogLevel.WARNING
+            )
+            await publish_event(event.model_dump(), "message.send_log")
 
         # если ui_image не найден или скрыт (show=False), то переходим к ветке "без фото"
 

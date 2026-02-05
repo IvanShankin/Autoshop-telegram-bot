@@ -110,8 +110,8 @@ class TestSendMessage:
 
         await send_message(chat_id=555, message="Plain text", image_key="missing")
 
-        assert len(fake_bot.sent) == 2 # 2 т.к. ещё отправляется сообщение о проверке аккаунтов
-        chat_id, text, kwargs = fake_bot.sent[1]
+        assert len(fake_bot.sent) == 1
+        chat_id, text, kwargs = fake_bot.sent[0]
         assert text == "Plain text"
         assert chat_id == 555
 

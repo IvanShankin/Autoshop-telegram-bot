@@ -125,6 +125,18 @@ async def clean_redis(replacement_redis_fix):
 
 
 @pytest_asyncio.fixture(scope="function")
+async def rabbit_channel():
+    connection = await aio_pika.connect_robust(RABBITMQ_URL)
+    channel = await connection.channel()
+
+    try:
+        yield channel
+    finally:
+        await channel.close()
+        await connection.close()
+
+
+@pytest_asyncio.fixture(scope="function")
 async def start_consumer():
     """ Запускает consumer и корректно его останавливает по завершению теста. """
     from src.broker.consumer import _run_single_consumer_loop
@@ -153,16 +165,20 @@ async def start_consumer():
 
 
 @pytest_asyncio.fixture(scope="function")
-async def clean_rabbit(start_consumer):
+async def clean_rabbit():
     connection = await aio_pika.connect_robust(RABBITMQ_URL)
     channel = await connection.channel()
+
     queues_to_purge = ["events_db"]
     for queue_name in queues_to_purge:
         queue = await channel.declare_queue(queue_name, durable=True)
         await queue.purge()
+
     await channel.close()
     await connection.close()
+
     yield
+
 
 
 @pytest_asyncio.fixture

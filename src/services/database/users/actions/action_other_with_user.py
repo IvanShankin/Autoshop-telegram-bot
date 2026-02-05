@@ -5,6 +5,8 @@ import orjson
 from asyncpg.pgproto.pgproto import timedelta
 from sqlalchemy import select, update, delete, func
 
+from src.bot_actions.messages.schemas import EventSentLog, LogLevel
+from src.broker.producer import publish_event
 from src.config import get_config
 from src.exceptions import UserNotFound, NotEnoughMoney
 from src.services.redis.filling import filling_user
@@ -53,7 +55,11 @@ async def add_new_user(user_id: int, username: str, language: str = 'ru') -> Use
         await session_redis.setex(f'user:{user_id}', TIME_USER, orjson.dumps(user.to_dict()))
         await session_redis.setex(f'subscription_prompt:{user_id}', TIME_SUBSCRIPTION_PROMPT, '_')
 
-    await send_log(f"#Новый_пользователь \n\nID: {user_id}\nusername: {username}")
+    event = EventSentLog(
+        text=f"#Новый_пользователь \n\nID: {user_id}\nusername: {username}",
+        log_lvl=LogLevel.INFO
+    )
+    await publish_event(event.model_dump(), "message.send_log")
 
     return user
 
@@ -120,14 +126,19 @@ async def add_banned_account(admin_id: int, user_id: int, reason: str):
     async with get_redis() as session_redis:
         await session_redis.set(f"banned_account:{user_id}", reason)
 
-    await send_log(
-        f"🛠️\n"
-        f"#Аккаунт_забанен \n\n"
-        f"Админ c ID = '{admin_id}' \n"
-        f"Добавил нового пользователя в забаненные аккаунты \n\n"
-        f"ID Пользователя: '{user_id}'\n"
-        f"Причина: '{reason}'"
+    event = EventSentLog(
+        text=(
+            f"🛠️\n"
+            f"#Аккаунт_забанен \n\n"
+            f"Админ c ID = '{admin_id}' \n"
+            f"Добавил нового пользователя в забаненные аккаунты \n\n"
+            f"ID Пользователя: '{user_id}'\n"
+            f"Причина: '{reason}'"
+        ),
+        log_lvl=LogLevel.INFO
     )
+    await publish_event(event.model_dump(), "message.send_log")
+
 
 async def delete_banned_account(admin_id: int, user_id: int):
     if not await get_banned_account(user_id):
@@ -148,12 +159,16 @@ async def delete_banned_account(admin_id: int, user_id: int):
     async with get_redis() as session_redis:
         await session_redis.delete(f"banned_account:{user_id}")
 
-    await send_log(
-        f"🛠️\n"
-        f"#Аккаунт_разбанен \n\n"
-        f"Админ c ID = '{admin_id}' разбанил пользователя \n"
-        f"ID разбаненного аккаунта: '{user_id}'"
+    event = EventSentLog(
+        text=(
+            f"🛠️\n"
+            f"#Аккаунт_разбанен \n\n"
+            f"Админ c ID = '{admin_id}' разбанил пользователя \n"
+            f"ID разбаненного аккаунта: '{user_id}'"
+        ),
+        log_lvl=LogLevel.INFO
     )
+    await publish_event(event.model_dump(), "message.send_log")
 
 
 async def get_wallet_transaction(wallet_transaction_id: int) -> WalletTransaction:
@@ -277,7 +292,11 @@ async def money_transfer(sender_id: int, recipient_id: int, amount: int):
             session_db.add(log_recipient)
             await session_db.commit()
     except Exception as e:
-        await send_log(f"#Ошибка_при_переводе_денег \n\nID пользователя: {sender_id} \nОшибка: {e}")
+        event = EventSentLog(
+            text=f"#Ошибка_при_переводе_денег \n\nID пользователя: {sender_id} \nОшибка: {e}",
+            log_lvl=LogLevel.ERROR
+        )
+        await publish_event(event.model_dump(), "message.send_log")
         logger = get_logger(__name__)
         logger.exception(f"ошибка: {e}")
 

@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import List
 
 from src.bot_actions.messages import send_log
+from src.bot_actions.messages.schemas import EventSentLog
+from src.broker.producer import publish_event
 from src.config import get_config
 from src.services.database.categories.models.product_universal import StorageStatus
 from src.services.database.categories.models import SoldUniversalFull
@@ -52,8 +54,11 @@ async def move_in_universal(universal: SoldUniversalFull, status: StorageStatus)
             f"Ошибка: {str(e)}"
         )
         logger = get_logger(__name__)
-        logger.exception(f"Ошибка при переносе универсального товара к {status} %s", universal.universal_storage_id)
-        await send_log(text)
+        logger.exception(text)
+
+        event = EventSentLog(text=text)
+        await publish_event(event.model_dump(), "message.send_log")
+
         return False
 
 

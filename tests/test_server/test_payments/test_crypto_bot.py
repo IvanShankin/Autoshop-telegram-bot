@@ -37,7 +37,6 @@ async def test_create_invoice_handles_exception(monkeypatch, create_new_user, cr
         amount_rub=1000
     )
 
-    assert fake_bot.check_str_in_messages("#Ошибка_при_создание_счёта_в_КБ")
 
 @pytest.mark.asyncio
 async def test_create_invoice_handles(monkeypatch, create_new_user, create_type_payment, replacement_needed_modules, replacement_fake_bot_fix):

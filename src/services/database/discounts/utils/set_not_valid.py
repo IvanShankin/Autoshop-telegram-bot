@@ -3,6 +3,8 @@ import asyncio
 from datetime import datetime, timezone
 from sqlalchemy import select, and_, update
 
+from src.bot_actions.messages.schemas import EventSentLog, LogLevel
+from src.broker.producer import publish_event
 from src.services.database.core.database import get_db
 from src.services.database.discounts.actions.actions_vouchers import deactivate_voucher
 from src.services.database.discounts.models import Vouchers, PromoCodes
@@ -10,7 +12,6 @@ from src.services.database.discounts.utils.sending import send_set_not_valid_vou
 from src.services.database.users.actions import get_user
 from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text
-from src.bot_actions.messages import send_log
 
 
 async def _set_not_valid_promo_code() -> None:
@@ -39,7 +40,11 @@ async def _set_not_valid_promo_code() -> None:
                 "#Promo_code_expired \nID '{id}' \nCode '{code}'"
                 "\n\nThe promo code has expired due to reaching the number of activations or time limit. It is no longer possible to activate it"
             ).format(id=promo.promo_code_id, code=promo.activation_code)
-            await send_log(message_log)
+            event = EventSentLog(
+                text=message_log,
+                log_lvl=LogLevel.WARNING
+            )
+            await publish_event(event.model_dump(), "message.send_log")
 
 
 async def _set_not_valid_vouchers() -> None:

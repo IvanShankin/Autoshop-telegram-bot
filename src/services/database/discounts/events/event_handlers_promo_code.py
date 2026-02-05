@@ -2,6 +2,8 @@ from datetime import datetime, timezone
 
 from sqlalchemy import update, select
 
+from src.bot_actions.messages.schemas import EventSentLog, LogLevel
+from src.broker.producer import publish_event
 from src.config import get_config
 from src.services.redis.core_redis import get_redis
 from src.services.database.discounts.events.schemas import NewActivatePromoCode
@@ -100,29 +102,38 @@ async def handler_new_activate_promo_code(new_activate: NewActivatePromoCode):
 
 
 async def on_new_activate_promo_code_completed(promo_code_id: int, user_id: int, activation_code: str, activations_left: int):
-    message_log = get_text(
-        get_config().app.default_lang,
-        "discount",
-        "#Promocode_activation \nID promo_code '{promo_code_id}' \nCode '{code}' \nID user '{user_id}'"
-        "\n\nSuccessfully activated. \nActivations remaining: {number_of_activations}"
-    ).format(promo_code_id=promo_code_id, code=activation_code, user_id=user_id, number_of_activations=activations_left)
-    await send_log(message_log)
+    event = EventSentLog(
+        text=get_text(
+            get_config().app.default_lang,
+            "discount",
+            "#Promocode_activation \nID promo_code '{promo_code_id}' \nCode '{code}' \nID user '{user_id}'"
+            "\n\nSuccessfully activated. \nActivations remaining: {number_of_activations}"
+        ).format(promo_code_id=promo_code_id, code=activation_code, user_id=user_id, number_of_activations=activations_left),
+        log_lvl=LogLevel.INFO
+    )
+    await publish_event(event.model_dump(), "message.send_log")
 
 async def send_promo_code_expired(promo_code_id: int, activation_code: str):
-    message_log = get_text(
-        get_config().app.default_lang,
-        "discount",
-        "#Promo_code_expired \nID '{id}' \nCode '{code}'"
-        "\n\nThe promo code has expired due to reaching the number of activations or time limit. It is no longer possible to activate it"
-    ).format(id=promo_code_id, code=activation_code)
-    await send_log(message_log)
+    event = EventSentLog(
+        text=get_text(
+            get_config().app.default_lang,
+            "discount",
+            "#Promo_code_expired \nID '{id}' \nCode '{code}'"
+            "\n\nThe promo code has expired due to reaching the number of activations or time limit. It is no longer possible to activate it"
+        ).format(id=promo_code_id, code=activation_code),
+        log_lvl=LogLevel.INFO
+    )
+    await publish_event(event.model_dump(), "message.send_log")
 
 async def on_new_activate_promo_code_failed(promo_code_id: int, error: str):
-    message_log = get_text(
-        get_config().app.default_lang,
-        "discount",
-        "#Error_activating_promo_code \n\nPromo code ID '{id}' \nError: {error}"
-    ).format(id=promo_code_id, error=error)
-    await send_log(message_log)
+    event = EventSentLog(
+        text=get_text(
+            get_config().app.default_lang,
+            "discount",
+            "#Error_activating_promo_code \n\nPromo code ID '{id}' \nError: {error}"
+        ).format(id=promo_code_id, error=error),
+        log_lvl=LogLevel.INFO
+    )
+    await publish_event(event.model_dump(), "message.send_log")
 
 

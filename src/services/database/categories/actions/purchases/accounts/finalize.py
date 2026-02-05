@@ -5,8 +5,8 @@ from typing import List, Tuple
 from sqlalchemy import update, delete
 
 from src.bot_actions.messages import send_log
+from src.bot_actions.messages.schemas import EventSentLog, LogLevel
 from src.broker.producer import publish_event
-from src.config import get_config
 from src.services.database.categories.actions.products.accounts.actions_get import get_product_account_by_category_id
 from src.services.database.categories.actions.purchases.accounts.cancel import cancel_purchase_request_accounts
 from src.services.database.categories.events.schemas import NewPurchaseAccount, AccountsData
@@ -58,8 +58,11 @@ async def finalize_purchase_accounts(user_id: int, data: StartPurchaseAccount):
             if not moved:
                 # если не удалось найти/переместить — удаляем account из БД (или помечаем), лог и cancel
                 text = f"#Внимание \n\nАккаунт не найден/не удалось переместить: {orig}"
-                await send_log(text)
                 logger.exception(text)
+
+                event = EventSentLog(text=text)
+                await publish_event(event.model_dump(), "message.send_log")
+
                 # сразу откатываем — возвращаем то что успели переместить
                 await cancel_purchase_request_accounts(
                     user_id=user_id,
@@ -204,7 +207,10 @@ async def finalize_purchase_accounts(user_id: int, data: StartPurchaseAccount):
 
     except Exception as e:
         logger.exception("Error in finalize_purchase: %s", e)
-        await send_log(f"#Ошибка finalise_purchase: {e}")
+        event = EventSentLog(
+            text=f"#Ошибка finalise_purchase: {e}"
+        )
+        await publish_event(event.model_dump(), "message.send_log")
 
         await cancel_purchase_request_accounts(
             user_id=user_id,

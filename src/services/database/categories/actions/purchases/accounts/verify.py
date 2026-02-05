@@ -6,6 +6,8 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
 from src.bot_actions.messages import send_log
+from src.bot_actions.messages.schemas import EventSentLog, LogLevel
+from src.broker.producer import publish_event
 from src.services.database.categories.actions.actions_get import get_category_by_category_id
 from src.services.database.categories.actions.products.accounts.actions_add import add_deleted_accounts
 from src.services.database.categories.actions.products.accounts.actions_delete import delete_product_account
@@ -61,17 +63,18 @@ async def _delete_account(account_storage: List[ProductAccounts], type_service_a
                     category_name=category.name,
                     description=category.description
                 )
-                text = (
-                    "\n#Невалидный_аккаунт \n"
-                    "При покупке был найден невалидный аккаунт, он удалён с продажи \n"
-                    "Данные об аккаунте: \n"
-                    f"storage_account_id: {bad_account.account_storage.account_storage_id}\n"
-                    f"Себестоимость: {category.cost_price}\n"
-                )
-                await send_log(text)
 
-                logger = get_logger(__name__)
-                logger.info(text)
+                event = EventSentLog(
+                    text=(
+                        "\n#Невалидный_аккаунт \n"
+                        "При покупке был найден невалидный аккаунт, он удалён с продажи \n"
+                        "Данные об аккаунте: \n"
+                        f"storage_account_id: {bad_account.account_storage.account_storage_id}\n"
+                        f"Себестоимость: {category.cost_price}\n"
+                    ),
+                    log_lvl=LogLevel.INFO
+                )
+                await publish_event(event.model_dump(), "message.send_log")
             except Exception:
                 logger = get_logger(__name__)
                 logger.exception("Failed to log deleted account %s", bad_account.account_storage.account_storage_id)

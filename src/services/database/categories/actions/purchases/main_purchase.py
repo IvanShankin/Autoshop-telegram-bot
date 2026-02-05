@@ -1,6 +1,8 @@
 from typing import Optional
 
 from src.bot_actions.messages import send_log
+from src.bot_actions.messages.schemas import EventSentLog, LogLevel
+from src.broker.producer import publish_event
 from src.exceptions.business import InvalidQuantityProducts
 from src.services.database.categories.actions.purchases.accounts.cancel import cancel_purchase_request_accounts
 from src.services.database.categories.actions.purchases.accounts.finalize import finalize_purchase_accounts
@@ -75,14 +77,15 @@ async def purchase_accounts(
             purchase_request_id = data.purchase_request_id,
             product_accounts = [],
         )
-        text = (
-            "#Недостаточно_аккаунтов \n"
-            "Пользователь пытался купить аккаунты, но ему не нашлось необходимое количество аккаунтов"
-        )
-        await send_log(text)
 
-        logger = get_logger(__name__)
-        logger.warning(text)
+        event = EventSentLog(
+            text=(
+                "#Недостаточно_аккаунтов \n"
+                "Пользователь пытался купить аккаунты, но ему не нашлось необходимое количество аккаунтов"
+            ),
+            log_lvl=LogLevel.WARNING
+        )
+        await publish_event(event.model_dump(), "message.send_log")
 
         result = False
     else:

@@ -7,6 +7,7 @@ from typing import List, Tuple
 from sqlalchemy import update, delete
 
 from src.bot_actions.messages import send_log
+from src.bot_actions.messages.schemas import EventSentLog
 from src.broker.producer import publish_event
 from src.config import get_config
 from src.services.database.categories.actions.products.universal.actions_get import \
@@ -284,8 +285,10 @@ async def finalize_purchase_universal_different(user_id: int, data: StartPurchas
             if not moved:
                 # если не удалось найти/переместить — удаляем product из БД (или помечаем), лог и cancel
                 text = f"#Внимание \n\nАккаунт не найден/не удалось переместить: {orig}"
-                await send_log(text)
                 logger.exception(text)
+
+                event = EventSentLog(text=text)
+                await publish_event(event.model_dump(), "message.send_log")
 
                 # сразу откатываем — возвращаем то что успели переместить
                 await cancel_purchase_universal_different(
@@ -409,7 +412,9 @@ async def finalize_purchase_universal_different(user_id: int, data: StartPurchas
 
     except Exception as e:
         logger.exception("Error in finalize_purchase: %s", e)
-        await send_log(f"#Ошибка finalize_purchase_universal_different: {e}")
+
+        event = EventSentLog(text=f"#Ошибка finalize_purchase_universal_different: {e}")
+        await publish_event(event.model_dump(), "message.send_log")
 
         await cancel_purchase_universal_different(
             user_id=user_id,

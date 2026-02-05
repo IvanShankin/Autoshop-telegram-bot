@@ -6,6 +6,8 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
 from src.bot_actions.messages import send_log
+from src.bot_actions.messages.schemas import LogLevel, EventSentLog
+from src.broker.producer import publish_event
 from src.config import get_config
 from src.services.database.categories.actions.actions_get import get_category_by_category_id
 from src.services.database.categories.actions.products.universal.action_delete import delete_prod_universal
@@ -55,17 +57,18 @@ async def _delete_universal(universal_product: List[ProductUniversalFull]):
                 await add_deleted_universal(
                     universal_storage_id=bad_prod.universal_storage.universal_storage_id,
                 )
-                text = (
-                    "\n#Невалидный_продукт \n"
-                    "При покупке был найден невалидный универсальный продукт, он удалён с продажи \n"
-                    "Данные об продукте: \n"
-                    f"universal_storage_id: {bad_prod.universal_storage.universal_storage_id}\n"
-                    f"Себестоимость: {category.cost_price}\n"
-                )
-                await send_log(text)
 
-                logger = get_logger(__name__)
-                logger.info(text)
+                event = EventSentLog(
+                    text=(
+                        "\n#Невалидный_продукт \n"
+                        "При покупке был найден невалидный универсальный продукт, он удалён с продажи \n"
+                        "Данные об продукте: \n"
+                        f"universal_storage_id: {bad_prod.universal_storage.universal_storage_id}\n"
+                        f"Себестоимость: {category.cost_price}\n"
+                    ),
+                    log_lvl=LogLevel.INFO
+                )
+                await publish_event(event.model_dump(), "message.send_log")
             except Exception:
                 logger = get_logger(__name__)
                 logger.exception(
@@ -90,15 +93,19 @@ async def verify_reserved_universal_one(
     if not result_check:
         await _delete_universal([product_universal])
         category = await get_category_by_category_id(product_universal.category_id, return_not_show=True)
-        text = (
-            "\n#Невалидный_продукт \n"
-            "При покупке был найден невалидный универсальный продукт, он удалён с продажи \n"
-            "Категория теперь не отображается! \n"
-            f"ID категории: {category.category_id}\n"
-            f"Имя категории: {category.name}\n"
-            f"Описание внутри категории: {category.description}\n"
+
+        event = EventSentLog(
+            text=(
+                "\n#Невалидный_продукт \n"
+                "При покупке был найден невалидный универсальный продукт, он удалён с продажи \n"
+                "Категория теперь не отображается! \n"
+                f"ID категории: {category.category_id}\n"
+                f"Имя категории: {category.name}\n"
+                f"Описание внутри категории: {category.description}\n"
+            ),
+            log_lvl=LogLevel.INFO
         )
-        await send_log(text)
+        await publish_event(event.model_dump(), "message.send_log")
 
     return result_check
 

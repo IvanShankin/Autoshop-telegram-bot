@@ -1,6 +1,8 @@
 from sqlalchemy import update
 
 from src.bot_actions.bot_instance import get_bot
+from src.bot_actions.messages.schemas import LogLevel, EventSentLog
+from src.broker.producer import publish_event
 from src.config import get_config
 from src.services.redis.core_redis import get_redis
 from src.services.database.core.database import get_db
@@ -92,10 +94,14 @@ async def handler_new_activated_voucher(new_activation_voucher: NewActivationVou
 
 
 async def send_failed(voucher_id: int, error: str):
-    message_log = get_text(
-        get_config().app.default_lang,
-        "discount",
-        "Error_while_activating_voucher. \n\nVoucher ID '{id}' \nError: {error}"
-    ).format(id=voucher_id, error=error)
-    await send_log(message_log)
+    event = EventSentLog(
+        text=get_text(
+            get_config().app.default_lang,
+            "discount",
+            "Error_while_activating_voucher. \n\nVoucher ID '{id}' \nError: {error}"
+        ).format(id=voucher_id, error=error),
+        log_lvl=LogLevel.ERROR
+    )
+    await publish_event(event.model_dump(), "message.send_log")
+
 

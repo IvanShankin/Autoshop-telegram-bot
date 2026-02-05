@@ -18,6 +18,7 @@ from src.services.database.replenishments_event.schemas import ReplenishmentFail
 from src.services.database.core.database import get_db
 from src.utils.i18n import get_text, n_get_text
 from src.services.redis.core_redis import get_redis
+from test_server.test_events.helpers_fun import wait_until_queue_empty
 
 from tests.helpers.helper_functions import comparison_models
 from tests.helpers.monkeypatch_data import fake_bot
@@ -29,7 +30,9 @@ class TestHandlerNewReplenishment:
     async def create_and_update_replenishment(
             self, user_id: int,
             type_payment_id: int,
-            processed_replenishment: AsyncGenerator
+            processed_replenishment: AsyncGenerator,
+            start_consumer,
+            rabbit_channel,
     )->Replenishments:
         """
         Запустит событие на обработку нового пополнения и дождётся его выполнения
@@ -55,8 +58,16 @@ class TestHandlerNewReplenishment:
                 amount=new_replenishment.amount
             )
 
-            await publish_event(event.model_dump(), 'replenishment.new_replenishment')  # публикация события
-            await asyncio.wait_for(processed_replenishment.wait(), timeout=5.0)  # ожидание завершения события
+            await publish_event(
+                event.model_dump(),
+                routing_key="replenishment.new_replenishment",
+            )
+
+            await wait_until_queue_empty(
+                rabbit_channel,
+                queue_name="events_db",
+                timeout=5,
+            )
 
         return new_replenishment
 
@@ -66,7 +77,8 @@ class TestHandlerNewReplenishment:
             processed_replenishment,
             create_new_user,
             create_type_payment,
-            clean_rabbit
+            start_consumer,
+            rabbit_channel,
         ):
         """Интеграционный тест"""
         user = await create_new_user()
@@ -80,7 +92,9 @@ class TestHandlerNewReplenishment:
         replenishment = await self.create_and_update_replenishment(
             user_id,
             type_payment.type_payment_id,
-            processed_replenishment
+            processed_replenishment,
+            start_consumer,
+            rabbit_channel,
         )
 
         async with get_db() as session_db:
@@ -595,11 +609,13 @@ class TestHandlerNewActivatedVoucher:
         processed_voucher,
         create_new_user,
         create_voucher,
-        clean_rabbit
+        clean_rabbit,
+        start_consumer,
+        rabbit_channel,
     ):
-
-        from src.services.database.users.actions import get_user
         """Тест успешной активации ваучера"""
+        from src.services.database.users.actions import get_user
+
         user = await create_new_user()
         voucher = await create_voucher()
         initial_balance = user.balance
@@ -610,8 +626,16 @@ class TestHandlerNewActivatedVoucher:
             user, voucher, initial_balance, expected_balance
         )
 
-        await publish_event(event.model_dump(), 'voucher.activated')  # публикация события
-        await asyncio.wait_for(processed_voucher.wait(), timeout=5.0)  # ожидание завершения события
+        await publish_event(
+            event.model_dump(),
+            routing_key="voucher.activated",
+        )
+
+        await wait_until_queue_empty(
+            rabbit_channel,
+            queue_name="events_db",
+            timeout=5,
+        )
 
         async with get_db() as session_db:
             # Проверяем обновление ваучера

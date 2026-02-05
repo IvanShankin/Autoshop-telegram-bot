@@ -4,6 +4,8 @@ from aiogram.exceptions import TelegramForbiddenError
 from sqlalchemy import update, select
 
 from src.bot_actions.bot_instance import get_bot_logger
+from src.bot_actions.messages.schemas import EventSentLog, LogLevel
+from src.broker.producer import publish_event
 from src.config import get_config
 from src.services.database.users.actions import get_user, update_user
 from src.services.database.users.models import UserAuditLogs, WalletTransaction, NotificationSettings
@@ -160,30 +162,35 @@ async def on_referral_income_completed(user_id: int, language: str,  amount: int
             pass
     except Exception as e:
         logger = get_logger(__name__)
-        logger.error(
+        logger.exception(
             f"#Ошибка_пополнения. Произошла ошибка при отсылке сообщения о пополнении денег владельцу реферала. Ошибка: {str(e)}."
         )
 
-        message_log = get_text(
+        event = EventSentLog(
+            text=get_text(
+                get_config().app.default_lang,
+                'referral_messages',
+                "#Replenishment_error \n\n"
+                "An error occurred while sending a message about replenishing funds to the referral owner. \n"
+                "Error: {error}. \n\n"
+                "Time: {time}"
+            ).format(error=str(e), time=datetime.now().strftime(get_config().different.dt_format)),
+            log_lvl=LogLevel.ERROR
+        )
+        await publish_event(event.model_dump(), "message.send_log")
+
+async def on_referral_income_failed(error: str):
+    """Отсылает лог ошибки при пополнении баланса"""
+    event = EventSentLog(
+        text=get_text(
             get_config().app.default_lang,
             'referral_messages',
             "#Replenishment_error \n\n"
             "An error occurred while sending a message about replenishing funds to the referral owner. \n"
             "Error: {error}. \n\n"
             "Time: {time}"
-        ).format(error=str(e), time=datetime.now().strftime(get_config().different.dt_format))
-        await send_log(message_log)
-
-async def on_referral_income_failed(error: str):
-    """Отсылает лог ошибки при пополнении баланса"""
-    message_log = get_text(
-        get_config().app.default_lang,
-        'referral_messages',
-        "#Replenishment_error \n\n"
-        "An error occurred while sending a message about replenishing funds to the referral owner. \n"
-        "Error: {error}. \n\n"
-        "Time: {time}"
-    ).format(error=error, time=datetime.now().strftime(get_config().different.dt_format))
-
-    await send_log(message_log)
+        ).format(error=error, time=datetime.now().strftime(get_config().different.dt_format)),
+        log_lvl=LogLevel.ERROR
+    )
+    await publish_event(event.model_dump(), "message.send_log")
 

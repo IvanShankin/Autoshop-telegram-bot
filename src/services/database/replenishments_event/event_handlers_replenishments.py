@@ -1,6 +1,7 @@
 from datetime import datetime
 from sqlalchemy import update, select
 
+from src.bot_actions.messages.schemas import EventSentLog, LogLevel
 from src.broker.producer import publish_event
 from src.config import get_config
 from src.services.database.users.actions import update_user, get_user
@@ -118,8 +119,9 @@ async def handler_new_replenishment(new_replenishment: NewReplenishment):
                     .values(status=new_status_replenishment)
                 )
         except Exception as e:
-            logger.error(f"Не удалось обновить данные о новом пополнении. Ошибка: {str(e)}")
-            await send_log(f"Не удалось обновить данные о новом пополнении. \nОшибка: {str(e)}")
+            logger.exception(f"Не удалось обновить данные о новом пополнении. Ошибка: {str(e)}")
+            event = EventSentLog(text=f"Не удалось обновить данные о новом пополнении. Ошибка: {str(e)}")
+            await publish_event(event.model_dump(), "message.send_log")
 
     # откладываем событие
     if money_credited:
@@ -143,6 +145,7 @@ async def handler_new_replenishment(new_replenishment: NewReplenishment):
             username=username
         )
         await publish_event(event.model_dump(), 'replenishment.failed')  # публикация события
+
 
 async def on_replenishment_completed(event: ReplenishmentCompleted):
     """Обрабатывается когда пользователь получил деньги и не возникло ошибки"""
@@ -175,6 +178,7 @@ async def on_replenishment_completed(event: ReplenishmentCompleted):
             replenishment_id=event.replenishment_id,
             time=datetime.now().strftime(get_config().different.dt_format)
         )
+        log_lvl = LogLevel.INFO
     else:
         message_log = get_text(
             get_config().app.default_lang,
@@ -187,8 +191,14 @@ async def on_replenishment_completed(event: ReplenishmentCompleted):
             error=str(event.error_str),
             time=datetime.now().strftime(get_config().different.dt_format)
         )
+        log_lvl = LogLevel.ERROR
 
-    await send_log(message_log)
+    event = EventSentLog(
+        text=message_log,
+        log_lvl=log_lvl
+    )
+    await publish_event(event.model_dump(), "message.send_log")
+
 
 async def on_replenishment_failed(event: ReplenishmentFailed):
     """Обрабатывается когда пользователь НЕ получил деньги"""
@@ -214,4 +224,8 @@ async def on_replenishment_failed(event: ReplenishmentFailed):
         time=datetime.now().strftime(get_config().different.dt_format)
     )
 
-    await send_log(message_log)
+    event = EventSentLog(
+        text=message_log,
+        log_lvl=LogLevel.ERROR
+    )
+    await publish_event(event.model_dump(), "message.send_log")

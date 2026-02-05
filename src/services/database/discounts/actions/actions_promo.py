@@ -5,6 +5,8 @@ import orjson
 from sqlalchemy import select, func, update
 
 from src.bot_actions.messages import send_log
+from src.bot_actions.messages.schemas import EventSentLog, LogLevel
+from src.broker.producer import publish_event
 from src.config import get_config
 from src.services.redis.core_redis import get_redis
 from src.services.database.admins.models import AdminActions
@@ -171,13 +173,17 @@ async def create_promo_code(
     elif new_promo_code.discount_percentage:
         sale += f"Процент скидки: {new_promo_code.discount_percentage} %"
 
-    await send_log(
-        f"🛠️\n"
-        f"#Админ_создал_новый_промокод \n\n"
-        f"ID: {new_promo_code.promo_code_id}\n"
-        f"Код активации: {new_promo_code.activation_code}\n"
-        f"{sale}"
+    event = EventSentLog(
+        text=(
+            f"🛠️\n"
+            f"#Админ_создал_новый_промокод \n\n"
+            f"ID: {new_promo_code.promo_code_id}\n"
+            f"Код активации: {new_promo_code.activation_code}\n"
+            f"{sale}"
+        ),
+        log_lvl=LogLevel.INFO
     )
+    await publish_event(event.model_dump(), "message.send_log")
 
     return new_promo_code
 
@@ -225,13 +231,17 @@ async def deactivate_promo_code(user_id: int, promo_code_id: int):
         session_db.add(new_admin_actions)
         await session_db.commit()
 
-        await send_log(
-            f"🛠️\n"
-            f"#Администрация_деактивировала_промокод \n\n"
-            f"promo_code_id: {promo_code_id}\n"
-            f"Код промокода: {promo_code.activation_code}\n"
-            f"admin_id: {user_id}"
+        event = EventSentLog(
+            text=(
+                f"🛠️\n"
+                f"#Администрация_деактивировала_промокод \n\n"
+                f"promo_code_id: {promo_code_id}\n"
+                f"Код промокода: {promo_code.activation_code}\n"
+                f"admin_id: {user_id}"
+            ),
+            log_lvl=LogLevel.INFO
         )
+        await publish_event(event.model_dump(), "message.send_log")
 
     async with get_redis() as session_redis:
         if promo_code and promo_code.activation_code:

@@ -4,6 +4,8 @@ from typing import Optional
 from aiocryptopay import AioCryptoPay, Networks
 
 from src.bot_actions.messages import send_log
+from src.bot_actions.messages.schemas import EventSentLog
+from src.broker.producer import publish_event
 from src.config import get_config
 from src.services.database.replenishments_event.schemas import NewReplenishment
 from src.services.database.users.actions import create_replenishment, update_replenishment
@@ -65,8 +67,10 @@ class CryptoPayService:
                 f"Сумма в долларах: {amount_usd}\n"
             )
             logger = get_logger(__name__)
-            logger.error(text)
-            await send_log(text)
+            logger.exception(text)
+
+            event = EventSentLog(text=text)
+            await publish_event(event.model_dump(), "message.send_log")
 
             # обновление в БД
             await update_replenishment(

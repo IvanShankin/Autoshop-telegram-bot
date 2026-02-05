@@ -6,6 +6,8 @@ from orjson import orjson
 from sqlalchemy import select, update, func
 
 from src.bot_actions.messages import send_log
+from src.bot_actions.messages.schemas import LogLevel, EventSentLog
+from src.broker.producer import publish_event
 from src.services.database.admins.actions.actions_admin import add_admin_action
 from src.services.redis.core_redis import get_redis
 from src.services.redis.time_storage import TIME_USER
@@ -149,13 +151,17 @@ async def admin_update_user_balance(admin_id: int, target_user_id: int, new_bala
         session_db.add(new_log)
         await session_db.commit()
 
-    await send_log(
-        f"🔴\n"
-        f"#Админ_изменил_баланс_пользователю \n\n"
-        f"ID админа: {admin_id}\n"
-        f"ID пользователя: {target_user_id}\n\n"
-        f"Баланс до: {target_user.balance}\n"
-        f"Баланс после: {new_balance}\n"
-        f"Изменён на: {new_balance - target_user.balance}\n"
-        f"🔴"
+    event = EventSentLog(
+        text=(
+            f"🔴\n"
+            f"#Админ_изменил_баланс_пользователю \n\n"
+            f"ID админа: {admin_id}\n"
+            f"ID пользователя: {target_user_id}\n\n"
+            f"Баланс до: {target_user.balance}\n"
+            f"Баланс после: {new_balance}\n"
+            f"Изменён на: {new_balance - target_user.balance}\n"
+            f"🔴"
+        ),
+        log_lvl=LogLevel.INFO
     )
+    await publish_event(event.model_dump(), "message.send_log")

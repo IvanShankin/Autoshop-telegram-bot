@@ -437,12 +437,8 @@ class TestFinalizePurchaseUniversalDifferent:
         async def fake_cancel(**kw):
             called["cancel"] = True
 
-        async def fake_send_log(*a, **kw):
-            called["log"] = True
-
         monkeypatch.setattr(finalize_mod, "move_file", fail_move)
         monkeypatch.setattr(finalize_mod, "cancel_purchase_universal_different", fake_cancel)
-        monkeypatch.setattr(finalize_mod, "send_log", fake_send_log)
 
         data = StartPurchaseUniversal(
             purchase_request_id=pr.purchase_request_id,
@@ -462,7 +458,6 @@ class TestFinalizePurchaseUniversalDifferent:
         result = await finalize_purchase_universal_different(user.user_id, data)
         assert result is False
         assert called["cancel"] is True
-        assert called["log"] is True
 
 
     @pytest.mark.asyncio

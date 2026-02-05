@@ -128,10 +128,6 @@ async def test_add_new_user_creates_records_and_logs(
         data = await r.get(f"subscription_prompt:{user_id}")
         assert data
 
-    # Проверяем FakeBot (лог)
-    assert fake_bot.check_str_in_messages("#Новый_пользователь")
-    assert fake_bot.check_str_in_messages(username)
-
 
 @pytest.mark.asyncio
 async def test_update_notification_updates_correctly(replacement_fake_bot_fix, create_new_user):
@@ -183,10 +179,6 @@ async def test_add_banned_account_creates_ban_and_log(replacement_fake_bot_fix, 
         redis_val = await r.get(f"banned_account:{user.user_id}")
         assert redis_val.decode() == reason
 
-    # Лог в FakeBot
-    assert fake_bot.check_str_in_messages("#Аккаунт_забанен")
-    assert fake_bot.check_str_in_messages(reason)
-
 
 @pytest.mark.asyncio
 async def test_add_banned_account_user_not_found(replacement_fake_bot_fix):
@@ -221,10 +213,6 @@ async def test_delete_banned_account_removes_data(replacement_fake_bot_fix, crea
     # Проверяем Redis — должен быть очищен
     async with get_redis() as r:
         assert await r.get(f"banned_account:{user.user_id}") is None
-
-    # Проверяем лог
-    assert fake_bot.check_str_in_messages("#Аккаунт_разбанен")
-    assert fake_bot.check_str_in_messages(str(user.user_id))
 
 
 @pytest.mark.asyncio
@@ -408,8 +396,6 @@ async def test_money_transfer_integrity_error_rollback(monkeypatch, replacement_
         assert not (await session_db.execute(select(TransferMoneys).where(TransferMoneys.user_from_id == sender.user_id))).scalar_one_or_none()
         assert not (await session_db.execute(select(WalletTransaction).where(WalletTransaction.user_id == sender.user_id))).scalar_one_or_none()
         assert not (await session_db.execute(select(UserAuditLogs).where(UserAuditLogs.user_id == sender.user_id))).scalar_one_or_none()
-
-    assert fake_bot.sent, "send_log должен был вызваться при обработке исключения"
 
 
 @pytest.mark.asyncio

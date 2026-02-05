@@ -3,6 +3,7 @@ from typing import Optional
 from aiogram.exceptions import TelegramBadRequest
 
 from src.bot_actions.bot_instance import get_bot_logger
+from src.bot_actions.messages.schemas import LogLevel, EventSentLog
 from src.broker.producer import publish_event
 from src.config import get_config, get_global_rate_limit
 from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply, FSInputFile, \
@@ -43,8 +44,11 @@ async def send_message(
                 and message_effect_id
                 and not _retry_without_effect
         ):
-            logger.warning(f"Указан неверный message_effect_id: {message_effect_id}")
-            await send_log(f"Указан неверный message_effect_id: {message_effect_id}")
+            event = EventSentLog(
+                text=f"Указан неверный message_effect_id: {message_effect_id}",
+                log_lvl=LogLevel.WARNING
+            )
+            await publish_event(event.model_dump(), "message.send_log")
             return await send_message(
                 chat_id=chat_id,
                 message=message,
@@ -186,12 +190,18 @@ async def send_message(
                     await handler_tg_except(e)
 
             if not ui_image:
-                await send_log(text) # лучше после отправки пользователю
+                event = EventSentLog(
+                    text=text,
+                    log_lvl=LogLevel.WARNING
+                )
+                await publish_event(event.model_dump(), "message.send_log")
         elif not ui_image:
             # если нет замены для фото
-            text = f"#Не_найдено_фото [send_message]. \nget_ui_image='{image_key}'"
-            logger.warning(text)
-            await send_log(text)
+            event = EventSentLog(
+                text=f"#Не_найдено_фото [send_message]. \nget_ui_image='{image_key}'",
+                log_lvl=LogLevel.WARNING
+            )
+            await publish_event(event.model_dump(), "message.send_log")
 
     try:
         if not message:
@@ -210,11 +220,22 @@ async def send_message(
         logger.exception(f"#Ошибка при отправке сообщения. Ошибка: {str(e)}")
 
 
-async def send_log(text: str, channel_for_logging_id: int = None):
+async def send_log(text: str, log_lvl: LogLevel = None, channel_for_logging_id: int = None):
     """
-    :param text: Длинна должна быть в пределах 1 - 4096 символов
+    Отошлёт лог в файл и в канал.
+    :param log_lvl: При наличии, запишет в файл с соответствующим уровнем
     :param channel_for_logging_id: если не передавать то возьмёт сам из настроек
     """
+    logger = get_logger(__name__)
+
+    if log_lvl:
+        if log_lvl == LogLevel.INFO:
+            logger.info(text)
+        if log_lvl == LogLevel.WARNING:
+            logger.warning(text)
+        if log_lvl == LogLevel.ERROR:
+            logger.error(text)
+
 
     # формируем сообщения разбивая по максимальной длине (4096)
     parts = []

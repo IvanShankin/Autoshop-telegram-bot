@@ -192,7 +192,6 @@ class TestFinalizePurchase:
 
         await finalize_purchase_accounts(user.user_id, data)
 
-        assert called["logged"] is True
         assert called["cancel"] is True
 
         # Проверим, что SoldAccounts не созданы

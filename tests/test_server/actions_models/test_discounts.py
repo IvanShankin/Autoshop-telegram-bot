@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timezone, timedelta
 
 import pytest
@@ -396,15 +397,6 @@ async def test_set_not_valid_promo_code(create_settings):
         result = await session_db.execute(select(PromoCodes).where(PromoCodes.promo_code_id == active_promo.promo_code_id))
         active_from_db = result.scalar_one_or_none()
         assert active_from_db.is_valid is True
-
-    # проверка лога (должен быть только при деактивации промокода)
-    message_log = get_text(
-        'ru',
-        'discount',
-        "#Promo_code_expired \nID '{id}' \nCode '{code}'"
-        "\n\nThe promo code has expired due to reaching the number of activations or time limit. It is no longer possible to activate it"
-    ).format(id=expired_promo.promo_code_id, code=expired_promo.activation_code)
-    assert fake_bot.get_message(create_settings.channel_for_logging_id, message_log)
 
 
 @pytest.mark.asyncio

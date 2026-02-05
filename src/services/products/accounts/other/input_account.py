@@ -3,6 +3,8 @@ import io
 from typing import List
 
 from src.bot_actions.messages import send_log
+from src.bot_actions.messages.schemas import EventSentLog
+from src.broker.producer import publish_event
 from src.exceptions import InvalidFormatRows, CategoryNotFound, TheCategoryNotStorageAccount
 from src.services.filesystem.csv_parse import parse_csv_from_bytes
 from src.services.products.accounts.other.shemas import AccountImportData, ImportResult, REQUIRED_HEADERS
@@ -123,7 +125,10 @@ async def import_in_db(
             message_log = f"#Ошибка при добавлении other аккаунта в БД: {str(e)}"
             logger = get_logger(__name__)
             logger.exception(message_log)
-            await send_log(message_log)
+
+            event = EventSentLog(text=message_log)
+            await publish_event(event.model_dump(), "message.send_log")
+
             errors_added.append(account)
 
     return errors_added

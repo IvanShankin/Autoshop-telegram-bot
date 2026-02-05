@@ -11,6 +11,8 @@ from aiogram.types import CallbackQuery, Message, FSInputFile, BufferedInputFile
 from src.bot_actions.messages import edit_message, send_message, send_log
 from src.bot_actions.bot_instance import get_bot
 from src.bot_actions.messages import send_file_by_file_key
+from src.bot_actions.messages.schemas import EventSentLog, LogLevel
+from src.broker.producer import publish_event
 from src.config import get_config
 from src.exceptions import TypeAccountServiceNotFound, InvalidFormatRows
 from src.exceptions.business import ImportUniversalInvalidMediaData, ImportUniversalFileNotFound, \
@@ -239,9 +241,11 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
         await service_not_found(user)
     except Exception as e:
         text = f"#Ошибка_при_добавлении_аккаунтов  [import_tg_account]. \nОшибка='{str(e)}'"
-        logger = get_logger(__name__)
-        logger.exception(text)
-        await send_log(text)
+        get_logger(__name__).exception(text)
+
+        event = EventSentLog(text=text)
+        await publish_event(event.model_dump(), "message.send_log")
+
         await send_message(
             message.from_user.id,
             get_text(user.language,"admins_editor_category", "An error occurred inside the server, see the logs!")
@@ -330,9 +334,11 @@ async def import_other_account(message: Message, state: FSMContext, user: Users)
         await service_not_found(user)
     except Exception as e:
         text = f"#Ошибка_при_добавлении_аккаунтов  [import_other_account]. \nОшибка='{str(e)}'"
-        logger = get_logger(__name__)
-        logger.exception(text)
-        await send_log(text)
+        get_logger(__name__).exception(text)
+
+        event = EventSentLog(text=text)
+        await publish_event(event.model_dump(), "message.send_log")
+
         await send_message(
             message.from_user.id,
             get_text(user.language,"admins_editor_category", "An error occurred inside the server, see the logs!")
@@ -432,9 +438,11 @@ async def import_universal_products(message: Message, state: FSMContext, user: U
         await state.set_state(ImportUniversalProducts.archive)
     except Exception as e:
         text = f"#Ошибка_при_добавлении_товара  [import_universal_products]. \nОшибка='{str(e)}'"
-        logger = get_logger(__name__)
-        logger.exception(text)
-        await send_log(text)
+        get_logger(__name__).exception(text)
+
+        event = EventSentLog(text=text)
+        await publish_event(event.model_dump(), "message.send_log")
+
         await send_message(
             message.from_user.id,
             get_text(user.language,"admins_editor_category", "An error occurred inside the server, see the logs!")

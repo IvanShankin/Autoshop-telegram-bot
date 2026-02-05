@@ -100,6 +100,7 @@ async def cmd_start(message: Message, command: CommandObject, state: FSMContext)
             reply_markup=selecting_language
         )
 
+
 @router.callback_query(F.data.startswith('set_language_after_start'))
 async def select_language(callback: CallbackQuery, user: Users):
     selected_lang = callback.data.split(':')[1]

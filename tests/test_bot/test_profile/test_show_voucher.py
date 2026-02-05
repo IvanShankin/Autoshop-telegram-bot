@@ -69,8 +69,8 @@ async def test_show_voucher_active_success(
     from src.modules.profile.handlers.vouchers_handlers import show_voucher
 
     fake_bot = replacement_fake_bot_fix
-    voucher = await create_voucher()
     user = await create_new_user()
+    voucher = await create_voucher(creator_id=user.user_id)
 
     cb = FakeCallbackQuery(data=f"show_voucher:{user.user_id}:1:{voucher.voucher_id}", chat_id=voucher.creator_id)
     cb.message = SimpleNamespace(message_id=77)
@@ -117,8 +117,8 @@ async def test_confirm_deactivate_voucher_active_success(
     from src.modules.profile.handlers.vouchers_handlers import confirm_deactivate_voucher
 
     fake_bot = replacement_fake_bot_fix
-    voucher = await create_voucher()
     user = await create_new_user()
+    voucher = await create_voucher(creator_id=user.user_id)
 
     cb = FakeCallbackQuery(data=f"confirm_deactivate_voucher:{voucher.voucher_id}:1", chat_id=voucher.creator_id)
     cb.message = SimpleNamespace(message_id=44)
@@ -166,7 +166,7 @@ async def test_deactivate_voucher_success(
 
     user = await create_new_user()
     fake_bot = replacement_fake_bot_fix
-    voucher = await create_voucher()
+    voucher = await create_voucher(creator_id=user.user_id)
 
     cb = FakeCallbackQuery(data=f"deactivate_voucher:{voucher.voucher_id}:1", chat_id=voucher.creator_id)
     cb.message = SimpleNamespace(message_id=66)

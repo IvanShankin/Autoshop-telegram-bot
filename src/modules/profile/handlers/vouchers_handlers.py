@@ -6,10 +6,12 @@ from src.bot_actions.messages import edit_message, send_message
 from src.bot_actions.bot_instance import get_bot
 from src.bot_actions.checking_data import checking_availability_money, checking_correctness_number
 from src.exceptions import NotEnoughMoney
+from src.exceptions.business import ForbiddenError
 from src.modules.profile.keyboards import back_in_balance_transfer_kb, replenishment_and_back_in_transfer_kb, \
     confirmation_voucher_kb, all_vouchers_kb, back_in_all_voucher_kb, show_voucher_kb, confirm_deactivate_voucher_kb
 from src.modules.profile.schemas.transfer_balance import CreateVoucherData
 from src.modules.profile.state.transfer_balance import CreateVoucher
+from src.services.database.admins.actions import check_admin
 from src.services.database.discounts.actions import (create_voucher as create_voucher_db, get_voucher_by_id,
                                                      deactivate_voucher as deactivate_voucher_server)
 from src.services.database.system.actions import get_settings
@@ -178,6 +180,9 @@ async def show_voucher(callback: CallbackQuery, user: Users):
 
     voucher = await get_voucher_by_id(voucher_id)
 
+    if voucher.creator_id != user.user_id and not await check_admin(user.user_id):
+        raise ForbiddenError()
+
     if not voucher or not voucher.is_valid:
         text = get_text(user.language, 'profile_messages', 'This voucher is currently inactive, please select another one')
         reply_markup=back_in_all_voucher_kb(user.language, current_page, target_user_id)
@@ -219,6 +224,9 @@ async def confirm_deactivate_voucher(callback: CallbackQuery, user: Users):
 
     voucher = await get_voucher_by_id(voucher_id)
 
+    if voucher.creator_id != user.user_id and not await check_admin(user.user_id):
+        raise ForbiddenError()
+
     if not voucher or not voucher.is_valid:
         text = get_text(user.language, 'profile_messages', 'This voucher is currently inactive')
         reply_markup = back_in_all_voucher_kb(user.language, current_page, user.user_id)
@@ -244,6 +252,9 @@ async def deactivate_voucher(callback: CallbackQuery, user: Users):
     current_page = int(callback.data.split(':')[2])
 
     voucher = await get_voucher_by_id(voucher_id)
+
+    if voucher.creator_id != user.user_id and not await check_admin(user.user_id):
+        raise ForbiddenError()
 
     if not voucher or not voucher.is_valid:
         text = get_text(user.language, 'profile_messages', 'This voucher is currently inactive')

@@ -106,7 +106,7 @@ async def account_category_kb(
     return keyboard.as_markup()
 
 
-def confirm_buy_acc_kb(
+def confirm_buy_kb(
     language: str,
     category_id: int,
     quantity_for_buying: int = 0,

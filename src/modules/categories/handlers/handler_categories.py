@@ -7,7 +7,7 @@ from aiogram.types import CallbackQuery, Message
 from src.bot_actions.messages import edit_message, send_message
 from src.exceptions import InvalidPromoCode
 from src.middlewares.aiogram_middleware import I18nKeyFilter
-from src.modules.categories.keyboards import subscription_prompt_kb, back_in_account_category_kb, confirm_buy_acc_kb, \
+from src.modules.categories.keyboards import subscription_prompt_kb, back_in_account_category_kb, confirm_buy_kb, \
     main_categories_kb
 from src.modules.categories.services import check_category, edit_message_category, buy_product
 from src.modules.categories.shemas import BuyProductsData
@@ -351,7 +351,7 @@ async def confirm_buy_category(callback: CallbackQuery, user: Users):
         ),
         image_key = 'confirm_purchase',
         fallback_image_key = "default_catalog_account",
-        reply_markup=confirm_buy_acc_kb(
+        reply_markup=confirm_buy_kb(
             language=user.language,
             category_id=category_id,
             quantity_for_buying=quantity_products,

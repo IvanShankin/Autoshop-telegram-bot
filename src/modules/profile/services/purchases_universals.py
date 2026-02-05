@@ -5,7 +5,9 @@ from aiogram.types import CallbackQuery
 
 from src.bot_actions.messages import edit_message, send_document, send_message
 from src.config import get_config
+from src.exceptions.business import ForbiddenError
 from src.modules.profile.keyboards.purchased_universals_kb import sold_universal_kb, universal_kb
+from src.services.database.admins.actions import check_admin
 from src.services.database.categories.actions.products.universal.action_delete import delete_sold_universal
 from src.services.database.categories.actions.products.universal.action_update import update_universal_storage
 from src.services.database.categories.actions.products.universal.actions_add import add_deleted_universal
@@ -27,10 +29,16 @@ async def check_universal_product(
     user: Users,
     sold_universal_id: int
 ) -> SoldUniversalFull | None:
-    """Произведёт поиск универсального товара, если не найдёт, то выведет соответствующие сообщение"""
+    """
+    Произведёт поиск универсального товара, если не найдёт, то выведет соответствующие сообщение.
+    Проверит что данный товар принадлежит пользователю, если нет, то вызовет ошибку
+    """
     universal = await get_sold_universal_by_universal_id(sold_universal_id, language=user.language)
     if not universal:
         await callback.answer(get_text(user.language, 'profile_messages', "Product not found"))
+
+    if universal.owner_id != user.user_id and not await check_admin(user.user_id):
+        raise ForbiddenError()
 
     return universal
 

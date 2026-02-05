@@ -3,8 +3,10 @@ from aiogram.types import CallbackQuery, BufferedInputFile
 
 from src.bot_actions.messages import edit_message
 from src.bot_actions.bot_instance import get_bot
+from src.exceptions.business import ForbiddenError
 from src.modules.profile.keyboards import ref_system_kb, accrual_ref_list_kb, back_in_ref_system_kb
 from src.modules.profile.services.profile_message import message_income_ref, message_ref_system
+from src.services.database.admins.actions import check_admin
 from src.services.database.referrals.actions import get_all_referrals, get_income_from_referral
 from src.services.database.referrals.reports import generate_referral_report_excel
 from src.services.database.users.models import Users
@@ -57,6 +59,9 @@ async def referral_system(callback: CallbackQuery, user: Users):
 async def accrual_ref_list(callback: CallbackQuery, user: Users):
     _,  target_user_id,  current_page = callback.data.split(':')
 
+    if target_user_id != user.user_id and not await check_admin(user.user_id):
+        raise ForbiddenError()
+
     text = get_text(
         user.language,
         'profile_messages',
@@ -81,6 +86,9 @@ async def detail_income_from_ref(callback: CallbackQuery, user: Users):
     if income is None:
         await callback.answer(text=get_text(user.language, 'miscellaneous','Data not found'), show_alert=True)
 
+    if income.owner_user_id != user.user_id and not await check_admin(user.user_id):
+        raise ForbiddenError()
+
     await message_income_ref(
         income=income,
         callback=callback,
@@ -92,6 +100,9 @@ async def detail_income_from_ref(callback: CallbackQuery, user: Users):
 @router.callback_query(F.data.startswith("download_ref_list:"))
 async def download_ref_list(callback: CallbackQuery, user: Users):
     user_id = int(callback.data.split(':')[1])
+
+    if user_id != user.user_id and not await check_admin(user.user_id):
+        raise ForbiddenError()
 
     bytes_data = await generate_referral_report_excel(user_id, user.language)
     filename = f"referrals_{user_id}.xlsx"

@@ -1,11 +1,13 @@
-from typing import Any, Literal
+from typing import Any, Literal, Optional
 
 from aiogram.types import CallbackQuery, FSInputFile
 
 from src.bot_actions.bot_instance import get_bot
 from src.bot_actions.messages import edit_message, send_message
 from src.config import get_config
+from src.exceptions.business import ForbiddenError
 from src.modules.profile.keyboards import sold_accounts_kb, account_kb, sold_account_type_service_kb
+from src.services.database.admins.actions import check_admin
 from src.services.database.categories.actions import get_sold_accounts_by_account_id, get_tg_account_media, \
     update_tg_account_media
 from src.services.database.categories.models import SoldAccountFull, AccountStorage, AccountServiceType
@@ -114,29 +116,37 @@ async def check_sold_account(
     user: Users,
     sold_account_id: int,
     language: str,
-    current_page: int,
-    type_account_service: AccountServiceType | None
+    current_page: Optional[int] = None,
+    type_account_service: Optional[AccountServiceType] = None
 ) -> SoldAccountFull | None:
-    """Проверит наличие аккаунта, если нет, то выведет соответствующие сообщение и вернёт к выбору аккаунта"""
+    """
+    Проверит наличие аккаунта, если нет, то выведет соответствующие сообщение и вернёт к выбору аккаунта.
+    Проверит что данный товар принадлежит пользователю, если нет, то вызовет ошибку
+    """
     account = await get_sold_accounts_by_account_id(sold_account_id, language=language)
     if not account:
         await callback.answer(get_text(language, 'profile_messages', "Account not found"), show_alert=True)
-        await show_all_sold_account(
-            callback=callback,
-            user=user,
-            user_id=callback.from_user.id,
-            language=language,
-            message_id=callback.message.message_id,
-            current_page=current_page,
-            type_account_service=type_account_service
-        )
+        if current_page and type_account_service:
+            await show_all_sold_account(
+                callback=callback,
+                user=user,
+                user_id=callback.from_user.id,
+                language=language,
+                message_id=callback.message.message_id,
+                current_page=current_page,
+                type_account_service=type_account_service
+            )
         return None
 
-    result_check_service = await check_type_account_service(
-        callback=callback, user=user, language=language, type_account_service=type_account_service
-    )
-    if not result_check_service:
-        return None
+    if account.owner_id != user.user_id and not await check_admin(user.user_id):
+        raise ForbiddenError()
+
+    if type_account_service:
+        result_check_service = await check_type_account_service(
+            callback=callback, user=user, language=language, type_account_service=type_account_service
+        )
+        if not result_check_service:
+            return None
 
     return account
 
@@ -155,7 +165,6 @@ async def check_type_account_service(
     return True
 
 
-
 async def get_file_for_login(callback: CallbackQuery, func_get_file: Any, type_media:  Literal["tdata_tg_id", "session_tg_id"]):
     """
     :param func_get_file: функция для получения пути к файлу
@@ -169,6 +178,9 @@ async def get_file_for_login(callback: CallbackQuery, func_get_file: Any, type_m
     if not account:
         await callback.answer(get_text(user.language, 'profile_messages', "Account not found"))
         return
+
+    if account.owner_id != user.user_id and not await check_admin(user.user_id):
+        raise ForbiddenError()
 
     tg_media = await get_tg_account_media(account.account_storage.account_storage_id)
     if tg_media and getattr(tg_media, type_media):

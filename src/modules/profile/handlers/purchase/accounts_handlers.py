@@ -3,9 +3,11 @@ from aiogram.types import CallbackQuery
 
 from src.bot_actions.messages import edit_message, send_message
 from src.config import get_config
+from src.exceptions.business import ForbiddenError
 from src.modules.profile.keyboards import confirm_del_acc_kb, login_details_kb
 from src.modules.profile.services.purchases_accounts import show_all_sold_account, show_sold_account, get_file_for_login, \
     check_sold_account, show_types_services_sold_account
+from src.services.database.admins.actions import check_admin
 from src.services.products.accounts.tg.actions import check_account_validity, get_auth_codes
 from src.services.database.categories.actions import get_sold_accounts_by_account_id, update_account_storage, \
     delete_sold_account, get_type_service_account, add_deleted_accounts
@@ -46,9 +48,15 @@ async def sold_account(callback: CallbackQuery, user: Users):
     type_account_service = get_type_service_account(callback.data.split(':')[2])
     current_page = int(callback.data.split(':')[3])
 
-    account = await get_sold_accounts_by_account_id(sold_account_id, language=user.language)
+    account = await check_sold_account(
+        callback=callback,
+        user=user,
+        sold_account_id=sold_account_id,
+        language=user.language,
+        current_page=current_page,
+        type_account_service=type_account_service,
+    )
     if not account:
-        await callback.answer(get_text(user.language, 'profile_messages', "Account not found"))
         return
 
     await show_sold_account(
@@ -67,9 +75,15 @@ async def login_details(callback: CallbackQuery, user: Users):
     type_account_service = get_type_service_account(callback.data.split(':')[2])
     current_page = int(callback.data.split(':')[3])
 
-    account = await get_sold_accounts_by_account_id(sold_account_id, language=user.language)
+    account = await check_sold_account(
+        callback=callback,
+        user=user,
+        sold_account_id=sold_account_id,
+        language=user.language,
+        current_page=current_page,
+        type_account_service=type_account_service,
+    )
     if not account:
-        await callback.answer(get_text(user.language, 'profile_messages', "Account not found"))
         return
 
     await edit_message(
@@ -89,9 +103,13 @@ async def login_details(callback: CallbackQuery, user: Users):
 async def get_code_acc(callback: CallbackQuery, user: Users):
     sold_account_id = int(callback.data.split(':')[1])
 
-    account = await get_sold_accounts_by_account_id(sold_account_id, language=user.language)
+    account = await check_sold_account(
+        callback=callback,
+        user=user,
+        sold_account_id=sold_account_id,
+        language=user.language
+    )
     if not account:
-        await callback.answer(get_text(user.language, 'profile_messages', "Account not found"))
         return
 
     message_search = await send_message(user.user_id, get_text(user.language, 'profile_messages', 'Search...'))
@@ -138,9 +156,13 @@ async def get_session_acc(callback: CallbackQuery):
 async def get_log_pas(callback: CallbackQuery, user: Users):
     sold_account_id = int(callback.data.split(':')[1])
 
-    account = await get_sold_accounts_by_account_id(sold_account_id, language=user.language)
+    account = await check_sold_account(
+        callback=callback,
+        user=user,
+        sold_account_id=sold_account_id,
+        language=user.language
+    )
     if not account:
-        await callback.answer(get_text(user.language, 'profile_messages', "Account not found"))
         return
 
     crypto = get_crypto_context()
@@ -172,7 +194,7 @@ async def chek_valid_acc(callback: CallbackQuery, user: Users):
         sold_account_id=sold_account_id,
         language=user.language,
         current_page=current_page,
-        type_account_service=type_account_service
+        type_account_service=type_account_service,
     )
     if not account:
         return
@@ -264,7 +286,6 @@ async def del_account(callback: CallbackQuery, user: Users):
     )
     if not account:
         return
-
 
     result = await move_in_account(
         account=AccountStorage(**account.account_storage.model_dump()),

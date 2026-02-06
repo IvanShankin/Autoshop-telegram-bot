@@ -27,7 +27,7 @@ def in_purchased_account_kb(
 
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=n_get_text(language, 'kb_catalog', 'In profile', "To accounts", quantity_products),
+            text=n_get_text(language, "kb_catalog", 'to_accounts', "to_accounts", quantity_products),
             callback_data=(
                 f"sold_account:{sold_account_id}:{type_account_service.value}:1"
                 if quantity_products == 1 and sold_account_id else
@@ -58,7 +58,7 @@ async def type_product_in_purchases_kb(language: str, user_id: int) -> InlineKey
     # ПРИ ДОБАВЛЕНИЕ НОВЫХ ТОВАРОВ, РАСШИРИТЬ ПОИСК
 
     keyboard.row(
-        InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'profile'),
+        InlineKeyboardButton(text=get_text(language, "kb_general", "back"), callback_data=f"profile"),
     )
 
     return keyboard.as_markup()
@@ -77,7 +77,7 @@ async def sold_account_type_service_kb(language: str, user_id: int) -> InlineKey
         )
 
     keyboard.row(
-        InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'purchases'),
+        InlineKeyboardButton(text=get_text(language, "kb_general", "back"), callback_data=f'purchases'),
     )
     return keyboard.as_markup()
 
@@ -106,7 +106,7 @@ async def sold_accounts_kb(
         item_button_func=item_button,
         left_prefix=f"all_sold_accounts:{type_account_service.value}",
         right_prefix=f"all_sold_accounts:{type_account_service.value}",
-        back_text=get_text(language, "kb_general", "Back"),
+        back_text=get_text(language, "kb_general", "back"),
         back_callback="services_sold_account",
     )
 
@@ -120,20 +120,20 @@ def account_kb(
 ):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'kb_profile', 'Login details'),
+            text=get_text(language, "kb_profile", "login_details"),
             callback_data=f'login_details:{sold_account_id}:{type_account_service.value}:{current_page}')
         ],
         [InlineKeyboardButton(
-            text=get_text(language, 'kb_profile', 'Check for validity'),
+            text=get_text(language, "kb_profile", "check_for_validity"),
             # current_validity преобразовал в int что бы занимал меньше места
             callback_data=f'chek_valid_acc:{sold_account_id}:{type_account_service.value}:{current_page}:{int(current_validity)}')
         ],
         [InlineKeyboardButton(
-            text=get_text(language, "kb_general", "Delete"),
+            text=get_text(language, "kb_general", "delete"),
             callback_data=f'confirm_del_acc:{sold_account_id}:{type_account_service.value}:{current_page}')
         ],
         [InlineKeyboardButton(
-            text=get_text(language, "kb_general", "Back"),
+            text=get_text(language, "kb_general", "back"),
             callback_data=f'all_sold_accounts:{type_account_service.value}:{current_page}')
         ]
     ])
@@ -149,7 +149,7 @@ async def login_details_kb(
     if type_account_service == AccountServiceType.TELEGRAM:
         keyboard.row(
             InlineKeyboardButton(
-                text=get_text(language, 'kb_profile', 'Get code'),
+                text=get_text(language, "kb_profile", "get_code"),
                 callback_data=f'get_code_acc:{sold_account_id}'
             ),
         )
@@ -169,14 +169,14 @@ async def login_details_kb(
     else:
         keyboard.row(
             InlineKeyboardButton(
-                text=get_text(language, 'kb_profile', 'Login and Password'),
+                text=get_text(language, "kb_profile", "login_and_password"),
                 callback_data=f'get_log_pas:{sold_account_id}'
             ),
         )
 
     keyboard.row(
         InlineKeyboardButton(
-            text=get_text(language, "kb_general", "Back"),
+            text=get_text(language, "kb_general", "back"),
             callback_data=f'sold_account:{sold_account_id}:{type_account_service.value}:{current_page}'
         ),
     )
@@ -186,11 +186,11 @@ async def login_details_kb(
 def confirm_del_acc_kb(language: str, sold_account_id: int, type_account_service: AccountServiceType, current_page: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, "kb_general", "Confirm"),
+            text=get_text(language, "kb_general", "confirm"),
             callback_data=f'del_account:{sold_account_id}:{type_account_service.value}:{current_page}')
         ],
         [InlineKeyboardButton(
-            text=get_text(language, "kb_general", "Back"),
+            text=get_text(language, "kb_general", "back"),
             callback_data=f'sold_account:{sold_account_id}:{type_account_service.value}:{current_page}')
         ]
     ])

@@ -28,7 +28,7 @@ async def update_data(message: Message, state: FSMContext, user: Users):
         pass
 
     if new_number is None:
-        message_error = get_text(user.language, 'miscellaneous', "Incorrect value entered. Please try again")
+        message_error = get_text(user.language, "miscellaneous", "incorrect_value_entered")
     else:
         try:
             if await state.get_state() == UpdateNumberInCategory.price.state:
@@ -38,11 +38,11 @@ async def update_data(message: Message, state: FSMContext, user: Users):
             elif await state.get_state() == UpdateNumberInCategory.number_button.state:
                 await update_category(data.category_id, number_buttons_in_row=new_number)
         except (IncorrectedAmountSale, IncorrectedCostPrice, IncorrectedNumberButton):
-            message_error = get_text(user.language, 'miscellaneous', "Incorrect value entered. Please try again")
+            message_error = get_text(user.language, "miscellaneous", "incorrect_value_entered")
 
     if message_error:
         message_error += '\n\n'
-        message_error += get_text(user.language, 'miscellaneous', "Try again")
+        message_error += get_text(user.language, "miscellaneous", "try_again")
         await send_message(chat_id=user.user_id, message=message_error)
         if await state.get_state() == UpdateNumberInCategory.price.state:
             await state.set_state(UpdateNumberInCategory.price)
@@ -55,7 +55,7 @@ async def update_data(message: Message, state: FSMContext, user: Users):
     await show_category_update_data(user, data.category_id, send_new_message=True)
     message_info = await send_message(
         chat_id=user.user_id,
-        message=get_text(user.language, 'miscellaneous',"Data updated successfully")
+        message=get_text(user.language, "miscellaneous","data_updated_successfully")
     )
 
     await asyncio.sleep(3)
@@ -95,19 +95,17 @@ async def update_category_storage(
 
     try:
         await update_category(category_id, is_product_storage=is_storage, **update_value)
-        message = get_text(user.language, "miscellaneous", "Successfully updated")
+        message = get_text(user.language, "miscellaneous", "successfully_updated")
     except AccountCategoryNotFound:
         try:
             await callback.message.delete()
         except Exception:
             pass
-        message = get_text(user.language, "admins_editor_category", "The category no longer exists")
+        message = get_text(user.language, "admins_editor_category", "category_not_exists")
     except TheCategoryStorageAccount:
-        message = get_text(user.language, "admins_editor_category",
-                           "The category stores accounts, please extract them first")
+        message = get_text(user.language, "admins_editor_category","extract_accounts_stored_in_category")
     except CategoryStoresSubcategories:
-        message = get_text(user.language, "admins_editor_category",
-                           "The category stores subcategories, delete them first")
+        message = get_text(user.language, "admins_editor_category","first_delete_subcategory")
 
     await callback.answer(message, show_alert=True)
     await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)

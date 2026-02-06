@@ -12,39 +12,39 @@ from src.utils.i18n import get_text
 
 def balance_transfer_kb(language: str, user_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'kb_profile', 'Transfer by id'), callback_data='transfer_money')],
-        [InlineKeyboardButton(text=get_text(language, 'kb_profile', 'Create voucher'), callback_data='create_voucher')],
-        [InlineKeyboardButton(text=get_text(language, 'kb_profile', 'My vouchers'), callback_data=f'voucher_list:{user_id}:1')],
-        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'profile')],
+        [InlineKeyboardButton(text=get_text(language, "kb_profile", "transfer_by_id"), callback_data='transfer_money')],
+        [InlineKeyboardButton(text=get_text(language, "kb_profile", "create_voucher"), callback_data='create_voucher')],
+        [InlineKeyboardButton(text=get_text(language, "kb_profile", "my_vouchers"), callback_data=f'voucher_list:{user_id}:1')],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "back"), callback_data=f'profile')],
     ])
 
 
 def confirmation_transfer_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, "kb_general", "Confirm"), callback_data='confirm_transfer_money'),
-         InlineKeyboardButton(text=get_text(language, "kb_general", "Again"), callback_data='transfer_money')],
-        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'balance_transfer')],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "confirm"), callback_data='confirm_transfer_money'),
+         InlineKeyboardButton(text=get_text(language, "kb_general", "again"), callback_data='transfer_money')],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "back"), callback_data=f'balance_transfer')],
     ])
 
 
 def confirmation_voucher_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, "kb_general", "Confirm"), callback_data='confirm_create_voucher'),
-         InlineKeyboardButton(text=get_text(language, "kb_general", "Again"), callback_data='create_voucher')],
-        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'balance_transfer')],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "confirm"), callback_data='confirm_create_voucher'),
+         InlineKeyboardButton(text=get_text(language, "kb_general", "again"), callback_data='create_voucher')],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "back"), callback_data=f'balance_transfer')],
     ])
 
 
 def back_in_balance_transfer_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'balance_transfer')],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "back"), callback_data=f'balance_transfer')],
     ])
 
 
 def replenishment_and_back_in_transfer_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'kb_profile', 'Top up your balance'), callback_data='show_type_replenishment')],
-        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data='balance_transfer')]
+        [InlineKeyboardButton(text=get_text(language, "kb_profile", "top_up_balance"), callback_data='show_type_replenishment')],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "back"), callback_data='balance_transfer')]
     ])
 
 
@@ -67,7 +67,7 @@ async def all_vouchers_kb(current_page: int, target_user_id: int, user_id: int, 
         item_button,
         left_prefix=f"voucher_list:{target_user_id}",
         right_prefix=f"voucher_list:{target_user_id}",
-        back_text=get_text(language, "kb_general", "Back"),
+        back_text=get_text(language, "kb_general", "back"),
         back_callback="transfer_money" if target_user_id == user_id else f"user_management:{target_user_id}",
     )
 
@@ -77,14 +77,14 @@ def show_voucher_kb(language: str, current_page: int, target_user_id: int, user_
     if target_user_id == user_id:
         keyboard.row(
             InlineKeyboardButton(
-                text=get_text(language, 'kb_profile', 'Deactivate'),
+                text=get_text(language, "kb_profile", 'deactivate'),
                 callback_data=f'confirm_deactivate_voucher:{voucher_id}:{current_page}'
             ),
         )
 
     keyboard.row(
         InlineKeyboardButton(
-            text=get_text(language, "kb_general", "Back"),
+            text=get_text(language, "kb_general", "back"),
             callback_data=f'voucher_list:{target_user_id}:{current_page}'
         ),
     )
@@ -94,11 +94,11 @@ def show_voucher_kb(language: str, current_page: int, target_user_id: int, user_
 def confirm_deactivate_voucher_kb(language: str, current_page: int, target_user_id: int, voucher_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-                text=get_text(language, "kb_general", "Confirm"),
+                text=get_text(language, "kb_general", "confirm"),
                 callback_data=f'deactivate_voucher:{voucher_id}:{current_page}'
         )],
         [InlineKeyboardButton(
-            text=get_text(language, "kb_general", "Back"),
+            text=get_text(language, "kb_general", "back"),
             callback_data=f'voucher_list:{target_user_id}:{current_page}'
         )]
     ])
@@ -107,7 +107,7 @@ def confirm_deactivate_voucher_kb(language: str, current_page: int, target_user_
 def back_in_all_voucher_kb(language: str, current_page: int, target_user_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, "kb_general", "Back"),
+            text=get_text(language, "kb_general", "back"),
             callback_data=f'voucher_list:{target_user_id}:{current_page}'
         )]
     ])

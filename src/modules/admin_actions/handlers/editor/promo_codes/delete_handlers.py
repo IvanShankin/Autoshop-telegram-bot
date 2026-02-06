@@ -22,13 +22,13 @@ async def confirm_deactivate_promo_code(callback: CallbackQuery, user: Users):
     promo_code = await get_promo_code(promo_code_id=promo_code_id)
 
     if not promo_code:
-        text = get_text(user.language, 'admins_editor_promo_codes', "Promo code not found, please select another one")
+        text = get_text(user.language, "admins_editor_promo_codes", "promo_code_not_found")
         reply_markup = back_in_all_admin_promo_kb(user.language, current_page, show_not_valid)
     else:
         text = get_text(
             user.language,
-            'admins_editor_promo_codes',
-            "Are you sure you want to delete this promo code?"
+            "admins_editor_promo_codes",
+            "confirmation_delete_promo_code"
         )
         reply_markup = confirm_deactivate_promo_code_kb(user.language, current_page, promo_code_id, show_not_valid)
 
@@ -49,10 +49,10 @@ async def deactivate_promo_code_handler(callback: CallbackQuery, user: Users):
     promo_code = await get_promo_code(promo_code_id=promo_code_id, get_only_valid=False)
 
     if not promo_code or not promo_code.is_valid:
-        text = get_text(user.language, 'admins_editor_promo_codes', "This promo code has already been deactivated")
+        text = get_text(user.language, "admins_editor_promo_codes", "promo_code_already_deactivated")
     else:
         await deactivate_promo_code(user.user_id, promo_code_id)
-        text = get_text(user.language, 'admins_editor_promo_codes', "Promo code successfully deactivate")
+        text = get_text(user.language, "admins_editor_promo_codes", "promo_code_successfully_deactivated")
 
 
     await edit_message(

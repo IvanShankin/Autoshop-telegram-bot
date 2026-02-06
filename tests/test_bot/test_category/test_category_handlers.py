@@ -97,8 +97,8 @@ async def test_set_quantity_accounts_invalid_and_exceeds_stock_behaviour(
 ):
     """
     Проверяем два кейса для set_quantity_products:
-      1) нечисловой ввод -> отправляется "Incorrect value entered. Please try again" и state остаётся на том же шаге
-      2) ввод больше чем есть на складе -> отправляется "No longer in stock"
+      1) нечисловой ввод -> отправляется "incorrect_value_entered" и state остаётся на том же шаге
+      2) ввод больше чем есть на складе -> отправляется "out_of_stock"
     """
     from src.modules.categories.handlers.handler_categories import set_quantity_products
 
@@ -114,18 +114,18 @@ async def test_set_quantity_accounts_invalid_and_exceeds_stock_behaviour(
     msg_bad = FakeMessage(text="not_a_number", chat_id=user.user_id, username=user.username)
     await set_quantity_products(msg_bad, fsm1, user)
 
-    bad_text = get_text(user.language, 'miscellaneous',"Incorrect value entered. Please try again")
+    bad_text = get_text(user.language, "miscellaneous","incorrect_value_entered")
     assert fake_bot.get_message(chat_id=user.user_id, text=bad_text), "Не отправилось сообщение об ошибочном вводе"
 
     # 2) ввод превышает склад
-    # убедимся, что в категории нет аккаунтов (или меньше), запросим больше -> "No longer in stock"
+    # убедимся, что в категории нет аккаунтов (или меньше), запросим больше -> "out_of_stock"
     fsm2 = FakeFSMContext()
     await fsm2.update_data(category_id=category_id, old_message_id=22, quantity_for_buying=0)
     # на текущий момент quantity_product_account скорее всего 0, запросим 5
     msg_too_many = FakeMessage(text="5", chat_id=user.user_id, username=user.username)
     await set_quantity_products(msg_too_many, fsm2, user)
 
-    no_stock_text = get_text(user.language, 'categories', "No longer in stock")
+    no_stock_text = get_text(user.language, "categories", "out_of_stock")
     assert fake_bot.get_message(chat_id=user.user_id, text=no_stock_text), "Не отправилось сообщение о нехватке на складе"
 
 
@@ -202,7 +202,7 @@ async def test_enter_promo_sets_state_and_edits_message(
     data = await fsm.get_data()
     assert int(data.get("old_message_id")) == cb.message.message_id or data.get("old_message_id") == cb.message.message_id
 
-    expected = get_text(user.language, 'categories', "Enter the activation code")
+    expected = get_text(user.language, "categories", "enter_activation_code")
 
     # проверяем, что сообщение редактировалось и содержало просьбу ввести код
     assert fake_bot.get_edited_message(user.user_id, cb.message.message_id, expected), "Не отредактировалось сообщение с просьбой ввести промокод"
@@ -238,7 +238,7 @@ async def test_set_promo_code_not_found_shows_error_and_keeps_state(
     # FSM должен остаться на шаге promo_code
     assert fsm.state is not None, "FSM state неожиданно очищен"
 
-    expected = get_text(user.language, 'discount', "A promo code with this code was not found/expired \n\nTry again")
+    expected = get_text(user.language, "discount", "promo_code_not_found_or_expired")
 
     # проверяем, что исходное сообщение (old_message_id) было отредактировано с текстом ошибки
     assert fake_bot.get_edited_message(user.user_id, 33, expected), "Не отправилось сообщение об отсутствии промокода"
@@ -256,7 +256,7 @@ async def test_set_promo_code_success_updates_state_and_notifies_user(
     Ввод корректного промокода:
       - в state сохраняются promo_code_id, promo_code и суммы скидок
       - edit_message_account_category вызывается (редактирование сообщения категории)
-      - пользователю отправляется одноразовое уведомление 'The promo code has been successfully activated'
+      - пользователю отправляется одноразовое уведомление 'promo_code_successfully_activated'
     """
     from src.modules.categories.handlers.handler_categories import set_promo_code
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage, FakeFSMContext
@@ -283,7 +283,10 @@ async def test_set_promo_code_success_updates_state_and_notifies_user(
     assert fake_bot.check_str_in_edited_messages(str(category.name)), "edit_message_account_category не отредактировало сообщение с категорией"
 
     # проверим, что пользователю отправилось временное сообщение о включённом промокоде
-    assert fake_bot.get_message(user.user_id, 'The promo code has been successfully activated'), "Не отправлено уведомление об успешной активации промокода"
+    assert fake_bot.get_message(
+        user.user_id,
+        get_text(user.language, "discount", "promo_code_successfully_activated")
+    )
 
 
 @pytest.mark.asyncio
@@ -342,12 +345,8 @@ async def test_confirm_buy_acc_with_promo_applies_discount_and_edits_message(
     # Проверим, что сообщение редактировалось и в нём указана верная сумма after discount (Due: 50)
     text = get_text(
         user.language,
-        domain='categories',
-        key="Confirm your purchase\n\n"
-        "{category_name}\n"
-        "Product will be received: {quantity_products}\n"
-        "Your balance: {balance}\n"
-        "Due: {total_sum}"
+        domain="categories",
+        key="purchase_confirmation"
     )
     assert fake_bot.check_str_in_edited_messages(text[:15]), "Скидка не применена или сообщение не отредактировалось с ожидаемой суммой"
 

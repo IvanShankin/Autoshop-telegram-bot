@@ -17,7 +17,7 @@ async def name_input_prompt_by_language(user: Users, lang_code: str):
         message=get_text(
             user.language,
             "admins_editor_category",
-            "Specify the category name for this language: {language}"
+            "set_category_name"
         ).format(language=f'{get_config().app.emoji_langs[lang_code]} {get_config().app.name_langs[lang_code]}'),
         reply_markup=back_in_category_editor_kb(user.language)
     )

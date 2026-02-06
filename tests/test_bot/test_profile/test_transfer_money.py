@@ -30,7 +30,7 @@ async def test_transfer_amount_invalid_input(
     # предполагаю имя функции `transfer_money_get_amount`
     await module.transfer_money_get_amount(fake_msg, FakeFSMContext(), user)
 
-    text = get_text(user.language, 'miscellaneous', "Incorrect value entered. Please try again")
+    text = get_text(user.language, "miscellaneous", "incorrect_value_entered")
     assert fake_bot.get_message(chat_id=user.user_id, text=text)
 
 
@@ -55,7 +55,7 @@ async def test_transfer_amount_insufficient_funds(
 
     await module.transfer_money_get_amount(fake_msg, FakeFSMContext(), user)
 
-    text = get_text(user.language, 'miscellaneous', 'Insufficient funds: {amount}').format(amount=990)
+    text = get_text(user.language, "miscellaneous", 'insufficient_funds').format(amount=990)
     assert fake_bot.get_message(chat_id=user.user_id, text=text)
 
 
@@ -89,7 +89,7 @@ async def test_transfer_amount_success_sets_state_and_prompts_recipient(
     assert fsm.state is not None, "Не установлен state после корректной суммы"
     # проверяем, что отправилось приглашение ввести ID
 
-    text = get_text(user.language, 'profile_messages', 'Enter the recipients ID')
+    text = get_text(user.language, "profile_messages", "enter_recipient_id")
     assert fake_bot.get_message(chat_id=user.user_id, text=text)
 
 
@@ -101,7 +101,7 @@ async def test_transfer_recipient_not_found(
     create_new_user,
 ):
     """
-    Некорректный recipient_id (нет такого пользователя) — отправляется сообщение 'User not found'
+    Некорректный recipient_id (нет такого пользователя) — отправляется сообщение 'user_not_found'
     """
     from src.modules.profile.handlers import transfer_balance_handler as module
 
@@ -127,7 +127,7 @@ async def test_transfer_recipient_not_found(
     # FSM can be anything (we're not using stored data here)
     await module.transfer_money_get_recipient_id(fake_msg, FakeFSMContext(), user)
 
-    text = get_text(user.language, 'miscellaneous', 'User not found')
+    text = get_text(user.language, "miscellaneous", "user_not_found")
     assert fake_bot.get_message(chat_id=user.user_id, text=text)
 
 
@@ -168,7 +168,7 @@ async def test_confirm_transfer_money_user_not_found_exception(
 
     await module.confirm_transfer_money(cb, fsm, user)
 
-    text = get_text(user.language, 'miscellaneous', 'User not found')
+    text = get_text(user.language, "miscellaneous", "user_not_found")
 
     _, chat_id, message_id, text_answer, reply_markup = fake_bot.calls[0]
     assert chat_id == user.user_id
@@ -203,7 +203,7 @@ async def test_confirm_transfer_money_success(
 
     await module.confirm_transfer_money(cb, fsm, sender)
 
-    text = get_text(sender.language, 'profile_messages', 'Funds have been successfully transferred')
+    text = get_text(sender.language, "profile_messages", "funds_successfully_transferred")
 
     _, chat_id, message_id, text_answer, reply_markup = fake_bot.calls[0]
     assert chat_id == sender.user_id
@@ -212,7 +212,7 @@ async def test_confirm_transfer_money_success(
 
     text = get_text(
         sender.language,
-        'profile_messages',
-        'Funds transferred to your balance: {amount} ₽ \n\nCurrent balance: {balance}'
+        "profile_messages",
+        "funds_transferred_to_your_balance"
     ).format(amount=100, balance=recipient.balance + 100)
     assert fake_bot.get_message(recipient.user_id, text)

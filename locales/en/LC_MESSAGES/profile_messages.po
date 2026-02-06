@@ -9,21 +9,226 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 
 
-msgid "Username: {username} \nID: {id} \nRef_link: {ref_link} \nTotal sum replenishment: {total_sum_replenishment}"
-"\nBalance: {balance}, \nMoney in vouchers {money_in_vouchers}"
-msgstr "👤 Information \n"
+msgid "profile_info"
+msgstr "👤 Информация \n"
 "├ Username: {username} \n"
 "├ ID: <code>{id}</code> \n"
-"├ Referral link: <a href='{ref_link}'>Link</a> \n"
-"├ Total deposited: {total_sum_replenishment} ₽ \n"
-"├ Balance: {balance} ₽ \n"
-"╰ Funds held in vouchers: {money_in_vouchers} ₽ \n"
+"├ Реферальная ссылка: <a href='{ref_link}'>Ссылка</a> \n"
+"├ Общая сумма пополнения: {total_sum_replenishment} ₽ \n"
+"├ Баланс: {balance} ₽ \n"
+"╰ Средства удержанные в ваучерах: {money_in_vouchers} ₽ \n"
 
-msgid "Select the settings item"
-msgstr "Select the settings item"
 
-msgid "Language in the bot"
-msgstr "Language in the bot"
+# ---- Пополнение ----
 
-msgid "Notification Settings"
-msgstr "Notification Settings"
+msgid "select_replenishment_service"
+msgstr "Выберите желаемый сервис для пополнения"
+
+msgid "service_temporarily_inactive"
+msgstr "Данный сервис временно неактивен"
+
+msgid "enter_top_up_amount"
+msgstr "{name_payment}. Введите сумму пополнения в рублях"
+
+msgid "invoice_successfully_created"
+msgid_plural "invoice_successfully_created"
+msgstr[0] ""
+"{service_name}. Счёт успешно создан. У вас есть {minutes} минута для оплаты. "
+"По истечении времени счёт будет отменён. \n\n"
+"Сумма: {origin_sum}\n"
+"К оплате: {total_sum} ₽ ( + commission {percent}%)"
+msgstr[1] ""
+"{service_name}. Счёт успешно создан. У вас есть {minutes} минуты для оплаты. "
+"По истечении времени счёт будет отменён. \n\n"
+"Сумма: {origin_sum}\n"
+"К оплате: {total_sum} ₽ ( + commission {percent}%)"
+msgstr[2] ""
+"{service_name}. Счёт успешно создан. У вас есть {minutes} минут для оплаты. "
+"По истечении времени счёт будет отменён. \n\n"
+"Сумма: {origin_sum}\n"
+"К оплате: {total_sum} ₽ ( + комиссия {percent}%)"
+
+msgid "incorrect_amount_entered"
+msgstr "Введена некорректная сумма \n\nМаксимум: {amount_max} \nМинимум: {amount_min}"
+
+# ---- Купленные аккаунты ----
+
+msgid "select_account_type"
+msgstr "Выберите тип аккаунта"
+
+msgid "account_details"
+msgstr ""
+"ID товара: {product_id}\n\n"
+"Телефон: {phone_number}\n\n"
+"Имя: {name}\n"
+"Описание: {description}\n\n"
+"{valid}\n"
+"Куплен: {sold_at}"
+
+msgid "valid"
+msgstr "Валидный"
+
+msgid "not_valid"
+msgstr "Не валидный"
+
+msgid "account_not_found"
+msgstr "Аккаунт не найден"
+
+msgid "service_not_found"
+msgstr "Сервис не найден"
+
+msgid "confirmation_delete_account"
+msgstr "Подтвердите удаление этого аккаунта?\n\n"
+"Номер телефона: {phone_number}\n"
+"Имя: {name}"
+
+msgid "account_successfully_deleted"
+msgstr "Аккаунт успешно удалён"
+
+msgid "checking_for_validity"
+msgstr "Проверяем на валидность..."
+
+msgid "account_is_not_valid"
+msgstr "Аккаунт не валидный"
+
+msgid "account_is_valid"
+msgstr "Аккаунт валидный"
+
+msgid "unable_to_retrieve_data"
+msgstr "Невозможно получить данные"
+
+msgid "code_details"
+msgstr "Дата: {date} \nКод: <code>{code}</code>\n\n"
+
+msgid "loading"
+msgstr "Загрузка..."
+
+msgid "search"
+msgstr "Поиск..."
+
+msgid "no_codes_found"
+msgstr "Коды не найдены"
+
+msgid "login_and_password_details"
+msgstr "Логин: <code>{login}</code> \Пароль: <code>{password}</code>"
+
+# ---- Купленные универсальные товары ----
+
+msgid "product_not_found"
+msgstr "Продукт не найден"
+
+msgid "universal_product_details"
+msgstr ""
+"ID товара: {product_id}\n\n"
+"Имя: {name}\n"
+"Куплен: {sold_at}"
+
+msgid "confirmation_delete_product"
+msgstr "Подтвердите удаление этого товара\n\n"
+"ID товара: {sold_universal_id}\n"
+"Имя: {name}"
+
+msgid "product_successfully_deleted"
+msgstr "Продукт успешно удалён"
+
+msgid "description"
+msgstr "Описание: \n\n{description}"
+
+# ---- Настройки ----
+
+msgid "select_settings_item"
+msgstr "Выберите пункт настроек"
+
+msgid "language_in_bot"
+msgstr "Язык в боте"
+
+msgid "notification_settings"
+msgstr "Настройки уведомлений"
+
+# ---- Движение средств ----
+
+msgid "all_fund_movements"
+msgstr "Все движения средств. Для просмотра конкретной транзакции нажмите на неё"
+
+msgid "transaction_details"
+msgstr "ID: {transaction_id} \n\n"
+"Тип: {type} \n"
+"Сумма: {amount} \n"
+"Баланс до: {balance_before} \n"
+"Баланс после: {balance_after} \n"
+"Дата: {created_at}"
+
+# ---- Рефералы ----
+
+msgid "referral_info"
+msgstr "Ваша реферальная ссылка: <a href='{ref_link}'>Ссылка</a> \n\n"
+"Общий заработок: {total_earnings} \n"
+"Кол-во общих приглашенных рефералов: {total_number_ref} \n"
+"Кол-во рефералов 1-го уровня: {ref_first_lvl} \n"
+"Кол-во рефералов 2-го уровня: {ref_second_lvl} \n"
+
+msgid "referral_earnings_history"
+msgstr "История всех начислений от рефералов. Для просмотра конкретной транзакции нажмите на неё"
+
+msgid "referral_income_details"
+msgstr "ID: {id} \n\n"
+"Username реферала: {username}\n"
+"Cумма: {amount}\n"
+"Процент от пополнения: {percentage_of_replenishment}\n"
+"Дата: {date}\n"
+
+msgid "file_successfully_generated"
+msgstr "Файл  успешно сформирован"
+
+# ---- Перевод денег ----
+
+msgid "select_desired_action"
+msgstr "Выберите желаемое действие "
+
+msgid "enter_amount"
+msgstr "Введите сумму"
+
+msgid "enter_recipient_id"
+msgstr "Введите ID получателя"
+
+msgid "check_data_for_accuracy"
+msgstr "Проверьте корректность данных \n\nСумма: {amount} \nID получателя: {recipient}"
+
+msgid "funds_successfully_transferred"
+msgstr "Средства успешно переведены"
+
+msgid "funds_transferred_to_your_balance"
+msgstr "На ваш баланс переведены средства: {amount} ₽ \n\nТекущий баланс: {balance}"
+
+# ---- Ваучеры ----
+
+msgid "enter_number_of_activations_for_voucher"
+msgstr "Введите число активаций для ваучера"
+
+msgid "check_voucher_data_for_accuracy"
+msgstr "Проверьте корректность данных \n\nОбщее количество средств на активацию: {total_sum}\n"
+"Сумма одного ваучера: {amount} \nЧисло активаций: {number_activations}"
+
+msgid "voucher_successfully_created"
+msgstr "Ваучер успешно создан \n\nСсылка на активацию: <a href='{link}'>Ссылка</a> \nСумма: {amount} \n"
+"Число активаций: {number_activations} \nОбщее количество средств затраченное на активацию: {total_sum} \n"
+"Текущий баланс: {balance} \n\nПримечание: один пользователь может активировать только один ваучер"
+
+msgid "voucher_currently_inactive"
+msgstr "На данный момент, этот ваучер является  неактивным"
+
+msgid "all_vouchers_list"
+msgstr "Все ваучеры. Для просмотра конкретного ваучера нажмите на него"
+
+msgid "voucher_details"
+msgstr "ID: {id} \n\nСсылка: <a href='{link}'>Копировать</a> \nСуммарно затрачено: {total_amount} \nСумма: {amount} \n"
+"Разрешённое число активаций: {number_of_activations} \nЧисло активаций: {activated_counter}"
+
+msgid "confirmation_deactivate_voucher"
+msgstr "Вы действительно хотите деактивировать ваучер? \nСумма которая вернётся: {amount}"
+
+msgid "voucher_successfully_deactivated"
+msgstr "Ваучер успешно деактивирован \n\nНа ваш счёт начислено: {amount}\nТекущий баланс: {balance}"
+
+msgid "error_deactivating_voucher"
+msgstr "Во время деактивации ваучера произошла ошибка \n\nЕсли средства не вернулись, обратитесь к поддержке: @{username_support}"

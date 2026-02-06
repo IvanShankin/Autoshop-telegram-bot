@@ -49,7 +49,7 @@ async def show_sent_mass_message(callback: CallbackQuery, user: Users):
             get_text(
                 user.language,
                 "admins_editor_mass_mailing",
-                "Message not found"
+                "message_not_found"
             ),
             show_alert=True
         )
@@ -90,7 +90,7 @@ async def detail_mass_msg(callback: CallbackQuery, user: Users):
             get_text(
                 user.language,
                 "admins_editor_mass_mailing",
-                "Message not found"
+                "message_not_found"
             ),
             show_alert=True
         )
@@ -99,11 +99,7 @@ async def detail_mass_msg(callback: CallbackQuery, user: Users):
     message = get_text(
         user.language,
         "admins_editor_mass_mailing",
-        "Message ID: {message_id} \n\n"
-        "Admin ID who sent the mailing: {admin_id} \n"
-        "Number of users who received messages: {number_received} \n"
-        "Number of messages sent: {number_sent} \n"
-        "Date of the event: {created_at} \n"
+        "mailing_details"
     ).format(
         message_id=msg.message_id,
         admin_id=msg.user_id,

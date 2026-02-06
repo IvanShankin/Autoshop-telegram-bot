@@ -9,70 +9,63 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 
 
-msgid "#Promocode_activation \nID promo_code '{promo_code_id}' \nCode '{code}' \nID user '{user_id}'"
-"\n\nSuccessfully activated. \nActivations remaining: {number_of_activations}"
+msgid "log_promo_code_activation"
 msgstr "#Активация_промокода \nID '{promo_code_id}' \nКод '{code}' \nID пользователя '{user_id}'"
 "\n\nУспешно активирован. \nОсталось активаций: {number_of_activations}"
 
-msgid "#Promo_code_expired \nID '{id}' \nCode '{code}'"
-"\n\nThe promo code has expired due to reaching the number of activations or time limit. It is no longer possible to activate it"
+msgid "log_promo_code_expired"
 msgstr "#Промокод_закончился \nID '{id}' \nКод '{code}'"
 "\n\nПромокод закончился из-за достижения количества активаций или ограничения по времени. Теперь его невозможно активировать"
 
-msgid "The promo code has been successfully activated"
+msgid "promo_code_successfully_activated"
 msgstr "Промокод успешно активирован"
 
-msgid "A promo code with this code was not found/expired \n\nTry again"
+msgid "promo_code_not_found_or_expired"
 msgstr "Промокод с таким кодом не найден/истёк срок годности \n\nПопробуйте ещё раз"
 
-msgid "This promo code has already been activated previously \n\nTry again"
+msgid "promo_code_already_activated"
 msgstr "Этот промокод был уже активирован ранее \n\nПопробуйте ещё раз"
 
-msgid "Attention, the promo code is no longer valid, the discount will no longer apply!"
+msgid "promo_code_no_longer_valid_warning"
 msgstr "Внимание \nпромокод стал не валидным, скидка за него не будет действовать!"
 
-msgid "Purchase not processed! \n"
-"Minimum amount to apply the promo code: {amount}"
+msgid "minimum_amount_to_apply_promo_code"
 msgstr "Покупка не оформлена! \n"
 "Минимальная сумма с которой можно применить промокод: {amount}"
 
-
-
-msgid "#Voucher_expired \nID '{id}' \nCode '{code}'"
-"\n\nThe voucher has expired due to reaching the number of activations or time limit. It is no longer possible to activate it"
+msgid "log_voucher_expired"
 msgstr "#Ваучер_закончился \nID '{id}' \nКод '{code}'"
 "\n\nВаучер закончился из-за достижения количества активаций или ограничения по времени. Теперь его невозможно активировать"
 
-msgid "Voucher expired \n\nID '{id}' \nCode '{code}' \n\nVoucher expired due to time limit. It can no longer be activated"
+msgid "voucher_expired_due_to_time"
 msgstr "У ваучера истёк срок действия \n\nID '{id}' \nКод '{code}' \n\nВаучер закончился  из-за ограничения по времени. Теперь его невозможно активировать"
 
-msgid "Voucher has reached its activation limit \n\nID: {id} \nCode: {code} \n\n"
-"The voucher has expired due to the activation limit. It can no longer be activated"
+msgid "voucher_reached_activation_limit"
 msgstr "У ваучера достигнут лимит активаций \n\nID '{id}' \nКод '{code}' "
 "\n\nВаучер закончился  из-за ограничения по количеству активаций. Теперь его невозможно активировать"
 
-msgid "Voucher with this code not found"
+msgid "voucher_not_found"
 msgstr "Ваучер с данным кодом не найден"
 
-msgid "You have already activated this voucher. It can only be activated once"
+msgid "voucher_already_activated"
 msgstr "Вы уже активировали данный ваучер. Его можно активировать только один раз"
 
-msgid "Voucher successfully activated! \n\nVoucher amount: {amount} \nCurrent balance: {new_balance}"
+msgid "voucher_successfully_activated"
 msgstr "Ваучер успешно активирован! \n\nСумма ваучера: {amount} \n Текущий баланс: {new_balance}"
 
-msgid "Voucher with code '{code}' has been activated! \n\nRemaining number of voucher activations: {number_activations}"
+msgid "log_voucher_activated"
 msgstr "Ваучер с кодом '{code}' активирован! \n\nОставшееся количество активаций ваучера: {number_activations}"
 
-msgid "You cannot activate the voucher. You are its creator"
+msgid "cannot_activate_own_voucher"
 msgstr "Вы не можете активировать ваучер. Вы его создатель"
 
-msgid "#Error_activating_promo_code. \n\nPromo code ID '{id}' \nError: {error}"
+msgid "log_error_activating_promo_code"
 msgstr "#Ошибка_при_активации_промокода. \n\nID промокода '{id}' \nОшибка: {error}"
 
-msgid "Error_while_activating_voucher. \n\nVoucher ID '{id}' \nError: {error}"
+msgid "log_error_activating_voucher"
 msgstr "#Ошибка_при_активации_ваучера. \n\nID ваучера '{id}' \nОшибка: {error}"
 
-msgid "#Error_refunding_money_from_voucher \n\nVoucher ID: {voucher_id} \nOwner ID: {owner_id} \nError: {error}"
+msgid "log_error_refunding_money_from_voucher"
 msgstr "#Ошибка при возврате денег с ваучера \n\nID ваучера: {voucher_id} \nID Владельца: {owner_id} \nОшибка: {error} "
 
 

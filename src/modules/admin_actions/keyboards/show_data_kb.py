@@ -7,27 +7,27 @@ from src.utils.i18n import get_text
 def _data_by_id_page_1(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, "kb_admin_panel", "Users"),
+            text=get_text(language, "kb_admin_panel", "users"),
             callback_data=f"get_id_or_user_user_management"
         )],
         [InlineKeyboardButton(
-            text=get_text(language, "kb_admin_panel", "Replenishment"),
+            text=get_text(language, "kb_admin_panel", "replenishment"),
             callback_data=f"replenishment_by_id:1"
         )],
         [InlineKeyboardButton(
-            text=get_text(language, "kb_admin_panel", "Purchase account"),
+            text=get_text(language, "kb_admin_panel", "purchase_account"),
             callback_data=f"purchase_account_by_id:1"
         )],
         [InlineKeyboardButton(
-            text=get_text(language, "kb_admin_panel", "Sold Account"),
+            text=get_text(language, "kb_admin_panel", "sold_account"),
             callback_data=f"sold_account_by_id:1"
         )],
         [InlineKeyboardButton(
-            text=get_text(language, "kb_admin_panel", "Vouchers"),
+            text=get_text(language, "kb_admin_panel", "vouchers"),
             callback_data=f"voucher_by_id:1"
         )],
         [InlineKeyboardButton(
-            text=get_text(language, "kb_admin_panel", "Activate voucher"),
+            text=get_text(language, "kb_admin_panel", "activate_voucher"),
             callback_data=f"activate_voucher_by_id:1"
         )],
 
@@ -39,7 +39,7 @@ def _data_by_id_page_1(language: str):
         ],
 
         [InlineKeyboardButton(
-            text=get_text(language, "kb_general", "Back"),
+            text=get_text(language, "kb_general", "back"),
             callback_data=f"admin_panel"
         )],
 
@@ -49,27 +49,27 @@ def _data_by_id_page_1(language: str):
 def _data_by_id_page_2(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, "kb_admin_panel", "Promo code"),
+            text=get_text(language, "kb_admin_panel", "promo_code"),
             callback_data=f"promo_code_by_id:2"
         )],
         [InlineKeyboardButton(
-            text=get_text(language, "kb_admin_panel", "Promo code activation"),
+            text=get_text(language, "kb_admin_panel", "promo_code_activation"),
             callback_data=f"promo_code_activation_by_id:2"
         )],
         [InlineKeyboardButton(
-            text=get_text(language, "kb_admin_panel", "Referral"),
+            text=get_text(language, "kb_admin_panel", "referral"),
             callback_data=f"referral_by_id:2"
         )],
         [InlineKeyboardButton(
-            text=get_text(language, "kb_admin_panel", "Income from referral"),
+            text=get_text(language, "kb_admin_panel", "income_from_referral"),
             callback_data=f"income_from_ref_by_id:2"
         )],
         [InlineKeyboardButton(
-            text=get_text(language, "kb_admin_panel", "Transfer money"),
+            text=get_text(language, "kb_admin_panel", "transfer_money"),
             callback_data=f"transfer_money_by_id:2"
         )],
         [InlineKeyboardButton(
-            text=get_text(language, "kb_admin_panel", "Wallet transfer"),
+            text=get_text(language, "kb_admin_panel", "wallet_transfer"),
             callback_data=f"wallet_transaction_by_id:2"
         )],
 
@@ -83,7 +83,7 @@ def _data_by_id_page_2(language: str):
 
 
         [InlineKeyboardButton(
-            text=get_text(language, "kb_general", "Back"),
+            text=get_text(language, "kb_general", "back"),
             callback_data=f"admin_panel"
         )],
 
@@ -100,7 +100,7 @@ def data_by_id_by_page_kb(language: str, current_page: int):
 def back_in_show_data_by_id_kb(language: str, current_page: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, "kb_general", "Back"),
+            text=get_text(language, "kb_general", "back"),
             callback_data=f'data_by_id:{current_page}'
         )]
     ])

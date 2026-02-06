@@ -9,23 +9,20 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 
 
-msgid "Back"
+msgid "back"
 msgstr "Назад"
 
-msgid "Confirm"
+msgid "confirm"
 msgstr "Подтвердить"
 
-msgid "Again"
+msgid "again"
 msgstr "Заново"
 
-msgid "In category"
-msgstr "В категорию"
-
-msgid "Delete"
+msgid "delete"
 msgstr "Удалить"
 
-msgid "Pay"
+msgid "pay"
 msgstr "Оплатить"
 
-msgid "Skip"
+msgid "skip"
 msgstr "Пропустить"

@@ -181,8 +181,8 @@ class TestActivateVoucher:
 
         expected = get_text(
             user.language,
-            'discount',
-            "Voucher successfully activated! \n\nVoucher amount: {amount} \nCurrent balance: {new_balance}"
+            "discount",
+            "voucher_successfully_activated"
         ).format(amount=voucher.amount, new_balance= origin_balance + voucher.amount)
 
         assert result_message == expected
@@ -198,8 +198,8 @@ class TestActivateVoucher:
 
         expected = get_text(
             user.language,
-            'discount',
-            "Voucher with this code not found")
+            "discount",
+            "voucher_not_found")
         assert result_message == expected
 
     async def test_voucher_already_activated(self, create_voucher, create_new_user):
@@ -222,8 +222,8 @@ class TestActivateVoucher:
 
         expected = get_text(
             user.language,
-            'discount',
-            "You have already activated this voucher. It can only be activated once"
+            "discount",
+            "voucher_already_activated"
         )
         assert result_message == expected
         assert success == False
@@ -254,8 +254,8 @@ class TestActivateVoucher:
 
         expected = get_text(
             user.language,
-            'discount',
-            "Voucher expired \n\nID '{id}' \nCode '{code}' \n\nVoucher expired due to time limit. It can no longer be activated"
+            "discount",
+            "voucher_expired_due_to_time"
         ).format(id=expired_voucher.voucher_id, code=expired_voucher.activation_code)
 
         assert result_message == expected
@@ -271,8 +271,8 @@ class TestActivateVoucher:
 
         expected = get_text(
             user.language,
-            'discount',
-            "You cannot activate the voucher. You are its creator")
+            "discount",
+            "cannot_activate_own_voucher")
         assert result_message == expected
         assert success == False
 

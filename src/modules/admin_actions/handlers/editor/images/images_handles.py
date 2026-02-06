@@ -29,7 +29,7 @@ async def show_image_editor(
     ui_image = await get_ui_image(ui_image_key)
 
     if not ui_image:
-        text = get_text(user.language, "admins_editor_images", "This photo no longer exists")
+        text = get_text(user.language, "admins_editor_images", "photo_not_exists")
         if callback:
             await callback.answer(text, show_alert=True)
         else:
@@ -37,7 +37,7 @@ async def show_image_editor(
         return
 
     message = get_text(
-        user.language, "admins_editor_images", "Where is it used: {where} \nShow: {show}"
+        user.language, "admins_editor_images", "Where_used_and_indicate_show"
     ).format(where=get_text(user.language, "ui_images_description", ui_image_key), show=ui_image.show)
 
     reply_markup = image_editor(user.language, ui_image_key, current_show=ui_image.show,current_page=current_page)
@@ -86,7 +86,7 @@ async def ui_image_update_show(callback: CallbackQuery, user: Users):
     new_show = bool(int(callback.data.split(':')[2]))
     current_page = int(callback.data.split(':')[3])
     await update_ui_image(ui_image_key, show=new_show)
-    await callback.answer(get_text(user.language, "miscellaneous", "Successfully updated"), show_alert=True)
+    await callback.answer(get_text(user.language, "miscellaneous", "successfully_updated"), show_alert=True)
     await show_image_editor(
         ui_image_key=ui_image_key,
         current_page=current_page,
@@ -106,7 +106,7 @@ async def change_ui_image(callback: CallbackQuery, state: FSMContext, user: User
         message=get_text(
             user.language,
             "admins_editor_images",
-            "Send a new image. \n\nNote: Please provide a document for best photo quality"
+            "get_new_image"
         ),
         reply_markup=await back_in_image_editor(user.language, ui_image_key, current_page)
     )
@@ -121,12 +121,12 @@ async def change_ui_image_result(message: Message, state: FSMContext, user: User
     # обновляем и выводим сообщение
 
     if not doc.mime_type.startswith("image/"): # Проверяем, что это действительно изображение
-        text = get_text(user.language,"admins_editor_images", "This is not an image. Send it as a document")
+        text = get_text(user.language,"admins_editor_images", "this_is_not_image")
     elif doc.file_size > get_config().limits.max_size_bytes: # Проверяем размер, известный Telegram (без скачивания)
         text = get_text(
             user.language,
             "admins_editor_category",
-            "The file is too large — maximum {max_size_mb} MB. \n\nTry again"
+            "file_to_many_long"
         ).format(max_size_mb=get_config().limits.max_size_mb)
     else:
         # Получаем объект файла
@@ -151,7 +151,7 @@ async def change_ui_image_result(message: Message, state: FSMContext, user: User
             await show_image_editor(ui_image_key=data.ui_image_key,current_page=data.current_page,user=user,new_message=True)
             return
         except InvalidImage:
-            text = get_text(user.language, "admins_editor_images", "This is not an image. Send it as a document")
+            text = get_text(user.language, "admins_editor_images", "this_is_not_image")
 
     # тут только отсылка о неуспехе
     await send_message(

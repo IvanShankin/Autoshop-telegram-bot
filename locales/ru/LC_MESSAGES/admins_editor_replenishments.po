@@ -10,12 +10,7 @@ msgstr ""
 
 
 
-msgid "Top-up service: {name_for_admin}\n\n"
-"ID: {ID}\n"
-"Username: {name_for_user}\n"
-"Index: {index}\n"
-"Show: {show}\n"
-"Commission: {commission}%%"
+msgid "top_up_service_info"
 msgstr "Сервис пополнения: {name_for_admin}\n\n"
 "ID: {ID}\n"
 "Имя для пользователя: {name_for_user}\n"
@@ -23,12 +18,14 @@ msgstr "Сервис пополнения: {name_for_admin}\n\n"
 "Показывать: {show}\n"
 "Комиссия: {commission}%"
 
-msgid "Enter a new name\n\nNote: The name must not exceed 200 characters"
+msgid "enter_new_name_for_service"
 msgstr "Введите новое имя\n\n Примечание: имя не должно превышать 200 символов"
 
-msgid "The new name is too long. Please try again"
+msgid "new_name_too_long"
 msgstr "Новое имя слишком длинное. Попробуйте ещё раз"
 
-msgid "Enter a new commission"
+msgid "enter_new_commission"
 msgstr "Введите новую комиссию"
 
+msgid "payment_method_not_exists"
+msgstr "Типа оплаты больше нет"

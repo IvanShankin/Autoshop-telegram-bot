@@ -9,39 +9,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 
 
-msgid ""
-"Payment system: {name}\n"
-"Quantity replenishments: {quantity_replenishments}\n"
-"Amount replenishments: {amount_replenishments}\n"
+msgid "payment_system_stats"
 msgstr ""
 "💳\n"
 "├ Платёжная система: {name}\n"
 "├ Количество пополнений: {quantity_replenishments}\n"
 "╰ Сумма пополнений: {amount_replenishments}"
 
-
-
-msgid ""
-"Statistics {interval}\n\n"
-"\n"
-"Active users: {active_users}\n"
-"New users: {new_users}\n"
-"Total users: {total_users}\n"
-"\n"
-"Quantity sale accounts: {quantity_sale_accounts}\n"
-"Amount sale accounts: {amount_sale_accounts}\n"
-"Total net profit: {total_net_profit}\n"
-"\n"
-"Quantity replenishments: {quantity_replenishments}\n"
-"Amount replenishments: {amount_replenishments}\n"
-"\n"
-"Replenishment payment systems:\n"
-"{replenishment_payment_systems}\n"
-"\n"
-"Funds in bot: {funds_in_bot}\n"
-"Accounts for sale: {accounts_for_sale}\n"
-"\n"
-"Last backup: {last_backup}\n"
+msgid "statistics_summary"
 msgstr ""
 "Статистика {interval}\n\n"
 "👤\n"
@@ -68,8 +43,6 @@ msgstr ""
 "\n"
 "💾 Последний бэкап: {last_backup}"
 
-
-
 msgid "1"
 msgstr "за день"
 
@@ -82,6 +55,6 @@ msgstr "за месяц"
 msgid "365"
 msgstr "за год"
 
-msgid "all time"
+msgid "interval_all_time"
 msgstr "за всё время"
 

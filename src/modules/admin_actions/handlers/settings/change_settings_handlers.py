@@ -29,7 +29,7 @@ async def change_admin_settings(callback: CallbackQuery, user: Users):
 
         if not settings.channel_for_logging_id:
             await callback.answer(
-                get_text(user.language,"admins_settings", "First, please specify a chat/channel for logs"),
+                get_text(user.language,"admins_settings", "first_specify_log_chat"),
                 show_alert=True
             )
             return

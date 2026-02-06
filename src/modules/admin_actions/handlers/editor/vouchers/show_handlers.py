@@ -49,21 +49,15 @@ async def show_admin_voucher(callback: CallbackQuery, user: Users):
     voucher = await get_voucher_by_id(voucher_id)
 
     if not voucher:
-        text = get_text(user.language, 'profile_messages', 'This voucher is currently inactive, please select another one')
+        text = get_text(user.language, "profile_messages", 'This voucher is currently inactive, please select another one')
         reply_markup=back_in_all_admin_voucher_kb(user.language, current_page)
     else:
         bot = await get_bot()
         bot_me = await bot.me()
-        text = get_text(user.language, 'admins_editor_vouchers',
-            "ID: {id} \n\n"
-            "Valid: {valid} \n"
-            "Link: <a href='{link}'>Copy</a> \n"
-            "Total spent: {total_amount} \n"
-            "Amount: {amount} \n"
-            "Allowed number of activations: {number_of_activations} \n"
-            "Number of activations: {activated_counter} \n"
-            "Created at: {start_at}"
-            "Valid until: {expire_at}"
+        text = get_text(
+            user.language,
+            "admins_editor_vouchers",
+            "voucher_details"
         ).format(
             id=voucher_id,
             valid=voucher.is_valid,

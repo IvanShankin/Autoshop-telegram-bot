@@ -79,7 +79,7 @@ async def test_successful_voucher_activation(
     message_for_user = get_text(
         owner.language,
         "discount",
-        "Voucher with code '{code}' has been activated! \n\nRemaining number of voucher activations: {number_activations}"
+        "log_voucher_activated"
     ).format(
         code=updated_voucher.activation_code,
         number_activations=updated_voucher.number_of_activations - updated_voucher.activated_counter
@@ -126,8 +126,7 @@ async def test_voucher_activation_with_activation_limit(
     expected_user_message = get_text(
         'ru',
         "discount",
-        "Voucher has reached its activation limit \n\nID: {id} \nCode: {code} \n\n"
-            "The voucher has expired due to the activation limit. It can no longer be activated"
+        "voucher_reached_activation_limit"
     ).format(id=voucher.voucher_id, code=voucher.activation_code)
 
     assert fake_bot.get_message(voucher.creator_id, expected_user_message)
@@ -189,8 +188,7 @@ async def test_send_set_not_valid_voucher(
         expected_user_message = get_text(
             user.language,
             "discount",
-            "Voucher has reached its activation limit \n\nID: {id} \nCode: {code} \n\n"
-            "The voucher has expired due to the activation limit. It can no longer be activated"
+            "voucher_reached_activation_limit"
         ).format(id=voucher.voucher_id, code=voucher.activation_code)
         assert fake_bot.get_message(user.user_id, expected_user_message)
 

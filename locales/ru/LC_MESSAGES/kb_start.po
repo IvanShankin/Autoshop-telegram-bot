@@ -9,17 +9,17 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 
 
-msgid "Product categories"
+msgid "product_categories"
 msgstr "Каталог товаров"
 
-msgid "Profile"
+msgid "profile"
 msgstr "Профиль"
 
-msgid "Information"
+msgid "information"
 msgstr "Информация"
 
-msgid "Admin panel"
+msgid "admin_panel"
 msgstr "Админ панель"
 
-msgid "Support"
+msgid "support"
 msgstr "Поддержка"

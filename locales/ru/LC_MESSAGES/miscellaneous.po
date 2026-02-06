@@ -8,35 +8,36 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 
-msgid "No"
+
+msgid "no"
 msgstr "Нет"
 
-msgid "Data not found"
+msgid "data_not_found"
 msgstr "Данные не найдены"
 
-msgid "The funds have not been written off"
+msgid "funds_not_written_off"
 msgstr "Средства не списаны"
 
-msgid "Incorrect value entered. Please try again"
+msgid "incorrect_value_entered"
 msgstr "Введено некорректное значение. Попробуйте ещё раз"
 
-msgid "Insufficient funds: {amount}"
+msgid "insufficient_funds"
 msgstr "Недостаточно средств: {amount}"
 
-msgid "User not found"
+msgid "user_not_found"
 msgstr "Пользователь не найден"
 
-msgid "An error occurred, please try again"
+msgid "an_error_occurred"
 msgstr "Произошла ошибка, пожалуйста попробуйте ещё раз"
 
-msgid "Try again"
+msgid "try_again"
 msgstr "Попробуйте ещё раз"
 
-msgid "Data updated successfully"
+msgid "data_updated_successfully"
 msgstr "Данные успешно обновлены"
 
-msgid "Successfully updated"
+msgid "successfully_updated"
 msgstr "Успешно обновлён"
 
-msgid "File loading"
+msgid "file_loading"
 msgstr "Файл загружается"

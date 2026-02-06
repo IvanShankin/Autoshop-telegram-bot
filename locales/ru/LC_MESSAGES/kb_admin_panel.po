@@ -9,311 +9,296 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 
 
-msgid "Editors"
+msgid "editors"
 msgstr "Редакторы"
 
-msgid "Categories"
+msgid "categories"
 msgstr "Категории"
 
-msgid "Services replenishments"
+msgid "services_replenishments"
 msgstr "Сервисы пополнения"
 
-msgid "Images"
+msgid "images"
 msgstr "Изображения"
 
-msgid "Vouchers"
+msgid "vouchers"
 msgstr "Ваучеры"
 
-msgid "Promo codes"
+msgid "promo_codes"
 msgstr "Промокоды"
 
-msgid "Add"
+msgid "add"
 msgstr "Добавить"
 
-msgid "To services"
-msgstr "К сервисам"
-
-msgid "In category"
+msgid "in_category"
 msgstr "В категорию"
 
-msgid "In category editor"
+msgid "in_category_editor"
 msgstr "В редактор категорий"
 
-msgid "Up index"
+msgid "up_index"
 msgstr "⬆️ Индекс"
 
-msgid "Down index"
+msgid "down_index"
 msgstr "⬇️ Индекс"
 
-msgid "{indicator} Show"
+msgid "show_indicator"
 msgstr "{indicator} Показывать"
 
-msgid "{indicator} Multiple Sale"
+msgid "multiple_sale_indicator"
 msgstr "{indicator} Многократная продажа"
 
-msgid "{indicator} Wholesale purchase"
+msgid "wholesale_purchase_indicator"
 msgstr "{indicator} Оптовая покупка"
 
-msgid "Rename"
+msgid "rename"
 msgstr "Изменить имя"
 
-msgid "Add Category"
+msgid "add_category"
 msgstr "Добавить категорию"
 
-msgid "Add subcategory"
+msgid "add_subcategory"
 msgstr "Добавить подкатегорию"
 
-msgid "Make storage"
+msgid "make_storage"
 msgstr "Сделать хранилищем"
 
-msgid "Remove storage"
+msgid "remove_storage"
 msgstr "Убрать хранилище"
 
-msgid "Update data"
+msgid "update_data"
 msgstr "Изменить данные"
 
-msgid "Load products"
+msgid "load_products"
 msgstr "Загрузить продукты"
 
-
-msgid "Name / Description"
+msgid "name_description"
 msgstr "Имя / Описание"
 
-msgid "Name"
+msgid "name"
 msgstr "Имя"
 
-msgid "Description"
+msgid "description"
 msgstr "Описание"
 
-msgid "Image"
+msgid "image"
 msgstr "Фото"
 
-msgid "Price one product"
+msgid "price_one_product"
 msgstr "Цена одного продукта"
 
-msgid "Cost Price one product"
+msgid "cost_price_one_product"
 msgstr "Себестоимость одного продукта"
 
-msgid "Number button in row"
+msgid "number_button_in_row"
 msgstr "Число кнопок в строке"
 
-msgid "{indicator} Show by default"
+msgid "show_by_default_indicator"
 msgstr "{indicator} Показывать по умолчанию"
 
-msgid "To the data"
+msgid "to_the_data"
 msgstr "К данным"
 
-msgid "Delete all products"
+msgid "delete_all_products"
 msgstr "Удалить все продукты"
 
-msgid "Unload all products"
+msgid "unload_all_products"
 msgstr "Выгрузить все продукты"
 
-msgid "Get example"
+msgid "get_example"
 msgstr "Получить пример"
 
-msgid "Edit commission"
+msgid "edit_commission"
 msgstr "Изменить комиссию"
 
 # ---- Управление пользователем ----
 
-msgid "User management"
+msgid "user_management"
 msgstr "Управление пользователями"
 
-msgid "Change Balance"
+msgid "change_balance"
 msgstr "Изменить баланс"
 
-msgid "Issue a ban"
+msgid "issue_ban"
 msgstr "Выдать бан"
 
-msgid "Remove the ban"
+msgid "remove_ban"
 msgstr "Убрать бан"
 
-msgid "Unload All Actions"
+msgid "unload_all_actions"
 msgstr "Выгрузить все действия"
 
-msgid "Transaction History"
+msgid "transaction_history"
 msgstr "История операции"
 
-msgid "Unload Referral List"
+msgid "unload_referral_list"
 msgstr "Выгрузить список рефералов"
 
-msgid "Referral Credit History"
+msgid "referral_credit_history"
 msgstr "История начисления рефералов"
 
-msgid "Active vouchers"
+msgid "active_vouchers"
 msgstr "Активные ваучеры"
 
-msgid "Change image"
+msgid "change_image"
 msgstr "Изменить изображение"
 
-
-msgid "In level"
+msgid "in_level"
 msgstr "В уровень"
 
-msgid "Change persent"
+msgid "change_percent"
 msgstr "Изменить процент"
 
-msgid "Change achievement Amount"
+msgid "change_achievement_amount"
 msgstr "Изменить сумму достижения"
 
-
-msgid "In start"
+msgid "in_start"
 msgstr "В начало"
 
-msgid "In voucher"
+msgid "in_voucher"
 msgstr "В ваучер"
 
-msgid "Valid"
+msgid "valid"
 msgstr "Валидный"
 
-msgid "Not valid"
+msgid "not_valid"
 msgstr "Не валидный"
 
-
-msgid "Create promo code"
+msgid "create_promo_code"
 msgstr "Создать промокод"
 
-msgid "In promo code"
+msgid "in_promo_code"
 msgstr "В промокод"
 
-msgid "Show not valid {indicator}"
+msgid "show_not_valid_indicator"
 msgstr "Показывать невалидные {indicator}"
 
-msgid "With percentage"
-msgstr "С процентом"
-
-msgid "With a fixed amount"
+msgid "with_fixed_amount"
 msgstr "С фиксированной суммой"
 
+msgid "with_percentage"
+msgstr "С процентом"
 
-msgid "Mailing"
+msgid "mailing"
 msgstr "Рассылка"
 
-msgid "Editor"
+msgid "editor"
 msgstr "Редактор"
 
-msgid "History"
+msgid "history"
 msgstr "История"
 
-msgid "Start mailing"
+msgid "start_mailing"
 msgstr "Начать рассылку"
 
-msgid "Change Photo"
+msgid "change_photo"
 msgstr "Изменить фото"
 
-msgid "Change text"
+msgid "change_text"
 msgstr "Изменить текст"
 
-msgid "Change button url"
+msgid "change_button_url"
 msgstr "Изменить url кнопки"
 
-msgid "Hints to the text"
+msgid "hints_to_text"
 msgstr "Подсказки к тексту"
 
-msgid "Detail"
+msgid "detail"
 msgstr "Детали"
-
 
 # ---- настройки ----
 
-msgid "Change"
+msgid "change"
 msgstr "Изменение"
 
-msgid "Add admin"
+msgid "add_admin"
 msgstr "Добавить админа"
 
-msgid "Delete admin"
+msgid "delete_admin"
 msgstr "Удалить админа"
 
-msgid "Download logs"
+msgid "download_logs"
 msgstr "Выгрузить логи"
 
-
-msgid "{indicator} maintenance mode"
+msgid "maintenance_mode_indicator"
 msgstr "{indicator} Технические работы"
 
-msgid "Support username"
+msgid "support_username"
 msgstr "Username поддержки"
 
-msgid "Chat ID for logging"
+msgid "chat_id_for_logging"
 msgstr "ID чата для логирования"
 
-msgid "Channel ID to subscribe to"
+msgid "channel_id_to_subscribe_to"
 msgstr "ID канала для подписки"
 
-msgid "URL channel for subscription"
+msgid "url_channel_for_subscription"
 msgstr "URL канала для подписки"
 
-msgid "Channel name"
+msgid "channel_name"
 msgstr "Имя канала"
 
-msgid "Shop name"
+msgid "shop_name"
 msgstr "Имя Магазина"
 
-msgid "URL to FAQ"
+msgid "url_to_faq"
 msgstr "URL на FAQ"
-
 
 # ---- просмотр данных по ID ----
 
-msgid "Showing data by ID"
+msgid "showing_data_by_id"
 msgstr "Просмотр данных по ID "
 
-msgid "Showing data by ID"
-msgstr "Просмотр данных по ID "
-
-msgid "Users"
+msgid "users"
 msgstr "Пользователь"
 
-msgid "Replenishment"
+msgid "replenishment"
 msgstr "Пополнение"
 
-msgid "Purchase account"
+msgid "purchase_account"
 msgstr "Покупка аккаунта"
 
-msgid "Transfer money"
+msgid "transfer_money"
 msgstr "Перевод денег"
 
-msgid "Vouchers"
+msgid "vouchers"
 msgstr "Ваучер"
 
-msgid "Activate voucher"
+msgid "activate_voucher"
 msgstr "Активация ваучера"
 
-msgid "Promo code"
+msgid "promo_code"
 msgstr "Промокод"
 
-msgid "Promo code activation"
+msgid "promo_code_activation"
 msgstr "Активация промокода"
 
-msgid "Referral"
+msgid "referral"
 msgstr "Реферал"
 
-msgid "Income from referral"
+msgid "income_from_referral"
 msgstr "Доход от реферала"
 
-msgid "Wallet transfer"
+msgid "wallet_transfer"
 msgstr "Движение средств"
 
-msgid "Sold Account"
+msgid "sold_account"
 msgstr "Проданный аккаунт"
 
-
-msgid "Statistics"
+msgid "statistics"
 msgstr "Статистика"
 
-msgid "Per day"
+msgid "per_day"
 msgstr "За день"
 
-msgid "Per week"
+msgid "per_week"
 msgstr "За неделю"
 
-msgid "Per month"
+msgid "per_month"
 msgstr "За месяц"
 
-msgid "Per year"
+msgid "per_year"
 msgstr "За год"
 
-msgid "All time"
+msgid "all_time"
 msgstr "За всё время"

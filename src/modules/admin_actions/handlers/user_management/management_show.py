@@ -23,7 +23,7 @@ async def get_id_or_user_user_management(callback: CallbackQuery, state: FSMCont
         message=get_text(
             user.language,
             "admins_user_mang",
-            "Send the user ID/username \n\nNote: It is preferable to use ID, it is more secure"
+            "send_user_id_or_username"
         ),
         image_key='admin_panel',
         reply_markup=back_in_main_admin_kb(user.language)
@@ -48,7 +48,7 @@ async def get_user_id_or_username(message: Message, user: Users, state: FSMConte
         elif len(users_list) > 1:
             await send_message(
                 user.user_id,
-                get_text(user.language, "admins_user_mang", "Multiple users with this username were found, please search by ID"),
+                get_text(user.language, "admins_user_mang", "multiple_users_with_same_username"),
                 reply_markup=back_in_main_admin_kb(user.language)
             )
             return
@@ -60,7 +60,7 @@ async def get_user_id_or_username(message: Message, user: Users, state: FSMConte
     else:
         await send_message(
             user.user_id,
-            get_text(user.language, "admins_user_mang", "User with this ID/Username not found, try again"),
+            get_text(user.language, "admins_user_mang", "user_not_found_by_id_or_username"),
             reply_markup=back_in_main_admin_kb(user.language)
         )
 

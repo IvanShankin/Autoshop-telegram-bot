@@ -106,8 +106,7 @@ async def on_new_activate_promo_code_completed(promo_code_id: int, user_id: int,
         text=get_text(
             get_config().app.default_lang,
             "discount",
-            "#Promocode_activation \nID promo_code '{promo_code_id}' \nCode '{code}' \nID user '{user_id}'"
-            "\n\nSuccessfully activated. \nActivations remaining: {number_of_activations}"
+            "log_promo_code_activation"
         ).format(promo_code_id=promo_code_id, code=activation_code, user_id=user_id, number_of_activations=activations_left),
         log_lvl=LogLevel.INFO
     )
@@ -118,8 +117,7 @@ async def send_promo_code_expired(promo_code_id: int, activation_code: str):
         text=get_text(
             get_config().app.default_lang,
             "discount",
-            "#Promo_code_expired \nID '{id}' \nCode '{code}'"
-            "\n\nThe promo code has expired due to reaching the number of activations or time limit. It is no longer possible to activate it"
+            "log_promo_code_expired"
         ).format(id=promo_code_id, code=activation_code),
         log_lvl=LogLevel.INFO
     )
@@ -130,7 +128,7 @@ async def on_new_activate_promo_code_failed(promo_code_id: int, error: str):
         text=get_text(
             get_config().app.default_lang,
             "discount",
-            "#Error_activating_promo_code \n\nPromo code ID '{id}' \nError: {error}"
+            "log_error_activating_promo_code"
         ).format(id=promo_code_id, error=error),
         log_lvl=LogLevel.INFO
     )

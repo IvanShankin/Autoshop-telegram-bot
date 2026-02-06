@@ -20,7 +20,6 @@ from src.services.database.users.actions import update_user, get_user
 from src.services.database.users.models import WalletTransaction, UserAuditLogs, Users
 from src.utils.codes import generate_code
 from src.utils.i18n import get_text
-from src.bot_actions.messages import send_log
 
 
 async def get_valid_voucher_by_page(
@@ -353,8 +352,8 @@ async def deactivate_voucher(voucher_id: int) -> int:
     except Exception as e:
         log_message = get_text(
             "ru",
-            'discount',
-            "#Error_refunding_money_from_voucher \n\nVoucher ID: {voucher_id} \nOwner ID: {owner_id} \nError: {error}"
+            "discount",
+            "log_error_refunding_money_from_voucher"
         ).format(voucher_id=voucher_id, owner_id=owner_id, error=str(e))
 
         event = EventSentLog(text=log_message)
@@ -379,19 +378,19 @@ async def activate_voucher(user: Users, code: str, language: str) -> Tuple[str, 
 
     voucher = await get_valid_voucher_by_code(code)
     if not voucher:
-        return get_text(language, 'discount', "Voucher with this code not found"), False
+        return get_text(language, "discount", "voucher_not_found"), False
 
     # если кто пытается активировать ваучера является его создателем
     if voucher.creator_id == user.user_id:
-        return get_text(language, 'discount', "You cannot activate the voucher. You are its creator"), False
+        return get_text(language, "discount", "cannot_activate_own_voucher"), False
 
     # если ваучер просрочен
     if voucher.expire_at and voucher.expire_at < datetime.now(timezone.utc):
         await deactivate_voucher(voucher.voucher_id)
         return get_text(
             language,
-            'discount',
-            "Voucher expired \n\nID '{id}' \nCode '{code}' \n\nVoucher expired due to time limit. It can no longer be activated"
+            "discount",
+            "voucher_expired_due_to_time"
         ).format(id=voucher.voucher_id, code=voucher.activation_code), False
 
     async with get_db() as session_db:
@@ -405,7 +404,7 @@ async def activate_voucher(user: Users, code: str, language: str) -> Tuple[str, 
         )
         log_activate = result_db.scalar_one_or_none()
         if log_activate:
-            return get_text(language, 'discount', "You have already activated this voucher. It can only be activated once"), False
+            return get_text(language, "discount", "voucher_already_activated"), False
 
     user = await update_user(user_id=user.user_id, balance=user.balance + voucher.amount)
 
@@ -427,8 +426,8 @@ async def activate_voucher(user: Users, code: str, language: str) -> Tuple[str, 
     )
     await publish_event(new_event.model_dump(), "voucher.activated")
 
-    return get_text(language, 'discount',
-        "Voucher successfully activated! \n\nVoucher amount: {amount} \nCurrent balance: {new_balance}"
+    return get_text(
+        language, "discount","voucher_successfully_activated"
     ).format(amount=voucher.amount, new_balance=user.balance), True
 
 

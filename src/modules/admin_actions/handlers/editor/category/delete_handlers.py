@@ -30,8 +30,7 @@ async def category_confirm_delete(callback: CallbackQuery, user: Users):
         message=get_text(
             user.language,
             "admins_editor_category",
-            "Are you sure you want to delete this category? \n\n"
-            "Before deleting, make sure this category does not contain any subcategories or products!"
+            "question_about_deleting_category"
         ),
         reply_markup=delete_category_kb(user.language, category_id)
     )
@@ -44,14 +43,14 @@ async def delete_category(callback: CallbackQuery, user: Users):
 
     try:
         await delete_category_service(category_id)
-        message = get_text(user.language, "admins_editor_category","Category successfully removed!")
+        message = get_text(user.language, "admins_editor_category","category_successfully_removed")
         reply_markup = in_category_editor_kb(user.language)
     except AccountCategoryNotFound:
-        message = get_text(user.language, "admins_editor_category","The category no longer exists")
+        message = get_text(user.language, "admins_editor_category","category_not_exists")
     except TheCategoryStorageAccount:
-        message = get_text(user.language, "admins_editor_category","The category stores accounts, please extract them first")
+        message = get_text(user.language, "admins_editor_category","extract_accounts_stored_in_category")
     except CategoryStoresSubcategories:
-        message = get_text(user.language, "admins_editor_category","The category stores subcategories, delete them first")
+        message = get_text(user.language, "admins_editor_category","first_delete_subcategory")
 
     # если попали в except
     if not reply_markup:
@@ -74,8 +73,7 @@ async def confirm_del_all_products(callback: CallbackQuery, user: Users):
         message=get_text(
             user.language,
             "admins_editor_category",
-            "Are you sure you want to permanently delete all products currently on sale?"
-            "\n\nNote: They will be uploaded to this chat before deletion"
+            "question_about_deleting_all_products_on_sale"
         ),
         reply_markup=delete_product_kb(user.language, category_id)
     )
@@ -97,7 +95,7 @@ async def delete_all_products(callback: CallbackQuery, user: Users):
     await callback.answer(get_text(
             user.language,
             "admins_editor_category",
-            "Products successfully deleted"
+            "products_successfully_deleted"
         ),
         show_alert=True
     )

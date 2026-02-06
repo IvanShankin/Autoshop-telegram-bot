@@ -101,8 +101,8 @@ class MaintenanceMiddleware(BaseMiddleware):
             user_id,
             message=get_text(
                 language,
-                'start_message',
-                "The bot is temporarily unavailable due to maintenance. Please try again later"
+                "start_message",
+                "temporarily_maintenance"
             ),
             image_key="technical_work"
         )

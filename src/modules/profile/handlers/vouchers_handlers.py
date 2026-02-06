@@ -27,7 +27,7 @@ router = Router()
 async def create_voucher(callback: CallbackQuery, state: FSMContext, user: Users):
     await state.clear()
 
-    text = get_text(user.language, 'profile_messages', 'Enter the amount')
+    text = get_text(user.language, "profile_messages", "enter_amount")
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
@@ -52,7 +52,7 @@ async def create_voucher_get_amount(message: Message, state: FSMContext, user: U
 
     await state.update_data(amount=message.text)
 
-    text = get_text(user.language, 'profile_messages', 'Enter the number of activations for the voucher')
+    text = get_text(user.language, "profile_messages", "enter_number_of_activations_for_voucher")
     await send_message(
         chat_id=message.from_user.id,
         message=text,
@@ -89,9 +89,8 @@ async def create_voucher_get_number_of_activations(message: Message, state: FSMC
 
     text = get_text(
         user.language,
-        'profile_messages',
-        "Check the data for accuracy \n\nTotal amount of funds required for activation: {total_sum}\n"
-        "Amount of one voucher: {amount} \nNumber of activations: {number_activations}"
+        "profile_messages",
+        "check_voucher_data_for_accuracy"
     ).format(total_sum=data.amount * data.number_of_activations, amount=data.amount, number_activations=data.number_of_activations)
     await send_message(
         chat_id=message.from_user.id,
@@ -115,8 +114,8 @@ async def confirm_create_voucher(callback: CallbackQuery, state: FSMContext, use
             number_of_activations=data.number_of_activations
         )
     except NotEnoughMoney as e:
-        text_1 = get_text(user.language, 'miscellaneous', 'The funds have not been written off')
-        text_2 = get_text(user.language, 'miscellaneous', 'Insufficient funds: {amount}').format(amount=e.need_money)
+        text_1 = get_text(user.language, "miscellaneous", 'funds_not_written_off')
+        text_2 = get_text(user.language, "miscellaneous", 'insufficient_funds').format(amount=e.need_money)
         await edit_message(
             chat_id=callback.from_user.id,
             message_id=callback.message.message_id,
@@ -131,10 +130,8 @@ async def confirm_create_voucher(callback: CallbackQuery, state: FSMContext, use
 
     text = get_text(
         user.language,
-        'profile_messages',
-        "Voucher successfully created. \n\nActivation link: <a href='{link}'>Ссылка</a> \nAmount: {amount} \n"
-        "Number of activations: {number_activations} \nTotal amount spent on activation: {total_sum} \n"
-        "Current balance: {balance} \n\nNote: One user can only activate one voucher"
+        "profile_messages",
+        "voucher_successfully_created"
     ).format(
         link=f'https://t.me/{bot_me.username}?start=voucher_{voucher.activation_code}',
         amount=data.amount,
@@ -156,7 +153,7 @@ async def voucher_list(callback: CallbackQuery, user: Users):
     target_user_id = callback.data.split(":")[1]
     current_page = callback.data.split(":")[2]
 
-    text = get_text(user.language, 'profile_messages', "All vouchers. To view a specific voucher, click on it")
+    text = get_text(user.language, "profile_messages", "all_vouchers_list")
 
     await edit_message(
         chat_id=callback.from_user.id,
@@ -184,14 +181,15 @@ async def show_voucher(callback: CallbackQuery, user: Users):
         raise ForbiddenError()
 
     if not voucher or not voucher.is_valid:
-        text = get_text(user.language, 'profile_messages', 'This voucher is currently inactive, please select another one')
+        text = get_text(user.language, "profile_messages", 'This voucher is currently inactive, please select another one')
         reply_markup=back_in_all_voucher_kb(user.language, current_page, target_user_id)
     else:
         bot = await get_bot()
         bot_me = await bot.me()
-        text = get_text(user.language, 'profile_messages',
-            "ID: {id} \n\nLink: <a href='{link}'>Copy</a> \nTotal spent: {total_amount} \nAmount: {amount} \n"
-            "Allowed number of activations: {number_of_activations} \nNumber of activations: {activated_counter}"
+        text = get_text(
+            user.language,
+            "profile_messages",
+            "voucher_details"
         ).format(
             id=voucher_id,
             link=f'https://t.me/{bot_me.username}?start=voucher_{voucher.activation_code}',
@@ -228,12 +226,14 @@ async def confirm_deactivate_voucher(callback: CallbackQuery, user: Users):
         raise ForbiddenError()
 
     if not voucher or not voucher.is_valid:
-        text = get_text(user.language, 'profile_messages', 'This voucher is currently inactive')
+        text = get_text(user.language, "profile_messages", 'voucher_currently_inactive')
         reply_markup = back_in_all_voucher_kb(user.language, current_page, user.user_id)
         image_key = 'viewing_vouchers'
     else:
-        text = get_text(user.language, 'profile_messages',
-            "Are you sure you want to deactivate the voucher? \nAmount to be refunded: {amount}"
+        text = get_text(
+            user.language,
+            "profile_messages",
+            "confirmation_deactivate_voucher"
         ).format(amount=voucher.amount * (voucher.number_of_activations - voucher.activated_counter))
         image_key = 'confirm_deactivate_voucher'
         reply_markup = confirm_deactivate_voucher_kb(user.language, current_page, user.user_id, voucher_id)
@@ -257,21 +257,21 @@ async def deactivate_voucher(callback: CallbackQuery, user: Users):
         raise ForbiddenError()
 
     if not voucher or not voucher.is_valid:
-        text = get_text(user.language, 'profile_messages', 'This voucher is currently inactive')
+        text = get_text(user.language, "profile_messages", 'voucher_currently_inactive')
         image_key = 'voucher_successful_deactivate'
     else:
         try:
             await deactivate_voucher_server(voucher_id)
             user = await get_user(callback.from_user.id, callback.from_user.username)
-            text = get_text(user.language, 'profile_messages',
-                "The voucher has been successfully deactivated \n\nYour account has been credited with: {amount} \nCurrent balance: {balance}"
+            text = get_text(user.language, "profile_messages",
+                "voucher_successfully_deactivated"
             ).format(amount=voucher.amount * (voucher.number_of_activations - voucher.activated_counter), balance=user.balance)
             image_key = 'voucher_successful_deactivate'
         except Exception as e:
             settings = await get_settings()
 
-            text = get_text(user.language, 'profile_messages',
-                'There was an error deactivating your voucher \n\nIf your funds have not been returned, please contact support: @{username_support}'
+            text = get_text(user.language, "profile_messages",
+                "error_deactivating_voucher"
             ).format(username_support=settings.support_username)
             image_key = 'server_error'
 

@@ -9,19 +9,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 
 
-msgid "Promo code not found, please select another one"
+msgid "promo_code_not_found"
 msgstr "Промокод не найден, выберите другой"
 
-msgid "ID: {id} \n\n"
-"Valid: {valid} \n"
-"Code: {code} \n"
-"Minimum order amount: {min_order_amount} \n"
-"Discount amount: {amount} \n"
-"Discount percentage: {discount_percentage} \n"
-"Allowed number of activations: {number_of_activations} \n"
-"Number of activations: {activated_counter} \n"
-"Created: {start_at} \n"
-"Valid until: {expire_at}"
+msgid "promo_code_details"
 msgstr "ID: {id} \n\n"
 "Действительный: {valid} \n"
 "Код: <code>{code}</code> \n"
@@ -39,65 +30,54 @@ msgstr "бесконечно"
 msgid "unlimited"
 msgstr "не ограничено"
 
-
-msgid "Select the type of promo code"
+msgid "select_promo_code_type"
 msgstr "Выберите к какому типу будет относиться промокод"
 
-msgid "Enter the amount of the promo code that will be discounted upon activation"
+msgid "enter_promo_code_discount_amount"
 msgstr "Введите сумму промокода на которую будет скидка при его активации"
 
-msgid "Enter the percentage of the purchase that will be discounted when the promo code is activated"
+msgid "enter_promo_code_discount_percentage"
 msgstr "Введите процент от покупки на который будет скидка при активации промокода"
 
-msgid "The percentage should not exceed 100. Please try again"
+msgid "percentage_should_not_exceed_100"
 msgstr "Процент не должен превышать 100. Попробуйте ещё раз"
 
-msgid "Enter the allowed number of promo code activations \n"
-"If you click skip, the number will be unlimited \n\n"
-"Note: Each user can only activate once"
+msgid "enter_allowed_number_of_activations"
 msgstr "Введите разрешённое число активаций промокода \n"
 "Если нажмёте пропустить, то это число будет не ограничено \n\n"
 "Примечание: Один пользователь может активировать только один раз"
 
-msgid "Enter the date until which the promo code will be valid. With Moscow time zone (local time in Moscow)\n"
-"If you click skip, the promo code will be valid indefinitely."
-"\n\nExample: <code>2025-12-02 16:42:57</code>"
+msgid "enter_expiration_date"
 msgstr "Введите дату до которого будет действителен промокод. С временной зоной по Москве (по местному времени в москве)\n"
 "Если нажмёте пропустить промокод будет действовать бессрочно. "
 "\n\nПример: <code>2025-12-24 16:42:57</code>"
 
-msgid "Enter the minimum purchase amount to apply the promo code"
+msgid "enter_minimum_purchase_amount"
 msgstr "Введите минимальную сумму покупки с которой можно применить промокод"
 
-
-msgid "Enter the activation code. \n\n"
-"Attention!\n"
-"1) The code must not match other active promo codes.\n"
-"2) The code must not exceed 150 characters"
+msgid "enter_activation_code"
 msgstr "Введите код активации. \n\n"
 "Внимание! \n"
 "1) Код не должен совпадать с другими кодами у активных промокодов. \n"
 "2) Длина кода не должна превышать 150 символов"
 
-
-msgid "This code is already taken by one of the active promo codes. Enter another one"
+msgid "code_already_taken"
 msgstr "Данный код уже занят одним из активных промокодов. Введите другой"
 
-msgid "You have exceeded the 150 character code limit. Please try again"
+msgid "code_length_exceeded"
 msgstr "Вы превысили лимит кода в 150 символов. Попробуйте ещё раз"
 
-msgid "Unable to create promo code. Please try again"
+msgid "unable_to_create_promo_code"
 msgstr "Не удалось создать промокод. Попробуйте ещё раз"
 
-msgid "Promo code successfully created"
+msgid "promo_code_successfully_created"
 msgstr "Промокод успешно создан"
 
-
-msgid "Are you sure you want to delete this promo code?"
+msgid "confirmation_delete_promo_code"
 msgstr "Вы действительно хотите удалить данный промокод?"
 
-msgid "This promo code has already been deactivated"
+msgid "promo_code_already_deactivated"
 msgstr "Данный промокод уже деактивирован"
 
-msgid "Promo code successfully deactivate"
+msgid "promo_code_successfully_deactivated"
 msgstr "Промокод успешно деактивирован"

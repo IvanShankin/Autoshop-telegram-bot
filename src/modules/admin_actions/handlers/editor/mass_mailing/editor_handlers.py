@@ -41,9 +41,7 @@ async def show_editor_mes_mailing(
         message = get_text(
             user.language,
             "admins_editor_mass_mailing",
-            "Warning! \nThe message is too long. \n\n"
-            "For a message with a photo, please attach a text <b>no more than 1024</b> characters long \n"
-            "For a message without a photo, please attach a text <b>no more than 4096</b> characters long"
+            "warning_message_too_long"
         )
     else:
         message = message_data.content
@@ -52,7 +50,7 @@ async def show_editor_mes_mailing(
         message = get_text(
             user.language,
             "admins_editor_mass_mailing",
-            "There will be a message here"
+            "placeholder_for_message"
         )
 
     if new_message:
@@ -81,7 +79,7 @@ async def edit_message_change_photo(user: Users, callback: CallbackQuery, state:
         message=get_text(
             user.language,
             "admins_editor_mass_mailing",
-            "Send a photo as a document"
+            "send_photo_as_document"
         ),
         reply_markup=change_mailing_photo_kb(user.language, current_show_image=message_data.ui_image.show)
     )
@@ -101,8 +99,7 @@ async def editor_mes_mailing(callback: CallbackQuery, user: Users):
         message=get_text(
             user.language,
             "admins_editor_mass_mailing",
-            "Are you sure you want to broadcast this message to all users? \n\n"
-            "This will take approximately: {need_seconds} seconds"
+            "confirmation_broadcast_to_all_users"
         ).format(need_seconds=await get_quantity_users() // get_config().different.rate_send_msg_limit),
         reply_markup=confirm_start_mailing_kb(user.language)
     )
@@ -135,24 +132,20 @@ async def start_mass_mailing(callback: CallbackQuery, user: Users):
                     message=get_text(
                         user.language,
                         "admins_editor_mass_mailing",
-                        "Sent successfully: {quantity_successfully} \n"
-                        "Total sent: {quantity_sent_total} \n"
-                        "Total users: {quantity_users}"
+                        "mailing_statistics"
                     ).format(quantity_successfully=quantity_successfully, quantity_sent_total=i, quantity_users=quantity_users)
                 )
     except TextTooLong:
         message = get_text(
             user.language,
             "admins_editor_mass_mailing",
-            "Warning! \nThe message is too long. \n\n"
-            "For a message with a photo, please attach a text <b>no more than 1024</b> characters long \n"
-            "For a message without a photo, please attach a text <b>no more than 4096</b> characters long"
+            "warning_message_too_long"
         )
     except FileNotFoundError:
         message = get_text(
             user.language,
             "admins_editor_mass_mailing",
-            "The photo could not be found. Please re-attach it"
+            "photo_not_found"
         )
 
     # если не вызвалась ошибка
@@ -160,14 +153,12 @@ async def start_mass_mailing(callback: CallbackQuery, user: Users):
         message = get_text(
             user.language,
             "admins_editor_mass_mailing",
-            "Mailing completed \n\n{result}"
+            "mailing_completed"
         ).format(
             result=get_text(
                 user.language,
                 "admins_editor_mass_mailing",
-                "Sent successfully: {quantity_successfully} \n"
-                "Total sent: {quantity_sent_total} \n"
-                "Total users: {quantity_users}"
+                "mailing_statistics"
             ).format(quantity_successfully=quantity_successfully, quantity_sent_total=i, quantity_users=quantity_users)
         )
 
@@ -188,13 +179,13 @@ async def change_mailing_photo(callback: CallbackQuery, state: FSMContext, user:
 async def get_new_image(message: Message, state: FSMContext, user: Users):
     doc = message.document
     if not doc.mime_type.startswith("image/"): # Проверяем, что это действительно изображение
-        text = get_text(user.language,"admins_editor_images", "This is not an image. Send it as a document")
+        text = get_text(user.language,"admins_editor_images", "this_is_not_image")
 
     elif doc.file_size > get_config().limits.max_size_bytes: # Проверяем размер, известный Telegram (без скачивания)
         text = get_text(
             user.language,
             "admins_editor_category",
-            "The file is too large — maximum {max_size_mb} MB. \n\nTry again"
+            "file_to_many_long"
         ).format(max_size_mb=get_config().limits.max_size_mb)
     else:
         file = await message.bot.get_file(doc.file_id)
@@ -232,13 +223,7 @@ async def change_mailing_text(callback: CallbackQuery, state: FSMContext, user: 
         message=get_text(
             user.language,
             "admins_editor_mass_mailing",
-            "Send the text that will be used to send the message.\n\n"
-            "To apply text formatting, use HTML markup by placing the desired text in tags.\n"
-            "Example: <b>Desired text.</b> \n"
-            "- This text will be bold.\n"
-            "See the tooltip for tag options\n\n"
-            "For a message with a photo, attach a text no more than 1024 characters long.\n"
-            "For a message without a photo, attach a text no more than 4096 characters long."
+            "instructions_for_sending_text"
         ),
         reply_markup=change_mailing_text_kb(user.language),
         parse_mode=None
@@ -254,17 +239,7 @@ async def open_mailing_tip(callback: CallbackQuery, state: FSMContext, user: Use
         message=get_text(
             user.language,
             "admins_editor_mass_mailing",
-            "Basic formatting tags: \n"
-            "<b> bold text </b> \n"
-            "<i> italic </i> \n"
-            "<u> underlined text </u> \n"
-            "<s> ~~strikethrough text~~ </s> \n"
-            "<code> monospace code </code> \n"
-            "<pre> preformatted text block </pre> \n"
-            "<tg-spoiler> spoiler (hidden text) </tg-spoiler> \n\n"
-            "Links: \n"
-            '<a href="URL">link text</a> - regular link\n'
-            '<a href="tg://user?id=123456">user mention</a> - user mention'
+            "basic_formatting_tags"
         ),
         reply_markup=back_in_change_mailing_text_kb(user.language),
         parse_mode=None
@@ -286,7 +261,7 @@ async def change_mailing_btn_url(callback: CallbackQuery, state: FSMContext, use
         message=get_text(
             user.language,
             "admins_editor_mass_mailing",
-            "Current link: \n<code>{url}</code>"
+            "current_link"
         ).format(url=message_data.button_url if message_data.button_url else ""),
         reply_markup=change_mailing_btn_url_kb(user.language),
     )
@@ -308,7 +283,7 @@ async def get_new_text(message: Message, state: FSMContext, user: Users):
             message=get_text(
                 user.language,
                 "admins_editor_mass_mailing",
-                "The URL you entered is incorrect. Please try again"
+                "incorrect_url"
             ),
             reply_markup = change_mailing_btn_url_kb(user.language),
         )

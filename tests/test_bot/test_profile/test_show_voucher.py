@@ -28,7 +28,7 @@ async def test_voucher_list_callback(
 
     await voucher_list(cb, user)
 
-    expected = get_text(user.language, 'profile_messages', "All vouchers. To view a specific voucher, click on it")
+    expected = get_text(user.language, "profile_messages", "all_vouchers_list")
 
     assert fake_bot.get_edited_message(user.user_id, 7, expected), "Не отредактировалось сообщение о просмотре ваучеров"
 
@@ -54,7 +54,7 @@ async def test_show_voucher_inactive(
 
     await show_voucher(cb, user)
 
-    text = get_text(user.language, 'profile_messages', 'This voucher is currently inactive, please select another one')
+    text = get_text(user.language, "profile_messages", 'This voucher is currently inactive, please select another one')
     assert fake_bot.get_edited_message(user.user_id, 10, text), "Не отправилось сообщение о неактивном ваучере"
 
 
@@ -101,7 +101,7 @@ async def test_confirm_deactivate_voucher_inactive(
 
     await confirm_deactivate_voucher(cb, user)
 
-    text = get_text(user.language, 'profile_messages', 'This voucher is currently inactive')
+    text = get_text(user.language, "profile_messages", 'voucher_currently_inactive')
     assert fake_bot.get_edited_message(user.user_id, 88, text), \
         "Не отправилось сообщение о неактивном ваучере при подтверждении"
 
@@ -125,7 +125,11 @@ async def test_confirm_deactivate_voucher_active_success(
 
     await confirm_deactivate_voucher(cb, user)
 
-    text_part = get_text('ru', 'profile_messages', "Are you sure you want to deactivate the voucher?")
+    text_part = get_text(
+        'ru',
+        "profile_messages",
+        "confirmation_deactivate_voucher"
+    ).format(amount=voucher.amount)
     assert fake_bot.check_str_in_edited_messages(text_part), \
         "Не появилось сообщение о подтверждении деактивации ваучера"
 
@@ -149,7 +153,7 @@ async def test_deactivate_voucher_inactive(
 
     await deactivate_voucher(cb, user)
 
-    text = get_text(user.language, 'profile_messages', 'This voucher is currently inactive')
+    text = get_text(user.language, "profile_messages", 'voucher_currently_inactive')
     assert fake_bot.get_edited_message(user.user_id, 55, text), \
         "Не отправилось сообщение о неактивном ваучере при деактивации"
 
@@ -173,6 +177,6 @@ async def test_deactivate_voucher_success(
 
     await deactivate_voucher(cb, user)
 
-    text = get_text('en', 'profile_messages', "The voucher has been successfully deactivated")
+    text = get_text('en', "profile_messages", "The voucher has been successfully deactivated")
     assert fake_bot.check_str_in_edited_messages(text), \
         "Не отправилось сообщение об успешной деактивации ваучера"

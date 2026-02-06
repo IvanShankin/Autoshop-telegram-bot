@@ -16,13 +16,13 @@ selecting_language = InlineKeyboardMarkup(
 async def main_kb(language: str, user_id: int):
     keyboard_builder = ReplyKeyboardBuilder()
 
-    keyboard_builder.row(KeyboardButton(text = get_text(language, 'kb_start', 'Product categories')))
+    keyboard_builder.row(KeyboardButton(text = get_text(language, 'kb_start', "product_categories")))
     keyboard_builder.row(
-        KeyboardButton(text = get_text(language, 'kb_start', 'Profile')),
-        KeyboardButton(text = get_text(language, 'kb_start', 'Information'))
+        KeyboardButton(text = get_text(language, 'kb_start', "profile")),
+        KeyboardButton(text = get_text(language, 'kb_start', 'information'))
     )
     if await check_admin(user_id):
-        keyboard_builder.row(KeyboardButton(text=get_text(language, 'kb_start', 'Admin panel')))
+        keyboard_builder.row(KeyboardButton(text=get_text(language, 'kb_start', "admin_panel")))
 
     return keyboard_builder.as_markup(resize_keyboard=True)
 
@@ -35,7 +35,7 @@ async def support_kb(language: str, support_username: str = None):
     if not support_username:
         return None
 
-    support_name = get_text(language, 'kb_start', 'Support')
+    support_name = get_text(language, 'kb_start', "support")
 
     keyboard = InlineKeyboardBuilder()
     keyboard.add(InlineKeyboardButton(text=support_name, url=f"https://t.me/{support_username.lstrip()}"))

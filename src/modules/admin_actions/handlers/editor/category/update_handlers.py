@@ -48,7 +48,7 @@ async def category_update_storage(callback: CallbackQuery, user: Users):
         message=get_text(
             user.language,
             "admins_editor_category",
-            "Select product type"
+            "select_product_type"
         ),
         reply_markup=select_product_type(user.language, category_id)
     )
@@ -61,7 +61,7 @@ async def choice_product_type(callback: CallbackQuery, user: Users):
 
     if not any(product_type == prod_tp.value for prod_tp in ProductType):
         await callback.answer(
-            get_text(user.language, "admins_editor_category", "Selected product type not found")
+            get_text(user.language, "admins_editor_category", "selected_product_type_not_found")
         )
         await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
         return
@@ -72,15 +72,14 @@ async def choice_product_type(callback: CallbackQuery, user: Users):
         message = get_text(
             user.language,
             "admins_editor_category",
-            "Select service account"
+            "select_service_account"
         )
         reply_markup = select_account_service_type(user.language, category_id)
     elif product_type == ProductType.UNIVERSAL.value:
         message = get_text(
             user.language,
             "admins_editor_category",
-            "Select the product's media type\n\n"
-            "What the user will receive upon purchase:"
+            "select_product_media_type"
         )
         for media in UniversalMediaType:
             message += get_text(
@@ -108,7 +107,7 @@ async def choice_account_service(callback: CallbackQuery, user: Users):
 
     if not any(account_service == acc_ser.value for acc_ser in AccountServiceType):
         await callback.answer(
-            get_text(user.language, "admins_editor_category", "Selected service account not found")
+            get_text(user.language, "admins_editor_category", "selected_service_account_not_found")
         )
         await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
         return
@@ -130,7 +129,7 @@ async def choice_universal_media_type(callback: CallbackQuery, user: Users):
 
     if not any(universal_media_type == acc_ser.value for acc_ser in UniversalMediaType):
         await callback.answer(
-            get_text(user.language, "admins_editor_category", "Selected type not found")
+            get_text(user.language, "admins_editor_category", "selected_type_not_found")
         )
         await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
         return
@@ -153,7 +152,7 @@ async def service_update_index(callback: CallbackQuery, user: Users):
     if new_index >= 0:
         await update_category(category_id, index=new_index)
 
-    await callback.answer(get_text(user.language, "miscellaneous","Successfully updated"))
+    await callback.answer(get_text(user.language, "miscellaneous","successfully_updated"))
     await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
 
 
@@ -163,7 +162,7 @@ async def service_update_show(callback: CallbackQuery, user: Users):
     show = bool(int(callback.data.split(':')[2]))
 
     await update_category(category_id, show=show)
-    await callback.answer(get_text(user.language, "miscellaneous","Successfully updated"))
+    await callback.answer(get_text(user.language, "miscellaneous","successfully_updated"))
     await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
 
 
@@ -180,7 +179,7 @@ async def service_update_show(callback: CallbackQuery, user: Users):
             get_text(
                 user.language,
                 "admins_editor_category",
-                "To set this flag, the category must not contain any products"
+                "category_should_not_store_products"
             ),
             show_alert=True
         )
@@ -192,7 +191,7 @@ async def service_update_show(callback: CallbackQuery, user: Users):
     allow_multiple_purchase = bool(int(callback.data.split(':')[2]))
 
     await update_category(category_id, allow_multiple_purchase=allow_multiple_purchase)
-    await callback.answer(get_text(user.language, "miscellaneous", "Successfully updated"))
+    await callback.answer(get_text(user.language, "miscellaneous", "successfully_updated"))
     await show_category(user=user, category_id=category_id, message_id=callback.message.message_id, callback=callback)
 
 
@@ -213,7 +212,7 @@ async def category_update_name_or_des(callback: CallbackQuery, user: Users):
         message=get_text(
             user.language,
             "admins_editor_category",
-            "Select the language to change"
+            "selected_type_not_found"
         ),
         reply_markup=select_lang_category_kb(user.language, category_id)
     )
@@ -233,7 +232,7 @@ async def category_update_name(callback: CallbackQuery, state: FSMContext, user:
         message=get_text(
             user.language,
             "admins_editor_category",
-            "Enter a new name\n\nCurrent name: {name}"
+            "enter_new_name_category"
         ).format(name=category.name),
         reply_markup=back_in_category_update_data_kb(user.language, category_id)
     )
@@ -251,10 +250,10 @@ async def get_name_for_update(message: Message, state: FSMContext, user: Users):
             language=data.language,
             name=message.text,
         )
-        message = get_text(user.language, "admins_editor_category", "Name changed successfully")
+        message = get_text(user.language, "admins_editor_category", "name_changed_successfully")
         reply_markup = back_in_category_update_data_kb(user.language, data.category_id)
     except AccountCategoryNotFound:
-        message = get_text(user.language, "admins_editor_category","The category no longer exists")
+        message = get_text(user.language, "admins_editor_category","category_not_exists")
         reply_markup = back_in_category_editor_kb(user.language)
 
     await send_message(
@@ -278,7 +277,7 @@ async def category_update_descr(callback: CallbackQuery, state: FSMContext, user
         message=get_text(
             user.language,
             "admins_editor_category",
-            "Enter a new description \n\nCurrent description: {description}"
+            "enter_new_description_category"
         ).format(description=category.description),
         reply_markup=back_in_category_update_data_kb(user.language, category_id)
     )
@@ -296,10 +295,10 @@ async def get_description_for_update(message: Message, state: FSMContext, user: 
             language=data.language,
             description=message.text,
         )
-        message = get_text(user.language, "admins_editor_category", "Description changed successfully")
+        message = get_text(user.language, "admins_editor_category", "description_changed_successfully")
         reply_markup = back_in_category_update_data_kb(user.language, data.category_id)
     except AccountCategoryNotFound:
-        message = get_text(user.language, "admins_editor_category","The category no longer exists")
+        message = get_text(user.language, "admins_editor_category","category_not_exists")
         reply_markup=back_in_category_editor_kb(user.language)
 
     await send_message(
@@ -330,7 +329,7 @@ async def category_update_image(callback: CallbackQuery, state: FSMContext, user
         message=get_text(
             user.language,
             "admins_editor_category",
-            "Send a photo. Be sure to include a document for greater image clarity!"
+            "send_photo_as_document"
         ),
         reply_markup=back_in_category_update_data_kb(user.language, category_id)
     )
@@ -349,13 +348,13 @@ async def update_category_image(message: Message, state: FSMContext, user: Users
     reply_markup = None
 
     if not doc.mime_type.startswith("image/"): # Проверяем, что это действительно изображение
-        text = get_text(user.language,"admins_editor_category", "This is not an image. Send it as a document")
+        text = get_text(user.language,"admins_editor_category", "this_is_not_image")
         reply_markup = back_in_category_update_data_kb(user.language, category.category_id)
     elif doc.file_size > get_config().limits.max_size_bytes: # Проверяем размер, известный Telegram (без скачивания)
         text = get_text(
             user.language,
             "admins_editor_category",
-            "The file is too large — maximum {max_size_mb} MB. \n\nTry again"
+            "file_to_many_long"
         ).format(max_size_mb=get_config().limits.max_size_mb)
         reply_markup = back_in_category_update_data_kb(user.language, category.category_id)
     else:
@@ -370,10 +369,10 @@ async def update_category_image(message: Message, state: FSMContext, user: Users
         file_bytes = byte_stream.getvalue()
         try:
             await update_category(data.category_id, file_data=file_bytes)
-            text = get_text(user.language, "admins_editor_category", "Image installed successfully")
+            text = get_text(user.language, "admins_editor_category", "image_installed_successfully")
             reply_markup = back_in_category_update_data_kb(user.language, category.category_id)
         except AccountCategoryNotFound:
-            text = get_text(user.language, "admins_editor_category", "The category no longer exists")
+            text = get_text(user.language, "admins_editor_category", "category_not_exists")
 
     await send_message(
         chat_id=user.user_id,
@@ -386,7 +385,7 @@ async def update_category_image(message: Message, state: FSMContext, user: Users
 async def category_update_price(callback: CallbackQuery, state: FSMContext, user: Users):
     await update_message_query_data(
         callback, state, user,
-        i18n_key="Please send an integer - the price for one product",
+        i18n_key="send_integer_the_price_for_one_product",
         set_state=UpdateNumberInCategory.price
     )
 
@@ -395,7 +394,7 @@ async def category_update_price(callback: CallbackQuery, state: FSMContext, user
 async def category_update_cost_price(callback: CallbackQuery, state: FSMContext, user: Users):
     await update_message_query_data(
         callback, state, user,
-        i18n_key="Send an integer - the cost price for one product",
+        i18n_key="send_integer_the_cost_price_for_one_product",
         set_state=UpdateNumberInCategory.cost_price
     )
 
@@ -404,7 +403,7 @@ async def category_update_cost_price(callback: CallbackQuery, state: FSMContext,
 async def category_update_number_button(callback: CallbackQuery, state: FSMContext, user: Users):
     await update_message_query_data(
         callback, state, user,
-        i18n_key="Please send an integer - the number of buttons in one line for the category \n\nAllowed: from 1 to 8",
+        i18n_key="send_integer_number_of_buttons_in_one_line",
         set_state=UpdateNumberInCategory.number_button
     )
 

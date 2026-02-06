@@ -49,22 +49,13 @@ async def show_admin_promo(callback: CallbackQuery, user: Users):
     promo_code = await get_promo_code(promo_code_id=promo_code_id, get_only_valid=False)
 
     if not promo_code:
-        text = get_text(user.language, 'admins_editor_promo_codes', "Promo code not found, please select another one")
+        text = get_text(user.language, "admins_editor_promo_codes", "promo_code_not_found")
         reply_markup = back_in_all_admin_promo_kb(user.language, current_page, show_not_valid)
     else:
         text = get_text(
             user.language,
-            'admins_editor_promo_codes',
-            "ID: {id} \n\n"
-            "Valid: {valid} \n"
-            "Code: {code} \n"
-            "Minimum order amount: {min_order_amount} \n"
-            "Discount amount: {amount} \n"
-            "Discount percentage: {discount_percentage} \n"
-            "Allowed number of activations: {number_of_activations} \n"
-            "Number of activations: {activated_counter} \n"
-            "Created: {start_at} \n"
-            "Valid until: {expire_at}"
+            "admins_editor_promo_codes",
+            "promo_code_details"
             ).format(
                 id=promo_code_id,
                 valid=promo_code.is_valid,

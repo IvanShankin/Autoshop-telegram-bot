@@ -24,7 +24,7 @@ async def check_valid_file(doc: Document, user: Users, state: FSMContext, expect
             get_text(
                 user.language,
                 "admins_editor_category",
-                "This file format is not supported, please send a file with one of these extensions: {extensions_list}"
+                "file_format_not_supported"
             ).format(extensions_list=expected_formats)
         )
         await state.set_state(set_state)
@@ -36,8 +36,8 @@ async def check_valid_file(doc: Document, user: Users, state: FSMContext, expect
             get_text(
                 user.language,
                 "admins_editor_category",
-                "The file is too large. The maximum size is {max_size_file} MB. \n\nPlease send a different file"
-            ).format(extensions_list=get_config().limits.max_download_size)
+                "file_to_many_long"
+            ).format(max_size_mb=get_config().limits.max_download_size)
         )
         await state.set_state(set_state)
         return False
@@ -53,11 +53,11 @@ async def check_category_is_acc_storage(category: CategoryFull, user: Users) -> 
     if not category.is_product_storage:
         await send_message(
             user.user_id,
-            get_text(user.language,"admins_editor_category","First, make this category a food storage area"),
+            get_text(user.language,"admins_editor_category","first_make_this_category_storage"),
             reply_markup=back_in_category_kb(
                 language=user.language,
                 category_id=category.category_id,
-                i18n_key = "In category"
+                i18n_key = "in_category"
             )
         )
         return False

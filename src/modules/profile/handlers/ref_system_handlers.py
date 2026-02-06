@@ -32,12 +32,8 @@ async def referral_system(callback: CallbackQuery, user: Users):
 
     text = get_text(
         user.language,
-        'profile_messages',
-        "Your referral link: <a href='{ref_link}'>Link</a> \n\n"
-        "Total earnings: {total_earnings} \n"
-        "Number of total invited referrals: {total_number_ref} \n"
-        "Number of 1st level referrals: {ref_first_lvl} \n"
-        "Number of 2nd level referrals: {ref_second_lvl} \n"
+        "profile_messages",
+        "referral_info"
     ).format(
         ref_link=f'https://t.me/{bot_me.username}?start=ref_{user.unique_referral_code}',
         total_earnings=user.total_profit_from_referrals,
@@ -64,8 +60,8 @@ async def accrual_ref_list(callback: CallbackQuery, user: Users):
 
     text = get_text(
         user.language,
-        'profile_messages',
-        'A history of all referral earnings. To view a specific transaction, click on it'
+        "profile_messages",
+        'referral_earnings_history'
     )
 
     await edit_message(
@@ -84,7 +80,7 @@ async def detail_income_from_ref(callback: CallbackQuery, user: Users):
     income = await get_income_from_referral(int(income_from_ref_id))
 
     if income is None:
-        await callback.answer(text=get_text(user.language, 'miscellaneous','Data not found'), show_alert=True)
+        await callback.answer(text=get_text(user.language, "miscellaneous",'data_not_found'), show_alert=True)
 
     if income.owner_user_id != user.user_id and not await check_admin(user.user_id):
         raise ForbiddenError()
@@ -107,7 +103,7 @@ async def download_ref_list(callback: CallbackQuery, user: Users):
     bytes_data = await generate_referral_report_excel(user_id, user.language)
     filename = f"referrals_{user_id}.xlsx"
 
-    text = get_text(user.language, 'profile_messages','The file was successfully generated')
+    text = get_text(user.language, "profile_messages","referral_income_details")
 
     await callback.message.answer_document(
         document=BufferedInputFile(bytes_data, filename=filename)

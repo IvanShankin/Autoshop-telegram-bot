@@ -37,8 +37,7 @@ async def _set_not_valid_promo_code() -> None:
             message_log = get_text(
                 'ru',
                 "discount",
-                "#Promo_code_expired \nID '{id}' \nCode '{code}'"
-                "\n\nThe promo code has expired due to reaching the number of activations or time limit. It is no longer possible to activate it"
+                "log_promo_code_expired"
             ).format(id=promo.promo_code_id, code=promo.activation_code)
             event = EventSentLog(
                 text=message_log,

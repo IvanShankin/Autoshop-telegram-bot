@@ -32,7 +32,7 @@ async def test_safe_get_category_not_found_with_callback(
 
     assert replacement_fake_bot_fix.get_message(
         user.user_id,
-        get_text(user.language, "admins_editor_category", "The category no longer exists")
+        get_text(user.language, "admins_editor_category", "category_not_exists")
     )
 
 
@@ -86,7 +86,7 @@ async def test_update_data_incorrect_value(
     await update_data(message, state, user)
 
     assert replacement_fake_bot_fix.check_str_in_messages(
-        get_text(user.language, "miscellaneous", "Try again")
+        get_text(user.language, "miscellaneous", "try_again")
     )
     assert await state.get_state() == UpdateNumberInCategory.price.state
 
@@ -108,7 +108,7 @@ async def test_update_data_valid_price(
     message = FakeMessage(text="123")
     await update_data(message, state, user)
     assert replacement_fake_bot_fix.check_str_in_messages(
-        get_text(user.language, "miscellaneous", "Data updated successfully")
+        get_text(user.language, "miscellaneous", "data_updated_successfully")
     )
 
 
@@ -154,7 +154,7 @@ async def test_add_category_name_prompts_next_language(
         get_text(
             user.language,
             "admins_editor_category",
-            "Specify the category name for this language: {language}"
+            "set_category_name"
         ).format(language="none")[:35]
     )
 
@@ -205,7 +205,7 @@ async def test_delete_category_success_edit_message(
 ):
     """
     Успешное удаление категории должно привести к вызову edit_message
-    с текстом 'Category successfully removed!'.
+    с текстом 'category_successfully_removed'.
     """
     from src.modules.admin_actions.handlers.editor.category.delete_handlers import delete_category
 
@@ -220,7 +220,7 @@ async def test_delete_category_success_edit_message(
 
     # edit_message вызывается — ищем строку подтверждения
     assert replacement_fake_bot_fix.check_str_in_edited_messages(
-        get_text(user.language, "admins_editor_category", "Category successfully removed!")
+        get_text(user.language, "admins_editor_category", "category_successfully_removed")
     )
 
 
@@ -254,5 +254,5 @@ async def test_update_category_image_non_image_document(
     await update_category_image(msg, state, user)
 
     # проверяем, что юзеру отправили подсказку о том, что это не изображение
-    expected = get_text(user.language, "admins_editor_category", "This is not an image. Send it as a document")
+    expected = get_text(user.language, "admins_editor_category", "this_is_not_image")
     assert replacement_fake_bot_fix.get_message(user.user_id, expected)

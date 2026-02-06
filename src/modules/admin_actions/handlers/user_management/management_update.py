@@ -26,7 +26,7 @@ async def change_user_bal(callback: CallbackQuery, state: FSMContext, user: User
         message=get_text(
             user.language,
             "admins_user_mang",
-            "Enter a new balance for the user \n\nCurrent: {balance} ₽"
+            "enter_new_balance_for_user"
         ).format(balance=target_user.balance),
         reply_markup=back_in_user_management_kb(user.language, target_user_id)
     )
@@ -48,7 +48,7 @@ async def set_new_balance(message: Message, state: FSMContext, user: Users):
             get_text(
                 user.language,
                 "admins_user_mang",
-                "Balance successfully changed \n\nCurrent balance {balance}"
+                "balance_successfully_changed"
             ).format(balance=new_balance),
             reply_markup=back_in_user_management_kb(user.language, data.target_user_id)
         )
@@ -56,7 +56,7 @@ async def set_new_balance(message: Message, state: FSMContext, user: Users):
 
     await send_message(
         user.user_id,
-        get_text(user.language,"miscellaneous","Incorrect value entered. Please try again"),
+        get_text(user.language,"miscellaneous","incorrect_value_entered"),
         reply_markup=back_in_user_management_kb(user.language, data.target_user_id)
     )
 
@@ -70,7 +70,7 @@ async def reason_issue_ban(callback: CallbackQuery, state: FSMContext, user: Use
         message=get_text(
             user.language,
             "admins_user_mang",
-            "Please provide a reason for the ban"
+            "enter_reason_for_ban"
         ),
         reply_markup=back_in_user_management_kb(user.language, target_user_id)
     )
@@ -84,7 +84,7 @@ async def issue_ban(message: Message, state: FSMContext, user: Users):
     await add_banned_account(admin_id=user.user_id, user_id=data.target_user_id, reason=message.text)
     await send_message(
         user.user_id,
-        get_text(user.language,"admins_user_mang","The user has been successfully banned"),
+        get_text(user.language,"admins_user_mang","user_successfully_banned"),
         reply_markup=back_in_user_management_kb(user.language, data.target_user_id)
     )
 
@@ -98,7 +98,7 @@ async def confirm_remove_ban(callback: CallbackQuery, user: Users):
         message=get_text(
             user.language,
             "admins_user_mang",
-            "Are you sure you want to unban this user?"
+            "confirmation_unban_user"
         ),
         reply_markup=confirm_remove_ban_kb(user.language, target_user_id)
     )
@@ -114,7 +114,7 @@ async def remove_ban(callback: CallbackQuery, user: Users):
         message=get_text(
             user.language,
             "admins_user_mang",
-            "The user has been successfully unbanned"
+            "user_successfully_unbanned"
         ),
         reply_markup=back_in_user_management_kb(user.language, target_user_id)
     )

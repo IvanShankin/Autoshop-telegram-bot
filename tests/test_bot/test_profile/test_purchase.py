@@ -127,8 +127,8 @@ async def test_get_code_acc_returns_codes_and_sends_message(
     for date, code in sample:
         result_message += get_text(
             user.language,
-            'profile_messages',
-            "Date: {date} \nCode: <code>{code}</code>\n\n"
+            "profile_messages",
+            "code_details"
         ).format(date=date.strftime(get_config().different.dt_format), code=code)
 
     from src.modules.profile.handlers.purchase import accounts_handlers as modul
@@ -151,7 +151,7 @@ async def test_get_code_acc_returns_false_shows_unable_to_retrieve(
     monkeypatch,
 ):
     """
-    Если get_auth_codes возвращает False — должен показаться alert "Unable to retrieve data".
+    Если get_auth_codes возвращает False — должен показаться alert "unable_to_retrieve_data".
     """
     from src.modules.profile.handlers.purchase.accounts_handlers import get_code_acc
 
@@ -174,7 +174,7 @@ async def test_get_code_acc_returns_false_shows_unable_to_retrieve(
 
     cb.answer = fake_answer
     await get_code_acc(cb, user)
-    assert get_text(user.language, 'profile_messages', "Unable to retrieve data") in answered["text"]
+    assert get_text(user.language, "profile_messages", "unable_to_retrieve_data") in answered["text"]
 
 
 @pytest.mark.asyncio
@@ -186,7 +186,7 @@ async def test_get_code_acc_no_codes_found_alert(
     monkeypatch,
 ):
     """
-    Если get_auth_codes возвращает пустой список -> alert 'No codes found'.
+    Если get_auth_codes возвращает пустой список -> alert 'no_codes_found'.
     """
     from src.modules.profile.handlers.purchase.accounts_handlers import get_code_acc
 
@@ -209,7 +209,7 @@ async def test_get_code_acc_no_codes_found_alert(
 
     cb.answer = fake_answer
     await get_code_acc(cb, user)
-    assert get_text(user.language, 'profile_messages', "No codes found") in answered["text"]
+    assert get_text(user.language, "profile_messages", "no_codes_found") in answered["text"]
 
 
 
@@ -222,7 +222,7 @@ async def test_chek_valid_acc_valid_true_no_change(
     monkeypatch,
 ):
     """
-    Проверка при result=True и совпадающей валидности — просто alert с текстом "The account is valid".
+    Проверка при result=True и совпадающей валидности — просто alert с текстом "account_is_valid".
     """
     from src.modules.profile.handlers.purchase.accounts_handlers import chek_valid_acc
 
@@ -250,7 +250,7 @@ async def test_chek_valid_acc_valid_true_no_change(
 
     await chek_valid_acc(cb, user)
 
-    assert get_text(user.language, 'profile_messages', 'The account is valid') in answered["text"]
+    assert get_text(user.language, "profile_messages", 'account_is_valid') in answered["text"]
 
 
 @pytest.mark.asyncio
@@ -295,7 +295,7 @@ async def test_chek_valid_acc_valid_false_updates_and_refreshes_card(
 
     await chek_valid_acc(cb, user)
 
-    assert get_text(user.language, 'profile_messages', 'The account is not valid') in answered["text"]
+    assert get_text(user.language, "profile_messages", 'account_is_not_valid') in answered["text"]
     assert "show_sold_account" in called
 
 
@@ -322,10 +322,8 @@ async def test_confirm_del_acc_edits_message(
 
     await confirm_del_acc(cb, user)
 
-    text = get_text(user.language, 'profile_messages',
-        "Confirm deletion of this account?\n\n"
-        "Phone number: {phone_number}\n"
-        "Name: {name}"
+    text = get_text(user.language, "profile_messages",
+        "confirmation_delete_account"
     ).format(
         phone_number=e164_to_pretty(sold_full.account_storage.phone_number),
         name=sold_full.name,
@@ -343,7 +341,7 @@ async def test_del_account_successful_flow(
 ):
     """
     Проверяем успешное удаление аккаунта: move_in_account -> True,
-    должно вызвать show_all_sold_account и alert с текстом "The account has been successfully deleted".
+    должно вызвать show_all_sold_account и alert с текстом "account_successfully_deleted".
     """
     from src.modules.profile.handlers.purchase.accounts_handlers import del_account
 
@@ -376,7 +374,7 @@ async def test_del_account_successful_flow(
 
     await del_account(cb, user)
 
-    assert get_text(user.language, 'profile_messages', "The account has been successfully deleted") in answered["text"]
+    assert get_text(user.language, "profile_messages", "account_successfully_deleted") in answered["text"]
     assert "show_all_sold_account" in called
 
 
@@ -389,7 +387,7 @@ async def test_del_account_move_in_account_fails_shows_alert(
     monkeypatch,
 ):
     """
-    Проверяем, что если move_in_account возвращает False — вызывается alert "An error occurred, please try again".
+    Проверяем, что если move_in_account возвращает False — вызывается alert "an_error_occurred".
     """
     from src.modules.profile.handlers.purchase.accounts_handlers import del_account
 
@@ -416,4 +414,4 @@ async def test_del_account_move_in_account_fails_shows_alert(
 
     await del_account(cb, user)
 
-    assert get_text(user.language, 'profile_messages', "An error occurred, please try again") in answered["text"]
+    assert get_text(user.language, "miscellaneous", "an_error_occurred") in answered["text"]

@@ -23,7 +23,7 @@ async def show_ref_lvl_editor_func(ref_lvl_id: int, user: Users, new_message: bo
     _, ref_lvl, next_lvl = await get_levels_nearby(ref_lvl_id)
 
     if not ref_lvl:
-        error_message = get_text(user.language, "admins_editor_ref_system", "Level not found")
+        error_message = get_text(user.language, "admins_editor_ref_system", "level_not_found")
         if callback:
             await callback.answer(error_message, show_alert=True)
             return
@@ -38,13 +38,13 @@ async def show_ref_lvl_editor_func(ref_lvl_id: int, user: Users, new_message: bo
         ).format(from_sum=ref_lvl.amount_of_achievement, to_sum=next_lvl.amount_of_achievement)
     else:
         amount_of_achievement = get_text(
-            user.language, "admins_editor_ref_system", "from {from_sum}₽"
+            user.language, "admins_editor_ref_system", "from_sum_formatted"
         ).format(from_sum=ref_lvl.amount_of_achievement)
 
     message = get_text(
         user.language,
         "admins_editor_ref_system",
-        "Level: {lvl} \nPercentage of referral's replenishment: {percent} \nLevel achievement amount: {amount_of_achievement}"
+        "ref_level_info"
     ).format(lvl=ref_lvl.level, percent=ref_lvl.percent, amount_of_achievement=amount_of_achievement)
     reply_markup = ref_lvl_editor_kb(
         user.language,
@@ -85,7 +85,7 @@ async def add_ref_lvl(callback: CallbackQuery, state: FSMContext, user: Users):
         message=get_text(
             user.language,
             "admins_editor_ref_system",
-            "Enter the achievement amount for the new level \n\nThe amount must be at least {min_amount}₽"
+            "enter_achievement_amount_for_new_level"
         ).format(min_amount=referral_lvls[-1].amount_of_achievement if referral_lvls else 0),
         reply_markup=back_in_lvl_list_ref_system_kb(user.language)
     )
@@ -99,14 +99,14 @@ async def get_achievement_amount_for_new(message: Message, state: FSMContext, us
     if not amount_of_achievement:
         await send_message(
             user.user_id,
-            get_text(user.language, 'miscellaneous', "Incorrect value entered. Please try again"),
+            get_text(user.language, "miscellaneous", "incorrect_value_entered"),
             reply_markup=back_in_lvl_list_ref_system_kb(user.language)
         )
         return
 
     await send_message(
         user.user_id,
-        get_text(user.language, 'admins_editor_ref_system', "Enter the percentage of deduction"),
+        get_text(user.language, "admins_editor_ref_system", "enter_deduction_percentage"),
         reply_markup=back_in_lvl_list_ref_system_kb(user.language)
     )
     await state.update_data(achievement_amount=amount_of_achievement)
@@ -120,7 +120,7 @@ async def get_get_persent_for_new(message: Message, state: FSMContext, user: Use
     if not persent:
         await send_message(
             user.user_id,
-            get_text(user.language, 'miscellaneous', "Incorrect value entered. Please try again"),
+            get_text(user.language, "miscellaneous", "incorrect_value_entered"),
             reply_markup=back_in_lvl_list_ref_system_kb(user.language)
         )
         return
@@ -132,19 +132,19 @@ async def get_get_persent_for_new(message: Message, state: FSMContext, user: Use
         message = get_text(
             user.language,
             "admins_editor_ref_system",
-            "Level successfully created!"
+            "level_successfully_created"
         )
-        reply_markup = back_in_ref_lvl_editor_kb(user.language, new_lvl.referral_level_id, i18n_key="In level")
+        reply_markup = back_in_ref_lvl_editor_kb(user.language, new_lvl.referral_level_id, i18n_key="in_level")
     except InvalidAmountOfAchievement as e:
         message = get_text(
             user.language,
             "admins_editor_ref_system",
-            "Incorrect value entered \n\n{condition}"
+            "incorrect_value_entered"
         ).format(
             condition=get_text(
                 user.language,
                 "admins_editor_ref_system",
-                "The new amount must be more than {more}₽ {less}"
+                "new_amount_condition"
             ).format(
                 more=e.amount_of_achievement_previous_lvl if e.amount_of_achievement_previous_lvl else 0,
                 less=""
@@ -173,7 +173,7 @@ async def change_persent_ref_lvl(callback: CallbackQuery, state: FSMContext, use
     await edit_message(
         user.user_id,
         message_id=callback.message.message_id,
-        message=get_text(user.language, "admins_editor_ref_system", "Enter a new percentage"),
+        message=get_text(user.language, "admins_editor_ref_system", "enter_new_percentage"),
         reply_markup=back_in_ref_lvl_editor_kb(user.language, ref_lvl_id)
     )
 
@@ -188,7 +188,7 @@ async def get_persent_for_update(message: Message, state: FSMContext, user: User
     if not persent:
         await send_message(
             user.user_id,
-            get_text(user.language, 'miscellaneous',"Incorrect value entered. Please try again"),
+            get_text(user.language, "miscellaneous","incorrect_value_entered"),
             reply_markup=back_in_ref_lvl_editor_kb(user.language, data.ref_lvl_id)
         )
         return
@@ -197,8 +197,8 @@ async def get_persent_for_update(message: Message, state: FSMContext, user: User
 
     await send_message(
         chat_id=user.user_id,
-        message=get_text(user.language, 'miscellaneous',"Data updated successfully"),
-        reply_markup=back_in_ref_lvl_editor_kb(user.language, data.ref_lvl_id, i18n_key="In level")
+        message=get_text(user.language, "miscellaneous","data_updated_successfully"),
+        reply_markup=back_in_ref_lvl_editor_kb(user.language, data.ref_lvl_id, i18n_key="in_level")
     )
 
 
@@ -213,18 +213,18 @@ async def change_achievement_amount(callback: CallbackQuery, state: FSMContext, 
         message=get_text(
             user.language,
             "admins_editor_ref_system",
-            "Enter a new level achievement amount. \n\n{condition}"
+            "enter_new_level_achievement_amount"
         ).format(
             condition=get_text(
                 user.language,
         "admins_editor_ref_system",
-            "The new amount must be more than {more}₽ {less}"
+            "new_amount_condition"
             ).format(
                 more=previous_lvl.amount_of_achievement if previous_lvl else '0',
                 less=get_text(
                     user.language,
                     "admins_editor_ref_system",
-                    "and less {less}₽"
+                    "and_less_formatted"
                 ).format(less=next_lvl.amount_of_achievement) if next_lvl else "",
             )
         ),
@@ -242,30 +242,30 @@ async def get_achievement_amount(message: Message, state: FSMContext, user: User
     if not amount_of_achievement:
         await send_message(
             user.user_id,
-            get_text(user.language, 'miscellaneous',"Incorrect value entered. Please try again"),
+            get_text(user.language, "miscellaneous","incorrect_value_entered"),
             reply_markup=back_in_ref_lvl_editor_kb(user.language, data.ref_lvl_id)
         )
         return
 
     try:
         await update_referral_lvl(ref_lvl_id=data.ref_lvl_id, amount_of_achievement=amount_of_achievement)
-        message = get_text(user.language, 'miscellaneous', "Data updated successfully")
+        message = get_text(user.language, "miscellaneous", "data_updated_successfully")
     except InvalidAmountOfAchievement as e:
         message = get_text(
             user.language,
             "admins_editor_ref_system",
-            "Incorrect value entered \n\n{condition}"
+            "incorrect_value_entered"
         ).format(
             condition=get_text(
                 user.language,
         "admins_editor_ref_system",
-            "The new amount must be more than {more}₽ {less}"
+            "new_amount_condition"
             ).format(
                 more=e.amount_of_achievement_previous_lvl if e.amount_of_achievement_previous_lvl else 0,
                 less=get_text(
                     user.language,
                     "admins_editor_ref_system",
-                    "and less {less}₽"
+                    "and_less_formatted"
                 ).format(less=e.amount_of_achievement_next_lvl) if e.amount_of_achievement_next_lvl else "",
             )
         )
@@ -273,14 +273,14 @@ async def get_achievement_amount(message: Message, state: FSMContext, user: User
         message = get_text(
             user.language,
             "admins_editor_ref_system",
-            "Unable to change the achievement amount for the first level"
+            "unable_change_first_level_achievement"
         )
 
 
     await send_message(
         chat_id=user.user_id,
         message=message,
-        reply_markup=back_in_ref_lvl_editor_kb(user.language, data.ref_lvl_id, i18n_key="In level")
+        reply_markup=back_in_ref_lvl_editor_kb(user.language, data.ref_lvl_id, i18n_key="in_level")
     )
 
 
@@ -290,7 +290,7 @@ async def confirm_delete_ref_lvl(callback: CallbackQuery, user: Users):
     await edit_message(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
-        message=get_text(user.language, "admins_editor_ref_system", "Are you sure you want to delete this level?"),
+        message=get_text(user.language, "admins_editor_ref_system", "confirmation_delete_level"),
         image_key="admin_panel",
         reply_markup=confirm_del_lvl_kb(user.language, referral_level_id=ref_lvl_id)
     )
@@ -301,9 +301,9 @@ async def delete_ref_lvl(callback: CallbackQuery, user: Users):
     ref_lvl_id = int(callback.data.split(":")[1])
     try:
         await delete_referral_lvl(ref_lvl_id)
-        message = get_text(user.language, "admins_editor_ref_system", "Level successfully removed!")
+        message = get_text(user.language, "admins_editor_ref_system", "level_successfully_removed")
     except InvalidSelectedLevel:
-        message = get_text(user.language, "admins_editor_ref_system", "The first level cannot be deleted")
+        message = get_text(user.language, "admins_editor_ref_system", "first_level_cannot_be_deleted")
 
     await callback.answer(message, show_alert=True)
 

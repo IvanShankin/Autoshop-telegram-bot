@@ -29,28 +29,28 @@ async def generate_referral_report_excel(owner_user_id: int, language: str) -> b
     for referral in referrals_orm:
         referral_user = await get_user(referral.referral_id)
         new_dict = {}
-        new_dict[get_text(language, 'referral_report', 'Referral ID')] = referral.referral_id
-        new_dict[get_text(language, 'referral_report', 'Referral username')] = referral_user.username
-        new_dict[get_text(language, 'referral_report', 'Level')] = referral.level
-        new_dict[get_text(language, 'referral_report', 'Join date')] = _strip_tz(referral.created_at)
+        new_dict[get_text(language, "referral_report", "referral_id")] = referral.referral_id
+        new_dict[get_text(language, "referral_report", "referral_username")] = referral_user.username
+        new_dict[get_text(language, "referral_report", "level")] = referral.level
+        new_dict[get_text(language, "referral_report", "join_date")] = _strip_tz(referral.created_at)
 
         total_income = 0
         for income in incomes_orm:
             if income.referral_id == referral.referral_id:
                 total_income += income.amount
 
-        new_dict[get_text(language, 'referral_report', 'Total brought')] = total_income
+        new_dict[get_text(language, "referral_report", "total_brought")] = total_income
         referrals.append(new_dict)
 
     # Подготовка списка доходов
     incomes: list[dict] = []
     for income in incomes_orm:
         new_dict = {}
-        new_dict[get_text(language, 'referral_report', 'Deposit ID')] = income.income_from_referral_id
-        new_dict[get_text(language, 'referral_report', 'Referral ID')] = income.referral_id
-        new_dict[get_text(language, 'referral_report', 'Amount')] = income.amount
-        new_dict[get_text(language, 'referral_report', 'Referral deposit percentage')] = income.percentage_of_replenishment
-        new_dict[get_text(language, 'referral_report', 'Deposit date')] = _strip_tz(income.created_at)
+        new_dict[get_text(language, "referral_report", "deposit_id")] = income.income_from_referral_id
+        new_dict[get_text(language, "referral_report", "referral_id")] = income.referral_id
+        new_dict[get_text(language, "referral_report", "amount")] = income.amount
+        new_dict[get_text(language, "referral_report", "referral_deposit_percentage")] = income.percentage_of_replenishment
+        new_dict[get_text(language, "referral_report", "deposit_date")] = _strip_tz(income.created_at)
 
         incomes.append(new_dict)
 
@@ -66,44 +66,44 @@ async def generate_referral_report_excel(owner_user_id: int, language: str) -> b
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         # блок 1 - служебная информация
         info_df = pd.DataFrame([
-            [get_text(language, 'referral_report', 'Export date'), datetime.now().strftime(get_config().different.dt_format)],
-            [get_text(language, 'referral_report', 'Owner ID'), owner_user_id],
-            [get_text(language, 'referral_report', 'Total referrals'), total_referrals],
-            [get_text(language, 'referral_report', 'Total income'), total_income],
-        ], columns=[get_text(language, 'referral_report', 'Parameter'), get_text(language, 'referral_report', 'Parameter')])
+            [get_text(language, "referral_report", "export_date"), datetime.now().strftime(get_config().different.dt_format)],
+            [get_text(language, "referral_report", "owner_id"), owner_user_id],
+            [get_text(language, "referral_report", "total_referrals"), total_referrals],
+            [get_text(language, "referral_report", "total_income"), total_income],
+        ], columns=[get_text(language, "referral_report", "parameter"), get_text(language, "referral_report", "parameter")])
         info_df.to_excel(writer, index=False, sheet_name="referrals_report", startrow=0)
 
         startrow = len(info_df) + 2
 
         # блок 2 - список рефералов
         pd.DataFrame(referrals, columns=[
-            get_text(language, 'referral_report', 'Referral ID'),
-            get_text(language, 'referral_report', 'Referral username'),
-            get_text(language, 'referral_report', 'Level'),
-            get_text(language, 'referral_report', 'Join date'),
-            get_text(language, 'referral_report', 'Total brought')
+            get_text(language, "referral_report", "referral_id"),
+            get_text(language, "referral_report", "referral_username"),
+            get_text(language, "referral_report", "level"),
+            get_text(language, "referral_report", "join_date"),
+            get_text(language, "referral_report", "total_brought")
         ]).to_excel(writer, index=False, sheet_name="referrals_report", startrow=startrow)
 
         startrow += len(referrals) + 3
 
         # блок 3 - детали начислений
         pd.DataFrame(incomes, columns=[
-            get_text(language, 'referral_report', 'Deposit ID'),
-            get_text(language, 'referral_report', 'Referral ID'),
-            get_text(language, 'referral_report', 'Amount'),
-            get_text(language, 'referral_report', 'Referral deposit percentage'),
-            get_text(language, 'referral_report', 'Deposit date')
+            get_text(language, "referral_report", "deposit_id"),
+            get_text(language, "referral_report", "referral_id"),
+            get_text(language, "referral_report", "amount"),
+            get_text(language, "referral_report", "referral_deposit_percentage"),
+            get_text(language, "referral_report", "deposit_date")
         ]).to_excel(writer, index=False, sheet_name="referrals_report", startrow=startrow)
 
         startrow += len(incomes) + 3
 
         # блок 4 - статистика
         stats_df = pd.DataFrame([
-            [get_text(language, 'referral_report', 'Total referrals'), total_referrals],
-            [get_text(language, 'referral_report', 'Total income'), total_income],
-            [get_text(language, 'referral_report', 'Level 1 referrals'), level1],
-            [get_text(language, 'referral_report', 'Level 2 referrals'), level2],
-        ], columns=[get_text(language, 'referral_report', 'Metric'), get_text(language, 'referral_report', 'Value')])
+            [get_text(language, "referral_report", "total_referrals"), total_referrals],
+            [get_text(language, "referral_report", "total_income"), total_income],
+            [get_text(language, "referral_report", "level_1_referrals"), level1],
+            [get_text(language, "referral_report", "level_2_referrals"), level2],
+        ], columns=[get_text(language, "referral_report", "metric"), get_text(language, "referral_report", "value")])
         stats_df.to_excel(writer, index=False, sheet_name="referrals_report", startrow=startrow)
 
     buffer.seek(0)

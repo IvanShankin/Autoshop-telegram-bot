@@ -9,26 +9,26 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 
 
-msgid "To account"
-msgid_plural "To accounts"
+msgid "to_accounts"
+msgid_plural "to_accounts"
 msgstr[0] "К аккаунту"
 msgstr[1] "К аккаунтам"
 msgstr[2] "К аккаунтам"
 
-msgid "To product"
-msgid_plural "To products"
+msgid "to_product"
+msgid_plural "to_product"
 msgstr[0] "К товару"
 msgstr[1] "К товарам"
 msgstr[2] "К товарам"
 
-msgid "Channel"
+msgid "channel"
 msgstr "Канал"
 
-msgid "Accounts"
+msgid "accounts"
 msgstr "Аккаунты"
 
-msgid "Buy"
+msgid "buy"
 msgstr "Купить"
 
-msgid "Enter promo code"
+msgid "enter_promo_code"
 msgstr "Ввести промокод"

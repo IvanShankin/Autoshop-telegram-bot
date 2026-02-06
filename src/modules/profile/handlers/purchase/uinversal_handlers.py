@@ -52,10 +52,8 @@ async def confirm_del_universal(callback: CallbackQuery, user: Users):
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
-        message=get_text(user.language, 'profile_messages',
-            "Confirm deletion of this product\n\n"
-            "ID product: {sold_universal_id}\n"
-            "Name: {name}"
+        message=get_text(user.language, "profile_messages",
+            "confirmation_delete_product"
         ).format(
             sold_universal_id=universal.sold_universal_id,
             name=universal.universal_storage.name,

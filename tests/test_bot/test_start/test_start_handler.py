@@ -42,8 +42,8 @@ async def test_start_existing_user(patch_fake_aiogram, replacement_fake_bot_fix,
 
     text = get_text(
         user.language,
-        'start_message',
-        'Welcome to {shop_name} SHOP! \nOur news channel: @{channel_name} \nHappy shopping!'
+        "start_message",
+        "welcome_message"
     ).format(shop_name=setting.shop_name, channel_name=setting.channel_name)
 
     assert fake_bot.get_message(user.user_id, text), "Не отправилось приветственное сообщение"
@@ -76,10 +76,8 @@ async def test_start_with_new_referral(patch_fake_aiogram, replacement_fake_bot_
     # сообщение для владельца рефералла
     message = get_text(
         owner.language,
-        'referral_messages',
-        "You've invited a new referral!\n"
-        "Username: {username}\n\n"
-        "Thank you for using our services!"
+        "referral_messages",
+        "new_referral_invited"
     ).format(username= f'@{user.username}' if user.username else 'None')
     assert fake_bot.get_message(owner.user_id, message), "Не отправилось сообщение о новом рефералле"
 
@@ -111,8 +109,8 @@ async def test_start_activate_voucher_existing_user_1(
 
     text = get_text(
         user.language,
-        'discount',
-        "Voucher successfully activated! \n\nVoucher amount: {amount} \nCurrent balance: {new_balance}"
+        "discount",
+        "voucher_successfully_activated"
     ).format(amount=voucher.amount, new_balance=user.balance)
 
     # сообщение для того кто запустил бота
@@ -156,8 +154,8 @@ async def test_start_activate_voucher_existing_user_2(
 
     text = get_text(
         user.language,
-        'discount',
-        "Voucher successfully activated! \n\nVoucher amount: {amount} \nCurrent balance: {new_balance}"
+        "discount",
+        "voucher_successfully_activated"
     ).format(amount=voucher.amount, new_balance=user.balance)
 
     # сообщение для того кто запустил бота
@@ -178,12 +176,12 @@ async def test_select_language(patch_fake_aiogram, replacement_fake_bot_fix, cre
     await start.select_language(callback, user)
 
     user = await get_user(user.user_id)
-    assert user.language == 'en'
+    assert user.language == "en"
 
     text = get_text(
         user.language,
-        'start_message',
-        'Welcome to {shop_name} SHOP! \nOur news channel: @{channel_name} \nHappy shopping!'
+        "start_message",
+        "welcome_message"
     ).format(shop_name=setting.shop_name, channel_name=setting.channel_name)
 
     assert fake_bot.get_message(user.user_id, text), "Не отправилось приветственное сообщение"
@@ -225,7 +223,7 @@ async def test_maintenance_blocks_normal_user(
         user.user_id,
         get_text(
             user.language,
-            'start_message',
-            "The bot is temporarily unavailable due to maintenance. Please try again later"
+            "start_message",
+            "temporarily_maintenance"
         )
     )

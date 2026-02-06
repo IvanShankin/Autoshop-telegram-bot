@@ -24,7 +24,7 @@ async def check_category(category_id: int, old_message_id: int, user_id: int, la
 
         await send_message(
             chat_id=user_id,
-            message=get_text(language, 'categories',"The category is temporarily unavailable"),
+            message=get_text(language, "categories","category_temporarily_unavailable"),
         )
         return None
 
@@ -54,18 +54,12 @@ async def edit_message_category(
                 discount = (data.quantity_for_buying * category.price) * data.discount_percentage / 100
 
             total_price = max(0, total_price - discount)
-            message_discount = get_text(user.language, 'categories',"Discount with promo code: {discount}\n").format(discount=discount)
+            message_discount = get_text(user.language, "categories","promo_code_discount").format(discount=discount)
 
         message = get_text(
             user.language,
-            'categories',
-            "{name} \n\n"
-            "Description: {description}\n"
-            "Price per product: {price} ₽ \n\n"
-            "Products selected: {selected_products}\n"
-            "{discount}"
-            "Total: {total_price}\n\n"
-            "To specify the required quantity, send the bot a number"
+            "categories",
+            "product_selection_info"
         ).format(
             name=category.name,
             description=category.description,

@@ -18,14 +18,7 @@ async def message_change_settings(user: Users, new_message: bool, callback: Call
     message = get_text(
         user.language,
         "admins_settings",
-        "Maintenance: {maintenance_mode} \n"
-        "Support Username: @{support_username} \n"
-        "Chat ID for logging: {channel_for_logging_id} \n"
-        "Channel ID for subscription: {channel_for_subscription_id} \n"
-        "Channel URL for subscription: {channel_for_subscription_url} \n"
-        "Channel Name: {channel_name} \n"
-        "Store Name: {shop_name} \n"
-        "FAQ URL: {FAQ}"
+        "settings_info"
     ).format(
         maintenance_mode='🟢' if settings.maintenance_mode else '🔴',
         support_username=settings.support_username,
@@ -61,7 +54,7 @@ async def message_request_new_data(callback: CallbackQuery, state: FSMContext, u
     await edit_message(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
-        message=get_text(user.language, "admins_settings", "Enter new data"),
+        message=get_text(user.language, "admins_settings", "enter_new_data"),
         reply_markup=back_in_change_admin_settings_kb(user.language)
     )
 
@@ -84,14 +77,14 @@ async def cheek_valid_data(state: str, message_text: str, user: Users) -> bool:
              or state == UpdateAdminSettings.faq_url.state)
             and len(message_text) > 150
     ):
-        error_msg = get_text(user.language, "admins_settings", "The text is too long. Please try again")
+        error_msg = get_text(user.language, "admins_settings", "text_too_long")
 
     if (
             (state == UpdateAdminSettings.channel_for_subscription_url.state
              or state == UpdateAdminSettings.faq_url.state)
             and not validators.url(message_text)
     ):
-        error_msg = get_text(user.language, "admins_settings", "This text is not a link. Try again")
+        error_msg = get_text(user.language, "admins_settings", "text_is_not_link")
 
     if (
             (state == UpdateAdminSettings.channel_for_logging_id.state

@@ -11,20 +11,20 @@ from src.utils.i18n import get_text
 async def ref_system_kb(language: str, user_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, 'kb_profile', 'Information'),
+            text=get_text(language, "kb_profile", 'information'),
             callback_data=f'ref_system_info',
         )],
         [InlineKeyboardButton(
-                text=get_text(language, 'kb_profile', 'Accrual history'),
+                text=get_text(language, "kb_profile", "accrual_history"),
                 callback_data=f'accrual_ref_list:{user_id}:1'
             )
         ],
         [InlineKeyboardButton(
-                text=get_text(language, 'kb_profile', 'Download a list of referrals'),
+                text=get_text(language, "kb_profile", "download_list_referrals"),
                 callback_data=f'download_ref_list:{user_id}'
             )
         ],
-        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data=f'profile')],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "back"), callback_data=f'profile')],
     ])
 
 
@@ -50,14 +50,14 @@ async def accrual_ref_list_kb(language: str, current_page: int, target_user_id: 
         item_button,
         left_prefix=f"accrual_ref_list:{target_user_id}",
         right_prefix=f"accrual_ref_list:{target_user_id}",
-        back_text=get_text(language, "kb_general", "Back"),
+        back_text=get_text(language, "kb_general", "back"),
         back_callback=f"referral_system" if target_user_id == user_id else f"user_management:{target_user_id}",
     )
 
 def back_in_accrual_ref_list_kb(language: str, current_page_id: int, target_user_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, "kb_general", "Back"),
+            text=get_text(language, "kb_general", "back"),
             callback_data=f'accrual_ref_list:{target_user_id}:{current_page_id}'
         )]
     ])
@@ -66,7 +66,7 @@ def back_in_accrual_ref_list_kb(language: str, current_page_id: int, target_user
 def back_in_ref_system_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, "kb_general", "Back"),
+            text=get_text(language, "kb_general", "back"),
             callback_data=f'referral_system'
         )]
     ])

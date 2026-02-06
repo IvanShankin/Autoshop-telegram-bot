@@ -73,7 +73,7 @@ async def category_load_products(callback: CallbackQuery, state: FSMContext, use
                 message=get_text(
                     user.language,
                     "admins_editor_category",
-                    "Send the archive with the exact folder and archive structure as shown in the photo"
+                    "send_archive_with_the_folder_structure_as_shown_in_the_photo"
                 ),
                 image_key="info_add_accounts",
                 reply_markup=get_example_import_tg_acc_kb(user.language, category_id)
@@ -87,11 +87,7 @@ async def category_load_products(callback: CallbackQuery, state: FSMContext, use
                 message=get_text(
                     user.language,
                     "admins_editor_category",
-                    "Send a file with the '.csv' extension.\n\n"
-                    "It must have the structure shown in the photo.\n"
-                    "Please pay attention to the headers; they must be strictly followed!\n\n"
-                    "Required Headers (can be copied):\n'<code>phone</code>', '<code>login</code>', '<code>password</code>'\n\n"
-                    "Note: To create a '.csv' file, create an exal workbook and save it as '.csv'"
+                    "description_csv_file_for_import_other_account"
                 ),
                 image_key="example_csv",
                 reply_markup=get_example_import_other_acc_kb(user.language, category_id)
@@ -162,7 +158,7 @@ async def choice_lang_category_data(callback: CallbackQuery, user: Users):
         message=get_text(
             user.language,
             "admins_editor_category",
-            "Select the desired section"
+            "select_desired_section"
         ),
         reply_markup=name_or_description_kb(user.language, category_id, lang)
     )
@@ -173,7 +169,7 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
     async def load_file(file_path: str, caption: str):
         try:
             message_loading = await send_message(
-                message.from_user.id, get_text(user.language, "miscellaneous", "File loading")
+                message.from_user.id, get_text(user.language, "miscellaneous", "file_loading")
             )
             bot = await get_bot()
             file = FSInputFile(file_path)
@@ -218,11 +214,7 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
             message=get_text(
                 user.language,
                 "admins_editor_category",
-                "Error downloading file to server, try again.\n\n"
-                    "Possible causes:\n"
-                    "- Telegram servers are under load\n"
-                    "- Slow internet connection on the server where the bot is located\n"
-                    "- The file is too large and didn't download within the allotted time\n"
+                "error_downloading_file_to_server"
             )
         )
         return
@@ -250,13 +242,13 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
             message.from_user.id,
             message_info.message_id,
             result_message,
-            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="In category")
+            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="in_category")
         )
 
         if result.invalid_archive_path:
             await load_file(
                 result.invalid_archive_path,
-                caption=get_text(user.language,"admins_editor_category", "Failed account extraction")
+                caption=get_text(user.language,"admins_editor_category", "failed_account_extraction")
             )
 
         if result.duplicate_archive_path:
@@ -276,7 +268,7 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
 
         await send_message(
             message.from_user.id,
-            get_text(user.language,"admins_editor_category", "An error occurred inside the server, see the logs!")
+            get_text(user.language,"admins_editor_category", "error_inside_server")
         )
 
     await gen_import_acc.__anext__() # удаление временных файлов
@@ -326,20 +318,20 @@ async def import_other_account(message: Message, state: FSMContext, user: Users)
             message.from_user.id,
             message_info.message_id,
             result_message,
-            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="In category")
+            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="in_category")
         )
         if result.errors_csv_bytes:
             await message.answer_document(
                 BufferedInputFile(
                     result.errors_csv_bytes,
-                    filename=get_text(user.language,"admins_editor_category", "Failed account extraction") + '.csv'
+                    filename=get_text(user.language,"admins_editor_category", "failed_account_extraction") + '.csv'
                 )
             )
         if result.duplicates_csv_bytes:
             await message.answer_document(
                 BufferedInputFile(
                     result.duplicates_csv_bytes,
-                    filename=get_text(user.language, "admins_editor_category", "Duplicate accounts") + '.csv'
+                    filename=get_text(user.language, "admins_editor_category", "duplicate_accounts") + '.csv'
                 )
             )
 
@@ -350,12 +342,10 @@ async def import_other_account(message: Message, state: FSMContext, user: Users)
             message=get_text(
                 user.language,
                 "admins_editor_category",
-                "The resulting file has incorrect header formatting. \n"
-            "Carefully examine the attached photo and try again \n\n"
-            "Required Headers (can be copied):\n'<code>phone</code>', '<code>login</code>', '<code>password</code>'"
+                "incorrect_header_formatting_for_import_other_account"
             ),
             image_key="example_csv",
-            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="In category")
+            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="in_category")
         )
         await state.set_state(ImportOtherAccounts.csv_file)
     except TypeAccountServiceNotFound:
@@ -369,7 +359,7 @@ async def import_other_account(message: Message, state: FSMContext, user: Users)
 
         await send_message(
             message.from_user.id,
-            get_text(user.language,"admins_editor_category", "An error occurred inside the server, see the logs!")
+            get_text(user.language,"admins_editor_category", "error_inside_server")
         )
 
 
@@ -423,9 +413,9 @@ async def import_universal_products(message: Message, state: FSMContext, user: U
             message=get_text(
                 user.language,
                 "admins_editor_category",
-                "Products integration was successful. \n\nSuccessfully added: {successfully_added} \nTotal processed: {total_processed}"
+                "products_integration_was_successful"
             ).format(successfully_added=total_added, total_processed=total_added),
-            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="In category")
+            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="in_category")
         )
 
     except ImportUniversalFileNotFound as e:
@@ -437,7 +427,7 @@ async def import_universal_products(message: Message, state: FSMContext, user: U
                 "admins_editor_category",
                 "error_import_universal_file_not_found"
             ).format(file_name=e.file_name),
-            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="In category")
+            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="in_category")
         )
         await state.set_state(ImportUniversalProducts.archive)
     except ImportUniversalInvalidMediaData:
@@ -449,7 +439,7 @@ async def import_universal_products(message: Message, state: FSMContext, user: U
                 "admins_editor_category",
                 "error_import_universal_media_type"
             ).format(media_type=str(category.media_type.name)),
-            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="In category")
+            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="in_category")
         )
         await state.set_state(ImportUniversalProducts.archive)
     except CsvHasMoreThanTwoProducts:
@@ -461,7 +451,7 @@ async def import_universal_products(message: Message, state: FSMContext, user: U
                 "admins_editor_category",
                 "error_import_universal_has_more_two"
             ).format(media_type=str(category.media_type.name)),
-            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="In category")
+            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="in_category")
         )
         await state.set_state(ImportUniversalProducts.archive)
     except Exception as e:
@@ -473,5 +463,5 @@ async def import_universal_products(message: Message, state: FSMContext, user: U
 
         await send_message(
             message.from_user.id,
-            get_text(user.language,"admins_editor_category", "An error occurred inside the server, see the logs!")
+            get_text(user.language,"admins_editor_category", "error_inside_server")
         )

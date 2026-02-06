@@ -24,11 +24,11 @@ async def safe_get_category(category_id: int, user: Users, callback: CallbackQue
                 await callback.message.delete()
             except Exception:
                 pass
-            await callback.answer(get_text(user.language, "admins_editor_category", "The category no longer exists"), show_alert=True)
+            await callback.answer(get_text(user.language, "admins_editor_category", "category_not_exists"), show_alert=True)
             return
 
         await send_message(chat_id=user.user_id,
-                           message=get_text(user.language, "admins_editor_category", "The category no longer exists"))
+                           message=get_text(user.language, "admins_editor_category", "category_not_exists"))
         return
     return category
 

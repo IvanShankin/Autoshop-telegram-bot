@@ -130,7 +130,7 @@ class TestBuyAccount:
 
         await buy_in_category(cb, st,  user)
 
-        expected_text = get_text(user.language, 'miscellaneous', "Insufficient funds: {amount}").format(amount=150)
+        expected_text = get_text(user.language, "miscellaneous", "insufficient_funds").format(amount=150)
 
         assert fake_bot.get_edited_message(user.user_id, cb.message.message_id, expected_text), \
             "Не отредактировалось сообщение о нехватке средств"
@@ -176,9 +176,9 @@ class TestBuyAccount:
         assert fake_bot.check_str_in_messages(
             n_get_text(
                 user.language,
-                'categories',
-                "Thank you for your purchase \nThe product is already in the profile",
-                "Thank you for your purchase \nThe product is already in the profile",
+                "categories",
+                "thank_you_for_purchase",
+                "thank_you_for_purchase",
                 1
             )
         ), "Не появилось сообщение об успешной покупке"

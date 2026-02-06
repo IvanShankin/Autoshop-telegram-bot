@@ -8,36 +8,36 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 
-msgid "Send the user ID/username \n\nNote: It is preferable to use ID, it is more secure"
+msgid "send_user_id_or_username"
 msgstr "Пришлите ID/username пользователя \n\nПримечание: предпочтительнее использовать ID, так более надёжно"
 
-msgid "User with this ID/Username not found, try again"
+msgid "user_not_found_by_id_or_username"
 msgstr "Пользователь с таким ID/Username не найден попробуйте ещё раз"
 
-msgid "Multiple users with this username were found, please search by ID"
+msgid "multiple_users_with_same_username"
 msgstr "Найдено несколько пользователей с данным username, примените поиск по ID"
 
-msgid "Enter a new balance for the user \n\nCurrent: {balance} ₽"
+msgid "enter_new_balance_for_user"
 msgstr "Введите новый баланс для пользователя \n\nТекущий: {balance} ₽"
 
-msgid "\n\nReason for ban: {reason}"
+msgid "reason_for_ban"
 msgstr "\n\nПричина бана: {reason}"
 
-msgid "Balance successfully changed \n\nCurrent balance {balance}"
+msgid "balance_successfully_changed"
 msgstr "Баланс успешно изменён \n\nТекущий баланс {balance}"
 
-msgid "Are you sure you want to unban this user?"
+msgid "confirmation_unban_user"
 msgstr "Вы уверены, что хотите разблокировать этого пользователя?"
 
-msgid "Please provide a reason for the ban"
+msgid "enter_reason_for_ban"
 msgstr "Укажите причину бана"
 
-msgid "The user has been successfully banned"
+msgid "user_successfully_banned"
 msgstr "Пользователь успешно забанен"
 
-msgid "The user has been successfully unbanned"
+msgid "user_successfully_unbanned"
 msgstr "Пользователь успешно разбанен"
 
-msgid "The user has no log entries"
+msgid "user_has_no_log_entries"
 msgstr "У пользователя нет ни одной записи в логах"
 

@@ -99,10 +99,7 @@ async def test_handler_new_income_referral(
     expected_message = get_text(
         owner.language,
         "referral_messages",
-        "Your referral has replenished their balance and increased the level of the referral system.\n"
-        "Referral level: {last_lvl} {current_lvl}\n"
-        "You have earned: {amount}₽ ({percent}%)\n\n"
-        "Funds have been credited to your balance in your personal account."
+        "referral_replenished_and_level_up"
     ).format(last_lvl=1, current_lvl=updated_ref.level,  amount=replenishment.amount, percent=percent)
 
     assert fake_bot.get_message(owner.user_id, expected_message), "Сообщение о доходе от реферала не отправлено"
@@ -123,8 +120,7 @@ async def test_on_referral_income_completed_no_level_up():
     message = get_text(
         language,
         "referral_messages",
-        "Your referral has replenished the balance. \nReferral level: {level} \nYou have earned {amount}₽ ({percent}%)\n\n"
-        "Funds have been credited to your balance in your personal account."
+        "referral_replenished_balance"
     ).format(level=current_lvl, amount=amount, percent=percent)
 
     assert fake_bot.check_str_in_messages(message[:100]), "Сообщение о пополнении без повышения уровня не отправлено"
@@ -146,10 +142,7 @@ async def test_on_referral_income_completed_with_level_up():
     message = get_text(
         language,
         "referral_messages",
-        "Your referral has replenished their balance and increased the level of the referral system.\n"
-        "Referral level: {last_lvl} {current_lvl}\n"
-        "You have earned: {amount}₽ ({percent}%)\n\n"
-        "Funds have been credited to your balance in your personal account."
+        "referral_replenished_and_level_up"
     ).format(last_lvl=last_lvl, current_lvl=current_lvl, amount=amount, percent=percent)
 
     assert fake_bot.check_str_in_messages(message[:100]), "Сообщение о пополнении с повышением уровня не отправлено"

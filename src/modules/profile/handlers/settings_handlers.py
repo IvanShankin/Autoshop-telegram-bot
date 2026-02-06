@@ -17,13 +17,13 @@ async def notification_settings(user_id: int, username: str, message_id: int, no
     await edit_message(
         chat_id=user_id,
         message_id=message_id,
-        message=get_text(user.language, 'profile_messages', "Notification Settings"),
+        message=get_text(user.language, "profile_messages", "notification_settings"),
         image_key='selecting_language',
         reply_markup=setting_notification_kb(user.language, notification=notification)
     )
 
 async def language_settings(user_id: int, message_id: int, user: Users):
-    text = get_text(user.language, 'profile_messages', "Language in the bot")
+    text = get_text(user.language, "profile_messages", "language_in_bot")
 
     await edit_message(
         chat_id=user_id,
@@ -35,7 +35,7 @@ async def language_settings(user_id: int, message_id: int, user: Users):
 
 @router.callback_query(F.data == "profile_settings")
 async def profile_settings(callback: CallbackQuery, user: Users):
-    text = get_text(user.language, 'profile_messages', "Select the settings item")
+    text = get_text(user.language, "profile_messages", "select_settings_item")
 
     await edit_message(
         chat_id = callback.from_user.id,
@@ -88,7 +88,7 @@ async def update_notification_settings(callback: CallbackQuery, user: Users):
             referral_invitation=new_value,
             referral_replenishment=notification.referral_replenishment
         )
-    elif column == 'replenishment':
+    elif column == "replenishment":
         notification = await update_notification(
             user.user_id,
             referral_invitation=notification.referral_invitation,

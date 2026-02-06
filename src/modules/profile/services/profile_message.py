@@ -18,7 +18,7 @@ async def get_main_message_profile(user: Users, language: str) -> str:
     :param user: пользователя о котором будут выведены данные
     :param language: На каком языке вернуть сообщение. Для него отдельный параметр т.к. данная функция ещё используется для админа
     """
-    username = get_text(language, 'profile_messages', 'No') if user.username is None else f'@{user.username}'
+    username = get_text(language, "miscellaneous", 'no') if user.username is None else f'@{user.username}'
 
     bot = await get_bot()
     bot_me = await bot.me()
@@ -30,7 +30,7 @@ async def get_main_message_profile(user: Users, language: str) -> str:
 
     return get_text(
         language,
-        'profile_messages',
+        "profile_messages",
         "Username: {username} \nID: {id} \nRef_link: {ref_link} \nTotal sum replenishment: {total_sum_replenishment}"
         "\nBalance: {balance}, \nMoney in vouchers {money_in_vouchers}"
     ).format(
@@ -53,17 +53,12 @@ async def message_show_transaction(
     transaction = await get_wallet_transaction(transaction_id)
 
     if transaction is None:
-        await callback.answer(text=get_text(language, 'miscellaneous', 'Data not found'), show_alert=True)
+        await callback.answer(text=get_text(language, "miscellaneous", 'data_not_found'), show_alert=True)
 
     text = get_text(
         language,
         "profile_messages",
-        "ID: {transaction_id}\n\n"
-        "Type: {type}\n"
-        "Amount: {amount}\n"
-        "Balance before: {balance_before}\n"
-        "Balance after: {balance_after}\n"
-        "Date: {created_at}"
+        "transaction_details"
     ).format(
         transaction_id=transaction.wallet_transaction_id,
         type=get_text(language, "type_wallet_transaction", f'{transaction.type}'),
@@ -91,12 +86,8 @@ async def message_income_ref(
 
     text = get_text(
         language,
-        'profile_messages',
-        "ID: {id}\n\n"
-        "Referral Username: {username}\n"
-        "Amount: {amount}\n"
-        "Percentage of Replenishment: {percentage_of_replenishment}\n"
-        "Date: {date}\n"
+        "profile_messages",
+        "referral_income_details"
     ).format(
         id=income.income_from_referral_id,
         username=username,
@@ -117,18 +108,8 @@ async def message_income_ref(
 async def message_ref_system(language: str) -> str:
     text = get_text(
         language,
-        'referral_messages',
-        "<b>1. How does the referral system work?\n</b>"
-        "When you invite a friend (your referral) to our service_acc, you receive a percentage of each deposit.\n"
-        "The more your referral deposits, the higher their «level» becomes, and the higher the percentage you receive.\n\n"
-        "<b>2. How do I invite a friend?\n</b>"
-        "Go to the «Profile» section and find your unique referral link there. Simply share it with your friends.\n"
-        "As soon as the person who followed your link registers and makes their first deposit, they become your referral.\n\n"
-        "<b>3. How are rewards calculated?\n</b>"
-        "Rewards are calculated automatically for each deposit your referral makes.\n"
-        "The percentage you receive depends on the total amount accumulated by your referral.\n\n"
-        "<b>4. What are the levels and percentages?\n</b>"
-        "We've created a level system so you can earn more from your most active friends!\n"
+        "referral_messages",
+        "referral_system_faq"
     )
 
 
@@ -138,8 +119,8 @@ async def message_ref_system(language: str) -> str:
         if i == 0: # если это первый уровень
             text += get_text(
                 language,
-                'referral_messages',
-                "\nLevel {number_lvl} (up to {amount_up_to}₽) → {percent}%% from top-ups"
+                "referral_messages",
+                "referral_level_info_up_to"
             ).format(
                 number_lvl=ref_lvls[i].level,
                 amount_up_to=ref_lvls[i + 1].amount_of_achievement,
@@ -149,8 +130,8 @@ async def message_ref_system(language: str) -> str:
         if i + 1 > length_list: # если есть после данного уровня ещё уровни
             text += get_text(
                 language,
-                'referral_messages',
-                "\nLevel {number_lvl} (from {amount_from}₽ to {amount_up_to}₽) → {percent}%% of top-ups"
+                "referral_messages",
+                "referral_level_info_from_to"
             ).format(
                 number_lvl=ref_lvls[i].level,
                 amount_from=ref_lvls[i].amount_of_achievement,
@@ -161,8 +142,8 @@ async def message_ref_system(language: str) -> str:
         if i + 1 == length_list: # если данный уровень последний
             text += get_text(
                 language,
-                'referral_messages',
-                "\nLevel {number_lvl} (from {amount_from}₽) → {percent}%% of top-ups"
+                "referral_messages",
+                "referral_level_info_from"
             ).format(
                 number_lvl=ref_lvls[i].level,
                 amount_from=ref_lvls[i].amount_of_achievement,

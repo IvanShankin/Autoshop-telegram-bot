@@ -22,9 +22,7 @@ async def send_message_get_expire_at_date(state: FSMContext, user: Users):
         message=get_text(
             user.language,
             "admins_editor_vouchers",
-            "Enter the date until which the voucher will be valid. With Moscow time zone (local time in Moscow)\n"
-            "If you click skip, the voucher will be valid indefinitely."
-            "\n\nExample: <code>2025-12-02 16:42:57</code>"
+            "enter_voucher_expiration_date"
         ),
         reply_markup=skip_expire_at_or_back_kb(user.language)
     )
@@ -37,7 +35,7 @@ async def send_message_get_amount(state: FSMContext, user: Users):
         message=get_text(
             user.language,
             "admins_editor_vouchers",
-            "Enter the amount the user receives when activating the voucher"
+            "enter_voucher_amount"
         ),
         reply_markup=back_in_start_creating_admin_vouchers_kb(user.language)
     )
@@ -53,9 +51,7 @@ async def admin_create_voucher(callback: CallbackQuery, state: FSMContext, user:
         message=get_text(
             user.language,
             "admins_editor_vouchers",
-            "Enter the allowed number of voucher activations \n"
-            "If you click skip, the number will be unlimited \n\n"
-            "Note: Each user can only activate once"
+            "enter_allowed_number_of_voucher_activations"
         ),
         reply_markup=skip_number_activations_or_back_kb(user.language)
     )
@@ -68,7 +64,7 @@ async def get_number_of_activations(message: Message, state: FSMContext, user: U
     if not number_of_activations:
         await send_message(
             user.user_id,
-            get_text(user.language, 'miscellaneous',"Incorrect value entered. Please try again"),
+            get_text(user.language, "miscellaneous","incorrect_value_entered"),
             reply_markup=back_in_start_creating_admin_vouchers_kb(user.language)
         )
         return
@@ -95,7 +91,7 @@ async def get_expire_at(message: Message, state: FSMContext, user: Users):
     if not expire_at:
         await send_message(
             user.user_id,
-            get_text(user.language, 'miscellaneous', "Incorrect value entered. Please try again"),
+            get_text(user.language, "miscellaneous", "incorrect_value_entered"),
             reply_markup=back_in_start_creating_admin_vouchers_kb(user.language)
         )
         return
@@ -121,7 +117,7 @@ async def get_amount(message: Message, state: FSMContext, user: Users):
     if not amount:
         await send_message(
             user.user_id,
-            get_text(user.language, 'miscellaneous',"Incorrect value entered. Please try again"),
+            get_text(user.language, "miscellaneous","incorrect_value_entered"),
             reply_markup=back_in_start_creating_admin_vouchers_kb(user.language)
         )
         return
@@ -143,12 +139,7 @@ async def get_amount(message: Message, state: FSMContext, user: Users):
         message=get_text(
             user.language,
             "admins_editor_vouchers",
-            "Voucher successfully created.\n\n"
-            "ID: {id}\n"
-            "Link: <a href='{link}'>Copy</a> \n"
-            "Allowed number of activations: {number_of_activations}\n"
-            "Amount of one voucher: {amount_one_voucher}\n"
-            "Valid until: {expire_at}\n"
+            "voucher_successfully_created"
         ).format(
             id=new_voucher.voucher_id,
             link=f'https://t.me/{bot_me.username}?start=voucher_{new_voucher.activation_code}',

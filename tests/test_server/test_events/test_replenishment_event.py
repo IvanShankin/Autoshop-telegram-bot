@@ -116,8 +116,8 @@ async def test_access(
     message_for_user = n_get_text(
         user.language,
         "replenishment",
-        "Balance successfully replenished by {sum} ruble.\nThank you for choosing us!",
-        "Balance successfully replenished by {sum} rubles.\nThank you for choosing us!",
+        "balance_successfully_replenished",
+        "balance_successfully_replenished",
         replenishment.amount
     ).format(sum=replenishment.amount)
 
@@ -200,9 +200,9 @@ async def test_fail(
     # сообщение пользователю
     message_for_user = n_get_text(
         user.language,
-        'replenishment',
-        "Balance successfully replenished by {sum} ruble.\nThank you for choosing us!",
-        "Balance successfully replenished by {sum} rubles.\nThank you for choosing us!",
+        "replenishment",
+        "balance_successfully_replenished",
+        "balance_successfully_replenished",
         new_replenishment.amount
     ).format(sum=new_replenishment.amount)
 
@@ -238,8 +238,8 @@ async def test_on_replenishment_completed(create_new_user):
     message_success = n_get_text(
         user.language,
         "replenishment",
-        "Balance successfully replenished by {sum} ruble.\nThank you for choosing us!",
-        "Balance successfully replenished by {sum} rubles.\nThank you for choosing us!",
+        "balance_successfully_replenished",
+        "balance_successfully_replenished",
         amount
     ).format(sum=amount)
     assert fake_bot.get_message(user.user_id, message_success)
@@ -272,7 +272,6 @@ async def test_on_replenishment_failed(create_new_user):
     message_for_user = get_text(
         user.language,
         "replenishment",
-        "An error occurred while replenishing!\nReplenishment ID: {replenishment_id} "
-        "\n\nWe apologize for the inconvenience. \nPlease contact support."
+        "error_while_replenishing"
     ).format(replenishment_id=replenishment_id)
     assert fake_bot.get_message(user.user_id, message_for_user)

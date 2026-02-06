@@ -82,7 +82,7 @@ async def handler_new_activated_voucher(new_activation_voucher: NewActivationVou
                 message_for_user = get_text(
                     owner.language,
                     "discount",
-                    "Voucher with code '{code}' has been activated! \n\nRemaining number of voucher activations: {number_activations}"
+                    "log_voucher_activated"
                 ).format(code=voucher.activation_code, number_activations=voucher.number_of_activations - voucher.activated_counter)
 
                 await send_message(owner.user_id, message_for_user)
@@ -97,7 +97,7 @@ async def send_failed(voucher_id: int, error: str):
         text=get_text(
             get_config().app.default_lang,
             "discount",
-            "Error_while_activating_voucher. \n\nVoucher ID '{id}' \nError: {error}"
+            "log_error_activating_voucher"
         ).format(id=voucher_id, error=error),
         log_lvl=LogLevel.ERROR
     )

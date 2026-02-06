@@ -81,7 +81,7 @@ async def type_payment_rename(callback: CallbackQuery, state: FSMContext, user: 
         message=get_text(
             user.language,
             "admins_editor_replenishments",
-            "Enter a new name\n\nNote: The name must not exceed 200 characters"
+            "enter_new_name_for_service"
         ),
         reply_markup=back_in_edit_type_payment_kb(user.language, type_payment_id)
     )
@@ -95,10 +95,10 @@ async def get_type_service_name(message: Message, state: FSMContext, user: Users
 
     if len(message.text) > 200:
         domain = "admins_editor_replenishments"
-        message_key = "The new name is too long. Please try again"
+        message_key = "new_name_too_long"
     else:
         domain = "miscellaneous"
-        message_key = "Successfully updated"
+        message_key = "successfully_updated"
         await update_type_payment(type_payment_id=data.type_payment_id, name_for_user=message.text)
         await state.clear()
 
@@ -114,7 +114,7 @@ async def type_payment_update_show(callback: CallbackQuery, user: Users):
     type_payment_id = int(callback.data.split(':')[1])
     new_is_active = bool(int(callback.data.split(':')[2]))
     await update_type_payment(type_payment_id=type_payment_id, is_active=new_is_active)
-    await callback.answer(get_text(user.language,"miscellaneous","Successfully updated"),show_alert=True)
+    await callback.answer(get_text(user.language,"miscellaneous","successfully_updated"),show_alert=True)
     await show_type_payment(user, type_payment_id, message_id=callback.message.message_id, callback=callback)
 
 
@@ -125,7 +125,7 @@ async def type_payment_update_index(callback: CallbackQuery, user: Users):
 
     if new_index >= 0:
         await update_type_payment(type_payment_id=type_payment_id, index=new_index)
-    await callback.answer(get_text(user.language,"miscellaneous","Successfully updated"),show_alert=True)
+    await callback.answer(get_text(user.language,"miscellaneous","successfully_updated"),show_alert=True)
     await show_type_payment(user, type_payment_id, message_id=callback.message.message_id, callback=callback)
 
 
@@ -135,7 +135,7 @@ async def type_payment_update_commission(callback: CallbackQuery, state: FSMCont
     await edit_message(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
-        message=get_text(user.language,"admins_editor_replenishments","Enter a new commission"),
+        message=get_text(user.language,"admins_editor_replenishments","enter_new_commission"),
         reply_markup=back_in_edit_type_payment_kb(user.language, type_payment_id)
     )
     await state.update_data(type_payment_id=type_payment_id)
@@ -148,9 +148,9 @@ async def get_type_service_commission(message: Message, state: FSMContext, user:
     new_commission = safe_float_conversion(message.text, positive=True)
 
     if not new_commission or new_commission > 100:
-        message_key = "Incorrect value entered. Please try again"
+        message_key = "incorrect_value_entered"
     else:
-        message_key = "Data updated successfully"
+        message_key = "data_updated_successfully"
         await update_type_payment(type_payment_id=data.type_payment_id, commission=new_commission)
         await state.clear()
 

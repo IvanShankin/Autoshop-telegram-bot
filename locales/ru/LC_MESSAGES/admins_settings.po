@@ -10,15 +10,7 @@ msgstr ""
 
 
 
-msgid ""
-"Maintenance: {maintenance_mode} \n"
-"Support Username: @{support_username} \n"
-"Chat ID for logging: {channel_for_logging_id} \n"
-"Channel ID for subscription: {channel_for_subscription_id} \n"
-"Channel URL for subscription: {channel_for_subscription_url} \n"
-"Channel Name: {channel_name} \n"
-"Store Name: {shop_name} \n"
-"FAQ URL: {FAQ}"
+msgid "settings_info"
 msgstr ""
 "├ Тех работы: <b>{maintenance_mode}</b> \n"
 "├ Username поддержки: @{support_username} \n"
@@ -29,44 +21,41 @@ msgstr ""
 "├ Имя магазина: <b>{shop_name}</b> \n"
 "╰ URL на FAQ: <a href="{FAQ}">{FAQ}</a>"
 
-
-msgid "First, please specify a chat/channel for logs"
+msgid "first_specify_log_chat"
 msgstr "Сперва укажите чат/канал для логов"
 
-msgid "Enter new data"
+msgid "enter_new_data"
 msgstr "Введите новые данные"
 
-msgid "The text is too long. Please try again"
+msgid "text_too_long"
 msgstr "Слишком длинный текст. Попробуйте ещё раз"
 
-msgid "This text is not a link. Try again"
+msgid "text_is_not_link"
 msgstr "Данный текст не является ссылкой. Попробуйте ещё раз"
 
-msgid "Enter user ID"
+msgid "enter_user_id"
 msgstr "Введите ID пользователя"
 
-msgid "Enter admin ID"
+msgid "enter_admin_id"
 msgstr "Введите ID админа"
 
-msgid "User not found. Please try again"
+msgid "user_not_found"
 msgstr "Пользователь не найден. Попробуйте ещё раз"
 
-msgid "Admin created successfully"
+msgid "admin_created_successfully"
 msgstr "Админ успешно создан"
 
-
-msgid "Admin not found. Try again"
+msgid "admin_not_found"
 msgstr "Админ не найден. Попробуйте ещё раз"
 
-msgid "Admin successfully deleted"
+msgid "admin_successfully_deleted"
 msgstr "Админ успешно удалён"
 
-msgid "Unable to remove main admin"
+msgid "unable_to_remove_main_admin"
 msgstr "Невозможно удалить главного админа"
 
-
-msgid "Log upload has begun"
+msgid "log_upload_begun"
 msgstr "Начата выгрузка логов"
 
-msgid "Log upload complete"
+msgid "log_upload_complete"
 msgstr "Выгрузка логов закончена"

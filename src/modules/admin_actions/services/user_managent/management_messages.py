@@ -13,7 +13,7 @@ async def message_about_user(new_message: bool, admin: Users, target_user: Users
         result_message += get_text(
             admin.language,
             "admins_user_mang",
-            "\n\nReason for ban: {reason}"
+            "reason_for_ban"
         ).format(reason=reason_ban)
 
     if new_message:

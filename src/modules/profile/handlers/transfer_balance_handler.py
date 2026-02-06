@@ -20,7 +20,7 @@ router = Router()
 async def balance_transfer(callback: CallbackQuery, state: FSMContext, user: Users):
     await state.clear()
 
-    text = get_text(user.language, 'profile_messages', 'Select the desired action')
+    text = get_text(user.language, "profile_messages", "select_desired_action")
 
     await edit_message(
         chat_id=callback.from_user.id,
@@ -32,7 +32,7 @@ async def balance_transfer(callback: CallbackQuery, state: FSMContext, user: Use
 
 @router.callback_query(F.data == "transfer_money")
 async def transfer_money_start(callback: CallbackQuery, state: FSMContext, user: Users):
-    text = get_text(user.language, 'profile_messages', 'Enter the amount')
+    text = get_text(user.language, "profile_messages", "enter_amount")
 
     await edit_message(
         chat_id=callback.from_user.id,
@@ -68,7 +68,7 @@ async def transfer_money_get_amount(message: Message, state: FSMContext, user: U
 
     await state.update_data(amount=message.text)
 
-    text = get_text(user.language, 'profile_messages', 'Enter the recipients ID')
+    text = get_text(user.language, "profile_messages", "enter_recipient_id")
 
     await send_message(
         chat_id=message.from_user.id,
@@ -93,7 +93,7 @@ async def transfer_money_get_recipient_id(message: Message, state: FSMContext, u
         return
 
     if not await get_user(int(message.text)):
-        text = get_text(user.language, 'miscellaneous', 'User not found')
+        text = get_text(user.language, "miscellaneous", "user_not_found")
         await send_message(
             chat_id=message.from_user.id,
             message=text,
@@ -108,8 +108,8 @@ async def transfer_money_get_recipient_id(message: Message, state: FSMContext, u
 
     text = get_text(
         user.language,
-        'profile_messages',
-        "Check the data for accuracy \n\nAmount: {amount} \nID Recipient: {recipient}"
+        "profile_messages",
+        "check_data_for_accuracy"
     ).format(amount=data.amount, recipient=data.recipient_id)
 
     await send_message(
@@ -127,8 +127,8 @@ async def confirm_transfer_money(callback: CallbackQuery, state: FSMContext, use
     try:
         await money_transfer(sender_id=user.user_id, recipient_id=data.recipient_id, amount=data.amount)
     except UserNotFound:
-        text_1 = get_text(user.language, 'miscellaneous', 'The funds have not been written off')
-        text_2 = get_text(user.language, 'miscellaneous', 'User not found')
+        text_1 = get_text(user.language, "miscellaneous", 'funds_not_written_off')
+        text_2 = get_text(user.language, "miscellaneous", "user_not_found")
         await edit_message(
             chat_id=callback.from_user.id,
             message_id=callback.message.message_id,
@@ -138,8 +138,8 @@ async def confirm_transfer_money(callback: CallbackQuery, state: FSMContext, use
         )
         return
     except NotEnoughMoney as e:
-        text_1 = get_text(user.language, 'miscellaneous', 'The funds have not been written off')
-        text_2 = get_text(user.language, 'miscellaneous', 'Insufficient funds: {amount}').format(amount=e.need_money)
+        text_1 = get_text(user.language, "miscellaneous", 'funds_not_written_off')
+        text_2 = get_text(user.language, "miscellaneous", 'insufficient_funds').format(amount=e.need_money)
         await edit_message(
             chat_id=callback.from_user.id,
             message_id=callback.message.message_id,
@@ -149,7 +149,7 @@ async def confirm_transfer_money(callback: CallbackQuery, state: FSMContext, use
         )
         return
 
-    text = get_text(user.language, 'profile_messages', 'Funds have been successfully transferred')
+    text = get_text(user.language, "profile_messages", "funds_successfully_transferred")
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
@@ -161,8 +161,8 @@ async def confirm_transfer_money(callback: CallbackQuery, state: FSMContext, use
     recipient = await get_user(data.recipient_id)
     text = get_text(
         user.language,
-        'profile_messages',
-        'Funds transferred to your balance: {amount} ₽ \n\nCurrent balance: {balance}'
+        "profile_messages",
+        "funds_transferred_to_your_balance"
     ).format(amount=data.amount, balance=recipient.balance)
     await send_message(
         chat_id=data.recipient_id,

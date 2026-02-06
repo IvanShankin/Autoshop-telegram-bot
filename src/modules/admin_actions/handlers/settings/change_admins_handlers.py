@@ -19,7 +19,7 @@ async def add_admin_handler(callback: CallbackQuery, state: FSMContext, user: Us
     await edit_message(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
-        message=get_text(user.language,"admins_settings", "Enter user ID"),
+        message=get_text(user.language,"admins_settings", "enter_user_id"),
         reply_markup=back_in_admin_settings_kb(user.language)
     )
 
@@ -31,14 +31,14 @@ async def add_admin(message: Message, state: FSMContext, user: Users):
     new_user_id = safe_int_conversion(message.text)
 
     if not new_user_id:
-        message = get_text(user.language, "miscellaneous", "Incorrect value entered. Please try again")
+        message = get_text(user.language, "miscellaneous", "incorrect_value_entered")
     else:
         try:
             await create_admin(new_user_id)
-            message = get_text(user.language,"admins_settings", "Admin created successfully")
+            message = get_text(user.language,"admins_settings", "admin_created_successfully")
             await state.clear()
         except UserNotFound:
-            message = get_text(user.language,"admins_settings", "User not found. Please try again")
+            message = get_text(user.language,"admins_settings", "user_not_found")
 
     await send_message(
         chat_id=user.user_id,
@@ -52,7 +52,7 @@ async def delete_admin_handler(callback: CallbackQuery, state: FSMContext, user:
     await edit_message(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
-        message=get_text(user.language,"admins_settings", "Enter admin ID"),
+        message=get_text(user.language,"admins_settings", "enter_admin_id"),
         reply_markup=back_in_admin_settings_kb(user.language)
     )
 
@@ -64,16 +64,16 @@ async def delete_admin_get_user_id(message: Message, state: FSMContext, user: Us
     user_id = safe_int_conversion(message.text)
 
     if not user_id:
-        message = get_text(user.language, "miscellaneous", "Incorrect value entered. Please try again")
+        message = get_text(user.language, "miscellaneous", "incorrect_value_entered")
     else:
         try:
             await delete_admin(user_id)
-            message = get_text(user.language,"admins_settings", "Admin successfully deleted")
+            message = get_text(user.language,"admins_settings", "admin_successfully_deleted")
             await state.clear()
         except AdminNotFound:
-            message = get_text(user.language,"admins_settings", "Admin not found. Try again")
+            message = get_text(user.language,"admins_settings", "admin_not_found")
         except UnableRemoveMainAdmin:
-            message = get_text(user.language, "admins_settings", "Unable to remove main admin")
+            message = get_text(user.language, "admins_settings", "unable_to_remove_main_admin")
 
     await send_message(
         chat_id=user.user_id,

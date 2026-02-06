@@ -26,7 +26,7 @@ async def show_types_services_sold_account(
     await edit_message(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
-        message=get_text(user.language, "profile_messages", "Select account type"),
+        message=get_text(user.language, "profile_messages", "select_account_type"),
         image_key="purchases",
         reply_markup=await sold_account_type_service_kb(user.language, user.user_id)
     )
@@ -81,22 +81,17 @@ async def show_sold_account(
         message_id=callback.message.message_id,
         message=get_text(
             language,
-            'profile_messages',
-            "ID product: {product_id}\n\n"
-            "Phone: {phone_number}\n\n"
-            "Name: {name}\n"
-            "Description: {description}\n\n"
-            "{valid}\n"
-            "Purchased: {sold_at}"
+            "profile_messages",
+            "account_details"
         ).format(
             product_id=account.sold_account_id,
             phone_number=e164_to_pretty(account.account_storage.phone_number),
             name=account.name,
             description=account.description,
             valid=(
-                get_text(language, 'profile_messages',"Valid")
+                get_text(language, "profile_messages","valid")
                 if account.account_storage.is_valid
-                else get_text(language, 'profile_messages',"Not valid")
+                else get_text(language, "profile_messages","not_valid")
             ),
             sold_at=account.sold_at.strftime(get_config().different.dt_format),
         ),
@@ -125,7 +120,7 @@ async def check_sold_account(
     """
     account = await get_sold_accounts_by_account_id(sold_account_id, language=language)
     if not account:
-        await callback.answer(get_text(language, 'profile_messages', "Account not found"), show_alert=True)
+        await callback.answer(get_text(language, "profile_messages", "account_not_found"), show_alert=True)
         if current_page and type_account_service:
             await show_all_sold_account(
                 callback=callback,
@@ -158,7 +153,7 @@ async def check_type_account_service(
     type_account_service: AccountServiceType | None
 ) -> bool:
     if type_account_service is None:
-        await callback.answer(get_text(language, 'profile_messages', "Service not found"), show_alert=True)
+        await callback.answer(get_text(language, "profile_messages", "service_not_found"), show_alert=True)
         await show_types_services_sold_account(user=user, callback=callback, )
         return False
 
@@ -176,7 +171,7 @@ async def get_file_for_login(callback: CallbackQuery, func_get_file: Any, type_m
 
     account = await get_sold_accounts_by_account_id(sold_account_id, language=user.language)
     if not account:
-        await callback.answer(get_text(user.language, 'profile_messages', "Account not found"))
+        await callback.answer(get_text(user.language, "profile_messages", "account_not_found"))
         return
 
     if account.owner_id != user.user_id and not await check_admin(user.user_id):
@@ -194,7 +189,7 @@ async def get_file_for_login(callback: CallbackQuery, func_get_file: Any, type_m
             logger.warning(f"[get_file_for_login] {type_media} недействителен, он будет удалён")
             await update_tg_account_media(tg_media.tg_account_media_id, **{type_media: None}) # обнуляем затронутое поле
 
-    message_load = await send_message(user.user_id, get_text(user.language, 'profile_messages', "Loading..."))
+    message_load = await send_message(user.user_id, get_text(user.language, "profile_messages", "loading"))
 
     async for path in func_get_file(AccountStorage(**account.account_storage.model_dump())):
         if path:
@@ -203,7 +198,7 @@ async def get_file_for_login(callback: CallbackQuery, func_get_file: Any, type_m
             message = await bot.send_document(chat_id=user.user_id, document=archive)
             await update_tg_account_media(tg_media.tg_account_media_id, **{type_media: message.document.file_id})
         else:
-            await callback.answer(get_text(user.language, 'profile_messages', "Unable to retrieve data"), show_alert=True)
+            await callback.answer(get_text(user.language, "profile_messages", "unable_to_retrieve_data"), show_alert=True)
 
     try:
         await message_load.delete()

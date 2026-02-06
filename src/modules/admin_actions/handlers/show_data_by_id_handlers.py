@@ -21,7 +21,7 @@ async def set_state_and_request_id(callback: CallbackQuery, state: FSMContext, u
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
-        message=get_text(user.language, "admins_show_data_by_id", "Enter ID"),
+        message=get_text(user.language, "admins_show_data_by_id", "enter_id"),
         reply_markup=back_in_show_data_by_id_kb(language=user.language, current_page=current_page)
     )
 

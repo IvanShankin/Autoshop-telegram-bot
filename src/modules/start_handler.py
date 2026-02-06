@@ -54,8 +54,8 @@ async def cmd_start(message: Message, command: CommandObject, state: FSMContext)
             setting = await get_settings()
             text = get_text(
                 language,
-                'start_message',
-                'Welcome to {shop_name} SHOP! \nOur news channel: @{channel_name} \nHappy shopping!'
+                "start_message",
+                "welcome_message"
             ).format(shop_name=setting.shop_name, channel_name=setting.channel_name)
             await send_message(
                 chat_id=message.from_user.id,
@@ -85,10 +85,8 @@ async def cmd_start(message: Message, command: CommandObject, state: FSMContext)
 
             text = get_text(
                 language,
-                'referral_messages',
-                "You've invited a new referral!\n"
-                "Username: {username}\n\n"
-                "Thank you for using our services!"
+                "referral_messages",
+                "new_referral_invited"
             ).format(username= f'@{user.username}' if user.username else 'None')
             await send_message(chat_id=owner_user.user_id, message=text, image_key='new_referral')
 
@@ -110,8 +108,8 @@ async def select_language(callback: CallbackQuery, user: Users):
 
     text = get_text(
         selected_lang,
-        'start_message',
-        'Welcome to {shop_name} SHOP! \nOur news channel: @{channel_name} \nHappy shopping!'
+        "start_message",
+        "welcome_message"
     ).format(shop_name=setting.shop_name, channel_name=setting.channel_name)
     await send_message(
         chat_id=callback.from_user.id,

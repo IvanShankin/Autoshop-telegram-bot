@@ -18,12 +18,12 @@ async def complete_upload(category: CategoryFull, user: Users):
         get_text(
             user.language,
             "admins_editor_category",
-            "Products upload complete"
+            "products_upload_complete"
         ),
         reply_markup=back_in_category_kb(
             language=user.language,
             category_id=category.category_id,
-            i18n_key="In category"
+            i18n_key="in_category"
         )
     )
 
@@ -42,14 +42,14 @@ async def _upload_account(category: CategoryFull, user: Users, callback: Callbac
                 user.user_id,
                 document=BufferedInputFile(
                     stream_csv,
-                    filename=get_text(user.language, "admins_editor_category", "Accounts") + '.csv'
+                    filename=get_text(user.language, "admins_editor_category", "accounts") + '.csv'
                 )
             )
         else:
             await service_not_found(user, callback.message.message_id)
             return
     except ProductAccountNotFound:
-        await send_message(user.user_id, get_text(user.language, "admins_editor_category", "Products not found!"))
+        await send_message(user.user_id, get_text(user.language, "admins_editor_category", "products_not_found"))
 
     await complete_upload(category, user)
 
@@ -66,7 +66,7 @@ async def _upload_universal(category: CategoryFull, user: Users, callback: Callb
 
         await anext(gen) # удаление
     except ProductNotFound:
-        await send_message(user.user_id, get_text(user.language, "admins_editor_category", "Products not found!"))
+        await send_message(user.user_id, get_text(user.language, "admins_editor_category", "products_not_found"))
 
     await complete_upload(category, user)
 
@@ -77,7 +77,7 @@ async def upload_category(category: CategoryFull, user: Users, callback: Callbac
         get_text(
             user.language,
             "admins_editor_category",
-            "Account upload has begun. Wait for the message about the completion of the upload"
+            "account_upload_begun"
         )
     )
 

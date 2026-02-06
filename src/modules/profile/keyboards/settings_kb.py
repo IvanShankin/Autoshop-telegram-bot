@@ -8,9 +8,9 @@ from src.utils.i18n import get_text
 
 def profile_settings_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, 'kb_profile', 'Language'), callback_data='selecting_language')],
-        [InlineKeyboardButton(text=get_text(language, 'kb_profile', 'Notification'), callback_data='notification_settings')],
-        [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data='profile')]
+        [InlineKeyboardButton(text=get_text(language, "kb_profile", "language"), callback_data='selecting_language')],
+        [InlineKeyboardButton(text=get_text(language, "kb_profile", "notification"), callback_data='notification_settings')],
+        [InlineKeyboardButton(text=get_text(language, "kb_general", "back"), callback_data='profile')]
     ])
 
 
@@ -25,7 +25,7 @@ def settings_language_kb(language: str):
     keyboard.adjust(2)
 
     # добавляем кнопку "Назад" отдельной строкой
-    keyboard.row(InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data='profile_settings'))
+    keyboard.row(InlineKeyboardButton(text=get_text(language, "kb_general", "back"), callback_data='profile_settings'))
     return keyboard.as_markup()
 
 
@@ -33,13 +33,13 @@ def setting_notification_kb(language: str, notification: NotificationSettings):
     return InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(
-                text=f'{"✔️ " if notification.referral_invitation else ''}{get_text(language, 'kb_profile', "New referral")}',
+                text=f'{"✔️ " if notification.referral_invitation else ''}{get_text(language, "kb_profile", "new_referral")}',
                 callback_data=f'update_notif:invitation:{"False" if notification.referral_invitation else 'True'}')
             ],
             [
                 InlineKeyboardButton(
-                    text=f'{"✔️ " if notification.referral_replenishment else ''}{get_text(language, 'kb_profile', "Replenishment referral")}',
+                    text=f'{"✔️ " if notification.referral_replenishment else ''}{get_text(language, "kb_profile", "replenishment_referral")}',
                     callback_data=f'update_notif:replenishment:{"False" if notification.referral_replenishment else 'True'}')
             ],
-            [InlineKeyboardButton(text=get_text(language, "kb_general", "Back"), callback_data='profile_settings')]
+            [InlineKeyboardButton(text=get_text(language, "kb_general", "back"), callback_data='profile_settings')]
         ])

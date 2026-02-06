@@ -3,13 +3,11 @@ from aiogram.types import CallbackQuery
 
 from src.bot_actions.messages import edit_message, send_message
 from src.config import get_config
-from src.exceptions.business import ForbiddenError
 from src.modules.profile.keyboards import confirm_del_acc_kb, login_details_kb
 from src.modules.profile.services.purchases_accounts import show_all_sold_account, show_sold_account, get_file_for_login, \
     check_sold_account, show_types_services_sold_account
-from src.services.database.admins.actions import check_admin
 from src.services.products.accounts.tg.actions import check_account_validity, get_auth_codes
-from src.services.database.categories.actions import get_sold_accounts_by_account_id, update_account_storage, \
+from src.services.database.categories.actions import update_account_storage, \
     delete_sold_account, get_type_service_account, add_deleted_accounts
 from src.services.database.categories.models import AccountStorage, StorageStatus
 from src.services.database.users.models import Users
@@ -112,7 +110,7 @@ async def get_code_acc(callback: CallbackQuery, user: Users):
     if not account:
         return
 
-    message_search = await send_message(user.user_id, get_text(user.language, 'profile_messages', 'Search...'))
+    message_search = await send_message(user.user_id, get_text(user.language, "profile_messages", 'search'))
 
     dt_and_code = await get_auth_codes(AccountStorage(**account.account_storage.model_dump()))
 
@@ -122,7 +120,7 @@ async def get_code_acc(callback: CallbackQuery, user: Users):
         pass
 
     if dt_and_code is False:
-        await callback.answer(get_text(user.language, 'profile_messages', "Unable to retrieve data"), show_alert=True)
+        await callback.answer(get_text(user.language, "profile_messages", "unable_to_retrieve_data"), show_alert=True)
         return
 
     dt_and_code = sorted(dt_and_code, key=lambda x: x[0])
@@ -131,12 +129,12 @@ async def get_code_acc(callback: CallbackQuery, user: Users):
         if i > 5: # 5 последних кодов
             break
         date, code = dt_and_code[i]
-        result_text += get_text(user.language, 'profile_messages',
-            "Date: {date} \nCode: <code>{code}</code>\n\n"
+        result_text += get_text(user.language, "profile_messages",
+            "code_details"
         ).format(date=date.strftime(get_config().different.dt_format), code=code)
 
     if not result_text:
-        await callback.answer(get_text(user.language, 'profile_messages', "No codes found"), show_alert=True)
+        await callback.answer(get_text(user.language, "profile_messages", "no_codes_found"), show_alert=True)
         return
 
     await send_message(user.user_id, message=result_text)
@@ -174,7 +172,7 @@ async def get_log_pas(callback: CallbackQuery, user: Users):
 
     await send_message(
         user.user_id,
-        get_text(user.language, 'profile_messages', "Login: <code>{login}</code> \nPassword: <code>{password}</code>").format(
+        get_text(user.language, "profile_messages", "login_and_password_details").format(
             login=decrypt_text(account.account_storage.login_encrypted, account.account_storage.login_nonce, account_key),
             password=decrypt_text(account.account_storage.password_encrypted, account.account_storage.password_nonce, account_key)
         )
@@ -199,7 +197,10 @@ async def chek_valid_acc(callback: CallbackQuery, user: Users):
     if not account:
         return
 
-    verification_message = await send_message(chat_id=user.user_id,message=get_text(user.language, 'profile_messages', "Checking for validity..."))
+    verification_message = await send_message(
+        chat_id=user.user_id,
+        message=get_text(user.language, "profile_messages", "checking_for_validity")
+    )
 
     result = await check_account_validity(
         account_storage=AccountStorage(**account.account_storage.model_dump()),
@@ -213,9 +214,9 @@ async def chek_valid_acc(callback: CallbackQuery, user: Users):
         pass
 
     if result:
-        message = get_text(user.language, 'profile_messages', 'The account is valid')
+        message = get_text(user.language, "profile_messages", 'account_is_valid')
     else:
-        message = get_text(user.language, 'profile_messages', 'The account is not valid')
+        message = get_text(user.language, "profile_messages", 'account_is_not_valid')
 
     await callback.answer(message, show_alert=True)
 
@@ -252,10 +253,8 @@ async def confirm_del_acc(callback: CallbackQuery, user: Users):
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
-        message=get_text(user.language, 'profile_messages',
-            "Confirm deletion of this account?\n\n"
-            "Phone number: {phone_number}\n"
-            "Name: {name}"
+        message=get_text(user.language, "profile_messages",
+            "confirmation_delete_account"
         ).format(
             phone_number=e164_to_pretty(account.account_storage.phone_number),
             name=account.name,
@@ -293,7 +292,7 @@ async def del_account(callback: CallbackQuery, user: Users):
         status=StorageStatus.DELETED
     )
     if not result:
-        await callback.answer(get_text(user.language, 'profile_messages', "An error occurred, please try again"), show_alert=True)
+        await callback.answer(get_text(user.language, "miscellaneous", "an_error_occurred"), show_alert=True)
         return
 
     await update_account_storage(
@@ -308,7 +307,7 @@ async def del_account(callback: CallbackQuery, user: Users):
         description=account.description
     )
 
-    await callback.answer(get_text(user.language, 'profile_messages', "The account has been successfully deleted"), show_alert=True)
+    await callback.answer(get_text(user.language, "profile_messages", "account_successfully_deleted"), show_alert=True)
 
     await show_all_sold_account(
         callback=callback,

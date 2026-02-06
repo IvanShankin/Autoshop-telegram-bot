@@ -8,7 +8,7 @@ async def get_statistics_message(interval_days: int, language: str) -> str:
     interval_msg = get_text(
         language,
         "admins_statistics",
-        str(interval_days) if interval_days < 366 else "all time"
+        str(interval_days) if interval_days < 366 else "interval_all_time"
     )
 
 
@@ -18,9 +18,7 @@ async def get_statistics_message(interval_days: int, language: str) -> str:
             get_text(
                 language,
                 "admins_statistics",
-                "Payment system: {name}\n"
-                "Quantity replenishments: {quantity_replenishments}\n"
-                "Amount replenishments: {amount_replenishments}\n"
+                "payment_system_stats"
             ).format(
                 name=ps.name,
                 quantity_replenishments=ps.quantity_replenishments,
@@ -33,26 +31,7 @@ async def get_statistics_message(interval_days: int, language: str) -> str:
     return get_text(
         language,
         "admins_statistics",
-        "Statistics {interval}\n\n"
-        "\n"
-        "Active users: {active_users}\n"
-        "New users: {new_users}\n"
-        "Total users: {total_users}\n"
-        "\n"
-        "Quantity sale accounts: {quantity_sale_accounts}\n"
-        "Amount sale accounts: {amount_sale_accounts}\n"
-        "Total net profit: {total_net_profit}\n"
-        "\n"
-        "Quantity replenishments: {quantity_replenishments}\n"
-        "Amount replenishments: {amount_replenishments}\n"
-        "\n"
-        "Replenishment payment systems:\n"
-        "{replenishment_payment_systems}\n"
-        "\n"
-        "Funds in bot: {funds_in_bot}\n"
-        "Accounts for sale: {accounts_for_sale}\n"
-        "\n"
-        "Last backup: {last_backup}\n"
+        "statistics_summary"
     ).format(
         interval=interval_msg,
         active_users=statistics.active_users,

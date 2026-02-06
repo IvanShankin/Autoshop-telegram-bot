@@ -9,7 +9,7 @@ async def checking_correctness_number(message: str, language: str, user_id: int,
     :return Результат (Корректное число = True)
     """
     if not safe_int_conversion(message, positive=positive):
-        text = get_text(language, 'miscellaneous', "Incorrect value entered. Please try again")
+        text = get_text(language, "miscellaneous", "incorrect_value_entered")
         await send_message(
             chat_id=user_id,
             message=text,
@@ -25,7 +25,7 @@ async def checking_availability_money(user_balance: int, need_money: int, langua
     :return Результат (Достаточно = True)
     """
     if user_balance < need_money:
-        text = get_text(language, 'miscellaneous','Insufficient funds: {amount}').format(amount=need_money - user_balance)
+        text = get_text(language, "miscellaneous",'insufficient_funds').format(amount=need_money - user_balance)
         await send_message(
             chat_id=user_id,
             message=text,

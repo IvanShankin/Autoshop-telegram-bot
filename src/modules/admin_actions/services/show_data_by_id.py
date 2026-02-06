@@ -52,7 +52,7 @@ async def show_data_by_id_handler(state: str, message_text: str, user: Users, cu
 
 
     if not message:
-        message = get_text(user.language, "admins_show_data_by_id", "No data found for this ID. Please try again")
+        message = get_text(user.language, "admins_show_data_by_id", "no_data_found_for_this_id")
 
     await send_message(
         chat_id=user.user_id,
@@ -70,16 +70,7 @@ async def get_message_replenishment(replenishment_id: int, language: str) -> str
     return get_text(
         language,
         "admins_show_data_by_id",
-        "Replenishment ID: {replenishment_id}\n"
-        "User ID: {user_id}\n"
-        "Payment type ID: {type_payment_id}\n"
-        "User credited amount: {origin_amount}\n"
-        "Amount the user paid (including the bot commission): {amount}\n"
-        "Status: {status}\n"
-        "Created: {created_at}\n"
-        "Payment system transaction ID: {payment_system_id}\n"
-        "Payment URL: {invoice_url}\n"
-        "Payment expiration date: {expire_at}\n"
+        "replenishment_details"
     ).format(
         replenishment_id=replenishment.replenishment_id,
         user_id=replenishment.user_id,
@@ -103,14 +94,7 @@ async def get_message_purchase_account(purchase_id: int, language: str) -> str |
     return get_text(
         language,
         "admins_show_data_by_id",
-        "Account Purchase ID: {purchase_id}\n"
-        "User ID: {user_id}\n"
-        "Account ID: {account_storage_id}\n"
-        "Price without promo code: {original_price}\n"
-        "Purchase price: {purchase_price}\n"
-        "Cost price: {cost_price}\n"
-        "Net profit: {net_profit}\n"
-        "Sale date: {purchase_date}"
+        "account_purchase_details"
     ).format(
         purchase_id=purchase_account.purchase_id,
         user_id=purchase_account.user_id,
@@ -131,11 +115,7 @@ async def get_message_transfer_money(transfer_money_id: int, language: str) -> s
     return get_text(
         language,
         "admins_show_data_by_id",
-        "Transfer Money ID: {transfer_money_id}\n"
-        "User from ID: {user_from_id}\n"
-        "User where ID: {user_where_id}\n"
-        "Amount: {amount}\n"
-        "Created: {created_at}\n"
+        "money_transfer_details"
     ).format(
         transfer_money_id=transfer_money.transfer_money_id,
         user_from_id=transfer_money.user_from_id,
@@ -154,16 +134,7 @@ async def get_message_voucher(voucher_id: int, language: str) -> str | None:
     return get_text(
         language,
         "admins_show_data_by_id",
-        "Voucher ID: {voucher_id}\n"
-        "Creator ID: {creator_id}\n"
-        "Is created admin: {is_created_admin}\n"
-        "Activation code: {activation_code}\n"
-        "Amount: {amount}\n"
-        "Activated counter: {activated_counter}\n"
-        "Number of activations: {number_of_activations}\n"
-        "Start at: {start_at}\n"
-        "Expire at: {expire_at}\n"
-        "Is valid: {is_valid}\n"
+        "voucher_details"
     ).format(
         voucher_id=voucher.voucher_id,
         creator_id=voucher.creator_id,
@@ -187,10 +158,7 @@ async def get_message_activate_voucher(activate_voucher_id: int, language: str) 
     return get_text(
         language,
         "admins_show_data_by_id",
-        "Voucher activation ID: {voucher_activation_id}\n"
-        "Voucher ID: {voucher_id}\n"
-        "User ID: {user_id}\n"
-        "Created: {created_at}\n"
+        "voucher_activation_details"
     ).format(
         voucher_activation_id=activate_voucher.voucher_activation_id,
         voucher_id=activate_voucher.voucher_id,
@@ -208,16 +176,7 @@ async def get_message_promo_code(promo_code_id: int, language: str) -> str | Non
     return get_text(
         language,
         "admins_show_data_by_id",
-        "Promo code ID: {promo_code_id}\n"
-        "Activation code: {activation_code}\n"
-        "Min order amount: {min_order_amount}\n"
-        "Activated counter: {activated_counter}\n"
-        "Amount: {amount}\n"
-        "Discount percentage: {discount_percentage}\n"
-        "Number of activations: {number_of_activations}\n"
-        "Start at: {start_at}\n"
-        "Expire at: {expire_at}\n"
-        "Is valid: {is_valid}\n"
+        "promo_code_details"
     ).format(
         promo_code_id=promo.promo_code_id,
         activation_code=promo.activation_code,
@@ -243,10 +202,7 @@ async def get_message_activated_promo_code(activated_promo_code_id: int, languag
     return get_text(
         language,
         "admins_show_data_by_id",
-        "Activated promo code ID: {activated_promo_code_id}\n"
-        "Promo code ID: {promo_code_id}\n"
-        "User ID: {user_id}\n"
-        "Created: {created_at}\n"
+        "promo_code_activation_details"
     ).format(
         activated_promo_code_id=activated_promo_code.activated_promo_code_id,
         promo_code_id=activated_promo_code.promo_code_id,
@@ -264,10 +220,7 @@ async def get_message_referral(referral_id: int, language: str) -> str | None:
     return get_text(
         language,
         "admins_show_data_by_id",
-        "Referral ID: {referral_id}\n"
-        "Owner user ID: {owner_user_id}\n"
-        "Level: {level}\n"
-        "Created: {created_at}\n"
+        "referral_details"
     ).format(
         referral_id=referral.referral_id,
         owner_user_id=referral.owner_user_id,
@@ -288,13 +241,7 @@ async def get_message_income_from_referral(
     return get_text(
         language,
         "admins_show_data_by_id",
-        "Income from referral ID: {income_from_referral_id}\n"
-        "Replenishment ID: {replenishment_id}\n"
-        "Owner user ID: {owner_user_id}\n"
-        "Referral ID: {referral_id}\n"
-        "Amount: {amount}\n"
-        "Percentage of replenishment: {percentage_of_replenishment}\n"
-        "Created: {created_at}\n"
+        "referral_income_details"
     ).format(
         income_from_referral_id=income.income_from_referral_id,
         replenishment_id=income.replenishment_id,
@@ -318,13 +265,7 @@ async def get_message_wallet_transaction(
     return get_text(
         language,
         "admins_show_data_by_id",
-        "Wallet transaction ID: {wallet_transaction_id}\n"
-        "User ID: {user_id}\n"
-        "Type: {type}\n"
-        "Amount: {amount}\n"
-        "Balance before: {balance_before}\n"
-        "Balance after: {balance_after}\n"
-        "Created: {created_at}\n"
+        "wallet_transaction_details"
     ).format(
         wallet_transaction_id=tx.wallet_transaction_id,
         user_id=tx.user_id,
@@ -357,26 +298,7 @@ async def get_message_sold_account_full(
     return get_text(
         language,
         "admins_show_data_by_id",
-        "Sold account ID: {sold_account_id}\n"
-        "Owner ID: {owner_id}\n"
-        "Account service type: {type_account_service}\n"
-        "Name: {name}\n"
-        "Description: {description}\n"
-        "Sold at: {sold_at}\n"
-        "\n"
-        "Account storage ID: {account_storage_id}\n"
-        "Storage UUID: {storage_uuid}\n"
-        "Checksum: {checksum}\n"
-        "Status: {status}\n"
-        "Key version: {key_version}\n"
-        "Encryption algorithm: {encryption_algo}\n"
-        "Phone number: {phone_number}\n"
-        "Login (encrypted): {login_encrypted}\n"
-        "Password (encrypted): {password_encrypted}\n"
-        "Is active: {is_active}\n"
-        "Is valid: {is_valid}\n"
-        "Added at: {added_at}\n"
-        "Last check at: {last_check_at}\n"
+        "sold_account_details"
     ).format(
         sold_account_id=sold_account_full.sold_account_id,
         owner_id=sold_account_full.owner_id,

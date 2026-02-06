@@ -11,64 +11,62 @@ msgstr ""
 
 # ---- Служебная информация ----
 
-msgid "Parameter"
+msgid "parameter"
 msgstr "Параметр"
 
-msgid "Value"
+msgid "value"
 msgstr "Значение"
 
-msgid "Export date"
+msgid "export_date"
 msgstr "Дата выгрузки"
 
-msgid "Owner ID"
+msgid "owner_id"
 msgstr "ID владельца"
-
 
 # ---- Данные о рефералах ----
 
-msgid "Referral username"
+msgid "referral_username"
 msgstr "Юзернейм реферала"
 
-msgid "Join date"
+msgid "join_date"
 msgstr "Дата прихода"
 
-msgid "Total brought"
+msgid "total_brought"
 msgstr "Всего принёс"
 
-msgid "Level"
+msgid "level"
 msgstr "Уровень"
 
 # ---- Данные о пополнениях ----
 
-msgid "Deposit ID"
+msgid "deposit_id"
 msgstr "ID пополнения"
 
-msgid "Referral ID"
+msgid "referral_id"
 msgstr "ID реферала"
 
-msgid "Amount"
+msgid "amount"
 msgstr "Сумма"
 
-msgid "Referral deposit percentage"
+msgid "referral_deposit_percentage"
 msgstr "Процент от пополнения реферала"
 
-msgid "Deposit date"
+msgid "deposit_date"
 msgstr "Дата пополнения"
-
 
 # ---- Метрика ----
 
-msgid "Metric"
+msgid "metric"
 msgstr "Метрика"
 
-msgid "Total referrals"
+msgid "total_referrals"
 msgstr "Рефералов всего"
 
-msgid "Total income"
+msgid "total_income"
 msgstr "Дохода всего"
 
-msgid "Level 1 referrals"
+msgid "level_1_referrals"
 msgstr "Рефералов 1 уровня"
 
-msgid "Level 2 referrals"
+msgid "level_2_referrals"
 msgstr "Рефералов 2 уровня"

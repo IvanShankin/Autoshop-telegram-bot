@@ -142,18 +142,14 @@ async def on_referral_income_completed(user_id: int, language: str,  amount: int
         if last_lvl == current_lvl:  # если уровень у реферала не обновился
             message = get_text(
                 language,
-                'referral_messages',
-                "Your referral has replenished the balance. \nReferral level: {level} \nYou have earned {amount}₽ ({percent}%)\n\n"
-                "Funds have been credited to your balance in your personal account."
+                "referral_messages",
+                "referral_replenished_balance"
             ).format(level=current_lvl, amount=amount, percent=percent)
         else:
             message = get_text(
                 language,
-                'referral_messages',
-                "Your referral has replenished their balance and increased the level of the referral system.\n"
-                "Referral level: {last_lvl} {current_lvl}\n"
-                "You have earned: {amount}₽ ({percent}%)\n\n"
-                "Funds have been credited to your balance in your personal account."
+                "referral_messages",
+                "referral_replenished_and_level_up"
             ).format(last_lvl=last_lvl, current_lvl=current_lvl, amount=amount, percent=percent)
 
         try:
@@ -169,11 +165,8 @@ async def on_referral_income_completed(user_id: int, language: str,  amount: int
         event = EventSentLog(
             text=get_text(
                 get_config().app.default_lang,
-                'referral_messages',
-                "#Replenishment_error \n\n"
-                "An error occurred while sending a message about replenishing funds to the referral owner. \n"
-                "Error: {error}. \n\n"
-                "Time: {time}"
+                "referral_messages",
+                "log_replenishment_error"
             ).format(error=str(e), time=datetime.now().strftime(get_config().different.dt_format)),
             log_lvl=LogLevel.ERROR
         )
@@ -184,11 +177,8 @@ async def on_referral_income_failed(error: str):
     event = EventSentLog(
         text=get_text(
             get_config().app.default_lang,
-            'referral_messages',
-            "#Replenishment_error \n\n"
-            "An error occurred while sending a message about replenishing funds to the referral owner. \n"
-            "Error: {error}. \n\n"
-            "Time: {time}"
+            "referral_messages",
+            "log_replenishment_error"
         ).format(error=error, time=datetime.now().strftime(get_config().different.dt_format)),
         log_lvl=LogLevel.ERROR
     )

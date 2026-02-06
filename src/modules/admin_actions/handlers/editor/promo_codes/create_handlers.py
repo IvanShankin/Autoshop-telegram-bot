@@ -19,7 +19,7 @@ router = Router()
 async def show_incorrect_data(user: Users):
     await send_message(
         user.user_id,
-        get_text(user.language, 'miscellaneous',"Incorrect value entered. Please try again"),
+        get_text(user.language, "miscellaneous","incorrect_value_entered"),
         reply_markup=back_in_start_creating_promo_code_kb(user.language)
     )
     return
@@ -30,10 +30,9 @@ async def show_get_number_of_activations(state: FSMContext, user: Users):
         user.user_id,
         get_text(
             user.language,
-            'admins_editor_promo_codes',
-            "Enter the allowed number of promo code activations \n"
-            "If you click skip, the number will be unlimited \n\n"
-            "Note: Each user can only activate once"),
+            "admins_editor_promo_codes",
+            "enter_allowed_number_of_activations"
+        ),
         reply_markup=skip_number_activations_promo_or_in_start_kb(user.language)
     )
     await state.set_state(CreatePromoCode.get_number_of_activations)
@@ -46,9 +45,7 @@ async def send_message_get_expire_at_date(state: FSMContext, user: Users):
         message=get_text(
             user.language,
             "admins_editor_promo_codes",
-            "Enter the date until which the promo code will be valid. With Moscow time zone (local time in Moscow)\n"
-            "If you click skip, the promo code will be valid indefinitely."
-            "\n\nExample: <code>2025-12-02 16:42:57</code>"
+            "enter_expiration_date"
         ),
         reply_markup=skip_expire_at_promo_or_in_start_kb(user.language)
     )
@@ -61,7 +58,7 @@ async def send_message_get_min_order_amount(state: FSMContext, user: Users):
         message=get_text(
             user.language,
             "admins_editor_promo_codes",
-            "Enter the minimum purchase amount to apply the promo code"
+            "enter_minimum_purchase_amount"
         ),
         reply_markup=back_in_start_creating_promo_code_kb(user.language)
     )
@@ -74,10 +71,7 @@ async def send_message_get_code(state: FSMContext, user: Users):
         message=get_text(
             user.language,
             "admins_editor_promo_codes",
-            "Enter the activation code. \n\n"
-            "Attention!\n"
-            "1) The code must not match other active promo codes.\n"
-            "2) The code must not exceed 150 characters"
+            "enter_activation_code"
         ),
         reply_markup=back_in_start_creating_promo_code_kb(user.language)
     )
@@ -93,7 +87,7 @@ async def admin_create_promo_code(callback: CallbackQuery, state: FSMContext, us
         message=get_text(
             user.language,
             "admins_editor_promo_codes",
-            "Select the type of promo code"
+            "select_promo_code_type"
         ),
         reply_markup=select_promo_code_type_kb(user.language)
     )
@@ -133,7 +127,7 @@ async def create_promo_code_percentage(callback: CallbackQuery, state: FSMContex
         message=get_text(
             user.language,
             "admins_editor_promo_codes",
-            "Enter the percentage of the purchase that will be discounted when the promo code is activated"
+            "enter_promo_code_discount_percentage"
         ),
         reply_markup=back_in_start_creating_promo_code_kb(user.language)
     )
@@ -152,7 +146,7 @@ async def create_promo_get_get_discount_percentage(message: Message, state: FSMC
             message=get_text(
                 user.language,
                 "admins_editor_promo_codes",
-                "The percentage should not exceed 100. Please try again"
+                "percentage_should_not_exceed_100"
             ),
             reply_markup=back_in_start_creating_promo_code_kb(user.language)
         )
@@ -221,14 +215,14 @@ async def get_activation_code(message: Message, state: FSMContext, user: Users):
         text = get_text(
             user.language,
             "admins_editor_promo_codes",
-            "You have exceeded the 150 character code limit. Please try again"
+            "code_length_exceeded"
         )
         reply_markup = back_in_start_creating_promo_code_kb(user.language)
     elif await get_promo_code(code=message.text):
         text = get_text(
             user.language,
             "admins_editor_promo_codes",
-            "This code is already taken by one of the active promo codes. Enter another one"
+            "code_already_taken"
         )
         reply_markup = back_in_start_creating_promo_code_kb(user.language)
     else:
@@ -247,7 +241,7 @@ async def get_activation_code(message: Message, state: FSMContext, user: Users):
             text = get_text(
                 user.language,
                 "admins_editor_promo_codes",
-                "Promo code successfully created"
+                "promo_code_successfully_created"
             )
             reply_markup = in_show_admin_promo_kb(
                 user.language,
@@ -259,7 +253,7 @@ async def get_activation_code(message: Message, state: FSMContext, user: Users):
             text = get_text(
                 user.language,
                 "admins_editor_promo_codes",
-                "Unable to create promo code. Please try again"
+                "unable_to_create_promo_code"
             )
             reply_markup = back_in_start_creating_promo_code_kb(user.language)
 

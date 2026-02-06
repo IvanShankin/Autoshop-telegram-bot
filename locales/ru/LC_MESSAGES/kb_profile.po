@@ -10,22 +10,22 @@ msgstr ""
 
 
 
-msgid "Top up your balance"
+msgid "top_up_balance"
 msgstr "💸 Пополнить баланс"
 
-msgid "Purchases"
+msgid "purchases"
 msgstr "Покупки"
 
-msgid "Balance transfer"
+msgid "balance_transfer"
 msgstr "🔁 Передача баланса"
 
-msgid "Referral system"
+msgid "referral_system"
 msgstr "🤝 Реферальная система"
 
-msgid "History transfer"
+msgid "history_transfer"
 msgstr "🧾 История операций"
 
-msgid "Settings"
+msgid "settings"
 msgstr "⚙️ Настройки"
 
 
@@ -50,60 +50,60 @@ msgstr "Прочее"
 
 # ---- Купленные товары ----
 
-msgid "Login details"
+msgid "login_details"
 msgstr "Данные для входа"
 
-msgid "Details_product"
+msgid "details_product"
 msgstr "Данные товара"
 
-msgid "Get code"
+msgid "get_code"
 msgstr "Получить код"
 
-msgid "Login and Password"
+msgid "login_and_password"
 msgstr "Логин и Пароль"
 
-msgid "Check for validity"
+msgid "check_for_validity"
 msgstr "Проверить на валид"
 
 # ---- Настройки ----
 
-msgid "Language"
+msgid "language"
 msgstr "Язык"
 
-msgid "Notification"
+msgid "notification"
 msgstr "Уведомления"
 
 
-msgid "New referral"
+msgid "new_referral"
 msgstr "Новый реферал"
 
-msgid "Replenishment referral"
+msgid "replenishment_referral"
 msgstr "Пополнение реферала"
 
 
 # ---- Реферальная система ----
 
-msgid "Information"
+msgid "information"
 msgstr "ℹ️ Информация"
 
-msgid "Accrual history"
+msgid "accrual_history"
 msgstr "История начислений"
 
-msgid "Download a list of referrals"
+msgid "download_list_referrals"
 msgstr "Выгрузить список рефералов"
 
 
 # ---- Передача баланса ----
 
-msgid "Transfer by id"
+msgid "transfer_by_id"
 msgstr "Передача по ID"
 
-msgid "Create voucher"
+msgid "create_voucher"
 msgstr "Создать ваучер"
 
-msgid "My vouchers"
+msgid "my_vouchers"
 msgstr "Мои ваучеры"
 
-msgid "Deactivate"
+msgid "deactivate"
 msgstr "Деактивировать"
 

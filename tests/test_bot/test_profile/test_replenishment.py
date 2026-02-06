@@ -24,7 +24,7 @@ async def test_show_type_replenishment(
 
     await module.show_type_replenishment(cb, FakeFSMContext(), user)
 
-    text = get_text(user.language, 'profile_messages', 'Select the desired services for replenishment')
+    text = get_text(user.language, "profile_messages", 'select_replenishment_service')
     assert fake_bot.get_edited_message( user_id = user.user_id, message_id = cb.message.message_id, message = text)
 
 
@@ -54,7 +54,7 @@ async def test_get_amount_inactive_type_payment(
 
     await module.get_amount(cb, fsm, user)
 
-    text = get_text(user.language, 'profile_messages', "This services is temporarily inactive")
+    text = get_text(user.language, "profile_messages", "service_temporarily_inactive")
 
     assert fake_bot.get_edited_message(user.user_id, 7, text), "Не отредактировалось сообщение о неактивном способе пополнения"
 
@@ -84,7 +84,7 @@ async def test_get_amount_active_success(
 
     await module.get_amount(cb, fsm, user)
 
-    expected_text = get_text(user.language, 'profile_messages', '{name_payment}. Enter the top-up amount in rubles').format(name_payment='CryptoBot')
+    expected_text = get_text(user.language, "profile_messages", 'enter_top_up_amount').format(name_payment='CryptoBot')
 
     assert fake_bot.check_str_in_edited_messages(expected_text), "Не появилось сообщение о вводе суммы пополнения"
     assert fsm.data["payment_id"] == 1, "payment_id не записан в FSM"
@@ -152,15 +152,9 @@ async def test_start_replenishment_crypto_bot_success(
 
     text = n_get_text(
         user.language,
-        'profile_messages',
-        "{service_name}. Invoice successfully created. You have {minutes} minute to "
-        "pay. After the time expires, the invoice will be canceled. \n\n"
-        "Amount: {origin_sum}\n"
-        "Payable: {total_sum} ₽ ( + commission {percent}%)",
-        "{service_name}. Invoice successfully created. You have {minutes} minutes to "
-        "pay. After the time expires, the invoice will be canceled. \n\n"
-        "Amount: {origin_sum}\n"
-        "Payable: {total_sum} ₽ ( + commission {percent}%)",
+        "profile_messages",
+        "invoice_successfully_created",
+        "invoice_successfully_created",
         get_config().different.payment_lifetime_seconds // 60
     ).format(
         service_name=type_payment.name_for_user,

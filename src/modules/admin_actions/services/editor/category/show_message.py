@@ -16,8 +16,7 @@ async def edit_message_in_main_category_editor(user: Users, callback: CallbackQu
         message=get_text(
             user.language,
             "admins_editor_category",
-            "Category Editor \n\n"
-                "This is where the main categories are located, which the user sees when they navigate to the 'Categories' section"
+            "main_category_editor"
         ),
         image_key="admin_panel",
         reply_markup=await show_main_categories_kb(user.language)
@@ -38,15 +37,14 @@ async def show_category(
     message = get_text(
         user.language,
         "admins_editor_category",
-        "Category \n\nName: {name}\nIndex: {index}\nShow: {show} \n\nStores items: {is_storage}"
+        "category_admin_info"
     ).format(name=category.name, index=category.index, show=category.show,is_storage=category.is_product_storage)
 
     if category.product_type == ProductType.UNIVERSAL:
         message += get_text(
             user.language,
             "admins_editor_category",
-             "\nAllow resale of product {reuse_product}"
-                "\nMedia Type: {media_type}"
+             "additional_universal_category_info"
         ).format(
             reuse_product=category.reuse_product,
             media_type=get_text(
@@ -66,10 +64,7 @@ async def show_category(
         message += get_text(
             user.language,
             "admins_editor_category",
-            "\n\nNumber of items in stock: {total_quantity}\n"
-            "Sum of all items in stock: {total_sum}\n"
-            "Cost of all items in stock: {total_cost_price}\n"
-            "Expected profit: {total_profit}"
+            "category_admin_data_by_products"
         ).format(
             total_quantity=category.quantity_product,
             total_sum=total_sum,
@@ -115,21 +110,20 @@ async def show_category_update_data(
     message = get_text(
         user.language,
         "admins_editor_category",
-        "Name: {name} \nDescription: {description} \n\n"
+        "name_and_description_admin_category"
     ).format(name=category.name, description=category.description)
 
     if category.is_product_storage:
         message += get_text(
             user.language,
             "admins_editor_category",
-            "Price of one product: {price} \nCost of one product: {cost_price}\n\n"
+            "price_in_admin_category"
         ).format(price=category.price, cost_price=category.cost_price)
 
     message += get_text(
         user.language,
         "admins_editor_category",
-        "Number of buttons per row: {number_button_in_row}\n\n"
-        "👇 Select the item to edit"
+        "number_of_buttons_per_row_and_select_paragraph"
     ).format(number_button_in_row=category.number_buttons_in_row)
 
     reply_markup = change_category_data_kb(

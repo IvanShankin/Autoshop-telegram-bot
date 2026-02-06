@@ -26,7 +26,7 @@ async def test_create_voucher_start_callback(
     fsm = FakeFSMContext()
     await create_voucher(fake_cb, fsm, user)
 
-    text = get_text(user.language, 'profile_messages', 'Enter the amount')
+    text = get_text(user.language, "profile_messages", "enter_amount")
 
     # проверяем, что бот отредактировал сообщение
     assert fake_bot.get_edited_message(user.user_id, 11, text), "Не отправился запрос на ввод суммы"
@@ -53,7 +53,7 @@ async def test_create_voucher_invalid_amount(
 
     await create_voucher_get_amount(msg, fsm, user)
 
-    text = get_text(user.language, 'miscellaneous', "Incorrect value entered. Please try again")
+    text = get_text(user.language, "miscellaneous", "incorrect_value_entered")
 
     assert fake_bot.get_message(user.user_id, text), "Не отправилось сообщение об ошибке"
 
@@ -80,7 +80,7 @@ async def test_create_voucher_valid_amount_prompts_for_activations(
     await create_voucher_get_amount(msg, fsm, user)
 
     assert fsm.data.get("amount") == "100", "FSM не сохранил сумму"
-    text = get_text(user.language, 'profile_messages', 'Enter the number of activations for the voucher')
+    text = get_text(user.language, "profile_messages", "enter_number_of_activations_for_voucher")
     assert fake_bot.get_message(user.user_id, text), "Не отправилось сообщение о вводе числа активаций"
 
 
@@ -106,7 +106,7 @@ async def test_create_voucher_not_enough_money(
     msg = FakeMessage(text="2", chat_id=user.user_id, username=user.username)
     await create_voucher_get_number_of_activations(msg, fsm, user)
 
-    text = get_text(user.language, 'miscellaneous', 'Insufficient funds: {amount}').format(amount=190)
+    text = get_text(user.language, "miscellaneous", 'insufficient_funds').format(amount=190)
     assert fake_bot.get_message(user.user_id, text), "Не отправилось сообщение о нехватке средств"
 
 
@@ -134,8 +134,8 @@ async def test_confirm_create_voucher_not_enough_money_exception(
 
     await confirm_create_voucher(cb, fsm, user)
 
-    text_1 = get_text(user.language, 'miscellaneous', 'The funds have not been written off')
-    text_2 = get_text(user.language, 'miscellaneous', 'Insufficient funds: {amount}').format(amount=500)
+    text_1 = get_text(user.language, "miscellaneous", 'funds_not_written_off')
+    text_2 = get_text(user.language, "miscellaneous", 'insufficient_funds').format(amount=500)
     text = f"{text_1}\n\n{text_2}"
 
     assert fake_bot.get_edited_message(user.user_id, 101, text), "Не отправилось сообщение об ошибке при недостатке средств"
@@ -169,10 +169,10 @@ async def test_confirm_create_voucher_success(
 
     vouchers = await get_valid_voucher_by_page(user.user_id)
 
-    text = get_text(user.language, 'profile_messages',
-        "Voucher successfully created. \n\nActivation link: <a href='{link}'>Ссылка</a> \nAmount: {amount} \n"
-        "Number of activations: {number_activations} \nTotal amount spent on activation: {total_sum} \n"
-        "Current balance: {balance} \n\nNote: One user can only activate one voucher"
+    text = get_text(
+        user.language,
+        "profile_messages",
+        "voucher_successfully_created"
     ).format(
         link=f'https://t.me/{bot_me.username}?start=voucher_{vouchers[0].activation_code}',
         amount=100,

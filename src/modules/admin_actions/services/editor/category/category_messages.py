@@ -14,12 +14,12 @@ async def message_info_load_file(user: Users) -> AsyncGenerator[Message, None]:
         get_text(
             user.language,
             "admins_editor_category",
-            "Please wait for the products to load and don't touch anything!"
+            "wait_load_products"
         )
     )
     message_info = await send_message(
         user.user_id,
-        get_text(user.language, "admins_editor_category", "The file is uploaded to the server")
+        get_text(user.language, "admins_editor_category", "file_uploaded_to_the_server")
     )
 
     yield message_info
@@ -30,7 +30,7 @@ async def message_info_load_file(user: Users) -> AsyncGenerator[Message, None]:
         get_text(
             user.language,
             "admins_editor_category",
-            "The file has been successfully uploaded. The products are currently being checked for validity and integrated into the bot"
+            "file_successfully_uploaded"
         )
     )
 
@@ -49,14 +49,13 @@ def make_result_msg(
     result_message = get_text(
         user.language,
         "admins_editor_category",
-        "Products integration was successful. \n\nSuccessfully added: {successfully_added} \nTotal processed: {total_processed}"
+        "products_integration_was_successful"
     ).format(successfully_added=successfully_added, total_processed=total_processed)
     if mark_invalid_acc:
         result_message += get_text(
             user.language,
             "admins_editor_category",
-            "\n\nWe couldn't extract the account from some {acc_from}(either the structure is broken or the account is invalid); "
-            "they were downloaded as a separate file"
+            "failed_to_extract_some_accounts"
         ).format(
             acc_from=  get_text(
                 user.language,
@@ -68,6 +67,6 @@ def make_result_msg(
         result_message += get_text(
             user.language,
             "admins_editor_category",
-            "\n\nSome accounts are already in the bot; they were downloaded as a separate file"
+            "some_accounts_already_in_bot"
         )
     return result_message

@@ -20,7 +20,7 @@ async def wallet_transactions_kb(language: str, current_page: int, target_user_i
 
     def item_button(t):
         return InlineKeyboardButton(
-            text=f"{t.amount} ₽   {get_text(language, 'type_wallet_transaction', t.type)}",
+            text=f"{t.amount} ₽   {get_text(language, "type_wallet_transaction", t.type)}",
             callback_data=f"transaction_show:{target_user_id}:{t.wallet_transaction_id}:{current_page}"
         )
 
@@ -31,7 +31,7 @@ async def wallet_transactions_kb(language: str, current_page: int, target_user_i
         item_button_func=item_button,
         left_prefix=f"transaction_list:{target_user_id}",
         right_prefix=f"transaction_list:{target_user_id}",
-        back_text=get_text(language, "kb_general", "Back"),
+        back_text=get_text(language, "kb_general", "back"),
         back_callback=f"profile" if target_user_id == user_id else f"user_management:{target_user_id}"
     )
 
@@ -39,7 +39,7 @@ async def wallet_transactions_kb(language: str, current_page: int, target_user_i
 def back_in_wallet_transactions_kb(language: str, target_user_id: int, currant_page: int):
     return InlineKeyboardMarkup(inline_keyboard=[[
         InlineKeyboardButton(
-            text=get_text(language, "kb_general", "Back"),
+            text=get_text(language, "kb_general", "back"),
             callback_data=f"transaction_list:{target_user_id}:{currant_page}"
         )
     ]])

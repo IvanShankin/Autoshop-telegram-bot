@@ -20,7 +20,7 @@ router_logger = Router()
 async def send_log_files(bot: Bot, chat_id: int, language: str):
     await bot.send_message(
         chat_id=chat_id,
-        text=get_text(language, "admins_settings", "Log upload has begun")
+        text=get_text(language, "admins_settings", "log_upload_begun")
     )
 
     async for chunk_path in split_file_on_chunk(get_config().paths.log_file):
@@ -28,7 +28,7 @@ async def send_log_files(bot: Bot, chat_id: int, language: str):
 
     await bot.send_message(
         chat_id=chat_id,
-        text=get_text(language, "admins_settings", "Log upload complete")
+        text=get_text(language, "admins_settings", "log_upload_complete")
     )
 
 

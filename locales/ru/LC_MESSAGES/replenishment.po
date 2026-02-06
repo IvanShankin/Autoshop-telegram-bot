@@ -9,18 +9,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 
 
-msgid "Balance successfully replenished by {sum} ruble.\nThank you for choosing us!"
-msgid_plural "Balance successfully replenished by {sum} rubles.\nThank you for choosing us!"
+msgid "balance_successfully_replenished"
+msgid_plural "balance_successfully_replenished"
 msgstr[0] "Баланс успешно пополнен на {sum} рубль.\nСпасибо что выбрали нас!"
 msgstr[1] "Баланс успешно пополнен на {sum} рубля.\nСпасибо что выбрали нас!"
 msgstr[2] "Баланс успешно пополнен на {sum} рублей.\nСпасибо что выбрали нас!"
 
-msgid "#Replenishment \n\nUser {username} successfully topped up the balance by {sum} ruble. \n"
-"Replenishment ID: {replenishment_id} \n\n"
-"Time: {time}"
-msgid_plural "#Replenishment \n\nUser {username} successfully topped up the balance by {sum} rubles. \n"
-"Replenishment ID: {replenishment_id} \n\n"
-"Time: {time}"
+msgid "log_replenishment"
+msgid_plural "log_replenishment"
 msgstr[0] "#Пополнение \n\nПользователь {username} успешно пополнил баланс на {sum} рубля. \nID пополнения: {replenishment_id} \n\n"
 "Время: {time}"
 msgstr[1] "#Пополнение \n\nПользователь {username} успешно пополнил баланс на {sum} рубля. \nID пополнения: {replenishment_id} \n\n"
@@ -28,21 +24,17 @@ msgstr[1] "#Пополнение \n\nПользователь {username} усп�
 msgstr[2] "#Пополнение \n\nПользователь {username} успешно пополнил баланс на {sum} рублей. \nID пополнения: {replenishment_id} \n\n"
 "Время: {time}"
 
-
-
-msgid "An error occurred while replenishing!\nReplenishment ID: {replenishment_id} \n\nWe apologize for the inconvenience. \nPlease contact support."
+msgid "error_while_replenishing"
 msgstr "Произошла ошибка при пополнении!\nID пополнения: {replenishment_id} \n\nПриносим свои извинения за предоставленные неудобства. \nПожалуйста обратитесь в поддержу."
 
-msgid "#Replenishment_error \n\nUser {username} Paid money, balance updated, but an error occurred inside the server. \n"
-"Replenishment ID: {replenishment_id}.\nError: {error} \n\nTime: {time}"
+msgid "log_replenishment_error_server"
 msgstr "#Ошибка_пополнения \n\n"
 "Пользователь {username} Заплатил деньги, баланс обновился, но произошла ошибка внутри сервера.\n"
 "ID пополнения: {replenishment_id}.\n"
 "Ошибка: {error}\n\n"
 "Время: {time}"
 
-msgid "#Replenishment_error \n\nUser {username} Paid money, but the balance was not updated. \n"
-"Replenishment ID: {replenishment_id}. \nError: {error} \n\nTime: {time}"
+msgid "log_replenishment_error_balance_not_updated"
 msgstr "#Ошибка_пополнения \n\n"
 "Пользователь {username} Заплатил деньги, но баланс не обновился.\n"
 "ID пополнения: {replenishment_id}.\n"

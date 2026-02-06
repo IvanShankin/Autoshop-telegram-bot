@@ -35,7 +35,7 @@ async def check_universal_product(
     """
     universal = await get_sold_universal_by_universal_id(sold_universal_id, language=user.language)
     if not universal:
-        await callback.answer(get_text(user.language, 'profile_messages', "Product not found"))
+        await callback.answer(get_text(user.language, "profile_messages", "product_not_found"))
 
     if universal.owner_id != user.user_id and not await check_admin(user.user_id):
         raise ForbiddenError()
@@ -74,10 +74,8 @@ async def show_sold_universal(
         message_id=callback.message.message_id,
         message=get_text(
             language,
-            'profile_messages',
-            "ID product: {product_id}\n\n"
-            "Name: {name}\n"
-            "Purchased: {sold_at}"
+            "profile_messages",
+            "universal_product_details"
         ).format(
             product_id=universal.sold_universal_id,
             name=universal.universal_storage.name,
@@ -152,7 +150,7 @@ async def send_media_sold_universal(
                 message=get_text(
                     language,
                     "profile_messages",
-                    "Description: \n\n{description}"
+                    "description"
                 ).format(description=description),
             )
     except Exception as e:
@@ -171,7 +169,7 @@ async def delete_sold_universal_han(
     result = await move_in_universal(universal=universal, status=StorageStatus.DELETED)
     if not result:
         await callback.answer(
-            get_text(user.language, 'profile_messages', "An error occurred, please try again"),
+            get_text(user.language, "miscellaneous", "an_error_occurred"),
             show_alert=True
         )
         return
@@ -185,7 +183,7 @@ async def delete_sold_universal_han(
     await add_deleted_universal(universal_storage_id=universal.universal_storage_id)
 
     await callback.answer(
-        get_text(user.language, 'profile_messages', "The product has been successfully deleted"),
+        get_text(user.language, "profile_messages", "product_successfully_deleted"),
         show_alert=True
     )
 

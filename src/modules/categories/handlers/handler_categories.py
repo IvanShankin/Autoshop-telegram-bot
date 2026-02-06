@@ -35,9 +35,8 @@ async def handle_catalog_message(message: Message, state: FSMContext, user: User
             chat_id=user.user_id,
             message=get_text(
                 user.language,
-                'categories',
-                'Want to stay up-to-date on all the latest news? \n'
-                'Subscribe to our channel where we share news and special offers'
+                "categories",
+                "subscribe_to_channel_prompt"
             ),
             image_key='subscription_prompt',
             reply_markup=await subscription_prompt_kb(user.language)
@@ -56,7 +55,7 @@ async def message_in_main_category(user: Users, old_message_id: int | None = Non
     if not await get_categories(language=user.language):
         await send_message(
             chat_id=user.user_id,
-            message=get_text(user.language, "categories", "There are no categories at the moment"),
+            message=get_text(user.language, "categories", "no_categories_available"),
             reply_markup=await support_kb(user.language)
         )
         return
@@ -118,7 +117,7 @@ async def show_category(callback: CallbackQuery, state: FSMContext, user: Users)
 
         # если имеется меньше, чем хочет пользователь и у категории нельзя переиспользовать продукт
         if category.quantity_product < quantity_products and not category.reuse_product:
-            await callback.answer(get_text(user.language, 'categories','No longer in stock'))
+            await callback.answer(get_text(user.language, "categories",'out_of_stock'))
             return
         if quantity_products < 0:
             await callback.answer('')  # что бы не весело сообщение
@@ -167,9 +166,9 @@ async def set_quantity_products(message: Message, state: FSMContext, user: Users
     new_quantity_products = safe_int_conversion(value=message.text, default=None, positive=True)
     sent_message = None
     if new_quantity_products is None:
-        sent_message = await send_message(user.user_id, get_text(user.language, 'miscellaneous',"Incorrect value entered. Please try again"))
+        sent_message = await send_message(user.user_id, get_text(user.language, "miscellaneous","incorrect_value_entered"))
     elif new_quantity_products > category.quantity_product:
-        sent_message = await send_message(user.user_id, get_text(user.language, 'categories',"No longer in stock"))
+        sent_message = await send_message(user.user_id, get_text(user.language, "categories","out_of_stock"))
     else:
         data.quantity_for_buying = new_quantity_products
         await state.update_data(**data.model_dump())
@@ -210,7 +209,7 @@ async def enter_promo(callback: CallbackQuery, state: FSMContext, user: Users):
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
-        message=get_text(user.language, 'categories',"Enter the activation code"),
+        message=get_text(user.language, "categories","enter_activation_code"),
         image_key='entering_promo_code',
         reply_markup=back_in_account_category_kb(
             user.language,
@@ -246,7 +245,7 @@ async def set_promo_code(message: Message, state: FSMContext, user: Users):
         await edit_message(
             chat_id=message.from_user.id,
             message_id=data.old_message_id,
-            message=get_text(user.language, 'discount',"A promo code with this code was not found/expired \n\nTry again"),
+            message=get_text(user.language, "discount","promo_code_not_found_or_expired"),
             image_key='entering_promo_code',
             reply_markup=back_in_account_category_kb(
                 user.language,
@@ -262,7 +261,7 @@ async def set_promo_code(message: Message, state: FSMContext, user: Users):
         await edit_message(
             chat_id=message.from_user.id,
             message_id=data.old_message_id,
-            message=get_text(user.language, 'discount',"This promo code has already been activated previously \n\nTry again"),
+            message=get_text(user.language, "discount","promo_code_already_activated"),
             image_key='entering_promo_code',
             reply_markup=back_in_account_category_kb(
                 user.language,
@@ -287,7 +286,10 @@ async def set_promo_code(message: Message, state: FSMContext, user: Users):
         category = category
     )
 
-    promo_message = await send_message(user.user_id, 'The promo code has been successfully activated')
+    promo_message = await send_message(
+        user.user_id,
+        get_text(user.language, "discount", "promo_code_successfully_activated")
+    )
     await asyncio.sleep(3)
     try:
         await promo_message.delete()
@@ -303,7 +305,7 @@ async def confirm_buy_category(callback: CallbackQuery, user: Users):
     promo_code_id = safe_int_conversion(callback.data.split(':')[3], positive=True) # либо int, либо "None"
 
     if quantity_products <= 0:
-        await callback.answer(get_text(user.language, 'categories',"Select at least one product"))
+        await callback.answer(get_text(user.language, "categories","select_at_least_one_product"))
         return
 
     category = await check_category(
@@ -325,8 +327,8 @@ async def confirm_buy_category(callback: CallbackQuery, user: Users):
             await callback.answer(
                 get_text(
                     user.language,
-                    'discount',
-                    "Attention, the promo code is no longer valid, the discount will no longer apply!"
+                    "discount",
+                    "promo_code_no_longer_valid_warning"
                 ),
                 show_alert=True
             )
@@ -337,12 +339,8 @@ async def confirm_buy_category(callback: CallbackQuery, user: Users):
         message_id=callback.message.message_id,
         message=get_text(
             user.language,
-            'categories',
-            "Confirm your purchase\n\n"
-            "{category_name}\n"
-            "Product will be received: {quantity_products}\n"
-            "Your balance: {balance}\n"
-            "Due: {total_sum}"
+            "categories",
+            "purchase_confirmation"
         ).format(
             category_name=category.name,
             quantity_products=quantity_products,

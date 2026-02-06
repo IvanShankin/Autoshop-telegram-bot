@@ -28,7 +28,7 @@ async def _show_not_enough_money(
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
-        message=get_text(user.language, 'miscellaneous', "Insufficient funds: {amount}").format(amount=need_money),
+        message=get_text(user.language, "miscellaneous", "insufficient_funds").format(amount=need_money),
         image_key='insufficient_funds',
         fallback_image_key="default_catalog_account",
         reply_markup=replenishment_and_back_in_cat(
@@ -46,8 +46,8 @@ async def _show_no_enough_products(
     await callback.answer(
         get_text(
             user.language,
-            'categories',
-            "There are not enough products on the server, please change the number of accounts to purchase"
+            "categories",
+            "not_enough_products_on_server"
         ),
         show_alert=True
     )
@@ -120,9 +120,9 @@ async def _buy(
             chat_id=callback.from_user.id,
             message=n_get_text(
                 user.language,
-                'categories',
-                "Thank you for your purchase \nThe product is already in the profile",
-                "Thank you for your purchase \nThe product is already in the profile",
+                "categories",
+                "thank_you_for_purchase",
+                "thank_you_for_purchase",
                 quantity_products
             ),
             image_key='successful_purchase',
@@ -137,8 +137,8 @@ async def _buy(
             message_id=callback.message.message_id,
             message=get_text(
                 user.language,
-                'categories',
-                "There are not enough products on the server, please change the number of accounts to purchase"
+                "categories",
+                "not_enough_products_on_server"
             ),
             image_key='successful_purchase',
             fallback_image_key="default_catalog_account",
@@ -187,9 +187,8 @@ async def buy_product(
                 await callback.answer(
                     get_text(
                         user.language,
-                        'discount',
-                        "Purchase not processed! \n"
-                        "Minimum amount to apply the promo code: {amount}"
+                        "discount",
+                        "minimum_amount_to_apply_promo_code"
                     ).format(amount=promo_code.min_order_amount),
                     show_alert=True
                 )
@@ -198,8 +197,8 @@ async def buy_product(
             await callback.answer(
                 get_text(
                     user.language,
-                    'discount',
-                    "Attention, the promo code is no longer valid, the discount will no longer apply!"),
+                    "discount",
+                    "promo_code_no_longer_valid_warning"),
                 show_alert=True
             )
             return
@@ -215,7 +214,7 @@ async def buy_product(
         )
         return
 
-    message_load = await send_message(user.user_id, get_text(user.language,'categories',"Test products..."))
+    message_load = await send_message(user.user_id, get_text(user.language,"categories","testing_products"))
     async def delete_message():
         try:
             await message_load.delete()
@@ -242,7 +241,7 @@ async def buy_product(
 
         await send_message(
             chat_id=user.user_id,
-            message=get_text(user.language, 'categories',"The category is temporarily unavailable"),
+            message=get_text(user.language, "categories","category_temporarily_unavailable"),
         )
         return
     except NotEnoughMoney as e:

@@ -19,8 +19,7 @@ async def send_set_not_valid_voucher(user_id: int, voucher: Vouchers, limit_reac
             text=get_text(
                 'ru',
                 "discount",
-                "#Voucher_expired \nID '{id}' \nCode '{code}'"
-                "\n\nThe voucher has expired due to reaching the number of activations or time limit. It is no longer possible to activate it"
+                "log_voucher_expired"
             ).format(id=voucher.voucher_id, code=voucher.activation_code),
             log_lvl=LogLevel.INFO
         )
@@ -31,14 +30,13 @@ async def send_set_not_valid_voucher(user_id: int, voucher: Vouchers, limit_reac
             message_user = get_text(
                 language,
                 "discount",
-                "Voucher has reached its activation limit \n\nID: {id} \nCode: {code} \n\n"
-                "The voucher has expired due to the activation limit. It can no longer be activated"
+                "voucher_reached_activation_limit"
             ).format(id=voucher.voucher_id, code=voucher.activation_code)
         else: # если достигли лимита по времени
             message_user = get_text(
                 language,
                 "discount",
-                "Voucher expired \n\nID '{id}' \nCode '{code}' \n\nVoucher expired due to time limit. It can no longer be activated"
+                "voucher_expired_due_to_time"
             ).format(id=voucher.voucher_id, code=voucher.activation_code)
 
         await send_message(user_id, message_user)

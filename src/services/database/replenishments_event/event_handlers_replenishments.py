@@ -48,7 +48,7 @@ async def handler_new_replenishment(new_replenishment: NewReplenishment):
         user.total_sum_replenishment = user.total_sum_replenishment + new_replenishment.amount
 
         language = user.language
-        username = get_text(language, 'profile_messages', 'No') if user.username is None else f'@{user.username}'
+        username = get_text(language, "miscellaneous", 'no') if user.username is None else f'@{user.username}'
         total_sum_replenishment = user.total_sum_replenishment
 
         updated_user = await update_user(
@@ -149,8 +149,8 @@ async def on_replenishment_completed(event: ReplenishmentCompleted):
     message_success = n_get_text(
         event.language,
         "replenishment",
-        "Balance successfully replenished by {sum} ruble.\nThank you for choosing us!",
-        "Balance successfully replenished by {sum} rubles.\nThank you for choosing us!",
+        "balance_successfully_replenished",
+        "balance_successfully_replenished",
         event.amount
     ).format(sum=event.amount)
 
@@ -160,12 +160,8 @@ async def on_replenishment_completed(event: ReplenishmentCompleted):
         message_log = n_get_text(
             get_config().app.default_lang,
             "replenishment",
-            "#Replenishment \n\nUser {username} successfully topped up the balance by {sum} ruble. \n"
-            "Replenishment ID: {replenishment_id} \n\n"
-            "Time: {time}",
-            "#Replenishment \n\nUser {username} successfully topped up the balance by {sum} rubles. \n"
-            "Replenishment ID: {replenishment_id} \n\n"
-            "Time: {time}",
+            "log_replenishment",
+            "log_replenishment",
             event.amount
         ).format(
             username=event.username,
@@ -177,9 +173,8 @@ async def on_replenishment_completed(event: ReplenishmentCompleted):
     else:
         message_log = get_text(
             get_config().app.default_lang,
-            'replenishment',
-            "#Replenishment_error \n\nUser {username} Paid money, balance updated, but an error occurred inside the server. \n"
-            "Replenishment ID: {replenishment_id}.\nError: {error} \n\nTime: {time}"
+            "replenishment",
+            "log_replenishment_error_server"
         ).format(
             username=event.username,
             replenishment_id=event.replenishment_id,
@@ -201,8 +196,7 @@ async def on_replenishment_failed(event: ReplenishmentFailed):
     message_for_user = get_text(
         event.language,
         "replenishment",
-        "An error occurred while replenishing!\nReplenishment ID: {replenishment_id} "
-        "\n\nWe apologize for the inconvenience. \nPlease contact support."
+        "error_while_replenishing"
     ).format(replenishment_id=event.replenishment_id)
 
     await send_message(event.user_id, message_for_user, reply_markup=await support_kb(event.language))
@@ -210,8 +204,7 @@ async def on_replenishment_failed(event: ReplenishmentFailed):
     message_log = get_text(
         get_config().app.default_lang,
         "replenishment",
-        "#Replenishment_error \n\nUser {username} Paid money, but the balance was not updated. \n"
-        "Replenishment ID: {replenishment_id}. \nError: {error} \n\nTime: {time}"
+        "log_replenishment_error_balance_not_updated"
     ).format(
         username=event.username,
         replenishment_id=event.replenishment_id,

@@ -118,6 +118,7 @@ async def start_mass_mailing(callback: CallbackQuery, user: Users):
             text=message_data.content,
             admin_id=user.user_id,
             photo_path=create_path_ui_image(file_name=message_data.ui_image.file_name),
+            show_image=message_data.ui_image.show,
             button_url=message_data.button_url,
         ):
             i += 1

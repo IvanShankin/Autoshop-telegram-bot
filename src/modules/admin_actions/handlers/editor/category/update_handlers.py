@@ -212,7 +212,7 @@ async def category_update_name_or_des(callback: CallbackQuery, user: Users):
         message=get_text(
             user.language,
             "admins_editor_category",
-            "selected_type_not_found"
+            "select_the_language_for_change"
         ),
         reply_markup=select_lang_category_kb(user.language, category_id)
     )

@@ -143,9 +143,17 @@ async def get_amount(message: Message, state: FSMContext, user: Users):
         ).format(
             id=new_voucher.voucher_id,
             link=f'https://t.me/{bot_me.username}?start=voucher_{new_voucher.activation_code}',
-            number_of_activations=new_voucher.number_of_activations,
+            number_of_activations=(
+                new_voucher.number_of_activations
+                if new_voucher.number_of_activations else
+                get_text(user.language,"admins_editor_vouchers", "unlimited")
+            ),
             amount_one_voucher=new_voucher.amount,
-            expire_at=new_voucher.expire_at,
+            expire_at=(
+                new_voucher.expire_at
+                if new_voucher.expire_at else
+                get_text(user.language,"admins_editor_vouchers", "endlessly")
+            )
         ),
         reply_markup=in_admin_voucher_kb(user.language, 1, new_voucher.voucher_id )
     )

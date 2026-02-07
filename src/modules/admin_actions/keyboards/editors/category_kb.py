@@ -222,13 +222,21 @@ def select_universal_media_type(language: str, category_id: int):
 
 def select_lang_category_kb(language: str, category_id: int):
     keyboard = InlineKeyboardBuilder()
-    for lang in get_config().app.allowed_langs:
+    conf = get_config()
+    for lang in conf.app.allowed_langs:
         keyboard.row(
             InlineKeyboardButton(
-                text=get_text(language, "kb_admin_panel", lang),
+                text=get_text(language, "kb_admin_panel", f"{lang} - {conf.app.emoji_langs[lang]}"),
                 callback_data=f'choice_lang_category_data:{category_id}:{lang}'
             )
         )
+
+    keyboard.row(
+        InlineKeyboardButton(
+            text=get_text(language, "kb_general", "back"),
+            callback_data=f'category_update_data:{category_id}'
+        )
+    )
     return keyboard.as_markup()
 
 
@@ -244,7 +252,11 @@ def name_or_description_kb(language: str, category_id: int, lang: str):
         [InlineKeyboardButton(
             text=get_text(language, "kb_admin_panel", 'description'),
             callback_data=f'category_update_descr:{category_id}:{lang}'
-        )]
+        )],
+        [InlineKeyboardButton(
+            text=get_text(language, "kb_general", "back"),
+            callback_data=f'category_update_name_or_des:{category_id}'
+        )],
     ])
 
 

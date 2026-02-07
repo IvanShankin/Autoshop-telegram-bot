@@ -43,6 +43,7 @@ async def validate_broadcast_inputs(
     bot: Bot,
     admin_chat_id: int,
     text: str,
+    show_image: bool,
     photo_path: Optional[str] = None,
     button_url: Optional[str] = None,
 ) -> Tuple[str, Optional[str],  Optional[str], Optional[InlineKeyboardMarkup]]:
@@ -59,7 +60,7 @@ async def validate_broadcast_inputs(
     text = text.strip()
     visible_len = visible_text_length(text)
 
-    if photo_path:
+    if photo_path and show_image:
         max_len = MAX_CHARS_WITH_PHOTO
     else:
         max_len = MAX_CHARS_WITHOUT_PHOTO
@@ -77,7 +78,11 @@ async def validate_broadcast_inputs(
             [InlineKeyboardButton(text="Open", url=button_url)]
         ])
 
-    photo_id, new_file_path = await get_photo_identifier(bot, admin_chat_id, photo_path)
+    photo_id = None
+    new_file_path = None
+
+    if photo_path and show_image:
+        photo_id, new_file_path = await get_photo_identifier(bot, admin_chat_id, photo_path)
 
     return text, photo_id, new_file_path, inline_kb
 
@@ -148,6 +153,7 @@ async def _send_single(
 async def broadcast_message_generator(
     text: str,
     admin_id: int,
+    show_image: bool = False,
     photo_path: Optional[str] = None,
     button_url: Optional[str] = None,
 ) -> AsyncGenerator[Tuple[int, bool, Optional[Exception]], None]:
@@ -166,7 +172,14 @@ async def broadcast_message_generator(
     conf = get_config()
     bot = await get_bot()
 
-    text, photo_id, new_photo_path, inline_kb = await validate_broadcast_inputs(bot, admin_id, text, photo_path, button_url)
+    text, photo_id, new_photo_path, inline_kb = await validate_broadcast_inputs(
+        bot=bot,
+        admin_chat_id=admin_id,
+        text=text,
+        show_image=show_image,
+        photo_path=photo_path,
+        button_url=button_url
+    )
 
     # получаем user_ids стримом и запускаем пул задач
     async def gen_user_ids():

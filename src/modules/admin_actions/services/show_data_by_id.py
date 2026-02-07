@@ -144,7 +144,11 @@ async def get_message_voucher(voucher_id: int, language: str) -> str | None:
         activated_counter=voucher.activated_counter,
         number_of_activations=voucher.number_of_activations,
         start_at=voucher.start_at.strftime(get_config().different.dt_format),
-        expire_at=voucher.expire_at.strftime(get_config().different.dt_format) if voucher.expire_at else "-",
+        expire_at=(
+            voucher.expire_at.strftime(get_config().different.dt_format)
+            if voucher.expire_at else
+            get_text(language,"admins_show_data_by_id", "endlessly")
+        ),
         is_valid=voucher.is_valid,
     )
 
@@ -182,11 +186,19 @@ async def get_message_promo_code(promo_code_id: int, language: str) -> str | Non
         activation_code=promo.activation_code,
         min_order_amount=promo.min_order_amount,
         activated_counter=promo.activated_counter,
-        amount=promo.amount if promo.amount is not None else "-",
-        discount_percentage=promo.discount_percentage if promo.discount_percentage is not None else "-",
+        amount=promo.amount if promo.amount is not None else get_text(language,"admins_show_data_by_id","no"),
+        discount_percentage=(
+            promo.discount_percentage
+            if promo.discount_percentage is not None else
+            get_text(language,"admins_show_data_by_id","no")
+        ),
         number_of_activations=promo.number_of_activations,
         start_at=promo.start_at.strftime(get_config().different.dt_format),
-        expire_at=promo.expire_at.strftime(get_config().different.dt_format) if promo.expire_at else "-",
+        expire_at=(
+            promo.expire_at.strftime(get_config().different.dt_format)
+            if promo.expire_at else
+            get_text(language, "admins_show_data_by_id", "endlessly")
+        ),
         is_valid=promo.is_valid,
     )
 
@@ -292,8 +304,15 @@ async def get_message_sold_account_full(
         crypto.kek,
     )
 
-    login = decrypt_text(storage.login_encrypted, storage.login_nonce, account_key) if storage.login_encrypted  else "—"
-    password = decrypt_text(storage.password_encrypted, storage.password_nonce, account_key) if storage.password_encrypted  else "—"
+    if storage.login_encrypted:
+        login = decrypt_text(storage.login_encrypted, storage.login_nonce, account_key)
+    else:
+        login = get_text(language,"admins_show_data_by_id","no")
+
+    if storage.password_encrypted:
+        password = decrypt_text(storage.password_encrypted, storage.password_nonce, account_key)
+    else:
+        password = get_text(language,"admins_show_data_by_id","no")
     
     return get_text(
         language,
@@ -321,8 +340,8 @@ async def get_message_sold_account_full(
         added_at=storage.added_at.strftime(get_config().different.dt_format),
         last_check_at=(
             storage.last_check_at.strftime(get_config().different.dt_format)
-            if storage.last_check_at
-            else "-"
+            if storage.last_check_at else
+            get_text(language,"admins_show_data_by_id","no")
         ),
     )
 

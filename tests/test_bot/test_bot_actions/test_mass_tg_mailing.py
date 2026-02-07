@@ -37,6 +37,7 @@ async def test_validate_inputs_success_without_photo(monkeypatch):
         bot=None,
         admin_chat_id=1,
         text="Hello world",
+        show_image=True,
     )
 
     assert text == "Hello world"
@@ -48,7 +49,7 @@ async def test_validate_inputs_empty_text():
     from src.bot_actions.messages.mass_tg_mailing import validate_broadcast_inputs
 
     with pytest.raises(TextTooLong):
-        await validate_broadcast_inputs(bot=None, admin_chat_id=1, text="   ")
+        await validate_broadcast_inputs(bot=None, admin_chat_id=1, text="   ", show_image=False)
 
 @pytest.mark.asyncio
 async def test_validate_inputs_text_too_long(monkeypatch):
@@ -65,6 +66,7 @@ async def test_validate_inputs_text_too_long(monkeypatch):
             bot=None,
             admin_chat_id=1,
             text=long_text,
+            show_image=True,
         )
 
 @pytest.mark.asyncio
@@ -85,6 +87,7 @@ async def test_validate_inputs_button_valid_url(monkeypatch):
         bot=None,
         admin_chat_id=1,
         text="hello",
+        show_image=True,
         button_url="https://google.com",
     )
 

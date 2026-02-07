@@ -181,7 +181,7 @@ async def show_voucher(callback: CallbackQuery, user: Users):
         raise ForbiddenError()
 
     if not voucher or not voucher.is_valid:
-        text = get_text(user.language, "profile_messages", 'This voucher is currently inactive, please select another one')
+        text = get_text(user.language, "profile_messages", 'voucher_currently_inactive')
         reply_markup=back_in_all_voucher_kb(user.language, current_page, target_user_id)
     else:
         bot = await get_bot()

@@ -23,7 +23,7 @@ async def subscription_prompt_kb(language: str):
     keyboard = InlineKeyboardBuilder()
     if url:
         keyboard.row(InlineKeyboardButton(text=get_text(language, "kb_catalog",'channel'),url=url))
-    keyboard.row(InlineKeyboardButton(text=get_text(language, "kb_general",'Skip'),callback_data='skip_subscription'))
+    keyboard.row(InlineKeyboardButton(text=get_text(language, "kb_general",'skip'),callback_data='skip_subscription'))
 
     keyboard.adjust(1)
 

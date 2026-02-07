@@ -49,7 +49,7 @@ async def show_admin_voucher(callback: CallbackQuery, user: Users):
     voucher = await get_voucher_by_id(voucher_id)
 
     if not voucher:
-        text = get_text(user.language, "profile_messages", 'This voucher is currently inactive, please select another one')
+        text = get_text(user.language, "profile_messages", "voucher_currently_inactive")
         reply_markup=back_in_all_admin_voucher_kb(user.language, current_page)
     else:
         bot = await get_bot()

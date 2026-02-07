@@ -6,6 +6,10 @@
 from typing import Optional
 
 
+class ServerError(Exception):
+    """Любая ошибка внутри сервера свидетельствующая о поломки"""
+
+
 class ForbiddenError(Exception):
     """
     Если у пользователя недостаточно прав для выполнения действия.

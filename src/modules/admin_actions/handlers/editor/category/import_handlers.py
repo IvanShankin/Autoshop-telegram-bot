@@ -20,7 +20,7 @@ from src.exceptions.business import ImportUniversalInvalidMediaData, ImportUnive
 from src.modules.admin_actions.keyboards import back_in_category_kb, \
     name_or_description_kb
 from src.modules.admin_actions.keyboards.editors.category_kb import get_example_import_product_kb, \
-    get_example_import_other_acc_kb, get_example_import_tg_acc_kb
+    get_example_import_other_acc_kb, get_example_import_tg_acc_kb, in_category_kb
 from src.modules.admin_actions.schemas import ImportAccountsData
 from src.modules.admin_actions.schemas.editors.editor_categories import ImportUniversalsData
 from src.modules.admin_actions.services import safe_get_category, service_not_found
@@ -242,7 +242,7 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
             message.from_user.id,
             message_info.message_id,
             result_message,
-            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="in_category")
+            reply_markup=in_category_kb(user.language, data.category_id)
         )
 
         if result.invalid_archive_path:
@@ -318,7 +318,7 @@ async def import_other_account(message: Message, state: FSMContext, user: Users)
             message.from_user.id,
             message_info.message_id,
             result_message,
-            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="in_category")
+            reply_markup=in_category_kb(user.language, data.category_id)
         )
         if result.errors_csv_bytes:
             await message.answer_document(
@@ -345,7 +345,7 @@ async def import_other_account(message: Message, state: FSMContext, user: Users)
                 "incorrect_header_formatting_for_import_other_account"
             ),
             image_key="example_csv",
-            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="in_category")
+            reply_markup=in_category_kb(user.language, data.category_id)
         )
         await state.set_state(ImportOtherAccounts.csv_file)
     except TypeAccountServiceNotFound:
@@ -415,7 +415,7 @@ async def import_universal_products(message: Message, state: FSMContext, user: U
                 "admins_editor_category",
                 "products_integration_was_successful"
             ).format(successfully_added=total_added, total_processed=total_added),
-            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="in_category")
+            reply_markup=in_category_kb(user.language, data.category_id)
         )
 
     except ImportUniversalFileNotFound as e:
@@ -427,7 +427,7 @@ async def import_universal_products(message: Message, state: FSMContext, user: U
                 "admins_editor_category",
                 "error_import_universal_file_not_found"
             ).format(file_name=e.file_name),
-            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="in_category")
+            reply_markup=in_category_kb(user.language, data.category_id)
         )
         await state.set_state(ImportUniversalProducts.archive)
     except ImportUniversalInvalidMediaData:
@@ -439,7 +439,7 @@ async def import_universal_products(message: Message, state: FSMContext, user: U
                 "admins_editor_category",
                 "error_import_universal_media_type"
             ).format(media_type=str(category.media_type.name)),
-            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="in_category")
+            reply_markup=in_category_kb(user.language, data.category_id)
         )
         await state.set_state(ImportUniversalProducts.archive)
     except CsvHasMoreThanTwoProducts:
@@ -451,7 +451,7 @@ async def import_universal_products(message: Message, state: FSMContext, user: U
                 "admins_editor_category",
                 "error_import_universal_has_more_two"
             ).format(media_type=str(category.media_type.name)),
-            reply_markup=back_in_category_kb(user.language, data.category_id, i18n_key="in_category")
+            reply_markup=in_category_kb(user.language, data.category_id)
         )
         await state.set_state(ImportUniversalProducts.archive)
     except Exception as e:

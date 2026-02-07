@@ -32,3 +32,6 @@ msgstr "💰 Купить"
 
 msgid "enter_promo_code"
 msgstr "🎁 Ввести промокод"
+
+msgid "in_category"
+msgstr "📂 В категорию"

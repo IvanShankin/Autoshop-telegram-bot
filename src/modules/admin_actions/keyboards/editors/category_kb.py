@@ -313,7 +313,19 @@ def back_in_category_update_data_kb(language: str, category_id: int):
     ])
 
 
-def back_in_category_kb(language: str, category_id: int, i18n_key: str = "back"):
+def back_in_category_kb(language: str, category_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, "kb_general",i18n_key), callback_data=f'show_category_admin:{category_id}')]
+        [InlineKeyboardButton(
+            text=get_text(language, "kb_general","back"),
+            callback_data=f'show_category_admin:{category_id}'
+        )]
+    ])
+
+
+def in_category_kb(language: str, category_id: int):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text=get_text(language, "kb_admin_panel", "in_category"),
+            callback_data=f'show_category_admin:{category_id}'
+        )]
     ])

@@ -7,6 +7,7 @@ from src.config import get_config
 from src.exceptions import AccountCategoryNotFound, \
     TheCategoryStorageAccount
 from src.modules.admin_actions.keyboards import back_in_category_kb, in_category_editor_kb
+from src.modules.admin_actions.keyboards.editors.category_kb import in_category_kb
 from src.modules.admin_actions.schemas import GetDataForCategoryData
 from src.modules.admin_actions.services import safe_get_category, set_state_create_category, name_input_prompt_by_language
 from src.modules.admin_actions.state import GetDataForCategory
@@ -71,7 +72,7 @@ async def add_category_name(message: Message, state: FSMContext, user: Users):
                 name=data.data_name[lang_code]
             )
         message = get_text(user.language, "admins_editor_category", "category_successfully_created")
-        reply_markup = back_in_category_kb(user.language, category.category_id, i18n_key="in_category")
+        reply_markup = in_category_kb(user.language, category.category_id)
     except AccountCategoryNotFound:
         message = get_text(user.language, "admins_editor_category","category_not_exists")
         reply_markup = in_category_editor_kb(user.language)

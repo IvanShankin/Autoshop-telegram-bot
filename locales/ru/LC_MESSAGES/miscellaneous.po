@@ -41,3 +41,7 @@ msgstr "Успешно обновлён"
 
 msgid "file_loading"
 msgstr "Файл загружается"
+
+
+msgid "server_error"
+msgstr "⚠️ Произошла ошибка внутри сервера! ⚠️"

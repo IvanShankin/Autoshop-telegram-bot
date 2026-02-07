@@ -37,7 +37,7 @@ async def show_image_editor(
         return
 
     message = get_text(
-        user.language, "admins_editor_images", "Where_used_and_indicate_show"
+        user.language, "admins_editor_images", "where_used_and_indicate_show"
     ).format(where=get_text(user.language, "ui_images_description", ui_image_key), show=ui_image.show)
 
     reply_markup = image_editor(user.language, ui_image_key, current_show=ui_image.show,current_page=current_page)

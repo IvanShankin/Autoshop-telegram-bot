@@ -43,6 +43,6 @@ async def service_not_found(user: Users, message_id_delete: Optional[int] = None
 
     await send_message(
         chat_id=user.user_id,
-        message=get_text(user.language, "admins_editor_category", "This services no longer exists, please choose another one"),
+        message=get_text(user.language, "admins_editor_category", "selected_product_type_not_found"),
         reply_markup=in_category_editor_kb(language=user.language)
     )

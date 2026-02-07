@@ -22,7 +22,7 @@ async def show_data_by_id_handler(state: str, message_text: str, user: Users, cu
     if not entered_id:
         await send_message(
             chat_id=user.user_id,
-            message=get_text(user.language, "miscellaneous", "Incorrect values entered. Please try again"),
+            message=get_text(user.language, "miscellaneous", "incorrect_value_entered"),
             reply_markup=back_in_show_data_by_id_kb(language=user.language, current_page=current_page)
         )
         return

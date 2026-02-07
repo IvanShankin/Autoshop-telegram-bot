@@ -101,7 +101,7 @@ async def create_promo_code_amount(callback: CallbackQuery, state: FSMContext, u
         message=get_text(
             user.language,
             "admins_editor_promo_codes",
-            "Enter the amount of the promo code that will be discounted upon activation"
+            "enter_promo_code_discount_amount"
         ),
         reply_markup=back_in_start_creating_promo_code_kb(user.language)
     )

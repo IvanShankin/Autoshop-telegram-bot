@@ -12,7 +12,7 @@ msgstr ""
 msgid "photo_not_exists"
 msgstr "Данного фото больше не существует"
 
-msgid "Where_used_and_indicate_show"
+msgid "where_used_and_indicate_show"
 msgstr "Где используется: {where} \nПоказывать: {show}"
 
 msgid "get_new_image"

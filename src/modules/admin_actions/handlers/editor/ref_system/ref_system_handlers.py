@@ -34,7 +34,7 @@ async def show_ref_lvl_editor_func(ref_lvl_id: int, user: Users, new_message: bo
 
     if next_lvl:
         amount_of_achievement = get_text(
-            user.language, "admins_editor_ref_system", "from {from_sum}₽ to {to_sum}₽"
+            user.language, "admins_editor_ref_system", "from_to_sum_formatted"
         ).format(from_sum=ref_lvl.amount_of_achievement, to_sum=next_lvl.amount_of_achievement)
     else:
         amount_of_achievement = get_text(

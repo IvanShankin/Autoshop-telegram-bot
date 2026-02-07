@@ -54,10 +54,9 @@ async def check_category_is_acc_storage(category: CategoryFull, user: Users) -> 
         await send_message(
             user.user_id,
             get_text(user.language,"admins_editor_category","first_make_this_category_storage"),
-            reply_markup=back_in_category_kb(
+            reply_markup=in_category_kb(
                 language=user.language,
-                category_id=category.category_id,
-                i18n_key = "in_category"
+                category_id=category.category_id
             )
         )
         return False

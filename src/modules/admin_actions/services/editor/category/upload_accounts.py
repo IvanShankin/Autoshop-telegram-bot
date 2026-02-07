@@ -3,6 +3,8 @@ from aiogram.types import CallbackQuery, FSInputFile, BufferedInputFile
 from src.bot_actions.messages import send_message
 from src.bot_actions.bot_instance import get_bot
 from src.exceptions import ProductAccountNotFound, ProductNotFound
+from src.exceptions.business import ServerError
+from src.modules.admin_actions.keyboards.editors.category_kb import in_category_kb
 from src.modules.admin_actions.services.editor.category.category_loader import service_not_found
 from src.modules.admin_actions.keyboards import back_in_category_kb
 from src.services.database.categories.models import ProductType, CategoryFull, AccountServiceType
@@ -20,10 +22,9 @@ async def complete_upload(category: CategoryFull, user: Users):
             "admins_editor_category",
             "products_upload_complete"
         ),
-        reply_markup=back_in_category_kb(
+        reply_markup=in_category_kb(
             language=user.language,
-            category_id=category.category_id,
-            i18n_key="in_category"
+            category_id=category.category_id
         )
     )
 
@@ -50,6 +51,8 @@ async def _upload_account(category: CategoryFull, user: Users, callback: Callbac
             return
     except ProductAccountNotFound:
         await send_message(user.user_id, get_text(user.language, "admins_editor_category", "products_not_found"))
+    except ServerError:
+        await send_message(user.user_id, get_text(user.language, "miscellaneous", "server_error"))
 
     await complete_upload(category, user)
 

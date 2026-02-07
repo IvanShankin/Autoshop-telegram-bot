@@ -41,7 +41,7 @@ def change_admin_settings_kb(language: str, current_maintenance_mode: bool):
             callback_data=f'update_maintenance_mode:{0 if current_maintenance_mode else 1}'
         )],
         [InlineKeyboardButton(
-            text=get_text(language,'kb_start',"support_username"),
+            text=get_text(language,'kb_admin_panel',"support_username"),
             callback_data=f'update_support_username'
         )],
         [InlineKeyboardButton(

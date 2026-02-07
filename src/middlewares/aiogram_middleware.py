@@ -7,9 +7,10 @@ from typing import Callable, Dict, Any, Awaitable, Type
 
 from src.bot_actions.messages import send_message
 from src.config import get_config
+from src.modules.keyboard_main import support_kb
 from src.services.database.admins.actions import check_admin
 from src.services.database.system.actions import get_settings
-from src.services.database.users.actions import get_user
+from src.services.database.users.actions import get_user, get_banned_account
 from src.utils.i18n import get_text
 
 
@@ -106,6 +107,37 @@ class MaintenanceMiddleware(BaseMiddleware):
             ),
             image_key="technical_work"
         )
+
+
+class CheckuserNotBlok(BaseMiddleware):
+    """
+        Проверит наличие бана у пользователя, если имеется, то отправит соответсвующее сообщение
+    """
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: Dict[str, Any]
+    ) -> Any:
+        user = data.get("event_from_user")
+
+        if not user:
+            return
+
+        reason = await get_banned_account(user.id)
+        if reason:
+            user_db = await get_user(user.id)
+            conf = get_config()
+            message = f"Вы были забанены в боте по причине: {reason}"
+
+            if user_db:
+                message = get_text(user_db.language, "kb_start", "you_banned").format(reason=reason)
+
+            await send_message(user.id, message=message, reply_markup=await support_kb(conf.app.default_lang))
+
+            return
+
+        return await handler(event, data)
 
 
 class OnlyAdminsMiddleware(BaseMiddleware):

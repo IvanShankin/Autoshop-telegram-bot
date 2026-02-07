@@ -31,8 +31,7 @@ async def get_main_message_profile(user: Users, language: str) -> str:
     return get_text(
         language,
         "profile_messages",
-        "Username: {username} \nID: {id} \nRef_link: {ref_link} \nTotal sum replenishment: {total_sum_replenishment}"
-        "\nBalance: {balance}, \nMoney in vouchers {money_in_vouchers}"
+        "profile_info"
     ).format(
         username=username,
         id=user.user_id,

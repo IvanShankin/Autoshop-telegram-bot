@@ -26,7 +26,7 @@ router_with_repl_kb = Router()
 router = Router()
 
 
-@router_with_repl_kb.message(I18nKeyFilter("Product categories"))
+@router_with_repl_kb.message(I18nKeyFilter("product_categories"))
 async def handle_catalog_message(message: Message, state: FSMContext, user: Users):
     await state.clear()
 

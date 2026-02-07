@@ -31,7 +31,7 @@ async def handler_admin(
         )
 
 
-@router_with_repl_kb.message(I18nKeyFilter("Admin panel"))
+@router_with_repl_kb.message(I18nKeyFilter("admin_panel"))
 async def handle_profile_message(message: Message, state: FSMContext, user: Users):
     if not await check_admin(message.from_user.id):
         return

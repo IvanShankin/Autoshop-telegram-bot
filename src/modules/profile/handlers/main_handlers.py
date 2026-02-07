@@ -36,7 +36,7 @@ async def handler_profile(
         )
 
 
-@router_with_repl_kb.message(I18nKeyFilter("Profile"))
+@router_with_repl_kb.message(I18nKeyFilter("profile"))
 async def handle_profile_message(message: Message, state: FSMContext, user: Users):
     await state.clear()
     await handler_profile(user=user)

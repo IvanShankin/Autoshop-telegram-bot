@@ -13,7 +13,7 @@ import pytest
 import pytest_asyncio
 
 from src.bot_actions.throttler import RateLimiter
-from src.config import get_config, set_config, Config
+from src.config import get_config, set_config, Config, FilePathAndKey, FileKeysConf
 from src.services.secrets import init_crypto_context
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeBot
 from src.services.redis import core_redis
@@ -168,6 +168,24 @@ def replacement_path_files(conf: Config) -> Generator[None, None, None]:
     conf.paths.files_dir = new_files_dir
 
     os.makedirs(new_files_dir, exist_ok=True)
+
+    conf.file_keys = FileKeysConf(
+        example_zip_for_universal_import_key=FilePathAndKey(
+            key="example_zip_for_universal_import",
+            path=new_files_dir / "example_zip_for_universal_import.zip",
+            name_in_dir_with_files="example_zip_for_universal_import.zip"
+        ),
+        example_zip_for_import_tg_acc_key=FilePathAndKey(
+            key="example_zip_for_import_tg_acc",
+            path=new_files_dir / "example_zip_for_import_tg_acc.zip",
+            name_in_dir_with_files="example_zip_for_import_tg_acc.zip"
+        ),
+        example_csv_for_import_other_acc_key=FilePathAndKey(
+            key="example_csv_for_import_other_acc",
+            path=new_files_dir / "example_csv_for_import_other_acc.csv",
+            name_in_dir_with_files="example_csv_for_import_other_acc.csv"
+        )
+    )
 
     set_config(conf)
 

@@ -10,19 +10,19 @@ msgstr ""
 
 
 msgid "back"
-msgstr "Назад"
+msgstr "🔙 Назад"
 
 msgid "confirm"
-msgstr "Подтвердить"
+msgstr "✅ Подтвердить"
 
 msgid "again"
-msgstr "Заново"
+msgstr "🔄 Заново"
 
 msgid "delete"
-msgstr "Удалить"
+msgstr "🗑️ Удалить"
 
 msgid "pay"
-msgstr "Оплатить"
+msgstr "💳 Оплатить"
 
 msgid "skip"
-msgstr "Пропустить"
+msgstr "⏭️ Пропустить"

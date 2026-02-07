@@ -10,16 +10,16 @@ msgstr ""
 
 
 msgid "product_categories"
-msgstr "Каталог товаров"
+msgstr "📦 Каталог товаров"
 
 msgid "profile"
-msgstr "Профиль"
+msgstr "👤 Профиль"
 
 msgid "information"
-msgstr "Информация"
+msgstr "ℹ️ Информация"
 
 msgid "admin_panel"
-msgstr "Админ панель"
+msgstr "🔧 Админ панель"
 
 msgid "support"
-msgstr "Поддержка"
+msgstr "💬 Поддержка"

@@ -10,31 +10,31 @@ msgstr ""
 
 
 msgid "editors"
-msgstr "Редакторы"
+msgstr "👥 Редакторы"
 
 msgid "categories"
-msgstr "Категории"
+msgstr "📂 Категории"
 
 msgid "services_replenishments"
-msgstr "Сервисы пополнения"
+msgstr "💳 Сервисы пополнения"
 
 msgid "images"
-msgstr "Изображения"
+msgstr "🖼️ Изображения"
 
 msgid "vouchers"
-msgstr "Ваучеры"
+msgstr "🎫 Ваучеры"
 
 msgid "promo_codes"
-msgstr "Промокоды"
+msgstr "🎟️ Промокоды"
 
 msgid "add"
-msgstr "Добавить"
+msgstr "➕ Добавить"
 
 msgid "in_category"
-msgstr "В категорию"
+msgstr "📂 В категорию"
 
 msgid "in_category_editor"
-msgstr "В редактор категорий"
+msgstr "📝 В редактор категорий"
 
 msgid "up_index"
 msgstr "⬆️ Индекс"
@@ -43,262 +43,262 @@ msgid "down_index"
 msgstr "⬇️ Индекс"
 
 msgid "show_indicator"
-msgstr "{indicator} Показывать"
+msgstr "{indicator} Показывать 👁️"
 
 msgid "multiple_sale_indicator"
-msgstr "{indicator} Многократная продажа"
+msgstr "{indicator} Многократная продажа 🔄"
 
 msgid "wholesale_purchase_indicator"
-msgstr "{indicator} Оптовая покупка"
+msgstr "{indicator} Оптовая покупка 📦"
 
 msgid "rename"
-msgstr "Изменить имя"
+msgstr "✏️ Изменить имя"
 
 msgid "add_category"
-msgstr "Добавить категорию"
+msgstr "📁 Добавить категорию"
 
 msgid "add_subcategory"
-msgstr "Добавить подкатегорию"
+msgstr "📁 Добавить подкатегорию"
 
 msgid "make_storage"
-msgstr "Сделать хранилищем"
+msgstr "📦 Сделать хранилищем"
 
 msgid "remove_storage"
-msgstr "Убрать хранилище"
+msgstr "📦 Убрать хранилище"
 
 msgid "update_data"
-msgstr "Изменить данные"
+msgstr "🔄 Изменить данные"
 
 msgid "load_products"
-msgstr "Загрузить продукты"
+msgstr "📥 Загрузить продукты"
 
 msgid "name_description"
-msgstr "Имя / Описание"
+msgstr "📝 Имя / Описание"
 
 msgid "name"
-msgstr "Имя"
+msgstr "🏷️ Имя"
 
 msgid "description"
-msgstr "Описание"
+msgstr "📄 Описание"
 
 msgid "image"
-msgstr "Фото"
+msgstr "🖼️ Фото"
 
 msgid "price_one_product"
-msgstr "Цена одного продукта"
+msgstr "💰 Цена одного продукта"
 
 msgid "cost_price_one_product"
-msgstr "Себестоимость одного продукта"
+msgstr "💸 Себестоимость одного продукта"
 
 msgid "number_button_in_row"
-msgstr "Число кнопок в строке"
+msgstr "🔢 Число кнопок в строке"
 
 msgid "show_by_default_indicator"
-msgstr "{indicator} Показывать по умолчанию"
+msgstr "{indicator} Показывать по умолчанию ⭐"
 
 msgid "to_the_data"
-msgstr "К данным"
+msgstr "📋 К данным"
 
 msgid "delete_all_products"
-msgstr "Удалить все продукты"
+msgstr "🗑️ Удалить все продукты"
 
 msgid "unload_all_products"
-msgstr "Выгрузить все продукты"
+msgstr "📤 Выгрузить все продукты"
 
 msgid "get_example"
-msgstr "Получить пример"
+msgstr "📄 Получить пример"
 
 msgid "edit_commission"
-msgstr "Изменить комиссию"
+msgstr "📊 Изменить комиссию"
 
 # ---- Управление пользователем ----
 
 msgid "user_management"
-msgstr "Управление пользователями"
+msgstr "👥 Управление пользователями"
 
 msgid "change_balance"
-msgstr "Изменить баланс"
+msgstr "💰 Изменить баланс"
 
 msgid "issue_ban"
-msgstr "Выдать бан"
+msgstr "🚫 Выдать бан"
 
 msgid "remove_ban"
-msgstr "Убрать бан"
+msgstr "✅ Убрать бан"
 
 msgid "unload_all_actions"
-msgstr "Выгрузить все действия"
+msgstr "📤 Выгрузить все действия"
 
 msgid "transaction_history"
-msgstr "История операции"
+msgstr "📜 История операции"
 
 msgid "unload_referral_list"
-msgstr "Выгрузить список рефералов"
+msgstr "📥 Выгрузить список рефералов"
 
 msgid "referral_credit_history"
-msgstr "История начисления рефералов"
+msgstr "📊 История начисления рефералов"
 
 msgid "active_vouchers"
-msgstr "Активные ваучеры"
+msgstr "🎫 Активные ваучеры"
 
 msgid "change_image"
-msgstr "Изменить изображение"
+msgstr "🖼️ Изменить изображение"
 
 msgid "in_level"
-msgstr "В уровень"
+msgstr "📊 В уровень"
 
 msgid "change_percent"
-msgstr "Изменить процент"
+msgstr "📈 Изменить процент"
 
 msgid "change_achievement_amount"
-msgstr "Изменить сумму достижения"
+msgstr "💰 Изменить сумму достижения"
 
 msgid "in_start"
-msgstr "В начало"
+msgstr "🏠 В начало"
 
 msgid "in_voucher"
-msgstr "В ваучер"
+msgstr "🎫 В ваучер"
 
 msgid "valid"
-msgstr "Валидный"
+msgstr "✅ Валидный"
 
 msgid "not_valid"
-msgstr "Не валидный"
+msgstr "❌ Не валидный"
 
 msgid "create_promo_code"
-msgstr "Создать промокод"
+msgstr "🎫 Создать промокод"
 
 msgid "in_promo_code"
-msgstr "В промокод"
+msgstr "🎟️ В промокод"
 
 msgid "show_not_valid_indicator"
-msgstr "Показывать невалидные {indicator}"
+msgstr "{indicator} Показывать невалидные 👁️ "
 
 msgid "with_fixed_amount"
-msgstr "С фиксированной суммой"
+msgstr "💰 С фиксированной суммой"
 
 msgid "with_percentage"
-msgstr "С процентом"
+msgstr "📊 С процентом"
 
 msgid "mailing"
-msgstr "Рассылка"
+msgstr "📢 Рассылка"
 
 msgid "editor"
-msgstr "Редактор"
+msgstr "✏️ Редактор"
 
 msgid "history"
-msgstr "История"
+msgstr "📜 История"
 
 msgid "start_mailing"
-msgstr "Начать рассылку"
+msgstr "📢 Начать рассылку"
 
 msgid "change_photo"
-msgstr "Изменить фото"
+msgstr "🖼️ Изменить фото"
 
 msgid "change_text"
-msgstr "Изменить текст"
+msgstr "📝 Изменить текст"
 
 msgid "change_button_url"
-msgstr "Изменить url кнопки"
+msgstr "🔗 Изменить url кнопки"
 
 msgid "hints_to_text"
-msgstr "Подсказки к тексту"
+msgstr "💡 Подсказки к тексту"
 
 msgid "detail"
-msgstr "Детали"
+msgstr "🔍 Детали"
 
 # ---- настройки ----
 
 msgid "change"
-msgstr "Изменение"
+msgstr "🔄 Изменение"
 
 msgid "add_admin"
-msgstr "Добавить админа"
+msgstr "👑 Добавить админа"
 
 msgid "delete_admin"
-msgstr "Удалить админа"
+msgstr "👑 Удалить админа"
 
 msgid "download_logs"
-msgstr "Выгрузить логи"
+msgstr "📥 Выгрузить логи"
 
 msgid "maintenance_mode_indicator"
-msgstr "{indicator} Технические работы"
+msgstr "{indicator} Технические работы 🔧"
 
 msgid "support_username"
-msgstr "Username поддержки"
+msgstr "💬 Username поддержки"
 
 msgid "chat_id_for_logging"
-msgstr "ID чата для логирования"
+msgstr "📝 ID чата для логирования"
 
 msgid "channel_id_to_subscribe_to"
-msgstr "ID канала для подписки"
+msgstr "📢 ID канала для подписки"
 
 msgid "url_channel_for_subscription"
-msgstr "URL канала для подписки"
+msgstr "🔗 URL канала для подписки"
 
 msgid "channel_name"
-msgstr "Имя канала"
+msgstr "📢 Имя канала"
 
 msgid "shop_name"
-msgstr "Имя Магазина"
+msgstr "🏪 Имя Магазина"
 
 msgid "url_to_faq"
-msgstr "URL на FAQ"
+msgstr "❓ URL на FAQ"
 
 # ---- просмотр данных по ID ----
 
 msgid "showing_data_by_id"
-msgstr "Просмотр данных по ID "
+msgstr "🔍 Просмотр данных по ID "
 
 msgid "users"
-msgstr "Пользователь"
+msgstr "👤 Пользователь"
 
 msgid "replenishment"
-msgstr "Пополнение"
+msgstr "💳 Пополнение"
 
 msgid "purchase_account"
-msgstr "Покупка аккаунта"
+msgstr "👤 Покупка аккаунта"
 
 msgid "transfer_money"
-msgstr "Перевод денег"
+msgstr "💸 Перевод денег"
 
 msgid "vouchers"
-msgstr "Ваучер"
+msgstr "🎫 Ваучер"
 
 msgid "activate_voucher"
-msgstr "Активация ваучера"
+msgstr "✅ Активация ваучера"
 
 msgid "promo_code"
-msgstr "Промокод"
+msgstr "🎟️ Промокод"
 
 msgid "promo_code_activation"
-msgstr "Активация промокода"
+msgstr "✅ Активация промокода"
 
 msgid "referral"
-msgstr "Реферал"
+msgstr "👥 Реферал"
 
 msgid "income_from_referral"
-msgstr "Доход от реферала"
+msgstr "💰 Доход от реферала"
 
 msgid "wallet_transfer"
-msgstr "Движение средств"
+msgstr "💸 Движение средств"
 
 msgid "sold_account"
-msgstr "Проданный аккаунт"
+msgstr "💰 Проданный аккаунт"
 
 msgid "statistics"
-msgstr "Статистика"
+msgstr "📊 Статистика"
 
 msgid "per_day"
-msgstr "За день"
+msgstr "📅 За день"
 
 msgid "per_week"
-msgstr "За неделю"
+msgstr "📅 За неделю"
 
 msgid "per_month"
-msgstr "За месяц"
+msgstr "📅 За месяц"
 
 msgid "per_year"
-msgstr "За год"
+msgstr "📅 За год"
 
 msgid "all_time"
-msgstr "За всё время"
+msgstr "⏳ За всё время"

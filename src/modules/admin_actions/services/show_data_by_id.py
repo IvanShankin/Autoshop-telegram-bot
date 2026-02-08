@@ -5,6 +5,7 @@ from src.bot_actions.messages import send_message
 from src.config import get_config
 from src.modules.admin_actions.keyboards.show_data_kb import back_in_show_data_by_id_kb, get_data_universal_product
 from src.modules.admin_actions.state.show_data_by_id import ShowDataById
+from src.modules.profile.keyboards import login_details_kb
 from src.services.database.categories.actions.products.universal.actions_get import get_sold_universal_by_universal_id
 from src.services.database.categories.models import ProductType, UniversalMediaType, StorageStatus, AccountServiceType
 from src.services.database.discounts.actions import get_voucher_by_id, get_promo_code
@@ -39,7 +40,7 @@ async def show_data_by_id_handler(state: str, message_text: str, user: Users, cu
     elif state == ShowDataById.purchase_by_id.state:
         message = await get_message_purchase_account(entered_id, user.language)
     elif state == ShowDataById.sold_account_by_id.state:
-        message = await get_message_sold_account_full(entered_id, user.language)
+        message, reply_markup = await get_message_sold_account_full(entered_id, user.language, current_page)
     elif state == ShowDataById.sold_universal_product_by_id.state:
         message, reply_markup = await get_message_universal_product(entered_id, user.language, current_page)
     elif state == ShowDataById.transfer_money_by_id.state:
@@ -122,9 +123,10 @@ async def get_message_purchase_account(purchase_id: int, language: str) -> str |
 
 
 async def get_message_sold_account_full(
-        sold_account_id: int,
-        language: str,
-) -> str:
+    sold_account_id: int,
+    language: str,
+    current_page: int,
+) -> Tuple[str, InlineKeyboardMarkup]:
     sold_account_full = await get_sold_accounts_by_account_id(sold_account_id, language=language)
 
     storage = sold_account_full.account_storage
@@ -146,7 +148,7 @@ async def get_message_sold_account_full(
     else:
         password = get_text(language, "admins_show_data_by_id", "no")
 
-    return get_text(
+    message = get_text(
         language,
         "admins_show_data_by_id",
         "sold_account_details"
@@ -188,6 +190,16 @@ async def get_message_sold_account_full(
             get_text(language, "admins_show_data_by_id", "no")
         ),
     )
+
+    reply_markup = login_details_kb(
+        language=language,
+        sold_account_id=sold_account_id,
+        type_account_service=sold_account_full.account_storage.type_account_service,
+        current_page=current_page,
+        for_admin=True
+    )
+
+    return message, reply_markup
 
 
 async def get_message_universal_product(

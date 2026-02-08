@@ -139,11 +139,12 @@ def account_kb(
     ])
 
 
-async def login_details_kb(
+def login_details_kb(
     language: str,
     sold_account_id: int,
     type_account_service: AccountServiceType,
-    current_page: int
+    current_page: int,
+    for_admin: bool = False
 ):
     keyboard = InlineKeyboardBuilder()
     if type_account_service == AccountServiceType.TELEGRAM:
@@ -177,7 +178,11 @@ async def login_details_kb(
     keyboard.row(
         InlineKeyboardButton(
             text=get_text(language, "kb_general", "back"),
-            callback_data=f'sold_account:{sold_account_id}:{type_account_service.value}:{current_page}'
+            callback_data=(
+                f"data_by_id:{current_page}" # в просмотр данных по ID
+                if for_admin else
+                f'sold_account:{sold_account_id}:{type_account_service.value}:{current_page}'
+            )
         ),
     )
     return keyboard.as_markup()

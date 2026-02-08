@@ -88,7 +88,7 @@ async def login_details(callback: CallbackQuery, user: Users):
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         image_key='purchased_accounts',
-        reply_markup=await login_details_kb(
+        reply_markup=login_details_kb(
             language=user.language,
             sold_account_id=account.sold_account_id,
             type_account_service=type_account_service,

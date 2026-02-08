@@ -46,14 +46,19 @@ async def show_replenishment_by_id(callback: CallbackQuery, state: FSMContext, u
     await set_state_and_request_id(callback, state, user, ShowDataById.replenishment_by_id)
 
 
-@router.callback_query(F.data.startswith("purchase_account_by_id:"))
-async def show_purchase_account_by_id(callback: CallbackQuery, state: FSMContext, user: Users):
-    await set_state_and_request_id(callback, state, user, ShowDataById.purchase_account_by_id)
+@router.callback_query(F.data.startswith("purchase_by_id:"))
+async def show_purchase_by_id(callback: CallbackQuery, state: FSMContext, user: Users):
+    await set_state_and_request_id(callback, state, user, ShowDataById.purchase_by_id)
 
 
 @router.callback_query(F.data.startswith("sold_account_by_id:"))
 async def show_sold_account_by_id(callback: CallbackQuery, state: FSMContext, user: Users):
     await set_state_and_request_id(callback, state, user, ShowDataById.sold_account_by_id)
+
+
+@router.callback_query(F.data.startswith("sold_universal_by_id:"))
+async def show_sold_universal_by_id(callback: CallbackQuery, state: FSMContext, user: Users):
+    await set_state_and_request_id(callback, state, user, ShowDataById.sold_universal_product_by_id)
 
 
 @router.callback_query(F.data.startswith("voucher_by_id:"))
@@ -99,8 +104,9 @@ async def show_wallet_transaction_by_id(callback: CallbackQuery, state: FSMConte
 @router.message(
     StateFilter(
         ShowDataById.replenishment_by_id,
-        ShowDataById.purchase_account_by_id,
+        ShowDataById.purchase_by_id,
         ShowDataById.sold_account_by_id,
+        ShowDataById.sold_universal_product_by_id,
         ShowDataById.voucher_by_id,
         ShowDataById.activate_voucher_by_id,
         ShowDataById.promo_code_by_id,

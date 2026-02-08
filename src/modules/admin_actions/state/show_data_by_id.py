@@ -4,7 +4,8 @@ from aiogram.fsm.state import State, StatesGroup
 class ShowDataById(StatesGroup):
     replenishment_by_id = State()
     sold_account_by_id = State()
-    purchase_account_by_id = State()
+    purchase_by_id = State()
+    sold_universal_product_by_id = State()
     transfer_money_by_id = State()
     voucher_by_id = State()
     activate_voucher_by_id = State()

@@ -166,7 +166,7 @@ async def get_log_pas(callback: CallbackQuery, user: Users):
     crypto = get_crypto_context()
     account_key = unwrap_dek(
         account.account_storage.encrypted_key,
-        crypto.nonce_b64_dek,
+        account.account_storage.encrypted_key_nonce,
         crypto.kek
     )
 

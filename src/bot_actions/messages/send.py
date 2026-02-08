@@ -220,7 +220,7 @@ async def send_message(
         logger.exception(f"#Ошибка при отправке сообщения. Ошибка: {str(e)}")
 
 
-async def send_log(text: str, log_lvl: LogLevel = None, channel_for_logging_id: int = None):
+async def send_log(text: str, log_lvl: Optional[LogLevel] = None, channel_for_logging_id: Optional[int] = None):
     """
     Отошлёт лог в файл и в канал.
     :param log_lvl: При наличии, запишет в файл с соответствующим уровнем

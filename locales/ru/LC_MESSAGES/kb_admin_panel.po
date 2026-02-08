@@ -255,8 +255,14 @@ msgstr "👤 Пользователь"
 msgid "replenishment"
 msgstr "💳 Пополнение"
 
-msgid "purchase_account"
-msgstr "👤 Покупка аккаунта"
+msgid "purchase"
+msgstr "👤 Покупка"
+
+msgid "sold_account"
+msgstr "💰 Проданный аккаунт"
+
+msgid "sold_universal"
+msgstr "💰 Проданный прочий товар"
 
 msgid "transfer_money"
 msgstr "💸 Перевод денег"
@@ -281,9 +287,6 @@ msgstr "💰 Доход от реферала"
 
 msgid "wallet_transfer"
 msgstr "💸 Движение средств"
-
-msgid "sold_account"
-msgstr "💰 Проданный аккаунт"
 
 msgid "statistics"
 msgstr "📊 Статистика"

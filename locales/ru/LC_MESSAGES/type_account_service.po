@@ -9,19 +9,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 
 
-# константы из UniversalMediaType
+# константы из AccountServiceType
 
-msgid "description"
-msgstr "Описание"
+msgid "telegram"
+msgstr "📱 Телеграм"
 
-msgid "image"
-msgstr "Изображение"
-
-msgid "video"
-msgstr "Видео"
-
-msgid "document"
-msgstr "Документ"
-
-msgid "mixed"
-msgstr "Смешанный"
+msgid "other"
+msgstr "📦 Прочее"

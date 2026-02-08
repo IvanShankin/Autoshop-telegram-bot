@@ -15,4 +15,4 @@ class LogLevel(enum.Enum):
 class EventSentLog(BaseModel):
     text: str
     log_lvl: Optional[LogLevel] = None
-    channel_for_logging_id: int = None
+    channel_for_logging_id: Optional[int] = None

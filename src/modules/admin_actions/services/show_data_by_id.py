@@ -1,7 +1,12 @@
+from typing import Tuple
+from aiogram.types import InlineKeyboardMarkup
+
 from src.bot_actions.messages import send_message
 from src.config import get_config
-from src.modules.admin_actions.keyboards.show_data_kb import back_in_show_data_by_id_kb
+from src.modules.admin_actions.keyboards.show_data_kb import back_in_show_data_by_id_kb, get_data_universal_product
 from src.modules.admin_actions.state.show_data_by_id import ShowDataById
+from src.services.database.categories.actions.products.universal.actions_get import get_sold_universal_by_universal_id
+from src.services.database.categories.models import ProductType, UniversalMediaType, StorageStatus, AccountServiceType
 from src.services.database.discounts.actions import get_voucher_by_id, get_promo_code
 from src.services.database.discounts.actions.actions_promo import get_activated_promo_code
 from src.services.database.discounts.actions.actions_vouchers import get_activate_voucher
@@ -27,12 +32,16 @@ async def show_data_by_id_handler(state: str, message_text: str, user: Users, cu
         )
         return
 
+    reply_markup = back_in_show_data_by_id_kb(language=user.language, current_page=current_page)
+
     if state == ShowDataById.replenishment_by_id.state:
         message = await get_message_replenishment(entered_id, user.language)
+    elif state == ShowDataById.purchase_by_id.state:
+        message = await get_message_purchase_account(entered_id, user.language)
     elif state == ShowDataById.sold_account_by_id.state:
         message = await get_message_sold_account_full(entered_id, user.language)
-    elif state == ShowDataById.purchase_account_by_id.state:
-        message = await get_message_purchase_account(entered_id, user.language)
+    elif state == ShowDataById.sold_universal_product_by_id.state:
+        message, reply_markup = await get_message_universal_product(entered_id, user.language, current_page)
     elif state == ShowDataById.transfer_money_by_id.state:
         message = await get_message_transfer_money(entered_id, user.language)
     elif state == ShowDataById.voucher_by_id.state:
@@ -57,7 +66,7 @@ async def show_data_by_id_handler(state: str, message_text: str, user: Users, cu
     await send_message(
         chat_id=user.user_id,
         message=message,
-        reply_markup=back_in_show_data_by_id_kb(language=user.language, current_page=current_page)
+        reply_markup=reply_markup
     )
 
 
@@ -98,13 +107,131 @@ async def get_message_purchase_account(purchase_id: int, language: str) -> str |
     ).format(
         purchase_id=purchase_account.purchase_id,
         user_id=purchase_account.user_id,
-        account_storage_id=purchase_account.account_storage_id,
+        account_storage_id=(
+            purchase_account.account_storage_id
+            if purchase_account.account_storage_id else
+            purchase_account.universal_storage_id
+        ),
+        product_type=get_text(language, "kb_profile", ProductType(purchase_account.product_type).value),
         original_price=purchase_account.original_price,
         purchase_price=purchase_account.purchase_price,
         cost_price=purchase_account.cost_price,
         net_profit=purchase_account.net_profit,
         purchase_date=purchase_account.purchase_date.strftime(get_config().different.dt_format)
     )
+
+
+async def get_message_sold_account_full(
+        sold_account_id: int,
+        language: str,
+) -> str:
+    sold_account_full = await get_sold_accounts_by_account_id(sold_account_id, language=language)
+
+    storage = sold_account_full.account_storage
+
+    crypto = get_crypto_context()
+    account_key = unwrap_dek(
+        storage.encrypted_key,
+        storage.encrypted_key_nonce,
+        crypto.kek,
+    )
+
+    if storage.login_encrypted:
+        login = decrypt_text(storage.login_encrypted, storage.login_nonce, account_key)
+    else:
+        login = get_text(language, "admins_show_data_by_id", "no")
+
+    if storage.password_encrypted:
+        password = decrypt_text(storage.password_encrypted, storage.password_nonce, account_key)
+    else:
+        password = get_text(language, "admins_show_data_by_id", "no")
+
+    return get_text(
+        language,
+        "admins_show_data_by_id",
+        "sold_account_details"
+    ).format(
+        sold_account_id=sold_account_full.sold_account_id,
+        owner_id=sold_account_full.owner_id,
+        type_account_service=get_text(
+            language,
+            "type_account_service",
+            AccountServiceType(storage.type_account_service).value
+        ),
+        name=sold_account_full.name,
+        description=(
+            sold_account_full.description
+            if sold_account_full.description else
+            get_text(language, "admins_show_data_by_id", "no")
+        ),
+        sold_at=sold_account_full.sold_at.strftime(get_config().different.dt_format),
+
+        account_storage_id=storage.account_storage_id,
+        storage_uuid=storage.storage_uuid,
+        checksum=storage.checksum,
+        status=get_text(
+            language,
+            "storage_status",
+            StorageStatus(storage.status).value
+        ),
+        key_version=storage.key_version,
+        encryption_algo=storage.encryption_algo,
+        phone_number=storage.phone_number,
+        login_encrypted=login,
+        password_encrypted=password,
+        is_active=storage.is_active,
+        is_valid=storage.is_valid,
+        added_at=storage.added_at.strftime(get_config().different.dt_format),
+        last_check_at=(
+            storage.last_check_at.strftime(get_config().different.dt_format)
+            if storage.last_check_at else
+            get_text(language, "admins_show_data_by_id", "no")
+        ),
+    )
+
+
+async def get_message_universal_product(
+    universal_id: int,
+    language: str,
+    current_page: int
+) -> Tuple[str, InlineKeyboardMarkup]:
+    universal = await get_sold_universal_by_universal_id(universal_id, language)
+
+    message = get_text(
+        language,
+        "admins_show_data_by_id",
+        "sold_universal_details"
+    ).format(
+        sold_universal_id=universal.sold_universal_id,
+        owner_id=universal.owner_id,
+        media_type=get_text(
+            language,
+            "universal_media_type",
+            UniversalMediaType(universal.universal_storage.media_type).value
+        ),
+        name=universal.universal_storage.name,
+        sold_at=universal.sold_at.strftime(get_config().different.dt_format),
+        universal_storage_id=universal.universal_storage_id,
+        storage_uuid=universal.universal_storage.storage_uuid,
+        checksum=universal.universal_storage.checksum,
+        status=get_text(
+            language,
+            "storage_status",
+            StorageStatus(universal.universal_storage.status).value
+        ),
+        key_version=universal.universal_storage.key_version,
+        encryption_algo=universal.universal_storage.encryption_algo,
+        is_active=universal.universal_storage.is_active,
+        added_at=universal.universal_storage.created_at.strftime(get_config().different.dt_format),
+    )
+
+    reply_markup = get_data_universal_product(
+        language=language,
+        sold_universal_id=universal_id,
+        current_page=current_page
+    )
+
+    return message, reply_markup
 
 async def get_message_transfer_money(transfer_money_id: int, language: str) -> str | None:
     transfer_money = await get_transfer_money(transfer_money_id)
@@ -287,61 +414,3 @@ async def get_message_wallet_transaction(
         balance_after=tx.balance_after,
         created_at=tx.created_at.strftime(get_config().different.dt_format),
     )
-
-
-async def get_message_sold_account_full(
-    sold_account_id: int,
-    language: str,
-) -> str:
-    sold_account_full = await get_sold_accounts_by_account_id(sold_account_id, language = language)
-
-    storage = sold_account_full.account_storage
-
-    crypto = get_crypto_context()
-    account_key = unwrap_dek(
-        storage.encrypted_key,
-        crypto.nonce_b64_dek,
-        crypto.kek,
-    )
-
-    if storage.login_encrypted:
-        login = decrypt_text(storage.login_encrypted, storage.login_nonce, account_key)
-    else:
-        login = get_text(language,"admins_show_data_by_id","no")
-
-    if storage.password_encrypted:
-        password = decrypt_text(storage.password_encrypted, storage.password_nonce, account_key)
-    else:
-        password = get_text(language,"admins_show_data_by_id","no")
-    
-    return get_text(
-        language,
-        "admins_show_data_by_id",
-        "sold_account_details"
-    ).format(
-        sold_account_id=sold_account_full.sold_account_id,
-        owner_id=sold_account_full.owner_id,
-        type_account_service=storage.type_account_service,
-        name=sold_account_full.name,
-        description=sold_account_full.description,
-        sold_at=sold_account_full.sold_at.strftime(get_config().different.dt_format),
-
-        account_storage_id=storage.account_storage_id,
-        storage_uuid=storage.storage_uuid,
-        checksum=storage.checksum,
-        status=storage.status,
-        key_version=storage.key_version,
-        encryption_algo=storage.encryption_algo,
-        phone_number=storage.phone_number,
-        login_encrypted=login,
-        password_encrypted=password,
-        is_active=storage.is_active,
-        is_valid=storage.is_valid,
-        added_at=storage.added_at.strftime(get_config().different.dt_format),
-        last_check_at=(
-            storage.last_check_at.strftime(get_config().different.dt_format)
-            if storage.last_check_at else
-            get_text(language,"admins_show_data_by_id","no")
-        ),
-    )
-

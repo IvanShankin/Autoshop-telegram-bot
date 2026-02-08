@@ -9,19 +9,16 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 
 
-# константы из UniversalMediaType
+# константы из StorageStatus
 
-msgid "description"
-msgstr "Описание"
+msgid "for_sale"
+msgstr "На продаже"
 
-msgid "image"
-msgstr "Изображение"
+msgid "reserved"
+msgstr "Зарезервированный"
 
-msgid "video"
-msgstr "Видео"
+msgid "bought"
+msgstr "Купленный"
 
-msgid "document"
-msgstr "Документ"
-
-msgid "mixed"
-msgstr "Смешанный"
+msgid "deleted"
+msgstr "Удалённый"

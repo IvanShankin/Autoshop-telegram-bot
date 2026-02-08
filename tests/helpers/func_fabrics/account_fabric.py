@@ -10,7 +10,8 @@ from sqlalchemy.orm import selectinload
 from tests.helpers.func_fabrics.category_fabric import create_category_factory
 from tests.helpers.func_fabrics.other_fabric import create_new_user_fabric
 
-from src.services.database.categories.models import AccountStorage, TgAccountMedia, Purchases, StorageStatus
+from src.services.database.categories.models import AccountStorage, TgAccountMedia, Purchases, StorageStatus, \
+    ProductType
 from src.services.database.categories.models import SoldAccounts, SoldAccountsTranslation, \
     ProductAccounts, \
     SoldAccountFull, SoldAccountSmall, ProductAccountFull
@@ -276,6 +277,7 @@ async def create_tg_account_media_factory(
 
 async def create_purchase_fabric(
     user_id: int = None,
+    product_type: ProductType = None,
     account_storage_id: int = None,
     universal_storage_id: int = None,
     original_price: int = 110,
@@ -294,6 +296,7 @@ async def create_purchase_fabric(
     async with get_db() as session_db:
         new_purchase_account = Purchases(
             user_id = user_id,
+            product_type = product_type,
             account_storage_id = account_storage_id,
             universal_storage_id = universal_storage_id,
             original_price = original_price,

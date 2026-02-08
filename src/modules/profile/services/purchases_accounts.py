@@ -87,7 +87,11 @@ async def show_sold_account(
             product_id=account.sold_account_id,
             phone_number=e164_to_pretty(account.account_storage.phone_number),
             name=account.name,
-            description=account.description,
+            description=(
+                account.description
+                if account.description else
+                get_text(language, "miscellaneous", "no")
+            ),
             valid=(
                 get_text(language, "profile_messages","valid")
                 if account.account_storage.is_valid

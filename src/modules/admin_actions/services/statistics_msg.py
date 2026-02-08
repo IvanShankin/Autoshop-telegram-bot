@@ -34,16 +34,32 @@ async def get_statistics_message(interval_days: int, language: str) -> str:
         "statistics_summary"
     ).format(
         interval=interval_msg,
+        # пользователи
         active_users=statistics.active_users,
         new_users=statistics.new_users,
         total_users=statistics.total_users,
+
+        # продажи
+        quantity_sale=statistics.quantity_sale,
+        amount_sale=statistics.amount_sale,
+        total_net_profit=statistics.total_net_profit,
+
         quantity_sale_accounts=statistics.quantity_sale_accounts,
         amount_sale_accounts=statistics.amount_sale_accounts,
-        total_net_profit=statistics.total_net_profit,
+        total_net_profit_account=statistics.total_net_profit_account,
+
+        quantity_sale_universal=statistics.quantity_sale_universal,
+        amount_sale_universal=statistics.amount_sale_universal,
+        total_net_profit_universal=statistics.total_net_profit_universal,
+
+        # пополнения
         quantity_replenishments=statistics.quantity_replenishments,
         amount_replenishments=statistics.amount_replenishments,
         replenishment_payment_systems=payment_systems_block,
+
+        # общие
         funds_in_bot=statistics.funds_in_bot,
         accounts_for_sale=statistics.accounts_for_sale,
+        universals_for_sale=statistics.universals_for_sale,
         last_backup=statistics.last_backup,
     )

@@ -4,6 +4,7 @@ import pytest
 from orjson import orjson
 from sqlalchemy import delete, select
 
+from src.services.database.categories.models import ProductType
 from src.services.database.system.actions.actions import get_all_types_payments, add_backup_log, update_type_payment, \
     get_type_payment, update_ui_image, get_all_ui_images, get_ui_image, get_statistics
 from src.services.database.system.models import Settings, BackupLogs, TypePayments
@@ -344,15 +345,25 @@ async def test_add_backup_log_creates_record():
 
 
 @pytest.mark.asyncio
-async def test_get_statistics(create_new_user, create_replenishment, create_product_account, create_purchase):
+async def test_get_statistics(
+    create_new_user,
+    create_replenishment,
+    create_product_account,
+    create_product_universal,
+    create_purchase
+):
     users = [await create_new_user() for _ in range(3)]
     replenishments = [await create_replenishment(user_id=users[0].user_id) for _ in range(3)]
-    purchase_account = [await create_purchase(user_id=users[0].user_id) for _ in range(3)]
+    purchase_account = [await create_purchase(user_id=users[0].user_id, product_type=ProductType.ACCOUNT) for _ in range(3)]
+    purchase_universal = [await create_purchase(user_id=users[0].user_id, product_type=ProductType.UNIVERSAL) for _ in range(3)]
 
     product_accounts = []
-    for _ in range(3):
+    product_universal = []
+    for i in range(3):
         _, prod_acc = await create_product_account(price=100)
+        _, prod_univ = await create_product_universal()
         product_accounts.append(prod_acc)
+        product_universal.append(prod_univ)
 
 
     result = await get_statistics(10)
@@ -362,9 +373,17 @@ async def test_get_statistics(create_new_user, create_replenishment, create_prod
     assert result.new_users == len(users)
     assert result.active_users == len(users)
 
+    assert result.quantity_sale == len(purchase_universal) + len(purchase_account)
+    assert result.amount_sale == sum(s.purchase_price for s in purchase_universal) + sum(s.purchase_price for s in purchase_account)
+    assert result.total_net_profit == sum(s.net_profit for s in purchase_universal) + sum(s.net_profit for s in purchase_account)
+
+    assert result.quantity_sale_universal == len(purchase_universal)
+    assert result.amount_sale_universal == sum(s.purchase_price for s in purchase_universal)
+    assert result.total_net_profit_universal == sum(s.net_profit for s in purchase_universal)
+
     assert result.quantity_sale_accounts == len(purchase_account)
     assert result.amount_sale_accounts == sum(s.purchase_price for s in purchase_account)
-    assert result.total_net_profit == sum(s.net_profit for s in purchase_account)
+    assert result.total_net_profit_account == sum(s.net_profit for s in purchase_account)
 
     assert result.quantity_replenishments == 3
     assert result.amount_replenishments == sum(r.amount for r in replenishments)
@@ -387,6 +406,7 @@ async def test_get_statistics(create_new_user, create_replenishment, create_prod
     assert result.funds_in_bot == 300
 
     assert result.accounts_for_sale == len(product_accounts)
+    assert result.universals_for_sale == len(product_universal)
 
     assert result.last_backup == "—"
 

@@ -7,7 +7,8 @@ import orjson
 from sqlalchemy import select, update, delete, func, desc
 
 from src.config import get_config
-from src.services.database.categories.models import Purchases, ProductAccounts, Categories
+from src.services.database.categories.models import Purchases, ProductAccounts, Categories, ProductType, \
+    ProductUniversal
 from src.services.database.system.models.models import Files
 from src.services.database.system.shemas.shemas import StatisticsData, ReplenishmentPaymentSystem
 from src.services.database.users.models import Users, Replenishments
@@ -465,56 +466,77 @@ async def get_statistics(interval_days: int) -> StatisticsData:
     up_to_date = datetime.now(UTC) - timedelta(days=interval_days)
 
     async with get_db() as session_db:
-        result_db = await session_db.execute(select(func.count()).where(Users.last_used >= up_to_date))
-        active_users = result_db.scalar()
+        result = await session_db.execute(
+            select(
+                func.count().filter(Users.last_used >= up_to_date).label("active"),
+                func.count().filter(Users.created_at >= up_to_date).label("new"),
+                func.count().label("total"),
+            )
+        )
 
-        result_db = await session_db.execute(select(func.count()).where(Users.created_at >= up_to_date))
-        new_users = result_db.scalar()
+        row = result.one()
+        active_users = row.active
+        new_users = row.new
+        total_users = row.total
 
-        result_db = await session_db.execute(select(func.count()).select_from(Users))
-        total_users = result_db.scalar()
+        result = await session_db.execute(
+            select(
+                Purchases.product_type,
+                func.count().label("quantity"),
+                func.coalesce(func.sum(Purchases.purchase_price), 0).label("amount"),
+                func.coalesce(func.sum(Purchases.net_profit), 0).label("profit"),
+            )
+            .where(Purchases.purchase_date >= up_to_date)
+            .group_by(Purchases.product_type)
+        )
 
-        result_db = await session_db.execute(select(Purchases).where(Purchases.purchase_date >= up_to_date))
-        needs_sale_accounts: List[Purchases] = result_db.scalars().all()
+        sales = {row.product_type: row for row in result.all()}
 
-        quantity_sale_accounts = max(len(needs_sale_accounts), 0)
+        acc = sales.get(ProductType.ACCOUNT)
+        univ = sales.get(ProductType.UNIVERSAL)
 
-        amount_sale_accounts = 0
-        for sale_acc in needs_sale_accounts:
-            amount_sale_accounts += sale_acc.purchase_price
+        quantity_sale_accounts = acc.quantity if acc else 0
+        amount_sale_accounts = acc.amount if acc else 0
+        total_net_profit_account = acc.profit if acc else 0
 
-        total_net_profit = 0
-        for sale_acc in needs_sale_accounts:
-            total_net_profit += sale_acc.net_profit
+        quantity_sale_universal = univ.quantity if univ else 0
+        amount_sale_universal = univ.amount if univ else 0
+        total_net_profit_universal = univ.profit if univ else 0
 
-        result_db = await session_db.execute(select(Replenishments).where(Replenishments.created_at >= up_to_date))
-        needs_replenishments: List[Replenishments] = result_db.scalars().all()
+        result = await session_db.execute(
+            select(
+                Replenishments.type_payment_id,
+                func.count(Replenishments.replenishment_id).label("quantity"),
+                func.coalesce(func.sum(Replenishments.amount), 0).label("amount"),
+            )
+            .group_by(Replenishments.type_payment_id)
+            .where(Replenishments.created_at >= up_to_date)
+        )
 
-        quantity_replenishments = max(len(needs_replenishments), 0)
-        amount_replenishments = 0
-        for replenishment in needs_replenishments:
-            amount_replenishments += replenishment.amount
+        repl_stats = {r.type_payment_id: r for r in result.all()}
 
         all_type_payments = await get_all_types_payments()
-        replenishment_payment_systems = []
-        for type_payment in all_type_payments:
-            replenishments = [
-                replenishment
-                for replenishment in needs_replenishments
-                if replenishment.type_payment_id == type_payment.type_payment_id
-            ]
 
-            amount_replenishments_current_type = 0
-            for replenishment in replenishments:
-                amount_replenishments_current_type += replenishment.amount
+        quantity_replenishments = 0
+        amount_replenishments = 0
+        replenishment_payment_systems = []
+
+        for tp in all_type_payments:
+            stat = repl_stats.get(tp.type_payment_id)
+
+            qty = stat.quantity if stat else 0
+            amt = stat.amount if stat else 0
 
             replenishment_payment_systems.append(
                 ReplenishmentPaymentSystem(
-                    name = type_payment.name_for_user,
-                    quantity_replenishments = max(len(replenishments), 0),
-                    amount_replenishments = amount_replenishments_current_type
+                    name=tp.name_for_user,
+                    quantity_replenishments=qty,
+                    amount_replenishments=amt,
                 )
             )
+
+            quantity_replenishments += qty
+            amount_replenishments += amt
 
 
         result = await session_db.execute(
@@ -527,6 +549,9 @@ async def get_statistics(interval_days: int) -> StatisticsData:
         result_db = await session_db.execute(select(func.count()).select_from(ProductAccounts))
         accounts_for_sale = result_db.scalar()
 
+        result_db = await session_db.execute(select(func.count()).select_from(ProductUniversal))
+        universals_for_sale = result_db.scalar()
+
         result_db = await session_db.execute(select(BackupLogs.created_at).order_by(desc(BackupLogs.created_at)).limit(1))
         last_backup = result_db.scalar_one_or_none()
 
@@ -536,13 +561,24 @@ async def get_statistics(interval_days: int) -> StatisticsData:
         active_users=active_users,
         new_users=new_users,
         total_users=total_users,
+
+        quantity_sale=quantity_sale_accounts + quantity_sale_universal,
+        amount_sale=amount_sale_accounts + amount_sale_universal,
+        total_net_profit=total_net_profit_account + total_net_profit_universal,
+
         quantity_sale_accounts=quantity_sale_accounts,
         amount_sale_accounts=amount_sale_accounts,
-        total_net_profit=total_net_profit,
+        total_net_profit_account=total_net_profit_account,
+
+        quantity_sale_universal=quantity_sale_universal,
+        amount_sale_universal=amount_sale_universal,
+        total_net_profit_universal=total_net_profit_universal,
+
         quantity_replenishments=quantity_replenishments,
         amount_replenishments=amount_replenishments,
         replenishment_payment_systems=replenishment_payment_systems,
         funds_in_bot=funds_in_bot,
         accounts_for_sale=accounts_for_sale,
+        universals_for_sale=universals_for_sale,
         last_backup=last_backup,
     )

@@ -57,7 +57,6 @@ async def filling_all_redis():
     await filling_settings()
     await filling_referral_levels()
     await filling_all_types_payments()
-    await filling_users()
     await filling_admins()
     await filling_banned_accounts()
     await filling_all_keys_category()

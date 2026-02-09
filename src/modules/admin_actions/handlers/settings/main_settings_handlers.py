@@ -5,12 +5,16 @@ from aiogram.types import CallbackQuery, FSInputFile, Message
 
 from src.bot_actions.bot_instance import get_bot, get_bot_logger
 from src.bot_actions.messages import edit_message
+from src.bot_actions.messages.schemas import LogLevel, EventSentLog
+from src.broker.producer import publish_event
 from src.config import get_config
 from src.modules.admin_actions.keyboards import admin_settings_kb
+from src.modules.admin_actions.keyboards.settings_kb import confirm_overwrite_cache_kb, back_in_admin_settings_kb
 from src.services.database.admins.actions import check_admin
 from src.services.database.system.actions import get_settings
 from src.services.database.users.models import Users
 from src.services.filesystem.actions import split_file_on_chunk
+from src.services.redis.filling import filling_all_redis
 from src.utils.i18n import get_text
 
 router = Router()
@@ -47,6 +51,41 @@ async def admin_settings(callback: CallbackQuery, state: FSMContext, user: Users
 async def download_logs(callback: CallbackQuery, state: FSMContext, user: Users):
     bot = await get_bot()
     await send_log_files(bot, user.user_id, user.language)
+
+
+@router.callback_query(F.data == "confirm_overwrite_cache")
+async def overwrite_cache(callback: CallbackQuery, state: FSMContext, user: Users):
+    await edit_message(
+        chat_id=user.user_id,
+        message=get_text(user.language, "admins_settings", "confirm_overwrite_cache"),
+        message_id=callback.message.message_id,
+        image_key="admin_panel",
+        reply_markup=confirm_overwrite_cache_kb(user.language)
+    )
+
+
+@router.callback_query(F.data == "overwrite_cache")
+async def overwrite_cache(callback: CallbackQuery, state: FSMContext, user: Users):
+    settings = await get_settings()
+
+    if not settings.maintenance_mode:
+        message = get_text(user.language, "admins_settings", "first_on_mode_maintenance_work")
+    else:
+        await filling_all_redis()
+        message = get_text(user.language, "admins_settings", "overwrite_cache_complete")
+        event = EventSentLog(
+            text=f"admin_id: {user.user_id}\n\nАдмин перезаписал кеш.",
+            log_lvl=LogLevel.INFO
+        )
+        await publish_event(event.model_dump(), "message.send_log")
+
+    await edit_message(
+        chat_id=user.user_id,
+        message=message,
+        message_id=callback.message.message_id,
+        image_key="admin_panel",
+        reply_markup=back_in_admin_settings_kb(user.language)
+    )
 
 
 @router_logger.message(Command("get_log"))

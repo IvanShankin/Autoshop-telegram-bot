@@ -220,6 +220,9 @@ msgstr "👑 Удалить админа"
 msgid "download_logs"
 msgstr "📥 Выгрузить логи"
 
+msgid "overwrite_cache"
+msgstr "♻️ Перезаписать кеш"
+
 msgid "maintenance_mode_indicator"
 msgstr "{indicator} Технические работы 🔧"
 

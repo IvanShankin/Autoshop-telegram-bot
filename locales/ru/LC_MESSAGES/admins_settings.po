@@ -59,3 +59,13 @@ msgstr "Начата выгрузка логов"
 
 msgid "log_upload_complete"
 msgstr "Выгрузка логов закончена"
+
+msgid "confirm_overwrite_cache"
+msgstr "Вы действительно хотите перезаписать кеш? \n\n"
+"Данное действие необходимо только в том случае если имеются расхождения с БД."
+
+msgid "overwrite_cache_complete"
+msgstr "Кеш успешно перезаписан!"
+
+msgid "first_on_mode_maintenance_work"
+msgstr "Сперва включите режим 'технические работы'"

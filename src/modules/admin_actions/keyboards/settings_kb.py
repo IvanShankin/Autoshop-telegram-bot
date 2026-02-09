@@ -23,6 +23,10 @@ def admin_settings_kb(language: str):
             callback_data=f"download_logs"
         )],
         [InlineKeyboardButton(
+            text=get_text(language, "kb_admin_panel", "overwrite_cache"),
+            callback_data=f"confirm_overwrite_cache"
+        )],
+        [InlineKeyboardButton(
             text=get_text(language, "kb_general", "back"),
             callback_data=f"admin_panel"
         )],
@@ -67,6 +71,19 @@ def change_admin_settings_kb(language: str, current_maintenance_mode: bool):
         [InlineKeyboardButton(
             text=get_text(language, "kb_admin_panel", "url_to_faq"),
             callback_data=f'update_faq'
+        )],
+        [InlineKeyboardButton(
+            text=get_text(language, "kb_general", "back"),
+            callback_data=f"admin_settings"
+        )],
+    ])
+
+
+def confirm_overwrite_cache_kb(language: str):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text=get_text(language, "kb_general", "confirm"),
+            callback_data=f"overwrite_cache"
         )],
         [InlineKeyboardButton(
             text=get_text(language, "kb_general", "back"),

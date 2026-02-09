@@ -4,6 +4,7 @@ def get_ui_images():
         "welcome_message",
         "selecting_language",
         "subscription_prompt",
+        "info",
 
         # Основные разделы профиля
         "profile",

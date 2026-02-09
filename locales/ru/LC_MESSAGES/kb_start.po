@@ -18,6 +18,9 @@ msgstr "👤 Профиль"
 msgid "information"
 msgstr "ℹ️ Информация"
 
+msgid "faq"
+msgstr "📄 FAQ"
+
 msgid "admin_panel"
 msgstr "🔧 Админ панель"
 

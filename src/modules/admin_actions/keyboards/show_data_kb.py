@@ -100,7 +100,7 @@ def _data_by_id_page_3(language: str):
         # переходы
         [
             InlineKeyboardButton(text="⬅️", callback_data=f"data_by_id:2"),
-            InlineKeyboardButton(text="2/3", callback_data=f"none"),
+            InlineKeyboardButton(text="3/3", callback_data=f"none"),
             InlineKeyboardButton(text="➡️", callback_data=f"none")
         ],
 

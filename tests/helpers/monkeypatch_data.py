@@ -4,7 +4,6 @@ import shutil
 import sys
 import types
 from contextlib import asynccontextmanager
-from pathlib import Path
 from typing import Generator
 from unittest.mock import MagicMock
 

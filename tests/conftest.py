@@ -1,7 +1,6 @@
 import asyncio
 import os
 import sys
-from pathlib import Path
 
 import aio_pika
 
@@ -22,7 +21,7 @@ from tests.helpers.monkeypatch_data import (
 
 
 from src.services.database import core
-from src.services.redis.core_redis import get_redis
+from src.services.redis.core_redis import get_redis, init_redis
 
 from tests.helpers.helper_fixture import *
 
@@ -48,8 +47,14 @@ if MODE != "TEST":
 
 # ---------- фикстуры ----------
 
+@pytest_asyncio.fixture(scope="session", autouse=True)
+async def start_tests():
+    await init_redis()
+
+
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def replacement_needed_modules(
+        start_tests,
         replacement_redis_fix,
         replacement_fake_bot_fix,
         patch_fake_aiogram,
@@ -179,7 +184,6 @@ async def clean_rabbit():
     await connection.close()
 
     yield
-
 
 
 @pytest_asyncio.fixture

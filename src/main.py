@@ -5,6 +5,7 @@ from src.deferred_tasks.core import init_scheduler
 from src.services.database.backups.backup_db import add_backup_create, add_backup_cleanup
 from src.services.database.core.filling_database import create_database
 from src.services.fastapi_core.server import start_server
+from src.services.redis.core_redis import init_redis, close_redis
 from src.services.redis.filling import filling_all_redis
 from src.services.database.discounts.utils.set_not_valid import deactivate_expired_promo_codes_and_vouchers
 from src.bot_actions.bot_run import run_bot
@@ -16,6 +17,7 @@ from src.utils.core_logger import setup_logging, get_logger
 
 async def on_startup():
     init_config()  # конфиги необходимо до init_crypto_context
+    await init_redis()
 
     try:
         init_crypto_context()
@@ -39,8 +41,11 @@ async def on_startup():
 
     await run_bot()
 
+
 async def on_shutdown():
     await stop_background_consumer()
+    await close_redis()
+
 
 if __name__ == '__main__':
     logger = get_logger(__name__)

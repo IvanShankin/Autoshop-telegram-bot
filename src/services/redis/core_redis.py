@@ -1,19 +1,32 @@
-from contextlib import asynccontextmanager
-from redis.asyncio import Redis  # Асинхронный клиент
+from redis.asyncio import Redis
 
 from src.config import get_config
 
+redis_client: Redis | None = None
 
-@asynccontextmanager
-async def get_redis():
+
+async def init_redis():
+    global redis_client
+
     conf = get_config()
-    redis = Redis(
+
+    redis_client = Redis(
         host=conf.env.redis_host,
         port=conf.env.redis_port,
         db=0,
-        decode_responses=True
+        decode_responses=True,
     )
-    try:
-        yield redis
-    finally:
-        await redis.aclose()
+
+
+async def close_redis():
+    global redis_client
+
+    if redis_client:
+        await redis_client.aclose()
+
+
+def get_redis() -> Redis:
+    if redis_client is None:
+        raise RuntimeError("Redis not initialized")
+
+    return redis_client

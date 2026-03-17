@@ -21,7 +21,6 @@ from src.services.database.system.models import Settings, TypePayments, BackupLo
 from src.services.database.core.database import get_db
 from src.services.redis.core_redis import get_redis
 from src.services.database.system.models import UiImages
-from src.utils.ui_images_data import get_ui_images, UI_IMAGES_IGNORE_ADMIN
 
 
 def _check_file_exists(ui_image: UiImages) -> UiImages | None:
@@ -140,12 +139,13 @@ async def delete_file(key: str):
 
 async def get_ui_images_by_page(page: int, page_size: int = None) -> List[str]:
     # Получаем все ключи, исключив админские
+    conf = get_config()
     if not page_size:
-        page_size = get_config().different.page_size
+        page_size = conf.different.page_size
 
     filtered_keys = [
-        key for key in get_ui_images()
-        if key not in UI_IMAGES_IGNORE_ADMIN
+        key for key in conf.message_event.all_keys
+        if key not in conf.message_event.keys_ignore_admin
     ]
 
     # Считаем границы страницы

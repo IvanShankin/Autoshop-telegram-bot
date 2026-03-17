@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from src.config import get_config
 from src.services.database.admins.actions import create_admin
 from src.services.database.system.models.models import Files
-from src.utils.ui_images_data import get_ui_images
 from src.services.database.users.models import Users, NotificationSettings
 from src.services.database.system.models import Settings, TypePayments, UiImages
 from src.services.database.core.database import get_db, Base
@@ -51,8 +50,7 @@ async def create_database():
     for type_payment in conf.app.type_payments:
         await filling_type_payment(type_payment)
 
-    ui_images = get_ui_images()
-    for key in ui_images:
+    for key in conf.message_event.all_keys:
         await filling_ui_image(key=key)
 
     files_data = conf.file_keys.model_dump()

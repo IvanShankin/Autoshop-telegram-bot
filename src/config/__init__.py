@@ -6,6 +6,7 @@ from src.config.db_conf import DbConnectionSettings
 from src.config.env_conf import EnvSettings, Mode
 from src.config.app_conf import AppConfig
 from src.config.file_keys_conf import FileKeysConf, FilePathAndKey
+from src.config.message_event_conf import MessageEventConf
 from src.config.miscellaneous_conf import MiscellaneousConf
 from src.config.paths_conf import PathSettings
 from src.config.secrets_conf import load_secrets
@@ -22,6 +23,7 @@ class Config:
         self.env = EnvSettings.from_env()
         self.app = AppConfig()
         self.different = MiscellaneousConf()
+        self.message_event = MessageEventConf.build()
         self.paths = PathSettings.build(self.env.mode)
 
         # инициализировать необходимо не позже чем устанавливаем секреты (при установке секретов используется runtime)

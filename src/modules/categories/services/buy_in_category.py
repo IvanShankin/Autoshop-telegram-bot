@@ -29,7 +29,7 @@ async def _show_not_enough_money(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=get_text(user.language, "miscellaneous", "insufficient_funds").format(amount=need_money),
-        image_key='insufficient_funds',
+        event_message_key='insufficient_funds',
         fallback_image_key="default_catalog_account",
         reply_markup=replenishment_and_back_in_cat(
             language=user.language,
@@ -125,7 +125,7 @@ async def _buy(
                 "thank_you_for_purchase",
                 quantity_products
             ),
-            image_key='successful_purchase',
+            event_message_key='successful_purchase',
             fallback_image_key="default_catalog_account",
             reply_markup=reply_markup,
             message_effect_id="5159385139981059251"
@@ -140,7 +140,7 @@ async def _buy(
                 "categories",
                 "not_enough_products_on_server"
             ),
-            image_key='successful_purchase',
+            event_message_key='successful_purchase',
             fallback_image_key="default_catalog_account",
             reply_markup=back_in_account_category_kb(
                 language=user.language,

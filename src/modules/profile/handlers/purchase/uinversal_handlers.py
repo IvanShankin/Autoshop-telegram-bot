@@ -58,7 +58,7 @@ async def confirm_del_universal(callback: CallbackQuery, user: Users):
             sold_universal_id=universal.sold_universal_id,
             name=universal.universal_storage.name,
         ),
-        image_key='purchased_universal',
+        event_message_key='purchased_universal',
         reply_markup=confirm_del_universal_kb(
             language=user.language,
             sold_universal_id=universal.sold_universal_id,

@@ -1,4 +1,5 @@
 from datetime import datetime, UTC
+from typing import List
 
 import orjson
 from sqlalchemy import select
@@ -10,6 +11,7 @@ from src.services.database.discounts.models import SmallVoucher
 from src.services.database.referrals.models import ReferralLevels
 from src.services.database.system.models import Settings, TypePayments
 from src.services.database.system.models import UiImages
+from src.services.database.system.models.models import Stickers
 from src.services.database.users.models import Users, BannedAccounts
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling.helpers_func import _fill_redis_single_objects
@@ -25,6 +27,18 @@ async def filling_settings():
             async with get_redis() as session_redis:
                 await session_redis.set("settings", orjson.dumps(settings.to_dict()))
 
+
+async def filling_all_stickers():
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(Stickers))
+        stickers: List[Stickers] = result_db.scalars().all()
+
+        if stickers:
+            async with get_redis() as session_redis:
+                for stick in stickers:
+                    await session_redis.set(f"sticker:{stick.key}", value=orjson.dumps(stick.to_dict()))
+
+
 async def filling_ui_image(key: str):
     async with get_db() as session_db:
         result_db = await session_db.execute(select(UiImages).where(UiImages.key == key))
@@ -33,6 +47,7 @@ async def filling_ui_image(key: str):
         if ui_image:
             async with get_redis() as session_redis:
                 await session_redis.set(f"ui_image:{ui_image.key}", value=orjson.dumps(ui_image.to_dict()))
+
 
 async def filling_referral_levels():
     async with get_db() as session_db:

@@ -18,7 +18,7 @@ async def notification_settings(user_id: int, username: str, message_id: int, no
         chat_id=user_id,
         message_id=message_id,
         message=get_text(user.language, "profile_messages", "notification_settings"),
-        image_key='selecting_language',
+        event_message_key='selecting_language',
         reply_markup=setting_notification_kb(user.language, notification=notification)
     )
 
@@ -29,7 +29,7 @@ async def language_settings(user_id: int, message_id: int, user: Users):
         chat_id=user_id,
         message_id=message_id,
         message=text,
-        image_key='selecting_language',
+        event_message_key='selecting_language',
         reply_markup=settings_language_kb(user.language)
     )
 
@@ -41,7 +41,7 @@ async def profile_settings(callback: CallbackQuery, user: Users):
         chat_id = callback.from_user.id,
         message_id = callback.message.message_id,
         message = text,
-        image_key = 'profile_settings',
+        event_message_key = 'profile_settings',
         reply_markup = profile_settings_kb(user.language)
     )
 

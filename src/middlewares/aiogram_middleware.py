@@ -105,7 +105,7 @@ class MaintenanceMiddleware(BaseMiddleware):
                 "start_message",
                 "temporarily_maintenance"
             ),
-            image_key="technical_work"
+            event_message_key="technical_work"
         )
 
 

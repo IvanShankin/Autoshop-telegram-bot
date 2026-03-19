@@ -30,7 +30,7 @@ async def cb_transaction_list(callback: CallbackQuery, user: Users):
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=get_text(user.language, "profile_messages","all_fund_movements"),
-        image_key='history_transections',
+        event_message_key='history_transections',
         reply_markup=await wallet_transactions_kb(user.language, page, target_user_id, user.user_id),
     )
 

@@ -7,9 +7,10 @@ import orjson
 from sqlalchemy import select, update, delete, func, desc
 
 from src.config import get_config
+from src.exceptions.domain import MessageEventNotFound
 from src.services.database.categories.models import Purchases, ProductAccounts, Categories, ProductType, \
     ProductUniversal
-from src.services.database.system.models.models import Files
+from src.services.database.system.models.models import Files, Stickers
 from src.services.database.system.shemas.shemas import StatisticsData, ReplenishmentPaymentSystem
 from src.services.database.users.models import Users, Replenishments
 from src.services.filesystem.actions import get_ext_image
@@ -137,6 +138,87 @@ async def delete_file(key: str):
         )
 
 
+async def create_stickers(key: str, file_id: str, show: bool = True):
+    """
+    :param key: ключ из conf.message_event.all_keys
+    :except MessageEventNotFound: Если key не найден в conf.message_event.all_keys
+    """
+    conf = get_config()
+
+    if not key in conf.message_event.all_keys:
+        raise MessageEventNotFound()
+
+    async with get_db() as session_db:
+        new_sticker = Stickers(
+            key=key,
+            file_id=file_id,
+            show=show,
+        )
+        session_db.add(new_sticker)
+
+        await session_db.commit()
+
+
+async def get_sticker(key: str) -> Stickers | None:
+    async with get_redis() as session_redis:
+        result_redis = await session_redis.get(f'sticker:{key}')
+        if result_redis:
+            ui_image_dict = orjson.loads(result_redis)
+            return Stickers(**ui_image_dict)
+
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(Stickers).where(Stickers.key == key))
+        ui_image = result_db.scalar_one_or_none()
+        return ui_image
+
+
+async def update_sticker(
+    key: str,
+    file_id: str | None = False,
+    show: bool = None,
+) -> UiImages | None:
+    update_data = {}
+
+    if show is not None:
+        update_data["show"] = show
+    if file_id is not False:
+        update_data["file_id"] = file_id
+
+    if update_data:
+        async with get_db() as session_db:
+            result_db = await session_db.execute(
+                update(Stickers)
+                .where(Stickers.key == key)
+                .values(**update_data)
+                .returning(Stickers)
+            )
+            result = result_db.scalar_one_or_none()
+            await session_db.commit()
+
+            if result:
+                async with get_redis() as session_redis:
+                    await session_redis.set(f'sticker:{key}', orjson.dumps(result.to_dict()))
+
+            return result
+    return None
+
+
+async def delete_sticker(key: str) -> Stickers | None:
+    async with get_db() as session_db:
+        result = await session_db.execute(
+            delete(Stickers)
+            .where(Stickers.key == key)
+            .returning(Stickers)
+        )
+        deleted_sticker: Stickers = result.scalar_one_or_none()
+        await session_db.commit()
+
+    async with get_redis() as session_redis:
+        await session_redis.delete(f'sticker:{key}')
+
+    return deleted_sticker
+
+
 async def get_ui_images_by_page(page: int, page_size: int = None) -> List[str]:
     # Получаем все ключи, исключив админские
     conf = get_config()
@@ -216,7 +298,6 @@ async def get_all_ui_images() -> List[UiImages] | None:
 
 
 async def get_ui_image(key: str) -> UiImages | None:
-    """Если есть данные по данному ключу, то вернёт UiImages по данному ключу, если нет, то вернёт None"""
     async with get_redis() as session_redis:
         result_redis = await session_redis.get(f'ui_image:{key}')
         if result_redis:

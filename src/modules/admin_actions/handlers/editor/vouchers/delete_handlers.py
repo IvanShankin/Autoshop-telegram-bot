@@ -34,7 +34,7 @@ async def confirm_deactivate_admin_voucher(callback: CallbackQuery, user: Users)
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,
-        image_key=image_key,
+        event_message_key=image_key,
         reply_markup=reply_markup
     )
 

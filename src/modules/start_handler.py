@@ -48,7 +48,7 @@ async def cmd_start(message: Message, command: CommandObject, state: FSMContext)
             await send_message(
                 chat_id=message.from_user.id,
                 message=result_message_voucher,
-                image_key=image_key,
+                event_message_key=image_key,
             )
         else: # простое приветственное сообщение
             setting = await get_settings()
@@ -60,7 +60,7 @@ async def cmd_start(message: Message, command: CommandObject, state: FSMContext)
             await send_message(
                 chat_id=message.from_user.id,
                 message=text,
-                image_key='welcome_message',
+                event_message_key='welcome_message',
                 reply_markup=await main_kb(language, user.user_id)
             )
 
@@ -74,7 +74,7 @@ async def cmd_start(message: Message, command: CommandObject, state: FSMContext)
             await send_message(
                 chat_id=message.from_user.id,
                 message=result_message_voucher,
-                image_key=image_key,
+                event_message_key=image_key,
             )
             if success_activate_voucher:
                 if not await check_admin(voucher.creator_id): # если создатель ваучера это не админ
@@ -88,13 +88,13 @@ async def cmd_start(message: Message, command: CommandObject, state: FSMContext)
                 "referral_messages",
                 "new_referral_invited"
             ).format(username= f'@{user.username}' if user.username else 'None')
-            await send_message(chat_id=owner_user.user_id, message=text, image_key='new_referral')
+            await send_message(chat_id=owner_user.user_id, message=text, event_message_key='new_referral')
 
         # Выбор языка. Именно таким текстом, ибо не знаем какой язык знает пользователь
         await send_message(
             chat_id=message.from_user.id,
             message="Выберите язык \n\nSelect language",
-            image_key='selecting_language',
+            event_message_key='selecting_language',
             reply_markup=selecting_language
         )
 
@@ -114,7 +114,7 @@ async def select_language(callback: CallbackQuery, user: Users):
     await send_message(
         chat_id=callback.from_user.id,
         message=text,
-        image_key='welcome_message',
+        event_message_key='welcome_message',
         reply_markup=await main_kb(user.language, user.user_id)
     )
 

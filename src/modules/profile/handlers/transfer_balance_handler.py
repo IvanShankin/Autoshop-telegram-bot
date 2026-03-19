@@ -26,7 +26,7 @@ async def balance_transfer(callback: CallbackQuery, state: FSMContext, user: Use
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,
-        image_key='balance_transfer',
+        event_message_key='balance_transfer',
         reply_markup=balance_transfer_kb(user.language, user.user_id)
     )
 
@@ -38,7 +38,7 @@ async def transfer_money_start(callback: CallbackQuery, state: FSMContext, user:
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,
-        image_key='enter_amount',
+        event_message_key='enter_amount',
         reply_markup=back_in_balance_transfer_kb(user.language)
     )
     await state.set_state(TransferMoney.amount)
@@ -73,7 +73,7 @@ async def transfer_money_get_amount(message: Message, state: FSMContext, user: U
     await send_message(
         chat_id=message.from_user.id,
         message=text,
-        image_key='enter_user_id',
+        event_message_key='enter_user_id',
         reply_markup=back_in_balance_transfer_kb(user.language)
     )
 
@@ -97,7 +97,7 @@ async def transfer_money_get_recipient_id(message: Message, state: FSMContext, u
         await send_message(
             chat_id=message.from_user.id,
             message=text,
-            image_key='user_no_found',
+            event_message_key='user_no_found',
             reply_markup=back_in_balance_transfer_kb(user.language)
         )
         await state.set_state(TransferMoney.recipient_id)
@@ -115,7 +115,7 @@ async def transfer_money_get_recipient_id(message: Message, state: FSMContext, u
     await send_message(
         chat_id=message.from_user.id,
         message=text,
-        image_key='confirm_the_data',
+        event_message_key='confirm_the_data',
         reply_markup=confirmation_transfer_kb(user.language)
     )
 
@@ -133,7 +133,7 @@ async def confirm_transfer_money(callback: CallbackQuery, state: FSMContext, use
             chat_id=callback.from_user.id,
             message_id=callback.message.message_id,
             message=f'{text_1}\n\n{text_2}',
-            image_key='user_no_found',
+            event_message_key='user_no_found',
             reply_markup=back_in_balance_transfer_kb(user.language)
         )
         return
@@ -144,7 +144,7 @@ async def confirm_transfer_money(callback: CallbackQuery, state: FSMContext, use
             chat_id=callback.from_user.id,
             message_id=callback.message.message_id,
             message=f'{text_1}\n\n{text_2}',
-            image_key='insufficient_funds',
+            event_message_key='insufficient_funds',
             reply_markup=replenishment_and_back_in_transfer_kb(user.language)
         )
         return
@@ -154,7 +154,7 @@ async def confirm_transfer_money(callback: CallbackQuery, state: FSMContext, use
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,
-        image_key='successful_transfer',
+        event_message_key='successful_transfer',
         reply_markup=back_in_balance_transfer_kb(user.language)
     )
 
@@ -167,6 +167,6 @@ async def confirm_transfer_money(callback: CallbackQuery, state: FSMContext, use
     await send_message(
         chat_id=data.recipient_id,
         message=text,
-        image_key='receiving_funds_from_transfer',
+        event_message_key='receiving_funds_from_transfer',
         reply_markup=confirmation_transfer_kb(user.language)
     )

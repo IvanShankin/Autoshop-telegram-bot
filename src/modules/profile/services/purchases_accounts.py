@@ -27,7 +27,7 @@ async def show_types_services_sold_account(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
         message=get_text(user.language, "profile_messages", "select_account_type"),
-        image_key="purchases",
+        event_message_key="purchases",
         reply_markup=await sold_account_type_service_kb(user.language, user.user_id)
     )
 
@@ -51,7 +51,7 @@ async def show_all_sold_account(
     await edit_message(
         chat_id=user_id,
         message_id=message_id,
-        image_key='purchased_accounts',
+        event_message_key='purchased_accounts',
         reply_markup=await sold_accounts_kb(
             language=language,
             current_page=current_page,
@@ -99,7 +99,7 @@ async def show_sold_account(
             ),
             sold_at=account.sold_at.strftime(get_config().different.dt_format),
         ),
-        image_key='purchased_accounts',
+        event_message_key='purchased_accounts',
         reply_markup=account_kb(
             language=language,
             sold_account_id=account.sold_account_id,

@@ -20,7 +20,7 @@ async def message_about_user(new_message: bool, admin: Users, target_user: Users
         await send_message(
             admin.user_id,
             result_message,
-            image_key="admin_panel",
+            event_message_key="admin_panel",
             reply_markup=user_management_kb(admin.language, target_user.user_id, bool(reason_ban))
         )
     else:
@@ -28,6 +28,6 @@ async def message_about_user(new_message: bool, admin: Users, target_user: Users
             admin.user_id,
             message_id=message_id,
             message=result_message,
-            image_key="admin_panel",
+            event_message_key="admin_panel",
             reply_markup=user_management_kb(admin.language, target_user.user_id, bool(reason_ban))
         )

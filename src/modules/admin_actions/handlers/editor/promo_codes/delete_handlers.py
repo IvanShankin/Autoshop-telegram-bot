@@ -56,8 +56,8 @@ async def deactivate_promo_code_handler(callback: CallbackQuery, user: Users):
 
 
     await edit_message(
-            chat_id=callback.from_user.id,
-            message_id=callback.message.message_id,
-            message=text,
-            reply_markup=back_in_all_admin_promo_kb(user.language, current_page, show_not_valid)
+        chat_id=callback.from_user.id,
+        message_id=callback.message.message_id,
+        message=text,
+        reply_markup=back_in_all_admin_promo_kb(user.language, current_page, show_not_valid)
     )

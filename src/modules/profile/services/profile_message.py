@@ -71,7 +71,7 @@ async def message_show_transaction(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,
-        image_key='history_transections',
+        event_message_key='history_transections',
         reply_markup=back_in_wallet_transactions_kb(language, target_user_id, currant_page=currant_page)
     )
 
@@ -99,7 +99,7 @@ async def message_income_ref(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,
-        image_key='history_income_from_referrals',
+        event_message_key='history_income_from_referrals',
         reply_markup= back_in_accrual_ref_list_kb(language, current_page, income.owner_user_id)
     )
 

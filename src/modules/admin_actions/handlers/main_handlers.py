@@ -19,14 +19,14 @@ async def handler_admin(
     if send_new_message:
         await send_message(
             chat_id=user.user_id,
-            image_key="admin_panel",
+            event_message_key="admin_panel",
             reply_markup=main_admin_kb(user.language)
         )
     else:
         await edit_message(
             chat_id=user.user_id,
             message_id=message_id,
-            image_key="admin_panel",
+            event_message_key="admin_panel",
             reply_markup=main_admin_kb(user.language)
         )
 

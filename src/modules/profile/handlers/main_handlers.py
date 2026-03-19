@@ -23,7 +23,7 @@ async def handler_profile(
         await send_message(
             chat_id=user.user_id,
             message=text,
-            image_key="profile",
+            event_message_key="profile",
             reply_markup=profile_kb(user.language, user.user_id)
         )
     else:
@@ -31,7 +31,7 @@ async def handler_profile(
             chat_id=chat_id,
             message_id=message_id,
             message=text,
-            image_key='profile',
+            event_message_key='profile',
             reply_markup=profile_kb(user.language, user.user_id)
         )
 

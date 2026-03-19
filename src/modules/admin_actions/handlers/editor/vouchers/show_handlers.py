@@ -21,7 +21,7 @@ async def admin_vouchers(callback: CallbackQuery, state: FSMContext, user: Users
     await edit_message(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
-        image_key="admin_panel",
+        event_message_key="admin_panel",
         reply_markup=admin_vouchers_kb(user.language)
     )
 
@@ -33,7 +33,7 @@ async def admin_voucher_list(callback: CallbackQuery, user: Users):
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
-        image_key='admin_panel',
+        event_message_key='admin_panel',
         reply_markup=await all_admin_vouchers_kb(
             current_page=int(current_page),
             language=user.language
@@ -81,6 +81,6 @@ async def show_admin_voucher(callback: CallbackQuery, user: Users):
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,
-        image_key='admin_panel',
+        event_message_key='admin_panel',
         reply_markup=reply_markup
     )

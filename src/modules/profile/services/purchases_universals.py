@@ -53,7 +53,7 @@ async def show_all_sold_universal(
     await edit_message(
         chat_id=user_id,
         message_id=message_id,
-        image_key='purchased_universal',
+        event_message_key='purchased_universal',
         reply_markup=await sold_universal_kb(
             language=language,
             current_page=current_page,
@@ -81,7 +81,7 @@ async def show_sold_universal(
             name=universal.universal_storage.name,
             sold_at=universal.sold_at.strftime(get_config().different.dt_format),
         ),
-        image_key='purchased_universal',
+        event_message_key='purchased_universal',
         reply_markup=universal_kb(
             language=language,
             sold_universal_id=universal.sold_universal_id,

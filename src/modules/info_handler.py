@@ -18,5 +18,5 @@ async def handle_catalog_message(message: Message, state: FSMContext, user: User
     await send_message(
         user.user_id,
         reply_markup=await info_kb(user.language),
-        image_key="info",
+        event_message_key="info",
     )

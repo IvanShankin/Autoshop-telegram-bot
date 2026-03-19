@@ -41,6 +41,7 @@ async def image_editor(language: str, ui_image_key: str, current_show: bool, cur
         [InlineKeyboardButton(text=get_text(language, "kb_general", "back"), callback_data=f'images_editor_list:{current_page}'), ]
     ])
 
+
 async def back_in_image_editor(language: str, img_key: str, current_page: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(

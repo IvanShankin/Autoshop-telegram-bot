@@ -25,7 +25,7 @@ async def show_type_replenishment(callback: CallbackQuery, state: FSMContext, us
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,
-        image_key='show_all_services_replenishments',
+        event_message_key='show_all_services_replenishments',
         reply_markup=await type_replenishment_kb(user.language)
     )
 
@@ -41,7 +41,7 @@ async def get_amount(callback: CallbackQuery, state: FSMContext, user: Users):
             chat_id=callback.from_user.id,
             message_id=callback.message.message_id,
             message=get_text(user.language, "profile_messages","service_temporarily_inactive"),
-            image_key='incorrect_data_entered',
+            event_message_key='incorrect_data_entered',
             reply_markup=await type_replenishment_kb(user.language)
         )
         return
@@ -50,7 +50,7 @@ async def get_amount(callback: CallbackQuery, state: FSMContext, user: Users):
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=get_text(user.language, "profile_messages",'enter_top_up_amount').format(name_payment=name_payment),
-        image_key='request_enter_amount',
+        event_message_key='request_enter_amount',
         reply_markup=back_in_type_replenishment_kb(user.language)
     )
 
@@ -83,7 +83,6 @@ async def start_replenishment(message: Message, state: FSMContext, user: Users):
         await send_message(
             chat_id=message.from_user.id,
             message=get_text(user.language, "profile_messages","service_temporarily_inactive"),
-            image_key=None,
             reply_markup=await type_replenishment_kb(user.language)
         )
         return
@@ -103,7 +102,7 @@ async def start_replenishment(message: Message, state: FSMContext, user: Users):
         await send_message(
             chat_id=message.from_user.id,
             message=text,
-            image_key='incorrect_data_entered',
+            event_message_key='incorrect_data_entered',
             reply_markup=back_in_type_replenishment_kb(user.language)
         )
         return
@@ -127,7 +126,6 @@ async def start_replenishment(message: Message, state: FSMContext, user: Users):
             await send_message(
                 chat_id=message.from_user.id,
                 message=get_text(user.language, "profile_messages","service_temporarily_inactive"),
-                image_key=None,
                 reply_markup=await type_replenishment_kb(user.language)
             )
             return
@@ -149,7 +147,7 @@ async def start_replenishment(message: Message, state: FSMContext, user: Users):
         await send_message(
             chat_id=message.from_user.id,
             message=text,
-            image_key='pay',
+            event_message_key='pay',
             reply_markup=payment_invoice(user.language, url)
         )
     except Exception as e:
@@ -157,7 +155,7 @@ async def start_replenishment(message: Message, state: FSMContext, user: Users):
         await send_message(
             chat_id=message.from_user.id,
             message=text,
-            image_key='server_error',
+            event_message_key='server_error',
             reply_markup=back_in_type_replenishment_kb(user.language)
         )
 

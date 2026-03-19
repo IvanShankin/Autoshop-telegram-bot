@@ -53,14 +53,14 @@ async def show_ref_lvl_editor_func(ref_lvl_id: int, user: Users, new_message: bo
     )
 
     if new_message:
-        await send_message(user.user_id, message, image_key="admin_panel", reply_markup=reply_markup)
+        await send_message(user.user_id, message, event_message_key="admin_panel", reply_markup=reply_markup)
         return
 
     await edit_message(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
         message=message,
-        image_key="admin_panel",
+        event_message_key="admin_panel",
         reply_markup=reply_markup
     )
 
@@ -71,7 +71,7 @@ async def lvl_list_ref_system(callback: CallbackQuery, state: FSMContext, user: 
     await edit_message(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
-        image_key="admin_panel",
+        event_message_key="admin_panel",
         reply_markup=await lvl_list_ref_system_kb(user.language)
     )
 
@@ -291,7 +291,7 @@ async def confirm_delete_ref_lvl(callback: CallbackQuery, user: Users):
         chat_id=user.user_id,
         message_id=callback.message.message_id,
         message=get_text(user.language, "admins_editor_ref_system", "confirmation_delete_level"),
-        image_key="admin_panel",
+        event_message_key="admin_panel",
         reply_markup=confirm_del_lvl_kb(user.language, referral_level_id=ref_lvl_id)
     )
 
@@ -310,6 +310,6 @@ async def delete_ref_lvl(callback: CallbackQuery, user: Users):
     await edit_message(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
-        image_key="admin_panel",
+        event_message_key="admin_panel",
         reply_markup=await lvl_list_ref_system_kb(user.language)
     )

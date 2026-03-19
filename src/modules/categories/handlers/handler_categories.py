@@ -38,7 +38,7 @@ async def handle_catalog_message(message: Message, state: FSMContext, user: User
                 "categories",
                 "subscribe_to_channel_prompt"
             ),
-            image_key='subscription_prompt',
+            event_message_key='subscription_prompt',
             reply_markup=await subscription_prompt_kb(user.language)
         )
         return
@@ -64,7 +64,7 @@ async def message_in_main_category(user: Users, old_message_id: int | None = Non
         await edit_message(
             message_id=old_message_id,
             chat_id=user.user_id,
-            image_key='main_category',
+            event_message_key='main_category',
             fallback_image_key="default_catalog_account",
             reply_markup=await main_categories_kb(user.language)
         )
@@ -72,7 +72,7 @@ async def message_in_main_category(user: Users, old_message_id: int | None = Non
 
     await send_message(
         chat_id=user.user_id,
-        image_key='main_category',
+        event_message_key='main_category',
         fallback_image_key="default_catalog_account",
         reply_markup=await main_categories_kb(user.language)
     )
@@ -210,7 +210,7 @@ async def enter_promo(callback: CallbackQuery, state: FSMContext, user: Users):
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=get_text(user.language, "categories","enter_activation_code"),
-        image_key='entering_promo_code',
+        event_message_key='entering_promo_code',
         reply_markup=back_in_account_category_kb(
             user.language,
             category_id=category.category_id,
@@ -246,7 +246,7 @@ async def set_promo_code(message: Message, state: FSMContext, user: Users):
             chat_id=message.from_user.id,
             message_id=data.old_message_id,
             message=get_text(user.language, "discount","promo_code_not_found_or_expired"),
-            image_key='entering_promo_code',
+            event_message_key='entering_promo_code',
             reply_markup=back_in_account_category_kb(
                 user.language,
                 category_id=data.category_id,
@@ -262,7 +262,7 @@ async def set_promo_code(message: Message, state: FSMContext, user: Users):
             chat_id=message.from_user.id,
             message_id=data.old_message_id,
             message=get_text(user.language, "discount","promo_code_already_activated"),
-            image_key='entering_promo_code',
+            event_message_key='entering_promo_code',
             reply_markup=back_in_account_category_kb(
                 user.language,
                 category_id=data.category_id,
@@ -347,7 +347,7 @@ async def confirm_buy_category(callback: CallbackQuery, user: Users):
             balance=user.balance,
             total_sum=total_sum
         ),
-        image_key = 'confirm_purchase',
+        event_message_key = 'confirm_purchase',
         fallback_image_key = "default_catalog_account",
         reply_markup=confirm_buy_kb(
             language=user.language,

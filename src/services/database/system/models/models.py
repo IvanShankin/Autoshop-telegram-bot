@@ -17,7 +17,23 @@ class Settings(Base):
     shop_name = Column(Text, nullable=True)
     FAQ = Column(Text, nullable=True) # ссылка
 
+
+class Stickers(Base):
+    """
+    Используется для message_event
+
+    Column: key - ключ из message_event
+    """
+    __tablename__ = "stickers"
+
+    key = Column(String(300), primary_key=True)
+    file_id = Column(Text, nullable=True)
+    show = Column(Boolean, nullable=False, server_default=text('true'))
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
 class UiImages(Base):
+    """Используется для категории и для message_event"""
     __tablename__ = "ui_images"
 
     key = Column(String(300), primary_key=True)

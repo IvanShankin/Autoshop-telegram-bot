@@ -25,7 +25,7 @@ async def get_id_or_user_user_management(callback: CallbackQuery, state: FSMCont
             "admins_user_mang",
             "send_user_id_or_username"
         ),
-        image_key='admin_panel',
+        event_message_key='admin_panel',
         reply_markup=back_in_main_admin_kb(user.language)
     )
 

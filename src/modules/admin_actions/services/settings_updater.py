@@ -36,7 +36,7 @@ async def message_change_settings(user: Users, new_message: bool, callback: Call
         await send_message(
             chat_id=user.user_id,
             message=message,
-            image_key="admin_panel",
+            event_message_key="admin_panel",
             reply_markup=reply_markup
         )
         return
@@ -45,7 +45,7 @@ async def message_change_settings(user: Users, new_message: bool, callback: Call
         chat_id=user.user_id,
         message_id=callback.message.message_id,
         message=message,
-        image_key="admin_panel",
+        event_message_key="admin_panel",
         reply_markup=change_admin_settings_kb(user.language, current_maintenance_mode=settings.maintenance_mode)
     )
 

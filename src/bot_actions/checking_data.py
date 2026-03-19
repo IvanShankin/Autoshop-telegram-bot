@@ -13,7 +13,7 @@ async def checking_correctness_number(message: str, language: str, user_id: int,
         await send_message(
             chat_id=user_id,
             message=text,
-            image_key='incorrect_data_entered',
+            event_message_key='incorrect_data_entered',
             reply_markup=reply_markup
         )
         return False
@@ -29,7 +29,7 @@ async def checking_availability_money(user_balance: int, need_money: int, langua
         await send_message(
             chat_id=user_id,
             message=text,
-            image_key='insufficient_funds',
+            event_message_key='insufficient_funds',
             reply_markup=reply_markup
         )
         return False

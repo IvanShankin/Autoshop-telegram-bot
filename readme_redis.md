@@ -19,6 +19,21 @@
 ```
 **TTL:** Навсегда
 
+
+### Стикеры (Stickers)
+**Ключ:** `sticker:{key}`  
+**Значение:** 
+```json
+{
+    "key": "str", 
+    "file_id": "str", 
+    "show": "bool",
+    "updated_at": "str"
+}
+```
+**TTL:** Навсегда
+
+
 ### Изображения для разделов (UiImages)
 **Ключ:** `ui_image:{key}`  
 **Значение:** 

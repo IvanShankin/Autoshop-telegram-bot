@@ -15,6 +15,6 @@ async def admin_statistics(callback: CallbackQuery, user: Users):
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=await get_statistics_message(interval_days, user.language),
-        image_key='admin_panel',
+        event_message_key='admin_panel',
         reply_markup=admin_statistics_kb(language=user.language, current_days=interval_days)
     )

@@ -18,7 +18,7 @@ async def edit_message_in_main_category_editor(user: Users, callback: CallbackQu
             "admins_editor_category",
             "main_category_editor"
         ),
-        image_key="admin_panel",
+        event_message_key="admin_panel",
         reply_markup=await show_main_categories_kb(user.language)
     )
 
@@ -83,7 +83,7 @@ async def show_category(
             chat_id=user.user_id,
             message=message,
             reply_markup=reply_markup,
-            image_key='admin_panel',
+            event_message_key='admin_panel',
         )
         return
 
@@ -92,7 +92,7 @@ async def show_category(
         message_id=message_id,
         message=message,
         reply_markup=reply_markup,
-        image_key='admin_panel',
+        event_message_key='admin_panel',
     )
 
 

@@ -46,7 +46,7 @@ async def referral_system(callback: CallbackQuery, user: Users):
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,
-        image_key='ref_system',
+        event_message_key='ref_system',
         reply_markup=await ref_system_kb(user.language, user.user_id)
     )
 
@@ -68,7 +68,7 @@ async def accrual_ref_list(callback: CallbackQuery, user: Users):
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,
-        image_key='history_income_from_referrals',
+        event_message_key='history_income_from_referrals',
         reply_markup= await accrual_ref_list_kb(user.language, int(current_page), int(target_user_id), user.user_id)
     )
 
@@ -117,7 +117,7 @@ async def ref_system_info(callback: CallbackQuery, user: Users):
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=await message_ref_system(user.language),
-        image_key="ref_system",
+        event_message_key="ref_system",
         reply_markup=back_in_ref_system_kb(user.language)
     )
 

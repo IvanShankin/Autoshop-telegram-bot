@@ -36,7 +36,7 @@ async def show_data_by_id(callback: CallbackQuery, state: FSMContext, user: User
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
-        image_key='admin_panel',
+        event_message_key='admin_panel',
         reply_markup=data_by_id_by_page_kb(language=user.language, current_page=current_page)
     )
 

@@ -1,4 +1,4 @@
-from src.bot_actions.messages import send_log
+from src.bot_actions.messages.send_log import send_log
 from src.bot_actions.messages.schemas import EventSentLog
 
 

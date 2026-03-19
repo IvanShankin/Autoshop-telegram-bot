@@ -87,7 +87,7 @@ async def login_details(callback: CallbackQuery, user: Users):
     await edit_message(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
-        image_key='purchased_accounts',
+        event_message_key='purchased_accounts',
         reply_markup=login_details_kb(
             language=user.language,
             sold_account_id=account.sold_account_id,
@@ -259,7 +259,7 @@ async def confirm_del_acc(callback: CallbackQuery, user: Users):
             phone_number=e164_to_pretty(account.account_storage.phone_number),
             name=account.name,
         ),
-        image_key='purchased_accounts',
+        event_message_key='purchased_accounts',
         reply_markup=confirm_del_acc_kb(
             language=user.language,
             sold_account_id=account.sold_account_id,

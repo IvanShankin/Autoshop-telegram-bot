@@ -42,7 +42,7 @@ async def admin_settings(callback: CallbackQuery, state: FSMContext, user: Users
     await edit_message(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
-        image_key="admin_panel",
+        event_message_key="admin_panel",
         reply_markup=admin_settings_kb(user.language)
     )
 
@@ -59,7 +59,7 @@ async def overwrite_cache(callback: CallbackQuery, state: FSMContext, user: User
         chat_id=user.user_id,
         message=get_text(user.language, "admins_settings", "confirm_overwrite_cache"),
         message_id=callback.message.message_id,
-        image_key="admin_panel",
+        event_message_key="admin_panel",
         reply_markup=confirm_overwrite_cache_kb(user.language)
     )
 
@@ -83,7 +83,7 @@ async def overwrite_cache(callback: CallbackQuery, state: FSMContext, user: User
         chat_id=user.user_id,
         message=message,
         message_id=callback.message.message_id,
-        image_key="admin_panel",
+        event_message_key="admin_panel",
         reply_markup=back_in_admin_settings_kb(user.language)
     )
 

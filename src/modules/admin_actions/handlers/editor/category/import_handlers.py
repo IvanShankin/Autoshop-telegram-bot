@@ -75,7 +75,7 @@ async def category_load_products(callback: CallbackQuery, state: FSMContext, use
                     "admins_editor_category",
                     "send_archive_with_the_folder_structure_as_shown_in_the_photo"
                 ),
-                image_key="info_add_accounts",
+                event_message_key="info_add_accounts",
                 reply_markup=get_example_import_tg_acc_kb(user.language, category_id)
             )
             await state.set_state(ImportTgAccounts.archive)
@@ -89,7 +89,7 @@ async def category_load_products(callback: CallbackQuery, state: FSMContext, use
                     "admins_editor_category",
                     "description_csv_file_for_import_other_account"
                 ),
-                image_key="example_csv",
+                event_message_key="example_csv",
                 reply_markup=get_example_import_other_acc_kb(user.language, category_id)
             )
             await state.set_state(ImportOtherAccounts.csv_file)
@@ -344,7 +344,7 @@ async def import_other_account(message: Message, state: FSMContext, user: Users)
                 "admins_editor_category",
                 "incorrect_header_formatting_for_import_other_account"
             ),
-            image_key="example_csv",
+            event_message_key="example_csv",
             reply_markup=in_category_kb(user.language, data.category_id)
         )
         await state.set_state(ImportOtherAccounts.csv_file)

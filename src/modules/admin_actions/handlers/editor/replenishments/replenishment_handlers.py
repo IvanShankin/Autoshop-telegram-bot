@@ -42,7 +42,7 @@ async def show_type_payment(
             chat_id=user.user_id,
             message=message,
             reply_markup=reply_markup,
-            image_key='admin_panel',
+            event_message_key='admin_panel',
         )
         return
     await edit_message(
@@ -50,7 +50,7 @@ async def show_type_payment(
         message_id=message_id,
         message=message,
         reply_markup=reply_markup,
-        image_key='admin_panel',
+        event_message_key='admin_panel',
     )
 
 
@@ -60,7 +60,7 @@ async def replenishment_editor(callback: CallbackQuery, state: FSMContext, user:
     await edit_message(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
-        image_key="admin_panel",
+        event_message_key="admin_panel",
         reply_markup=await edit_type_payments_list_kb(user.language)
     )
 

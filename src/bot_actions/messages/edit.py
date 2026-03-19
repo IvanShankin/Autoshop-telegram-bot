@@ -10,7 +10,9 @@ from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboa
 from src.bot_actions.bot_instance import get_bot
 from src.bot_actions.messages import send_message
 from src.bot_actions.messages.schemas import EventSentLog, LogLevel
+from src.bot_actions.messages.send_stickers import send_sticker
 from src.broker.producer import publish_event
+from src.exceptions.domain import StickerNotFound
 from src.services.database.system.actions import get_ui_image, update_ui_image
 from src.services.filesystem.actions import check_file_exists
 from src.services.filesystem.media_paths import create_path_ui_image
@@ -232,16 +234,27 @@ async def edit_message(
     message: str = None,
     image_key: Optional[str] = None,
     fallback_image_key:  Optional[str] = None,
+    event_message_key: Optional[str] = None,
     reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | None = None,
     parse_mode: Optional[str] = "HTML",
-    always_show_photos: bool = False
+    always_show_photos: bool = False,
 ):
     """
     Попытаться отредактировать сообщение. Если редактирование невозможно — отправить новое (через send_message).
     :param always_show_photos: Будет показывать фото даже если стоит флаг Show == False
+    :param event_message_key: ключ события, по которому отсылается стикер, если необходимо и при отсутствии image_key он занимает его место
     """
     bot = await get_bot()
     logger = get_logger(__name__)
+
+    try:
+        if event_message_key:
+            await send_sticker(chat_id=chat_id, sticker_key=event_message_key)
+    except StickerNotFound:
+        pass
+
+    if not image_key and event_message_key:
+        image_key = event_message_key
 
     # Если есть image_key — пробуем редактировать/заменить media
     if image_key:
@@ -271,6 +284,7 @@ async def edit_message(
                     image_key=image_key,
                     fallback_image_key=fallback_image_key,
                     reply_markup=reply_markup
+                    # указывать event_message_key, т.к. может отослать два стикера
                 )
                 return
             elif check_file_exists(file_path):
@@ -291,6 +305,7 @@ async def edit_message(
                     image_key=image_key,
                     fallback_image_key=fallback_image_key,
                     reply_markup=reply_markup
+                    # указывать event_message_key, т.к. может отослать два стикера
                 )
                 return
             else:
@@ -380,5 +395,6 @@ async def edit_message(
         fallback_image_key=fallback_image_key,
         reply_markup=reply_markup,
         parse_mode=parse_mode
+        # указывать event_message_key, т.к. может отослать два стикера
     )
     return

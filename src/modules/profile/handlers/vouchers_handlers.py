@@ -32,7 +32,7 @@ async def create_voucher(callback: CallbackQuery, state: FSMContext, user: Users
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,
-        image_key='enter_amount',
+        event_message_key='enter_amount',
         reply_markup=back_in_balance_transfer_kb(user.language)
     )
     await state.set_state(CreateVoucher.amount)
@@ -56,7 +56,7 @@ async def create_voucher_get_amount(message: Message, state: FSMContext, user: U
     await send_message(
         chat_id=message.from_user.id,
         message=text,
-        image_key='enter_number_activations_for_voucher',
+        event_message_key='enter_number_activations_for_voucher',
         reply_markup=back_in_balance_transfer_kb(user.language)
     )
     await state.set_state(CreateVoucher.number_of_activations)
@@ -95,7 +95,7 @@ async def create_voucher_get_number_of_activations(message: Message, state: FSMC
     await send_message(
         chat_id=message.from_user.id,
         message=text,
-        image_key='confirm_the_data',
+        event_message_key='confirm_the_data',
         reply_markup=confirmation_voucher_kb(user.language)
     )
     await state.set_state(CreateVoucher.amount)
@@ -120,7 +120,7 @@ async def confirm_create_voucher(callback: CallbackQuery, state: FSMContext, use
             chat_id=callback.from_user.id,
             message_id=callback.message.message_id,
             message=f'{text_1}\n\n{text_2}',
-            image_key='insufficient_funds',
+            event_message_key='insufficient_funds',
             reply_markup=replenishment_and_back_in_transfer_kb(user.language)
         )
         return
@@ -143,7 +143,7 @@ async def confirm_create_voucher(callback: CallbackQuery, state: FSMContext, use
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,
-        image_key='successful_create_voucher',
+        event_message_key='successful_create_voucher',
         reply_markup=back_in_balance_transfer_kb(user.language)
     )
 
@@ -159,7 +159,7 @@ async def voucher_list(callback: CallbackQuery, user: Users):
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,
-        image_key='viewing_vouchers',
+        event_message_key='viewing_vouchers',
         reply_markup=await all_vouchers_kb(
             current_page=int(current_page),
             target_user_id=int(target_user_id),
@@ -210,7 +210,7 @@ async def show_voucher(callback: CallbackQuery, user: Users):
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,
-        image_key='viewing_vouchers',
+        event_message_key='viewing_vouchers',
         reply_markup=reply_markup
     )
 
@@ -242,7 +242,7 @@ async def confirm_deactivate_voucher(callback: CallbackQuery, user: Users):
             chat_id=callback.from_user.id,
             message_id=callback.message.message_id,
             message=text,
-            image_key=image_key,
+            event_message_key=image_key,
             reply_markup=reply_markup
     )
 
@@ -276,9 +276,9 @@ async def deactivate_voucher(callback: CallbackQuery, user: Users):
             image_key = 'server_error'
 
     await edit_message(
-            chat_id=callback.from_user.id,
-            message_id=callback.message.message_id,
-            message=text,
-            image_key=image_key,
-            reply_markup=back_in_all_voucher_kb(user.language, current_page, user.user_id)
+        chat_id=callback.from_user.id,
+        message_id=callback.message.message_id,
+        message=text,
+        event_message_key=image_key,
+        reply_markup=back_in_all_voucher_kb(user.language, current_page, user.user_id)
     )

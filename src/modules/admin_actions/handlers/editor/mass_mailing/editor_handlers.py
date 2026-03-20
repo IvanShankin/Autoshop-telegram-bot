@@ -180,7 +180,7 @@ async def change_mailing_photo(callback: CallbackQuery, state: FSMContext, user:
 async def get_new_image(message: Message, state: FSMContext, user: Users):
     doc = message.document
     if not doc.mime_type.startswith("image/"): # Проверяем, что это действительно изображение
-        text = get_text(user.language,"admins_editor_images", "this_is_not_image")
+        text = get_text(user.language,"admins_editor_event_msg", "this_is_not_image")
 
     elif doc.file_size > get_config().limits.max_size_bytes: # Проверяем размер, известный Telegram (без скачивания)
         text = get_text(

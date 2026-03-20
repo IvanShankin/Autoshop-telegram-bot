@@ -12,9 +12,21 @@ msgstr ""
 msgid "photo_not_exists"
 msgstr "Данного фото больше не существует"
 
+msgid "sticker_not_found"
+msgstr "Стикер не прикреплён"
+
 msgid "where_used_and_indicate_show"
 msgstr "Где используется: {where} \nПоказывать: {show}"
 
 msgid "get_new_image"
 msgstr "Пришлите новое изображение. \n\nПримечание: обязательно документом для лучшего качества фото"
+
+msgid "get_new_sticker"
+msgstr "Пришлите новый стикер"
+
+msgid "successfully_added"
+msgstr "Успешно добавлен новый стикер"
+
+msgid "error_extract_data"
+msgstr "Ошибка при извлечении данных из стикера, попробуйте ещё раз или другой"
 

@@ -6,18 +6,22 @@ from src.utils.core_logger import get_logger
 
 
 async def send_sticker(chat_id: int, sticker_key: str):
+    """
+    :except StickerNotFound: Если не найден
+    """
     bot = await get_bot()
+    sticker = await get_sticker(sticker_key)
+
+    if not sticker:
+        raise StickerNotFound()
+
+    if not sticker.show or not sticker.file_id:
+        return
+
     try:
-        sticker = await get_sticker(sticker_key)
-        if not sticker:
-            raise StickerNotFound()
-
-        if not sticker.show:
-            return
-
         await bot.send_sticker(
             chat_id=chat_id,
-            sticker=sticker.key
+            sticker=sticker.file_id
         )
     except Exception as e:
         logger = get_logger(__name__)

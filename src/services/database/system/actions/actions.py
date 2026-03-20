@@ -219,7 +219,7 @@ async def delete_sticker(key: str) -> Stickers | None:
     return deleted_sticker
 
 
-async def get_ui_images_by_page(page: int, page_size: int = None) -> List[str]:
+async def get_event_message_by_page(page: int, page_size: int = None) -> List[str]:
     # Получаем все ключи, исключив админские
     conf = get_config()
     if not page_size:

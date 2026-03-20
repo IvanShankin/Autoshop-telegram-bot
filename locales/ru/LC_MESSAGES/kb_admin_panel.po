@@ -143,6 +143,12 @@ msgstr "🎫 Активные ваучеры"
 msgid "change_image"
 msgstr "🖼️ Изменить изображение"
 
+msgid "change_sticker"
+msgstr "😄 Изменить стикер"
+
+msgid "show_current"
+msgstr "🖼️ Показать текущий"
+
 msgid "in_level"
 msgstr "📊 В уровень"
 

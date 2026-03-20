@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 from src.config import get_config
 from src.services.database.admins.actions import create_admin
-from src.services.database.system.models.models import Files
+from src.services.database.system.models.models import Files, Stickers
 from src.services.database.users.models import Users, NotificationSettings
 from src.services.database.system.models import Settings, TypePayments, UiImages
 from src.services.database.core.database import get_db, Base
@@ -51,6 +51,7 @@ async def create_database():
         await filling_type_payment(type_payment)
 
     for key in conf.message_event.all_keys:
+        await filling_sticker(key=key)
         await filling_ui_image(key=key)
 
     files_data = conf.file_keys.model_dump()
@@ -81,6 +82,17 @@ async def filling_settings():
         if not result_settings:
             new_settings = Settings()
             session_db.add(new_settings)
+            await session_db.commit()
+
+
+async def filling_sticker(key: str):
+    async with get_db() as session_db:
+        result = await session_db.execute(select(Stickers).where(Stickers.key == key))
+        result_sticker = result.scalar_one_or_none()
+
+        if result_sticker is None:
+            image = Stickers(key=key)
+            session_db.add(image)
             await session_db.commit()
 
 

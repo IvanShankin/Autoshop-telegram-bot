@@ -7,14 +7,15 @@ from aiogram.types import CallbackQuery, Message
 from src.bot_actions.messages import edit_message, send_message
 from src.config import get_config
 from src.exceptions.business import InvalidImage
-from src.modules.admin_actions.keyboards import images_list_kb, image_editor, back_in_image_editor
-from src.modules.admin_actions.schemas import GetNewImageData
-from src.modules.admin_actions.state import GetNewImage
+from src.modules.admin_actions.keyboards import image_editor, back_in_image_editor
+from src.modules.admin_actions.schemas import UpdateEventMsgData
+from src.modules.admin_actions.state import UpdateEventMsg
 from src.services.database.system.actions.actions import  update_ui_image, get_ui_image, \
     delete_ui_image, create_ui_image
 from src.services.database.users.models import Users
 from src.services.filesystem.actions import get_ext_image
 from src.utils.i18n import get_text
+
 
 router = Router()
 
@@ -29,7 +30,7 @@ async def show_image_editor(
     ui_image = await get_ui_image(ui_image_key)
 
     if not ui_image:
-        text = get_text(user.language, "admins_editor_images", "photo_not_exists")
+        text = get_text(user.language, "admins_editor_event_msg", "photo_not_exists")
         if callback:
             await callback.answer(text, show_alert=True)
         else:
@@ -37,8 +38,8 @@ async def show_image_editor(
         return
 
     message = get_text(
-        user.language, "admins_editor_images", "where_used_and_indicate_show"
-    ).format(where=get_text(user.language, "ui_images_description", ui_image_key), show=ui_image.show)
+        user.language, "admins_editor_event_msg", "where_used_and_indicate_show"
+    ).format(where=get_text(user.language, "event_msg_description", ui_image_key), show=ui_image.show)
 
     reply_markup = image_editor(user.language, ui_image_key, current_show=ui_image.show,current_page=current_page)
 
@@ -56,24 +57,13 @@ async def show_image_editor(
     )
 
 
-@router.callback_query(F.data.startswith("images_editor_list:"))
-async def images_editor_list(callback: CallbackQuery, user: Users):
-    current_page = int(callback.data.split(':')[1])
-
-    await edit_message(
-        chat_id=user.user_id,
-        message_id=callback.message.message_id,
-        event_message_key="admin_panel",
-        reply_markup=await images_list_kb(user.language, current_page)
-    )
-
-
 @router.callback_query(F.data.startswith("edit_image:"))
 async def edit_image(callback: CallbackQuery, user: Users):
-    ui_image_key = str(callback.data.split(':')[1])
+    event_msg_key = str(callback.data.split(':')[1])
     current_page = int(callback.data.split(':')[2])
+
     await show_image_editor(
-        ui_image_key=ui_image_key,
+        ui_image_key=event_msg_key,
         current_page=current_page,
         user=user,
         callback=callback
@@ -82,13 +72,15 @@ async def edit_image(callback: CallbackQuery, user: Users):
 
 @router.callback_query(F.data.startswith("ui_image_update_show:"))
 async def ui_image_update_show(callback: CallbackQuery, user: Users):
-    ui_image_key = callback.data.split(':')[1]
+    event_msg_key = callback.data.split(':')[1]
     new_show = bool(int(callback.data.split(':')[2]))
     current_page = int(callback.data.split(':')[3])
-    await update_ui_image(ui_image_key, show=new_show)
+
+    await update_ui_image(event_msg_key, show=new_show)
     await callback.answer(get_text(user.language, "miscellaneous", "successfully_updated"), show_alert=True)
+
     await show_image_editor(
-        ui_image_key=ui_image_key,
+        ui_image_key=event_msg_key,
         current_page=current_page,
         user=user,
         callback=callback
@@ -97,7 +89,7 @@ async def ui_image_update_show(callback: CallbackQuery, user: Users):
 
 @router.callback_query(F.data.startswith("change_ui_image:"))
 async def change_ui_image(callback: CallbackQuery, state: FSMContext, user: Users):
-    ui_image_key = str(callback.data.split(':')[1])
+    event_msg_key = str(callback.data.split(':')[1])
     current_page = int(callback.data.split(':')[2])
 
     await edit_message(
@@ -105,23 +97,23 @@ async def change_ui_image(callback: CallbackQuery, state: FSMContext, user: User
         message_id=callback.message.message_id,
         message=get_text(
             user.language,
-            "admins_editor_images",
+            "admins_editor_event_msg",
             "get_new_image"
         ),
-        reply_markup=await back_in_image_editor(user.language, ui_image_key, current_page)
+        reply_markup=await back_in_image_editor(user.language, event_msg_key, current_page)
     )
-    await state.update_data(ui_image_key=ui_image_key, current_page=current_page)
-    await state.set_state(GetNewImage.get_new_image)
+    await state.update_data(event_message_key=event_msg_key, current_page=current_page)
+    await state.set_state(UpdateEventMsg.get_new_image)
 
 
-@router.message(GetNewImage.get_new_image, F.document)
+@router.message(UpdateEventMsg.get_new_image, F.document)
 async def change_ui_image_result(message: Message, state: FSMContext, user: Users):
     doc = message.document
-    data = GetNewImageData(**(await state.get_data()))
+    data = UpdateEventMsgData(**(await state.get_data()))
     # обновляем и выводим сообщение
 
     if not doc.mime_type.startswith("image/"): # Проверяем, что это действительно изображение
-        text = get_text(user.language,"admins_editor_images", "this_is_not_image")
+        text = get_text(user.language,"admins_editor_event_msg", "this_is_not_image")
     elif doc.file_size > get_config().limits.max_size_bytes: # Проверяем размер, известный Telegram (без скачивания)
         text = get_text(
             user.language,
@@ -151,7 +143,7 @@ async def change_ui_image_result(message: Message, state: FSMContext, user: User
             await show_image_editor(ui_image_key=data.ui_image_key,current_page=data.current_page,user=user,new_message=True)
             return
         except InvalidImage:
-            text = get_text(user.language, "admins_editor_images", "this_is_not_image")
+            text = get_text(user.language, "admins_editor_event_msg", "this_is_not_image")
 
     # тут только отсылка о неуспехе
     await send_message(

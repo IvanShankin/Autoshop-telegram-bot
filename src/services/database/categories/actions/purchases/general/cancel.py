@@ -7,8 +7,8 @@ from typing import List, Tuple
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.services.database.categories.models import PurchaseRequests
-from src.services.database.users.models.models_users import BalanceHolder
+from src.database.models.categories import PurchaseRequests
+from src.database.models.users import BalanceHolder
 
 
 async def update_purchaseRequests_and_balance_holder(session: AsyncSession, logger: Logger, purchase_request_id: int):

@@ -6,8 +6,8 @@ from src.bot_actions.messages import send_message
 from src.bot_actions.bot_instance import get_bot
 from src.modules.admin_actions.keyboards import in_category_editor_kb
 from src.services.database.categories.actions import get_category_by_category_id
-from src.services.database.categories.models import CategoryFull
-from src.services.database.users.models import Users
+from src.database.models.categories import CategoryFull
+from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 

@@ -7,10 +7,10 @@ from sqlalchemy.orm import selectinload
 from src.exceptions import NotEnoughAccounts
 from src.services.database.categories.actions.purchases.general.start import write_off_of_funds, \
     create_new_purchase_request, check_category_and_money
-from src.services.database.categories.models import ProductAccounts, AccountStorage, \
+from src.database.models.categories import ProductAccounts, AccountStorage, \
     StartPurchaseAccount, StorageStatus
-from src.services.database.categories.models import PurchaseRequestAccount
-from src.services.database.core.database import get_db
+from src.database.models.categories import PurchaseRequestAccount
+from src.database import get_db
 from src.services.redis.filling import filling_product_account_by_account_id, filling_user, filling_all_keys_category
 
 

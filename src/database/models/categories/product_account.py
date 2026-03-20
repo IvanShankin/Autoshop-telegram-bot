@@ -1,4 +1,3 @@
-import enum
 from typing import Callable, Any
 
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Text, Index, text, UniqueConstraint, \
@@ -7,8 +6,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import uuid
 
-from src.services.database.categories.models.main_category_and_product import AccountServiceType, StorageStatus
-from src.services.database.core.database import Base
+from src.database.models.categories.main_category_and_product import AccountServiceType, StorageStatus
+from src.database import Base
 
 
 class AccountStorage(Base):

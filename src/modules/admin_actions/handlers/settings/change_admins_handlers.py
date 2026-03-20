@@ -8,7 +8,7 @@ from src.modules.admin_actions.keyboards import back_in_admin_settings_kb
 from src.modules.admin_actions.state.settings import AddAdmin, DeleteAdmin
 from src.services.database.admins.actions import create_admin
 from src.services.database.admins.actions.actions_admin import delete_admin
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_text
 

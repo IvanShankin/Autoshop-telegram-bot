@@ -9,7 +9,7 @@ from src.services.filesystem.media_paths import create_path_account
 from src.services.products.accounts.utils.helper_imports import get_unique_tg_acc_among_db
 from src.services.database.categories.actions import add_account_storage, add_product_account, \
     update_account_storage
-from src.services.database.categories.models import AccountServiceType
+from src.database.models.categories import AccountServiceType
 from src.services.filesystem.actions import extract_archive_to_temp, make_archive
 from src.services.filesystem.account_products import encrypted_tg_account, cleanup_used_data, archive_if_not_empty
 from src.services.products.accounts.tg.actions import check_valid_accounts_telethon

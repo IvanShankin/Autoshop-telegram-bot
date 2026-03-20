@@ -4,9 +4,9 @@ from src.modules.admin_actions.keyboards.editors.category_kb import show_main_ca
 from src.bot_actions.messages import edit_message, send_message
 from src.modules.admin_actions.keyboards import show_category_admin_kb, change_category_data_kb
 from src.modules.admin_actions.services import safe_get_category
-from src.services.database.categories.models import ProductType
+from src.database.models.categories import ProductType
 from src.services.database.system.actions import get_ui_image
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 async def edit_message_in_main_category_editor(user: Users, callback: CallbackQuery):

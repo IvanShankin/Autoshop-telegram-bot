@@ -4,9 +4,9 @@ from typing import List
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from src.services.database.categories.models import ProductUniversal
-from src.services.database.categories.models import UniversalMediaType
-from src.services.database.core import get_db
+from src.database.models.categories import ProductUniversal
+from src.database.models.categories import UniversalMediaType
+from src.database import get_db
 from src.services.filesystem.universals_products import generate_example_zip_for_import
 from src.services.filesystem.media_paths import create_path_universal_storage
 from src.services.products.universals.input_products import input_universal_products

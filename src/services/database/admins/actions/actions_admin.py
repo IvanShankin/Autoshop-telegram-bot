@@ -7,10 +7,10 @@ from sqlalchemy.sql.expression import delete
 
 from src.config import get_config
 from src.exceptions import UserNotFound, AdminNotFound, UnableRemoveMainAdmin
-from src.services.database.admins.models import MessageForSending, Admins, AdminActions, SentMasMessages
-from src.services.database.core.database import get_db
+from src.database.models.admins import MessageForSending, Admins, AdminActions, SentMasMessages
+from src.database import get_db
 from src.services.database.system.actions import create_ui_image, delete_ui_image, update_ui_image
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.services.filesystem.actions import get_default_image_bytes
 from src.services.redis.core_redis import get_redis
 

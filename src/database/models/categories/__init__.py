@@ -1,19 +1,19 @@
-from src.services.database.categories.models.main_category_and_product import (
+from src.database.models.categories.main_category_and_product import (
     Categories, CategoryTranslation, Purchases, PurchaseRequests, StorageStatus, ProductType, AccountServiceType
 )
-from src.services.database.categories.models.product_account import ProductAccounts, SoldAccountsTranslation, \
+from src.database.models.categories.product_account import ProductAccounts, SoldAccountsTranslation, \
     SoldAccounts, DeletedAccounts, PurchaseRequestAccount, AccountStorage, TgAccountMedia
-from src.services.database.categories.models.product_universal import ProductUniversal, UniversalMediaType, \
+from src.database.models.categories.product_universal import ProductUniversal, UniversalMediaType, \
     UniversalStorage, UniversalStorageTranslation, SoldUniversal, DeletedUniversal, PurchaseRequestUniversal
 
-from src.services.database.categories.models.shemas.product_account_schem import (
+from src.database.models.categories.shemas.product_account_schem import (
     AccountStoragePydantic, SoldAccountFull,CategoryFull, SoldAccountSmall, ProductAccountSmall,
     ProductAccountFull
 )
-from src.services.database.categories.models.shemas.product_universal_schem import UniversalStoragePydantic, \
+from src.database.models.categories.shemas.product_universal_schem import UniversalStoragePydantic, \
     ProductUniversalSmall, ProductUniversalFull, SoldUniversalSmall, SoldUniversalFull
 
-from src.services.database.categories.models.shemas.purshanse_schem import ResultCheckCategory, StartPurchaseAccount, \
+from src.database.models.categories.shemas.purshanse_schem import ResultCheckCategory, StartPurchaseAccount, \
     PurchaseAccountSchema
 
 __all__ = [

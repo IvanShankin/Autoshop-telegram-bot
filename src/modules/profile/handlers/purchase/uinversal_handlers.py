@@ -5,7 +5,7 @@ from src.bot_actions.messages import edit_message
 from src.modules.profile.keyboards.purchased_universals_kb import confirm_del_universal_kb
 from src.modules.profile.services.purchases_universals import show_sold_universal, show_all_sold_universal, \
     delete_sold_universal_han, check_universal_product, send_media_sold_universal
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 router = Router()

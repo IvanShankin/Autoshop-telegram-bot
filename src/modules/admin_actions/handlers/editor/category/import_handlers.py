@@ -17,8 +17,7 @@ from src.config import get_config
 from src.exceptions import TypeAccountServiceNotFound, InvalidFormatRows
 from src.exceptions.business import ImportUniversalInvalidMediaData, ImportUniversalFileNotFound, \
     CsvHasMoreThanTwoProducts
-from src.modules.admin_actions.keyboards import back_in_category_kb, \
-    name_or_description_kb
+from src.modules.admin_actions.keyboards import name_or_description_kb
 from src.modules.admin_actions.keyboards.editors.category_kb import get_example_import_product_kb, \
     get_example_import_other_acc_kb, get_example_import_tg_acc_kb, in_category_kb
 from src.modules.admin_actions.schemas import ImportAccountsData
@@ -28,14 +27,14 @@ from src.modules.admin_actions.services import message_info_load_file, make_resu
 from src.modules.admin_actions.services import check_valid_file, check_category_is_acc_storage
 from src.modules.admin_actions.state import ImportTgAccounts, ImportOtherAccounts
 from src.modules.admin_actions.state.editors.editor_categories import ImportUniversalProducts
-from src.services.database.categories.models import ProductType
+from src.database.models.categories import ProductType
 from src.services.filesystem.account_products import generate_example_import_other_acc, generate_example_import_tg_acc
 from src.services.filesystem.actions import create_temp_dir
 from src.services.filesystem.universals_products import generate_example_zip_for_import
 from src.services.products.accounts.other.input_account import input_other_account
 from src.services.products.accounts.tg.input_account import import_telegram_accounts_from_archive
-from src.services.database.categories.models import AccountServiceType
-from src.services.database.users.models import Users
+from src.database.models.categories import AccountServiceType
+from src.database.models.users import Users
 from src.services.products.universals.input_products import input_universal_products
 from src.services.products.universals.shemas import get_import_universal_headers
 from src.utils.core_logger import get_logger

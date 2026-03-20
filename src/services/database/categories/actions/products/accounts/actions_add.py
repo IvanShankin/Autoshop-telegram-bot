@@ -1,6 +1,4 @@
 import uuid
-from pathlib import Path
-from typing import Literal
 
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -8,13 +6,11 @@ from sqlalchemy.orm import selectinload
 from src.exceptions import TranslationAlreadyExists, \
     CategoryNotFound, \
     TheCategoryNotStorageAccount
-from src.exceptions.business import TheAccountServiceDoesNotMatch
 from src.services.database.categories.actions.actions_get import get_category_by_category_id
-from src.services.database.categories.models import ProductAccounts, SoldAccounts, SoldAccountsTranslation, \
+from src.database.models.categories import ProductAccounts, SoldAccounts, SoldAccountsTranslation, \
     DeletedAccounts, SoldAccountSmall, AccountServiceType, TgAccountMedia, AccountStorage, StorageStatus
-from src.services.database.core.database import get_db
+from src.database import get_db
 from src.services.database.users.actions import get_user
-from src.services.filesystem.media_paths import create_path_account
 from src.services.redis.filling import filling_product_account_by_account_id, \
     filling_sold_accounts_by_owner_id, filling_sold_account_by_account_id, \
     filling_main_categories, filling_categories_by_parent, filling_category_by_category, \

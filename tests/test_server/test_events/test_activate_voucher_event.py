@@ -2,10 +2,10 @@ import pytest
 from sqlalchemy import MetaData, Table
 from sqlalchemy import select
 
-from src.services.database.core.database import get_db
-from src.services.database.discounts.models import Vouchers
+from src.database import get_db
+from src.database.models.discount import Vouchers
 from src.services.database.system.actions import update_settings
-from src.services.database.users.models import Users, WalletTransaction, UserAuditLogs
+from src.database.models.users import Users, WalletTransaction, UserAuditLogs
 from src.services.redis.core_redis import get_redis
 from src.utils.i18n import get_text
 from tests.helpers.monkeypatch_data import fake_bot

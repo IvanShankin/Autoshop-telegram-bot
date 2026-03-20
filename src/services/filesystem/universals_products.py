@@ -6,12 +6,11 @@ import zipfile
 from pathlib import Path
 from typing import List
 
-from src.bot_actions.messages import send_log
 from src.bot_actions.messages.schemas import EventSentLog
 from src.broker.producer import publish_event
 from src.config import get_config
-from src.services.database.categories.models.product_universal import StorageStatus
-from src.services.database.categories.models import SoldUniversalFull
+from src.database.models.categories import StorageStatus
+from src.database.models.categories import SoldUniversalFull
 from src.services.filesystem.actions import get_default_image_bytes, move_file
 from src.services.filesystem.media_paths import create_path_universal_storage
 from src.services.products.universals.shemas import get_import_universal_headers, UploadUniversalProduct

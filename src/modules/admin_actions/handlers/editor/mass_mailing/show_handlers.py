@@ -10,7 +10,7 @@ from src.modules.admin_actions.keyboards import admin_mailing_kb, all_admin_mass
 from src.modules.admin_actions.keyboards.editors.mass_mailing_kb import back_in_show_sent_mass_message_kb
 from src.services.database.admins.actions.actions_admin import get_sent_mass_messages
 from src.services.database.system.actions import create_ui_image, delete_ui_image
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 router = Router()

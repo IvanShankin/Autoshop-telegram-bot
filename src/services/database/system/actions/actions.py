@@ -8,20 +8,20 @@ from sqlalchemy import select, update, delete, func, desc
 
 from src.config import get_config
 from src.exceptions.domain import MessageEventNotFound
-from src.services.database.categories.models import Purchases, ProductAccounts, Categories, ProductType, \
+from src.database.models.categories import Purchases, ProductAccounts, Categories, ProductType, \
     ProductUniversal
-from src.services.database.system.models.models import Files, Stickers
+from src.database.models.system.models import Files, Stickers
 from src.services.database.system.shemas.shemas import StatisticsData, ReplenishmentPaymentSystem
-from src.services.database.users.models import Users, Replenishments
+from src.database.models.users import Users, Replenishments
 from src.services.filesystem.actions import get_ext_image
 from src.services.filesystem.media_paths import create_path_ui_image
 from src.services.redis.filling import filling_types_payments_by_id, filling_all_types_payments, \
     filling_ui_image
 from src.services.redis.time_storage import TIME_SETTINGS
-from src.services.database.system.models import Settings, TypePayments, BackupLogs
-from src.services.database.core.database import get_db
+from src.database.models.system import Settings, TypePayments, BackupLogs
+from src.database import get_db
 from src.services.redis.core_redis import get_redis
-from src.services.database.system.models import UiImages
+from src.database.models.system import UiImages
 
 
 def _check_file_exists(ui_image: UiImages) -> UiImages | None:

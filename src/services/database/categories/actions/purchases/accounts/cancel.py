@@ -4,11 +4,10 @@ from sqlalchemy import select, update, delete
 
 from src.services.database.categories.actions.purchases.general.cancel import \
     update_purchaseRequests_and_balance_holder, return_files
-from src.services.database.categories.models import ProductAccounts, SoldAccounts, Purchases, \
-    AccountStorage, AccountServiceType, StorageStatus
-from src.services.database.core.database import get_db
-from src.services.database.users.models import Users
-from src.services.filesystem.media_paths import create_path_account
+from src.database.models.categories import ProductAccounts, SoldAccounts, Purchases, \
+    AccountStorage, StorageStatus
+from src.database import get_db
+from src.database.models.users import Users
 from src.services.redis.filling import filling_product_account_by_account_id, filling_sold_accounts_by_owner_id, \
     filling_sold_account_by_account_id, filling_user, filling_product_accounts_by_category_id, filling_all_keys_category
 from src.utils.core_logger import get_logger

@@ -4,14 +4,15 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from src.config import get_config
+from src.database.creating import create_table
 from src.services.database.admins.actions import create_admin
-from src.services.database.system.models.models import Files, Stickers
-from src.services.database.users.models import Users, NotificationSettings
-from src.services.database.system.models import Settings, TypePayments, UiImages
-from src.services.database.core.database import get_db, Base
+from src.database.models.system.models import Files, Stickers
+from src.database.models.users import Users, NotificationSettings
+from src.database.models.system import Settings, TypePayments, UiImages
+from src.database import get_db
 from src.services.database.referrals.utils import create_unique_referral_code
-from src.services.database.referrals.models import ReferralLevels
-from src.services.database.admins.models import Admins
+from src.database.models.referrals import ReferralLevels
+from src.database.models.admins import Admins
 
 
 async def create_database():
@@ -40,6 +41,9 @@ async def create_database():
     finally:
         await engine.dispose()
 
+
+    # ДОЛЖЕН БЫТЬ ВЫЗОВ СОЗДАНИЯ БД ИЗ СЛОЯ DATABASE
+
     # создание таблицы
     await create_table()
 
@@ -57,21 +61,6 @@ async def create_database():
     files_data = conf.file_keys.model_dump()
     for file_key in files_data.keys():
         await filling_files(key=files_data[file_key]["key"], path=files_data[file_key]["name_in_dir_with_files"])
-
-
-async def create_table():
-    """создает таблицы в целевой базе данных"""
-    engine = create_async_engine(get_config().db_connection.sql_db_url)
-    try:
-        async with engine.begin() as conn:
-            logging.info("Creating core tables...")
-            await conn.run_sync(Base.metadata.create_all)
-            logging.info("Database tables created successfully")
-    except Exception as e:
-        logging.error(f"Error creating tables: {e}")
-        raise
-    finally:
-        await engine.dispose()
 
 
 async def filling_settings():

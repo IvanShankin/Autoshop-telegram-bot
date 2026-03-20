@@ -3,8 +3,8 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.config import get_config
 from src.services.database.categories.actions import get_categories
-from src.services.database.categories.models import CategoryFull
-from src.services.database.categories.models import ProductType, Categories, UniversalMediaType, AccountServiceType
+from src.database.models.categories import CategoryFull
+from src.database.models.categories import ProductType, Categories, UniversalMediaType, AccountServiceType
 from src.utils.i18n import get_text
 
 

@@ -9,8 +9,8 @@ from tests.helpers.func_fabrics import create_new_user_fabric, create_admin_fabr
     create_sent_mass_message_fabric, create_purchase_fabric, create_transfer_moneys_fabric, \
     create_promo_code_activation_fabric, create_backup_log_fabric, create_translate_category_factory, \
     create_universal_storage_factory, create_product_universal_factory, create_sold_universal_factory
-from src.services.database.system.models import  Settings
-from src.services.database.core.database import get_db
+from src.database.models.system import  Settings
+from src.database import get_db
 
 
 

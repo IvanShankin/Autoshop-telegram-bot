@@ -20,9 +20,9 @@ from src.modules.admin_actions.state import UpdateNameForCategory, \
     UpdateDescriptionForCategory, UpdateCategoryImage, UpdateNumberInCategory
 from src.services.database.categories.actions import update_category, \
     update_category_translation
-from src.services.database.categories.models import ProductType, AccountServiceType, UniversalMediaType
+from src.database.models.categories import ProductType, AccountServiceType, UniversalMediaType
 from src.services.database.system.actions import update_ui_image
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 router = Router()

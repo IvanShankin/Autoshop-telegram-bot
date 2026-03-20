@@ -2,9 +2,9 @@ import orjson
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from src.services.database.categories.models import SoldAccountFull, SoldAccountSmall, \
+from src.database.models.categories import SoldAccountFull, SoldAccountSmall, \
     ProductAccountFull, ProductAccounts, SoldAccounts, AccountStorage, StorageStatus
-from src.services.database.core.database import get_db
+from src.database import get_db
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling.helpers_func import _delete_keys_by_pattern, _filling_product_by_category_id, \
     filling_sold_products_by_owner_id, filling_sold_entity_by_id

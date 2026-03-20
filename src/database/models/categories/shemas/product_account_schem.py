@@ -2,10 +2,10 @@ from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
-from src.services.database.categories.models import SoldAccounts, ProductAccounts
-from src.services.database.categories.models import AccountStorage, Categories
-from src.services.database.categories.models import ProductType
-from src.services.database.categories.models.main_category_and_product import AccountServiceType, UniversalMediaType, \
+from src.database.models.categories import SoldAccounts, ProductAccounts
+from src.database.models.categories import AccountStorage, Categories
+from src.database.models.categories import ProductType
+from src.database.models.categories.main_category_and_product import AccountServiceType, UniversalMediaType, \
     StorageStatus
 
 

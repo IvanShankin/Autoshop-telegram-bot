@@ -1,8 +1,8 @@
 import pytest
 from sqlalchemy import select
 
-from src.services.database.core.database import get_db
-from src.services.database.categories.models import (
+from src.database import get_db
+from src.database.models.categories import (
     UniversalStorage,
     StorageStatus,
 )

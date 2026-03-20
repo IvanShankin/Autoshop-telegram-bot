@@ -12,7 +12,7 @@ from src.modules.admin_actions.state import GetNewPersent, GetAchievementAmount,
 from src.services.database.referrals.actions import get_referral_lvl, update_referral_lvl
 from src.services.database.referrals.actions.actions_ref_lvls import get_levels_nearby, delete_referral_lvl, \
     add_referral_lvl
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.converter import safe_float_conversion, safe_int_conversion
 from src.utils.i18n import get_text
 

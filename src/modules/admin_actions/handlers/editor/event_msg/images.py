@@ -12,7 +12,7 @@ from src.modules.admin_actions.schemas import UpdateEventMsgData
 from src.modules.admin_actions.state import UpdateEventMsg
 from src.services.database.system.actions.actions import  update_ui_image, get_ui_image, \
     delete_ui_image, create_ui_image
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.services.filesystem.actions import get_ext_image
 from src.utils.i18n import get_text
 

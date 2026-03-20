@@ -6,10 +6,10 @@ from sqlalchemy.orm import selectinload
 from src.config import get_config
 from src.services.database.categories.actions.helpers_func import _get_grouped_objects, _get_single_obj, \
     get_sold_items_by_page
-from src.services.database.categories.models import UniversalStorage, SoldUniversal, \
+from src.database.models.categories import UniversalStorage, SoldUniversal, \
     UniversalStorageTranslation, StorageStatus, ProductUniversal, ProductUniversalFull, \
     SoldUniversalSmall, SoldUniversalFull, ProductUniversalSmall, UniversalStoragePydantic
-from src.services.database.core import get_db
+from src.database import get_db
 from src.services.redis.filling.filling_universal import filling_product_universal_by_category, \
     filling_universal_by_product_id, filling_sold_universal_by_owner_id, filling_sold_universal_by_universal_id
 

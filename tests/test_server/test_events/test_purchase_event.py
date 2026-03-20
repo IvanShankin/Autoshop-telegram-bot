@@ -4,8 +4,8 @@ import pytest
 from sqlalchemy import select
 
 from src.services.database.categories.events.schemas import NewPurchaseAccount, AccountsData
-from src.services.database.core.database import get_db
-from src.services.database.users.models import WalletTransaction, UserAuditLogs
+from src.database import get_db
+from src.database.models.users import WalletTransaction, UserAuditLogs
 
 
 @pytest.mark.asyncio

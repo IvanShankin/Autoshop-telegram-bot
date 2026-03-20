@@ -4,10 +4,9 @@ import shutil
 from pathlib import Path
 from typing import AsyncGenerator
 
-from src.bot_actions.messages import send_log
 from src.bot_actions.messages.schemas import EventSentLog
 from src.broker.producer import publish_event
-from src.services.database.categories.models import AccountStorage, AccountStoragePydantic, AccountServiceType, \
+from src.database.models.categories import AccountStorage, AccountStoragePydantic, AccountServiceType, \
     StorageStatus
 from src.services.filesystem.actions import move_file
 from src.services.filesystem.media_paths import create_path_account

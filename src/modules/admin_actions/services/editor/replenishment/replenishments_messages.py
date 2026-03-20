@@ -1,4 +1,4 @@
-from src.services.database.system.models import TypePayments
+from src.database.models.system import TypePayments
 from src.utils.i18n import get_text
 
 

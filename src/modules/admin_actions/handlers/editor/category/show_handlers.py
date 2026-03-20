@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
 from src.modules.admin_actions.services.editor.category.show_message import edit_message_in_main_category_editor, show_category
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 
 router = Router()
 

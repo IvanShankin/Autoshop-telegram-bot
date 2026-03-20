@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, C
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from src.services.database.core.database import Base
+from src.database import Base
 
 
 class PromoCodes(Base):

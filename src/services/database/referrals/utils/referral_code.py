@@ -1,7 +1,7 @@
 from sqlalchemy import select
 
-from src.services.database.core.database import get_db
-from src.services.database.users.models import Users
+from src.database import get_db
+from src.database.models.users import Users
 from src.utils.codes import generate_code
 
 

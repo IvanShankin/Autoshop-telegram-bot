@@ -5,8 +5,8 @@ from sqlalchemy import select
 from src.exceptions import AccountCategoryNotFound, IncorrectedCostPrice, \
     IncorrectedAmountSale, TheCategoryStorageAccount
 from src.services.redis.core_redis import get_redis
-from src.services.database.core.database import get_db
-from src.services.database.categories.models import Categories, CategoryTranslation
+from src.database import get_db
+from src.database.models.categories import Categories, CategoryTranslation
 
 
 class TestUpdateCategory:

@@ -3,9 +3,9 @@ from src.bot_actions.messages import edit_message, send_message
 from src.modules.categories.keyboards.keyboard_categories import account_category_kb
 from src.modules.categories.shemas import BuyProductsData
 from src.services.database.categories.actions import get_category_by_category_id
-from src.services.database.categories.models import CategoryFull
+from src.database.models.categories import CategoryFull
 from src.services.database.system.actions import get_ui_image
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 

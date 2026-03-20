@@ -2,11 +2,10 @@ import os
 import shutil
 from pathlib import Path
 
-from src.bot_actions.messages import send_log
 from src.bot_actions.messages.schemas import EventSentLog
 from src.broker.producer import publish_event
-from src.services.database.categories.models import StorageStatus
-from src.services.database.categories.models import ProductUniversalFull, \
+from src.database.models.categories import StorageStatus
+from src.database.models.categories import ProductUniversalFull, \
     UniversalStoragePydantic
 from src.services.filesystem.actions import move_file
 from src.services.filesystem.media_paths import create_path_universal_storage

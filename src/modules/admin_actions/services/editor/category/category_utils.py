@@ -7,7 +7,7 @@ from src.config import get_config
 from src.modules.admin_actions.keyboards import back_in_category_update_data_kb
 from src.modules.admin_actions.keyboards.editors.category_kb import back_in_category_editor_kb
 from src.modules.admin_actions.state import GetDataForCategory
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 

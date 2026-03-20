@@ -1,4 +1,4 @@
-from typing import List, Set
+from typing import List
 
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
@@ -6,9 +6,9 @@ from sqlalchemy.orm import selectinload
 from src.config import get_config
 from src.services.database.categories.actions.helpers_func import _get_grouped_objects, _get_single_obj, \
     get_sold_items_by_page
-from src.services.database.categories.models import ProductAccounts, SoldAccounts, SoldAccountSmall, SoldAccountFull, \
+from src.database.models.categories import ProductAccounts, SoldAccounts, SoldAccountSmall, SoldAccountFull, \
     ProductAccountFull, AccountServiceType, AccountStorage, TgAccountMedia, StorageStatus
-from src.services.database.core.database import get_db
+from src.database import get_db
 from src.services.redis.filling import filling_product_account_by_account_id, filling_sold_account_by_account_id, \
     filling_sold_accounts_by_owner_id, filling_product_accounts_by_category_id
 

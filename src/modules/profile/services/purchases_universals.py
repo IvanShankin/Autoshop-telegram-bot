@@ -12,9 +12,9 @@ from src.services.database.categories.actions.products.universal.action_delete i
 from src.services.database.categories.actions.products.universal.action_update import update_universal_storage
 from src.services.database.categories.actions.products.universal.actions_add import add_deleted_universal
 from src.services.database.categories.actions.products.universal.actions_get import get_sold_universal_by_universal_id
-from src.services.database.categories.models import StorageStatus, UniversalMediaType
-from src.services.database.categories.models import SoldUniversalFull
-from src.services.database.users.models import Users
+from src.database.models.categories import StorageStatus, UniversalMediaType
+from src.database.models.categories import SoldUniversalFull
+from src.database.models.users import Users
 from src.services.filesystem.actions import create_temp_dir
 from src.services.filesystem.universals_products import move_in_universal
 from src.services.filesystem.media_paths import create_path_universal_storage

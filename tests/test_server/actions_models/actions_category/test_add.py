@@ -1,9 +1,9 @@
 import pytest
 from orjson import orjson
 from sqlalchemy import select
-from src.services.database.categories.models import CategoryTranslation,  Categories
-from src.services.database.core.database import get_db
-from src.services.database.system.models import UiImages
+from src.database.models.categories import CategoryTranslation,  Categories
+from src.database import get_db
+from src.database.models.system import UiImages
 from src.services.redis.core_redis import get_redis
 
 

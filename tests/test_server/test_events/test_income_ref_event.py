@@ -2,9 +2,9 @@ import orjson
 import pytest
 from sqlalchemy import select
 
-from src.services.database.core.database import get_db
+from src.database import get_db
 from src.services.database.replenishments_event.schemas import ReplenishmentCompleted
-from src.services.database.users.models import Users, WalletTransaction, UserAuditLogs
+from src.database.models.users import Users, WalletTransaction, UserAuditLogs
 from src.services.redis.core_redis import get_redis
 from src.utils.i18n import get_text
 from tests.helpers.helper_functions import comparison_models
@@ -19,7 +19,7 @@ async def test_handler_new_income_referral(
     """Проверяем корректную работу handler_new_income_referral"""
     from src.services.database.referrals.events import handler_new_income_referral
     from src.services.database.referrals.actions import get_referral_lvl
-    from src.services.database.referrals.models import IncomeFromReferrals, Referrals
+    from src.database.models.referrals import IncomeFromReferrals, Referrals
 
     _, owner, referral = await create_referral()
     replenishment = await create_replenishment(amount = 999999)

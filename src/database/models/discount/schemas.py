@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from src.services.database.discounts.models import Vouchers
+from src.database.models.discount import Vouchers
 
 
 class SmallVoucher(BaseModel):

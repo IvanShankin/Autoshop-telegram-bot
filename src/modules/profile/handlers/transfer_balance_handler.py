@@ -11,7 +11,7 @@ from src.modules.profile.schemas import TransferData
 from src.modules.profile.state import TransferMoney
 from src.services.database.users.actions import get_user
 from src.services.database.users.actions.action_other_with_user import money_transfer
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 router = Router()

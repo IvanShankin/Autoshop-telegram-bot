@@ -18,7 +18,7 @@ from src.modules.admin_actions.state import GetImageMassMailing, GetTextMassMail
 from src.modules.admin_actions.state.editors.editor_mass_mailing import GetBtnUrlMassMailing
 from src.services.database.admins.actions import get_message_for_sending, update_message_for_sending
 from src.services.database.users.actions.action_user import get_quantity_users
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.services.filesystem.media_paths import create_path_ui_image
 from src.utils.i18n import get_text
 

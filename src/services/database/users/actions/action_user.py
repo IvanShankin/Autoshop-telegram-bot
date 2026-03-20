@@ -10,8 +10,8 @@ from src.broker.producer import publish_event
 from src.services.database.admins.actions.actions_admin import add_admin_action
 from src.services.redis.core_redis import get_redis
 from src.services.redis.time_storage import TIME_USER
-from src.services.database.core.database import get_db
-from src.services.database.users.models import Users, WalletTransaction, UserAuditLogs
+from src.database import get_db
+from src.database.models.users import Users, WalletTransaction, UserAuditLogs
 
 
 async def get_user(user_id: int, username: str | None = False, update_last_used: bool = False)->Users | None:

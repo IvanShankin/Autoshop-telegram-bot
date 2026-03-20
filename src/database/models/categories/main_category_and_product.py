@@ -4,7 +4,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text, text,
     BigInteger, Index, DateTime, func
 from sqlalchemy.orm import relationship
 
-from src.services.database.core.database import Base
+from src.database import Base
 
 
 class ProductType(enum.Enum):

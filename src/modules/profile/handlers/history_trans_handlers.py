@@ -6,7 +6,7 @@ from src.exceptions.business import ForbiddenError
 from src.modules.profile.keyboards import wallet_transactions_kb
 from src.modules.profile.services.profile_message import message_show_transaction
 from src.services.database.admins.actions import check_admin
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 router = Router()

@@ -6,9 +6,9 @@ from src.config import get_config
 from src.modules.profile.keyboards import back_in_wallet_transactions_kb, back_in_accrual_ref_list_kb
 from src.services.database.discounts.actions import get_valid_voucher_by_page
 from src.services.database.referrals.actions import get_referral_lvl
-from src.services.database.referrals.models import IncomeFromReferrals
+from src.database.models.referrals import IncomeFromReferrals
 from src.services.database.users.actions import get_wallet_transaction, get_user
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 

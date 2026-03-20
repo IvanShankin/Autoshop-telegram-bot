@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.config import get_config
-from src.services.database.users.models import NotificationSettings
+from src.database.models.users import NotificationSettings
 from src.utils.i18n import get_text
 
 

@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, ForeignKey, DateTime, BigInteger, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from src.services.database.core.database import Base
+from src.database import Base
 
 
 class Referrals(Base):

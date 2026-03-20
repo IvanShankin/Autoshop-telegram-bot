@@ -5,9 +5,9 @@ from src.services.redis.filling import filling_voucher_by_user_id, filling_types
     filling_all_types_payments, filling_user, filling_vouchers, filling_promo_code, \
     filling_banned_accounts, filling_admins
 from tests.helpers.helper_functions import comparison_models
-from src.services.database.discounts.models import SmallVoucher
-from src.services.database.users.models import  BannedAccounts
-from src.services.database.core.database import get_db
+from src.database.models.discount import SmallVoucher
+from src.database.models.users import  BannedAccounts
+from src.database import get_db
 from src.services.redis.core_redis import get_redis
 
 

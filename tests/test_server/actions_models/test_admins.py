@@ -2,12 +2,12 @@ import pytest
 from sqlalchemy import select
 
 from src.services.database.admins.actions.actions_admin import get_sent_mass_messages_by_page, delete_admin
-from src.services.database.system.models import UiImages
+from src.database.models.system import UiImages
 from src.services.redis.core_redis import get_redis
 from src.services.database.admins.actions import check_admin, create_admin as create_admin_fun, get_message_for_sending, \
     update_message_for_sending
-from src.services.database.admins.models import MessageForSending, Admins
-from src.services.database.core.database import get_db
+from src.database.models.admins import MessageForSending, Admins
+from src.database import get_db
 
 @pytest.mark.asyncio
 async def test_check_admin(create_admin_fix):

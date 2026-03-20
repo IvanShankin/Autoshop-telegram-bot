@@ -5,7 +5,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.config import get_config
 from src.services.database.discounts.actions.actions_promo import get_promo_code_by_page, get_count_promo_codes
-from src.services.database.discounts.models import PromoCodes
+from src.database.models.discount import PromoCodes
 from src.services.keyboards.keyboard_with_pages import pagination_keyboard
 from src.utils.i18n import get_text
 

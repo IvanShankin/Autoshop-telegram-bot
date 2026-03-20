@@ -9,8 +9,8 @@ from src.modules.profile.services.purchases_accounts import show_all_sold_accoun
 from src.services.products.accounts.tg.actions import check_account_validity, get_auth_codes
 from src.services.database.categories.actions import update_account_storage, \
     delete_sold_account, get_type_service_account, add_deleted_accounts
-from src.services.database.categories.models import AccountStorage, StorageStatus
-from src.services.database.users.models import Users
+from src.database.models.categories import AccountStorage, StorageStatus
+from src.database.models.users import Users
 from src.services.filesystem.account_actions import move_in_account, get_tdata_tg_acc, get_session_tg_acc
 from src.services.secrets import decrypt_text, get_crypto_context, unwrap_dek
 from src.utils.i18n import get_text

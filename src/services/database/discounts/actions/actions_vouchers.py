@@ -11,13 +11,13 @@ from src.config import get_config
 from src.exceptions import NotEnoughMoney
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling import filling_voucher_by_user_id, filling_user
-from src.services.database.admins.models import AdminActions
-from src.services.database.core.database import get_db
+from src.database.models.admins import AdminActions
+from src.database import get_db
 from src.services.database.discounts.events import NewActivationVoucher
-from src.services.database.discounts.models import Vouchers, VoucherActivations
-from src.services.database.discounts.models import SmallVoucher
+from src.database.models.discount import Vouchers, VoucherActivations
+from src.database.models.discount import SmallVoucher
 from src.services.database.users.actions import update_user, get_user
-from src.services.database.users.models import WalletTransaction, UserAuditLogs, Users
+from src.database.models.users import WalletTransaction, UserAuditLogs, Users
 from src.utils.codes import generate_code
 from src.utils.i18n import get_text
 

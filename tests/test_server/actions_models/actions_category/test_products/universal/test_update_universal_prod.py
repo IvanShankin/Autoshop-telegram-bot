@@ -2,8 +2,8 @@ import orjson
 import pytest
 from sqlalchemy import select
 
-from src.services.database.categories.models import UniversalStorage
-from src.services.database.core import get_db
+from src.database.models.categories import UniversalStorage
+from src.database import get_db
 from src.services.redis.core_redis import get_redis
 
 

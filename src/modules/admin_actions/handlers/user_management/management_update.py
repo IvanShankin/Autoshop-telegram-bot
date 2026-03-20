@@ -9,7 +9,7 @@ from src.modules.admin_actions.schemas import SetNewBalanceData, IssueBanData
 from src.modules.admin_actions.state import SetNewBalance, IssueBan
 from src.services.database.users.actions import get_user, add_banned_account, delete_banned_account
 from src.services.database.users.actions.action_user import admin_update_user_balance
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_text
 

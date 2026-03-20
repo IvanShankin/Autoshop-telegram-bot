@@ -4,19 +4,19 @@ from pathlib import Path
 import pytest
 from sqlalchemy import select
 
-from src.services.database.core import get_db
-from src.services.database.categories.models import (
+from src.database import get_db
+from src.database.models.categories import (
     PurchaseRequests,
     Purchases,
 )
-from src.services.database.categories.models import (
+from src.database.models.categories import (
     UniversalStorage,
     StorageStatus,
     SoldUniversal,
     PurchaseRequestUniversal, ProductUniversal, UniversalMediaType,
 )
-from src.services.database.users.models.models_users import BalanceHolder
-from src.services.database.categories.models.shemas.purshanse_schem import (
+from src.database.models.users import BalanceHolder
+from src.database.models.categories.shemas.purshanse_schem import (
     StartPurchaseUniversalOne, StartPurchaseUniversal,
 )
 

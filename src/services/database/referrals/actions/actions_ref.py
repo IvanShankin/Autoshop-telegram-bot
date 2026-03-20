@@ -2,10 +2,10 @@ from typing import List
 from sqlalchemy import select, func
 
 from src.config import get_config
-from src.services.database.core.database import get_db
+from src.database import get_db
 from src.services.database.referrals.actions.actions_ref_lvls import get_referral_lvl
-from src.services.database.referrals.models import Referrals, IncomeFromReferrals
-from src.services.database.users.models import UserAuditLogs
+from src.database.models.referrals import Referrals, IncomeFromReferrals
+from src.database.models.users import UserAuditLogs
 
 
 async def get_all_referrals(user_id) -> List[Referrals]:

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from src.config import get_config
-from src.services.database.categories.models import AccountServiceType, StorageStatus
+from src.database.models.categories import AccountServiceType, StorageStatus
 
 
 def create_path_account(

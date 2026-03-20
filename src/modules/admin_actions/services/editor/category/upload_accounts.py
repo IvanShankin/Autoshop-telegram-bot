@@ -6,11 +6,10 @@ from src.exceptions import ProductAccountNotFound, ProductNotFound
 from src.exceptions.business import ServerError
 from src.modules.admin_actions.keyboards.editors.category_kb import in_category_kb
 from src.modules.admin_actions.services.editor.category.category_loader import service_not_found
-from src.modules.admin_actions.keyboards import back_in_category_kb
-from src.services.database.categories.models import ProductType, CategoryFull, AccountServiceType
+from src.database.models.categories import ProductType, CategoryFull, AccountServiceType
 from src.services.products.accounts.other.upload_account import upload_other_account
 from src.services.products.accounts.tg.upload_account import upload_tg_account
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.services.products.universals.upload_products import upload_universal_products
 from src.utils.i18n import get_text
 

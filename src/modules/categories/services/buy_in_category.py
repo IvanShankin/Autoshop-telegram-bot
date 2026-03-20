@@ -3,7 +3,7 @@ from typing import Callable, Coroutine, Any
 from aiogram.types import CallbackQuery
 
 from src.bot_actions.bot_instance import get_bot
-from src.bot_actions.messages import edit_message, send_message, like_with_heart
+from src.bot_actions.messages import edit_message, send_message
 from src.exceptions import InvalidPromoCode, CategoryNotFound, NotEnoughMoney, NotEnoughAccounts
 from src.exceptions.business import NotEnoughProducts
 from src.modules.categories.keyboards import replenishment_and_back_in_cat, back_in_account_category_kb
@@ -12,9 +12,9 @@ from src.modules.profile.keyboards import in_purchased_account_kb, in_purchased_
 from src.services.database.categories.actions import purchase
 from src.services.database.categories.actions.products.accounts.actions_get import get_sold_accounts_by_owner_id
 from src.services.database.categories.actions.products.universal.actions_get import get_sold_universal_by_owner_id
-from src.services.database.categories.models import CategoryFull, ProductType
+from src.database.models.categories import CategoryFull, ProductType
 from src.services.database.discounts.utils.calculation import discount_calculation
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.i18n import get_text, n_get_text
 
 

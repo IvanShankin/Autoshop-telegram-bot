@@ -7,12 +7,11 @@ from src.broker.producer import publish_event
 from src.config import get_config
 from src.services.redis.core_redis import get_redis
 from src.services.database.discounts.events.schemas import NewActivatePromoCode
-from src.services.database.discounts.models import PromoCodes, ActivatedPromoCodes
-from src.services.database.core.database import get_db
-from src.services.database.users.models import UserAuditLogs
+from src.database.models.discount import PromoCodes, ActivatedPromoCodes
+from src.database import get_db
+from src.database.models.users import UserAuditLogs
 from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text
-from src.bot_actions.messages import send_log
 
 
 async def promo_code_event_handler(event):

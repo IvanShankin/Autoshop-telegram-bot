@@ -2,8 +2,8 @@ import pytest
 from sqlalchemy import select
 
 from src.services.database.backups.backup_db import cleanup_old_backups
-from src.services.database.core import get_db
-from src.services.database.system.models import BackupLogs
+from src.database import get_db
+from src.database.models.system import BackupLogs
 
 
 @pytest.mark.asyncio

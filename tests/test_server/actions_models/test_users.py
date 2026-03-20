@@ -4,12 +4,12 @@ from sqlalchemy import delete, select
 
 from tests.helpers.helper_functions import parse_redis_user, comparison_models
 from src.exceptions import UserNotFound, NotEnoughMoney
-from src.services.database.admins.models import AdminActions
+from src.database.models.admins import AdminActions
 from src.services.database.users.actions.action_user import get_user_by_ref_code
-from src.services.database.users.models import Users, NotificationSettings, BannedAccounts, WalletTransaction, \
+from src.database.models.users import Users, NotificationSettings, BannedAccounts, WalletTransaction, \
     TransferMoneys, \
     UserAuditLogs, Replenishments
-from src.services.database.core.database import get_db
+from src.database import get_db
 from src.services.redis.core_redis import get_redis
 
 

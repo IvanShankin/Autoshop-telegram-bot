@@ -16,7 +16,7 @@ from src.services.database.discounts.actions import (create_voucher as create_vo
                                                      deactivate_voucher as deactivate_voucher_server)
 from src.services.database.system.actions import get_settings
 from src.services.database.users.actions import get_user
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 router = Router()

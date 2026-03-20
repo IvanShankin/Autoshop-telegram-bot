@@ -1,4 +1,3 @@
-import os
 import tempfile
 from types import SimpleNamespace
 
@@ -6,8 +5,8 @@ import pytest
 from sqlalchemy import select
 
 from src.exceptions import TextTooLong
-from src.services.database.admins.models import SentMasMessages
-from src.services.database.core import get_db
+from src.database.models.admins import SentMasMessages
+from src.database import get_db
 
 
 def test_visible_text_length_plain_text():

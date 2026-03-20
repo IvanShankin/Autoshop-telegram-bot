@@ -3,7 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from src.services.database.categories.models.product_universal import UniversalMediaType, UniversalStorage, \
+from src.database.models.categories.product_universal import UniversalMediaType, UniversalStorage, \
     ProductUniversal, SoldUniversal, StorageStatus
 
 

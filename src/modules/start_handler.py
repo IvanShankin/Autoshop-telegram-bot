@@ -7,13 +7,13 @@ from src.modules.keyboard_main import main_kb, selecting_language
 from src.bot_actions.messages import send_message
 from src.services.database.admins.actions import check_admin
 from src.services.database.discounts.actions import get_valid_voucher_by_code, activate_voucher
-from src.services.database.discounts.models import Vouchers
+from src.database.models.discount import Vouchers
 from src.services.database.referrals.actions import add_referral
 from src.services.database.system.actions import get_settings
 from src.services.database.users.actions import get_user
 from src.services.database.users.actions.action_other_with_user import add_new_user
 from src.services.database.users.actions.action_user import get_user_by_ref_code, update_user
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 router = Router()

@@ -1,12 +1,12 @@
 import pytest
 from orjson import orjson
 from sqlalchemy import select
-from src.services.database.categories.models import DeletedAccounts, SoldAccounts, \
+from src.database.models.categories import DeletedAccounts, SoldAccounts, \
     ProductAccounts,  SoldAccountsTranslation, AccountStorage
-from src.services.database.categories.models import AccountServiceType, TgAccountMedia
+from src.database.models.categories import AccountServiceType, TgAccountMedia
 
 from src.exceptions import TranslationAlreadyExists, TheCategoryNotStorageAccount
-from src.services.database.core.database import get_db
+from src.database import get_db
 from src.services.redis.core_redis import get_redis
 
 

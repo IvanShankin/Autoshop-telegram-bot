@@ -9,7 +9,7 @@ from src.modules.admin_actions.keyboards import select_promo_code_type_kb, \
 from src.modules.admin_actions.schemas import CreatePromoCodeData
 from src.modules.admin_actions.state import CreatePromoCode
 from src.services.database.discounts.actions import get_promo_code, create_promo_code
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.converter import safe_int_conversion, safe_parse_datetime
 from src.utils.i18n import get_text
 

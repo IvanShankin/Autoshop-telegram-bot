@@ -5,16 +5,15 @@ from typing import List, Tuple
 from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
-from src.bot_actions.messages import send_log
 from src.bot_actions.messages.schemas import EventSentLog, LogLevel
 from src.broker.producer import publish_event
 from src.services.database.categories.actions.actions_get import get_category_by_category_id
 from src.services.database.categories.actions.products.accounts.actions_add import add_deleted_accounts
 from src.services.database.categories.actions.products.accounts.actions_delete import delete_product_account
 from src.services.database.categories.actions.products.accounts.actions_update import update_account_storage
-from src.services.database.categories.models import ProductAccounts, AccountStorage, PurchaseRequests, \
+from src.database.models.categories import ProductAccounts, AccountStorage, PurchaseRequests, \
     PurchaseRequestAccount, AccountServiceType, StorageStatus
-from src.services.database.core.database import get_db
+from src.database import get_db
 from src.services.filesystem.account_actions import move_in_account
 from src.services.products.accounts.tg.actions import check_account_validity
 from src.utils.core_logger import get_logger

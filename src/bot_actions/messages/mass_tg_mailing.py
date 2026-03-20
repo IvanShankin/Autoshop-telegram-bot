@@ -12,9 +12,9 @@ from sqlalchemy import select
 from src.bot_actions.bot_instance import get_bot
 from src.config import get_config, get_global_rate_limit, get_semaphore_mailing
 from src.exceptions import TextTooLong, TextNotLinc
-from src.services.database.core.database import get_db
-from src.services.database.users.models import Users
-from src.services.database.admins.models import SentMasMessages
+from src.database import get_db
+from src.database.models.users import Users
+from src.database.models.admins import SentMasMessages
 from src.services.filesystem.actions import copy_file
 from src.utils.core_logger import get_logger
 

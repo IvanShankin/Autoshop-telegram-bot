@@ -9,7 +9,7 @@ from src.modules.admin_actions.keyboards import skip_number_activations_or_back_
 from src.modules.admin_actions.schemas import CreateAdminVoucherData
 from src.modules.admin_actions.state import CreateAdminVoucher
 from src.services.database.discounts.actions import create_voucher
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.converter import safe_int_conversion, safe_parse_datetime
 from src.utils.i18n import get_text
 

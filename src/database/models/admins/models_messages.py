@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, BigI
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from src.services.database.core.database import Base
+from src.database import Base
 
 
 class MessageForSending(Base):

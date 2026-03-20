@@ -4,7 +4,7 @@ from typing import List
 import pytest
 from sqlalchemy import select
 
-from src.services.database.categories.models import (
+from src.database.models.categories import (
     SoldUniversal,
     ProductType,
     PurchaseRequests,
@@ -12,9 +12,9 @@ from src.services.database.categories.models import (
     UniversalStorage,
     StorageStatus,
 )
-from src.services.database.core import get_db
-from src.services.database.users.models import Users
-from src.services.database.users.models.models_users import BalanceHolder
+from src.database import get_db
+from src.database.models.users import Users
+from src.database.models.users import BalanceHolder
 
 
 class TestDifferentPurchase:

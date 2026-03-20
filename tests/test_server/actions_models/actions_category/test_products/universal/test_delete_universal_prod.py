@@ -4,9 +4,9 @@ import pytest
 from orjson import orjson
 from sqlalchemy import select
 
-from src.services.database.categories.models import ProductUniversal
-from src.services.database.categories.models import SoldUniversal, UniversalStorage
-from src.services.database.core import get_db
+from src.database.models.categories import ProductUniversal
+from src.database.models.categories import SoldUniversal, UniversalStorage
+from src.database import get_db
 from src.services.redis.core_redis import get_redis
 
 

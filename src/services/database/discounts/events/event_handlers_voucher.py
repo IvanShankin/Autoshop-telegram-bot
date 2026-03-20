@@ -4,12 +4,12 @@ from src.bot_actions.messages.schemas import LogLevel, EventSentLog
 from src.broker.producer import publish_event
 from src.config import get_config
 from src.services.redis.core_redis import get_redis
-from src.services.database.core.database import get_db
+from src.database import get_db
 from src.services.database.discounts.utils.sending import send_set_not_valid_voucher
 from src.services.database.discounts.events.schemas import NewActivationVoucher
-from src.services.database.discounts.models import Vouchers
+from src.database.models.discount import Vouchers
 from src.services.database.users.actions import get_user
-from src.services.database.users.models import UserAuditLogs, WalletTransaction
+from src.database.models.users import UserAuditLogs, WalletTransaction
 from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text
 from src.bot_actions.messages import send_message

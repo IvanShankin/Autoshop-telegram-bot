@@ -1,6 +1,5 @@
 from typing import Optional
 
-from src.bot_actions.messages import send_log
 from src.bot_actions.messages.schemas import EventSentLog, LogLevel
 from src.broker.producer import publish_event
 from src.exceptions.business import InvalidQuantityProducts
@@ -15,11 +14,10 @@ from src.services.database.categories.actions.purchases.universal.finalize impor
 from src.services.database.categories.actions.purchases.universal.start import start_purchase_universal
 from src.services.database.categories.actions.purchases.universal.verify import verify_reserved_universal_different, \
     verify_reserved_universal_one
-from src.services.database.categories.models import ProductType
-from src.services.database.categories.models.shemas.purshanse_schem import StartPurchaseUniversal, \
+from src.database.models.categories import ProductType
+from src.database.models.categories.shemas.purshanse_schem import StartPurchaseUniversal, \
     StartPurchaseUniversalOne
 from src.services.redis.filling import filling_all_keys_category
-from src.utils.core_logger import get_logger
 
 
 async def purchase(

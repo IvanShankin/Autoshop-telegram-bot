@@ -6,28 +6,26 @@ from typing import List, Tuple
 
 from sqlalchemy import update, delete
 
-from src.bot_actions.messages import send_log
 from src.bot_actions.messages.schemas import EventSentLog
 from src.broker.producer import publish_event
-from src.config import get_config
 from src.services.database.categories.actions.products.universal.actions_get import \
     get_product_universal_by_category_id, get_translations_universal_storage
 from src.services.database.categories.actions.purchases.universal.cancel import cancel_purchase_universal_one, \
     cancel_purchase_universal_different
 from src.services.database.categories.events.schemas import UniversalProductData, \
     NewPurchaseUniversal
-from src.services.database.categories.models import PurchaseRequests
-from src.services.database.categories.models import Purchases
-from src.services.database.categories.models import ProductType
-from src.services.database.categories.models import StorageStatus, ProductUniversal, \
+from src.database.models.categories import PurchaseRequests
+from src.database.models.categories import Purchases
+from src.database.models.categories import ProductType
+from src.database.models.categories import StorageStatus, ProductUniversal, \
     SoldUniversal, UniversalStorage, UniversalStorageTranslation, PurchaseRequestUniversal
-from src.services.database.categories.models import ProductUniversalFull, \
+from src.database.models.categories import ProductUniversalFull, \
     UniversalStoragePydantic
-from src.services.database.categories.models.shemas.purshanse_schem import StartPurchaseUniversal, \
+from src.database.models.categories.shemas.purshanse_schem import StartPurchaseUniversal, \
     StartPurchaseUniversalOne
-from src.services.database.core.database import get_db
+from src.database import get_db
 from src.services.database.discounts.events import NewActivatePromoCode
-from src.services.database.users.models.models_users import BalanceHolder
+from src.database.models.users import BalanceHolder
 from src.services.filesystem.account_actions import rename_file
 from src.services.filesystem.actions import move_file, copy_file
 from src.services.filesystem.media_paths import create_path_universal_storage

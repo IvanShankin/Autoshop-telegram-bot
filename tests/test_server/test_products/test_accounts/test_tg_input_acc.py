@@ -8,12 +8,12 @@ from pathlib import Path
 from sqlalchemy import select
 
 from src.exceptions import ArchiveNotFount, DirNotFount
-from src.services.database.categories.models import AccountServiceType
-from src.services.database.core import get_db
+from src.database.models.categories import AccountServiceType
+from src.database import get_db
 from types import SimpleNamespace
 
 from telethon.tl.types import User
-from src.services.database.categories.models import ProductAccounts
+from src.database.models.categories import ProductAccounts
 from src.services.products.accounts.tg.shemas import BaseAccountProcessingResult, ArchiveProcessingResult
 
 VALID_USER = User(
@@ -364,7 +364,6 @@ async def test_process_archives_batch_calls_process_single_archive(tmp_path):
 
 @pytest.mark.asyncio
 async def test_process_dirs_batch_no_dirs(tmp_path):
-    from src.services.products.accounts.tg import input_account
     from src.services.products.accounts.tg.input_account import process_dirs_batch
 
     test_dir = (tmp_path / "fake_dir")

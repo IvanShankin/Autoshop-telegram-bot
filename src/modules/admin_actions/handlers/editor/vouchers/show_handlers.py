@@ -8,7 +8,7 @@ from src.config import get_config
 from src.modules.admin_actions.keyboards import admin_vouchers_kb, all_admin_vouchers_kb, \
     back_in_all_admin_voucher_kb, show_admin_voucher_kb
 from src.services.database.discounts.actions import get_voucher_by_id
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 router = Router()

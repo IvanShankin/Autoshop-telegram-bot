@@ -9,7 +9,7 @@ from src.modules.profile.services.profile_message import message_income_ref, mes
 from src.services.database.admins.actions import check_admin
 from src.services.database.referrals.actions import get_all_referrals, get_income_from_referral
 from src.services.database.referrals.reports import generate_referral_report_excel
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 router_with_repl_kb = Router()

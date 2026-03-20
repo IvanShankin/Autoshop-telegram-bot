@@ -5,9 +5,9 @@ import orjson
 from sqlalchemy import select
 
 from src.services.redis.core_redis import get_redis
-from src.services.database.core.database import get_db
+from src.database import get_db
 
-from src.services.database.categories.models import ProductAccounts, SoldAccounts, SoldAccountsTranslation, AccountStorage
+from src.database.models.categories import ProductAccounts, SoldAccounts, SoldAccountsTranslation, AccountStorage
 
 
 

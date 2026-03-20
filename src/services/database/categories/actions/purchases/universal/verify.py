@@ -5,7 +5,6 @@ from typing import List, Tuple
 from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
-from src.bot_actions.messages import send_log
 from src.bot_actions.messages.schemas import LogLevel, EventSentLog
 from src.broker.producer import publish_event
 from src.config import get_config
@@ -13,11 +12,11 @@ from src.services.database.categories.actions.actions_get import get_category_by
 from src.services.database.categories.actions.products.universal.action_delete import delete_prod_universal
 from src.services.database.categories.actions.products.universal.action_update import update_universal_storage
 from src.services.database.categories.actions.products.universal.actions_add import add_deleted_universal
-from src.services.database.categories.models import PurchaseRequests
-from src.services.database.categories.models import StorageStatus, \
+from src.database.models.categories import PurchaseRequests
+from src.database.models.categories import StorageStatus, \
     ProductUniversal, UniversalStorage, PurchaseRequestUniversal
-from src.services.database.categories.models import ProductUniversalFull
-from src.services.database.core.database import get_db
+from src.database.models.categories import ProductUniversalFull
+from src.database import get_db
 from src.services.products.universals.actions import check_valid_universal_product, move_universal_storage
 from src.services.secrets import get_crypto_context
 from src.utils.core_logger import get_logger

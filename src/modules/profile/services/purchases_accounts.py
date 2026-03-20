@@ -10,9 +10,9 @@ from src.modules.profile.keyboards import sold_accounts_kb, account_kb, sold_acc
 from src.services.database.admins.actions import check_admin
 from src.services.database.categories.actions import get_sold_accounts_by_account_id, get_tg_account_media, \
     update_tg_account_media
-from src.services.database.categories.models import SoldAccountFull, AccountStorage, AccountServiceType
+from src.database.models.categories import SoldAccountFull, AccountStorage, AccountServiceType
 from src.services.database.users.actions import get_user
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text
 from src.utils.pars_number import e164_to_pretty

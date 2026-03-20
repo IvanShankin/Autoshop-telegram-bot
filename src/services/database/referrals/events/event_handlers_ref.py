@@ -8,14 +8,14 @@ from src.bot_actions.messages.schemas import EventSentLog, LogLevel
 from src.broker.producer import publish_event
 from src.config import get_config
 from src.services.database.users.actions import get_user, update_user
-from src.services.database.users.models import UserAuditLogs, WalletTransaction, NotificationSettings
-from src.services.database.core.database import get_db
+from src.database.models.users import UserAuditLogs, WalletTransaction, NotificationSettings
+from src.database import get_db
 from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text
 from src.services.database.referrals.actions import get_referral_lvl
-from src.services.database.referrals.models.models_ref import Referrals, IncomeFromReferrals
+from src.database.models.referrals.models_ref import Referrals, IncomeFromReferrals
 from src.services.database.replenishments_event.schemas import ReplenishmentCompleted
-from src.bot_actions.messages import send_log
+
 
 async def referral_event_handler(event):
     payload = event["payload"]

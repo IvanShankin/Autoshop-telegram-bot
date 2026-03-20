@@ -5,9 +5,9 @@ from pathlib import Path
 import pytest
 from sqlalchemy import select
 
-from src.services.database.categories.models import AccountStorage, StorageStatus
-from src.services.database.categories.models import AccountServiceType
-from src.services.database.core import get_db
+from src.database.models.categories import AccountStorage, StorageStatus
+from src.database.models.categories import AccountServiceType
+from src.database import get_db
 
 
 @pytest.mark.asyncio

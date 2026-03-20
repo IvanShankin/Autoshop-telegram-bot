@@ -4,9 +4,9 @@ from typing import Callable, Any, Tuple
 from sqlalchemy import Column, String, ForeignKey, Integer, Boolean, text, Text, DateTime, func, BigInteger, Enum
 from sqlalchemy.orm import relationship
 
-from src.services.database.categories.models import StorageStatus
-from src.services.database.categories.models.main_category_and_product import UniversalMediaType
-from src.services.database.core.database import Base
+from src.database.models.categories import StorageStatus
+from src.database.models.categories.main_category_and_product import UniversalMediaType
+from src.database import Base
 
 
 class ProductUniversal(Base):

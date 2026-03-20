@@ -3,16 +3,15 @@ from typing import List
 from sqlalchemy import select
 from sqlalchemy.sql.expression import distinct
 
-from src.services.database.categories.models import ProductAccounts, SoldAccounts
-from src.services.database.core.database import get_db
-from src.services.database.system.models import TypePayments
-from src.services.database.system.models import UiImages
-from src.services.database.users.models import Users
+from src.database.models.categories import ProductAccounts, SoldAccounts
+from src.database import get_db
+from src.database.models.system import TypePayments
+from src.database.models.system import UiImages
+from src.database.models.users import Users
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling.filling_categories import filling_all_keys_category
 from src.services.redis.filling.filling_other import filling_types_payments_by_id, filling_ui_image, \
-    filling_voucher_by_user_id, filling_settings, filling_referral_levels, filling_all_types_payments, filling_users, \
-    filling_admins, filling_banned_accounts, filling_promo_code, filling_vouchers, filling_all_stickers
+    filling_voucher_by_user_id, filling_settings, filling_referral_levels, filling_all_types_payments, filling_admins, filling_banned_accounts, filling_promo_code, filling_vouchers, filling_all_stickers
 from src.services.redis.filling.filling_accounts import filling_product_account_by_account_id, \
     filling_sold_accounts_by_owner_id, filling_sold_account_by_account_id, filling_product_accounts_by_category_id
 from src.utils.core_logger import get_logger

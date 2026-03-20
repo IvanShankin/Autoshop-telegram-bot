@@ -4,7 +4,7 @@ from aiogram.types import CallbackQuery
 from src.bot_actions.messages import edit_message
 from src.modules.admin_actions.keyboards import images_list_kb
 from src.modules.admin_actions.keyboards.editors.event_message_kb import choice_edit_event_msg_kb
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 
 
 router = Router()

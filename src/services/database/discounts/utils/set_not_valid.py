@@ -5,9 +5,9 @@ from sqlalchemy import select, and_, update
 
 from src.bot_actions.messages.schemas import EventSentLog, LogLevel
 from src.broker.producer import publish_event
-from src.services.database.core.database import get_db
+from src.database import get_db
 from src.services.database.discounts.actions.actions_vouchers import deactivate_voucher
-from src.services.database.discounts.models import Vouchers, PromoCodes
+from src.database.models.discount import Vouchers, PromoCodes
 from src.services.database.discounts.utils.sending import send_set_not_valid_voucher
 from src.services.database.users.actions import get_user
 from src.utils.core_logger import get_logger

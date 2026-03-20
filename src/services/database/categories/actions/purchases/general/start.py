@@ -5,14 +5,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.exceptions import CategoryNotFound, NotEnoughMoney
 from src.services.database.categories.actions.actions_get import get_category_by_category_id
-from src.services.database.categories.models import CategoryTranslation
-from src.services.database.categories.models import PurchaseRequests
-from src.services.database.categories.models import ResultCheckCategory
-from src.services.database.core.database import get_db
+from src.database.models.categories import CategoryTranslation
+from src.database.models.categories import PurchaseRequests
+from src.database.models.categories import ResultCheckCategory
+from src.database import get_db
 from src.services.database.discounts.utils.calculation import discount_calculation
 from src.services.database.users.actions import get_user
-from src.services.database.users.models import Users
-from src.services.database.users.models.models_users import BalanceHolder
+from src.database.models.users import Users
+from src.database.models.users import BalanceHolder
 
 
 async def check_category_and_money(

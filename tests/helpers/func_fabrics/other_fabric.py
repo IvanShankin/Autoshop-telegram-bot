@@ -5,17 +5,17 @@ from typing import Tuple
 import orjson
 from sqlalchemy import select
 
-from src.services.database.admins.models import Admins, SentMasMessages, MessageForSending
-from src.services.database.categories.models import PurchaseRequests
-from src.services.database.core.database import get_db
-from src.services.database.discounts.models import Vouchers, PromoCodes, ActivatedPromoCodes
-from src.services.database.referrals.models import Referrals, IncomeFromReferrals
+from src.database.models.admins import Admins, SentMasMessages, MessageForSending
+from src.database.models.categories import PurchaseRequests
+from src.database import get_db
+from src.database.models.discount import Vouchers, PromoCodes, ActivatedPromoCodes
+from src.database.models.referrals import Referrals, IncomeFromReferrals
 from src.services.database.referrals.utils import create_unique_referral_code
-from src.services.database.system.models import TypePayments
-from src.services.database.system.models import UiImages, BackupLogs
-from src.services.database.users.models import Users, Replenishments, NotificationSettings, WalletTransaction, \
+from src.database.models.system import TypePayments
+from src.database.models.system import UiImages, BackupLogs
+from src.database.models.users import Users, Replenishments, NotificationSettings, WalletTransaction, \
     TransferMoneys
-from src.services.database.users.models.models_users import BalanceHolder
+from src.database.models.users import BalanceHolder
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling import filling_all_types_payments, \
     filling_types_payments_by_id

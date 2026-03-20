@@ -10,16 +10,15 @@ from src.broker.producer import publish_event
 from src.config import get_config
 from src.exceptions import UserNotFound, NotEnoughMoney
 from src.services.redis.filling import filling_user
-from src.services.database.admins.models import AdminActions
+from src.database.models.admins import AdminActions
 from src.services.database.referrals.utils import create_unique_referral_code
 from src.services.database.users.actions.action_user import get_user
-from src.services.database.users.models import Users, NotificationSettings, BannedAccounts, UserAuditLogs, \
+from src.database.models.users import Users, NotificationSettings, BannedAccounts, UserAuditLogs, \
     WalletTransaction, \
     TransferMoneys, Replenishments
-from src.services.database.core.database import get_db
+from src.database import get_db
 from src.services.redis.core_redis import get_redis
 from src.services.redis.time_storage import TIME_USER, TIME_SUBSCRIPTION_PROMPT
-from src.bot_actions.messages import send_log
 from src.utils.core_logger import get_logger
 
 

@@ -1,7 +1,6 @@
 import os.path
 import shutil
 import uuid
-from csv import DictReader
 from pathlib import Path
 from typing import List, Dict
 
@@ -13,8 +12,8 @@ from src.services.database.categories.actions import get_all_translations_catego
 from src.services.database.categories.actions.products.universal.actions_add import add_universal_storage, \
     add_translate_in_universal_storage, add_product_universal
 from src.services.database.categories.actions.products.universal.actions_get import get_product_universal_by_category_id
-from src.services.database.categories.models import CategoryTranslation
-from src.services.database.categories.models import UniversalMediaType, StorageStatus
+from src.database.models.categories import CategoryTranslation
+from src.database.models.categories import UniversalMediaType, StorageStatus
 from src.services.filesystem.actions import extract_archive_to_temp
 from src.services.filesystem.csv_parse import parse_csv_from_file
 from src.services.filesystem.media_paths import create_path_universal_storage

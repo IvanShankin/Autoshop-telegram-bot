@@ -4,7 +4,7 @@ from aiogram.types import CallbackQuery
 from src.bot_actions.messages import edit_message
 from src.modules.admin_actions.keyboards import back_in_all_admin_voucher_kb, confirm_deactivate_admin_voucher_kb
 from src.services.database.discounts.actions import get_voucher_by_id, deactivate_voucher
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 router = Router()

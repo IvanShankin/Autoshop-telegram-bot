@@ -8,7 +8,7 @@ from src.modules.admin_actions.services import message_about_user
 from src.modules.admin_actions.state import GetUserIdOrUsername
 from src.services.database.users.actions import get_user
 from src.services.database.users.actions.action_user import get_user_by_username
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_text
 

@@ -3,12 +3,12 @@ import pytest
 from sqlalchemy import select
 
 from src.exceptions import NotEnoughAccounts, NotEnoughMoney
-from src.services.database.categories.models import ProductAccountFull, StorageStatus
-from src.services.database.categories.models import PurchaseRequests, PurchaseRequestAccount, \
+from src.database.models.categories import StorageStatus
+from src.database.models.categories import PurchaseRequests, PurchaseRequestAccount, \
     AccountStorage, ProductAccounts
-from src.services.database.core import get_db
-from src.services.database.users.models import Users
-from src.services.database.users.models.models_users import BalanceHolder
+from src.database import get_db
+from src.database.models.users import Users
+from src.database.models.users import BalanceHolder
 from src.services.redis.core_redis import get_redis
 from tests.helpers.helper_functions import comparison_models
 

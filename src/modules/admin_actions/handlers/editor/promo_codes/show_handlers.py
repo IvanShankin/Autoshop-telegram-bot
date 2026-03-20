@@ -7,7 +7,7 @@ from src.config import get_config
 from src.modules.admin_actions.keyboards import admin_promo_kb, all_admin_promo_kb, \
     back_in_all_admin_promo_kb, show_admin_promo_kb
 from src.services.database.discounts.actions import get_promo_code
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 router = Router()

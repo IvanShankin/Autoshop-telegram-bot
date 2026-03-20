@@ -4,20 +4,19 @@ from typing import List, Tuple
 
 from sqlalchemy import update, delete
 
-from src.bot_actions.messages import send_log
-from src.bot_actions.messages.schemas import EventSentLog, LogLevel
+from src.bot_actions.messages.schemas import EventSentLog
 from src.broker.producer import publish_event
 from src.services.database.categories.actions.products.accounts.actions_get import get_product_account_by_category_id
 from src.services.database.categories.actions.purchases.accounts.cancel import cancel_purchase_request_accounts
 from src.services.database.categories.events.schemas import NewPurchaseAccount, AccountsData
-from src.services.database.categories.models import ProductAccounts, SoldAccounts, Purchases, \
+from src.database.models.categories import ProductAccounts, SoldAccounts, Purchases, \
     SoldAccountsTranslation, AccountStorage, StorageStatus
-from src.services.database.categories.models import PurchaseRequests
-from src.services.database.categories.models import StartPurchaseAccount
-from src.services.database.categories.models import ProductType
-from src.services.database.core.database import get_db
+from src.database.models.categories import PurchaseRequests
+from src.database.models.categories import StartPurchaseAccount
+from src.database.models.categories import ProductType
+from src.database import get_db
 from src.services.database.discounts.events import NewActivatePromoCode
-from src.services.database.users.models.models_users import BalanceHolder
+from src.database.models.users import BalanceHolder
 from src.services.filesystem.media_paths import create_path_account
 from src.services.filesystem.account_actions import rename_file
 from src.services.filesystem.actions import move_file

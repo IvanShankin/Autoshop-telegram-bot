@@ -3,16 +3,16 @@ import pytest
 from sqlalchemy import select
 
 from src.exceptions.business import NotEnoughProducts
-from src.services.database.categories.models import (
+from src.database.models.categories import (
     PurchaseRequests
 )
-from src.services.database.categories.models import (
+from src.database.models.categories import (
     UniversalStorage,
     StorageStatus,
     PurchaseRequestUniversal,
 )
-from src.services.database.core.database import get_db
-from src.services.database.users.models import Users, BalanceHolder
+from src.database import get_db
+from src.database.models.users import Users, BalanceHolder
 from src.services.redis.core_redis import get_redis
 from tests.helpers.helper_functions import comparison_models
 

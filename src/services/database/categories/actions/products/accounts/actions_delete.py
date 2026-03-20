@@ -1,13 +1,11 @@
 import shutil
-from pathlib import Path
 from typing import List
 
 from sqlalchemy import select, delete
 
-from src.config import get_config
-from src.services.database.categories.models import ProductAccounts, \
+from src.database.models.categories import ProductAccounts, \
     SoldAccounts, SoldAccountsTranslation, AccountStorage
-from src.services.database.core.database import get_db
+from src.database import get_db
 from src.services.filesystem.media_paths import create_path_account
 from src.services.redis.filling import filling_all_keys_category, filling_sold_accounts_by_owner_id, \
     filling_product_account_by_account_id, filling_product_accounts_by_category_id, filling_sold_account_by_account_id

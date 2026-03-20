@@ -4,10 +4,10 @@ from orjson import orjson
 from sqlalchemy import select, update, delete
 
 from src.exceptions import InvalidAmountOfAchievement, InvalidSelectedLevel
-from src.services.database.core.database import get_db
+from src.database import get_db
 from src.services.database.core.filling_database import filling_referral_lvl as filling_referral_lvl_in_db
-from src.services.database.referrals.models import ReferralLevels, Referrals
-from src.services.database.users.models import Users
+from src.database.models.referrals import ReferralLevels, Referrals
+from src.database.models.users import Users
 from src.services.redis.core_redis import get_redis
 from src.services.redis.filling import filling_referral_levels
 

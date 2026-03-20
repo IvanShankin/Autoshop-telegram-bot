@@ -1,7 +1,7 @@
 from typing import Dict
 from pydantic import BaseModel
 
-from src.services.database.categories.models import AccountServiceType
+from src.database.models.categories import AccountServiceType
 
 
 class GetServiceNameData(BaseModel):

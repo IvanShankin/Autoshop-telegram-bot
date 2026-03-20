@@ -1,11 +1,11 @@
 from pydantic import ConfigDict
 
-from src.services.database.categories.models import ProductAccounts, AccountServiceType
+from src.database.models.categories import ProductAccounts, AccountServiceType
 from typing import List
 from pydantic import BaseModel
-from src.services.database.categories.models import CategoryFull, CategoryTranslation
-from src.services.database.categories.models.product_universal import UniversalMediaType
-from src.services.database.categories.models.shemas.product_universal_schem import ProductUniversalFull
+from src.database.models.categories import CategoryFull, CategoryTranslation
+from src.database.models.categories.product_universal import UniversalMediaType
+from src.database.models.categories.shemas.product_universal_schem import ProductUniversalFull
 
 
 class _StartPurchaseProduct(BaseModel):

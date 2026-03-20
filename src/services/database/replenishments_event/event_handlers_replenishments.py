@@ -5,8 +5,8 @@ from src.bot_actions.messages.schemas import EventSentLog, LogLevel
 from src.broker.producer import publish_event
 from src.config import get_config
 from src.services.database.users.actions import update_user, get_user
-from src.services.database.users.models import WalletTransaction, UserAuditLogs, Replenishments
-from src.services.database.core.database import get_db
+from src.database.models.users import WalletTransaction, UserAuditLogs, Replenishments
+from src.database import get_db
 from src.services.database.replenishments_event.schemas import NewReplenishment
 from src.utils.i18n import  get_text, n_get_text
 from src.modules.keyboard_main import support_kb

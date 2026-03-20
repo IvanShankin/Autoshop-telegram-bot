@@ -1,6 +1,6 @@
 from src.exceptions import InvalidPromoCode
 from src.services.database.discounts.actions import get_promo_code
-from src.services.database.discounts.models import PromoCodes
+from src.database.models.discount import PromoCodes
 
 
 async def discount_calculation(

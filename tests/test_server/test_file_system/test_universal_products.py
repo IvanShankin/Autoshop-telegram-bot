@@ -1,5 +1,5 @@
 import pytest
-from src.services.database.categories.models import StorageStatus
+from src.database.models.categories import StorageStatus
 
 
 @pytest.mark.asyncio

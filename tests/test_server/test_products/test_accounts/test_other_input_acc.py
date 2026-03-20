@@ -1,7 +1,7 @@
 import io
 import pytest
 
-from src.services.database.categories.models import AccountServiceType
+from src.database.models.categories import AccountServiceType
 
 pytestmark = pytest.mark.asyncio
 

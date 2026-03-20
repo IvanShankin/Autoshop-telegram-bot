@@ -8,7 +8,7 @@ from src.modules.admin_actions.keyboards.editors.event_message_kb import sticker
 from src.modules.admin_actions.schemas import UpdateEventMsgData
 from src.modules.admin_actions.state.editors.editor_event_msg import UpdateEventMsg
 from src.services.database.system.actions.actions import get_sticker, update_sticker
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 

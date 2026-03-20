@@ -10,13 +10,13 @@ from sqlalchemy.orm import selectinload
 from tests.helpers.func_fabrics.category_fabric import create_category_factory
 from tests.helpers.func_fabrics.other_fabric import create_new_user_fabric
 
-from src.services.database.categories.models import AccountStorage, TgAccountMedia, Purchases, StorageStatus, \
+from src.database.models.categories import AccountStorage, TgAccountMedia, Purchases, StorageStatus, \
     ProductType
-from src.services.database.categories.models import SoldAccounts, SoldAccountsTranslation, \
+from src.database.models.categories import SoldAccounts, SoldAccountsTranslation, \
     ProductAccounts, \
     SoldAccountFull, SoldAccountSmall, ProductAccountFull
-from src.services.database.categories.models import AccountServiceType
-from src.services.database.core.database import get_db
+from src.database.models.categories import AccountServiceType
+from src.database import get_db
 from src.services.redis.filling import filling_sold_accounts_by_owner_id, \
     filling_sold_account_by_account_id, filling_all_keys_category, filling_product_account_by_account_id
 from src.services.secrets import encrypt_text, get_crypto_context, make_account_key

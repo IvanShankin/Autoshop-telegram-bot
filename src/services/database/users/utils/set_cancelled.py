@@ -3,8 +3,8 @@ from datetime import datetime, timezone
 
 from sqlalchemy import update, and_
 
-from src.services.database.core import get_db
-from src.services.database.users.models import Replenishments, UserAuditLogs
+from src.database import get_db
+from src.database.models.users import Replenishments, UserAuditLogs
 from src.utils.core_logger import get_logger
 
 

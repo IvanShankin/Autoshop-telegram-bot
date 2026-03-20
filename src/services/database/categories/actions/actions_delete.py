@@ -2,9 +2,9 @@ from sqlalchemy import select, delete, distinct, update
 
 from src.exceptions import CategoryStoresSubcategories, \
     AccountCategoryNotFound, TheCategoryStorageAccount
-from src.services.database.categories.models import Categories, ProductAccounts, \
+from src.database.models.categories import Categories, ProductAccounts, \
     CategoryTranslation
-from src.services.database.core.database import get_db
+from src.database import get_db
 from src.services.database.system.actions import delete_ui_image
 from src.services.redis.filling import filling_all_keys_category
 

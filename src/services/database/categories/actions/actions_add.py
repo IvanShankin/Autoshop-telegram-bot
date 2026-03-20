@@ -6,9 +6,9 @@ from sqlalchemy.orm import selectinload
 from src.exceptions import AccountCategoryNotFound, IncorrectedNumberButton, TheCategoryStorageAccount
 from src.services.database.categories.actions.actions_get import get_quantity_products_in_category
 from src.services.database.categories.actions.actions_get import get_category_by_category_id
-from src.services.database.categories.models import Categories, CategoryTranslation, \
+from src.database.models.categories import Categories, CategoryTranslation, \
     CategoryFull
-from src.services.database.core.database import get_db
+from src.database import get_db
 from src.services.database.system.actions.actions import create_ui_image
 from src.services.filesystem.actions import get_default_image_bytes
 from src.services.redis.filling import filling_main_categories, filling_categories_by_parent, \

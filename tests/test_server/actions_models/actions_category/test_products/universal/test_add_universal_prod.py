@@ -2,13 +2,13 @@ import pytest
 import orjson
 from sqlalchemy import select
 
-from src.services.database.categories.models import (
+from src.database.models.categories import (
     UniversalStorage,
     UniversalStorageTranslation,
     ProductUniversal,
     SoldUniversal, UniversalMediaType,
 )
-from src.services.database.core.database import get_db
+from src.database import get_db
 from src.services.redis.core_redis import get_redis
 
 from src.exceptions import TranslationAlreadyExists, UserNotFound

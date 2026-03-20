@@ -6,9 +6,10 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
 from src.config import get_config
-from src.services.database.categories.models import Categories, ProductAccounts, AccountStorage, ProductUniversal, \
+from src.database.models.categories import Categories, ProductAccounts, AccountStorage, ProductUniversal, \
     UniversalStorage, StorageStatus, CategoryFull
-from src.services.database.core.database import get_db, Base
+from src.database import get_db
+from src.database import Base
 from src.services.redis.core_redis import get_redis
 
 

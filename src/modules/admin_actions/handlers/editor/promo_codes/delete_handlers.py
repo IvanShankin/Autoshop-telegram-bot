@@ -6,7 +6,7 @@ from src.modules.admin_actions.keyboards import back_in_all_admin_promo_kb, \
     confirm_deactivate_promo_code_kb
 from src.services.database.discounts.actions import get_promo_code
 from src.services.database.discounts.actions.actions_promo import deactivate_promo_code
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 router = Router()

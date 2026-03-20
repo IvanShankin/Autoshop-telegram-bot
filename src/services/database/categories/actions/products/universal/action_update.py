@@ -1,9 +1,9 @@
 from sqlalchemy import update, select
 from sqlalchemy.orm import selectinload
 
-from src.services.database.categories.models import UniversalMediaType, UniversalStorage, \
+from src.database.models.categories import UniversalMediaType, UniversalStorage, \
     StorageStatus
-from src.services.database.core import get_db
+from src.database import get_db
 from src.services.redis.filling.filling_universal import filling_product_universal_by_category, \
     filling_universal_by_product_id, filling_sold_universal_by_owner_id, filling_sold_universal_by_universal_id
 

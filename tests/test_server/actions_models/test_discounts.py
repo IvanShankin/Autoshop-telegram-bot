@@ -1,4 +1,3 @@
-import asyncio
 from datetime import datetime, timezone, timedelta
 
 import pytest
@@ -6,19 +5,19 @@ from orjson import orjson
 from sqlalchemy import delete, select, update
 
 from src.config import get_config
-from src.services.database.admins.models import AdminActions
+from src.database.models.admins import AdminActions
 from src.services.database.discounts.actions.actions_promo import get_promo_code_by_page, get_count_promo_codes, \
     deactivate_promo_code
-from src.services.database.discounts.models import PromoCodes, Vouchers, VoucherActivations, ActivatedPromoCodes
-from src.services.database.core.database import get_db
+from src.database.models.discount import PromoCodes, Vouchers, VoucherActivations, ActivatedPromoCodes
+from src.database import get_db
 from src.services.redis.core_redis import get_redis
-from src.services.database.discounts.models import SmallVoucher
+from src.database.models.discount import SmallVoucher
 from src.services.database.users.actions import get_user
-from src.services.database.users.models import Users, WalletTransaction, UserAuditLogs
+from src.database.models.users import Users, WalletTransaction, UserAuditLogs
 from src.utils.i18n import get_text
 
 from tests.helpers.helper_functions import comparison_models
-from tests.helpers.monkeypatch_data import fake_bot
+
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("use_redis", [True, False])

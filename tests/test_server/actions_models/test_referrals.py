@@ -6,13 +6,13 @@ from orjson import orjson
 from sqlalchemy import delete, select
 
 from src.exceptions import InvalidAmountOfAchievement, InvalidSelectedLevel
-from src.services.database.core.database import get_db
+from src.database import get_db
 from src.services.database.referrals.actions import add_referral, get_all_referrals, get_income_from_referral, \
     get_referral_income_page, get_count_referral_income, add_referral_lvl, delete_referral_lvl, update_referral_lvl
-from src.services.database.referrals.models import ReferralLevels, Referrals
+from src.database.models.referrals import ReferralLevels, Referrals
 from src.services.database.referrals.actions import get_referral_lvl
 from src.services.redis.core_redis import get_redis
-from src.services.database.users.models import UserAuditLogs, Users
+from src.database.models.users import UserAuditLogs
 
 
 @pytest.mark.asyncio

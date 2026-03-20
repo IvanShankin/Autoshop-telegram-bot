@@ -4,14 +4,13 @@ from typing import Optional, List
 import orjson
 from sqlalchemy import select, func, update
 
-from src.bot_actions.messages import send_log
 from src.bot_actions.messages.schemas import EventSentLog, LogLevel
 from src.broker.producer import publish_event
 from src.config import get_config
 from src.services.redis.core_redis import get_redis
-from src.services.database.admins.models import AdminActions
-from src.services.database.core.database import get_db
-from src.services.database.discounts.models import PromoCodes, ActivatedPromoCodes
+from src.database.models.admins import AdminActions
+from src.database import get_db
+from src.database.models.discount import PromoCodes, ActivatedPromoCodes
 from src.utils.codes import generate_code
 
 

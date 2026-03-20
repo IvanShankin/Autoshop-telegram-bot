@@ -1,9 +1,9 @@
 from src.bot_actions.messages.schemas import EventSentLog, LogLevel
 from src.broker.producer import publish_event
-from src.services.database.core.database import get_db
+from src.database import get_db
 from src.services.database.categories.events.schemas import NewPurchaseAccount, NewPurchaseUniversal
-from src.services.database.users.models import UserAuditLogs, WalletTransaction
-from src.bot_actions.messages import send_log
+from src.database.models.users import UserAuditLogs, WalletTransaction
+
 
 async def purchase_event_handler(event):
     payload = event["payload"]

@@ -7,7 +7,7 @@ from src.modules.admin_actions.services.settings_updater import message_change_s
     update_admin_settings
 from src.modules.admin_actions.state.settings import UpdateAdminSettings
 from src.services.database.system.actions import get_settings, update_settings
-from src.services.database.users.models import Users
+from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 router = Router()

@@ -9,7 +9,7 @@ from src.database.models.categories import (
     SoldUniversal, UniversalMediaType,
 )
 from src.database import get_db
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 
 from src.exceptions import TranslationAlreadyExists, UserNotFound
 from src.exceptions.domain import UniversalStorageNotFound

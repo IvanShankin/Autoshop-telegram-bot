@@ -13,7 +13,7 @@ from src.database.models.system import Settings, TypePayments
 from src.database.models.system import UiImages
 from src.database.models.system.models import Stickers
 from src.database.models.users import Users, BannedAccounts
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.services.redis.filling.helpers_func import _fill_redis_single_objects
 from src.services.redis.time_storage import TIME_USER, TIME_ALL_VOUCHER
 

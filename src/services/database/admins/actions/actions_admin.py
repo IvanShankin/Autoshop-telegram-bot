@@ -12,7 +12,7 @@ from src.database import get_db
 from src.services.database.system.actions import create_ui_image, delete_ui_image, update_ui_image
 from src.database.models.users import Users
 from src.services.filesystem.actions import get_default_image_bytes
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 
 
 async def check_admin(user_id) -> bool:

@@ -15,15 +15,12 @@ from src.utils.core_logger import setup_logging
 from tests.helpers.monkeypatch_data import (
     replacement_redis,
     replacement_fake_bot,
-    create_crypto_context_fix,
-    fake_storage, replace_paths,
+    replace_paths,
 )
 
 
 from src.services.database import core
-from src.services.redis.core_redis import get_redis, init_redis
-
-from tests.helpers.helper_fixture import *
+from src.infrastructure.redis import get_redis, init_redis
 
 from tests.helpers.fake_aiogram.fake_aiogram import patch_fake_aiogram
 
@@ -145,7 +142,7 @@ async def rabbit_channel():
 @pytest_asyncio.fixture(scope="function")
 async def start_consumer():
     """ Запускает consumer и корректно его останавливает по завершению теста. """
-    from src.broker.consumer import _run_single_consumer_loop
+    from src.infrastructure.rebbit_mq.consumer import _run_single_consumer_loop
 
     started_event = asyncio.Event()
     stop_event = asyncio.Event()

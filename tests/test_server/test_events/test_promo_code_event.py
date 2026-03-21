@@ -3,7 +3,7 @@ from sqlalchemy import select, update
 
 from src.database import get_db
 from src.services.database.discounts.events import handler_new_activate_promo_code
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 
 
 @pytest.mark.asyncio

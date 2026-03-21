@@ -8,7 +8,7 @@ from tests.helpers.helper_functions import comparison_models
 from src.database.models.discount import SmallVoucher
 from src.database.models.users import  BannedAccounts
 from src.database import get_db
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 
 
 class TestFillRedisSingleObjects():

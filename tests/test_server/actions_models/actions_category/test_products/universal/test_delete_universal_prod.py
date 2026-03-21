@@ -7,7 +7,7 @@ from sqlalchemy import select
 from src.database.models.categories import ProductUniversal
 from src.database.models.categories import SoldUniversal, UniversalStorage
 from src.database import get_db
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 
 
 @pytest.mark.asyncio

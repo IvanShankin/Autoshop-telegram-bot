@@ -1,7 +1,7 @@
 from typing import Optional
 
 from src.bot_actions.messages.schemas import EventSentLog, LogLevel
-from src.broker.producer import publish_event
+from src.infrastructure.rebbit_mq.producer import publish_event
 from src.exceptions.business import InvalidQuantityProducts
 from src.services.database.categories.actions.purchases.accounts.cancel import cancel_purchase_request_accounts
 from src.services.database.categories.actions.purchases.accounts.finalize import finalize_purchase_accounts

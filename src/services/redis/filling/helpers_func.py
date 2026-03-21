@@ -10,7 +10,7 @@ from src.database.models.categories import Categories, ProductAccounts, AccountS
     UniversalStorage, StorageStatus, CategoryFull
 from src.database import get_db
 from src.database import Base
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 
 
 

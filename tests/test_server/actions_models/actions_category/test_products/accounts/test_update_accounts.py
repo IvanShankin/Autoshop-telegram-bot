@@ -3,7 +3,7 @@ import orjson
 from sqlalchemy import select
 
 from src.database.models.categories import AccountStorage, TgAccountMedia
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.database import get_db
 from src.database.models.categories import  ProductAccountFull
 

@@ -13,7 +13,7 @@ from src.database.models.categories import (
 )
 from src.database import get_db
 from src.database.models.users import Users, BalanceHolder
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from tests.helpers.helper_functions import comparison_models
 
 

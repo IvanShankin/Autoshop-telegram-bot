@@ -5,9 +5,9 @@ import orjson
 from sqlalchemy import select, func, update
 
 from src.bot_actions.messages.schemas import EventSentLog, LogLevel
-from src.broker.producer import publish_event
+from src.infrastructure.rebbit_mq.producer import publish_event
 from src.config import get_config
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.database.models.admins import AdminActions
 from src.database import get_db
 from src.database.models.discount import PromoCodes, ActivatedPromoCodes

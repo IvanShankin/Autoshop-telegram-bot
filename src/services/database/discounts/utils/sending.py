@@ -1,5 +1,5 @@
 from src.bot_actions.messages.schemas import LogLevel, EventSentLog
-from src.broker.producer import publish_event
+from src.infrastructure.rebbit_mq.producer import publish_event
 from src.database.models.discount import Vouchers
 from src.utils.i18n import get_text
 from src.bot_actions.messages import send_message

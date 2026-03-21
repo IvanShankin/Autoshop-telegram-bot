@@ -6,9 +6,9 @@ from orjson import orjson
 from sqlalchemy import select, update, func
 
 from src.bot_actions.messages.schemas import LogLevel, EventSentLog
-from src.broker.producer import publish_event
+from src.infrastructure.rebbit_mq.producer import publish_event
 from src.services.database.admins.actions.actions_admin import add_admin_action
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.services.redis.time_storage import TIME_USER
 from src.database import get_db
 from src.database.models.users import Users, WalletTransaction, UserAuditLogs

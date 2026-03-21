@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import AsyncGenerator
 
 from src.bot_actions.messages.schemas import EventSentLog
-from src.broker.producer import publish_event
+from src.infrastructure.rebbit_mq.producer import publish_event
 from src.database.models.categories import AccountStorage, AccountStoragePydantic, AccountServiceType, \
     StorageStatus
 from src.services.filesystem.actions import move_file

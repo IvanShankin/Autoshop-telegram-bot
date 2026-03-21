@@ -3,9 +3,9 @@ from datetime import datetime, timezone
 from sqlalchemy import update, select
 
 from src.bot_actions.messages.schemas import EventSentLog, LogLevel
-from src.broker.producer import publish_event
+from src.infrastructure.rebbit_mq.producer import publish_event
 from src.config import get_config
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.services.database.discounts.events.schemas import NewActivatePromoCode
 from src.database.models.discount import PromoCodes, ActivatedPromoCodes
 from src.database import get_db

@@ -1,5 +1,5 @@
 from src.bot_actions.messages.schemas import EventSentLog, LogLevel
-from src.broker.producer import publish_event
+from src.infrastructure.rebbit_mq.producer import publish_event
 from src.exceptions.business import ServerError
 from src.services.products.accounts.other.shemas import REQUIRED_HEADERS
 from src.services.products.accounts.utils.helper_upload import get_account_storage_by_category_id

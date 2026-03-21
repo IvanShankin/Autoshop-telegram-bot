@@ -8,7 +8,7 @@ from src.database import get_db
 from src.database.models.system import TypePayments
 from src.database.models.system import UiImages
 from src.database.models.users import Users
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.services.redis.filling.filling_categories import filling_all_keys_category
 from src.services.redis.filling.filling_other import filling_types_payments_by_id, filling_ui_image, \
     filling_voucher_by_user_id, filling_settings, filling_referral_levels, filling_all_types_payments, filling_admins, filling_banned_accounts, filling_promo_code, filling_vouchers, filling_all_stickers

@@ -7,7 +7,7 @@ from sqlalchemy import select, inspect as sa_inspect, DateTime
 
 from src.database.models.categories import CategoryFull
 from src.database import get_db
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.utils.helpers_func import maybe_await
 
 

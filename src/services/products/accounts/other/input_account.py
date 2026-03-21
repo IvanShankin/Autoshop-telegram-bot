@@ -2,7 +2,7 @@ import io
 from typing import List
 
 from src.bot_actions.messages.schemas import EventSentLog
-from src.broker.producer import publish_event
+from src.infrastructure.rebbit_mq.producer import publish_event
 from src.exceptions import InvalidFormatRows, CategoryNotFound, TheCategoryNotStorageAccount
 from src.services.filesystem.csv_parse import parse_csv_from_bytes
 from src.services.products.accounts.other.shemas import AccountImportData, ImportResult, REQUIRED_HEADERS

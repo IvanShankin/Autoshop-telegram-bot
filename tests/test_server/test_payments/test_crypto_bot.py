@@ -11,7 +11,7 @@ from httpx import AsyncClient, ASGITransport
 
 from src.config import get_config
 from src.services.database.replenishments_event.schemas import NewReplenishment
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 
 
 @pytest.mark.asyncio

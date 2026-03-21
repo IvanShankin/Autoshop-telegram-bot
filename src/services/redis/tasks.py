@@ -5,7 +5,7 @@ import aiohttp
 import logging
 
 from src.config import get_config
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 
 # API-источники
 URL_MOEX_TOD = "https://iss.moex.com/iss/engines/currency/markets/selt/boards/CETS/securities/USD000000TOD.json"

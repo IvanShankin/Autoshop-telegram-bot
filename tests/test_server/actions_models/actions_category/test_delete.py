@@ -4,7 +4,7 @@ from sqlalchemy import select
 
 from src.exceptions import TheCategoryStorageAccount, CategoryStoresSubcategories
 from src.services.database.system.actions import get_ui_image
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.database import get_db
 
 from src.database.models.categories import Categories, CategoryTranslation

@@ -5,7 +5,7 @@ from typing import List, Tuple
 from sqlalchemy import update, delete
 
 from src.bot_actions.messages.schemas import EventSentLog
-from src.broker.producer import publish_event
+from src.infrastructure.rebbit_mq.producer import publish_event
 from src.services.database.categories.actions.products.accounts.actions_get import get_product_account_by_category_id
 from src.services.database.categories.actions.purchases.accounts.cancel import cancel_purchase_request_accounts
 from src.services.database.categories.events.schemas import NewPurchaseAccount, AccountsData

@@ -12,7 +12,7 @@ from src.bot_actions.messages import edit_message, send_message
 from src.bot_actions.bot_instance import get_bot
 from src.bot_actions.messages import send_file_by_file_key
 from src.bot_actions.messages.schemas import EventSentLog
-from src.broker.producer import publish_event
+from src.infrastructure.rebbit_mq.producer import publish_event
 from src.config import get_config
 from src.exceptions import TypeAccountServiceNotFound, InvalidFormatRows
 from src.exceptions.business import ImportUniversalInvalidMediaData, ImportUniversalFileNotFound, \

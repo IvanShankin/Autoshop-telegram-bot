@@ -1,4 +1,4 @@
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 
 
 async def get_subscription_prompt(user_id):

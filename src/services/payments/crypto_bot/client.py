@@ -3,13 +3,12 @@ from typing import Optional
 
 from aiocryptopay import AioCryptoPay, Networks
 
-from src.bot_actions.messages import send_log
 from src.bot_actions.messages.schemas import EventSentLog
-from src.broker.producer import publish_event
+from src.infrastructure.rebbit_mq.producer import publish_event
 from src.config import get_config
 from src.services.database.replenishments_event.schemas import NewReplenishment
 from src.services.database.users.actions import create_replenishment, update_replenishment
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.utils.core_logger import get_logger
 
 

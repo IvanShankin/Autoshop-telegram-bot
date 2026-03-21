@@ -10,7 +10,7 @@ from src.database.models.users import Users, NotificationSettings, BannedAccount
     TransferMoneys, \
     UserAuditLogs, Replenishments
 from src.database import get_db
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 
 
 

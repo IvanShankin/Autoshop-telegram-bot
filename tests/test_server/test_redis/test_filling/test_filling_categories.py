@@ -4,7 +4,7 @@ import pytest
 from src.services.redis.filling import filling_main_categories, filling_categories_by_parent, \
     filling_category_by_category
 from tests.helpers.helper_functions import comparison_models
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 
 
 @pytest.mark.asyncio

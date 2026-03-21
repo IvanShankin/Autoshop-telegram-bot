@@ -3,13 +3,13 @@ import pytest
 from sqlalchemy import MetaData, Table
 from sqlalchemy import select
 
-from src.broker.producer import publish_event
+from src.infrastructure.rebbit_mq.producer import publish_event
 from src.database import get_db
 from src.services.database.replenishments_event.schemas import ReplenishmentFailed, ReplenishmentCompleted, \
     NewReplenishment
 from src.services.database.system.actions import update_settings
 from src.database.models.users import Replenishments, Users, WalletTransaction, UserAuditLogs
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.utils.i18n import get_text, n_get_text
 from tests.test_server.test_events.helpers_fun import wait_until_queue_empty, wait_until
 from tests.helpers.helper_functions import comparison_models

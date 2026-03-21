@@ -1,9 +1,9 @@
 from sqlalchemy import update
 
 from src.bot_actions.messages.schemas import LogLevel, EventSentLog
-from src.broker.producer import publish_event
+from src.infrastructure.rebbit_mq.producer import publish_event
 from src.config import get_config
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.database import get_db
 from src.services.database.discounts.utils.sending import send_set_not_valid_voucher
 from src.services.database.discounts.events.schemas import NewActivationVoucher

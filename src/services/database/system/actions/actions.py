@@ -20,7 +20,7 @@ from src.services.redis.filling import filling_types_payments_by_id, filling_all
 from src.services.redis.time_storage import TIME_SETTINGS
 from src.database.models.system import Settings, TypePayments, BackupLogs
 from src.database import get_db
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.database.models.system import UiImages
 
 

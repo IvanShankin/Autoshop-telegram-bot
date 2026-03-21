@@ -6,7 +6,7 @@ from asyncpg.pgproto.pgproto import timedelta
 from sqlalchemy import select, update, delete, func
 
 from src.bot_actions.messages.schemas import EventSentLog, LogLevel
-from src.broker.producer import publish_event
+from src.infrastructure.rebbit_mq.producer import publish_event
 from src.config import get_config
 from src.exceptions import UserNotFound, NotEnoughMoney
 from src.services.redis.filling import filling_user
@@ -17,7 +17,7 @@ from src.database.models.users import Users, NotificationSettings, BannedAccount
     WalletTransaction, \
     TransferMoneys, Replenishments
 from src.database import get_db
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.services.redis.time_storage import TIME_USER, TIME_SUBSCRIPTION_PROMPT
 from src.utils.core_logger import get_logger
 

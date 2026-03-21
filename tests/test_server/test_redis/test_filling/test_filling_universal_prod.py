@@ -5,7 +5,7 @@ from sqlalchemy.orm import selectinload
 from tests.helpers.helper_functions import comparison_models
 from src.database.models.categories import SoldUniversal
 from src.database import get_db
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.services.redis.filling.filling_universal import filling_product_universal_by_category, \
     filling_universal_by_product_id, filling_sold_universal_by_owner_id, filling_sold_universal_by_universal_id
 

@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 from src.config import get_config
 from src.database.models.categories import Categories, CategoryFull
 from src.database import get_db
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.services.redis.filling.helpers_func import _filling_categories, \
     _delete_keys_by_pattern, _get_quantity_products_in_category
 from src.utils.core_logger import get_logger

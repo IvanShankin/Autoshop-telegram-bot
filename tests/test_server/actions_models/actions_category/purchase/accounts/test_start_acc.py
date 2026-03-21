@@ -9,7 +9,7 @@ from src.database.models.categories import PurchaseRequests, PurchaseRequestAcco
 from src.database import get_db
 from src.database.models.users import Users
 from src.database.models.users import BalanceHolder
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from tests.helpers.helper_functions import comparison_models
 
 

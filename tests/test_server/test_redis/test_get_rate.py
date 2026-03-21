@@ -1,6 +1,6 @@
 import pytest
 
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.services.redis.tasks import _set_dollar_rate
 
 

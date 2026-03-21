@@ -5,7 +5,7 @@ from sqlalchemy import select
 from src.database import get_db
 from src.services.database.replenishments_event.schemas import ReplenishmentCompleted
 from src.database.models.users import Users, WalletTransaction, UserAuditLogs
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.utils.i18n import get_text
 from tests.helpers.helper_functions import comparison_models
 from tests.helpers.monkeypatch_data import fake_bot

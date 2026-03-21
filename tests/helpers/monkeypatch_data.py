@@ -15,7 +15,6 @@ from src.bot_actions.throttler import RateLimiter
 from src.config import get_config, set_config, Config, FilePathAndKey, FileKeysConf
 from src.services.secrets import init_crypto_context
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeBot
-from src.services.redis import core_redis
 
 fake_bot = FakeBot()
 

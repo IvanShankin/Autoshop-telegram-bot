@@ -11,7 +11,7 @@ from src.database.models.system import Settings, BackupLogs, TypePayments
 from src.services.database.system.actions import get_settings, update_settings
 from src.database import get_db
 from src.services.filesystem.media_paths import create_path_ui_image
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.database.models.system import UiImages
 
 from tests.helpers.helper_functions import comparison_models

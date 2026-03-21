@@ -10,7 +10,7 @@ from src.services.database.discounts.actions.actions_promo import get_promo_code
     deactivate_promo_code
 from src.database.models.discount import PromoCodes, Vouchers, VoucherActivations, ActivatedPromoCodes
 from src.database import get_db
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.database.models.discount import SmallVoucher
 from src.services.database.users.actions import get_user
 from src.database.models.users import Users, WalletTransaction, UserAuditLogs

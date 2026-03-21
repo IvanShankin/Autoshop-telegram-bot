@@ -6,7 +6,7 @@ from src.database import get_db
 from src.database.models.discount import Vouchers
 from src.services.database.system.actions import update_settings
 from src.database.models.users import Users, WalletTransaction, UserAuditLogs
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.utils.i18n import get_text
 from tests.helpers.monkeypatch_data import fake_bot
 

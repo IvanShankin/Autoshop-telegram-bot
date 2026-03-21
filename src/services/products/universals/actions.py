@@ -3,7 +3,7 @@ import shutil
 from pathlib import Path
 
 from src.bot_actions.messages.schemas import EventSentLog
-from src.broker.producer import publish_event
+from src.infrastructure.rebbit_mq.producer import publish_event
 from src.database.models.categories import StorageStatus
 from src.database.models.categories import ProductUniversalFull, \
     UniversalStoragePydantic

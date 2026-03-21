@@ -16,7 +16,7 @@ from src.database.models.system import UiImages, BackupLogs
 from src.database.models.users import Users, Replenishments, NotificationSettings, WalletTransaction, \
     TransferMoneys
 from src.database.models.users import BalanceHolder
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.services.redis.filling import filling_all_types_payments, \
     filling_types_payments_by_id
 

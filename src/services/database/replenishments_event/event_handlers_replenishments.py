@@ -2,7 +2,7 @@ from datetime import datetime
 from sqlalchemy import update, select
 
 from src.bot_actions.messages.schemas import EventSentLog, LogLevel
-from src.broker.producer import publish_event
+from src.infrastructure.rebbit_mq.producer import publish_event
 from src.config import get_config
 from src.services.database.users.actions import update_user, get_user
 from src.database.models.users import WalletTransaction, UserAuditLogs, Replenishments

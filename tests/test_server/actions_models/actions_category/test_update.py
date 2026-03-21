@@ -4,7 +4,7 @@ from sqlalchemy import select
 
 from src.exceptions import AccountCategoryNotFound, IncorrectedCostPrice, \
     IncorrectedAmountSale, TheCategoryStorageAccount
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.database import get_db
 from src.database.models.categories import Categories, CategoryTranslation
 

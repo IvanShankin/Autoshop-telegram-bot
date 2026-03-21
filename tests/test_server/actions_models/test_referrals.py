@@ -11,7 +11,7 @@ from src.services.database.referrals.actions import add_referral, get_all_referr
     get_referral_income_page, get_count_referral_income, add_referral_lvl, delete_referral_lvl, update_referral_lvl
 from src.database.models.referrals import ReferralLevels, Referrals
 from src.services.database.referrals.actions import get_referral_lvl
-from src.services.redis.core_redis import get_redis
+from src.infrastructure.redis import get_redis
 from src.database.models.users import UserAuditLogs
 
 

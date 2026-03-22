@@ -9,6 +9,7 @@ from src.config.file_keys_conf import FileKeysConf, FilePathAndKey
 from src.config.message_event_conf import MessageEventConf
 from src.config.miscellaneous_conf import MiscellaneousConf
 from src.config.paths_conf import PathSettings
+from src.config.redis_conf import RedisTimeStorage
 from src.config.secrets_conf import load_secrets
 from src.config.sizes_conf import FileLimits
 from src.services.secrets.runtime import set_runtime, RuntimeMode, SecretsRuntime
@@ -25,6 +26,7 @@ class Config:
         self.different = MiscellaneousConf()
         self.message_event = MessageEventConf.build()
         self.paths = PathSettings.build(self.env.mode)
+        self.redis_time_storage = RedisTimeStorage.build()
 
         # инициализировать необходимо не позже чем устанавливаем секреты (при установке секретов используется runtime)
         set_runtime(

@@ -1,80 +1,50 @@
 from typing import Optional
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 from src.database.models.categories import SoldAccounts, ProductAccounts
-from src.database.models.categories import AccountStorage, Categories
-from src.database.models.categories import ProductType
-from src.database.models.categories.main_category_and_product import AccountServiceType, UniversalMediaType, \
-    StorageStatus
+from src.database.models.categories import AccountStorage
+from src.database.models.categories.main_category_and_product import AccountServiceType, StorageStatus
 
 
-class CategoryFull(BaseModel):
+class ProductAccountsDTO(BaseModel):
+    account_id: int
     category_id: int
-    ui_image_key: str
-    parent_id: Optional[int]
+    account_storage_id: int
+    created_at: datetime
 
-    language: str
+
+class SoldAccountsDTO(BaseModel):
+    sold_account_id: int
+    owner_id: int | None
+    account_storage_id: int
+    sold_at: datetime
+
+
+class SoldAccountsTranslationDTO(BaseModel):
+    sold_account_translations_id: int
+    sold_account_id: int
+    lang: str
     name: str
-    description: Optional[str]
-
-    index: int
-    show: bool
-    number_buttons_in_row: int
-
-    is_main: bool
-    is_product_storage: bool
-    allow_multiple_purchase: bool # разрешена продажа одного товара много раз
-
-    product_type: ProductType | None
-    type_account_service: AccountServiceType | None
-    media_type: UniversalMediaType | None
-    reuse_product: bool | None
-    price: int | None
-    cost_price: int | None
-
-    # Число товаров на продаже которое хранит в себе. Есть только у категорий хранящие продукты
-    quantity_product: int
-
-    model_config = ConfigDict(from_attributes=True)
-
-    @classmethod
-    def from_orm_with_translation(
-            cls,
-            category: Categories,
-            quantity_product:int,
-            lang: str,
-            fallback: str | None = None
-        ):
-        """orm модель превратит в CategoryFull"""
-        return cls(
-            category_id=category.category_id,
-            ui_image_key=category.ui_image_key,
-            parent_id=category.parent_id,
-            index=category.index,
-            show=category.show,
-            number_buttons_in_row=category.number_buttons_in_row,
-            is_main=category.is_main,
-
-            language=lang,
-            name=category.get_name(lang, fallback),
-            description=category.get_description(lang, fallback),
-
-            is_product_storage=category.is_product_storage,
-            allow_multiple_purchase=category.allow_multiple_purchase,
-
-            product_type=category.product_type,
-            type_account_service=category.type_account_service,
-            media_type=category.media_type,
-            reuse_product=category.reuse_product,
-            price=category.price,
-            cost_price=category.cost_price,
-
-            quantity_product=quantity_product,
-        )
+    description: str | None
 
 
-class AccountStoragePydantic(BaseModel):
+class TgAccountMediaDTO(BaseModel):
+    tg_account_media_id: int
+    account_storage_id: int
+    tdata_tg_id: str | None
+    session_tg_id: str | None
+
+
+class DeletedAccountsDTO(BaseModel):
+    deleted_account_id: int
+    account_storage_id: int
+    category_name: str
+    description: str | None
+    create_at: datetime
+
+
+class AccountStorageDTO(BaseModel):
     account_storage_id: int
     storage_uuid: str
 
@@ -125,7 +95,7 @@ class ProductAccountFull(BaseModel):
     account_storage_id: int
     created_at: datetime
 
-    account_storage: AccountStoragePydantic
+    account_storage: AccountStorageDTO
 
     @classmethod
     def from_orm_model(cls, product_account: ProductAccounts, storage_account: AccountStorage):
@@ -135,7 +105,7 @@ class ProductAccountFull(BaseModel):
             category_id=product_account.category_id,
             account_storage_id=product_account.account_storage_id,
             created_at=product_account.created_at,
-            account_storage=AccountStoragePydantic(**storage_account.to_dict()),
+            account_storage=AccountStorageDTO(**storage_account.to_dict()),
         )
 
 
@@ -148,7 +118,7 @@ class SoldAccountFull(BaseModel):
 
     sold_at: datetime
 
-    account_storage: AccountStoragePydantic
+    account_storage: AccountStorageDTO
 
     @classmethod
     def from_orm_with_translation(cls, account: SoldAccounts, lang: str, fallback: str | None = None):
@@ -159,7 +129,7 @@ class SoldAccountFull(BaseModel):
             name=account.get_name(lang, fallback),
             description=account.get_description(lang, fallback),
             sold_at=account.sold_at,
-            account_storage=AccountStoragePydantic(**account.account_storage.to_dict())
+            account_storage=AccountStorageDTO(**account.account_storage.to_dict())
         )
 
 

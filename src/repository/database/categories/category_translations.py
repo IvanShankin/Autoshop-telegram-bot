@@ -5,6 +5,7 @@ from typing import List, Optional, Any
 from sqlalchemy import select, update, delete, distinct
 
 from src.database.models.categories import CategoryTranslation
+from src.read_models import CategoryTranslationDTO
 from src.repository.database.base import DatabaseBase
 
 
@@ -17,25 +18,27 @@ class CategoryTranslationsRepository(DatabaseBase):
     async def get_all_by_category_id(
         self,
         category_id: int,
-    ) -> List[CategoryTranslation]:
+    ) -> List[CategoryTranslationDTO]:
         result = await self.session_db.execute(
             select(CategoryTranslation)
             .where(CategoryTranslation.category_id == category_id)
         )
-        return list(result.scalars().all())
+        translations = list(result.scalars().all())
+        return [CategoryTranslationDTO.model_validate(t) for t in translations]
 
     async def get_by_category_and_lang(
         self,
         category_id: int,
         language: str,
-    ) -> Optional[CategoryTranslation]:
+    ) -> Optional[CategoryTranslationDTO]:
         result = await self.session_db.execute(
             select(CategoryTranslation).where(
                 (CategoryTranslation.category_id == category_id) &
                 (CategoryTranslation.lang == language)
             )
         )
-        return result.scalar_one_or_none()
+        translation = result.scalar_one_or_none()
+        return CategoryTranslationDTO.model_validate(translation) if translation else None
 
     async def get_languages_by_category_id(
         self,
@@ -63,15 +66,16 @@ class CategoryTranslationsRepository(DatabaseBase):
     # -------------------------
     # Commands
     # -------------------------
-    async def create_translate(self, **values) -> CategoryTranslation:
-        return await super().create(CategoryTranslation, **values)
+    async def create_translate(self, **values) -> CategoryTranslationDTO:
+        created = await super().create(CategoryTranslation, **values)
+        return CategoryTranslationDTO.model_validate(created)
 
     async def update(
         self,
         category_id: int,
         language: str,
         **values: Any,
-    ) -> Optional[CategoryTranslation]:
+    ) -> Optional[CategoryTranslationDTO]:
 
         if not values:
             return await self.get_by_category_and_lang(category_id, language)
@@ -86,7 +90,8 @@ class CategoryTranslationsRepository(DatabaseBase):
             .returning(CategoryTranslation)
         )
 
-        return result.scalar_one_or_none()
+        translation = result.scalar_one_or_none()
+        return CategoryTranslationDTO.model_validate(translation) if translation else None
 
     async def delete(
         self,

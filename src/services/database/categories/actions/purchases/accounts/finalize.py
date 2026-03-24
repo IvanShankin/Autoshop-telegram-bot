@@ -10,10 +10,8 @@ from src.services.database.categories.actions.products.accounts.actions_get impo
 from src.services.database.categories.actions.purchases.accounts.cancel import cancel_purchase_request_accounts
 from src.services.database.categories.events.schemas import NewPurchaseAccount, AccountsData
 from src.database.models.categories import ProductAccounts, SoldAccounts, Purchases, \
-    SoldAccountsTranslation, AccountStorage, StorageStatus
-from src.database.models.categories import PurchaseRequests
-from src.database.models.categories import StartPurchaseAccount
-from src.database.models.categories import ProductType
+    SoldAccountsTranslation, AccountStorage, StorageStatus, ProductType, PurchaseRequests
+from src.read_models import StartPurchaseAccount
 from src.database import get_db
 from src.services.database.discounts.events import NewActivatePromoCode
 from src.database.models.users import BalanceHolder

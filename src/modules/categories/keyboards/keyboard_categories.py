@@ -3,7 +3,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.bot_actions.bot_instance import get_bot
 from src.services.database.categories.actions import get_categories
-from src.database.models.categories import CategoryFull
+from src.read_models import CategoryFull
 from src.services.database.system.actions import get_settings
 from src.utils.i18n import get_text
 

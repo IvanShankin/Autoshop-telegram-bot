@@ -5,25 +5,28 @@ from sqlalchemy import select, func
 from src.database.models.admins import (
     SentMasMessages,
 )
+from src.read_models.admins import SentMasMessagesDTO
+from src.repository.database.base import DatabaseBase
 
 
-class SentMasMessagesRepository:
+class SentMasMessagesRepository(DatabaseBase):
 
     async def get_sent_mass_message(
         self, message_id: int
-    ) -> Optional[SentMasMessages]:
+    ) -> Optional[SentMasMessagesDTO]:
         result = await self.session_db.execute(
             select(SentMasMessages).where(
                 SentMasMessages.message_id == message_id
             )
         )
-        return result.scalar_one_or_none()
+        result_msg = result.scalar_one_or_none()
+        return SentMasMessagesDTO.model_validate(result_msg) if result_msg else None
 
     async def get_sent_mass_messages(
         self,
         page: Optional[int] = None,
         page_size: Optional[int] = None,
-    ) -> List[SentMasMessages]:
+    ) -> List[SentMasMessagesDTO]:
 
         if not page_size:
             page_size = self.conf.different.page_size
@@ -37,7 +40,13 @@ class SentMasMessagesRepository:
             query = query.limit(page_size).offset(offset)
 
         result = await self.session_db.execute(query)
-        return list(result.scalars().all())
+        list_msgs = list(result.scalars().all())
+
+        result_lust = []
+        for msg in list_msgs:
+            result_lust.append(SentMasMessagesDTO.model_validate(msg))
+
+        return result_lust
 
     async def count_sent_mass_messages(self) -> int:
         result = await self.session_db.execute(

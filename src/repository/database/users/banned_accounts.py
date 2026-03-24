@@ -5,24 +5,28 @@ from sqlalchemy import delete, select
 from src.database.models.users import (
     BannedAccounts,
 )
+from src.read_models.other import BannedAccountsDTO
 from src.repository.database.base import DatabaseBase
 
 
 class BannedAccountsRepository(DatabaseBase):
-    async def get_by_user_id(self, user_id: int) -> Optional[BannedAccounts]:
+    async def get_by_user_id(self, user_id: int) -> Optional[BannedAccountsDTO]:
         result = await self.session_db.execute(
             select(BannedAccounts).where(BannedAccounts.user_id == user_id)
         )
-        return result.scalar_one_or_none()
+        result_ban = result.scalar_one_or_none()
+        return BannedAccountsDTO.model_validate(result_ban) if result_ban else None
 
-    async def create_ban(self, **values) -> BannedAccounts:
-        return await super().create(BannedAccounts, **values)
+    async def create_ban(self, **values) -> BannedAccountsDTO:
+        created = await super().create(BannedAccounts, **values)
+        return BannedAccountsDTO.model_validate(created)
 
-    async def delete_by_user_id(self, user_id: int) -> Optional[BannedAccounts]:
+    async def delete_by_user_id(self, user_id: int) -> Optional[BannedAccountsDTO]:
         stmt = (
             delete(BannedAccounts)
             .where(BannedAccounts.user_id == user_id)
             .returning(BannedAccounts)
         )
         result = await self.session_db.execute(stmt)
-        return result.scalar_one_or_none()
+        deleted = result.scalar_one_or_none()
+        return BannedAccountsDTO.model_validate(deleted) if deleted else None

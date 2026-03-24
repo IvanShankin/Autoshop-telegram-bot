@@ -9,12 +9,10 @@ from src.exceptions.domain import UniversalProductNotFound
 from src.services.database.categories.actions.products.universal.actions_get import get_product_universal_by_category_id
 from src.services.database.categories.actions.purchases.general.start import write_off_of_funds, \
     create_new_purchase_request, check_category_and_money
-from src.database.models.categories import ProductUniversal
-from src.database.models.categories import ResultCheckCategory
+from src.read_models import ResultCheckCategory, ProductUniversalFull
 from src.database.models.categories import StorageStatus, PurchaseRequestUniversal, \
-    UniversalStorage
-from src.database.models.categories import ProductUniversalFull
-from src.database.models.categories.shemas.purshanse_schem import StartPurchaseUniversal, \
+    UniversalStorage, ProductUniversal
+from src.read_models.categories.purshanse_schem import StartPurchaseUniversal, \
     StartPurchaseUniversalOne
 from src.database import get_db
 from src.services.redis.filling import filling_user, filling_all_keys_category

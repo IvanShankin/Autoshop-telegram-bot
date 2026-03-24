@@ -15,7 +15,7 @@ from src.services.database.categories.actions.purchases.universal.start import s
 from src.services.database.categories.actions.purchases.universal.verify import verify_reserved_universal_different, \
     verify_reserved_universal_one
 from src.database.models.categories import ProductType
-from src.database.models.categories.shemas.purshanse_schem import StartPurchaseUniversal, \
+from src.read_models.categories.purshanse_schem import StartPurchaseUniversal, \
     StartPurchaseUniversalOne
 from src.services.redis.filling import filling_all_keys_category
 

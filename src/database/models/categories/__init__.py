@@ -6,15 +6,6 @@ from src.database.models.categories.product_account import ProductAccounts, Sold
 from src.database.models.categories.product_universal import ProductUniversal, UniversalMediaType, \
     UniversalStorage, UniversalStorageTranslation, SoldUniversal, DeletedUniversal, PurchaseRequestUniversal
 
-from src.database.models.categories.shemas.product_account_schem import (
-    AccountStoragePydantic, SoldAccountFull,CategoryFull, SoldAccountSmall, ProductAccountSmall,
-    ProductAccountFull
-)
-from src.database.models.categories.shemas.product_universal_schem import UniversalStoragePydantic, \
-    ProductUniversalSmall, ProductUniversalFull, SoldUniversalSmall, SoldUniversalFull
-
-from src.database.models.categories.shemas.purshanse_schem import ResultCheckCategory, StartPurchaseAccount, \
-    PurchaseAccountSchema
 
 __all__ = [
     'Categories',
@@ -33,16 +24,6 @@ __all__ = [
     'PurchaseRequests',
     'PurchaseRequestAccount',
     'AccountStorage',
-    'AccountStoragePydantic',
-    'ProductAccountSmall',
-    'ProductAccountFull',
-    'SoldAccountSmall',
-    'SoldAccountFull',
-    'CategoryFull',
-
-    "PurchaseAccountSchema",
-    "StartPurchaseAccount",
-    "ResultCheckCategory",
 
     "UniversalMediaType",
     "ProductUniversal",
@@ -51,11 +32,5 @@ __all__ = [
     "SoldUniversal",
     "DeletedUniversal",
     "PurchaseRequestUniversal",
-
-    "UniversalStoragePydantic",
-    "ProductUniversalSmall",
-    "ProductUniversalFull",
-    "SoldUniversalSmall",
-    "SoldUniversalFull",
 ]
 

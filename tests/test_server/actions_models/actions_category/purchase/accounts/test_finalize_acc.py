@@ -5,9 +5,8 @@ import pytest
 from sqlalchemy import select
 
 from src.database.models.categories import PurchaseRequests, AccountStorage, SoldAccounts, Purchases, \
-    StorageStatus
-from src.database.models.categories import StartPurchaseAccount
-from src.database.models.categories import AccountServiceType
+    StorageStatus, AccountServiceType
+from src.read_models import StartPurchaseAccount
 from src.database import get_db
 from src.database.models.users import BalanceHolder
 

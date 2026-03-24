@@ -14,14 +14,10 @@ from src.services.database.categories.actions.purchases.universal.cancel import 
     cancel_purchase_universal_different
 from src.services.database.categories.events.schemas import UniversalProductData, \
     NewPurchaseUniversal
-from src.database.models.categories import PurchaseRequests
-from src.database.models.categories import Purchases
-from src.database.models.categories import ProductType
-from src.database.models.categories import StorageStatus, ProductUniversal, \
+from src.database.models.categories import StorageStatus, ProductUniversal, PurchaseRequests, Purchases, ProductType, \
     SoldUniversal, UniversalStorage, UniversalStorageTranslation, PurchaseRequestUniversal
-from src.database.models.categories import ProductUniversalFull, \
-    UniversalStoragePydantic
-from src.database.models.categories.shemas.purshanse_schem import StartPurchaseUniversal, \
+from src.read_models import ProductUniversalFull, UniversalStoragePydantic
+from src.read_models.categories.purshanse_schem import StartPurchaseUniversal, \
     StartPurchaseUniversalOne
 from src.database import get_db
 from src.services.database.discounts.events import NewActivatePromoCode

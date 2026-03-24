@@ -6,8 +6,7 @@ from typing import List, AsyncGenerator
 from src.exceptions import ProductNotFound
 from src.services.database.categories.actions.products.universal.actions_get import \
     get_product_universal_by_category_id, get_translations_universal_storage
-from src.database.models.categories import CategoryFull
-from src.database.models.categories import ProductUniversalFull
+from src.read_models import CategoryFull, ProductUniversalFull
 from src.services.filesystem.actions import create_temp_dir
 from src.services.filesystem.universals_products import create_manifest_csv, create_import_zip
 from src.services.filesystem.media_paths import create_path_universal_storage

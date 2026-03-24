@@ -83,14 +83,6 @@ async def filling_types_payments_by_id(type_payment_id: int):
                 await session_redis.delete(f'type_payments:{type_payment_id}')
 
 
-async def filling_users():
-    await _fill_redis_single_objects(
-        model=Users,
-        key_prefix='user',
-        key_extractor=lambda user: user.user_id,
-        ttl=lambda user: TIME_USER
-    )
-
 
 async def filling_user(user: Users):
     async with get_redis() as session_redis:

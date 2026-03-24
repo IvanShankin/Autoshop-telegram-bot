@@ -7,6 +7,53 @@ from src.database.models.categories.product_universal import UniversalMediaType,
     ProductUniversal, SoldUniversal, StorageStatus
 
 
+
+class ProductUniversalDTO(BaseModel):
+    product_universal_id: int
+    universal_storage_id: int
+    category_id: int
+    created_at: datetime
+
+
+class UniversalStorageDTO(BaseModel):
+    universal_storage_id: int
+    storage_uuid: str
+    original_filename: str | None
+    encrypted_tg_file_id: str | None
+    encrypted_tg_file_id_nonce: str | None
+    checksum: str
+    encrypted_key: str
+    encrypted_key_nonce: str
+    key_version: int
+    encryption_algo: str
+    status: StorageStatus
+    media_type: UniversalMediaType
+    is_active: bool
+    created_at: datetime
+
+
+class UniversalStorageTranslationDTO(BaseModel):
+    universal_storage_translations_id: int
+    universal_storage_id: int
+    lang: str
+    name: str
+    encrypted_description: str | None
+    encrypted_description_nonce: str | None
+
+
+class SoldUniversalDTO(BaseModel):
+    sold_universal_id: int
+    owner_id: int
+    universal_storage_id: int
+    sold_at: datetime
+
+
+class DeletedUniversalDTO(BaseModel):
+    deleted_universal_id: int
+    universal_storage_id: int
+    create_at: datetime
+
+
 class UniversalStoragePydantic(BaseModel):
     universal_storage_id: int
     storage_uuid: str

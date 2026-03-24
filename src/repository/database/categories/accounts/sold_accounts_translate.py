@@ -7,6 +7,7 @@ from sqlalchemy import select, update, delete, func, distinct
 from src.database.models.categories import (
     SoldAccountsTranslation,
 )
+from src.read_models import SoldAccountsTranslationDTO
 from src.repository.database.base import DatabaseBase
 
 
@@ -16,25 +17,27 @@ class SoldAccountsTranslationRepository(DatabaseBase):
         self,
         sold_account_id: int,
         language: str,
-    ) -> Optional[SoldAccountsTranslation]:
+    ) -> Optional[SoldAccountsTranslationDTO]:
         result = await self.session_db.execute(
             select(SoldAccountsTranslation).where(
                 (SoldAccountsTranslation.sold_account_id == sold_account_id)
                 & (SoldAccountsTranslation.lang == language)
             )
         )
-        return result.scalar_one_or_none()
+        translation = result.scalar_one_or_none()
+        return SoldAccountsTranslationDTO.model_validate(translation) if translation else None
 
     async def get_all_by_sold_account_id(
         self,
         sold_account_id: int,
-    ) -> List[SoldAccountsTranslation]:
+    ) -> List[SoldAccountsTranslationDTO]:
         result = await self.session_db.execute(
             select(SoldAccountsTranslation).where(
                 SoldAccountsTranslation.sold_account_id == sold_account_id
             )
         )
-        return list(result.scalars().all())
+        translations = list(result.scalars().all())
+        return [SoldAccountsTranslationDTO.model_validate(t) for t in translations]
 
     async def get_languages_by_sold_account_id(self, sold_account_id: int) -> List[str]:
         result = await self.session_db.execute(
@@ -53,15 +56,16 @@ class SoldAccountsTranslationRepository(DatabaseBase):
         )
         return result.scalar_one_or_none() is not None
 
-    async def create_translate(self, **values) -> SoldAccountsTranslation:
-        return await super().create(SoldAccountsTranslation, **values)
+    async def create_translate(self, **values) -> SoldAccountsTranslationDTO:
+        created = await super().create(SoldAccountsTranslation, **values)
+        return SoldAccountsTranslationDTO.model_validate(created)
 
     async def update(
         self,
         sold_account_id: int,
         language: str,
         **values: Any,
-    ) -> Optional[SoldAccountsTranslation]:
+    ) -> Optional[SoldAccountsTranslationDTO]:
         if not values:
             return await self.get_by_sold_account_and_lang(sold_account_id, language)
 
@@ -74,7 +78,8 @@ class SoldAccountsTranslationRepository(DatabaseBase):
             .values(**values)
             .returning(SoldAccountsTranslation)
         )
-        return result.scalar_one_or_none()
+        translation = result.scalar_one_or_none()
+        return SoldAccountsTranslationDTO.model_validate(translation) if translation else None
 
     async def delete(self, sold_account_id: int, language: str) -> None:
         await self.session_db.execute(

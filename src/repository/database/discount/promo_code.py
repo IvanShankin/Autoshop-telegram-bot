@@ -4,29 +4,32 @@ from typing import Optional, List
 from sqlalchemy import select, func, update, and_
 
 from src.database.models.discount import PromoCodes
+from src.read_models.other import PromoCodesDTO
 from src.repository.database.base import DatabaseBase
 
 
 class PromoCodeRepository(DatabaseBase):
 
-    async def get_by_id(self, promo_code_id: int) -> Optional[PromoCodes]:
+    async def get_by_id(self, promo_code_id: int) -> Optional[PromoCodesDTO]:
         stmt = select(PromoCodes).where(PromoCodes.promo_code_id == promo_code_id)
         result = await self.session_db.execute(stmt)
-        return result.scalar_one_or_none()
+        promo = result.scalar_one_or_none()
+        return PromoCodesDTO.model_validate(promo) if promo else None
 
-    async def get_by_code(self, code: str, only_valid: bool = True) -> Optional[PromoCodes]:
+    async def get_by_code(self, code: str, only_valid: bool = True) -> Optional[PromoCodesDTO]:
         stmt = select(PromoCodes).where(PromoCodes.activation_code == code)
         if only_valid:
             stmt = stmt.where(PromoCodes.is_valid == True)
         result = await self.session_db.execute(stmt)
-        return result.scalar_one_or_none()
+        promo = result.scalar_one_or_none()
+        return PromoCodesDTO.model_validate(promo) if promo else None
 
     async def get_page(
         self,
         page: Optional[int] = None,
         page_size: Optional[int] = None,
         show_not_valid: bool = False
-    ) -> List[PromoCodes]:
+    ) -> List[PromoCodesDTO]:
         stmt = select(PromoCodes)
         if not show_not_valid:
             stmt = stmt.where(PromoCodes.is_valid == True)
@@ -35,9 +38,10 @@ class PromoCodeRepository(DatabaseBase):
             stmt = stmt.limit(page_size).offset((page - 1) * page_size)
 
         result = await self.session_db.execute(stmt.order_by(PromoCodes.start_at.desc()))
-        return result.scalars().all()
+        promos = list(result.scalars().all())
+        return [PromoCodesDTO.model_validate(promo) for promo in promos]
 
-    async def set_not_valid_promo_codes(self, data_time_to: datetime) -> List[PromoCodes]:
+    async def set_not_valid_promo_codes(self, data_time_to: datetime) -> List[PromoCodesDTO]:
         """
         Установит is_valid=False у промокодов где дата меньше чем `data_time_to`
         :return:
@@ -53,7 +57,8 @@ class PromoCodeRepository(DatabaseBase):
             .values(is_valid=False)
             .returning(PromoCodes)
         )
-        return result_db.scalars().all()
+        promos = list(result_db.scalars().all())
+        return [PromoCodesDTO.model_validate(promo) for promo in promos]
 
     async def count(self, consider_invalid: bool = False) -> int:
         stmt = select(func.count()).select_from(PromoCodes)
@@ -62,10 +67,11 @@ class PromoCodeRepository(DatabaseBase):
         result = await self.session_db.execute(stmt)
         return int(result.scalar() or 0)
 
-    async def create_promo_code(self, **values) -> PromoCodes:
-        return await super().create(PromoCodes, **values)
+    async def create_promo_code(self, **values) -> PromoCodesDTO:
+        created = await super().create(PromoCodes, **values)
+        return PromoCodesDTO.model_validate(created)
 
-    async def deactivate(self, promo_code_id: int) -> Optional[PromoCodes]:
+    async def deactivate(self, promo_code_id: int) -> Optional[PromoCodesDTO]:
         stmt = (
             update(PromoCodes)
             .where(PromoCodes.promo_code_id == promo_code_id)
@@ -73,7 +79,8 @@ class PromoCodeRepository(DatabaseBase):
             .returning(PromoCodes)
         )
         result = await self.session_db.execute(stmt)
-        return result.scalar_one_or_none()
+        promo = result.scalar_one_or_none()
+        return PromoCodesDTO.model_validate(promo) if promo else None
 
     async def increment_activation(
         self,

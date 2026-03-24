@@ -10,6 +10,7 @@ from src.database.models.categories import (
     AccountStorage,
     AccountServiceType,
 )
+from src.read_models import SoldAccountsDTO
 from src.repository.database.base import DatabaseBase
 
 
@@ -20,7 +21,7 @@ class SoldAccountsRepository(DatabaseBase):
         sold_account_id: int,
         *,
         with_relations: bool = False,
-    ) -> Optional[SoldAccounts]:
+    ) -> Optional[SoldAccountsDTO]:
         stmt = select(SoldAccounts).where(
             SoldAccounts.sold_account_id == sold_account_id
         )
@@ -31,7 +32,8 @@ class SoldAccountsRepository(DatabaseBase):
             )
 
         result = await self.session_db.execute(stmt)
-        return result.scalar_one_or_none()
+        sold_account = result.scalar_one_or_none()
+        return SoldAccountsDTO.model_validate(sold_account) if sold_account else None
 
     async def get_by_owner_id(
         self,
@@ -40,7 +42,7 @@ class SoldAccountsRepository(DatabaseBase):
         active_only: bool = True,
         with_relations: bool = False,
         order_desc: bool = True,
-    ) -> List[SoldAccounts]:
+    ) -> List[SoldAccountsDTO]:
         stmt = select(SoldAccounts).where(SoldAccounts.owner_id == owner_id)
 
         if active_only:
@@ -56,7 +58,8 @@ class SoldAccountsRepository(DatabaseBase):
             stmt = stmt.order_by(SoldAccounts.sold_at.desc())
 
         result = await self.session_db.execute(stmt)
-        return list(result.scalars().all())
+        sold_accounts = list(result.scalars().all())
+        return [SoldAccountsDTO.model_validate(item) for item in sold_accounts]
 
     async def count_by_owner_id(
         self,
@@ -97,8 +100,9 @@ class SoldAccountsRepository(DatabaseBase):
         result = await self.session_db.execute(stmt)
         return list(result.scalars().all())
 
-    async def create_sold(self, **values) -> SoldAccounts:
-        return await super().create(SoldAccounts, **values)
+    async def create_sold(self, **values) -> SoldAccountsDTO:
+        created = await super().create(SoldAccounts, **values)
+        return SoldAccountsDTO.model_validate(created)
 
     async def delete_by_id(self, sold_account_id: int) -> None:
         await self.session_db.execute(

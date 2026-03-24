@@ -5,7 +5,7 @@ from sqlalchemy import select
 from src.database.models.categories import AccountStorage, TgAccountMedia
 from src.infrastructure.redis import get_redis
 from src.database import get_db
-from src.database.models.categories import  ProductAccountFull
+from src.read_models import  ProductAccountFull
 
 
 class TestUpdateAccountStorage:

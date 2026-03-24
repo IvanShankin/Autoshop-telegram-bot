@@ -12,9 +12,8 @@ from tests.helpers.func_fabrics.other_fabric import create_new_user_fabric
 
 from src.database.models.categories import AccountStorage, TgAccountMedia, Purchases, StorageStatus, \
     ProductType
-from src.database.models.categories import SoldAccounts, SoldAccountsTranslation, \
-    ProductAccounts, \
-    SoldAccountFull, SoldAccountSmall, ProductAccountFull
+from src.database.models.categories import SoldAccounts, SoldAccountsTranslation, ProductAccounts
+from src.read_models import SoldAccountFull, SoldAccountSmall, ProductAccountFull
 from src.database.models.categories import AccountServiceType
 from src.database import get_db
 from src.services.redis.filling import filling_sold_accounts_by_owner_id, \

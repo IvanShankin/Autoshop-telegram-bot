@@ -7,7 +7,8 @@ from sqlalchemy.orm import selectinload
 
 from src.config import get_config
 from src.database.models.categories import Categories, ProductAccounts, AccountStorage, ProductUniversal, \
-    UniversalStorage, StorageStatus, CategoryFull
+    UniversalStorage, StorageStatus
+from src.read_models import CategoryFull
 from src.database import get_db
 from src.database import Base
 from src.infrastructure.redis import get_redis

@@ -6,6 +6,7 @@ from sqlalchemy.orm import selectinload
 from src.database.models.categories import (
     UniversalStorage,
 )
+from src.read_models import UniversalStorageDTO
 from src.repository.database.base import DatabaseBase
 
 
@@ -15,7 +16,7 @@ class UniversalStorageRepository(DatabaseBase):
         self,
         universal_storage_id: int,
         with_relations: bool = False
-    ) -> Optional[UniversalStorage]:
+    ) -> Optional[UniversalStorageDTO]:
         """
         :return: С подгруженными полями `product`, `sold_universal` и `translations`
         """
@@ -31,16 +32,18 @@ class UniversalStorageRepository(DatabaseBase):
             )
 
         result = await self.session_db.execute(stmt)
-        return result.scalar_one_or_none()
+        storage = result.scalar_one_or_none()
+        return UniversalStorageDTO.model_validate(storage) if storage else None
 
-    async def create_storage(self, **values) -> UniversalStorage:
-        return await super().create(UniversalStorage, **values)
+    async def create_storage(self, **values) -> UniversalStorageDTO:
+        created = await super().create(UniversalStorage, **values)
+        return UniversalStorageDTO.model_validate(created)
 
     async def update(
         self,
         universal_storage_id: int,
         **values: Any,
-    ) -> Optional[UniversalStorage]:
+    ) -> Optional[UniversalStorageDTO]:
         """
         :return: С подгруженными полями `sold_universal` и `translations`
         """
@@ -62,13 +65,14 @@ class UniversalStorageRepository(DatabaseBase):
             )
             .where(UniversalStorage.universal_storage_id == universal_storage_id)
         )
-        return result.scalar_one_or_none()
+        storage = result.scalar_one_or_none()
+        return UniversalStorageDTO.model_validate(storage) if storage else None
 
-    async def delete_by_ids(self, storage_ids: List[int]) -> List[UniversalStorage]:
+    async def delete_by_ids(self, storage_ids: List[int]) -> List[UniversalStorageDTO]:
         result = await self.session_db.execute(
             delete(UniversalStorage)
             .where(UniversalStorage.universal_storage_id.in_(storage_ids))
             .returning(UniversalStorage)
         )
-        deleted = result.scalars().all()
-        return deleted
+        deleted = list(result.scalars().all())
+        return [UniversalStorageDTO.model_validate(item) for item in deleted]

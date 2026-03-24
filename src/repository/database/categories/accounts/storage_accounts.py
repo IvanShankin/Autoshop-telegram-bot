@@ -9,6 +9,7 @@ from src.database.models.categories import (
     AccountStorage,
     AccountServiceType,
 )
+from src.read_models import AccountStorageDTO
 from src.repository.database.base import DatabaseBase
 
 
@@ -19,7 +20,7 @@ class AccountStorageRepository(DatabaseBase):
         account_storage_id: int,
         *,
         with_relations: bool = False,
-    ) -> Optional[AccountStorage]:
+    ) -> Optional[AccountStorageDTO]:
         stmt = select(AccountStorage).where(
             AccountStorage.account_storage_id == account_storage_id
         )
@@ -31,16 +32,18 @@ class AccountStorageRepository(DatabaseBase):
             )
 
         result = await self.session_db.execute(stmt)
-        return result.scalar_one_or_none()
+        storage = result.scalar_one_or_none()
+        return AccountStorageDTO.model_validate(storage) if storage else None
 
-    async def create_storage(self, **values) -> AccountStorage:
-        return await super().create(AccountStorage, **values)
+    async def create_storage(self, **values) -> AccountStorageDTO:
+        created = await super().create(AccountStorage, **values)
+        return AccountStorageDTO.model_validate(created)
 
     async def update(
         self,
         account_storage_id: int,
         **values: Any,
-    ) -> Optional[AccountStorage]:
+    ) -> Optional[AccountStorageDTO]:
         if not values:
             return await self.get_by_id(account_storage_id)
 
@@ -50,7 +53,8 @@ class AccountStorageRepository(DatabaseBase):
             .values(**values)
             .returning(AccountStorage)
         )
-        return result.scalar_one_or_none()
+        storage = result.scalar_one_or_none()
+        return AccountStorageDTO.model_validate(storage) if storage else None
 
     async def get_all_phone_numbers_by_service(
         self,

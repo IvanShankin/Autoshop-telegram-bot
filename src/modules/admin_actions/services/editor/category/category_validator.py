@@ -7,7 +7,7 @@ from aiogram.types import Document
 from src.bot_actions.messages import send_message
 from src.config import get_config
 from src.modules.admin_actions.keyboards.editors.category_kb import in_category_kb
-from src.database.models.categories import CategoryFull
+from src.read_models import CategoryFull
 from src.database.models.users import Users
 from src.utils.i18n import get_text
 

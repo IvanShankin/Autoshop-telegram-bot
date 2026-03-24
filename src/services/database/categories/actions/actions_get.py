@@ -8,8 +8,9 @@ from src.services.database.categories.actions.helpers_func import _has_accounts_
     _get_single_obj
 from src.services.database.categories.actions.products.accounts.actions_get import get_sold_accounts_by_owner_id
 from src.services.database.categories.actions.products.universal.actions_get import get_sold_universal_by_owner_id
-from src.database.models.categories import Categories, CategoryFull, ProductUniversal, AccountStorage, \
+from src.database.models.categories import Categories, ProductUniversal, AccountStorage, \
     ProductAccounts, CategoryTranslation
+from src.read_models import CategoryFull
 from src.database.models.categories import ProductType, Purchases, UniversalStorage, StorageStatus
 from src.database import get_db
 from src.services.redis.filling import (

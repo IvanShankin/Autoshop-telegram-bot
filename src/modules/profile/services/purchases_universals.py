@@ -13,7 +13,7 @@ from src.services.database.categories.actions.products.universal.action_update i
 from src.services.database.categories.actions.products.universal.actions_add import add_deleted_universal
 from src.services.database.categories.actions.products.universal.actions_get import get_sold_universal_by_universal_id
 from src.database.models.categories import StorageStatus, UniversalMediaType
-from src.database.models.categories import SoldUniversalFull
+from src.read_models import SoldUniversalFull
 from src.database.models.users import Users
 from src.services.filesystem.actions import create_temp_dir
 from src.services.filesystem.universals_products import move_in_universal

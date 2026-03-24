@@ -8,7 +8,8 @@ from src.exceptions.domain import UniversalStorageNotFound, CategoryNotFound
 from src.services.database.categories.actions.actions_get import get_category_by_category_id
 from src.services.database.categories.actions.products.universal.actions_get import get_universal_storage
 from src.database.models.categories import UniversalMediaType, UniversalStorage, \
-    UniversalStorageTranslation, ProductUniversal, SoldUniversal, DeletedUniversal, StorageStatus, UniversalStoragePydantic
+    UniversalStorageTranslation, ProductUniversal, SoldUniversal, DeletedUniversal, StorageStatus
+from src.read_models import UniversalStoragePydantic
 from src.database import get_db
 from src.services.database.users.actions import get_user
 from src.services.redis.filling import filling_all_keys_category

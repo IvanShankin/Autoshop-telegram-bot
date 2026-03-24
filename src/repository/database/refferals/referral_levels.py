@@ -3,25 +3,28 @@ from typing import Optional, Sequence, Tuple
 from sqlalchemy import select, update, delete
 
 from src.database.models.referrals import ReferralLevels
+from src.read_models.other import ReferralLevelsDTO
 from src.repository.database.base import DatabaseBase
 
 
 class ReferralLevelsRepository(DatabaseBase):
 
-    async def get_all(self) -> Sequence[ReferralLevels]:
+    async def get_all(self) -> Sequence[ReferralLevelsDTO]:
         stmt = select(ReferralLevels).order_by(ReferralLevels.level.asc())
         result = await self.session_db.execute(stmt)
-        return result.scalars().all()
+        levels = list(result.scalars().all())
+        return [ReferralLevelsDTO.model_validate(level) for level in levels]
 
-    async def get_by_id(self, ref_lvl_id: int) -> Optional[ReferralLevels]:
+    async def get_by_id(self, ref_lvl_id: int) -> Optional[ReferralLevelsDTO]:
         stmt = select(ReferralLevels).where(ReferralLevels.referral_level_id == ref_lvl_id)
         result = await self.session_db.execute(stmt)
-        return result.scalar_one_or_none()
+        level = result.scalar_one_or_none()
+        return ReferralLevelsDTO.model_validate(level) if level else None
 
     async def get_nearby(
         self,
         ref_lvl_id: int,
-    ) -> Tuple[Optional[ReferralLevels], Optional[ReferralLevels], Optional[ReferralLevels]]:
+    ) -> Tuple[Optional[ReferralLevelsDTO], Optional[ReferralLevelsDTO], Optional[ReferralLevelsDTO]]:
         ref_lvls = await self.get_all()
 
         previous_lvl = None
@@ -40,10 +43,11 @@ class ReferralLevelsRepository(DatabaseBase):
 
         return previous_lvl, current_lvl, next_lvl
 
-    async def create_referral_lvl(self, **values) -> ReferralLevels:
-        return await super().create(ReferralLevels, **values)
+    async def create_referral_lvl(self, **values) -> ReferralLevelsDTO:
+        created = await super().create(ReferralLevels, **values)
+        return ReferralLevelsDTO.model_validate(created)
 
-    async def update_referral_lvl(self, ref_lvl_id: int, **values) -> Optional[ReferralLevels]:
+    async def update_referral_lvl(self, ref_lvl_id: int, **values) -> Optional[ReferralLevelsDTO]:
         if not values:
             return await self.get_by_id(ref_lvl_id)
 
@@ -54,13 +58,15 @@ class ReferralLevelsRepository(DatabaseBase):
             .returning(ReferralLevels)
         )
         result = await self.session_db.execute(stmt)
-        return result.scalar_one_or_none()
+        level = result.scalar_one_or_none()
+        return ReferralLevelsDTO.model_validate(level) if level else None
 
-    async def delete_referral_lvl(self, ref_lvl_id: int) -> Optional[ReferralLevels]:
+    async def delete_referral_lvl(self, ref_lvl_id: int) -> Optional[ReferralLevelsDTO]:
         stmt = (
             delete(ReferralLevels)
             .where(ReferralLevels.referral_level_id == ref_lvl_id)
             .returning(ReferralLevels)
         )
         result = await self.session_db.execute(stmt)
-        return result.scalar_one_or_none()
+        level = result.scalar_one_or_none()
+        return ReferralLevelsDTO.model_validate(level) if level else None

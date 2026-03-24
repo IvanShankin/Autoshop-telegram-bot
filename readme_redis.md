@@ -521,9 +521,15 @@
     {
         "voucher_id": "int",
         "creator_id": "int",
-        "amount": "int",
+        "is_created_admin": "bool",
+        
         "activation_code": "str",
-        "number_of_activations": "int | None",
+        "amount": "int",
+        "activated_counter": "int",               // количество активаций
+        "number_of_activations": "int | None",    // разрешённое количество активаций (если нет, то бесконечное)
+    
+        "start_at": "2024-01-15T10:30:45+03:00",
+        "expire_at": "2024-01-15T10:30:45+03:00 | None", 
         "is_valid": "bool"
     }
 ]

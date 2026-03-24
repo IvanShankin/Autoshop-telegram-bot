@@ -10,7 +10,7 @@ from src.database.models.categories import (
     AccountStorage,
     StorageStatus,
 )
-from src.read_models import ProductAccountsDTO
+from src.read_models import ProductAccountSmall
 from src.repository.database.base import DatabaseBase
 
 
@@ -21,14 +21,14 @@ class ProductAccountsRepository(DatabaseBase):
         account_id: int,
         *,
         with_storage: bool = False,
-    ) -> Optional[ProductAccountsDTO]:
+    ) -> Optional[ProductAccountSmall]:
         stmt = select(ProductAccounts).where(ProductAccounts.account_id == account_id)
         if with_storage:
             stmt = stmt.options(selectinload(ProductAccounts.account_storage))
 
         result = await self.session_db.execute(stmt)
         product = result.scalar_one_or_none()
-        return ProductAccountsDTO.model_validate(product) if product else None
+        return ProductAccountSmall.model_validate(product) if product else None
 
     async def get_by_category_id(
         self,
@@ -36,7 +36,7 @@ class ProductAccountsRepository(DatabaseBase):
         *,
         only_for_sale: bool = True,
         with_storage: bool = False,
-    ) -> List[ProductAccountsDTO]:
+    ) -> List[ProductAccountSmall]:
         stmt = select(ProductAccounts).where(ProductAccounts.category_id == category_id)
 
         if only_for_sale:
@@ -49,7 +49,7 @@ class ProductAccountsRepository(DatabaseBase):
 
         result = await self.session_db.execute(stmt)
         products = list(result.scalars().all())
-        return [ProductAccountsDTO.model_validate(product) for product in products]
+        return [ProductAccountSmall.model_validate(product) for product in products]
 
     async def get_account_ids_by_category_id(self, category_id: int) -> List[int]:
         result = await self.session_db.execute(
@@ -63,9 +63,9 @@ class ProductAccountsRepository(DatabaseBase):
         )
         return list(result.scalars().all())
 
-    async def create_product(self, **values) -> ProductAccountsDTO:
+    async def create_product(self, **values) -> ProductAccountSmall:
         created = await super().create(ProductAccounts, **values)
-        return ProductAccountsDTO.model_validate(created)
+        return ProductAccountSmall.model_validate(created)
 
     async def delete_by_account_id(self, account_id: int) -> None:
         await self.session_db.execute(

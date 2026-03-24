@@ -15,9 +15,16 @@ class AccountsCacheRepository(BaseRedisRepo):
     def _key_sold_accounts_by_owner_id(self, owner_id: int, language: str) -> str:
         return f"sold_accounts_by_owner_id:{owner_id}:{language}"
 
+    def _key_pattern_by_owner(self, owner_id: int) -> str:
+        return f"sold_accounts_by_owner_id:{owner_id}:*"
+
     def _key_sold_accounts_by_account_id(self, account_id: int, language: str) -> str:
         return f"sold_account:{account_id}:{language}"
 
+    def _key_pattern_by_account(self, account_id: int) -> str:
+        return f"sold_account:{account_id}:*"
+
+    # ==== product_accounts_by_category ====
 
     async def set_product_accounts_by_category(self, category_id: int, product_accounts: List[ProductAccountSmall]) -> None:
         await self._set_many(
@@ -31,6 +38,10 @@ class AccountsCacheRepository(BaseRedisRepo):
             ProductAccountSmall
         )
 
+    async def delete_product_accounts_by_category(self, category_id: int) -> None:
+        await self.redis_session.delete(self._key_product_account_by_category(category_id))
+
+    # ==== product_account_by_account_id ====
 
     async def set_product_account_by_account_id(self, product_account: ProductAccountFull) -> None:
         return await self._set_one(
@@ -44,6 +55,10 @@ class AccountsCacheRepository(BaseRedisRepo):
             ProductAccountFull
         )
 
+    async def delete_product_account_by_account_id(self, account_id: int) -> None:
+        await self.redis_session.delete(self._key_product_account_by_account_id(account_id))
+
+    # ==== sold_accounts_by_owner_id ====
 
     async def set_sold_accounts_by_owner_id(
         self,
@@ -63,6 +78,10 @@ class AccountsCacheRepository(BaseRedisRepo):
             SoldAccountSmall
         )
 
+    async def delete_sold_accounts_by_owner_id(self, owner_id: int, ) -> None:
+        await self.delete_keys_by_pattern(self._key_pattern_by_owner(owner_id))
+
+    # ==== sold_accounts_by_account_id ====
 
     async def set_sold_accounts_by_account_id(self, sold_account: SoldAccountFull, language: str) -> None:
         return await self._set_one(
@@ -75,3 +94,6 @@ class AccountsCacheRepository(BaseRedisRepo):
             self._key_sold_accounts_by_account_id(account_id, language),
             SoldAccountFull
         )
+
+    async def delete_sold_accounts_by_account_id(self, account_id: int, ) -> None:
+        await self.delete_keys_by_pattern(self._key_pattern_by_account(account_id))

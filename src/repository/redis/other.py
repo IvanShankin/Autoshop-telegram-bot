@@ -3,6 +3,7 @@ from typing import Optional, List
 from orjson import orjson
 
 from src.models.read_models import SettingsDTO, StickersDTO, UiImagesDTO
+from src.database.models.discount import SmallVoucher
 from src.models.read_models.other import ReferralLevelsDTO, TypePaymentsDTO, UsersDTO, PromoCodesDTO, VouchersDTO
 from src.repository.redis.base import BaseRedisRepo
 
@@ -238,11 +239,20 @@ class VouchersCacheRepository(BaseRedisRepo):
     async def get_by_user(self, user_id: int) -> List[VouchersDTO]:
         return await self._get_many(self._key_by_user(user_id), VouchersDTO)
 
+    async def exists_by_user(self, user_id: int) -> bool:
+        return await self.redis_session.exists(self._key_by_user(user_id)) == 1
+
+    async def set_small_by_user(self, user_id: int, vouchers: List[SmallVoucher], ttl: int):
+        await self._set_many(self._key_by_user(user_id), vouchers, ttl=ttl)
+
+    async def get_small_by_user(self, user_id: int) -> List[SmallVoucher]:
+        return await self._get_many(self._key_by_user(user_id), SmallVoucher)
+
     async def delete_by_user(self, user_id: int) -> None:
         await self.redis_session.delete(self._key_by_user(user_id))
 
-    async def set_by_code(self, voucher: VouchersDTO):
-        await self._set_one(self._key_one(voucher.activation_code), voucher)
+    async def set_by_code(self, voucher: VouchersDTO, ttl: Optional[int] = None):
+        await self._set_one(self._key_one(voucher.activation_code), voucher, ttl=ttl)
 
     async def get_by_code(self, code: str) -> Optional[VouchersDTO]:
         return await self._get_one(self._key_one(code), VouchersDTO)

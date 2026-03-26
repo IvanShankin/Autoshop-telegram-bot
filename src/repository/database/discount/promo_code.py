@@ -10,8 +10,15 @@ from src.repository.database.base import DatabaseBase
 
 class PromoCodeRepository(DatabaseBase):
 
-    async def get_by_id(self, promo_code_id: int) -> Optional[PromoCodesDTO]:
+    async def get_by_id(
+        self,
+        promo_code_id: int,
+        *,
+        only_valid: bool = True,
+    ) -> Optional[PromoCodesDTO]:
         stmt = select(PromoCodes).where(PromoCodes.promo_code_id == promo_code_id)
+        if only_valid:
+            stmt = stmt.where(PromoCodes.is_valid == True)
         result = await self.session_db.execute(stmt)
         promo = result.scalar_one_or_none()
         return PromoCodesDTO.model_validate(promo) if promo else None

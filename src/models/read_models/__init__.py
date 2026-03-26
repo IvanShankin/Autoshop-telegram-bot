@@ -1,11 +1,11 @@
-from src.read_models.categories.categories import CategoryFull, CategoriesDTO, CategoryTranslationDTO
+from src.models.read_models.categories.categories import CategoryFull, CategoriesDTO, CategoryTranslationDTO
 
-from src.read_models.categories.accounts import (
+from src.models.read_models.categories.accounts import (
     AccountStorageDTO, SoldAccountFull, SoldAccountSmall, ProductAccountSmall,
-    ProductAccountFull, ProductAccountsDTO, SoldAccountsDTO, SoldAccountsTranslationDTO, TgAccountMediaDTO,
+    ProductAccountFull, SoldAccountsDTO, SoldAccountsTranslationDTO, TgAccountMediaDTO,
     DeletedAccountsDTO
 )
-from src.read_models.categories.product_universal import (
+from src.models.read_models.categories.product_universal import (
     UniversalStoragePydantic,
     ProductUniversalSmall,
     ProductUniversalFull,
@@ -18,11 +18,11 @@ from src.read_models.categories.product_universal import (
     DeletedUniversalDTO,
 )
 
-from src.read_models.categories.purshanse_schem import ResultCheckCategory, StartPurchaseAccount, \
+from src.models.read_models.categories.purshanse_schem import ResultCheckCategory, StartPurchaseAccount, \
     PurchaseAccountSchema
 
-from src.read_models.admins import AdminsDTO, AdminActionsDTO
-from src.read_models.other import (
+from src.models.read_models.admins import AdminsDTO, AdminActionsDTO
+from src.models.read_models.other import (
     SettingsDTO,
     UsersDTO,
     BannedAccountsDTO,
@@ -36,7 +36,6 @@ from src.read_models.other import (
 )
 
 __all__ = [
-    "ProductAccountsDTO",
     "SoldAccountsDTO",
     "SoldAccountsTranslationDTO",
     'AccountStorageDTO',

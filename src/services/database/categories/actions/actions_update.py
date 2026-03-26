@@ -8,7 +8,8 @@ from src.exceptions import AccountCategoryNotFound, TheCategoryStorageAccount, \
     TheCategoryStorageProducts
 from src.services.database.categories.actions import get_quantity_products_in_category
 from src.database.models.categories import Categories, ProductAccounts, \
-    CategoryTranslation, CategoryFull
+    CategoryTranslation
+from src.models.read_models import CategoryFull
 from src.database.models.categories import ProductType, AccountServiceType, UniversalMediaType
 from src.database import get_db
 from src.services.database.system.actions import create_ui_image, delete_ui_image

@@ -3,7 +3,7 @@ from typing import Optional
 from sqlalchemy import select
 
 from src.database.models.discount import ActivatedPromoCodes
-from src.read_models.other import ActivatedPromoCodesDTO
+from src.models.read_models.other import ActivatedPromoCodesDTO
 from src.repository.database.base import DatabaseBase
 
 

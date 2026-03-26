@@ -8,7 +8,7 @@ from src.services.database.categories.actions.helpers_func import _get_grouped_o
     get_sold_items_by_page
 from src.database.models.categories import UniversalStorage, SoldUniversal, \
     UniversalStorageTranslation, StorageStatus, ProductUniversal
-from src.read_models import ProductUniversalFull, SoldUniversalSmall, SoldUniversalFull, ProductUniversalSmall, \
+from src.models.read_models import ProductUniversalFull, SoldUniversalSmall, SoldUniversalFull, ProductUniversalSmall, \
     UniversalStoragePydantic
 from src.database import get_db
 from src.services.redis.filling.filling_universal import filling_product_universal_by_category, \

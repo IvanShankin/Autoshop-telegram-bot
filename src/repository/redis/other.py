@@ -2,8 +2,8 @@ from typing import Optional, List
 
 from orjson import orjson
 
-from src.read_models import SettingsDTO, StickersDTO, UiImagesDTO
-from src.read_models.other import ReferralLevelsDTO, TypePaymentsDTO, UsersDTO, PromoCodesDTO, VouchersDTO
+from src.models.read_models import SettingsDTO, StickersDTO, UiImagesDTO
+from src.models.read_models.other import ReferralLevelsDTO, TypePaymentsDTO, UsersDTO, PromoCodesDTO, VouchersDTO
 from src.repository.redis.base import BaseRedisRepo
 
 
@@ -111,13 +111,13 @@ class DollarRateRepository(BaseRedisRepo):
 
 class SubscriptionCacheRepository(BaseRedisRepo):
 
-    async def set(self, user_id: str, ttl: int) -> None:
+    async def set(self, user_id: int, ttl: int) -> None:
         return await self.redis_session.setex(f"subscription_prompt:{user_id}", ttl,"_")
 
-    async def get(self, user_id: str) -> str | None:
+    async def get(self, user_id: int) -> str | None:
         return await self.redis_session.get(f"subscription_prompt:{user_id}")
 
-    async def delete(self, user_id: str) -> None:
+    async def delete(self, user_id: int) -> None:
         return await self.redis_session.delete(f"subscription_prompt:{user_id}")
 
 

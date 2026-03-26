@@ -3,7 +3,7 @@ from typing import Optional, List
 from sqlalchemy import select, delete
 
 from src.database.models.categories import ProductUniversal
-from src.read_models import ProductUniversalDTO
+from src.models.read_models import ProductUniversalDTO
 from src.repository.database.base import DatabaseBase
 
 

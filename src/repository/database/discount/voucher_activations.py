@@ -5,7 +5,7 @@ from typing import Optional
 from sqlalchemy import select
 
 from src.database.models.discount import VoucherActivations
-from src.read_models.other import VoucherActivationsDTO
+from src.models.read_models.other import VoucherActivationsDTO
 from src.repository.database.base import DatabaseBase
 
 

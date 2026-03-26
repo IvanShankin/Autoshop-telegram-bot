@@ -3,7 +3,7 @@ from typing import Optional, Sequence, Tuple
 from sqlalchemy import select, update, delete
 
 from src.database.models.referrals import ReferralLevels
-from src.read_models.other import ReferralLevelsDTO
+from src.models.read_models.other import ReferralLevelsDTO
 from src.repository.database.base import DatabaseBase
 
 

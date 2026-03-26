@@ -11,7 +11,7 @@ from src.services.database.admins.actions import check_admin
 from src.services.database.categories.actions import get_sold_accounts_by_account_id, get_tg_account_media, \
     update_tg_account_media
 from src.database.models.categories import AccountStorage, AccountServiceType
-from src.read_models import SoldAccountFull
+from src.models.read_models import SoldAccountFull
 from src.services.database.users.actions import get_user
 from src.database.models.users import Users
 from src.utils.core_logger import get_logger

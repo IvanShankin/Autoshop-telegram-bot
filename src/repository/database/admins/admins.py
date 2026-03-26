@@ -5,7 +5,7 @@ from sqlalchemy import select, delete
 from src.database.models.admins import (
     Admins,
 )
-from src.read_models import AdminsDTO
+from src.models.read_models import AdminsDTO
 from src.repository.database.base import DatabaseBase
 
 

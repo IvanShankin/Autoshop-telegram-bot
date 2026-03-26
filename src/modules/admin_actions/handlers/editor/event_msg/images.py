@@ -133,14 +133,14 @@ async def change_ui_image_result(message: Message, state: FSMContext, user: User
         try:
             get_ext_image(file_bytes)
 
-            ui_image_deleted = await delete_ui_image(key=data.ui_image_key)
+            ui_image_deleted = await delete_ui_image(key=data.event_message_key)
             await create_ui_image(
-                key=data.ui_image_key,
+                key=data.event_message_key,
                 show=ui_image_deleted.show if ui_image_deleted else False,
                 file_data=file_bytes
             )
 
-            await show_image_editor(ui_image_key=data.ui_image_key,current_page=data.current_page,user=user,new_message=True)
+            await show_image_editor(ui_image_key=data.event_message_key,current_page=data.current_page,user=user,new_message=True)
             return
         except InvalidImage:
             text = get_text(user.language, "admins_editor_event_msg", "this_is_not_image")
@@ -149,7 +149,7 @@ async def change_ui_image_result(message: Message, state: FSMContext, user: User
     await send_message(
         chat_id=user.user_id,
         message=text,
-        reply_markup= await back_in_image_editor(user.language, data.ui_image_key, data.current_page)
+        reply_markup= await back_in_image_editor(user.language, data.event_message_key, data.current_page)
     )
 
 

@@ -7,7 +7,7 @@ from typing import AsyncGenerator
 from src.bot_actions.messages.schemas import EventSentLog
 from src.infrastructure.rebbit_mq.producer import publish_event
 from src.database.models.categories import AccountStorage, AccountServiceType, StorageStatus
-from src.read_models import AccountStorageDTO
+from src.models.read_models import AccountStorageDTO
 from src.services.filesystem.actions import move_file
 from src.services.filesystem.media_paths import create_path_account
 from src.utils.core_logger import get_logger

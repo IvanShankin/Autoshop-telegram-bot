@@ -10,7 +10,7 @@ from src.bot_actions.messages.schemas import EventSentLog
 from src.infrastructure.rebbit_mq.producer import publish_event
 from src.config import get_config
 from src.database.models.categories import StorageStatus
-from src.read_models import SoldUniversalFull
+from src.models.read_models import SoldUniversalFull
 from src.services.filesystem.actions import get_default_image_bytes, move_file
 from src.services.filesystem.media_paths import create_path_universal_storage
 from src.services.products.universals.shemas import get_import_universal_headers, UploadUniversalProduct

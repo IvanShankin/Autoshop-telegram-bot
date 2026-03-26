@@ -4,9 +4,9 @@ from src.database.models.categories import ProductAccounts, AccountServiceType
 from typing import List
 from pydantic import BaseModel
 from src.database.models.categories import CategoryTranslation
-from src.read_models import CategoryFull
+from src.models.read_models import CategoryFull
 from src.database.models.categories.product_universal import UniversalMediaType
-from src.read_models import ProductUniversalFull
+from src.models.read_models import ProductUniversalFull
 
 
 class _StartPurchaseProduct(BaseModel):

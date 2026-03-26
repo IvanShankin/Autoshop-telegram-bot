@@ -13,7 +13,7 @@ from src.services.database.categories.actions import purchase
 from src.services.database.categories.actions.products.accounts.actions_get import get_sold_accounts_by_owner_id
 from src.services.database.categories.actions.products.universal.actions_get import get_sold_universal_by_owner_id
 from src.database.models.categories import ProductType
-from src.read_models import CategoryFull
+from src.models.read_models import CategoryFull
 from src.services.database.discounts.utils.calculation import discount_calculation
 from src.database.models.users import Users
 from src.utils.i18n import get_text, n_get_text

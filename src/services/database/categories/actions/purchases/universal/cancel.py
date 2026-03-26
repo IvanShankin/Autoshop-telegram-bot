@@ -9,7 +9,7 @@ from src.services.database.categories.actions.purchases.general.cancel import re
 from src.database.models.categories import Purchases
 from src.database.models.categories import SoldUniversal, UniversalStorage, \
     StorageStatus, ProductUniversal
-from src.read_models import ProductUniversalFull
+from src.models.read_models import ProductUniversalFull
 from src.database import get_db
 from src.database.models.users import Users
 from src.services.redis.filling import filling_user, filling_all_keys_category

@@ -3,7 +3,7 @@ from typing import Optional
 from sqlalchemy import delete, select
 
 from src.database.models.system import BackupLogs
-from src.read_models.other import BackupLogsDTO
+from src.models.read_models.other import BackupLogsDTO
 from src.repository.database.base import DatabaseBase
 
 

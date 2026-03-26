@@ -4,7 +4,7 @@ from typing import Optional, List
 from sqlalchemy import select, func, update, and_
 
 from src.database.models.discount import PromoCodes
-from src.read_models.other import PromoCodesDTO
+from src.models.read_models.other import PromoCodesDTO
 from src.repository.database.base import DatabaseBase
 
 

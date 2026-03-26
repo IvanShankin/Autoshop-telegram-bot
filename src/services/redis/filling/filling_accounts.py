@@ -2,7 +2,7 @@ import orjson
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from src.read_models import SoldAccountFull, SoldAccountSmall, ProductAccountFull
+from src.models.read_models import SoldAccountFull, SoldAccountSmall, ProductAccountFull
 from src.database.models.categories import ProductAccounts, SoldAccounts, AccountStorage, StorageStatus
 from src.database import get_db
 from src.infrastructure.redis import get_redis

@@ -3,7 +3,7 @@ from typing import Optional
 from sqlalchemy import select, update
 
 from src.database.models.system import Settings
-from src.read_models.other import SettingsDTO
+from src.models.read_models.other import SettingsDTO
 from src.repository.database.base import DatabaseBase
 
 

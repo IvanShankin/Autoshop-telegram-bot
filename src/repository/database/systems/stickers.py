@@ -3,7 +3,7 @@ from typing import Optional
 from sqlalchemy import delete, select, update
 
 from src.database.models.system.models import Stickers
-from src.read_models.other import StickersDTO
+from src.models.read_models.other import StickersDTO
 from src.repository.database.base import DatabaseBase
 
 

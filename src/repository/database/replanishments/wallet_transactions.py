@@ -3,7 +3,7 @@ from typing import Optional, Sequence
 from sqlalchemy import select, update
 
 from src.database.models.users import WalletTransaction
-from src.read_models.other import WalletTransactionDTO
+from src.models.read_models.other import WalletTransactionDTO
 from src.repository.database.base import DatabaseBase
 
 

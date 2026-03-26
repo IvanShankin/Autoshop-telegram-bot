@@ -5,7 +5,7 @@ from pathlib import Path
 from src.bot_actions.messages.schemas import EventSentLog
 from src.infrastructure.rebbit_mq.producer import publish_event
 from src.database.models.categories import StorageStatus
-from src.read_models import ProductUniversalFull, UniversalStoragePydantic
+from src.models.read_models import ProductUniversalFull, UniversalStoragePydantic
 from src.services.filesystem.actions import move_file
 from src.services.filesystem.media_paths import create_path_universal_storage
 from src.services.secrets import unwrap_dek, CryptoContext, decrypt_text, decrypt_file_to_bytes

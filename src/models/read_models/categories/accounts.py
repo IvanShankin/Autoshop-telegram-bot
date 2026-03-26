@@ -7,13 +7,6 @@ from src.database.models.categories import AccountStorage
 from src.database.models.categories.main_category_and_product import AccountServiceType, StorageStatus
 
 
-class ProductAccountsDTO(BaseModel):
-    account_id: int
-    category_id: int
-    account_storage_id: int
-    created_at: datetime
-
-
 class SoldAccountsDTO(BaseModel):
     sold_account_id: int
     owner_id: int | None

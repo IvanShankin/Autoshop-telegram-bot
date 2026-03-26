@@ -5,7 +5,7 @@ from sqlalchemy import select
 from src.database.models.users import (
     TransferMoneys,
 )
-from src.read_models.other import TransferMoneysDTO
+from src.models.read_models.other import TransferMoneysDTO
 from src.repository.database.base import DatabaseBase
 
 

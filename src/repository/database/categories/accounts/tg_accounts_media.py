@@ -7,7 +7,7 @@ from sqlalchemy import select, update
 from src.database.models.categories import (
     TgAccountMedia,
 )
-from src.read_models import TgAccountMediaDTO
+from src.models.read_models import TgAccountMediaDTO
 from src.repository.database.base import DatabaseBase
 
 

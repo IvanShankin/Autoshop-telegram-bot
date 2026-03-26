@@ -5,7 +5,7 @@ from typing import Optional
 from sqlalchemy import select
 
 from src.database.models.categories import Purchases
-from src.read_models import PurchasesDTO
+from src.models.read_models import PurchasesDTO
 from src.repository.database.base import DatabaseBase
 
 

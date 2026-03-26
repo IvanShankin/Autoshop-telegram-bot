@@ -2,7 +2,7 @@ from typing import List
 
 from src.exceptions import ProductAccountNotFound
 from src.services.database.categories.actions import get_product_account_by_category_id
-from src.read_models import ProductAccountFull
+from src.models.read_models import ProductAccountFull
 
 
 async def get_account_storage_by_category_id(category_id: int) -> List[ProductAccountFull]:

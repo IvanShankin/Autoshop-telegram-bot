@@ -5,7 +5,7 @@ from sqlalchemy import select
 from src.database.models.users import (
     UserAuditLogs,
 )
-from src.read_models.other import UserAuditLogsDTO
+from src.models.read_models.other import UserAuditLogsDTO
 from src.repository.database.base import DatabaseBase
 
 

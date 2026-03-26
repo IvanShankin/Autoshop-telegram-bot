@@ -11,7 +11,7 @@ from src.services.database.categories.actions.purchases.accounts.cancel import c
 from src.services.database.categories.events.schemas import NewPurchaseAccount, AccountsData
 from src.database.models.categories import ProductAccounts, SoldAccounts, Purchases, \
     SoldAccountsTranslation, AccountStorage, StorageStatus, ProductType, PurchaseRequests
-from src.read_models import StartPurchaseAccount
+from src.models.read_models import StartPurchaseAccount
 from src.database import get_db
 from src.services.database.discounts.events import NewActivatePromoCode
 from src.database.models.users import BalanceHolder

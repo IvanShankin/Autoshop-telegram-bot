@@ -6,7 +6,7 @@ from sqlalchemy.orm import selectinload
 from src.database.models.admins import (
     MessageForSending,
 )
-from src.read_models.admins import MessageForSendingDTO
+from src.models.read_models.admins import MessageForSendingDTO
 from src.repository.database.base import DatabaseBase
 
 

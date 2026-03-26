@@ -10,25 +10,33 @@ from src.database.models.categories import (
     AccountStorage,
     StorageStatus,
 )
-from src.read_models import ProductAccountSmall
+from src.models.read_models import ProductAccountSmall
+from src.models.read_models.categories.accounts import ProductAccountFull
 from src.repository.database.base import DatabaseBase
 
 
 class ProductAccountsRepository(DatabaseBase):
 
-    async def get_by_account_id(
-        self,
-        account_id: int,
-        *,
-        with_storage: bool = False,
-    ) -> Optional[ProductAccountSmall]:
-        stmt = select(ProductAccounts).where(ProductAccounts.account_id == account_id)
-        if with_storage:
-            stmt = stmt.options(selectinload(ProductAccounts.account_storage))
+    async def get_full_by_account_id(
+            self,
+            account_id: int,
+    ) -> Optional[ProductAccountFull]:
+        stmt = (
+            select(ProductAccounts)
+            .options(selectinload(ProductAccounts.account_storage))
+            .where(ProductAccounts.account_id == account_id)
+        )
 
         result = await self.session_db.execute(stmt)
         product = result.scalar_one_or_none()
-        return ProductAccountSmall.model_validate(product) if product else None
+
+        if not product:
+            return None
+
+        return ProductAccountFull.from_orm_model(
+            product_account=product,
+            storage_account=product.account_storage,
+        )
 
     async def get_by_category_id(
         self,

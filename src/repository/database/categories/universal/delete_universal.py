@@ -1,5 +1,5 @@
 from src.database.models.categories import DeletedUniversal
-from src.read_models import DeletedUniversalDTO
+from src.models.read_models import DeletedUniversalDTO
 from src.repository.database.base import DatabaseBase
 
 

@@ -7,7 +7,7 @@ from src.exceptions.business import ServerError
 from src.modules.admin_actions.keyboards.editors.category_kb import in_category_kb
 from src.modules.admin_actions.services.editor.category.category_loader import service_not_found
 from src.database.models.categories import ProductType, AccountServiceType
-from src.read_models import CategoryFull
+from src.models.read_models import CategoryFull
 from src.services.products.accounts.other.upload_account import upload_other_account
 from src.services.products.accounts.tg.upload_account import upload_tg_account
 from src.database.models.users import Users

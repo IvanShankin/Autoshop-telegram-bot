@@ -16,8 +16,8 @@ from src.services.database.categories.events.schemas import UniversalProductData
     NewPurchaseUniversal
 from src.database.models.categories import StorageStatus, ProductUniversal, PurchaseRequests, Purchases, ProductType, \
     SoldUniversal, UniversalStorage, UniversalStorageTranslation, PurchaseRequestUniversal
-from src.read_models import ProductUniversalFull, UniversalStoragePydantic
-from src.read_models.categories.purshanse_schem import StartPurchaseUniversal, \
+from src.models.read_models import ProductUniversalFull, UniversalStoragePydantic
+from src.models.read_models.categories.purshanse_schem import StartPurchaseUniversal, \
     StartPurchaseUniversalOne
 from src.database import get_db
 from src.services.database.discounts.events import NewActivatePromoCode

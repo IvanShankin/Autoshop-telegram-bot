@@ -4,7 +4,7 @@ from sqlalchemy.orm import selectinload
 
 from src.config import get_config
 from src.database.models.categories import UniversalStorage, SoldUniversal, StorageStatus, ProductUniversal
-from src.read_models import ProductUniversalFull, SoldUniversalSmall, SoldUniversalFull
+from src.models.read_models import ProductUniversalFull, SoldUniversalSmall, SoldUniversalFull
 from src.database import get_db
 from src.infrastructure.redis import get_redis
 from src.services.redis.filling.helpers_func import _delete_keys_by_pattern, _filling_product_by_category_id, \

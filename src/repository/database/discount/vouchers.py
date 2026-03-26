@@ -6,7 +6,7 @@ from typing import Optional, Sequence, List
 from sqlalchemy import func, select, update, and_
 
 from src.database.models.discount import Vouchers
-from src.read_models.other import VouchersDTO
+from src.models.read_models.other import VouchersDTO
 from src.repository.database.base import DatabaseBase
 
 

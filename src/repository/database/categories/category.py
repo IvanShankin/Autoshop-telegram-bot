@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 
 from src.database.models.categories import Categories, ProductAccounts, AccountStorage, UniversalStorage, \
     ProductUniversal, StorageStatus
-from src.read_models import CategoriesDTO
+from src.models.read_models import CategoriesDTO
 from src.repository.database.base import DatabaseBase
 
 

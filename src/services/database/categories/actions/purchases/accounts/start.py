@@ -8,7 +8,7 @@ from src.exceptions import NotEnoughAccounts
 from src.services.database.categories.actions.purchases.general.start import write_off_of_funds, \
     create_new_purchase_request, check_category_and_money
 from src.database.models.categories import ProductAccounts, AccountStorage, StorageStatus, PurchaseRequestAccount
-from src.read_models import StartPurchaseAccount
+from src.models.read_models import StartPurchaseAccount
 from src.database import get_db
 from src.services.redis.filling import filling_product_account_by_account_id, filling_user, filling_all_keys_category
 

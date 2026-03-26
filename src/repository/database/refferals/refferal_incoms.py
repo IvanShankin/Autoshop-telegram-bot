@@ -3,7 +3,7 @@ from typing import Optional, Sequence
 from sqlalchemy import select, func
 
 from src.database.models.referrals import IncomeFromReferrals
-from src.read_models.other import IncomeFromReferralsDTO
+from src.models.read_models.other import IncomeFromReferralsDTO
 from src.repository.database.base import DatabaseBase
 
 

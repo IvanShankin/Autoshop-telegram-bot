@@ -1,6 +1,6 @@
 from typing import List
 
-from src.read_models import CategoryFull
+from src.models.read_models import CategoryFull
 from src.repository.redis.base import BaseRedisRepo
 
 

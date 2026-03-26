@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.exceptions import CategoryNotFound, NotEnoughMoney
 from src.services.database.categories.actions.actions_get import get_category_by_category_id
 from src.database.models.categories import CategoryTranslation, PurchaseRequests
-from src.read_models import ResultCheckCategory
+from src.models.read_models import ResultCheckCategory
 from src.database import get_db
 from src.services.database.discounts.utils.calculation import discount_calculation
 from src.services.database.users.actions import get_user

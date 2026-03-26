@@ -5,7 +5,7 @@ from sqlalchemy.orm import selectinload
 
 from tests.helpers.func_fabrics.other_fabric import create_ui_image_factory
 from src.database.models.categories import Categories, CategoryTranslation, ProductType, AccountServiceType
-from src.read_models import CategoryFull
+from src.models.read_models import CategoryFull
 from src.database import get_db
 from src.services.redis.filling import filling_all_keys_category
 

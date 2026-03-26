@@ -10,7 +10,7 @@ from src.database.models.categories import (
     AccountStorage,
     AccountServiceType,
 )
-from src.read_models import SoldAccountsDTO
+from src.models.read_models import SoldAccountsDTO
 from src.repository.database.base import DatabaseBase
 
 

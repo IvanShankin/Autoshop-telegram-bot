@@ -6,7 +6,7 @@ from sqlalchemy.orm import selectinload
 
 from src.config import get_config
 from src.database.models.categories import Categories
-from src.read_models import CategoryFull
+from src.models.read_models import CategoryFull
 from src.database import get_db
 from src.infrastructure.redis import get_redis
 from src.services.redis.filling.helpers_func import _filling_categories, \

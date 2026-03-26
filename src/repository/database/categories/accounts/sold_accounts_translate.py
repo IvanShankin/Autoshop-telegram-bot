@@ -7,7 +7,7 @@ from sqlalchemy import select, update, delete, func, distinct
 from src.database.models.categories import (
     SoldAccountsTranslation,
 )
-from src.read_models import SoldAccountsTranslationDTO
+from src.models.read_models import SoldAccountsTranslationDTO
 from src.repository.database.base import DatabaseBase
 
 

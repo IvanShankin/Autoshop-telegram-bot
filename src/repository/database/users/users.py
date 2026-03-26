@@ -3,17 +3,26 @@ from typing import Optional, Sequence
 from sqlalchemy import func, select, update
 
 from src.database.models.users import Users
-from src.read_models.other import UsersDTO
+from src.models.read_models.other import UsersDTO
 from src.repository.database.base import DatabaseBase
 
 
 class UsersRepository(DatabaseBase):
+
     async def get_by_id(self, user_id: int) -> Optional[UsersDTO]:
         result = await self.session_db.execute(
             select(Users).where(Users.user_id == user_id)
         )
         user = result.scalar_one_or_none()
         return UsersDTO.model_validate(user) if user else None
+
+    async def get_by_id_for_update(self, user_id: int) -> Optional[Users]:
+        result = await self.session_db.execute(
+            select(Users)
+            .where(Users.user_id == user_id)
+            .with_for_update()
+        )
+        return result.scalar_one_or_none()
 
     async def get_by_referral_code(self, code: str) -> Optional[UsersDTO]:
         result = await self.session_db.execute(

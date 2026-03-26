@@ -15,7 +15,7 @@ from src.services.database.categories.actions.products.universal.actions_add imp
 from src.database.models.categories import PurchaseRequests
 from src.database.models.categories import StorageStatus, \
     ProductUniversal, UniversalStorage, PurchaseRequestUniversal
-from src.read_models import ProductUniversalFull
+from src.models.read_models import ProductUniversalFull
 from src.database import get_db
 from src.services.products.universals.actions import check_valid_universal_product, move_universal_storage
 from src.services.secrets import get_crypto_context

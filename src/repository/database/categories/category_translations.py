@@ -5,7 +5,7 @@ from typing import List, Optional, Any
 from sqlalchemy import select, update, delete, distinct
 
 from src.database.models.categories import CategoryTranslation
-from src.read_models import CategoryTranslationDTO
+from src.models.read_models import CategoryTranslationDTO
 from src.repository.database.base import DatabaseBase
 
 

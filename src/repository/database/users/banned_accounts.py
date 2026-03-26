@@ -5,7 +5,7 @@ from sqlalchemy import delete, select
 from src.database.models.users import (
     BannedAccounts,
 )
-from src.read_models.other import BannedAccountsDTO
+from src.models.read_models.other import BannedAccountsDTO
 from src.repository.database.base import DatabaseBase
 
 

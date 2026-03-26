@@ -4,7 +4,7 @@ from src.services.redis.filling.filling_categories import filling_main_categorie
     filling_all_keys_category, filling_categories_by_parent
 
 from src.services.redis.filling.filling_other import filling_settings, filling_ui_image, filling_referral_levels, \
-    filling_all_types_payments, filling_types_payments_by_id, filling_users, filling_user, filling_admins, \
+    filling_all_types_payments, filling_types_payments_by_id, filling_user, filling_admins, \
     filling_banned_accounts, filling_promo_code, filling_voucher_by_user_id, filling_vouchers
 
 from src.services.redis.filling.filling_all import filling_all_redis
@@ -23,7 +23,6 @@ __all__ = [
     "filling_referral_levels",
     "filling_all_types_payments",
     "filling_types_payments_by_id",
-    "filling_users",
     "filling_user",
     "filling_admins",
     "filling_banned_accounts",

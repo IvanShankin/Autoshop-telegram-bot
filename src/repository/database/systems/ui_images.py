@@ -3,7 +3,7 @@ from typing import Optional, Sequence
 from sqlalchemy import delete, select, update
 
 from src.database.models.system import UiImages
-from src.read_models.other import UiImagesDTO
+from src.models.read_models.other import UiImagesDTO
 from src.repository.database.base import DatabaseBase
 
 

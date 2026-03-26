@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from src.read_models import ProductAccountSmall, ProductAccountFull, SoldAccountSmall, SoldAccountFull
+from src.models.read_models import ProductAccountSmall, ProductAccountFull, SoldAccountSmall, SoldAccountFull
 from src.repository.redis.base import BaseRedisRepo
 
 

@@ -9,7 +9,7 @@ from src.exceptions import TranslationAlreadyExists, \
 from src.services.database.categories.actions.actions_get import get_category_by_category_id
 from src.database.models.categories import ProductAccounts, SoldAccounts, SoldAccountsTranslation, \
     DeletedAccounts, AccountServiceType, TgAccountMedia, AccountStorage, StorageStatus
-from src.read_models import SoldAccountSmall
+from src.models.read_models import SoldAccountSmall
 from src.database import get_db
 from src.services.database.users.actions import get_user
 from src.services.redis.filling import filling_product_account_by_account_id, \

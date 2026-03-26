@@ -5,11 +5,12 @@ from sqlalchemy import select, update
 from src.database.models.users import (
     NotificationSettings,
 )
-from src.read_models.other import NotificationSettingsDTO
+from src.models.read_models.other import NotificationSettingsDTO
 from src.repository.database.base import DatabaseBase
 
 
 class NotificationSettingsRepository(DatabaseBase):
+
     async def get_by_user_id(self, user_id: int) -> Optional[NotificationSettingsDTO]:
         result = await self.session_db.execute(
             select(NotificationSettings).where(NotificationSettings.user_id == user_id)

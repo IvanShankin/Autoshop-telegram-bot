@@ -3,7 +3,7 @@ from typing import Optional, Sequence
 from sqlalchemy import select, update
 
 from src.database.models.system import TypePayments
-from src.read_models.other import TypePaymentsDTO
+from src.models.read_models.other import TypePaymentsDTO
 from src.repository.database.base import DatabaseBase
 
 

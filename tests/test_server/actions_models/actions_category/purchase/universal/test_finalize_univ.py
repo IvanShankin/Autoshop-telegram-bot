@@ -16,7 +16,7 @@ from src.database.models.categories import (
     PurchaseRequestUniversal, ProductUniversal, UniversalMediaType,
 )
 from src.database.models.users import BalanceHolder
-from src.read_models.categories.purshanse_schem import (
+from src.models.read_models.categories.purshanse_schem import (
     StartPurchaseUniversalOne, StartPurchaseUniversal,
 )
 

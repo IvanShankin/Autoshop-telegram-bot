@@ -3,7 +3,7 @@ from typing import Optional, List
 from sqlalchemy import select
 
 from src.database.models.categories import UniversalStorageTranslation
-from src.read_models import UniversalStorageTranslationDTO
+from src.models.read_models import UniversalStorageTranslationDTO
 from src.repository.database.base import DatabaseBase
 
 

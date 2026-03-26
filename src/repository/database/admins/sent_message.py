@@ -5,7 +5,7 @@ from sqlalchemy import select, func
 from src.database.models.admins import (
     SentMasMessages,
 )
-from src.read_models.admins import SentMasMessagesDTO
+from src.models.read_models.admins import SentMasMessagesDTO
 from src.repository.database.base import DatabaseBase
 
 

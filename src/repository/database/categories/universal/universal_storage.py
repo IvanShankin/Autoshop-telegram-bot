@@ -6,7 +6,7 @@ from sqlalchemy.orm import selectinload
 from src.database.models.categories import (
     UniversalStorage,
 )
-from src.read_models import UniversalStorageDTO
+from src.models.read_models import UniversalStorageDTO
 from src.repository.database.base import DatabaseBase
 
 

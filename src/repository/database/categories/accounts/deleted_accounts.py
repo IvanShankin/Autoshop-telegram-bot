@@ -7,7 +7,7 @@ from sqlalchemy import select
 from src.database.models.categories import (
     DeletedAccounts,
 )
-from src.read_models import DeletedAccountsDTO
+from src.models.read_models import DeletedAccountsDTO
 from src.repository.database.base import DatabaseBase
 
 

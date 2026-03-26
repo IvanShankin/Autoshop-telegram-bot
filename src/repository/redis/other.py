@@ -45,6 +45,9 @@ class StickersCacheRepository(BaseRedisRepo):
     def _pattern(self) -> str:
         return "sticker:*"
 
+    async def set(self, sticker: StickersDTO) -> None:
+        await self._set_one(self._key(sticker.key), sticker)
+
     async def set_many(self, stickers: List[StickersDTO]) -> None:
         async with self.redis_session.pipeline(transaction=False) as pipe:
             for sticker in stickers:
@@ -137,6 +140,9 @@ class TypePaymentsCacheRepository(BaseRedisRepo):
 
     async def get_all(self) -> List[TypePaymentsDTO]:
         return await self._get_many(self._key_all(), TypePaymentsDTO)
+
+    async def get_one(self, type_payment_id: int) -> Optional[TypePaymentsDTO]:
+        return await self._get_one(self._key_one(type_payment_id), TypePaymentsDTO)
 
     async def set_one(self, item: TypePaymentsDTO) -> None:
         await self._set_one(self._key_one(item.type_payment_id), item)

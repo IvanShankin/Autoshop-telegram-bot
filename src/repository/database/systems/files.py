@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import select, update
+from sqlalchemy import select, update, delete
 
 from src.database.models.system.models import Files
 from src.models.read_models.other import FilesDTO
@@ -31,3 +31,13 @@ class FilesRepository(DatabaseBase):
         result = await self.session_db.execute(stmt)
         updated = result.scalar_one_or_none()
         return FilesDTO.model_validate(updated) if updated else None
+
+    async def delete(self, key: str) -> Optional[FilesDTO]:
+        stmt = (
+            delete(Files)
+            .where(Files.key == key)
+            .returning(Files)
+        )
+        result = await self.session_db.execute(stmt)
+        deleted = result.scalar_one_or_none()
+        return FilesDTO.model_validate(deleted) if deleted else None

@@ -11,6 +11,10 @@ from src.repository.database.base import DatabaseBase
 
 class SentMasMessagesRepository(DatabaseBase):
 
+    async def create_sent_mass_messages(self, **values) -> SentMasMessagesDTO:
+        created = await super().create(SentMasMessages, **values)
+        return SentMasMessagesDTO.model_validate(created)
+
     async def get_sent_mass_message(
         self, message_id: int
     ) -> Optional[SentMasMessagesDTO]:

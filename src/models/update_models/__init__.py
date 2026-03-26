@@ -6,6 +6,7 @@ from src.models.update_models.system import (
     UpdateUiImageDTO,
     UpdateTypePaymentDTO,
 )
+from src.models.update_models.referrals import UpdateReferralLevelDTO
 
 
 __all__ = [
@@ -16,4 +17,5 @@ __all__ = [
     "UpdateStickerDTO",
     "UpdateUiImageDTO",
     "UpdateTypePaymentDTO",
+    "UpdateReferralLevelDTO",
 ]

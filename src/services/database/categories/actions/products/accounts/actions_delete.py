@@ -6,6 +6,8 @@ from sqlalchemy import select, delete
 from src.database.models.categories import ProductAccounts, \
     SoldAccounts, SoldAccountsTranslation, AccountStorage
 from src.database import get_db
+from src.exceptions import ProductAccountNotFound
+from src.exceptions.domain import SoldAccountNotFound
 from src.services.filesystem.media_paths import create_path_account
 from src.services.redis.filling import filling_all_keys_category, filling_sold_accounts_by_owner_id, \
     filling_product_account_by_account_id, filling_product_accounts_by_category_id, filling_sold_account_by_account_id
@@ -19,7 +21,7 @@ async def delete_product_account(account_id: int):
         )
         account: ProductAccounts = result_db.scalar_one_or_none()
         if not account:
-            raise ValueError(f"Аккаунта с id = {account_id} не найдено")
+            raise ProductAccountNotFound(f"Аккаунта с id = {account_id} не найдено")
 
         await session_db.execute(delete(ProductAccounts).where(ProductAccounts.account_id == account_id))
         await session_db.commit()
@@ -38,7 +40,7 @@ async def delete_sold_account(account_id: int):
         )
         account: SoldAccounts = result_db.scalar_one_or_none()
         if not account:
-            raise ValueError(f"Аккаунта с id = {account_id} не найдено")
+            raise SoldAccountNotFound(f"Аккаунта с id = {account_id} не найдено")
 
         await session_db.execute(delete(SoldAccounts).where(SoldAccounts.sold_account_id == account_id))
         await session_db.execute(delete(SoldAccountsTranslation).where(SoldAccountsTranslation.sold_account_id == account_id))

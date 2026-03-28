@@ -11,5 +11,5 @@ __all__ = [
     "SoldAccountsRepository",
     "SoldAccountsTranslationRepository",
     "AccountStorageRepository",
-    "AccountStorageRepository",
+    "TgAccountMediaRepository",
 ]

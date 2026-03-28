@@ -117,7 +117,7 @@ async def get_sold_accounts_by_owner_id(
     get_full: bool = False
 ) -> List[SoldAccountSmall | SoldAccountFull]:
     """
-    Вернёт все аккуанты которы не удалены
+    Вернёт все аккаунты которы не удалены
 
     Отсортировано по возрастанию даты создания
     """

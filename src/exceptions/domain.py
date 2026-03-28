@@ -35,6 +35,10 @@ class AccountCategoryNotFound(Exception):
     pass
 
 
+class SoldAccountNotFound(Exception):
+    pass
+
+
 class ProductAccountNotFound(Exception):
     pass
 

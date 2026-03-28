@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional, List, Any
 
-from sqlalchemy import select, update
+from sqlalchemy import select, update, delete
 from sqlalchemy.orm import selectinload
 
 from src.database.models.categories import (
@@ -74,3 +74,15 @@ class AccountStorageRepository(DatabaseBase):
             .distinct()
         )
         return list(result.scalars().all())
+
+    async def delete_by_ids(self, account_storage_ids: List[int]) -> List[AccountStorageDTO]:
+        if not account_storage_ids:
+            return []
+
+        result = await self.session_db.execute(
+            delete(AccountStorage)
+            .where(AccountStorage.account_storage_id.in_(account_storage_ids))
+            .returning(AccountStorage)
+        )
+        deleted = list(result.scalars().all())
+        return [AccountStorageDTO.model_validate(item) for item in deleted]

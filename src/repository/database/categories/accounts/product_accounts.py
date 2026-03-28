@@ -38,6 +38,29 @@ class ProductAccountsRepository(DatabaseBase):
             storage_account=product.account_storage,
         )
 
+    async def get_full_by_category_id(
+        self,
+        category_id: int,
+        *,
+        only_for_sale: bool = True,
+    ) -> List[ProductAccountFull]:
+        stmt = (
+            select(ProductAccounts)
+            .options(selectinload(ProductAccounts.account_storage))
+            .where(ProductAccounts.category_id == category_id)
+        )
+        if only_for_sale:
+            stmt = stmt.join(ProductAccounts.account_storage).where(
+                AccountStorage.status == StorageStatus.FOR_SALE
+            )
+
+        result = await self.session_db.execute(stmt)
+        products = list(result.scalars().all())
+        return [
+            ProductAccountFull.from_orm_model(product, product.account_storage)
+            for product in products
+        ]
+
     async def get_by_category_id(
         self,
         category_id: int,
@@ -58,6 +81,20 @@ class ProductAccountsRepository(DatabaseBase):
         result = await self.session_db.execute(stmt)
         products = list(result.scalars().all())
         return [ProductAccountSmall.model_validate(product) for product in products]
+
+    async def get_by_account_id(self, account_id: int) -> Optional[ProductAccountSmall]:
+        result = await self.session_db.execute(
+            select(ProductAccounts).where(ProductAccounts.account_id == account_id)
+        )
+        product = result.scalar_one_or_none()
+        return ProductAccountSmall.model_validate(product) if product else None
+
+    async def get_by_storage_id(self, account_storage_id: int) -> Optional[ProductAccountSmall]:
+        result = await self.session_db.execute(
+            select(ProductAccounts).where(ProductAccounts.account_storage_id == account_storage_id)
+        )
+        product = result.scalar_one_or_none()
+        return ProductAccountSmall.model_validate(product) if product else None
 
     async def get_account_ids_by_category_id(self, category_id: int) -> List[int]:
         result = await self.session_db.execute(

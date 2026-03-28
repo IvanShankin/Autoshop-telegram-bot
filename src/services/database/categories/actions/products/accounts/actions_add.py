@@ -5,7 +5,8 @@ from sqlalchemy.orm import selectinload
 
 from src.exceptions import TranslationAlreadyExists, \
     CategoryNotFound, \
-    TheCategoryNotStorageAccount
+    TheCategoryNotStorageAccount, UserNotFound
+from src.exceptions.domain import SoldAccountNotFound
 from src.services.database.categories.actions.actions_get import get_category_by_category_id
 from src.database.models.categories import ProductAccounts, SoldAccounts, SoldAccountsTranslation, \
     DeletedAccounts, AccountServiceType, TgAccountMedia, AccountStorage, StorageStatus
@@ -149,7 +150,7 @@ async def add_translation_in_sold_account(
         result_db = await session_db.execute(select(SoldAccounts).where(SoldAccounts.sold_account_id == sold_account_id))
         sold_account: SoldAccounts = result_db.scalar_one_or_none()
         if not sold_account:
-            raise ValueError(f"Продаваемый аккаунт с ID = {sold_account_id} не найден")
+            raise SoldAccountNotFound(f"Продаваемый аккаунт с ID = {sold_account_id} не найден")
 
         result_db = await session_db.execute(
             select(SoldAccountsTranslation)
@@ -199,7 +200,7 @@ async def add_sold_account(
 ) -> SoldAccountSmall:
     """Сделает запись в БД, и закэширует"""
     if not await get_user(owner_id):
-        raise ValueError(f"Пользователь с ID = {owner_id} не найден")
+        raise UserNotFound(f"Пользователь с ID = {owner_id} не найден")
 
     new_sold_account = SoldAccounts(
         owner_id = owner_id,

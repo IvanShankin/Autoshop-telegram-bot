@@ -59,3 +59,13 @@ class UsersRepository(DatabaseBase):
         result = await self.session_db.execute(stmt)
         updated = result.scalar_one_or_none()
         return UsersDTO.model_validate(updated) if updated else None
+
+    async def update_balance_by_delta(self, user_id: int, delta: int) -> Optional[UsersDTO]:
+        result = await self.session_db.execute(
+            update(Users)
+            .where(Users.user_id == user_id)
+            .values(balance=Users.balance + delta)
+            .returning(Users)
+        )
+        updated = result.scalar_one_or_none()
+        return UsersDTO.model_validate(updated) if updated else None

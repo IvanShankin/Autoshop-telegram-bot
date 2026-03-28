@@ -192,6 +192,13 @@ class SoldAccountsRepository(DatabaseBase):
             delete(SoldAccounts).where(SoldAccounts.sold_account_id == sold_account_id)
         )
 
+    async def delete_by_ids(self, sold_account_ids: List[int]) -> None:
+        if not sold_account_ids:
+            return
+        await self.session_db.execute(
+            delete(SoldAccounts).where(SoldAccounts.sold_account_id.in_(sold_account_ids))
+        )
+
     async def exists_by_id(self, sold_account_id: int) -> bool:
         result = await self.session_db.execute(
             select(SoldAccounts.sold_account_id).where(

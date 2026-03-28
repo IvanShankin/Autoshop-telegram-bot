@@ -93,6 +93,16 @@ class ProductUniversalRepository(DatabaseBase):
         )
         return list(result.scalars().all())
 
+    async def get_existing_storage_ids(self, storage_ids: List[int]) -> List[int]:
+        if not storage_ids:
+            return []
+        result = await self.session_db.execute(
+            select(ProductUniversal.universal_storage_id).where(
+                ProductUniversal.universal_storage_id.in_(storage_ids)
+            )
+        )
+        return list(result.scalars().all())
+
     async def create_product(self, **value) -> ProductUniversalDTO:
         created = await super().create(ProductUniversal, **value)
         return ProductUniversalDTO.model_validate(created)
@@ -102,3 +112,52 @@ class ProductUniversalRepository(DatabaseBase):
             delete(ProductUniversal)
             .where(ProductUniversal.product_universal_id == product_id)
         )
+
+    async def get_for_update_by_category(
+        self,
+        category_id: int,
+        *,
+        limit: int,
+        status: StorageStatus = StorageStatus.FOR_SALE,
+    ) -> List[ProductUniversal]:
+        stmt = (
+            select(ProductUniversal)
+            .options(
+                selectinload(ProductUniversal.storage)
+                .selectinload(UniversalStorage.translations)
+            )
+            .join(ProductUniversal.storage)
+            .where(
+                (ProductUniversal.category_id == category_id)
+                & (UniversalStorage.status == status)
+            )
+            .order_by(ProductUniversal.created_at.desc())
+            .with_for_update()
+            .limit(limit)
+        )
+        result = await self.session_db.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_for_update_candidates(
+        self,
+        category_id: int,
+        *,
+        limit: int,
+    ) -> List[ProductUniversal]:
+        stmt = (
+            select(ProductUniversal)
+            .options(
+                selectinload(ProductUniversal.storage)
+                .selectinload(UniversalStorage.translations)
+            )
+            .join(ProductUniversal.storage)
+            .where(
+                (ProductUniversal.category_id == category_id)
+                & (UniversalStorage.is_active == True)
+                & (UniversalStorage.status == StorageStatus.FOR_SALE)
+            )
+            .with_for_update()
+            .limit(limit)
+        )
+        result = await self.session_db.execute(stmt)
+        return list(result.scalars().all())

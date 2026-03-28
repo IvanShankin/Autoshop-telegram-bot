@@ -8,6 +8,7 @@ from sqlalchemy.orm import selectinload
 from src.database.models.categories import (
     AccountStorage,
     AccountServiceType,
+    StorageStatus,
 )
 from src.models.read_models import AccountStorageDTO
 from src.repository.database.base import DatabaseBase
@@ -86,3 +87,26 @@ class AccountStorageRepository(DatabaseBase):
         )
         deleted = list(result.scalars().all())
         return [AccountStorageDTO.model_validate(item) for item in deleted]
+
+    async def update_status_by_ids(
+        self,
+        account_storage_ids: List[int],
+        *,
+        status: StorageStatus,
+        is_active: bool | None = None,
+        is_valid: bool | None = None,
+    ) -> None:
+        if not account_storage_ids:
+            return
+
+        values: dict[str, Any] = {"status": status}
+        if is_active is not None:
+            values["is_active"] = is_active
+        if is_valid is not None:
+            values["is_valid"] = is_valid
+
+        await self.session_db.execute(
+            update(AccountStorage)
+            .where(AccountStorage.account_storage_id.in_(account_storage_ids))
+            .values(**values)
+        )

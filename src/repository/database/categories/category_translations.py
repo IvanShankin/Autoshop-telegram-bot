@@ -26,6 +26,16 @@ class CategoryTranslationsRepository(DatabaseBase):
         translations = list(result.scalars().all())
         return [CategoryTranslationDTO.model_validate(t) for t in translations]
 
+    async def get_all_orm_by_category_id(
+        self,
+        category_id: int,
+    ) -> List[CategoryTranslation]:
+        result = await self.session_db.execute(
+            select(CategoryTranslation)
+            .where(CategoryTranslation.category_id == category_id)
+        )
+        return list(result.scalars().all())
+
     async def get_by_category_and_lang(
         self,
         category_id: int,

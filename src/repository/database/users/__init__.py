@@ -3,6 +3,7 @@ from src.repository.database.users.notifications import NotificationSettingsRepo
 from src.repository.database.users.transfer_moneys import TransferMoneysRepository
 from src.repository.database.users.user_audit_logs import UserAuditLogsRepository
 from src.repository.database.users.users import UsersRepository
+from src.repository.database.users.balance_holder import BalanceHolderRepository
 from src.repository.database.users.wallet_transactions import WalletTransactionRepository
 
 __all__ = [
@@ -11,5 +12,6 @@ __all__ = [
     "TransferMoneysRepository",
     "UserAuditLogsRepository",
     "UsersRepository",
+    "BalanceHolderRepository",
     "WalletTransactionRepository",
 ]

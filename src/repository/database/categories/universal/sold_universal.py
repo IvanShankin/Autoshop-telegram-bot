@@ -121,3 +121,11 @@ class SoldUniversalRepository(DatabaseBase):
             delete(SoldUniversal)
             .where(SoldUniversal.sold_universal_id == sold_id)
         )
+
+    async def delete_by_ids(self, sold_ids: List[int]) -> None:
+        if not sold_ids:
+            return
+        await self.session_db.execute(
+            delete(SoldUniversal)
+            .where(SoldUniversal.sold_universal_id.in_(sold_ids))
+        )

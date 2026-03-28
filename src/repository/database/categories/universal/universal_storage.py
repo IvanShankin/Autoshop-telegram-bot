@@ -3,7 +3,7 @@
 from sqlalchemy import select, update, delete
 from sqlalchemy.orm import selectinload
 
-from src.database.models.categories import UniversalStorage
+from src.database.models.categories import UniversalStorage, StorageStatus
 from src.models.read_models import UniversalStorageDTO
 from src.repository.database.base import DatabaseBase
 
@@ -93,3 +93,23 @@ class UniversalStorageRepository(DatabaseBase):
         )
         deleted = list(result.scalars().all())
         return [UniversalStorageDTO.model_validate(item) for item in deleted]
+
+    async def update_status_by_ids(
+        self,
+        storage_ids: List[int],
+        *,
+        status: StorageStatus,
+        is_active: bool | None = None,
+    ) -> None:
+        if not storage_ids:
+            return
+
+        values: dict[str, Any] = {"status": status}
+        if is_active is not None:
+            values["is_active"] = is_active
+
+        await self.session_db.execute(
+            update(UniversalStorage)
+            .where(UniversalStorage.universal_storage_id.in_(storage_ids))
+            .values(**values)
+        )

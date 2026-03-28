@@ -9,6 +9,7 @@ from src.database.models.categories import (
     ProductAccounts,
     AccountStorage,
     StorageStatus,
+    AccountServiceType,
 )
 from src.models.read_models import ProductAccountSmall
 from src.models.read_models.categories.accounts import ProductAccountFull
@@ -108,6 +109,16 @@ class ProductAccountsRepository(DatabaseBase):
         )
         return list(result.scalars().all())
 
+    async def get_existing_storage_ids(self, storage_ids: List[int]) -> List[int]:
+        if not storage_ids:
+            return []
+        result = await self.session_db.execute(
+            select(ProductAccounts.account_storage_id).where(
+                ProductAccounts.account_storage_id.in_(storage_ids)
+            )
+        )
+        return list(result.scalars().all())
+
     async def create_product(self, **values) -> ProductAccountSmall:
         created = await super().create(ProductAccounts, **values)
         return ProductAccountSmall.model_validate(created)
@@ -127,3 +138,49 @@ class ProductAccountsRepository(DatabaseBase):
             select(ProductAccounts.account_id).where(ProductAccounts.account_id == account_id)
         )
         return result.scalar_one_or_none() is not None
+
+    async def get_for_update_by_category(
+        self,
+        category_id: int,
+        *,
+        limit: int,
+        status: StorageStatus = StorageStatus.FOR_SALE,
+    ) -> List[ProductAccounts]:
+        stmt = (
+            select(ProductAccounts)
+            .options(selectinload(ProductAccounts.account_storage))
+            .join(ProductAccounts.account_storage)
+            .where(
+                (ProductAccounts.category_id == category_id)
+                & (AccountStorage.status == status)
+            )
+            .order_by(ProductAccounts.created_at.desc())
+            .with_for_update()
+            .limit(limit)
+        )
+        result = await self.session_db.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_for_update_candidates(
+        self,
+        category_id: int,
+        *,
+        type_account_service: AccountServiceType,
+        limit: int,
+    ) -> List[ProductAccounts]:
+        stmt = (
+            select(ProductAccounts)
+            .options(selectinload(ProductAccounts.account_storage))
+            .join(ProductAccounts.account_storage)
+            .where(
+                (ProductAccounts.category_id == category_id)
+                & (AccountStorage.type_account_service == type_account_service)
+                & (AccountStorage.is_active == True)
+                & (AccountStorage.is_valid == True)
+                & (AccountStorage.status == StorageStatus.FOR_SALE)
+            )
+            .with_for_update()
+            .limit(limit)
+        )
+        result = await self.session_db.execute(stmt)
+        return list(result.scalars().all())

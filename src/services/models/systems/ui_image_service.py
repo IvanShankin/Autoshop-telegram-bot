@@ -1,3 +1,4 @@
+import uuid
 from typing import Optional, Sequence
 
 import aiofiles
@@ -8,7 +9,7 @@ from src.models.read_models.other import UiImagesDTO
 from src.models.update_models.system import UpdateUiImageDTO
 from src.repository.database.systems import UiImagesRepository
 from src.repository.redis import UiImagesCacheRepository
-from src.services.filesystem.actions import get_ext_image
+from src.services.filesystem.actions import get_ext_image, get_default_image_bytes
 from src.services.filesystem.media_paths import create_path_ui_image
 
 
@@ -24,12 +25,26 @@ class UiImagesService:
         self.cache_repo = cache_repo
         self.session_db = session_db
 
+    async def create_default_io_image(
+        self,
+        show: Optional[bool] = False,
+        make_commit: Optional[bool] = False,
+        filling_redis: Optional[bool] = False,
+    ) -> UiImagesDTO:
+        file_data = get_default_image_bytes()
+        key = str(uuid.uuid4())
+        return await self.create_ui_image(
+            key=key, file_data=file_data, show=show, make_commit=make_commit, filling_redis=filling_redis
+        )
+
     async def create_ui_image(
         self,
         key: str,
         file_data: bytes,
         show: bool = True,
         file_id: Optional[str] = None,
+        make_commit: Optional[bool] = False,
+        filling_redis: Optional[bool] = False,
     ) -> UiImagesDTO:
         ext = get_ext_image(file_data)
         file_name = f"{key}.{ext}"
@@ -68,9 +83,12 @@ class UiImagesService:
             file_id=file_id,
             show=show,
         )
-        await self.session_db.commit()
+        if make_commit:
+            await self.session_db.commit()
 
-        await self.cache_repo.set(created)
+        if filling_redis:
+            await self.cache_repo.set(created)
+
         return created
 
     async def get_all_ui_images(self) -> Sequence[UiImagesDTO]:
@@ -104,6 +122,7 @@ class UiImagesService:
     async def delete_ui_image(
         self,
         key: str,
+        delete_file: Optional[bool] = True,
         make_commit: Optional[bool] = False,
         filling_redis: Optional[bool] = False,
     ) -> Optional[UiImagesDTO]:
@@ -112,7 +131,7 @@ class UiImagesService:
         if make_commit:
             await self.session_db.commit()
 
-        if deleted:
+        if deleted and delete_file:
             file_path = create_path_ui_image(file_name=deleted.file_name)
             file_path.unlink(missing_ok=True)
 

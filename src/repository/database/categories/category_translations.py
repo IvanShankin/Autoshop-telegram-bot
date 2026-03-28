@@ -96,14 +96,17 @@ class CategoryTranslationsRepository(DatabaseBase):
     async def delete(
         self,
         category_id: int,
-        language: str,
+        language: Optional[str] = None,
     ) -> None:
-        await self.session_db.execute(
-            delete(CategoryTranslation).where(
-                (CategoryTranslation.category_id == category_id) &
-                (CategoryTranslation.lang == language)
-            )
-        )
+        """
+        :param language: Если не передавать, то удалить все переводы по `category_id`
+        """
+        query = (delete(CategoryTranslation).where(CategoryTranslation.category_id == category_id))
+
+        if language:
+            query = query.where(CategoryTranslation.lang == language)
+
+        await self.session_db.execute(query)
 
     async def count_by_category_id(self, category_id: int) -> int:
         result = await self.session_db.execute(

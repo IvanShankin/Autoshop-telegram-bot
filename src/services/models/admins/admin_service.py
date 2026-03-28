@@ -62,14 +62,17 @@ class AdminsService:
 
         async with self.session_db.begin():
             admin = await self.admin_repo.create_admin(user_id=user_id)
-            ui_image = await self.ui_images_service.create_ui_image(str(uuid.uuid4()), get_default_image_bytes(), show=False)
+            ui_image = await self.ui_images_service.create_default_io_image()
 
             if not await self.msg_for_sending_service.get_msg(user_id):
                 await self.msg_for_sending_service.create_msg(user_id=user_id, ui_image_key=ui_image.key)
 
             await self.session_db.commit()
             await self.cache_repo.set(user_id)
-            return admin
+        await self.ui_images_service.cache_repo.set(ui_image)
+        return admin
+
+
 
     async def delete_admin(self, user_id: int) -> None:
         """

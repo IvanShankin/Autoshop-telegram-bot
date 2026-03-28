@@ -46,6 +46,10 @@ class InvalidQuantityProducts(Exception):
 class PromoCodeAlreadyActivated(Exception):
     pass
 
+class TheOnlyTranslation(Exception):
+    """Если это единственный перевод"""
+    pass
+
 class TranslationAlreadyExists(Exception):
     pass
 
@@ -128,3 +132,9 @@ class CsvHasMoreThanTwoProducts(Exception):
 
 class InvalidImage(Exception):
     """При установках неверного формата фото"""
+
+class NotEnoughArguments(Exception):
+    """Недостаточно аргументов"""
+
+class ValueErrorService(Exception):
+    pass

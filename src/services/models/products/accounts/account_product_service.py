@@ -1,5 +1,5 @@
 import shutil
-from typing import List, Optional
+from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -42,10 +42,10 @@ class AccountProductService:
         self,
         category_id: int,
         *,
-        get_full: Optional[bool] = False,
+        get_full: bool = False,
     ) -> List[ProductAccountSmall | ProductAccountFull]:
         """
-        Вернёт только те продукты которые выставлены на продажу 'for_sale'
+        Возвращает только товары со статусом for_sale.
         """
         if get_full:
             return await self.product_repo.get_full_by_category_id(
@@ -79,20 +79,23 @@ class AccountProductService:
     async def create_product_account(
         self,
         data: CreateProductAccountDTO,
-        make_commit: Optional[bool] = True,
-        filling_redis: Optional[bool] = True,
+        make_commit: bool = True,
+        filling_redis: bool = True,
     ) -> ProductAccountSmall:
         """
-        Добавится аккаунт в категорию только где is_product_storage = True.
-        У аккаунта будет присвоен тип сервиса такой же как у категории
-        :exception CategoryNotFound: категория не найдена.
+        :exception CategoryNotFound: Категория не найдена.
         :exception TheCategoryNotStorageAccount: Категория не является хранилищем аккаунтов.
         """
         category = await self.category_repo.get_by_id(data.category_id)
         if not category:
-            raise CategoryNotFound()
+            raise CategoryNotFound(
+                f"Категория аккаунтов с id = {data.category_id} не найдена"
+            )
         if not category.is_product_storage:
-            raise TheCategoryNotStorageAccount()
+            raise TheCategoryNotStorageAccount(
+                f"Категория аккаунтов с id = {data.category_id} не является хранилищем аккаунтов. "
+                f"Для добавления аккаунтов необходимо сделать хранилищем"
+            )
 
         product_account = await self.product_repo.create_product(**data.model_dump(exclude_unset=True))
 
@@ -109,15 +112,15 @@ class AccountProductService:
     async def delete_product_account(
         self,
         account_id: int,
-        make_commit: Optional[bool] = True,
-        filling_redis: Optional[bool] = True,
+        make_commit: bool = True,
+        filling_redis: bool = True,
     ) -> None:
         """
-        :exception ProductAccountNotFound:
+        :exception ProductAccountNotFound: Аккаунт не найден.
         """
         product_account = await self.product_repo.get_by_account_id(account_id)
         if not product_account:
-            raise ProductAccountNotFound()
+            raise ProductAccountNotFound(f"Аккаунт с id = {account_id} не найден")
 
         await self.product_repo.delete_by_account_id(account_id)
 
@@ -132,10 +135,12 @@ class AccountProductService:
     async def delete_product_accounts_by_category(
         self,
         category_id: int,
-        make_commit: Optional[bool] = True,
-        filling_redis: Optional[bool] = True,
+        make_commit: bool = True,
+        filling_redis: bool = True,
     ) -> None:
-        """Удалит аккаунты в БД и на диске(если имеется)"""
+        """
+        Удаляет аккаунты из БД и с диска (если есть файл).
+        """
         product_ids = await self.product_repo.get_account_ids_by_category_id(category_id)
         storage_ids = await self.product_repo.get_storage_ids_by_category_id(category_id)
 

@@ -1,5 +1,4 @@
 import uuid
-from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -46,7 +45,7 @@ class AccountStorageService:
 
     def get_type_service_account(self, value: str) -> AccountServiceType | None:
         """
-        :return: Если тип сервиса не найден, то вернёт None
+        :return: Если тип сервиса не найден, то вернёт None.
         """
         try:
             return AccountServiceType(value)
@@ -56,13 +55,11 @@ class AccountStorageService:
     async def create_account_storage(
         self,
         data: CreateAccountStorageDTO,
-        make_commit: Optional[bool] = True,
+        make_commit: bool = True,
     ) -> AccountStorageDTO:
         """
-        Путь сформируется только для аккаунтов телеграмма т.к. только их данные хранятся в файле.
-        Преобразует номер телефона в необходимый формат для хранения (E164)
-        :exception ValueError: `type_account_service` не найден.
-        :exception ValueError: Необходимо передать login_encrypted и password_encrypted.
+        :exception ValueError: Если type_account_service не найден.
+        :exception ValueError: Если для не-telegram аккаунта не задан login_encrypted/password_encrypted.
         """
         if not isinstance(data.type_account_service, AccountServiceType):
             raise ValueError(f"type_account_service = {data.type_account_service} не найден")
@@ -91,8 +88,8 @@ class AccountStorageService:
         self,
         account_storage_id: int,
         data: UpdateAccountStorageDTO,
-        make_commit: Optional[bool] = True,
-        filling_redis: Optional[bool] = True,
+        make_commit: bool = True,
+        filling_redis: bool = True,
     ) -> AccountStorageDTO | None:
         values = data.model_dump(exclude_unset=True)
         storage = await self.storage_repo.update(account_storage_id, **values)

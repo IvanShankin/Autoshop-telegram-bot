@@ -1,11 +1,9 @@
-from typing import Optional, List, Any
+﻿from typing import Optional, List, Any
 
 from sqlalchemy import select, update, delete
 from sqlalchemy.orm import selectinload
 
-from src.database.models.categories import (
-    UniversalStorage,
-)
+from src.database.models.categories import UniversalStorage
 from src.models.read_models import UniversalStorageDTO
 from src.repository.database.base import DatabaseBase
 
@@ -34,6 +32,25 @@ class UniversalStorageRepository(DatabaseBase):
         result = await self.session_db.execute(stmt)
         storage = result.scalar_one_or_none()
         return UniversalStorageDTO.model_validate(storage) if storage else None
+
+    async def get_orm_by_id(
+        self,
+        universal_storage_id: int,
+        *,
+        with_relations: bool = False
+    ) -> Optional[UniversalStorage]:
+        stmt = select(UniversalStorage).where(
+            UniversalStorage.universal_storage_id == universal_storage_id
+        )
+        if with_relations:
+            stmt = stmt.options(
+                selectinload(UniversalStorage.product),
+                selectinload(UniversalStorage.sold_universal),
+                selectinload(UniversalStorage.translations),
+            )
+
+        result = await self.session_db.execute(stmt)
+        return result.scalar_one_or_none()
 
     async def create_storage(self, **values) -> UniversalStorageDTO:
         created = await super().create(UniversalStorage, **values)

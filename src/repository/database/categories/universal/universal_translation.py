@@ -1,6 +1,6 @@
-from typing import Optional, List
+from typing import Optional, List, Any
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from src.database.models.categories import UniversalStorageTranslation
 from src.models.read_models import UniversalStorageTranslationDTO
@@ -34,9 +34,39 @@ class UniversalTranslationRepository(DatabaseBase):
         translations = list(result.scalars().all())
         return [UniversalStorageTranslationDTO.model_validate(t) for t in translations]
 
+    async def exists(self, universal_storage_id: int, language: str) -> bool:
+        result = await self.session_db.execute(
+            select(UniversalStorageTranslation.universal_storage_translations_id).where(
+                (UniversalStorageTranslation.universal_storage_id == universal_storage_id)
+                & (UniversalStorageTranslation.lang == language)
+            )
+        )
+        return result.scalar_one_or_none() is not None
+
     async def create_translate(
         self,
         **values
     ) -> UniversalStorageTranslationDTO:
         created = await super().create(UniversalStorageTranslation, **values)
         return UniversalStorageTranslationDTO.model_validate(created)
+
+    async def update(
+        self,
+        universal_storage_id: int,
+        language: str,
+        **values: Any,
+    ) -> Optional[UniversalStorageTranslationDTO]:
+        if not values:
+            return await self.get(universal_storage_id, language)
+
+        result = await self.session_db.execute(
+            update(UniversalStorageTranslation)
+            .where(
+                (UniversalStorageTranslation.universal_storage_id == universal_storage_id)
+                & (UniversalStorageTranslation.lang == language)
+            )
+            .values(**values)
+            .returning(UniversalStorageTranslation)
+        )
+        translation = result.scalar_one_or_none()
+        return UniversalStorageTranslationDTO.model_validate(translation) if translation else None

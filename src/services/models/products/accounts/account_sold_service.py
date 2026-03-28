@@ -45,12 +45,11 @@ class AccountSoldService:
         owner_id: int,
         language: str,
         *,
-        get_full: Optional[bool] = False,
+        get_full: bool = False,
         fallback: Optional[str] = None,
     ) -> List[SoldAccountSmall | SoldAccountFull]:
         """
-        Вернёт все аккаунты которы не удалены.
-        Отсортировано по возрастанию даты создания
+        Возвращает все аккаунты, которые не удалены, отсортировано по убыванию sold_at.
         """
         if get_full:
             accounts = await self.sold_repo.get_by_owner_id_with_relations(owner_id)
@@ -140,15 +139,15 @@ class AccountSoldService:
     async def create_sold_account(
         self,
         data: CreateSoldAccountWithTranslationDTO,
-        make_commit: Optional[bool] = True,
-        filling_redis: Optional[bool] = True,
+        make_commit: bool = True,
+        filling_redis: bool = True,
     ) -> SoldAccountSmall:
         """
-        :exception UserNotFound:
+        :exception UserNotFound: Пользователь не найден.
         """
         user = await self.user_repo.get_by_id(data.owner_id)
         if not user:
-            raise UserNotFound()
+            raise UserNotFound(f"Пользователь с ID = {data.owner_id} не найден")
 
         sold_payload = CreateSoldAccountDTO(
             owner_id=data.owner_id,
@@ -177,15 +176,15 @@ class AccountSoldService:
     async def delete_sold_account(
         self,
         sold_account_id: int,
-        make_commit: Optional[bool] = True,
-        filling_redis: Optional[bool] = True,
+        make_commit: bool = True,
+        filling_redis: bool = True,
     ) -> None:
         """
-        :exception SoldAccountNotFound:
+        :exception SoldAccountNotFound: Аккаунт не найден.
         """
         sold_account = await self.sold_repo.get_by_id(sold_account_id)
         if not sold_account:
-            raise SoldAccountNotFound()
+            raise SoldAccountNotFound(f"Аккаунт с id = {sold_account_id} не найден")
 
         await self.sold_repo.delete_by_id(sold_account_id)
         await self.translations_repo.delete_all_by_sold_account_id(sold_account_id)

@@ -4,6 +4,10 @@ from src.models.update_models.accounts import (
     UpdateTgAccountMediaDTO,
     UpdateSoldAccountTranslationDTO,
 )
+from src.models.update_models.universal import (
+    UpdateUniversalStorageDTO,
+    UpdateUniversalTranslationDTO,
+)
 from src.models.update_models.system import (
     UpdateSettingsDTO,
     UpdateFileDTO,
@@ -20,6 +24,8 @@ __all__ = [
     "UpdateAccountStorageDTO",
     "UpdateTgAccountMediaDTO",
     "UpdateSoldAccountTranslationDTO",
+    "UpdateUniversalStorageDTO",
+    "UpdateUniversalTranslationDTO",
     "UpdateSettingsDTO",
     "UpdateFileDTO",
     "UpdateStickerDTO",

@@ -88,6 +88,11 @@ class PromoCodesDTO(BaseModel):
     is_valid: bool
 
 
+class ResultActivatePromoCodeDTO(BaseModel):
+    promo_code: PromoCodesDTO
+    deactivate: bool        # True если деактивировали
+
+
 class VouchersDTO(BaseModel):
     voucher_id: int
     creator_id: int | None       # ForeignKey users.user_id

@@ -3,14 +3,19 @@ from typing import List, Optional
 
 from src.bot_actions.messages.schemas import EventSentLog, LogLevel
 from src.config import Config
+from src.exceptions.business import AlreadyActivated
+from src.exceptions.domain import PromoCodeNotFound
 from src.infrastructure.rebbit_mq.producer import publish_event
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.create_models.discounts import CreatePromoCodeDTO
-from src.models.read_models.other import PromoCodesDTO
+from src.models.create_models.discounts import CreatePromoCodeDTO, CreateActivatedPromoCodeDTO
+from src.models.create_models.users import CreateUserAuditLogDTO
+from src.models.read_models.other import PromoCodesDTO, ResultActivatePromoCodeDTO
 from src.repository.database.admins import AdminActionsRepository
 from src.repository.database.discount import PromoCodeRepository
 from src.repository.redis import PromoCodesCacheRepository
+from src.services.models.discounts import ActivatedPromoCodesService
+from src.services.models.users import UserLogService
 from src.utils.codes import generate_code
 
 
@@ -21,12 +26,16 @@ class PromoCodeService:
         promo_repo: PromoCodeRepository,
         admin_actions_repo: AdminActionsRepository,
         cache_repo: PromoCodesCacheRepository,
+        activate_promo_code_service: ActivatedPromoCodesService,
+        user_log: UserLogService,
         conf: Config,
         session_db: AsyncSession,
     ):
         self.promo_repo = promo_repo
         self.admin_actions_repo = admin_actions_repo
         self.cache_repo = cache_repo
+        self.activate_promo_code_service = activate_promo_code_service
+        self.user_log = user_log
         self.conf = conf
         self.session_db = session_db
 
@@ -142,7 +151,70 @@ class PromoCodeService:
         await publish_event(event.model_dump(), "message.send_log")
 
         return promo
+    
+    async def activate_promo_code(self, promo_code_id: int, user_id: int) -> ResultActivatePromoCodeDTO:
+        """
+        :except: PromoCodeNotFound
+        :except: AlreadyActivated
+        """
+        promo_code_deactivated = False
 
+        promo_code = await self.get_promo_code(promo_code_id=promo_code_id)
+        if not promo_code:  # если промокод не найден
+            raise PromoCodeNotFound()
+
+        # проверка на повторную активацию
+        activate_promo_code = await self.activate_promo_code_service.check_activate_promo_code(
+            promo_code_id=promo_code_id,
+            user_id=user_id
+        )
+        if activate_promo_code:  # если активировал ранее
+            return AlreadyActivated()
+
+        new_activated_counter = await self.promo_repo.increment_activation(
+            promo_code_id=promo_code_id, current_counter=promo_code.activated_counter
+        )
+        promo_code.activated_counter = new_activated_counter
+
+        await self.activate_promo_code_service.create_activate_promo_code(
+            data=CreateActivatedPromoCodeDTO(
+                promo_code_id=promo_code_id,
+                user_id=user_id
+            )
+        )
+        await self.user_log.create_log(
+            user_id=user_id,
+            data=CreateUserAuditLogDTO(
+                action_type="new_activate_promo_code",
+                message='Пользователь активировал промокод',
+                details={
+                    "promo_code_id": promo_code_id,
+                },
+            )
+        )
+        await self.session_db.commit()
+
+        # если необходимо деактивировать
+        if (
+            (new_activated_counter >= promo_code.number_of_activations)
+            or
+            (datetime.now(timezone.utc) > promo_code.expire_at)
+        ):
+            promo_code = await self.promo_repo.deactivate(promo_code_id)
+            await self.session_db.commit()
+            promo_code_deactivated = True
+
+        ttl = None
+        if promo_code.expire_at:
+            ttl = int((promo_code.expire_at - datetime.now(timezone.utc)).total_seconds())
+
+        await self.cache_repo.set(promo_code, ttl)
+
+        return ResultActivatePromoCodeDTO(
+            promo_code=promo_code,
+            deactivate=promo_code_deactivated,
+        )
+    
     async def deactivate_promo_code(self, user_id: int, promo_code_id: int):
         """
         :param user_id: ID админа

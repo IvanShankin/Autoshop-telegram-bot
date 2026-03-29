@@ -94,6 +94,9 @@ class PromoCodeRepository(DatabaseBase):
         promo_code_id: int,
         current_counter: int
     ) -> int:
+        """
+        :return: Новое число активаций
+        """
         result = await self.session_db.execute(
             update(PromoCodes)
             .where(PromoCodes.promo_code_id == promo_code_id)

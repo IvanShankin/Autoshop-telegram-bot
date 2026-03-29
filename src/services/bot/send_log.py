@@ -4,7 +4,7 @@ from typing import Optional
 from src.config import Config
 from src.infrastructure.telegram.client import TelegramClient
 from src.infrastructure.telegram.rate_limit import RateLimiter
-from src.models.read_models.logs import LogLevel
+from src.models.read_models import LogLevel
 from src.services.models.systems import SettingsService
 
 

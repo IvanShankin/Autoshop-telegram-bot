@@ -138,3 +138,6 @@ class NotEnoughArguments(Exception):
 
 class ValueErrorService(Exception):
     pass
+
+class AlreadyActivated(Exception):
+    pass

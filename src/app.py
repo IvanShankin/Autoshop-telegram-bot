@@ -1,6 +1,6 @@
 import asyncio
 
-from src.infrastructure.rebbit_mq.consumer import start_background_consumer, stop_background_consumer
+from src.infrastructure.rebbit_mq._consumer import start_background_consumer, stop_background_consumer
 from src.deferred_tasks.core import init_scheduler
 from src.services.database.backups.backup_db import add_backup_create, add_backup_cleanup
 from src.services.database.core.filling_database import create_database

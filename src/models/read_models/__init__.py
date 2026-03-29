@@ -20,7 +20,11 @@ from src.models.read_models.categories.product_universal import (
 
 from src.models.read_models.categories.purshanse_schem import ResultCheckCategory, StartPurchaseAccount, \
     PurchaseAccountSchema
-from src.models.read_models.logs import LogLevel
+from src.models.read_models.events.filesystem import EventCreateUiImage
+from src.models.read_models.events.purchase import NewPurchaseAccount, NewPurchaseUniversal
+from src.models.read_models.events.referrals import ReferralReplenishmentCompleted, ReferralIncomeResult
+from src.models.read_models.events.replenishments import NewReplenishment, ReplenishmentCompleted, ReplenishmentFailed
+from src.models.read_models.events.message import LogLevel, EventSentLog
 
 from src.models.read_models.purchase import PurchaseRequestsDTO, StartPurchaseUniversalOne, StartPurchaseUniversal
 from src.models.read_models.admins import AdminsDTO, AdminActionsDTO
@@ -79,6 +83,17 @@ __all__ = [
     "VouchersDTO",
     "PurchaseRequestsDTO",
     "PurchasesDTO",
+
+    # events
     "LogLevel",
+    "EventSentLog",
+    "NewPurchaseAccount",
+    "NewPurchaseUniversal",
+    "ReferralReplenishmentCompleted",
+    "ReferralIncomeResult",
+    "NewReplenishment",
+    "ReplenishmentCompleted",
+    "ReplenishmentFailed",
+    "EventCreateUiImage",
 ]
 

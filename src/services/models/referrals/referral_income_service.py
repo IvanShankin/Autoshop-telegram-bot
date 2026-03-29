@@ -1,5 +1,6 @@
 from typing import Optional, Sequence
 
+from src.models.create_models.referrals import CreateReferralIncomeDTO
 from src.models.read_models.other import IncomeFromReferralsDTO
 from src.repository.database.refferals import ReferralIncomeRepository
 
@@ -29,3 +30,16 @@ class ReferralIncomeService:
         income_from_referral_id: int,
     ) -> Optional[IncomeFromReferralsDTO]:
         return await self.income_repo.get_by_id(income_from_referral_id)
+
+    async def get_income_by_replenishment_id(
+        self,
+        replenishment_id: int,
+    ) -> Optional[IncomeFromReferralsDTO]:
+        return await self.income_repo.get_by_replenishment_id(replenishment_id)
+
+    async def create_income(
+        self,
+        data: CreateReferralIncomeDTO,
+    ) -> IncomeFromReferralsDTO:
+        values = data.model_dump()
+        return await self.income_repo.create_income(**values)

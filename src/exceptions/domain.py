@@ -59,5 +59,9 @@ class StickerNotFound(Exception):
     pass
 
 
+class PromoCodeNotFound(Exception):
+    pass
+
+
 class MessageEventNotFound(Exception):
     pass

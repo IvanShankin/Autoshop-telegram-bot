@@ -4,7 +4,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-class CreateActivatedPromoCode(BaseModel):
+class CreateActivatedPromoCodeDTO(BaseModel):
     promo_code_id: int
     user_id: int
 

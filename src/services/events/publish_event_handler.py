@@ -1,10 +1,14 @@
 from src.bot_actions.messages.schemas import EventSentLog, LogLevel
 from src.infrastructure.rebbit_mq.producer import publish_event
+from src.services.filesystem.schemas import EventCreateUiImage
 
 
 class PublishEventHandler:
 
-    @classmethod
+    async def send_log(cls, text: str, log_lvl: LogLevel):
+        event = EventSentLog(text=text, log_lvl=log_lvl)
+        await publish_event(event.model_dump(), "message.send_log")
+
     async def ban_account(cls, admin_id: int, user_id: int, reason: str):
         event = EventSentLog(
             text=(
@@ -19,7 +23,6 @@ class PublishEventHandler:
         )
         await publish_event(event.model_dump(), "message.send_log")
 
-    @classmethod
     async def delete_ban_account(cls, admin_id: int, user_id: int):
         event = EventSentLog(
             text=(
@@ -32,7 +35,6 @@ class PublishEventHandler:
         )
         await publish_event(event.model_dump(), "message.send_log")
 
-    @classmethod
     async def admin_update_balance(
         cls,
         admin_id: int,
@@ -54,3 +56,22 @@ class PublishEventHandler:
             log_lvl=LogLevel.INFO
         )
         await publish_event(event.model_dump(), "message.send_log")
+
+    async def error_message_effect(
+        cls,
+        message_effect_id: str,
+    ):
+        event = EventSentLog(
+            text=f"Указан неверный message_effect_id: {message_effect_id}",
+            log_lvl=LogLevel.WARNING
+        )
+        await publish_event(event.model_dump(), "message.send_log")
+
+    async def create_ui_image(
+        cls,
+        ui_image_key: str,
+    ):
+        await publish_event(
+            EventCreateUiImage(ui_image_key=ui_image_key).model_dump(),
+            "filesystem.create_ui_image"
+        )

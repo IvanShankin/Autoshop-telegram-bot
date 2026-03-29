@@ -20,6 +20,7 @@ from src.models.read_models.categories.product_universal import (
 
 from src.models.read_models.categories.purshanse_schem import ResultCheckCategory, StartPurchaseAccount, \
     PurchaseAccountSchema
+from src.models.read_models.logs import LogLevel
 
 from src.models.read_models.purchase import PurchaseRequestsDTO, StartPurchaseUniversalOne, StartPurchaseUniversal
 from src.models.read_models.admins import AdminsDTO, AdminActionsDTO
@@ -78,5 +79,6 @@ __all__ = [
     "VouchersDTO",
     "PurchaseRequestsDTO",
     "PurchasesDTO",
+    "LogLevel",
 ]
 

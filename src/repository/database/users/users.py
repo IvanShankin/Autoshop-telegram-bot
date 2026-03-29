@@ -1,4 +1,4 @@
-from typing import Optional, Sequence
+from typing import Optional, Sequence, AsyncGenerator
 
 from sqlalchemy import func, select, update
 
@@ -37,6 +37,11 @@ class UsersRepository(DatabaseBase):
         )
         users = list(result.scalars().all())
         return [UsersDTO.model_validate(user) for user in users]
+
+    async def gen_user_ids(self) -> AsyncGenerator[int]:
+        result = await self.session_db.stream_scalars(select(Users.user_id))
+        async for uid in result:
+            yield uid
 
     async def count_all(self) -> int:
         result = await self.session_db.execute(select(func.count()).select_from(Users))

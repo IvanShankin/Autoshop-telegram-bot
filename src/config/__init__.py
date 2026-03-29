@@ -101,6 +101,6 @@ def get_global_rate_limit() -> RateLimiter:
 def get_semaphore_mailing() -> Semaphore:
     global _SEMAPHORE_MAILING
     if _SEMAPHORE_MAILING is None:
-        _SEMAPHORE_MAILING = Semaphore(get_config().different.semaphore_mailing_limit)
+        _SEMAPHORE_MAILING = Semaphore(15)
 
     return _SEMAPHORE_MAILING

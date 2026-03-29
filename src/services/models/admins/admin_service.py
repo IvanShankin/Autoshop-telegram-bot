@@ -1,5 +1,3 @@
-import uuid
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import get_config
@@ -8,9 +6,8 @@ from src.models.create_models.admins import CreateAdminAction
 from src.models.create_models.users import CreateBannedAccountsDTO, CreateUserAuditLogDTO, CreateWalletTransactionDTO
 from src.models.read_models import AdminsDTO
 from src.models.update_models import UpdateUserDTO
-from src.repository.database.admins import AdminsRepository, AdminActionsRepository
+from src.repository.database.admins import AdminsRepository
 from src.repository.redis import AdminsCacheRepository
-from src.services.filesystem.actions import get_default_image_bytes
 from src.services.models.admins.admin_action_service import AdminActionsService
 from src.services.models.admins.message_for_sending_service import MessageForSendingService
 from src.services.models.systems.ui_image_service import UiImagesService
@@ -18,7 +15,7 @@ from src.services.models.users.banned_account_service import BannedAccountServic
 from src.services.models.users.user_log_service import UserLogService
 from src.services.models.users.user_service import UserService
 from src.services.models.users.wallet_transaction import WalletTransactionService
-from src.services.publish_event_handler import PublishEventHandler
+from src.services.events.publish_event_handler import PublishEventHandler
 
 
 class AdminsService:
@@ -34,6 +31,7 @@ class AdminsService:
         msg_for_sending_service: MessageForSendingService,
         banned_acc_service: BannedAccountService,
         log_service: UserLogService,
+        publish_event: PublishEventHandler,
         session_db: AsyncSession,
     ):
         self.admin_repo = admin_repo
@@ -45,6 +43,7 @@ class AdminsService:
         self.msg_for_sending_service = msg_for_sending_service
         self.banned_acc_service = banned_acc_service
         self.log_service = log_service
+        self.publish_event = publish_event
         self.session_db = session_db
 
     async def check_admin(self, user_id: int) -> bool:
@@ -125,7 +124,7 @@ class AdminsService:
             make_commit=True
         )
 
-        await PublishEventHandler.ban_account(admin_id=admin_id, user_id=user_id, reason=reason)
+        await self.publish_event.ban_account(admin_id=admin_id, user_id=user_id, reason=reason)
 
     async def delete_banned_account(self, admin_id: int, user_id: int) -> None:
         """
@@ -150,7 +149,7 @@ class AdminsService:
             make_commit=True
         )
 
-        await PublishEventHandler.delete_ban_account(admin_id=admin_id, user_id=user_id)
+        await self.publish_event.delete_ban_account(admin_id=admin_id, user_id=user_id)
 
     async def admin_update_user_balance(self, admin_id: int, target_user_id: int, new_balance: int) -> None:
         """
@@ -206,7 +205,7 @@ class AdminsService:
             user=user, ttl=self.user_service.conf.redis_time_storage.user.total_seconds()
         )
 
-        await PublishEventHandler.admin_update_balance(
+        await self.publish_event.admin_update_balance(
             admin_id=admin_id,
             target_user_id=target_user_id,
             balance_before=target_user.balance,

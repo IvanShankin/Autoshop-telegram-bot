@@ -34,11 +34,17 @@ class FilesService:
     async def update_file(
         self,
         key: str,
-        data: UpdateFileDTO,
+        file_path: Optional[str] = False,
+        file_tg_id: Optional[str] = False,
         make_commit: Optional[bool] = False,
     ) -> Optional[FilesDTO]:
-        values = data.model_dump(exclude_unset=True)
-        file_obj = await self.files_repo.update(key=key, **values)
+        update_data = {}
+        if not file_path is False:
+            update_data["file_path"] = file_path
+        if not file_tg_id is False:
+            update_data["file_tg_id"] = file_tg_id
+
+        file_obj = await self.files_repo.update(key=key, **update_data)
 
         if make_commit:
             await self.session_db.commit()

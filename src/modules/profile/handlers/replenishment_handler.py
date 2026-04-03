@@ -3,13 +3,14 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.messages import edit_message, send_message
-from src.bot_actions.checking_data import checking_correctness_number
+from src.modules.profile.services.checking_data import checking_correctness_number
 from src.config import get_config
 from src.modules.profile.keyboards import type_replenishment_kb, back_in_type_replenishment_kb, payment_invoice
 from src.modules.profile.schemas.replenishment import GetAmountData
 from src.modules.profile.state.replenishment import GetAmount
 from src.services.database.system.actions.actions import get_type_payment
 from src.database.models.users import Users
+from src.services.bot import Messages
 from src.services.payments.crypto_bot.client import get_crypto_bot
 from src.utils.i18n import get_text, n_get_text
 
@@ -61,15 +62,16 @@ async def get_amount(callback: CallbackQuery, state: FSMContext, user: Users):
 
 
 @router.message(GetAmount.amount)
-async def start_replenishment(message: Message, state: FSMContext, user: Users):
+async def start_replenishment(message: Message, state: FSMContext, user: Users, messages_service: Messages):
     data_state = await state.get_data()
 
     if not await checking_correctness_number(
-            message=message.text,
-            language=user.language,
-            user_id=user.user_id,
-            positive=True,
-            reply_markup=back_in_type_replenishment_kb(user.language)
+        message=message.text,
+        language=user.language,
+        user_id=user.user_id,
+        positive=True,
+        reply_markup=back_in_type_replenishment_kb(user.language),
+        messages_service=messages_service
     ):
         await state.set_state(GetAmount.amount)
         return

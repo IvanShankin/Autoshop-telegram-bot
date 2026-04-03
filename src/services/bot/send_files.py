@@ -21,7 +21,7 @@ from src.services.models.systems import FilesService
 from src.services.events.publish_event_handler import PublishEventHandler
 
 
-class SendMessageService:
+class SendFileService:
 
     def __init__(
         self,

@@ -7,11 +7,35 @@ from typing import Callable, Dict, Any, Awaitable, Type
 
 from src.bot_actions.messages import send_message
 from src.config import get_config
+from src.container import init_container
+from src.database.core import get_session_factory
 from src.modules.keyboard_main import support_kb
+from src.modules.profile.module import ProfileModule
+from src.services.bot import Messages
 from src.services.database.admins.actions import check_admin
 from src.services.database.system.actions import get_settings
 from src.services.database.users.actions import get_user, get_banned_account
 from src.utils.i18n import get_text
+
+
+
+class DbSessionMiddleware(BaseMiddleware):
+    async def __call__(self, handler, event, data):
+        async_session_factory = get_config().db_connection.session_local
+        async with async_session_factory() as session_db:
+            data["session_db"] = session_db
+            return await handler(event, data)
+
+
+class ModulesMiddleware(BaseMiddleware):
+    async def __call__(self, handler, event, data):
+        session_db = data["session_db"]
+        container = init_container(session_db)
+
+        data["profile_module"] = container.get_profile_modul()
+        data["messages_service"] = container.get_message_service()
+        # создание модулей под другие разделы
+        return await handler(event, data)
 
 
 class DeleteMessageOnErrorMiddleware(BaseMiddleware):

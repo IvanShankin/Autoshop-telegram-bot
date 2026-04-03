@@ -17,7 +17,7 @@ async def check_category(category_id: int, old_message_id: int, user_id: int, la
     category = await get_category_by_category_id(category_id, language=language)
     if not category:
         try:
-            bot = await get_bot()
+            bot = get_bot()
             await bot.delete_message(user_id, old_message_id)
         except Exception:
             pass

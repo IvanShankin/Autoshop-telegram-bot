@@ -38,7 +38,7 @@ class UsersRepository(DatabaseBase):
         users = list(result.scalars().all())
         return [UsersDTO.model_validate(user) for user in users]
 
-    async def gen_user_ids(self) -> AsyncGenerator[int]:
+    async def gen_user_ids(self) -> AsyncGenerator[int, None]:
         result = await self.session_db.stream_scalars(select(Users.user_id))
         async for uid in result:
             yield uid

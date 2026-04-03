@@ -5,16 +5,17 @@ from pydantic import BaseModel
 from src.database.models.categories import SoldAccounts, ProductAccounts
 from src.database.models.categories import AccountStorage
 from src.database.models.categories.main_category_and_product import AccountServiceType, StorageStatus
+from src.models.base import ORMDTO
 
 
-class SoldAccountsDTO(BaseModel):
+class SoldAccountsDTO(ORMDTO):
     sold_account_id: int
     owner_id: int | None
     account_storage_id: int
     sold_at: datetime
 
 
-class SoldAccountsTranslationDTO(BaseModel):
+class SoldAccountsTranslationDTO(ORMDTO):
     sold_account_translations_id: int
     sold_account_id: int
     lang: str
@@ -22,14 +23,14 @@ class SoldAccountsTranslationDTO(BaseModel):
     description: str | None
 
 
-class TgAccountMediaDTO(BaseModel):
+class TgAccountMediaDTO(ORMDTO):
     tg_account_media_id: int
     account_storage_id: int
     tdata_tg_id: str | None
     session_tg_id: str | None
 
 
-class DeletedAccountsDTO(BaseModel):
+class DeletedAccountsDTO(ORMDTO):
     deleted_account_id: int
     account_storage_id: int
     category_name: str
@@ -37,7 +38,7 @@ class DeletedAccountsDTO(BaseModel):
     create_at: datetime
 
 
-class AccountStorageDTO(BaseModel):
+class AccountStorageDTO(ORMDTO):
     account_storage_id: int
     storage_uuid: str
 
@@ -65,7 +66,7 @@ class AccountStorageDTO(BaseModel):
     last_check_at: Optional[datetime] = None
 
 
-class ProductAccountSmall(BaseModel):
+class ProductAccountSmall(ORMDTO):
     account_id: int
     category_id: int
     account_storage_id: int
@@ -82,7 +83,7 @@ class ProductAccountSmall(BaseModel):
         )
 
 
-class ProductAccountFull(BaseModel):
+class ProductAccountFull(ORMDTO):
     account_id: int
     category_id: int
     account_storage_id: int
@@ -102,7 +103,7 @@ class ProductAccountFull(BaseModel):
         )
 
 
-class SoldAccountFull(BaseModel):
+class SoldAccountFull(ORMDTO):
     sold_account_id: int
     owner_id: int
 
@@ -126,7 +127,7 @@ class SoldAccountFull(BaseModel):
         )
 
 
-class SoldAccountSmall(BaseModel):
+class SoldAccountSmall(ORMDTO):
     sold_account_id: int
     owner_id: int
 

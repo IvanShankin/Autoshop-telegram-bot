@@ -184,7 +184,7 @@ async def get_file_for_login(callback: CallbackQuery, func_get_file: Any, type_m
 
     tg_media = await get_tg_account_media(account.account_storage.account_storage_id)
     if tg_media and getattr(tg_media, type_media):
-        bot = await get_bot()
+        bot = get_bot()
         try:
             await bot.send_document(chat_id=user.user_id, document=getattr(tg_media, type_media))
             return
@@ -199,7 +199,7 @@ async def get_file_for_login(callback: CallbackQuery, func_get_file: Any, type_m
     async for path in func_get_file(AccountStorage(**account.account_storage.model_dump())):
         if path:
             archive = FSInputFile(path)
-            bot = await get_bot()
+            bot = get_bot()
             message = await bot.send_document(chat_id=user.user_id, document=archive)
             await update_tg_account_media(tg_media.tg_account_media_id, **{type_media: message.document.file_id})
         else:

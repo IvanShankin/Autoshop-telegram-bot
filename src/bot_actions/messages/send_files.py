@@ -67,7 +67,7 @@ async def send_document(
     :return: Возвращает aiogram.types.Message или None (если отправить не удалось).
     """
     logger = get_logger(__name__)
-    bot = await get_bot()
+    bot = get_bot()
 
     if file_id is None and file_path is None:
         raise ValueError("Необходимо указать хотя бы одно из двух: 'file_id' или 'file_path' ")
@@ -189,7 +189,7 @@ async def send_file_by_file_key(
     :except FileNotFoundError: Если на диске не нашёлся файл
     :except ValueError: Если такого ключа нет в БД
     """
-    bot = await get_bot()
+    bot = get_bot()
     conf = get_config()
 
     file = await get_file(file_key)

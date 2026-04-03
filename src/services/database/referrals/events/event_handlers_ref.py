@@ -136,7 +136,7 @@ async def handler_new_income_referral(new_replenishment: ReplenishmentCompleted)
 
 async def on_referral_income_completed(user_id: int, language: str,  amount: int, last_lvl: int, current_lvl: int, percent: int):
     """Отсылает сообщение пользователю. Сообщение меняется в зависимости от изменения уровня реферала"""
-    bot = await get_bot_logger()
+    bot = get_bot_logger()
 
     try:
         if last_lvl == current_lvl:  # если уровень у реферала не обновился

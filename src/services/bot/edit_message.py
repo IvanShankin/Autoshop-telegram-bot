@@ -46,7 +46,7 @@ class EditMessageService:
         self.publish_event = publish_event
         self.logger = logger
 
-    async def edit_message(
+    async def edit(
         self,
         chat_id: int,
         message_id: int,

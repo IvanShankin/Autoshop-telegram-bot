@@ -36,11 +36,11 @@ async def wallet_transactions_kb(language: str, current_page: int, target_user_i
     )
 
 
-def back_in_wallet_transactions_kb(language: str, target_user_id: int, currant_page: int):
+def back_in_wallet_transactions_kb(language: str, target_user_id: int, current_page: int):
     return InlineKeyboardMarkup(inline_keyboard=[[
         InlineKeyboardButton(
             text=get_text(language, "kb_general", "back"),
-            callback_data=f"transaction_list:{target_user_id}:{currant_page}"
+            callback_data=f"transaction_list:{target_user_id}:{current_page}"
         )
     ]])
 

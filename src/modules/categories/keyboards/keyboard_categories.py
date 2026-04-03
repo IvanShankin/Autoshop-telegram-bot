@@ -10,7 +10,7 @@ from src.utils.i18n import get_text
 
 async def subscription_prompt_kb(language: str):
     settings = await get_settings()
-    bot = await get_bot()
+    bot = get_bot()
 
     url = None
     if settings.channel_for_subscription_url:

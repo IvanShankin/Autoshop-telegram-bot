@@ -1,3 +1,5 @@
+from logging import Logger
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot_actions.messages.schemas import LogLevel, EventSentLog
@@ -25,6 +27,7 @@ class MoneyTransferService:
         wallet_trans_service: WalletTransactionService,
         session_db: AsyncSession,
         conf: Config,
+        logger: Logger,
     ):
         self.transfer_repo = transfer_repo
         self.user_log_service = user_log_service
@@ -33,6 +36,7 @@ class MoneyTransferService:
         self.wallet_trans_service = wallet_trans_service
         self.session_db = session_db
         self.conf = conf
+        self.logger = logger
 
     async def create_transfer(self, sender_id: int, recipient_id: int, amount: int):
         """
@@ -81,42 +85,42 @@ class MoneyTransferService:
                         balance_after=recipient.balance
                     )
                 )
-                await self.session_db.commit()
+                # commit после выхода
 
-                await self.user_cache_repo.set(UsersDTO.model_validate(sender), self.conf.redis_time_storage.user)
-                await self.user_cache_repo.set(UsersDTO.model_validate(recipient), self.conf.redis_time_storage.user)
+            await self.user_cache_repo.set(UsersDTO.model_validate(sender), self.conf.redis_time_storage.user)
+            await self.user_cache_repo.set(UsersDTO.model_validate(recipient), self.conf.redis_time_storage.user)
 
-                await self.user_log_service.create_log(
-                    user_id=sender_id,
-                    data=CreateUserAuditLogDTO(
-                        action_type="transfer",
-                        message='Пользователь отправил средства',
-                        details={
-                            'transfer_money_id': transfer.transfer_money_id,
-                            "recipient_id": recipient_id,
-                            'amount': amount
-                        }
-                    )
+            await self.user_log_service.create_log(
+                user_id=sender_id,
+                data=CreateUserAuditLogDTO(
+                    action_type="transfer",
+                    message='Пользователь отправил средства',
+                    details={
+                        'transfer_money_id': transfer.transfer_money_id,
+                        "recipient_id": recipient_id,
+                        'amount': amount
+                    }
                 )
-                await self.user_log_service.create_log(
-                    user_id=recipient_id,
-                    data=CreateUserAuditLogDTO(
-                        action_type="transfer",
-                        message='Пользователь получил средства',
-                        details={
-                            'transfer_money_id': transfer.transfer_money_id,
-                            "sender_id": sender_id,
-                            'amount': amount
-                        }
-                    )
+            )
+            await self.user_log_service.create_log(
+                user_id=recipient_id,
+                data=CreateUserAuditLogDTO(
+                    action_type="transfer",
+                    message='Пользователь получил средства',
+                    details={
+                        'transfer_money_id': transfer.transfer_money_id,
+                        "sender_id": sender_id,
+                        'amount': amount
+                    }
                 )
-                await self.session_db.commit()
+            )
+            await self.session_db.commit()
         except (UserNotFound, NotEnoughMoney) as e:
             raise e
         except Exception as e:
+            self.logger.exception(f"#Ошибка_при_переводе_денег \n\nID пользователя: {sender_id} \nОшибка: {e}")
             event = EventSentLog(
                 text=f"#Ошибка_при_переводе_денег \n\nID пользователя: {sender_id} \nОшибка: {e}",
-                log_lvl=LogLevel.ERROR
             )
             await publish_event(event.model_dump(), "message.send_log")
 

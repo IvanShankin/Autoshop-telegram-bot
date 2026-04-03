@@ -170,7 +170,7 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
             message_loading = await send_message(
                 message.from_user.id, get_text(user.language, "miscellaneous", "file_loading")
             )
-            bot = await get_bot()
+            bot = get_bot()
             file = FSInputFile(file_path)
             await bot.send_document(message.from_user.id, document=file, caption=caption)
             await message_loading.delete()

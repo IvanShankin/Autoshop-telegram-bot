@@ -9,3 +9,7 @@ async def get_db() -> AsyncSession:
     async_session_factory = get_config().db_connection.session_local
     async with async_session_factory() as session:
         yield session
+
+
+def get_session_factory() -> AsyncSession:
+    return get_config().db_connection.session_local

@@ -170,7 +170,7 @@ async def broadcast_message_generator(
     :except FileNotFoundError: фото не найдено
     """
     conf = get_config()
-    bot = await get_bot()
+    bot = get_bot()
 
     text, photo_id, new_photo_path, inline_kb = await validate_broadcast_inputs(
         bot=bot,

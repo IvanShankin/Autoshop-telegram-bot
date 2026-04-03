@@ -20,7 +20,7 @@ async def get_main_message_profile(user: Users, language: str) -> str:
     """
     username = get_text(language, "miscellaneous", 'no') if user.username is None else f'@{user.username}'
 
-    bot = await get_bot()
+    bot = get_bot()
     bot_me = await bot.me()
     vouchers = await get_valid_voucher_by_page(user.user_id)
 
@@ -46,13 +46,14 @@ async def message_show_transaction(
     transaction_id: int,
     language: str,
     callback: CallbackQuery,
-    currant_page: int,
+    current_page: int,
     target_user_id: int = None,
 ):
     transaction = await get_wallet_transaction(transaction_id)
 
     if transaction is None:
         await callback.answer(text=get_text(language, "miscellaneous", 'data_not_found'), show_alert=True)
+        return
 
     text = get_text(
         language,
@@ -72,7 +73,7 @@ async def message_show_transaction(
         message_id=callback.message.message_id,
         message=text,
         event_message_key='history_transections',
-        reply_markup=back_in_wallet_transactions_kb(language, target_user_id, currant_page=currant_page)
+        reply_markup=back_in_wallet_transactions_kb(language, target_user_id, current_page=current_page)
     )
 
 async def message_income_ref(

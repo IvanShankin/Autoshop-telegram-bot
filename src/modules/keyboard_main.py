@@ -46,7 +46,7 @@ async def support_kb(language: str, support_username: str = None):
 
 async def info_kb(language: str):
     settings = await get_settings()
-    bot = await get_bot()
+    bot = get_bot()
     keyboard = InlineKeyboardBuilder()
 
     url_channel = None

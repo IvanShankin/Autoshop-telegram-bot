@@ -132,7 +132,7 @@ async def get_amount(message: Message, state: FSMContext, user: Users):
         expire_at=data.expire_at
     )
 
-    bot = await get_bot()
+    bot = get_bot()
     bot_me = await bot.me()
     await send_message(
         user.user_id,

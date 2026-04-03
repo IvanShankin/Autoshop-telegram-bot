@@ -30,7 +30,7 @@ async def complete_upload(category: CategoryFull, user: Users):
 
 
 async def _upload_account(category: CategoryFull, user: Users, callback: CallbackQuery):
-    bot = await get_bot()
+    bot = get_bot()
 
     try:
         if category.type_account_service == AccountServiceType.TELEGRAM:
@@ -58,7 +58,7 @@ async def _upload_account(category: CategoryFull, user: Users, callback: Callbac
 
 
 async def _upload_universal(category: CategoryFull, user: Users, callback: CallbackQuery):
-    bot = await get_bot()
+    bot = get_bot()
 
     try:
         gen = upload_universal_products(category)

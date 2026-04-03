@@ -244,7 +244,7 @@ async def edit_message(
     :param always_show_photos: Будет показывать фото даже если стоит флаг Show == False
     :param event_message_key: ключ события, по которому отсылается стикер, если необходимо и при отсутствии image_key он занимает его место
     """
-    bot = await get_bot()
+    bot = get_bot()
     logger = get_logger(__name__)
 
     try:

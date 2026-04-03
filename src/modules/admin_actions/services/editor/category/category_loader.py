@@ -36,7 +36,7 @@ async def safe_get_category(category_id: int, user: Users, callback: CallbackQue
 async def service_not_found(user: Users, message_id_delete: Optional[int] = None):
     if message_id_delete:
         try:
-            bot = await get_bot()
+            bot = get_bot()
             await bot.delete_message(user.user_id, message_id_delete)
         except Exception:
             pass

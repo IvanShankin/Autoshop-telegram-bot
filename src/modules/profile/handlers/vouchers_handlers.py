@@ -4,7 +4,7 @@ from aiogram.types import CallbackQuery, Message
 
 from src.bot_actions.messages import edit_message, send_message
 from src.bot_actions.bot_instance import get_bot
-from src.bot_actions.checking_data import checking_availability_money, checking_correctness_number
+from src.modules.profile.services.checking_data import checking_availability_money, checking_correctness_number
 from src.exceptions import NotEnoughMoney
 from src.exceptions.business import ForbiddenError
 from src.modules.profile.keyboards import back_in_balance_transfer_kb, replenishment_and_back_in_transfer_kb, \
@@ -17,6 +17,7 @@ from src.services.database.discounts.actions import (create_voucher as create_vo
 from src.services.database.system.actions import get_settings
 from src.services.database.users.actions import get_user
 from src.database.models.users import Users
+from src.services.bot import Messages
 from src.utils.i18n import get_text
 
 router = Router()
@@ -39,13 +40,14 @@ async def create_voucher(callback: CallbackQuery, state: FSMContext, user: Users
 
 
 @router.message(CreateVoucher.amount)
-async def create_voucher_get_amount(message: Message, state: FSMContext, user: Users):
+async def create_voucher_get_amount(message: Message, state: FSMContext, user: Users, messages_service: Messages):
     if not await checking_correctness_number(
-            message=message.text,
-            language=user.language,
-            user_id=user.user_id,
-            positive=True,
-            reply_markup=back_in_balance_transfer_kb(user.language)
+        message=message.text,
+        language=user.language,
+        user_id=user.user_id,
+        positive=True,
+        reply_markup=back_in_balance_transfer_kb(user.language),
+        messages_service=messages_service
     ):
         await state.set_state(CreateVoucher.amount)
         return
@@ -63,13 +65,16 @@ async def create_voucher_get_amount(message: Message, state: FSMContext, user: U
 
 
 @router.message(CreateVoucher.number_of_activations)
-async def create_voucher_get_number_of_activations(message: Message, state: FSMContext, user: Users):
+async def create_voucher_get_number_of_activations(
+        message: Message, state: FSMContext, user: Users, messages_service: Messages
+):
     if not await checking_correctness_number(
-            message=message.text,
-            language=user.language,
-            user_id=user.user_id,
-            positive=True,
-            reply_markup=back_in_balance_transfer_kb(user.language)
+        message=message.text,
+        language=user.language,
+        user_id=user.user_id,
+        positive=True,
+        reply_markup=back_in_balance_transfer_kb(user.language),
+        messages_service=messages_service
     ):
         await state.set_state(CreateVoucher.number_of_activations)
         return
@@ -78,11 +83,12 @@ async def create_voucher_get_number_of_activations(message: Message, state: FSMC
     data = CreateVoucherData(**(await state.get_data()))
 
     if not await checking_availability_money(
-            user_balance=user.balance,
-            need_money=data.amount * data.number_of_activations,
-            language=user.language,
-            user_id=user.user_id,
-            reply_markup=replenishment_and_back_in_transfer_kb(user.language)
+        user_balance=user.balance,
+        need_money=data.amount * data.number_of_activations,
+        language=user.language,
+        user_id=user.user_id,
+        reply_markup=replenishment_and_back_in_transfer_kb(user.language),
+        messages_service=messages_service,
     ):
         await state.set_state(CreateVoucher.number_of_activations)
         return
@@ -125,7 +131,7 @@ async def confirm_create_voucher(callback: CallbackQuery, state: FSMContext, use
         )
         return
 
-    bot = await get_bot()
+    bot = get_bot()
     bot_me = await bot.me()
 
     text = get_text(
@@ -184,7 +190,7 @@ async def show_voucher(callback: CallbackQuery, user: Users):
         text = get_text(user.language, "profile_messages", 'voucher_currently_inactive')
         reply_markup=back_in_all_voucher_kb(user.language, current_page, target_user_id)
     else:
-        bot = await get_bot()
+        bot = get_bot()
         bot_me = await bot.me()
         text = get_text(
             user.language,

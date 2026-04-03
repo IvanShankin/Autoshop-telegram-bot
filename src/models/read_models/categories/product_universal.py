@@ -5,17 +5,17 @@ from pydantic import BaseModel
 
 from src.database.models.categories.product_universal import UniversalMediaType, UniversalStorage, \
     ProductUniversal, SoldUniversal, StorageStatus
+from src.models.base import ORMDTO
 
 
-
-class ProductUniversalDTO(BaseModel):
+class ProductUniversalDTO(ORMDTO):
     product_universal_id: int
     universal_storage_id: int
     category_id: int
     created_at: datetime
 
 
-class UniversalStorageDTO(BaseModel):
+class UniversalStorageDTO(ORMDTO):
     universal_storage_id: int
     storage_uuid: str
     original_filename: str | None
@@ -32,7 +32,7 @@ class UniversalStorageDTO(BaseModel):
     created_at: datetime
 
 
-class UniversalStorageTranslationDTO(BaseModel):
+class UniversalStorageTranslationDTO(ORMDTO):
     universal_storage_translations_id: int
     universal_storage_id: int
     lang: str
@@ -41,20 +41,20 @@ class UniversalStorageTranslationDTO(BaseModel):
     encrypted_description_nonce: str | None
 
 
-class SoldUniversalDTO(BaseModel):
+class SoldUniversalDTO(ORMDTO):
     sold_universal_id: int
     owner_id: int
     universal_storage_id: int
     sold_at: datetime
 
 
-class DeletedUniversalDTO(BaseModel):
+class DeletedUniversalDTO(ORMDTO):
     deleted_universal_id: int
     universal_storage_id: int
     create_at: datetime
 
 
-class UniversalStoragePydantic(BaseModel):
+class UniversalStoragePydantic(ORMDTO):
     universal_storage_id: int
     storage_uuid: str
 
@@ -109,7 +109,7 @@ class UniversalStoragePydantic(BaseModel):
         )
 
 
-class ProductUniversalSmall(BaseModel):
+class ProductUniversalSmall(ORMDTO):
     product_universal_id: int
     universal_storage_id: int
     category_id: int
@@ -126,7 +126,7 @@ class ProductUniversalSmall(BaseModel):
         )
 
 
-class ProductUniversalFull(BaseModel):
+class ProductUniversalFull(ORMDTO):
     product_universal_id: int
     universal_storage_id: int
     category_id: int
@@ -149,7 +149,7 @@ class ProductUniversalFull(BaseModel):
         )
 
 
-class SoldUniversalSmall(BaseModel):
+class SoldUniversalSmall(ORMDTO):
     sold_universal_id: int
     owner_id: int
     universal_storage_id: int
@@ -172,7 +172,7 @@ class SoldUniversalSmall(BaseModel):
         )
 
 
-class SoldUniversalFull(BaseModel):
+class SoldUniversalFull(ORMDTO):
     sold_universal_id: int
     owner_id: int
     universal_storage_id: int

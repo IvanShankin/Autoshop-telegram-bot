@@ -22,7 +22,7 @@ async def unload_action_user(callback: CallbackQuery, state: FSMContext, user: U
         )
         return
 
-    bot = await get_bot()
+    bot = get_bot()
     await bot.send_document(
         user.user_id,
         document=BufferedInputFile(

@@ -1,11 +1,12 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from src.database.models.categories import ProductType
+from src.models.base import ORMDTO
 
 
-class SettingsDTO(BaseModel):
+class SettingsDTO(ORMDTO):
     settings_id: int
     maintenance_mode: bool
     support_username: str               # хранит просто текст, без @
@@ -17,7 +18,7 @@ class SettingsDTO(BaseModel):
     FAQ: str                            # ссылка
 
 
-class UsersDTO(BaseModel):
+class UsersDTO(ORMDTO):
     user_id: int                 # одновременно telegram_id
     username: str | None
     language: str                # язык пользователя (ru/en)
@@ -29,21 +30,21 @@ class UsersDTO(BaseModel):
     last_used: datetime
 
 
-class BannedAccountsDTO(BaseModel):
+class BannedAccountsDTO(ORMDTO):
     banned_account_id: int
     user_id: int
     reason: str                  # причина блокировки
     created_at: datetime
 
 
-class StickersDTO(BaseModel):
+class StickersDTO(ORMDTO):
     key: str                     # ключ из message_event
     file_id: str | None          # file_id стикера
     show: bool                   # показывать или нет
     updated_at: datetime         # время последнего обновления
 
 
-class UiImagesDTO(BaseModel):
+class UiImagesDTO(ORMDTO):
     key: str                     # ключ для категории или message_event
     file_name: str               # имя файла
     file_id: str | None          # file_id изображения
@@ -51,21 +52,21 @@ class UiImagesDTO(BaseModel):
     updated_at: datetime         # время последнего обновления
 
 
-class ReferralsDTO(BaseModel):
+class ReferralsDTO(ORMDTO):
     referral_id: int             # ID пользователя, которого пригласили (реферала)
     owner_user_id: int           # ID пользователя, который пригласил (владельца)
     level: int                   # уровень реферальной сети
     created_at: datetime         # дата создания
 
 
-class ReferralLevelsDTO(BaseModel):
+class ReferralLevelsDTO(ORMDTO):
     referral_level_id: int
     level: int                   # уровень реферальной системы
     amount_of_achievement: int   # сумма, с которой достигается уровень
     percent: float               # процент начисления
 
 
-class TypePaymentsDTO(BaseModel):
+class TypePaymentsDTO(ORMDTO):
     type_payment_id: int
     name_for_user: str           # Название метода (CryptoBot, ЮMoney и т.д.)
     name_for_admin: str          # Название для админа (из get_config().app.type_payments)
@@ -75,7 +76,7 @@ class TypePaymentsDTO(BaseModel):
     extra_data: dict | None      # Дополнительные параметры метода
 
 
-class PromoCodesDTO(BaseModel):
+class PromoCodesDTO(ORMDTO):
     promo_code_id: int
     activation_code: str         # промокод (не уникальный)
     min_order_amount: int        # минимальная сумма для применения
@@ -88,12 +89,12 @@ class PromoCodesDTO(BaseModel):
     is_valid: bool
 
 
-class ResultActivatePromoCodeDTO(BaseModel):
+class ResultActivatePromoCodeDTO(ORMDTO):
     promo_code: PromoCodesDTO
     deactivate: bool        # True если деактивировали
 
 
-class VouchersDTO(BaseModel):
+class VouchersDTO(ORMDTO):
     voucher_id: int
     creator_id: int | None       # ForeignKey users.user_id
     is_created_admin: bool       # создан ли админом
@@ -106,7 +107,7 @@ class VouchersDTO(BaseModel):
     is_valid: bool
 
 
-class NotificationSettingsDTO(BaseModel):
+class NotificationSettingsDTO(ORMDTO):
     notification_setting_id: int
     user_id: int
     referral_invitation: bool
@@ -114,7 +115,7 @@ class NotificationSettingsDTO(BaseModel):
     updated_at: datetime | None
 
 
-class ReplenishmentsDTO(BaseModel):
+class ReplenishmentsDTO(ORMDTO):
     replenishment_id: int
     user_id: int
     type_payment_id: int
@@ -129,7 +130,7 @@ class ReplenishmentsDTO(BaseModel):
     payment_data: dict | None
 
 
-class TransferMoneysDTO(BaseModel):
+class TransferMoneysDTO(ORMDTO):
     transfer_money_id: int
     user_from_id: int
     user_where_id: int
@@ -137,7 +138,7 @@ class TransferMoneysDTO(BaseModel):
     created_at: datetime
 
 
-class UserAuditLogsDTO(BaseModel):
+class UserAuditLogsDTO(ORMDTO):
     user_audit_log_id: int
     user_id: int
     action_type: str
@@ -146,7 +147,7 @@ class UserAuditLogsDTO(BaseModel):
     created_at: datetime
 
 
-class WalletTransactionDTO(BaseModel):
+class WalletTransactionDTO(ORMDTO):
     wallet_transaction_id: int
     user_id: int
     type: str
@@ -156,14 +157,14 @@ class WalletTransactionDTO(BaseModel):
     created_at: datetime
 
 
-class FilesDTO(BaseModel):
+class FilesDTO(ORMDTO):
     key: str
     file_path: str
     file_tg_id: str | None
     updated_at: datetime
 
 
-class BackupLogsDTO(BaseModel):
+class BackupLogsDTO(ORMDTO):
     backup_log_id: int
     storage_file_name: str
     storage_encrypted_dek_name: str
@@ -173,21 +174,21 @@ class BackupLogsDTO(BaseModel):
     created_at: datetime
 
 
-class ActivatedPromoCodesDTO(BaseModel):
+class ActivatedPromoCodesDTO(ORMDTO):
     activated_promo_code_id: int
     promo_code_id: int
     user_id: int
     created_at: datetime
 
 
-class VoucherActivationsDTO(BaseModel):
+class VoucherActivationsDTO(ORMDTO):
     voucher_activation_id: int
     voucher_id: int
     user_id: int | None
     created_at: datetime
 
 
-class IncomeFromReferralsDTO(BaseModel):
+class IncomeFromReferralsDTO(ORMDTO):
     income_from_referral_id: int
     replenishment_id: int
     owner_user_id: int
@@ -197,7 +198,7 @@ class IncomeFromReferralsDTO(BaseModel):
     created_at: datetime
 
 
-class PurchasesDTO(BaseModel):
+class PurchasesDTO(ORMDTO):
     purchase_id: int
     user_id: int
     product_type: ProductType | None

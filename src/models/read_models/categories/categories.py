@@ -3,9 +3,10 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 from src.database.models.categories import ProductType, AccountServiceType, UniversalMediaType, Categories
+from src.models.base import ORMDTO
 
 
-class CategoriesDTO(BaseModel):
+class CategoriesDTO(ORMDTO):
     category_id: int
     ui_image_key: str
     parent_id: int | None
@@ -23,7 +24,7 @@ class CategoriesDTO(BaseModel):
     cost_price: int | None
 
 
-class CategoryTranslationDTO(BaseModel):
+class CategoryTranslationDTO(ORMDTO):
     category_translations_id: int
     category_id: int
     lang: str
@@ -31,7 +32,7 @@ class CategoryTranslationDTO(BaseModel):
     description: str | None
 
 
-class CategoryFull(BaseModel):
+class CategoryFull(ORMDTO):
     category_id: int
     ui_image_key: str
     parent_id: Optional[int]

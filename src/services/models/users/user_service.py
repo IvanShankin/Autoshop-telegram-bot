@@ -77,7 +77,7 @@ class UserService:
             if update_data:
                 await self.user_repo.update(user_id=user_id, **update_data)
 
-            await self.cache_user_repo.set(user=user_db, ttl=self.conf.redis_time_storage.user.total_seconds())
+            await self.cache_user_repo.set(user=user_db, ttl=int(self.conf.redis_time_storage.user.total_seconds()))
 
             return user_db
 

@@ -15,8 +15,8 @@ from src.bot_actions.bot_instance import get_bot, get_dispatcher, get_dispatcher
 
 
 async def _including_router():
-    dp = await get_dispatcher()
-    dp_logger = await get_dispatcher_logger()
+    dp = get_dispatcher()
+    dp_logger = get_dispatcher_logger()
 
     dp.update.middleware(CheckuserNotBlok())
     dp.update.middleware(DeleteMessageOnErrorMiddleware(ForbiddenError, "Insufficient rights"))
@@ -47,11 +47,11 @@ async def _including_router():
 
 async def run_bot():
     """Запуск бота, вызывается отдельно из main.py"""
-    bot = await get_bot()
-    bot_logger = await get_bot_logger()
+    bot = get_bot()
+    bot_logger = get_bot_logger()
 
-    dp = await get_dispatcher()
-    dp_logger = await get_dispatcher_logger()
+    dp = get_dispatcher()
+    dp_logger = get_dispatcher_logger()
 
     await _including_router()
 

@@ -49,7 +49,7 @@ async def admin_settings(callback: CallbackQuery, state: FSMContext, user: Users
 
 @router.callback_query(F.data == "download_logs")
 async def download_logs(callback: CallbackQuery, state: FSMContext, user: Users):
-    bot = await get_bot()
+    bot = get_bot()
     await send_log_files(bot, user.user_id, user.language)
 
 
@@ -91,6 +91,6 @@ async def overwrite_cache(callback: CallbackQuery, state: FSMContext, user: User
 @router_logger.message(Command("get_log"))
 async def cmd_start(message: Message, user: Users):
     settings = await get_settings()
-    bot_logger = await get_bot_logger()
+    bot_logger = get_bot_logger()
     if await check_admin(user.user_id) or settings.channel_for_logging_id == message.chat.id:
         await send_log_files(bot_logger, message.chat.id, get_config().app.default_lang)

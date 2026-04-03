@@ -2,14 +2,16 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from src.models.base import ORMDTO
 
-class AdminsDTO(BaseModel):
+
+class AdminsDTO(ORMDTO):
     admin_id: int
     user_id: int
     created_at: datetime
 
 
-class AdminActionsDTO(BaseModel):
+class AdminActionsDTO(ORMDTO):
     admin_action_id: int
     user_id: int                     # Кто совершил действие (ForeignKey users.user_id)
     action_type: str                 # Тип действия (например, "add_balance", "ban_user" и т.д.)
@@ -18,14 +20,14 @@ class AdminActionsDTO(BaseModel):
     created_at: datetime
 
 
-class MessageForSendingDTO(BaseModel):
+class MessageForSendingDTO(ORMDTO):
     user_id: int                     # ForeignKey users.user_id
     content: str | None              # текст сообщения
     ui_image_key: str                # ForeignKey ui_images.key
     button_url: str | None           # URL для кнопки
 
 
-class SentMasMessagesDTO(BaseModel):
+class SentMasMessagesDTO(ORMDTO):
     message_id: int
     user_id: int                     # ID админа, который отправил (ForeignKey users.user_id)
     content: str | None              # текст сообщения

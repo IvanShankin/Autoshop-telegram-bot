@@ -8,7 +8,7 @@ from src.services.fastapi_core.server import start_server
 from src.infrastructure.redis import init_redis, close_redis
 from src.services.redis.filling import filling_all_redis
 from src.services.database.discounts.utils.set_not_valid import deactivate_expired_promo_codes_and_vouchers
-from src.bot_actions.bot_run import run_bot
+from src.infrastructure.telegram.bot_run import run_bot
 from src.services.redis.tasks import start_dollar_rate_scheduler
 from src.services.secrets import init_crypto_context
 from src.config import get_config, init_config

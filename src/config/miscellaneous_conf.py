@@ -1,6 +1,7 @@
 from asyncio import Semaphore
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+
 
 class MiscellaneousConf(BaseModel):
     algorithm: str = "HS256"
@@ -11,3 +12,5 @@ class MiscellaneousConf(BaseModel):
     rate_send_msg_limit: int = 25
     page_size: int = 6
     backup_retention_count: int = 14
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)

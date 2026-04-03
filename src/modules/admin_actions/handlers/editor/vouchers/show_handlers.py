@@ -52,7 +52,7 @@ async def show_admin_voucher(callback: CallbackQuery, user: Users):
         text = get_text(user.language, "profile_messages", "voucher_currently_inactive")
         reply_markup=back_in_all_admin_voucher_kb(user.language, current_page)
     else:
-        bot = await get_bot()
+        bot = get_bot()
         bot_me = await bot.me()
         text = get_text(
             user.language,

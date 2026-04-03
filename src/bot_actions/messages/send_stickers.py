@@ -9,7 +9,7 @@ async def send_sticker(chat_id: int, sticker_key: str):
     """
     :except StickerNotFound: Если не найден
     """
-    bot = await get_bot()
+    bot = get_bot()
     sticker = await get_sticker(sticker_key)
 
     if not sticker:

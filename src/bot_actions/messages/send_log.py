@@ -35,7 +35,7 @@ async def send_log(text: str, log_lvl: Optional[LogLevel] = None, channel_for_lo
         settings = await get_settings()
         channel_for_logging_id = settings.channel_for_logging_id
 
-    bot = await get_bot_logger()
+    bot = get_bot_logger()
 
     try:
         for message in parts:

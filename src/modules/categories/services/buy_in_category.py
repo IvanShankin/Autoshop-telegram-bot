@@ -235,7 +235,7 @@ async def buy_product(
     except CategoryNotFound as e:
         await delete_message()
         try:
-            bot = await get_bot()
+            bot = get_bot()
             await bot.delete_message(user.user_id, callback.message.message_id)
         except Exception:
             pass

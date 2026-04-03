@@ -2,7 +2,7 @@ import asyncio
 
 from src.exceptions.business import ForbiddenError
 from src.middlewares.aiogram_middleware import MaintenanceMiddleware, UserMiddleware, OnlyAdminsMiddleware, \
-    DeleteMessageOnErrorMiddleware, CheckuserNotBlok
+    DeleteMessageOnErrorMiddleware, CheckuserNotBlok, DbSessionMiddleware, ModulesMiddleware
 from src.modules.profile.handlers import router_with_repl_kb as profile_router_with_repl_kb, router as profile_router
 from src.modules.categories import router_with_repl_kb as catalog_router_with_repl_kb
 from src.modules.categories import router as catalog_router
@@ -15,8 +15,8 @@ from src.bot_actions.bot_instance import get_bot, get_dispatcher, get_dispatcher
 
 
 async def _including_router():
-    dp = await get_dispatcher()
-    dp_logger = await get_dispatcher_logger()
+    dp = get_dispatcher()
+    dp_logger = get_dispatcher_logger()
 
     dp.update.middleware(CheckuserNotBlok())
     dp.update.middleware(DeleteMessageOnErrorMiddleware(ForbiddenError, "Insufficient rights"))
@@ -41,17 +41,20 @@ async def _including_router():
     dp.update.middleware(UserMiddleware())
     dp.update.middleware(MaintenanceMiddleware())
 
+    dp.update.middleware(DbSessionMiddleware())
+    dp.update.middleware(ModulesMiddleware())
+
     dp_logger.include_router(router_logger)
     dp_logger.update.middleware(UserMiddleware())
 
 
 async def run_bot():
     """Запуск бота, вызывается отдельно из main.py"""
-    bot = await get_bot()
-    bot_logger = await get_bot_logger()
+    bot = get_bot()
+    bot_logger = get_bot_logger()
 
-    dp = await get_dispatcher()
-    dp_logger = await get_dispatcher_logger()
+    dp = get_dispatcher()
+    dp_logger = get_dispatcher_logger()
 
     await _including_router()
 

@@ -12,7 +12,7 @@ _dp_logger = Dispatcher()
 
 
 
-async def get_bot() -> Bot:
+def get_bot() -> Bot:
     """Возвращает глобальный объект Bot, создавая его при первом вызове"""
     global _bot
     if _bot is None:
@@ -21,13 +21,13 @@ async def get_bot() -> Bot:
     return _bot
 
 
-async def get_dispatcher() -> Dispatcher:
+def get_dispatcher() -> Dispatcher:
     """Возвращает глобальный Dispatcher"""
     global _bot
     return _dp
 
 
-async def get_bot_logger() -> Bot:
+def get_bot_logger() -> Bot:
     """Возвращает глобальный объект Bot, создавая его при первом вызове"""
     global _bot_logger
     if _bot_logger is None:
@@ -35,7 +35,7 @@ async def get_bot_logger() -> Bot:
     return _bot_logger
 
 
-async def get_dispatcher_logger() -> Dispatcher:
+def get_dispatcher_logger() -> Dispatcher:
     """Возвращает глобальный Dispatcher"""
     global _dp_logger
     return _dp_logger

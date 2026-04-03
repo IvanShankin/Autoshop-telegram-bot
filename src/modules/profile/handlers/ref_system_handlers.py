@@ -18,7 +18,7 @@ router = Router()
 
 @router.callback_query(F.data == "referral_system")
 async def referral_system(callback: CallbackQuery, user: Users):
-    bot = await get_bot()
+    bot = get_bot()
     bot_me = await bot.me()
     referrals = await get_all_referrals(user.user_id)
     ref_first_lvl = 0

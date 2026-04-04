@@ -69,7 +69,7 @@ class AccountsCacheRepository(BaseRedisRepo):
         await self._set_many(
             self._key_sold_accounts_by_owner_id(owner_id, language),
             sold_accounts,
-            ttl=self.conf.redis_time_storage.sold_accounts_by_owner,
+            ttl=int(self.conf.redis_time_storage.sold_accounts_by_owner.total_seconds()),
         )
 
     async def get_sold_accounts_by_owner_id(self, owner_id: int, language: str) -> List[SoldAccountSmall]:

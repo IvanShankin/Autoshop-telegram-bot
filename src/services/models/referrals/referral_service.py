@@ -168,7 +168,7 @@ class ReferralService:
 
         await self.user_service.cache_user_repo.set(
             user=UsersDTO.model_validate(owner),
-            ttl=self.user_service.conf.redis_time_storage.user.total_seconds(),
+            ttl=int(self.user_service.conf.redis_time_storage.user.total_seconds()),
         )
 
         return ReferralIncomeResult(

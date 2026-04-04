@@ -138,7 +138,7 @@ class AccountPurchaseService:
                 amount=result_check.final_total,
             )
 
-        await self.user_cache_repo.set(user, self.conf.redis_time_storage.user)
+        await self.user_cache_repo.set(user, int(self.conf.redis_time_storage.user))
         for acc in product_accounts:
             await self.accounts_cache_filler.fill_product_account_by_account_id(acc.account_id)
         await self.categories_cache_filler.fill_need_category(category_id)
@@ -531,7 +531,7 @@ class AccountPurchaseService:
             await self.purchase_cancel_service.mark_failed(purchase_request_id, logger)
 
         if user:
-            await self.user_cache_repo.set(user, self.conf.redis_time_storage.user)
+            await self.user_cache_repo.set(user, int(self.conf.redis_time_storage.user))
 
         await self.accounts_cache_filler.fill_sold_accounts_by_owner_id(user_id)
         await self.accounts_cache_filler.fill_product_accounts_by_category_id(category_id)

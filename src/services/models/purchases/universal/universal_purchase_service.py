@@ -157,7 +157,7 @@ class UniversalPurchaseService:
                 amount=result_check.final_total,
             )
 
-        await self.user_cache_repo.set(user, self.conf.redis_time_storage.user)
+        await self.user_cache_repo.set(user, int(self.conf.redis_time_storage.user))
 
         return StartPurchaseUniversalOne(
             purchase_request_id=new_purchase_request.purchase_request_id,
@@ -229,7 +229,7 @@ class UniversalPurchaseService:
             for product in reserved_products
         ]
 
-        await self.user_cache_repo.set(user, self.conf.redis_time_storage.user)
+        await self.user_cache_repo.set(user, int(self.conf.redis_time_storage.user))
         await self.cache_filler.fill_product_universal_by_category_id(category_id)
         for prod_id in [product.product_universal_id for product in reserved_products]:
             await self.cache_filler.fill_product_universal_by_product_id(prod_id)
@@ -759,7 +759,7 @@ class UniversalPurchaseService:
             await self.purchase_cancel_service.mark_failed(purchase_request_id, logger)
 
         if user:
-            await self.user_cache_repo.set(user, self.conf.redis_time_storage.user)
+            await self.user_cache_repo.set(user, int(self.conf.redis_time_storage.user))
 
         await self.cache_filler.fill_product_universal_by_category_id(category_id)
         await self.cache_filler.fill_sold_universal_by_owner_id(user_id)
@@ -813,7 +813,7 @@ class UniversalPurchaseService:
             await self.purchase_cancel_service.mark_failed(purchase_request_id, logger)
 
         if user:
-            await self.user_cache_repo.set(user, self.conf.redis_time_storage.user)
+            await self.user_cache_repo.set(user, int(self.conf.redis_time_storage.user))
 
         await self.cache_filler.fill_sold_universal_by_owner_id(user_id)
         for sold_id in sold_universal_ids:

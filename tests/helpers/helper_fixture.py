@@ -1,4 +1,5 @@
 import pytest_asyncio
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import get_config
 from src.container import init_container
@@ -17,7 +18,7 @@ from src.database import get_db
 
 
 @pytest_asyncio.fixture
-async def session_db_fix():
+async def session_db_fix() -> AsyncSession:
     async_session_factory = get_config().db_connection.session_local
 
     async with async_session_factory() as session_db:

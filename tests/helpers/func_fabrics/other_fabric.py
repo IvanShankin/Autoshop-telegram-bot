@@ -5,6 +5,7 @@ from typing import Tuple, Optional
 import orjson
 from sqlalchemy import select
 
+from src.database.core import get_session_factory
 from src.database.models.admins import Admins, SentMasMessages, MessageForSending
 from src.database.models.categories import PurchaseRequests
 from src.database import get_db
@@ -22,17 +23,18 @@ from src.services.redis.filling import filling_all_types_payments, \
 
 
 async def create_new_user_fabric(
-        user_name: str = "test_username",
-        union_ref_code: str = None,
-        balance: int = 0,
-        total_sum_replenishment: int = 0
+    user_name: str = "test_username",
+    union_ref_code: str = None,
+    balance: int = 0,
+    total_sum_replenishment: int = 0,
+    filling_redis: bool = True
 ) -> Users:
     """ Создаст нового пользователя в БД"""
     if union_ref_code is None:
         union_ref_code = await create_unique_referral_code()
 
 
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
         result_db = await session_db.execute(select(Users.user_id))
         max_id = result_db.scalars().all()
 
@@ -55,6 +57,10 @@ async def create_new_user_fabric(
         )
         session_db.add(new_notifications)
         await session_db.commit()
+
+    if filling_redis:
+        session_redis = get_redis()
+        await session_redis.set(f"user:{new_user.user_id}", orjson.dumps(new_user.to_dict()))
 
     return new_user
 

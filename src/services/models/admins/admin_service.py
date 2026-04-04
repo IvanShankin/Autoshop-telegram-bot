@@ -202,7 +202,7 @@ class AdminsService:
             await self.session_db.commit()
 
         await self.user_service.cache_user_repo.set(
-            user=user, ttl=self.user_service.conf.redis_time_storage.user.total_seconds()
+            user=user, ttl=int(self.user_service.conf.redis_time_storage.user.total_seconds())
         )
 
         await self.publish_event.admin_update_balance(

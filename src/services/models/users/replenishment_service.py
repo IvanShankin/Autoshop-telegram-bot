@@ -144,7 +144,7 @@ class ReplenishmentsService:
         if money_credited and user is not None:
             await self.user_service.cache_user_repo.set(
                 user=UsersDTO.model_validate(user),
-                ttl=self.user_service.conf.redis_time_storage.user.total_seconds(),
+                ttl=int(self.user_service.conf.redis_time_storage.user.total_seconds()),
             )
 
             return ReplenishmentCompleted(

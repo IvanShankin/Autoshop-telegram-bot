@@ -12,4 +12,4 @@ async def get_db() -> AsyncSession:
 
 
 def get_session_factory() -> AsyncSession:
-    return get_config().db_connection.session_local
+    return get_config().db_connection.session_local()

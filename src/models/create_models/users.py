@@ -5,8 +5,8 @@ from pydantic import BaseModel
 
 class CreateUserDTO(BaseModel):
     user_id: Optional[int]
-    username: Optional[int]
-    language: Optional[int] = "ru"
+    username: Optional[str]
+    language: Optional[str] = "ru"
 
 
 class CreateUserAuditLogDTO(BaseModel):

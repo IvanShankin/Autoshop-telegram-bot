@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Type, Any, Dict
 from dateutil.parser import parse
+from orjson import orjson
 from pydantic import BaseModel
 
 from src.database import Base
@@ -9,6 +10,7 @@ from src.utils.core_logger import get_logger
 
 def _get_dict(obj: Any) -> Dict:
     if isinstance(obj, dict): return obj
+    if isinstance(obj, bytes): return orjson.loads(obj)
     if isinstance(obj, BaseModel): return obj.model_dump()
     elif isinstance(obj, Base): return obj.to_dict()
     else: raise RuntimeError(f"невалидный формат у: {obj}")

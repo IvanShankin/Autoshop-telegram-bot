@@ -3,7 +3,7 @@ from typing import Optional, Sequence
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.bot_actions.messages.schemas import EventSentLog, LogLevel
+from src.models.read_models import EventSentLog, LogLevel
 from src.config import Config
 from src.database.models.users import Users
 from src.infrastructure.rebbit_mq.producer import publish_event

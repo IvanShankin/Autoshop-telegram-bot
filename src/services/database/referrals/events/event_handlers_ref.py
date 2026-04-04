@@ -4,7 +4,7 @@ from aiogram.exceptions import TelegramForbiddenError
 from sqlalchemy import update, select
 
 from src.bot_actions.bot_instance import get_bot_logger
-from src.bot_actions.messages.schemas import EventSentLog, LogLevel
+from src.models.read_models import EventSentLog, LogLevel
 from src.infrastructure.rebbit_mq.producer import publish_event
 from src.config import get_config
 from src.services.database.users.actions import get_user, update_user

@@ -5,7 +5,7 @@ from typing import List, Tuple
 from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
-from src.bot_actions.messages.schemas import LogLevel, EventSentLog
+from src.models.read_models import LogLevel, EventSentLog
 from src.infrastructure.rebbit_mq.producer import publish_event
 from src.config import get_config
 from src.services.database.categories.actions.actions_get import get_category_by_category_id

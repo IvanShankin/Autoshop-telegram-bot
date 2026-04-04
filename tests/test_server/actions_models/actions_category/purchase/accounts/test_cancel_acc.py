@@ -4,11 +4,12 @@ import pytest
 from sqlalchemy import select
 
 from src.database.models.categories import PurchaseRequests, AccountStorage, ProductAccounts, SoldAccounts, \
-    Purchases, StartPurchaseAccount, StorageStatus
+    Purchases, StorageStatus
 from src.database.models.categories import AccountServiceType
 from src.database import get_db
 from src.database.models.users import Users
 from src.database.models.users import BalanceHolder
+from src.models.read_models import StartPurchaseAccount
 
 
 class TestCancelPurchase:

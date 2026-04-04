@@ -6,7 +6,7 @@ import zipfile
 from pathlib import Path
 from typing import List
 
-from src.bot_actions.messages.schemas import EventSentLog
+from src.models.read_models import EventSentLog
 from src.infrastructure.rebbit_mq.producer import publish_event
 from src.config import get_config
 from src.database.models.categories import StorageStatus

@@ -1,4 +1,4 @@
-from src.bot_actions.messages.schemas import LogLevel, EventSentLog
+from src.models.read_models import LogLevel, EventSentLog
 from src.infrastructure.rebbit_mq.producer import publish_event
 from src.database.models.discount import Vouchers
 from src.utils.i18n import get_text

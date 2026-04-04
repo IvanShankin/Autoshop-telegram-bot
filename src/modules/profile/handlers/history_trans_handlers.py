@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery
 
 from src.modules.profile.keyboards import wallet_transactions_kb, back_in_wallet_transactions_kb
-from src.modules.profile.module import ProfileModule
+from src.services.models.module import ProfileModule
 from src.services.bot import Messages
 from src.database.models.users import Users
 from src.utils.i18n import get_text

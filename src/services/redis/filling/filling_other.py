@@ -24,8 +24,8 @@ async def filling_settings():
         settings = result_db.scalars().first()
 
         if settings:
-            async with get_redis() as session_redis:
-                await session_redis.set("settings", orjson.dumps(settings.to_dict()))
+            session_redis = get_redis()
+            await session_redis.set("settings", orjson.dumps(settings.to_dict()))
 
 
 async def filling_all_stickers():
@@ -34,9 +34,9 @@ async def filling_all_stickers():
         stickers: List[Stickers] = result_db.scalars().all()
 
         if stickers:
-            async with get_redis() as session_redis:
-                for stick in stickers:
-                    await session_redis.set(f"sticker:{stick.key}", value=orjson.dumps(stick.to_dict()))
+            session_redis = get_redis()
+            for stick in stickers:
+                await session_redis.set(f"sticker:{stick.key}", value=orjson.dumps(stick.to_dict()))
 
 
 async def filling_ui_image(key: str):
@@ -45,8 +45,8 @@ async def filling_ui_image(key: str):
         ui_image = result_db.scalar_one_or_none()
 
         if ui_image:
-            async with get_redis() as session_redis:
-                await session_redis.set(f"ui_image:{ui_image.key}", value=orjson.dumps(ui_image.to_dict()))
+            session_redis = get_redis()
+            await session_redis.set(f"ui_image:{ui_image.key}", value=orjson.dumps(ui_image.to_dict()))
 
 
 async def filling_referral_levels():
@@ -55,9 +55,9 @@ async def filling_referral_levels():
         referral_levels = result_db.scalars().all()
 
         if referral_levels:
-            async with get_redis() as session_redis:
-                list_for_redis = [referral.to_dict() for referral in referral_levels]
-                await session_redis.set("referral_levels", orjson.dumps(list_for_redis))
+            session_redis = get_redis()
+            list_for_redis = [referral.to_dict() for referral in referral_levels]
+            await session_redis.set("referral_levels", orjson.dumps(list_for_redis))
 
 
 async def filling_all_types_payments():
@@ -66,9 +66,9 @@ async def filling_all_types_payments():
         types_payments = result_db.scalars().all()
 
         # сохраним даже пустой список
-        async with get_redis() as session_redis:
-            list_for_redis = [type_pay.to_dict() for type_pay in types_payments]
-            await session_redis.set("all_types_payments", orjson.dumps(list_for_redis))
+        session_redis = get_redis()
+        list_for_redis = [type_pay.to_dict() for type_pay in types_payments]
+        await session_redis.set("all_types_payments", orjson.dumps(list_for_redis))
 
 
 async def filling_types_payments_by_id(type_payment_id: int):
@@ -76,17 +76,17 @@ async def filling_types_payments_by_id(type_payment_id: int):
         result_db = await session_db.execute(select(TypePayments).where(TypePayments.type_payment_id == type_payment_id))
         type_payment = result_db.scalar_one_or_none()
 
-        async with get_redis() as session_redis:
-            if type_payment:
-                await session_redis.set(f'type_payments:{type_payment_id}', orjson.dumps(type_payment.to_dict()))
-            else:
-                await session_redis.delete(f'type_payments:{type_payment_id}')
+        session_redis = get_redis()
+        if type_payment:
+            await session_redis.set(f'type_payments:{type_payment_id}', orjson.dumps(type_payment.to_dict()))
+        else:
+            await session_redis.delete(f'type_payments:{type_payment_id}')
 
 
 
 async def filling_user(user: Users):
-    async with get_redis() as session_redis:
-        await session_redis.setex(f"user:{user.user_id}", TIME_USER, orjson.dumps(user.to_dict()))
+    session_redis = get_redis()
+    await session_redis.setex(f"user:{user.user_id}", TIME_USER, orjson.dumps(user.to_dict()))
 
 
 async def filling_admins():
@@ -130,10 +130,10 @@ async def filling_voucher_by_user_id(user_id: int):
         )
         vouchers = result_db.scalars().all()
 
-    async with get_redis() as session_redis:
-        result_list = [ SmallVoucher.from_orm_model(voucher).model_dump() for voucher in vouchers ]
-        await session_redis.delete(f'voucher_by_user:{user_id}')
-        await session_redis.setex(f'voucher_by_user:{user_id}', TIME_ALL_VOUCHER, orjson.dumps(result_list))
+    session_redis = get_redis()
+    result_list = [ SmallVoucher.from_orm_model(voucher).model_dump() for voucher in vouchers ]
+    await session_redis.delete(f'voucher_by_user:{user_id}')
+    await session_redis.setex(f'voucher_by_user:{user_id}', TIME_ALL_VOUCHER, orjson.dumps(result_list))
 
 
 async def filling_vouchers():

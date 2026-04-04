@@ -1,31 +1,33 @@
 import mimetypes
 from logging import Logger
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TYPE_CHECKING, Union
 
-from aiogram.exceptions import TelegramBadRequest, TelegramAPIError
-from aiogram.types import (
-    InlineKeyboardMarkup,
-    ReplyKeyboardMarkup,
-    ReplyKeyboardRemove,
-    ForceReply,
-    Message,
-)
-
+from src.exceptions.telegram import TelegramBadRequestService, TelegramAPIErrorService
 from src.infrastructure.files.file_system import FileStorage
 from src.infrastructure.files.path_builder import PathBuilder
-from src.infrastructure.telegram.client import TelegramClient
 from src.infrastructure.telegram.rate_limit import RateLimiter
 from src.services.bot.sticker_sender import StickerSender
 from src.services.models.systems import FilesService
 from src.services.events.publish_event_handler import PublishEventHandler
 
 
+if TYPE_CHECKING:
+    from src.infrastructure.telegram.client import TelegramClient
+    from aiogram.types import (
+        InlineKeyboardMarkup,
+        ReplyKeyboardMarkup,
+        ReplyKeyboardRemove,
+        ForceReply,
+        Message,
+    )
+
+
 class SendFileService:
 
     def __init__(
         self,
-        tg_client: TelegramClient,
+        tg_client: "TelegramClient",
         path_builder: PathBuilder,
         files_service: FilesService,
         limiter: RateLimiter,
@@ -79,10 +81,12 @@ class SendFileService:
         file_id: Optional[str] = None,
         file_path: Optional[str] = None,
         message: Optional[str] = None,
-        reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | None = None,
+        reply_markup: Optional[Union[
+            "InlineKeyboardMarkup", "ReplyKeyboardMarkup", "ReplyKeyboardRemove", "ForceReply"
+        ]] = None,
         parse_mode: Optional[str] = "HTML",
         type_based: bool = True
-    ) -> Optional[Message]:
+    ) -> Optional["Message"]:
         """
         Отправляет файл/медиа в чат.
         Если type_based == True и извест путь (file_path) — выберет метод в зависимости от расширения (photo/video/animation/document).
@@ -104,7 +108,7 @@ class SendFileService:
             media_kind = self._guess_media_kind_from_path(Path(file_path))
 
         # Функции отправки — в порядке пробования
-        async def _send_via_file_id(kind: Optional[str]) -> Optional[Message]:
+        async def _send_via_file_id(kind: Optional[str]) -> Optional["Message"]:
             """Попытка отправить через file_id. kind может быть None -> используем document."""
             try:
                 if kind == "photo":
@@ -128,14 +132,14 @@ class SendFileService:
                     chat_id=chat_id, document=file_id, caption=message or "",
                     parse_mode=parse_mode, reply_markup=reply_markup
                 )
-            except TelegramAPIError as e:
+            except TelegramAPIErrorService as e:
                 self.logger.warning("send via file_id failed: %s", e)
                 return None
             except Exception as e:
                 self.logger.exception("Unexpected error while sending via file_id: %s", e)
                 return None
 
-        async def _send_via_path(kind: Optional[str]) -> Optional[Message]:
+        async def _send_via_path(kind: Optional[str]) -> Optional["Message"]:
             """Попытка отправить через локальный путь."""
             if not file_path:
                 return None
@@ -168,7 +172,7 @@ class SendFileService:
                     chat_id=chat_id, document=input_file, caption=message or "",
                     parse_mode=parse_mode, reply_markup=reply_markup
                 )
-            except TelegramAPIError as e:
+            except TelegramAPIErrorService as e:
                 self.logger.warning("send via file_path failed: %s", e)
                 return None
             except Exception as e:
@@ -224,7 +228,9 @@ class SendFileService:
         chat_id: int,
         file_key: str,
         message: Optional[str] = None,
-        reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | None = None,
+        reply_markup: Optional[Union[
+            "InlineKeyboardMarkup", "ReplyKeyboardMarkup", "ReplyKeyboardRemove", "ForceReply"
+        ]] = None,
         parse_mode: Optional[str] = "HTML",
         type_based: Optional[bool] = False,
         one_attempt: bool = False
@@ -260,7 +266,7 @@ class SendFileService:
                 parse_mode=parse_mode,
                 reply_markup=reply_markup,
             )
-        except TelegramBadRequest as e:
+        except TelegramBadRequestService as e:
             self.logger.warning(f"При попытки отослать документ произошла ошибка: {str(e)}")
             # может быть из-за плохого file_tg_id
             await self.files_service.update_file(

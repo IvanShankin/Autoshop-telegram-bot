@@ -2,15 +2,53 @@ from pathlib import Path
 from typing import Optional
 
 from aiogram import Bot
+from aiogram.exceptions import TelegramBadRequest, TelegramAPIError, TelegramForbiddenError, TelegramNotFound, \
+    TelegramRetryAfter
 from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply, \
-    Message, FSInputFile, InputMediaPhoto, ReactionTypeEmoji
+    Message, FSInputFile, InputMediaPhoto, ReactionTypeEmoji, InlineKeyboardButton
 
+from src.exceptions.telegram import TelegramBadRequestService, TelegramAPIErrorService, TelegramForbiddenErrorService, \
+    TelegramNotFoundService, TelegramRetryAfterService
+from src.models.telegram import InlineKeyboardMarkupService
 from src.models.update_models.bot_actions import EditMessagePhoto
+
+
+def handle_telegram_errors(func):
+    async def wrapper(self, *args, **kwargs):
+        try:
+            return await func(self, *args, **kwargs)
+        except Exception as e:
+            for exc, mapped in self.ERROR_MAP.items():
+                if isinstance(e, exc):
+                    raise mapped(str(e)) from e
+            raise
+
+    return wrapper
 
 
 class TelegramClient:
     def __init__(self, bot: Bot):
         self.bot = bot
+        self.ERROR_MAP = {
+            TelegramBadRequest: TelegramBadRequestService,
+            TelegramAPIError: TelegramAPIErrorService,
+            TelegramForbiddenError: TelegramForbiddenErrorService,
+            TelegramNotFound: TelegramNotFoundService,
+            TelegramRetryAfter: TelegramRetryAfterService,
+        }
+
+    async def _call(self, method, *args, **kwargs):
+        try:
+            return await method(*args, **kwargs)
+
+        except Exception as e:
+            # ищем, нужно ли маппить на сервисное исключение
+            for exc, mapped in self.ERROR_MAP.items():
+                if isinstance(e, exc):
+                    # создаём сервисное исключение с оригинальным сообщением
+                    raise mapped(str(e)) from e
+            # если не нашли — пробрасываем оригинальное
+            raise
 
     async def send_message(
         self,
@@ -20,7 +58,8 @@ class TelegramClient:
         reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | None = None,
         message_effect_id: Optional[str] = None,
     ) -> Message:
-        return await self.bot.send_message(
+        return await self._call(
+            self.bot.send_message,
             chat_id=chat_id,
             text=text,
             parse_mode=parse_mode,
@@ -29,7 +68,11 @@ class TelegramClient:
         )
 
     async def send_sticker(self, chat_id: int, file_id: str) ->  Message:
-        return await self.bot.send_sticker(chat_id=chat_id, sticker=file_id)
+        return await self._call(
+            self.bot.send_sticker,
+            chat_id=chat_id,
+            sticker=file_id,
+        )
 
     async def send_photo(
         self,
@@ -46,7 +89,8 @@ class TelegramClient:
 
         photo = file_id if file_id else FSInputFile(file_path)
 
-        return await self.bot.send_photo(
+        return await self._call(
+            self.bot.send_photo,
             chat_id=chat_id,
             photo=photo,
             caption=caption,
@@ -64,9 +108,13 @@ class TelegramClient:
         reply_markup: Optional[
         InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply] = None,
     ) -> Message:
-        return await self.bot.send_animation(
-            chat_id=chat_id, animation=animation, caption=caption or "",
-            parse_mode=parse_mode, reply_markup=reply_markup
+        return await self._call(
+            self.bot.send_animation,
+            chat_id=chat_id,
+            animation=animation,
+            caption=caption or "",
+            parse_mode=parse_mode,
+            reply_markup=reply_markup
         )
 
     async def send_video(
@@ -77,9 +125,13 @@ class TelegramClient:
         parse_mode: Optional[str] = None,
         reply_markup: Optional[InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply] = None,
     ) -> Message:
-        return await self.bot.send_video(
-            chat_id=chat_id, video=video, caption=caption or "",
-            parse_mode=parse_mode, reply_markup=reply_markup
+        return await self._call(
+            self.bot.send_video,
+            chat_id=chat_id,
+            video=video,
+            caption=caption or "",
+            parse_mode=parse_mode,
+            reply_markup=reply_markup
         )
 
     async def send_document(
@@ -90,9 +142,13 @@ class TelegramClient:
         parse_mode: Optional[str] = None,
         reply_markup: Optional[InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply] = None,
     ) -> Message:
-        return await self.bot.send_document(
-            chat_id=chat_id, document=document, caption=caption or "",
-            parse_mode=parse_mode, reply_markup=reply_markup
+        return await self._call(
+            self.bot.send_document,
+            chat_id=chat_id,
+            document=document,
+            caption=caption or "",
+            parse_mode=parse_mode,
+            reply_markup=reply_markup
         )
 
     async def edit_message_text(
@@ -103,7 +159,8 @@ class TelegramClient:
         parse_mode: Optional[str] = None,
         reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | None = None,
     ) -> Message | bool:
-        return await self.bot.edit_message_text(
+        return await self._call(
+            self.bot.edit_message_text,
             text=text,
             chat_id=chat_id,
             message_id=message_id,
@@ -126,18 +183,42 @@ class TelegramClient:
             media = data.file_id
 
         media = InputMediaPhoto(media=media, caption=data.caption, parse_mode=data.parse_mode)
-        return await self.bot.edit_message_media(
+        return await self._call(
+            self.bot.edit_message_media,
             chat_id=chat_id,
             message_id=message_id,
             media=media,
             reply_markup=data.reply_markup
         )
 
+    @handle_telegram_errors
     def get_input_file(self, file_path: str | Path) -> FSInputFile:
         return FSInputFile(file_path)
 
+    @handle_telegram_errors
+    def get_inline_keyboard_markup(
+        self,
+        inline_keyboard: InlineKeyboardMarkupService
+    ) -> InlineKeyboardMarkup:
+
+        keyboard = []
+
+        for row in inline_keyboard.inline_keyboard:
+            buttons_row = []
+            for button in row:
+                buttons_row.append(
+                    InlineKeyboardButton(
+                        text=button.text,
+                        url=button.url
+                    )
+                )
+            keyboard.append(buttons_row)
+
+        return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
     async def set_reaction(self, chat_id: int, message_id: int):
-        await self.bot.set_message_reaction(
+        return await self._call(
+            self.bot.set_message_reaction,
             chat_id=chat_id,
             message_id=message_id,
             reaction=[ReactionTypeEmoji(emoji="❤️")],
@@ -145,7 +226,8 @@ class TelegramClient:
         )
 
     async def delete_message(self, chat_id: int | str, message_id: int) -> bool:
-        return await self.bot.delete_message(
+        return await self._call(
+            self.bot.delete_message,
             chat_id=chat_id,
             message_id=message_id
         )

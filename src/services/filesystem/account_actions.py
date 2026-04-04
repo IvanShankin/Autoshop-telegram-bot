@@ -4,7 +4,7 @@ import shutil
 from pathlib import Path
 from typing import AsyncGenerator
 
-from src.bot_actions.messages.schemas import EventSentLog
+from src.models.read_models import EventSentLog
 from src.infrastructure.rebbit_mq.producer import publish_event
 from src.database.models.categories import AccountStorage, AccountServiceType, StorageStatus
 from src.models.read_models import AccountStorageDTO

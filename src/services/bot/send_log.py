@@ -1,17 +1,20 @@
 from logging import Logger
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from src.config import Config
-from src.infrastructure.telegram.client import TelegramClient
 from src.infrastructure.telegram.rate_limit import RateLimiter
 from src.models.read_models import LogLevel
 from src.services.models.systems import SettingsService
 
 
+if TYPE_CHECKING:
+    from src.infrastructure.telegram.client import TelegramClient
+
+
 class SendLogs:
     def __init__(
         self,
-        tg_logger_client: TelegramClient,
+        tg_logger_client: "TelegramClient",
         limiter: RateLimiter,
         settings_service: SettingsService,
         conf: Config,
@@ -28,10 +31,9 @@ class SendLogs:
 
     async def send_log(self, text: str, log_lvl: Optional[LogLevel] = None):
         """
-            Отошлёт лог в файл и в канал.
-            :param log_lvl: При наличии, запишет в файл с соответствующим уровнем
-            :param channel_for_logging_id: если не передавать то возьмёт сам из настроек
-            """
+        Отошлёт лог в файл и в канал.
+        :param log_lvl: При наличии, запишет в файл с соответствующим уровнем
+        """
 
         if log_lvl:
             if log_lvl == LogLevel.INFO:

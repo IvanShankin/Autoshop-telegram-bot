@@ -5,13 +5,12 @@ from aiogram.types import Message, TelegramObject, CallbackQuery
 
 from typing import Callable, Dict, Any, Awaitable, Type
 
+from src.bot_actions.bot_instance import get_bot, get_bot_logger
 from src.bot_actions.messages import send_message
 from src.config import get_config
 from src.container import init_container
-from src.database.core import get_session_factory
+from src.infrastructure.telegram.client import TelegramClient
 from src.modules.keyboard_main import support_kb
-from src.modules.profile.module import ProfileModule
-from src.services.bot import Messages
 from src.services.database.admins.actions import check_admin
 from src.services.database.system.actions import get_settings
 from src.services.database.users.actions import get_user, get_banned_account
@@ -30,7 +29,14 @@ class DbSessionMiddleware(BaseMiddleware):
 class ModulesMiddleware(BaseMiddleware):
     async def __call__(self, handler, event, data):
         session_db = data["session_db"]
-        container = init_container(session_db)
+
+        bot = get_bot()
+        logger_bot = get_bot_logger()
+
+        telegram_client = TelegramClient(bot=bot)
+        telegram_logger_client = TelegramClient(bot=logger_bot)
+
+        container = init_container(session_db, telegram_client, telegram_logger_client)
 
         data["profile_module"] = container.get_profile_modul()
         data["messages_service"] = container.get_message_service()

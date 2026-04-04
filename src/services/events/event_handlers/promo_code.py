@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.bot_actions.messages.schemas import LogLevel
+from src.models.read_models import LogLevel
 from src.exceptions.business import AlreadyActivated
 from src.exceptions.domain import PromoCodeNotFound
 from src.config import get_config

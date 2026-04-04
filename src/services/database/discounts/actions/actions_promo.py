@@ -4,7 +4,7 @@ from typing import Optional, List
 import orjson
 from sqlalchemy import select, func, update
 
-from src.bot_actions.messages.schemas import EventSentLog, LogLevel
+from src.models.read_models import EventSentLog, LogLevel
 from src.infrastructure.rebbit_mq.producer import publish_event
 from src.config import get_config
 from src.infrastructure.redis import get_redis

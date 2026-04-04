@@ -9,7 +9,7 @@ from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboa
 
 from src.bot_actions.bot_instance import get_bot
 from src.bot_actions.messages import send_message
-from src.bot_actions.messages.schemas import EventSentLog, LogLevel
+from src.models.read_models import EventSentLog, LogLevel
 from src.bot_actions.messages.send_stickers import send_sticker
 from src.infrastructure.rebbit_mq.producer import publish_event
 from src.exceptions.domain import StickerNotFound

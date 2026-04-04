@@ -10,26 +10,27 @@ from contextlib import suppress
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from src.config import init_config, get_config, set_config
+from src.config import init_config, set_config
+from src.database import Base
 from src.utils.core_logger import setup_logging
 from tests.helpers.monkeypatch_data import (
     replacement_redis,
     replacement_fake_bot,
     replace_paths,
+    create_crypto_context_fix,
+    set_need_config,
+    fake_storage,
 )
-
-
-from src.services.database import core
-from src.infrastructure.redis import get_redis, init_redis
+from src.infrastructure.redis import get_redis, init_redis, close_redis
 
 from tests.helpers.fake_aiogram.fake_aiogram import patch_fake_aiogram
 
+from tests.helpers.helper_fixture import *
 # ИМПОРТЫ НЕ УБИРАТЬ, ОНИ ИСПОЛЬЗУЮТСЯ В ТЕСТАХ ПОДГРУЖАЯСЬ С conftest.py
 
 load_dotenv()  # Загружает переменные из .env
 MODE = os.getenv('MODE')
 RABBITMQ_URL = os.getenv('RABBITMQ_URL')
-
 import pytest_asyncio
 from src.services.database.core.filling_database import create_database
 
@@ -47,6 +48,10 @@ if MODE != "TEST":
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def start_tests():
     await init_redis()
+
+    yield
+
+    await close_redis()
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
@@ -110,8 +115,8 @@ async def clean_db(monkeypatch, create_database_fixture):
 
     # дропаем и создаём таблицы
     async with test_engine.begin() as conn:
-        await conn.run_sync(core.Base.metadata.drop_all)
-        await conn.run_sync(core.Base.metadata.create_all)
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
 
     yield
 

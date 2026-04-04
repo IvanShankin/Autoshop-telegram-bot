@@ -7,7 +7,7 @@ from typing import List, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.bot_actions.messages.schemas import EventSentLog, LogLevel
+from src.models.read_models import EventSentLog, LogLevel
 from src.config import Config
 from src.database.models.categories import StorageStatus, ProductType
 from src.database.models.categories.product_universal import UniversalStorage, UniversalStorageTranslation

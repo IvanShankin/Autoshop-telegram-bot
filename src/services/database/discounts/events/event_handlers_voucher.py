@@ -1,6 +1,6 @@
 from sqlalchemy import update
 
-from src.bot_actions.messages.schemas import LogLevel, EventSentLog
+from src.models.read_models import LogLevel, EventSentLog
 from src.infrastructure.rebbit_mq.producer import publish_event
 from src.config import get_config
 from src.infrastructure.redis import get_redis

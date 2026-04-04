@@ -1,20 +1,11 @@
 from logging import Logger
-from typing import Optional
+from typing import Optional, TYPE_CHECKING, Union
 
-from aiogram.exceptions import TelegramBadRequest
-from aiogram.types import (
-    InlineKeyboardMarkup,
-    ReplyKeyboardMarkup,
-    ReplyKeyboardRemove,
-    ForceReply,
-    Message,
-)
-
-from src.bot_actions.messages.schemas import LogLevel
+from src.models.read_models import LogLevel
 from src.exceptions.domain import StickerNotFound
+from src.exceptions.telegram import TelegramBadRequestService
 from src.infrastructure.files.file_system import FileStorage
 from src.infrastructure.files.path_builder import PathBuilder
-from src.infrastructure.telegram.client import TelegramClient
 from src.infrastructure.telegram.rate_limit import RateLimiter
 from src.models.update_models import UpdateUiImageDTO
 from src.services.bot.sticker_sender import StickerSender
@@ -22,11 +13,22 @@ from src.services.models.systems import UiImagesService
 from src.services.events.publish_event_handler import PublishEventHandler
 
 
+if TYPE_CHECKING:
+    from src.infrastructure.telegram.client import TelegramClient
+    from aiogram.types import (
+        InlineKeyboardMarkup,
+        ReplyKeyboardMarkup,
+        ReplyKeyboardRemove,
+        ForceReply,
+        Message,
+    )
+
+
 class SendMessageService:
 
     def __init__(
         self,
-        tg_client: TelegramClient,
+        tg_client: "TelegramClient",
         path_builder: PathBuilder,
         ui_images_service: UiImagesService,
         limiter: RateLimiter,
@@ -54,12 +56,14 @@ class SendMessageService:
         image_key: str = None,
         fallback_image_key: str = None,
         event_message_key: Optional[str] = None,
-        reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | None = None,
+        reply_markup: Optional[Union[
+                "InlineKeyboardMarkup", "ReplyKeyboardMarkup", "ReplyKeyboardRemove", "ForceReply"
+        ]] = None,
         parse_mode: Optional[str] = "HTML",
         always_show_photos: bool = False,
         message_effect_id: str = None,
         _retry_without_effect: bool = False,
-    ) -> Message:
+    ) -> "Message":
         if not message and not image_key:
             raise ValueError("Нужно указать message или image_key")
 
@@ -100,7 +104,7 @@ class SendMessageService:
     def _resolve_image_key(self, image_key, event_message_key) -> str:
         return image_key or event_message_key
 
-    async def _handle_effect_error(self, error, retry, message_effect_id, **kwargs) -> Optional[Message]:
+    async def _handle_effect_error(self, error, retry, message_effect_id, **kwargs) -> Optional["Message"]:
         if "EFFECT_ID_INVALID" in str(error) and message_effect_id and not retry:
             await self.publish_event.error_message_effect(message_effect_id)
             return await self.send(
@@ -121,7 +125,7 @@ class SendMessageService:
         always_show_photos,
         message_effect_id,
         retry,
-    ) -> Optional[Message]:
+    ) -> Optional["Message"]:
         ui_image = await self.ui_images_service.get_ui_image(image_key)
 
         if ui_image and (ui_image.show or always_show_photos):
@@ -142,7 +146,7 @@ class SendMessageService:
 
                 await self._handle_missing_image(image_key, ui_image.key)
 
-            except TelegramBadRequest as e:
+            except TelegramBadRequestService as e:
                 return await self._handle_effect_error(
                     e,
                     retry,
@@ -179,7 +183,7 @@ class SendMessageService:
 
     async def _send_with_file_id(
         self, chat_id, ui_image, message, reply_markup, parse_mode, message_effect_id, retry
-    ) -> Optional[Message]:
+    ) -> Optional["Message"]:
         try:
             return await self.tg_client.send_photo(
                 chat_id=chat_id,
@@ -195,7 +199,7 @@ class SendMessageService:
 
     async def _send_with_file(
         self, chat_id, ui_image, file_path, message, reply_markup, parse_mode, message_effect_id
-    ) -> Message:
+    ) -> "Message":
         msg = await self.tg_client.send_photo(
             chat_id=chat_id,
             file_path=file_path,
@@ -226,7 +230,7 @@ class SendMessageService:
         parse_mode,
         message_effect_id,
         retry,
-    ) -> Optional[Message]:
+    ) -> Optional["Message"]:
         try:
             return await self.tg_client.send_message(
                 chat_id,
@@ -235,7 +239,7 @@ class SendMessageService:
                 reply_markup=reply_markup,
                 message_effect_id=message_effect_id,
             )
-        except TelegramBadRequest as e:
+        except TelegramBadRequestService as e:
             return await self._handle_effect_error(
                 e,
                 retry,

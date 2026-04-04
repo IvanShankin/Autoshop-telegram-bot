@@ -3,7 +3,7 @@ from typing import Optional
 
 from aiocryptopay import AioCryptoPay, Networks
 
-from src.bot_actions.messages.schemas import EventSentLog
+from src.models.read_models import EventSentLog
 from src.infrastructure.rebbit_mq.producer import publish_event
 from src.config import get_config
 from src.services.database.replenishments_event.schemas import NewReplenishment

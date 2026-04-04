@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.bot_actions.messages.schemas import LogLevel
+from src.models.read_models import LogLevel
 from src.models.create_models.users import CreateUserAuditLogDTO, CreateWalletTransactionDTO
 from src.models.read_models import NewPurchaseAccount, NewPurchaseUniversal
 from src.services.events.publish_event_handler import PublishEventHandler

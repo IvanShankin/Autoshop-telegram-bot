@@ -5,7 +5,7 @@ from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboa
     Message
 
 from src.bot_actions.bot_instance import get_bot
-from src.bot_actions.messages.schemas import LogLevel, EventSentLog
+from src.models.read_models import LogLevel, EventSentLog
 from src.bot_actions.messages.send_stickers import send_sticker
 from src.infrastructure.rebbit_mq.producer import publish_event
 from src.config import get_global_rate_limit

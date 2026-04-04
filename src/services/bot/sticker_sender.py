@@ -1,18 +1,26 @@
-from src.bot_actions.messages.send_log import send_log
+from typing import TYPE_CHECKING
+
 from src.exceptions.domain import StickerNotFound
-from src.infrastructure.telegram.client import TelegramClient
+from src.models.read_models.events.message import LogLevel
+from src.services.events.publish_event_handler import PublishEventHandler
 from src.services.models.systems import StickersService
 from src.utils.core_logger import get_logger
+
+
+if TYPE_CHECKING:
+    from src.infrastructure.telegram.client import TelegramClient
 
 
 class StickerSender:
     def __init__(
         self,
-        tg_client: TelegramClient,
-        sticker_service: StickersService
+        tg_client: "TelegramClient",
+        sticker_service: StickersService,
+        publish_event_handler: PublishEventHandler,
     ):
         self.tg_client = tg_client
         self.sticker_service = sticker_service
+        self.publish_event_handler = publish_event_handler
 
 
     async def send(self, chat_id: int, key: str):
@@ -35,4 +43,7 @@ class StickerSender:
         except Exception as e:
             logger = get_logger(__name__)
             logger.exception("Ошибка при отправки стикера.\n")
-            await send_log(f"Ошибка при отправки стикера: \n{str(e)}")
+            await self.publish_event_handler.send_log(
+                text=f"Ошибка при отправки стикера: \n{str(e)}",
+                log_lvl=LogLevel.ERROR,
+            )

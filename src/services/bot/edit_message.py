@@ -1,15 +1,12 @@
 from logging import Logger
-from typing import Optional
-
-from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
-from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply
+from typing import Optional, TYPE_CHECKING, Union
 from pydantic import ValidationError
 
-from src.bot_actions.messages.schemas import LogLevel
+from src.models.read_models import LogLevel
 from src.exceptions.domain import StickerNotFound
+from src.exceptions.telegram import TelegramBadRequestService, TelegramForbiddenErrorService
 from src.infrastructure.files.file_system import FileStorage
 from src.infrastructure.files.path_builder import PathBuilder
-from src.infrastructure.telegram.client import TelegramClient
 from src.infrastructure.telegram.rate_limit import RateLimiter
 from src.models.update_models import UpdateUiImageDTO
 from src.models.update_models.bot_actions import EditMessagePhoto
@@ -19,11 +16,16 @@ from src.services.models.systems import UiImagesService
 from src.services.events.publish_event_handler import PublishEventHandler
 
 
+if TYPE_CHECKING:
+    from src.infrastructure.telegram.client import TelegramClient
+    from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply
+
+
 class EditMessageService:
 
     def __init__(
         self,
-        tg_client: TelegramClient,
+        tg_client: "TelegramClient",
         send_msg_service: SendMessageService,
         path_builder: PathBuilder,
         ui_images_service: UiImagesService,
@@ -54,7 +56,9 @@ class EditMessageService:
         image_key: Optional[str] = None,
         fallback_image_key: Optional[str] = None,
         event_message_key: Optional[str] = None,
-        reply_markup: InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply | None = None,
+        reply_markup: Optional[Union[
+            "InlineKeyboardMarkup", "ReplyKeyboardMarkup", "ReplyKeyboardRemove", "ForceReply"
+        ]] = None,
         parse_mode: Optional[str] = "HTML",
         always_show_photos: bool = False,
     ):
@@ -250,7 +254,7 @@ class EditMessageService:
             )
             return True
 
-        except TelegramBadRequest as e:
+        except TelegramBadRequestService as e:
             if self._is_message_not_modified_error(e):
                 self.logger.debug(f"[edit_message] Message not modified chat={chat_id} id={message_id}")
                 return None
@@ -263,7 +267,7 @@ class EditMessageService:
             self.logger.exception(f"[edit_message] TelegramBadRequest editing text: {e}")
             return False
 
-        except TelegramForbiddenError as e:
+        except TelegramForbiddenErrorService as e:
             self.logger.warning(f"[edit_message] Forbidden editing text chat={chat_id} id={message_id}: {e}")
             return False
         except Exception as e:
@@ -304,7 +308,7 @@ class EditMessageService:
                             key=ui_image.key, data=UpdateUiImageDTO(file_id=new_file_id),
                             make_commit=True, filling_redis=True
                         )
-            except TelegramBadRequest as e:
+            except TelegramBadRequestService as e:
                 # это не критичные ошибки
                 if 'canceled by new editMessageMedia request' in e.message or 'message is not modified' in e.message:
                     return True  # это сообщение уже обработано или не надо обрабатывать
@@ -343,14 +347,14 @@ class EditMessageService:
 
             return False
 
-        except TelegramBadRequest as e:
+        except TelegramBadRequestService as e:
             if self._is_message_not_found_error(e):
                 self.logger.info(
                     f"[edit_message] edit_message_media (upload) message not found, chat={chat_id} id={message_id}")
             else:
                 self.logger.exception(f"[edit_message] edit_message_media (upload) failed: {e}")
             return False
-        except TelegramForbiddenError as e:
+        except TelegramForbiddenErrorService as e:
             self.logger.warning(f"[edit_message] Forbidden editing media (upload): {e}")
             return False
         except Exception as e:
@@ -381,10 +385,10 @@ class EditMessageService:
             return True
         except ValidationError:  # если текс не передан
             return False
-        except TelegramForbiddenError as e:
+        except TelegramForbiddenErrorService as e:
             self.logger.warning(f"[edit_message] Forbidden editing media by file_id chat={chat_id} id={message_id}: {e}")
             return False
-        except TelegramBadRequest as e:
+        except TelegramBadRequestService as e:
             # это не критичные ошибки
             if 'canceled by new editMessageMedia request' in e.message or 'message is not modified' in e.message:
                 return True  # это сообщение уже обработано или не надо обрабатывать

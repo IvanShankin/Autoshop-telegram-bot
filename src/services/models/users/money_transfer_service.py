@@ -2,7 +2,7 @@ from logging import Logger
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.bot_actions.messages.schemas import LogLevel, EventSentLog
+from src.models.read_models import LogLevel, EventSentLog
 from src.config import Config
 from src.exceptions import UserNotFound, NotEnoughMoney
 from src.infrastructure.rebbit_mq.producer import publish_event

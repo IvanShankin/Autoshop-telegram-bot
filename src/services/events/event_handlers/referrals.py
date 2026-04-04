@@ -1,11 +1,10 @@
 from datetime import datetime
 
-from aiogram.exceptions import TelegramForbiddenError
-
-from src.bot_actions.messages import send_message
-from src.bot_actions.messages.schemas import LogLevel
+from src.models.read_models import LogLevel
 from src.config import get_config
+from src.exceptions.telegram import TelegramForbiddenErrorService
 from src.models.read_models import ReferralIncomeResult, ReferralReplenishmentCompleted
+from src.services.bot import SendMessageService
 from src.services.events.publish_event_handler import PublishEventHandler
 from src.services.models.referrals import ReferralService
 from src.services.models.users.notifications_service import NotificationSettingsService
@@ -20,10 +19,12 @@ class ReferralEventHandler:
         publish_event: PublishEventHandler,
         referral_service: ReferralService,
         notification_service: NotificationSettingsService,
+        send_msg_service: SendMessageService,
     ):
         self.publish_event = publish_event
         self.referral_service = referral_service
         self.notification_service = notification_service
+        self.send_msg_service = send_msg_service
 
     async def referral_event_handler(self, event):
         payload = event["payload"]
@@ -57,8 +58,8 @@ class ReferralEventHandler:
     async def _notify_owner_on_income(self, result: ReferralIncomeResult) -> None:
         try:
             message = self._build_referral_income_message(result)
-            await send_message(result.owner_user_id, message)
-        except TelegramForbiddenError:
+            await self.send_msg_service.send(result.owner_user_id, message)
+        except TelegramForbiddenErrorService:
             return
         except Exception as e:
             logger = get_logger(__name__)

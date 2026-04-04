@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from src.bot_actions.messages.schemas import EventSentLog, LogLevel
+from src.models.read_models import EventSentLog, LogLevel
 from src.config import Config
 from src.exceptions.business import AlreadyActivated
 from src.exceptions.domain import PromoCodeNotFound

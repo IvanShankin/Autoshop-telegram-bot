@@ -3,7 +3,6 @@ import os
 import shutil
 import sys
 import types
-from contextlib import asynccontextmanager
 from typing import Generator
 from unittest.mock import MagicMock
 
@@ -13,6 +12,7 @@ import pytest_asyncio
 
 from src.bot_actions.throttler import RateLimiter
 from src.config import get_config, set_config, Config, FilePathAndKey, FileKeysConf
+from src.infrastructure.redis import core
 from src.services.secrets import init_crypto_context
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeBot
 
@@ -22,12 +22,11 @@ fake_bot = FakeBot()
 async def replacement_redis(monkeypatch):
     redis = fakeredis.aioredis.FakeRedis()
 
-    @asynccontextmanager
-    async def get_fakeredis():
-        yield redis
+    def get_fakeredis():
+        return redis
 
-    # заменяем в core_redis
-    monkeypatch.setattr(core_redis, "get_redis", get_fakeredis)
+    # заменяем в core
+    monkeypatch.setattr(core, "get_redis", get_fakeredis)
 
     # заменяем во всех уже загруженных модулях, где есть get_redis
     for name, module in sys.modules.items():
@@ -234,7 +233,7 @@ async def create_crypto_context_fix():
 async def set_need_config():
     conf = get_config()
 
-    conf.app.type_account_services = ["telegram"]
+    # conf.app.type_account_services = ["telegram"]
 
     set_config(conf)
 

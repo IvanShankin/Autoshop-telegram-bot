@@ -1,7 +1,7 @@
 from typing import Optional
 
 from src.bot_actions.bot_instance import get_bot_logger
-from src.bot_actions.messages.schemas import LogLevel
+from src.models.read_models import LogLevel
 from src.config import get_config, get_global_rate_limit
 
 from src.services.database.system.actions import get_settings

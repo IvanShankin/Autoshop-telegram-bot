@@ -1,6 +1,6 @@
 from typing import Optional
 
-from src.bot_actions.messages.schemas import EventSentLog, LogLevel
+from src.models.read_models import EventSentLog, LogLevel
 from src.infrastructure.rebbit_mq.producer import publish_event
 from src.exceptions.business import InvalidQuantityProducts
 from src.services.database.categories.actions.purchases.accounts.cancel import cancel_purchase_request_accounts

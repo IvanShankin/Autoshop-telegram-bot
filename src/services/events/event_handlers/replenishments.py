@@ -1,9 +1,9 @@
 from datetime import datetime
 
-from src.bot_actions.messages import send_message
-from src.bot_actions.messages.schemas import LogLevel
+from src.models.read_models import LogLevel
 from src.config import get_config
 from src.models.read_models import NewReplenishment, ReplenishmentCompleted, ReplenishmentFailed
+from src.services.bot import SendMessageService
 from src.services.events.publish_event_handler import PublishEventHandler
 from src.services.models.users.replenishment_service import ReplenishmentsService
 from src.utils.core_logger import get_logger
@@ -16,10 +16,12 @@ class ReplenishmentsEventHandler:
     def __init__(
         self,
         publish_event: PublishEventHandler,
-        replenishment_service: ReplenishmentsService
+        replenishment_service: ReplenishmentsService,
+        send_msg_service: SendMessageService,
     ):
         self.publish_event = publish_event
         self.replenishment_service = replenishment_service
+        self.send_msg_service = send_msg_service
 
     async def replenishment_event_handler(self, event):
         payload = event["payload"]
@@ -56,7 +58,7 @@ class ReplenishmentsEventHandler:
             event.amount,
         ).format(sum=event.amount)
 
-        await send_message(event.user_id, message_success)
+        await self.send_msg_service.send(event.user_id, message_success)
 
         if not event.error:
             message_log = n_get_text(
@@ -94,7 +96,7 @@ class ReplenishmentsEventHandler:
             "error_while_replenishing",
         ).format(replenishment_id=event.replenishment_id)
 
-        await send_message(
+        await self.send_msg_service.send(
             event.user_id,
             message_for_user,
             reply_markup=await support_kb(event.language),

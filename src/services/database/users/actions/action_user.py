@@ -5,7 +5,7 @@ from dateutil.parser import parse
 from orjson import orjson
 from sqlalchemy import select, update, func
 
-from src.bot_actions.messages.schemas import LogLevel, EventSentLog
+from src.models.read_models import LogLevel, EventSentLog
 from src.infrastructure.rebbit_mq.producer import publish_event
 from src.services.database.admins.actions.actions_admin import add_admin_action
 from src.infrastructure.redis import get_redis

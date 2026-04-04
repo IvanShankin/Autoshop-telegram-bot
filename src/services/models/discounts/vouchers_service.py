@@ -3,7 +3,7 @@ from typing import Tuple, Optional, List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.bot_actions.messages.schemas import EventSentLog, LogLevel
+from src.models.read_models import EventSentLog, LogLevel
 from src.config import Config
 from src.database.models.discount import SmallVoucher
 from src.exceptions import NotEnoughMoney

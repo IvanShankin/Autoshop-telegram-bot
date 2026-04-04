@@ -1,21 +1,26 @@
 import asyncio
 import html
 import re
-from logging import Logger
-from typing import Optional, Tuple, AsyncGenerator
-
 import validators
-from aiogram.exceptions import TelegramForbiddenError, TelegramNotFound, TelegramRetryAfter
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+from logging import Logger
+from typing import Optional, Tuple, AsyncGenerator, TYPE_CHECKING
 
 from src.config import Config
 from src.exceptions import TextTooLong, TextNotLinc
-from src.infrastructure.telegram.client import TelegramClient
+from src.exceptions.telegram import TelegramRetryAfterService, TelegramForbiddenErrorService, TelegramNotFoundService
 from src.infrastructure.telegram.rate_limit import RateLimiter
 from src.models.create_models.admins import CreateSentMassMessages
+from src.models.telegram import InlineKeyboardMarkupService, InlineKeyboardButtonService
 from src.repository.database.users import UsersRepository
 from src.services.filesystem.actions import copy_file
 from src.services.models.admins import SentMassMessagesService
+
+
+if TYPE_CHECKING:
+    from src.infrastructure.telegram.client import TelegramClient
+    from aiogram.types import InlineKeyboardMarkup
+
 
 MAX_CHARS_WITH_PHOTO = 1024
 MAX_CHARS_WITHOUT_PHOTO = 4096
@@ -27,7 +32,7 @@ class MassTgMailingService:
 
     def __init__(
         self,
-        tg_client: TelegramClient,
+        tg_client: "TelegramClient",
         limiter: RateLimiter,
         users_repo: UsersRepository,
         sent_mass_msg_service: SentMassMessagesService,
@@ -63,7 +68,7 @@ class MassTgMailingService:
         show_image: bool,
         photo_path: Optional[str] = None,
         button_url: Optional[str] = None,
-    ) -> Tuple[str, Optional[str],  Optional[str], Optional[InlineKeyboardMarkup]]:
+    ) -> Tuple[str, Optional[str],  Optional[str], Optional["InlineKeyboardMarkup"]]:
         """
         Проверяет входные данные и возвращает кортеж
         :return: Tuple (text, photo_id_or_None, new_photo_path_or_None, inline_kb_or_None)
@@ -91,8 +96,9 @@ class MassTgMailingService:
             if not validators.url(button_url):
                 raise TextNotLinc()
 
-            inline_kb = InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text="Open", url=button_url)]
+            self.tg_client.get_inline_keyboard_markup()
+            inline_kb = InlineKeyboardMarkupService(inline_keyboard=[
+                [InlineKeyboardButtonService(text="Open", url=button_url)]
             ])
 
         photo_id = None
@@ -133,7 +139,7 @@ class MassTgMailingService:
         user_id: int,
         text: str,
         file_id: str,
-        inline_kb: Optional[InlineKeyboardMarkup],
+        inline_kb: Optional["InlineKeyboardMarkup"],
     ) -> Tuple[int, bool, Optional[Exception]]:
         """
         Пытается отправить одному пользователю.
@@ -152,10 +158,10 @@ class MassTgMailingService:
                     await self.tg_client.send_message(user_id, text=text, reply_markup=inline_kb, parse_mode="HTML")
                 return user_id, True, None
 
-            except TelegramRetryAfter as e:
+            except TelegramRetryAfterService as e:
                 return user_id, False, e
 
-            except (TelegramForbiddenError, TelegramNotFound) as e:
+            except (TelegramForbiddenErrorService, TelegramNotFoundService) as e:
                 return user_id, False, e
 
             except Exception as e:

@@ -11,9 +11,9 @@ from src.config import get_config
 from src.container import init_container
 from src.infrastructure.telegram.client import TelegramClient
 from src.modules.keyboard_main import support_kb
-from src.services.database.admins.actions import check_admin
-from src.services.database.system.actions import get_settings
-from src.services.database.users.actions import get_user, get_banned_account
+from src.services._database.admins.actions import check_admin
+from src.services._database.system.actions import get_settings
+from src.services._database.users.actions import get_user, get_banned_account
 from src.utils.i18n import get_text
 
 

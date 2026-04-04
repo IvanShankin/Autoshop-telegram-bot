@@ -375,7 +375,7 @@ async def test_confirm_buy_acc_invalid_promo_alerts_user(
     async def fake_discount_calculation(amount, promo_code_id=None):
         raise InvalidPromoCode()
 
-    from src.services.database.discounts.utils import calculation
+    from src.services._database.discounts.utils import calculation
     monkeypatch.setattr(calculation, "discount_calculation", fake_discount_calculation)
 
     cb = FakeCallbackQuery(data=f"confirm_buy_category:{category.category_id}:1:9999", chat_id=user.user_id, username=user.username)

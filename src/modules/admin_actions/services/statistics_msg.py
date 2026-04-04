@@ -1,4 +1,4 @@
-from src.services.database.system.actions.actions import get_statistics
+from src.services._database.system.actions.actions import get_statistics
 from src.utils.i18n import get_text
 
 

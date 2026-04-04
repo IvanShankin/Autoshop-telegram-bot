@@ -34,8 +34,8 @@ class TestFinalizePurchase:
         - PurchaseRequests.status == 'completed', BalanceHolder.status == 'used',
         - publish_event вызван как для промокода, так и для purchase.account.
         """
-        from src.services.database.categories.actions.purchases.accounts import finalize as finalize_mod
-        from src.services.database.categories.actions.purchases.accounts.finalize import finalize_purchase_accounts
+        from src.services._database.categories.actions.purchases.accounts import finalize as finalize_mod
+        from src.services._database.categories.actions.purchases.accounts.finalize import finalize_purchase_accounts
 
         # подготовка: пользователь, категория, продукт
         user = await create_new_user(balance=1000)
@@ -146,8 +146,8 @@ class TestFinalizePurchase:
         Если move_file вернул False — должен вызвать send_log и cancel_purchase_request_accounts, и не создать SoldAccounts.
         Здесь мы мокируем cancel_purchase_request_accounts, чтобы проверить только факт вызова.
         """
-        from src.services.database.categories.actions.purchases.accounts import finalize as finalize_mod
-        from src.services.database.categories.actions.purchases.accounts.finalize import finalize_purchase_accounts
+        from src.services._database.categories.actions.purchases.accounts import finalize as finalize_mod
+        from src.services._database.categories.actions.purchases.accounts.finalize import finalize_purchase_accounts
 
         user = await create_new_user()
         cat = await create_category()
@@ -216,8 +216,8 @@ class TestFinalizePurchase:
         Здесь позволим cancel_purchase_request_accounts выполнить реальные откаты (не мокируем).
         После выполнения ожидаем, что SoldAccounts/Purchases удалены и PurchaseRequests.status == 'failed'
         """
-        from src.services.database.categories.actions.purchases.accounts import finalize as finalize_mod
-        from src.services.database.categories.actions.purchases.accounts.finalize import finalize_purchase_accounts
+        from src.services._database.categories.actions.purchases.accounts import finalize as finalize_mod
+        from src.services._database.categories.actions.purchases.accounts.finalize import finalize_purchase_accounts
 
         user = await create_new_user()
         cat = await create_category()

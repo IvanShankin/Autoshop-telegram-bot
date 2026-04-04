@@ -17,7 +17,7 @@ from src.exceptions.domain import UniversalStorageNotFound
 
 @pytest.mark.asyncio
 async def test_add_universal_storage(create_category):
-    from src.services.database.categories.actions import add_universal_storage
+    from src.services._database.categories.actions import add_universal_storage
 
     await create_category(filling_redis=False)
 
@@ -56,7 +56,7 @@ async def test_add_universal_storage(create_category):
 
 @pytest.mark.asyncio
 async def test_add_translate_in_universal_storage(create_universal_storage):
-    from src.services.database.categories.actions import add_translate_in_universal_storage
+    from src.services._database.categories.actions import add_translate_in_universal_storage
 
     # create storage with default 'ru' translation
     storage, _ = await create_universal_storage()
@@ -97,8 +97,8 @@ async def test_add_translate_in_universal_storage(create_universal_storage):
 
 @pytest.mark.asyncio
 async def test_add_product_universal(create_category, create_universal_storage):
-    from src.services.database.categories.actions import add_product_universal
-    from src.services.database.categories.actions import get_category_by_category_id
+    from src.services._database.categories.actions import add_product_universal
+    from src.services._database.categories.actions import get_category_by_category_id
 
     category = await create_category(is_product_storage=True)
     storage, pyd = await create_universal_storage()
@@ -137,7 +137,7 @@ async def test_add_product_universal(create_category, create_universal_storage):
 
 @pytest.mark.asyncio
 async def test_add_sold_universal(create_new_user, create_universal_storage):
-    from src.services.database.categories.actions import add_sold_universal
+    from src.services._database.categories.actions import add_sold_universal
 
     user = await create_new_user()
     storage, pyd = await create_universal_storage()
@@ -170,7 +170,7 @@ async def test_add_sold_universal(create_new_user, create_universal_storage):
 
 @pytest.mark.asyncio
 async def test_add_sold_universal_errors(create_new_user, create_universal_storage):
-    from src.services.database.categories.actions import add_sold_universal
+    from src.services._database.categories.actions import add_sold_universal
 
     # non-existing user -> expect UserNotFound
     with pytest.raises(UserNotFound):

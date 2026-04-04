@@ -5,7 +5,7 @@ from sqlalchemy import delete, select
 from tests.helpers.helper_functions import parse_redis_user, comparison_models
 from src.exceptions import UserNotFound, NotEnoughMoney
 from src.database.models.admins import AdminActions
-from src.services.database.users.actions.action_user import get_user_by_ref_code
+from src.services._database.users.actions.action_user import get_user_by_ref_code
 from src.database.models.users import Users, NotificationSettings, BannedAccounts, WalletTransaction, \
     TransferMoneys, \
     UserAuditLogs, Replenishments
@@ -23,7 +23,7 @@ from src.infrastructure.redis import get_redis
     ]
 )
 async def test_get_user(use_redis, create_new_user):
-    from src.services.database.users.actions import get_user
+    from src.services._database.users.actions import get_user
     user = await create_new_user()
     if use_redis:
         async with get_redis() as session_redis:
@@ -59,7 +59,7 @@ async def test_get_user_by_ref_code(create_new_user):
 @pytest.mark.asyncio
 async def test_update_user(create_new_user):
     """Проверяем, что update_user меняет данные в БД и Redis"""
-    from src.services.database.users.actions import update_user
+    from src.services._database.users.actions import update_user
     # изменяем данные пользователя
     user = await create_new_user()
 
@@ -100,7 +100,7 @@ async def test_add_new_user_creates_records_and_logs(
         clean_db
 ):
     """Проверяет создание пользователя, уведомлений, логов и запись в Redis"""
-    from src.services.database.users.actions import add_new_user
+    from src.services._database.users.actions import add_new_user
 
     fake_bot = replacement_fake_bot_fix
     user_id = 101
@@ -132,7 +132,7 @@ async def test_add_new_user_creates_records_and_logs(
 @pytest.mark.asyncio
 async def test_update_notification_updates_correctly(replacement_fake_bot_fix, create_new_user):
     """Проверяем, что update_notification обновляет флаги корректно"""
-    from src.services.database.users.actions import update_notification
+    from src.services._database.users.actions import update_notification
     user = await create_new_user()
 
     updated = await update_notification(
@@ -154,7 +154,7 @@ async def test_update_notification_updates_correctly(replacement_fake_bot_fix, c
 @pytest.mark.asyncio
 async def test_add_banned_account_creates_ban_and_log(replacement_fake_bot_fix, create_new_user):
     """Проверяем, что при добавлении бана создаётся запись в БД, Redis и лог"""
-    from src.services.database.users.actions import add_banned_account
+    from src.services._database.users.actions import add_banned_account
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
@@ -183,7 +183,7 @@ async def test_add_banned_account_creates_ban_and_log(replacement_fake_bot_fix, 
 @pytest.mark.asyncio
 async def test_add_banned_account_user_not_found(replacement_fake_bot_fix):
     """Если пользователя нет — должно выбрасываться исключение UserNotFound"""
-    from src.services.database.users.actions import add_banned_account
+    from src.services._database.users.actions import add_banned_account
     with pytest.raises(UserNotFound):
         await add_banned_account(1, 999999, "reason")
 
@@ -191,8 +191,8 @@ async def test_add_banned_account_user_not_found(replacement_fake_bot_fix):
 @pytest.mark.asyncio
 async def test_delete_banned_account_removes_data(replacement_fake_bot_fix, create_new_user):
     """Проверяет, что при удалении бана — Redis очищается, запись удаляется, лог пишется"""
-    from src.services.database.users.actions import add_banned_account
-    from src.services.database.users.actions import delete_banned_account
+    from src.services._database.users.actions import add_banned_account
+    from src.services._database.users.actions import delete_banned_account
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
@@ -218,14 +218,14 @@ async def test_delete_banned_account_removes_data(replacement_fake_bot_fix, crea
 @pytest.mark.asyncio
 async def test_delete_banned_account_not_found(replacement_fake_bot_fix):
     """Если в Redis нет ключа — должно выбрасываться UserNotFound"""
-    from src.services.database.users.actions import delete_banned_account
+    from src.services._database.users.actions import delete_banned_account
     with pytest.raises(UserNotFound):
         await delete_banned_account(1, 999999)
 
 
 @pytest.mark.asyncio
 async def test_get_wallet_transaction(replacement_fake_bot_fix, create_new_user):
-    from src.services.database.users.actions import get_wallet_transaction
+    from src.services._database.users.actions import get_wallet_transaction
     user = await create_new_user()
     record = WalletTransaction(
         user_id=user.user_id,
@@ -245,7 +245,7 @@ async def test_get_wallet_transaction(replacement_fake_bot_fix, create_new_user)
 
 @pytest.mark.asyncio
 async def test_get_wallet_transaction_page(replacement_fake_bot_fix, create_new_user, create_wallet_transaction):
-    from src.services.database.users.actions import get_wallet_transaction_page
+    from src.services._database.users.actions import get_wallet_transaction_page
 
     user = await create_new_user()
     transaction_1 = await create_wallet_transaction(user.user_id, amount=100)
@@ -261,7 +261,7 @@ async def test_get_wallet_transaction_page(replacement_fake_bot_fix, create_new_
 
 @pytest.mark.asyncio
 async def test_get_income_from_referral(replacement_fake_bot_fix, create_new_user, create_wallet_transaction):
-    from src.services.database.users.actions import get_count_wallet_transaction
+    from src.services._database.users.actions import get_count_wallet_transaction
 
     user = await create_new_user()
     transaction_1 = await create_wallet_transaction(user.user_id, amount=100)
@@ -274,7 +274,7 @@ async def test_get_income_from_referral(replacement_fake_bot_fix, create_new_use
 
 @pytest.mark.asyncio
 async def test_money_transfer(replacement_fake_bot_fix, create_new_user):
-    from src.services.database.users.actions import money_transfer
+    from src.services._database.users.actions import money_transfer
     sender = await create_new_user(balance=100)
     recipient = await create_new_user()
 
@@ -316,7 +316,7 @@ async def test_money_transfer(replacement_fake_bot_fix, create_new_user):
 @pytest.mark.asyncio
 async def test_money_transfer_not_enough_money(replacement_fake_bot_fix, create_new_user):
     """Тест на исключение нет денег"""
-    from src.services.database.users.actions import money_transfer
+    from src.services._database.users.actions import money_transfer
 
     sender = await create_new_user(balance=50)
     recipient = await create_new_user(balance=0)
@@ -342,7 +342,7 @@ async def test_money_transfer_not_enough_money(replacement_fake_bot_fix, create_
 @pytest.mark.asyncio
 async def test_money_transfer_user_not_found(replacement_fake_bot_fix, create_new_user):
     """Тест на исключение не найдено пользователя"""
-    from src.services.database.users.actions import money_transfer
+    from src.services._database.users.actions import money_transfer
     # создаём только получателя
     recipient = await create_new_user(balance=0)
 
@@ -361,8 +361,8 @@ async def test_money_transfer_integrity_error_rollback(monkeypatch, replacement_
     Симулируем ошибку при создании TransferMoneys (бросаем Exception),
     ожидаем откат (балансы не меняются), и что send_log был вызван.
     """
-    from src.services.database.users.actions import money_transfer
-    from src.services.database.users.actions import action_other_with_user as money_module
+    from src.services._database.users.actions import money_transfer
+    from src.services._database.users.actions import action_other_with_user as money_module
 
     sender = await create_new_user(balance=100)
     recipient = await create_new_user(balance=0)
@@ -400,7 +400,7 @@ async def test_money_transfer_integrity_error_rollback(monkeypatch, replacement_
 
 @pytest.mark.asyncio
 async def test_get_replenishment(replacement_fake_bot_fix, create_new_user, create_replenishment):
-    from src.services.database.users.actions import get_replenishment
+    from src.services._database.users.actions import get_replenishment
 
     replenishment = await create_replenishment(amount=100)
     replenishment_res = await get_replenishment(replenishment.replenishment_id)
@@ -409,7 +409,7 @@ async def test_get_replenishment(replacement_fake_bot_fix, create_new_user, crea
 
 @pytest.mark.asyncio
 async def test_create_replenishment(replacement_fake_bot_fix, create_new_user, create_type_payment):
-    from src.services.database.users.actions import create_replenishment
+    from src.services._database.users.actions import create_replenishment
 
     user = await create_new_user()
     type_payment = await create_type_payment()
@@ -431,7 +431,7 @@ async def test_create_replenishment(replacement_fake_bot_fix, create_new_user, c
 
 @pytest.mark.asyncio
 async def test_update_replenishment(replacement_fake_bot_fix, create_new_user, create_replenishment):
-    from src.services.database.users.actions import update_replenishment
+    from src.services._database.users.actions import update_replenishment
 
     replenishment = await create_replenishment(amount=100)
 
@@ -453,7 +453,7 @@ async def test_update_replenishment(replacement_fake_bot_fix, create_new_user, c
 
 @pytest.mark.asyncio
 async def test_admin_update_user_balance(replacement_fake_bot_fix, create_new_user, create_admin_fix):
-    from src.services.database.users.actions import admin_update_user_balance
+    from src.services._database.users.actions import admin_update_user_balance
     user = await create_new_user()
     admin = await create_admin_fix()
 

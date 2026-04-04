@@ -115,7 +115,7 @@ async def test_transfer_recipient_not_found(
         if arg_id == user.user_id:
             return user
         return None
-    from src.services.database.users import actions as moduls
+    from src.services._database.users import actions as moduls
     monkeypatch.setattr(moduls, "get_user", fake_get_user)
 
 
@@ -158,7 +158,7 @@ async def test_confirm_transfer_money_user_not_found_exception(
     # заставим money_transfer бросить исключение UserNotFound
     async def fake_money_transfer(sender_id, recipient_id, amount):
         raise UserNotFound()
-    from src.services.database.users.actions import action_other_with_user as modul
+    from src.services._database.users.actions import action_other_with_user as modul
     monkeypatch.setattr(modul,"money_transfer", fake_money_transfer)
 
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery

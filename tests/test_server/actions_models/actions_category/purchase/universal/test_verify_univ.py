@@ -23,7 +23,7 @@ class TestVerifyReservedUniversalOne:
         allow_multiple_purchase=True
         Продукт валиден → возвращается True, ничего не удаляется.
         """
-        from src.services.database.categories.actions.purchases.universal.verify import verify_reserved_universal_one
+        from src.services._database.categories.actions.purchases.universal.verify import verify_reserved_universal_one
 
         category = await create_category(allow_multiple_purchase=True)
         _, product_full = await create_product_universal(category_id=category.category_id)
@@ -43,8 +43,8 @@ class TestVerifyReservedUniversalOne:
         allow_multiple_purchase=True
         Продукт невалиден → удаляется, возвращается False.
         """
-        from src.services.database.categories.actions.purchases.universal import verify
-        from src.services.database.categories.actions.purchases.universal.verify import (
+        from src.services._database.categories.actions.purchases.universal import verify
+        from src.services._database.categories.actions.purchases.universal.verify import (
             verify_reserved_universal_one,
         )
 
@@ -81,7 +81,7 @@ class TestVerifyReservedUniversalDifferent:
         """
         Все зарезервированные универсальные продукты валидны → возвращается тот же список.
         """
-        from src.services.database.categories.actions.purchases.universal.verify import (
+        from src.services._database.categories.actions.purchases.universal.verify import (
             verify_reserved_universal_different,
         )
 
@@ -114,8 +114,8 @@ class TestVerifyReservedUniversalDifferent:
         """
         Один продукт невалиден, но найден валидный кандидат → замена успешна.
         """
-        from src.services.database.categories.actions.purchases.universal import verify
-        from src.services.database.categories.actions.purchases.universal.verify import (
+        from src.services._database.categories.actions.purchases.universal import verify
+        from src.services._database.categories.actions.purchases.universal.verify import (
             verify_reserved_universal_different,
         )
 
@@ -160,8 +160,8 @@ class TestVerifyReservedUniversalDifferent:
         """
         Все невалидны и нет кандидатов → возвращается False, все удалены.
         """
-        from src.services.database.categories.actions.purchases.universal import verify
-        from src.services.database.categories.actions.purchases.universal.verify import (
+        from src.services._database.categories.actions.purchases.universal import verify
+        from src.services._database.categories.actions.purchases.universal.verify import (
             verify_reserved_universal_different,
         )
 
@@ -205,8 +205,8 @@ class TestVerifyReservedUniversalDifferent:
         """
         Часть валидна, часть нет, кандидатов недостаточно → False.
         """
-        from src.services.database.categories.actions.purchases.universal import verify
-        from src.services.database.categories.actions.purchases.universal.verify import (
+        from src.services._database.categories.actions.purchases.universal import verify
+        from src.services._database.categories.actions.purchases.universal.verify import (
             verify_reserved_universal_different,
         )
 

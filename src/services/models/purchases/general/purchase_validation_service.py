@@ -6,7 +6,7 @@ from src.exceptions.domain import UserNotFound
 from src.models.read_models import ResultCheckCategory
 from src.repository.database.categories import CategoriesRepository
 from src.repository.database.users import UsersRepository
-from src.services.database.discounts.utils.calculation import discount_calculation
+from src.services._database.discounts.utils.calculation import discount_calculation
 from src.models.read_models import CategoryFull
 
 

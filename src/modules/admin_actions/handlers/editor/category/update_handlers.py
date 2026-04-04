@@ -18,10 +18,10 @@ from src.modules.admin_actions.services.editor.category.category_updater import 
 from src.modules.admin_actions.services.editor.category.show_message import show_category_update_data
 from src.modules.admin_actions.state import UpdateNameForCategory, \
     UpdateDescriptionForCategory, UpdateCategoryImage, UpdateNumberInCategory
-from src.services.database.categories.actions import update_category, \
+from src.services._database.categories.actions import update_category, \
     update_category_translation
 from src.database.models.categories import ProductType, AccountServiceType, UniversalMediaType
-from src.services.database.system.actions import update_ui_image
+from src.services._database.system.actions import update_ui_image
 from src.database.models.users import Users
 from src.utils.i18n import get_text
 

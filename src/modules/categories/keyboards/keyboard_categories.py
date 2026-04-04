@@ -2,9 +2,9 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.bot_actions.bot_instance import get_bot
-from src.services.database.categories.actions import get_categories
+from src.services._database.categories.actions import get_categories
 from src.models.read_models import CategoryFull
-from src.services.database.system.actions import get_settings
+from src.services._database.system.actions import get_settings
 from src.utils.i18n import get_text
 
 

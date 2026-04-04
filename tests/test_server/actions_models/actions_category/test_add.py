@@ -9,7 +9,7 @@ from src.infrastructure.redis import get_redis
 
 @pytest.mark.asyncio
 async def test_add_translation_in_category(replacement_needed_modules, create_category):
-    from src.services.database.categories.actions import add_translation_in_category
+    from src.services._database.categories.actions import add_translation_in_category
     category = await create_category(filling_redis=False)
 
     # Успешное добавление перевода
@@ -60,7 +60,7 @@ async def test_add_translation_in_category(replacement_needed_modules, create_ca
 
 @pytest.mark.asyncio
 async def test_add_category(replacement_needed_modules):
-    from src.services.database.categories.actions import add_category
+    from src.services._database.categories.actions import add_category
 
     # Успешное добавление
     category = await add_category(

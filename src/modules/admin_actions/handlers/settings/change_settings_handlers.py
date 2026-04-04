@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery, Message
 from src.modules.admin_actions.services.settings_updater import message_change_settings, message_request_new_data, \
     update_admin_settings
 from src.modules.admin_actions.state.settings import UpdateAdminSettings
-from src.services.database.system.actions import get_settings, update_settings
+from src.services._database.system.actions import get_settings, update_settings
 from src.database.models.users import Users
 from src.utils.i18n import get_text
 

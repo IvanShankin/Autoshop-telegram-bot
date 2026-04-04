@@ -28,7 +28,7 @@ async def test_purchase_accounts_success(
       - AccountStorage.status -> 'bought',
       - файлы переехали в финальный путь (create_path_account(...)).
     """
-    from src.services.database.categories.actions.purchases import main_purchase as action_mod
+    from src.services._database.categories.actions.purchases import main_purchase as action_mod
     from src.services.products.accounts.tg import actions
     from src.services.filesystem.media_paths import create_path_account
 
@@ -125,7 +125,7 @@ async def test_purchase_accounts_fail_no_replacement(
       - AccountStorage.status возвращён в 'for_sale'
       - баланс пользователя восстановлен
     """
-    from src.services.database.categories.actions.purchases.main_purchase import purchase_accounts
+    from src.services._database.categories.actions.purchases.main_purchase import purchase_accounts
     from src.services.products.accounts.tg import actions
     from src.services.filesystem.media_paths import create_path_account
 

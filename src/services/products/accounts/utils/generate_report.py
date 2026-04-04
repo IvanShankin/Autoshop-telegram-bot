@@ -1,5 +1,5 @@
 from src.config import get_config
-from src.services.database.users.actions.action_other_with_user import get_all_user_audit_logs
+from src.services._database.users.actions.action_other_with_user import get_all_user_audit_logs
 from src.services.filesystem.account_products import make_csv_bytes
 
 

@@ -9,7 +9,7 @@ from src.modules.admin_actions.schemas import GetTypePaymentNameData, GetTypePay
 from src.modules.admin_actions.services import safe_get_type_payment
 from src.modules.admin_actions.services import message_type_payment
 from src.modules.admin_actions.state import GetTypePaymentName, GetTypePaymentCommission
-from src.services.database.system.actions.actions import update_type_payment
+from src.services._database.system.actions.actions import update_type_payment
 from src.database.models.users import Users
 from src.utils.converter import safe_float_conversion
 from src.utils.i18n import get_text

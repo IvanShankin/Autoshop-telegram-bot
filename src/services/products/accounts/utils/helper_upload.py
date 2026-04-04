@@ -1,7 +1,7 @@
 from typing import List
 
 from src.exceptions import ProductAccountNotFound
-from src.services.database.categories.actions import get_product_account_by_category_id
+from src.services._database.categories.actions import get_product_account_by_category_id
 from src.models.read_models import ProductAccountFull
 
 

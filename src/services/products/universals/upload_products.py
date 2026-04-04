@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import List, AsyncGenerator
 
 from src.exceptions import ProductNotFound
-from src.services.database.categories.actions.products.universal.actions_get import \
+from src.services._database.categories.actions.products.universal.actions_get import \
     get_product_universal_by_category_id, get_translations_universal_storage
 from src.models.read_models import CategoryFull, ProductUniversalFull
 from src.services.filesystem.actions import create_temp_dir

@@ -12,7 +12,7 @@ from src.database.models.categories import Categories, CategoryTranslation
 class TestUpdateCategory:
     @pytest.mark.asyncio
     async def test_update_category_index_reorder_and_redis(self, create_category):
-        from src.services.database.categories.actions import update_category
+        from src.services._database.categories.actions import update_category
         # Создаём один сервис и три категории (main) с индексами 0,1,2
         c1 = await create_category(filling_redis=True, language="ru", name="c1")
         c2 = await create_category(filling_redis=True, language="ru", name="c2")
@@ -71,7 +71,7 @@ class TestUpdateCategory:
             create_product_account,
             create_ui_image
     ):
-        from src.services.database.categories.actions import update_category
+        from src.services._database.categories.actions import update_category
         from src.services.filesystem.actions import get_default_image_bytes
 
         old_ui_image, _ = await create_ui_image()
@@ -98,7 +98,7 @@ class TestUpdateCategory:
         create_category,
         create_product_account
     ):
-        from src.services.database.categories.actions import update_category
+        from src.services._database.categories.actions import update_category
 
         cat = await create_category(
             filling_redis=False,
@@ -141,7 +141,7 @@ class TestUpdateCategory:
 class TestUpdateAccountCategoryTranslation:
     @pytest.mark.asyncio
     async def test_update_account_category_translation_success(self,create_category):
-        from src.services.database.categories.actions import update_category_translation
+        from src.services._database.categories.actions import update_category_translation
 
         full_category = await create_category(filling_redis=True, language="ru", name="orig", description="orig")
 
@@ -194,7 +194,7 @@ class TestUpdateAccountCategoryTranslation:
 
     @pytest.mark.asyncio
     async def test_update_account_category_translation_errors(self, create_category):
-        from src.services.database.categories.actions import update_category_translation
+        from src.services._database.categories.actions import update_category_translation
         # несуществующая категория
         with pytest.raises(AccountCategoryNotFound):
             await update_category_translation(category_id=999999, language="ru", name="x")

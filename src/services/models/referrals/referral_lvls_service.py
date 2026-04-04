@@ -11,7 +11,7 @@ from src.models.read_models.other import ReferralLevelsDTO
 from src.models.update_models.referrals import UpdateReferralLevelDTO
 from src.repository.database.refferals import ReferralLevelsRepository
 from src.repository.redis import ReferralLevelsCacheRepository
-from src.services.database.core.filling_database import filling_referral_lvl as filling_referral_lvl_in_db
+from src.services._database.core.filling_database import filling_referral_lvl as filling_referral_lvl_in_db
 
 
 class ReferralLevelsService:

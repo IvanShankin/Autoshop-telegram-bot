@@ -2,12 +2,12 @@ import asyncio
 
 from src.infrastructure.rebbit_mq._consumer import start_background_consumer, stop_background_consumer
 from src.deferred_tasks.core import init_scheduler
-from src.services.database.backups.backup_db import add_backup_create, add_backup_cleanup
-from src.services.database.core.filling_database import create_database
+from src.services._database.backups.backup_db import add_backup_create, add_backup_cleanup
+from src.services._database.core.filling_database import create_database
 from src.services.fastapi_core.server import start_server
 from src.infrastructure.redis import init_redis, close_redis
 from src.services.redis.filling import filling_all_redis
-from src.services.database.discounts.utils.set_not_valid import deactivate_expired_promo_codes_and_vouchers
+from src.services._database.discounts.utils.set_not_valid import deactivate_expired_promo_codes_and_vouchers
 from src.infrastructure.telegram.bot_run import run_bot
 from src.services.redis.tasks import start_dollar_rate_scheduler
 from src.services.secrets import init_crypto_context

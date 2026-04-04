@@ -32,7 +32,7 @@ load_dotenv()  # Загружает переменные из .env
 MODE = os.getenv('MODE')
 RABBITMQ_URL = os.getenv('RABBITMQ_URL')
 import pytest_asyncio
-from src.services.database.core.filling_database import create_database
+from src.services._database.core.filling_database import create_database
 
 consumer_started = False
 

@@ -10,7 +10,7 @@ from src.bot_actions.messages.send_stickers import send_sticker
 from src.infrastructure.rebbit_mq.producer import publish_event
 from src.config import get_global_rate_limit
 from src.exceptions.domain import StickerNotFound
-from src.services.database.system.actions import get_ui_image, update_ui_image
+from src.services._database.system.actions import get_ui_image, update_ui_image
 from src.services.filesystem.actions import check_file_exists
 from src.services.filesystem.media_paths import create_path_ui_image
 from src.services.filesystem.schemas import EventCreateUiImage

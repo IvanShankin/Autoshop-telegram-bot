@@ -6,7 +6,7 @@ from src.infrastructure.rebbit_mq.producer import publish_event
 from src.exceptions import InvalidFormatRows, CategoryNotFound, TheCategoryNotStorageAccount
 from src.services.filesystem.csv_parse import parse_csv_from_bytes
 from src.services.products.accounts.other.shemas import AccountImportData, ImportResult, REQUIRED_HEADERS
-from src.services.database.categories.actions import add_account_storage, add_product_account
+from src.services._database.categories.actions import add_account_storage, add_product_account
 from src.database.models.categories import AccountServiceType
 from src.services.filesystem.account_products import make_csv_bytes
 from src.utils.core_logger import get_logger

@@ -21,13 +21,13 @@ async def create_database():
             database_exists = result.scalar() == 1
 
             if not database_exists: # если БД нет
-                logging.info(f"Creating database {conf.env.db_name}...")
+                logging.info(f"Creating _database {conf.env.db_name}...")
                 await conn.execute(text(f"CREATE DATABASE {conf.env.db_name}"))
                 logging.info(f"Database {conf.env.db_name} created successfully")
             else:
                 logging.info(f"Database {conf.env.db_name} already exists")
     except Exception as e:
-        logging.error(f"Error checking/creating database: {e}")
+        logging.error(f"Error checking/creating _database: {e}")
         raise
     finally:
         await engine.dispose()
@@ -36,7 +36,7 @@ async def create_database():
     engine = create_async_engine(conf.db_connection.sql_db_url)
     try:
         async with engine.begin() as conn:
-            logging.info("Creating database tables...")
+            logging.info("Creating _database tables...")
             await conn.run_sync(Base.metadata.create_all)
             logging.info("Database tables created successfully")
     except Exception as e:

@@ -6,8 +6,8 @@ from aiocryptopay import AioCryptoPay, Networks
 from src.models.read_models import EventSentLog
 from src.infrastructure.rebbit_mq.producer import publish_event
 from src.config import get_config
-from src.services.database.replenishments_event.schemas import NewReplenishment
-from src.services.database.users.actions import create_replenishment, update_replenishment
+from src.services._database.replenishments_event.schemas import NewReplenishment
+from src.services._database.users.actions import create_replenishment, update_replenishment
 from src.infrastructure.redis import get_redis
 from src.utils.core_logger import get_logger
 

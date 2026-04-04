@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.config import get_config
-from src.services.database.referrals.actions import get_referral_lvl
+from src.services._database.referrals.actions import get_referral_lvl
 from src.utils.i18n import get_text
 
 

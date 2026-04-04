@@ -4,7 +4,7 @@ from typing import Optional
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from src.config import get_config
-from src.services.database.categories.actions.products.universal.actions_get import get_sold_universal_by_page, \
+from src.services._database.categories.actions.products.universal.actions_get import get_sold_universal_by_page, \
     get_count_sold_universal
 from src.models.read_models import SoldUniversalSmall
 from src.services.keyboards.keyboard_with_pages import pagination_keyboard

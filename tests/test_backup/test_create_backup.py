@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import select
 
 from src.deferred_tasks.core import init_scheduler
-from src.services.database.backups.backup_db import backup_database, add_backup_create
+from src.services._database.backups.backup_db import backup_database, add_backup_create
 from src.database import get_db
 from src.database.models.system import BackupLogs
 
@@ -19,7 +19,7 @@ async def test_backup_database_happy_path(
     async def fake_dump_postgres_db(*, output_file: Path, **kwargs):
         output_file.write_bytes(b"FAKE_DB_DUMP")
 
-    from src.services.database.backups import backup_db as core_modul
+    from src.services._database.backups import backup_db as core_modul
     monkeypatch.setattr(
         core_modul,
         "dump_postgres_db",

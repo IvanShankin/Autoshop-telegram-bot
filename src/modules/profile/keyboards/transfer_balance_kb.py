@@ -4,8 +4,8 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.config import get_config
-from src.services.database.discounts.actions import get_count_voucher
-from src.services.database.discounts.actions import get_valid_voucher_by_page
+from src.services._database.discounts.actions import get_count_voucher
+from src.services._database.discounts.actions import get_valid_voucher_by_page
 from src.services.keyboards.keyboard_with_pages import pagination_keyboard
 from src.utils.i18n import get_text
 

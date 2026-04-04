@@ -7,7 +7,7 @@ from tests.helpers.helper_functions import comparison_models
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_product_universal_by_category_id(use_redis, create_category, create_product_universal):
-    from src.services.database.categories.actions import get_product_universal_by_category_id
+    from src.services._database.categories.actions import get_product_universal_by_category_id
 
     category = await create_category()
     prod_1, _ = await create_product_universal(use_redis, category_id=category.category_id)
@@ -25,7 +25,7 @@ async def test_get_product_universal_by_category_id(use_redis, create_category, 
 
 @pytest.mark.asyncio
 async def test_get_full_product_universal_by_category_id(create_category, create_product_universal):
-    from src.services.database.categories.actions import get_product_universal_by_category_id
+    from src.services._database.categories.actions import get_product_universal_by_category_id
 
     category = await create_category()
     _, full_1 = await create_product_universal(category_id=category.category_id)
@@ -43,7 +43,7 @@ async def test_get_full_product_universal_by_category_id(create_category, create
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_product_universal_by_product_id(use_redis, create_category, create_product_universal):
-    from src.services.database.categories.actions import get_product_universal_by_product_id
+    from src.services._database.categories.actions import get_product_universal_by_product_id
 
     category = await create_category()
     _, full = await create_product_universal(use_redis, category_id=category.category_id)
@@ -58,7 +58,7 @@ async def test_get_product_universal_by_product_id(use_redis, create_category, c
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_sold_universal_by_owner_id(use_redis, create_new_user, create_sold_universal):
-    from src.services.database.categories.actions import get_sold_universal_by_owner_id
+    from src.services._database.categories.actions import get_sold_universal_by_owner_id
 
     owner = await create_new_user()
     sold_1, _ = await create_sold_universal(use_redis, owner_id=owner.user_id)
@@ -77,7 +77,7 @@ async def test_get_sold_universal_by_owner_id(use_redis, create_new_user, create
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_sold_universal_by_page(use_redis, create_new_user, create_sold_universal):
-    from src.services.database.categories.actions import get_sold_universal_by_page
+    from src.services._database.categories.actions import get_sold_universal_by_page
 
     owner = await create_new_user()
     sold_1, _ = await create_sold_universal(use_redis, owner_id=owner.user_id)
@@ -95,7 +95,7 @@ async def test_get_sold_universal_by_page(use_redis, create_new_user, create_sol
 
 @pytest.mark.asyncio
 async def test_get_count_sold_universal(create_new_user, create_sold_universal):
-    from src.services.database.categories.actions import get_count_sold_universal
+    from src.services._database.categories.actions import get_count_sold_universal
 
     user = await create_new_user()
 
@@ -113,7 +113,7 @@ async def test_get_count_sold_universal(create_new_user, create_sold_universal):
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_sold_universal_by_universal_id(use_redis, create_sold_universal):
-    from src.services.database.categories.actions import get_sold_universal_by_universal_id
+    from src.services._database.categories.actions import get_sold_universal_by_universal_id
 
     _, sold_full = await create_sold_universal(use_redis)
     _, sold_other = await create_sold_universal(use_redis)

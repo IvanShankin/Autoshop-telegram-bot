@@ -1,0 +1,665 @@
+from datetime import datetime, UTC, timedelta
+import os
+from typing import List, Optional
+
+import aiofiles
+import orjson
+from sqlalchemy import select, update, delete, func, desc
+
+from src.config import get_config
+from src.exceptions.domain import MessageEventNotFound
+from src.database.models.categories import Purchases, ProductAccounts, Categories, ProductType, \
+    ProductUniversal
+from src.database.models.system.models import Files, Stickers
+from src.services._database.system.shemas.shemas import StatisticsData, ReplenishmentPaymentSystem
+from src.database.models.users import Users, Replenishments
+from src.services.filesystem.actions import get_ext_image
+from src.services.filesystem.media_paths import create_path_ui_image
+from src.services.redis.filling import filling_types_payments_by_id, filling_all_types_payments, \
+    filling_ui_image
+from src.services.redis.time_storage import TIME_SETTINGS
+from src.database.models.system import Settings, TypePayments, BackupLogs
+from src.database import get_db
+from src.infrastructure.redis import get_redis
+from src.database.models.system import UiImages
+
+
+def _check_file_exists(ui_image: UiImages) -> UiImages | None:
+    return ui_image if os.path.exists(create_path_ui_image(file_name=ui_image.file_name)) else None
+
+
+async def get_settings() -> Settings:
+    async with get_redis() as session_redis:
+        redis_data = await session_redis.get(f'settings')
+        if redis_data:
+            data = orjson.loads(redis_data)
+            settings = Settings(**data)
+            return settings
+
+        async with get_db() as session_db:
+            result_db = await session_db.execute(select(Settings))
+            settings_db = result_db.scalars().first()
+            if settings_db:
+                async with get_redis() as session_redis:
+                    await session_redis.setex(f'settings', TIME_SETTINGS, orjson.dumps(settings_db.to_dict()))
+                return settings_db
+            return None
+
+
+async def update_settings(
+    maintenance_mode: bool = None,
+    support_username: str = None,
+    channel_for_logging_id: int = None,
+    channel_for_subscription_id: int = None,
+    channel_for_subscription_url: str = None,
+    shop_name: str = None,
+    channel_name: str = None,
+    faq: str = None,
+) -> Settings | None:
+    """
+    Обновляет настройки в БД и Redis.
+    """
+    update_data = {}
+    if maintenance_mode is not None:
+        update_data["maintenance_mode"] = maintenance_mode
+    if support_username is not None:
+        update_data["support_username"] = support_username
+    if channel_for_logging_id is not None:
+        update_data["channel_for_logging_id"] = channel_for_logging_id
+    if channel_for_subscription_id is not None:
+        update_data["channel_for_subscription_id"] = channel_for_subscription_id
+    if channel_for_subscription_url is not None:
+        update_data["channel_for_subscription_url"] = channel_for_subscription_url
+    if shop_name is not None:
+        update_data["shop_name"] = shop_name
+    if channel_name is not None:
+        update_data["channel_name"] = channel_name
+    if faq is not None:
+        update_data["FAQ"] = faq
+
+    if update_data:
+        # Обновляем в БД
+        async with get_db() as session_db:
+            # Выполняем обновление
+            result_db = await session_db.execute(update(Settings).values(**update_data).returning(Settings))
+            settings = result_db.scalars().first()
+            await session_db.commit()
+
+        # Обновляем в Redis
+        async with get_redis() as session_redis:
+            await session_redis.set(
+                f'settings',
+                orjson.dumps(settings.to_dict())
+            )
+        return settings
+    return None
+
+
+async def get_file(key: str) -> Files | None:
+    async with get_db() as session_db:
+        result = await session_db.execute(select(Files).where(Files.key == key))
+        return result.scalar_one_or_none()
+
+
+async def create_file(key: str, file_path: str, file_tg_id: Optional[str]):
+    async with get_db() as session_db:
+        file = Files(
+            key=key,
+            file_path=file_path,
+            file_tg_id=file_tg_id,
+        )
+        session_db.add(file)
+        await session_db.commit()
+
+
+async def update_file(key: str, file_path: Optional[str] = None, file_tg_id: Optional[str] = False):
+    update_data = {}
+
+    if not file_path is None:
+        update_data["file_path"] = file_path
+    if not file_tg_id is False:
+        update_data["file_tg_id"] = file_tg_id
+
+    if update_data:
+        async with get_db() as session_db:
+            await session_db.execute(
+                update(Files)
+                .where(Files.key == key)
+                .values(**update_data)
+            )
+            await session_db.commit()
+
+
+async def delete_file(key: str):
+    async with get_db() as session_db:
+        await session_db.execute(
+            delete(Files)
+            .where(Files.key == key)
+        )
+
+
+async def create_stickers(key: str, file_id: str, show: bool = True):
+    """
+    :param key: ключ из conf.message_event.all_keys
+    :except MessageEventNotFound: Если key не найден в conf.message_event.all_keys
+    """
+    conf = get_config()
+
+    if not key in conf.message_event.all_keys:
+        raise MessageEventNotFound()
+
+    async with get_db() as session_db:
+        new_sticker = Stickers(
+            key=key,
+            file_id=file_id,
+            show=show,
+        )
+        session_db.add(new_sticker)
+
+        await session_db.commit()
+
+
+async def get_sticker(key: str) -> Stickers | None:
+    async with get_redis() as session_redis:
+        result_redis = await session_redis.get(f'sticker:{key}')
+        if result_redis:
+            ui_image_dict = orjson.loads(result_redis)
+            return Stickers(**ui_image_dict)
+
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(Stickers).where(Stickers.key == key))
+        ui_image = result_db.scalar_one_or_none()
+        return ui_image
+
+
+async def update_sticker(
+    key: str,
+    file_id: str | None = False,
+    show: bool = None,
+) -> UiImages | None:
+    update_data = {}
+
+    if show is not None:
+        update_data["show"] = show
+    if file_id is not False:
+        update_data["file_id"] = file_id
+
+    if update_data:
+        async with get_db() as session_db:
+            result_db = await session_db.execute(
+                update(Stickers)
+                .where(Stickers.key == key)
+                .values(**update_data)
+                .returning(Stickers)
+            )
+            result = result_db.scalar_one_or_none()
+            await session_db.commit()
+
+            if result:
+                async with get_redis() as session_redis:
+                    await session_redis.set(f'sticker:{key}', orjson.dumps(result.to_dict()))
+
+            return result
+    return None
+
+
+async def delete_sticker(key: str) -> Stickers | None:
+    async with get_db() as session_db:
+        result = await session_db.execute(
+            delete(Stickers)
+            .where(Stickers.key == key)
+            .returning(Stickers)
+        )
+        deleted_sticker: Stickers = result.scalar_one_or_none()
+        await session_db.commit()
+
+    async with get_redis() as session_redis:
+        await session_redis.delete(f'sticker:{key}')
+
+    return deleted_sticker
+
+
+async def get_event_message_by_page(page: int, page_size: int = None) -> List[str]:
+    # Получаем все ключи, исключив админские
+    conf = get_config()
+    if not page_size:
+        page_size = conf.different.page_size
+
+    filtered_keys = [
+        key for key in conf.message_event.all_keys
+        if key not in conf.message_event.keys_ignore_admin
+    ]
+
+    # Считаем границы страницы
+    start = (page - 1) * page_size
+    end = start + page_size
+
+    # Возвращаем ключи нужной страницы
+    return filtered_keys[start:end]
+
+
+async def create_ui_image(key: str, file_data: bytes, show: bool = True, file_id: str = None) -> UiImages:
+    """
+    Сохраняет файл локально с именем в аргументе "key" и создаёт запись в БД UiImages.
+
+    :param key: Уникальный ключ изображения (например: 'main_menu_banner')
+    :param file_data: Содержимое файла в виде байтов
+    :param show: Флаг отображения
+    :param file_id: id в телеграмме
+    :return:
+    """
+
+    ext = get_ext_image(file_data)
+    file_name = f"{key}.{ext}"
+
+    new_path = create_path_ui_image(file_name=file_name)
+    new_path.parent.mkdir(parents=True, exist_ok=True) # создаём директорию, если её нет
+
+    async with get_db() as session_db:
+        result = await session_db.execute(select(UiImages).where(UiImages.key == key))
+        ui_image = result.scalar_one_or_none()
+
+        if ui_image:
+            last_path = create_path_ui_image(file_name=ui_image.file_name)
+            last_path.unlink(missing_ok=True)
+
+            async with aiofiles.open(new_path, "wb") as f:
+                await f.write(file_data)
+
+            ui_image.file_name = file_name
+
+            await session_db.commit()
+            await update_ui_image(key=key, show=ui_image.show, file_id=file_id)
+
+            return ui_image
+        else:
+            # Иначе создаём новую запись
+            async with aiofiles.open(new_path, "wb") as f:
+                await f.write(file_data)
+
+            ui_image = UiImages(
+                key=key,
+                file_name=file_name,
+                file_id=file_id,
+                show=show,
+            )
+            session_db.add(ui_image)
+            await session_db.commit()
+
+        await filling_ui_image(key) # обновление redis
+        return ui_image
+
+
+async def get_all_ui_images() -> List[UiImages] | None:
+    """Вернёт все записи в таблице UiImage"""
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(UiImages))
+        return result_db.scalars().all()
+
+
+async def get_ui_image(key: str) -> UiImages | None:
+    async with get_redis() as session_redis:
+        result_redis = await session_redis.get(f'ui_image:{key}')
+        if result_redis:
+            ui_image_dict = orjson.loads(result_redis)
+            return UiImages(**ui_image_dict)
+
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(UiImages).where(UiImages.key == key))
+        ui_image = result_db.scalar_one_or_none()
+        return ui_image
+
+
+async def update_ui_image(
+    key: str,
+    file_name: str = None,
+    show: bool = None,
+    file_id: str | None = False
+) -> UiImages | None:
+    update_data = {}
+    if file_name is not None:
+        update_data["file_name"] = file_name
+    if show is not None:
+        update_data["show"] = show
+    if file_id is not False:
+        update_data["file_id"] = file_id
+
+    if update_data:
+        async with get_db() as session_db:
+            result_db = await session_db.execute(
+                update(UiImages)
+                .where(UiImages.key == key)
+                .values(**update_data)
+                .returning(UiImages)
+            )
+            result = result_db.scalar_one_or_none()
+            await session_db.commit()
+            if result:
+                await filling_ui_image(key) # обновление redis
+            return result
+    return None
+
+
+async def delete_ui_image(key: str) -> UiImages | None:
+    """
+    Удалит UiImage с БД и redis, удалит связанный с ним файл.
+    :return: Удалённый объект (если удалили)
+    """
+    async with get_db() as session_db:
+        result = await session_db.execute(
+            delete(UiImages)
+            .where(UiImages.key == key)
+            .returning(UiImages)
+        )
+        deleted_ui_image: UiImages = result.scalar_one_or_none()
+        await session_db.commit()
+
+        if deleted_ui_image:
+            # можно не проверять его существование
+            file_path = create_path_ui_image(file_name=deleted_ui_image.file_name)
+            file_path.unlink(missing_ok=True)
+
+    async with get_redis() as session_redis:
+        await session_redis.delete(f'ui_image:{key}')
+
+    return deleted_ui_image
+
+
+async def get_all_types_payments() -> List[TypePayments]:
+    """Вернёт список всех типов платежей. Возвращает так же неактивные (is_active = False)!"""
+    async with get_redis() as session_redis:
+        result_redis = await session_redis.get('all_types_payments')
+        if result_redis:
+            types_payments_dict: list[dict] = orjson.loads(result_redis)
+            if types_payments_dict:
+                return [TypePayments( **type_payment ) for type_payment in types_payments_dict]
+
+    async with get_db() as session_db:
+        result_db = await session_db.execute(select(TypePayments).order_by(TypePayments.index.asc()))
+        await filling_all_types_payments()
+        return result_db.scalars().all()
+
+
+async def get_type_payment(type_payment_id: int) -> TypePayments | None:
+    """Вернёт тип платежа. Возвращает так же неактивный (is_active = False)!"""
+    async with get_redis() as session_redis:
+        result_redis = await session_redis.get(f'type_payments:{type_payment_id}')
+        if result_redis:
+            type_payment_dict = orjson.loads(result_redis)
+            return TypePayments( **type_payment_dict )
+
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            select(TypePayments)
+            .where(TypePayments.type_payment_id == type_payment_id)
+        )
+        type_payment = result_db.scalar_one_or_none()
+        if type_payment:
+            await filling_types_payments_by_id(type_payment_id)
+        return type_payment
+
+
+async def update_type_payment(
+    type_payment_id: int,
+    name_for_user: str = None,
+    is_active: bool = None,
+    commission: float = None,
+    index: int = None,
+    extra_data: dict = None
+) -> TypePayments:
+    type_payment = await get_type_payment(type_payment_id)
+    if not type_payment:
+        raise ValueError("Тип оплаты не найден")
+
+    update_data = {}
+
+    if name_for_user is not None:
+        update_data['name_for_user'] = name_for_user
+    if is_active is not None:
+        update_data['is_active'] = is_active
+    if commission is not None:
+        update_data['commission'] = commission
+    if index is not None:
+        async with get_db() as session_db:
+            # нормализуем new_index — int, не меньше 0
+            try:
+                new_index = int(index)
+            except Exception:
+                raise ValueError("index должен быть целым числом")
+            if new_index < 0:
+                new_index = 0
+
+            # считаем сколько всего записей (чтобы определить максимальный индекс)
+            total_res = await session_db.execute(select(func.count()).select_from(TypePayments))
+            total_count = total_res.scalar_one()
+            # max_index — индекс последнего элемента в текущей коллекции
+            max_index = max(0, total_count - 1)
+
+            # если новый индекс больше максимального — помещаем в конец
+            if new_index > max_index:
+                new_index = max_index
+
+            # старый индекс — если None, считаем как "последний" (т.е. append)
+            old_index = type_payment.index if type_payment.index is not None else max_index
+
+            # если фактически ничего не меняется — пропускаем перестановки
+            if new_index != old_index:
+                # сдвиги других записей в зависимости от направления перемещения
+                if new_index < old_index:
+                    # перемещение влево (меньше): поднимаем (+1) все записи с индексом в [new_index, old_index-1]
+                    await session_db.execute(
+                        update(TypePayments)
+                        .where(TypePayments.index >= new_index)
+                        .where(TypePayments.index < old_index)
+                        .values(index=TypePayments.index + 1)
+                    )
+                else:  # new_index > old_index
+                    # перемещение вправо (больше): опускаем (-1) все записи с индексом в [old_index+1, new_index]
+                    await session_db.execute(
+                        update(TypePayments)
+                        .where(TypePayments.index <= new_index)
+                        .where(TypePayments.index > old_index)
+                        .values(index=TypePayments.index - 1)
+                    )
+
+                await session_db.commit()
+
+                update_data["index"] = new_index
+            # else: new_index == old_index -> ничего не делаем по индексам
+
+    if extra_data is not None:
+        update_data["extra_data"] = extra_data
+
+    if update_data:
+        async with get_db() as session_db:
+            result_db = await session_db.execute(
+                update(TypePayments)
+                .where(TypePayments.type_payment_id==type_payment_id)
+                .values(**update_data)
+                .returning(TypePayments)
+            )
+
+            type_payment = result_db.scalar_one_or_none()
+            await session_db.commit()
+
+            # обновление redis
+            await filling_all_types_payments()
+
+            result_db = await session_db.execute(select(TypePayments))
+            types_payments = result_db.scalars().all()
+            for type_payment in types_payments:
+                await filling_types_payments_by_id(type_payment.type_payment_id)
+
+    return type_payment
+
+
+async def add_backup_log(
+    storage_file_name: str,
+    storage_encrypted_dek_name: str,
+    encrypted_dek_b64: str,
+    dek_nonce_b64: str,
+    size_bytes: int
+) -> BackupLogs:
+    new_backup_log = BackupLogs(
+        storage_file_name = storage_file_name,
+        storage_encrypted_dek_name = storage_encrypted_dek_name,
+        encrypted_dek_b64 = encrypted_dek_b64,
+        dek_nonce_b64 = dek_nonce_b64,
+        size_bytes = size_bytes,
+    )
+    async with get_db() as session_db:
+        session_db.add(new_backup_log)
+        await session_db.commit()
+        await session_db.refresh(new_backup_log)
+
+    return new_backup_log
+
+
+async def get_backup_log_by_id(
+    backup_log_id: int
+) -> BackupLogs:
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            select(BackupLogs)
+            .where(BackupLogs.backup_log_id == backup_log_id)
+        )
+        return result_db.scalar_one_or_none()
+
+
+async def get_all_backup_logs_desc() -> List[BackupLogs]:
+    async with get_db() as session_db:
+        result_db = await session_db.execute(
+            select(BackupLogs).order_by(BackupLogs.created_at.desc())
+        )
+        return result_db.scalars().all()
+
+
+async def delete_backup_log(backup_log_id: int):
+    async with get_db() as session_db:
+        await session_db.execute(
+            delete(BackupLogs)
+            .where(BackupLogs.backup_log_id == backup_log_id)
+        )
+        await session_db.commit()
+
+
+async def get_statistics(interval_days: int) -> StatisticsData:
+    up_to_date = datetime.now(UTC) - timedelta(days=interval_days)
+
+    async with get_db() as session_db:
+        result = await session_db.execute(
+            select(
+                func.count().filter(Users.last_used >= up_to_date).label("active"),
+                func.count().filter(Users.created_at >= up_to_date).label("new"),
+                func.count().label("total"),
+            )
+        )
+
+        row = result.one()
+        active_users = row.active
+        new_users = row.new
+        total_users = row.total
+
+        result = await session_db.execute(
+            select(
+                Purchases.product_type,
+                func.count().label("quantity"),
+                func.coalesce(func.sum(Purchases.purchase_price), 0).label("amount"),
+                func.coalesce(func.sum(Purchases.net_profit), 0).label("profit"),
+            )
+            .where(Purchases.purchase_date >= up_to_date)
+            .group_by(Purchases.product_type)
+        )
+
+        sales = {row.product_type: row for row in result.all()}
+
+        acc = sales.get(ProductType.ACCOUNT)
+        univ = sales.get(ProductType.UNIVERSAL)
+
+        quantity_sale_accounts = acc.quantity if acc else 0
+        amount_sale_accounts = acc.amount if acc else 0
+        total_net_profit_account = acc.profit if acc else 0
+
+        quantity_sale_universal = univ.quantity if univ else 0
+        amount_sale_universal = univ.amount if univ else 0
+        total_net_profit_universal = univ.profit if univ else 0
+
+        result = await session_db.execute(
+            select(
+                Replenishments.type_payment_id,
+                func.count(Replenishments.replenishment_id).label("quantity"),
+                func.coalesce(func.sum(Replenishments.amount), 0).label("amount"),
+            )
+            .group_by(Replenishments.type_payment_id)
+            .where(Replenishments.created_at >= up_to_date)
+        )
+
+        repl_stats = {r.type_payment_id: r for r in result.all()}
+
+        all_type_payments = await get_all_types_payments()
+
+        quantity_replenishments = 0
+        amount_replenishments = 0
+        replenishment_payment_systems = []
+
+        for tp in all_type_payments:
+            stat = repl_stats.get(tp.type_payment_id)
+
+            qty = stat.quantity if stat else 0
+            amt = stat.amount if stat else 0
+
+            replenishment_payment_systems.append(
+                ReplenishmentPaymentSystem(
+                    name=tp.name_for_user,
+                    quantity_replenishments=qty,
+                    amount_replenishments=amt,
+                )
+            )
+
+            quantity_replenishments += qty
+            amount_replenishments += amt
+
+
+        result = await session_db.execute(
+            select(func.coalesce(func.sum(Categories.price), 0))
+            .select_from(ProductAccounts)
+            .join(ProductAccounts.category)
+        )
+        funds_in_bot = result.scalar()
+
+        result_db = await session_db.execute(select(func.count()).select_from(ProductAccounts))
+        accounts_for_sale = result_db.scalar()
+
+        result_db = await session_db.execute(select(func.count()).select_from(ProductUniversal))
+        universals_for_sale = result_db.scalar()
+
+        result_db = await session_db.execute(select(BackupLogs.created_at).order_by(desc(BackupLogs.created_at)).limit(1))
+        last_backup = result_db.scalar_one_or_none()
+
+        last_backup = last_backup if last_backup else "—"
+
+    return StatisticsData(
+        active_users=active_users,
+        new_users=new_users,
+        total_users=total_users,
+
+        quantity_sale=quantity_sale_accounts + quantity_sale_universal,
+        amount_sale=amount_sale_accounts + amount_sale_universal,
+        total_net_profit=total_net_profit_account + total_net_profit_universal,
+
+        quantity_sale_accounts=quantity_sale_accounts,
+        amount_sale_accounts=amount_sale_accounts,
+        total_net_profit_account=total_net_profit_account,
+
+        quantity_sale_universal=quantity_sale_universal,
+        amount_sale_universal=amount_sale_universal,
+        total_net_profit_universal=total_net_profit_universal,
+
+        quantity_replenishments=quantity_replenishments,
+        amount_replenishments=amount_replenishments,
+        replenishment_payment_systems=replenishment_payment_systems,
+        funds_in_bot=funds_in_bot,
+        accounts_for_sale=accounts_for_sale,
+        universals_for_sale=universals_for_sale,
+        last_backup=last_backup,
+    )

@@ -3,7 +3,7 @@ from math import ceil
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from src.config import get_config
-from src.services.database.referrals.actions import get_referral_income_page, get_count_referral_income
+from src.services._database.referrals.actions import get_referral_income_page, get_count_referral_income
 from src.services.keyboards.keyboard_with_pages import pagination_keyboard
 from src.utils.i18n import get_text
 

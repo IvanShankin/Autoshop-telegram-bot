@@ -7,11 +7,11 @@ from src.bot_actions.messages import edit_message, send_document, send_message
 from src.config import get_config
 from src.exceptions.business import ForbiddenError
 from src.modules.profile.keyboards.purchased_universals_kb import sold_universal_kb, universal_kb
-from src.services.database.admins.actions import check_admin
-from src.services.database.categories.actions.products.universal.action_delete import delete_sold_universal
-from src.services.database.categories.actions.products.universal.action_update import update_universal_storage
-from src.services.database.categories.actions.products.universal.actions_add import add_deleted_universal
-from src.services.database.categories.actions.products.universal.actions_get import get_sold_universal_by_universal_id
+from src.services._database.admins.actions import check_admin
+from src.services._database.categories.actions.products.universal.action_delete import delete_sold_universal
+from src.services._database.categories.actions.products.universal.action_update import update_universal_storage
+from src.services._database.categories.actions.products.universal.actions_add import add_deleted_universal
+from src.services._database.categories.actions.products.universal.actions_get import get_sold_universal_by_universal_id
 from src.database.models.categories import StorageStatus, UniversalMediaType
 from src.models.read_models import SoldUniversalFull
 from src.database.models.users import Users

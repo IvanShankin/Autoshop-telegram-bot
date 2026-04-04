@@ -4,7 +4,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.config import get_config
-from src.services.database.admins.actions.actions_admin import get_sent_mass_messages_by_page, get_count_sent_messages
+from src.services._database.admins.actions.actions_admin import get_sent_mass_messages_by_page, get_count_sent_messages
 from src.database.models.admins import SentMasMessages
 from src.services.keyboards.keyboard_with_pages import pagination_keyboard
 from src.utils.i18n import get_text

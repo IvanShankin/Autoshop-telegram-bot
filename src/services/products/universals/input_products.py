@@ -8,10 +8,10 @@ from src.config import get_config
 from src.exceptions import InvalidFormatRows, CategoryNotFound
 from src.exceptions.business import ImportUniversalFileNotFound, ImportUniversalInvalidMediaData, \
     CsvHasMoreThanTwoProducts
-from src.services.database.categories.actions import get_all_translations_category
-from src.services.database.categories.actions.products.universal.actions_add import add_universal_storage, \
+from src.services._database.categories.actions import get_all_translations_category
+from src.services._database.categories.actions.products.universal.actions_add import add_universal_storage, \
     add_translate_in_universal_storage, add_product_universal
-from src.services.database.categories.actions.products.universal.actions_get import get_product_universal_by_category_id
+from src.services._database.categories.actions.products.universal.actions_get import get_product_universal_by_category_id
 from src.database.models.categories import CategoryTranslation
 from src.database.models.categories import UniversalMediaType, StorageStatus
 from src.services.filesystem.actions import extract_archive_to_temp

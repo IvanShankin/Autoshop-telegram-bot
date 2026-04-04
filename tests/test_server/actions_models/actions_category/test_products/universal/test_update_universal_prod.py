@@ -9,7 +9,7 @@ from src.infrastructure.redis import get_redis
 
 @pytest.mark.asyncio
 async def test_add_product_universal(create_category, create_product_universal):
-    from src.services.database.categories.actions import update_universal_storage
+    from src.services._database.categories.actions import update_universal_storage
 
     # заполнит redis и БД
     small, prod_full = await create_product_universal()

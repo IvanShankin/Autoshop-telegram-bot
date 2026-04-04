@@ -8,7 +8,7 @@ from src.config import get_config
 from src.modules.profile.keyboards import type_replenishment_kb, back_in_type_replenishment_kb, payment_invoice
 from src.modules.profile.schemas.replenishment import GetAmountData
 from src.modules.profile.state.replenishment import GetAmount
-from src.services.database.system.actions.actions import get_type_payment
+from src.services._database.system.actions.actions import get_type_payment
 from src.database.models.users import Users
 from src.services.bot import Messages
 from src.services.payments.crypto_bot.client import get_crypto_bot

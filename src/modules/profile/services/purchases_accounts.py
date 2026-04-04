@@ -7,12 +7,12 @@ from src.bot_actions.messages import edit_message, send_message
 from src.config import get_config
 from src.exceptions.business import ForbiddenError
 from src.modules.profile.keyboards import sold_accounts_kb, account_kb, sold_account_type_service_kb
-from src.services.database.admins.actions import check_admin
-from src.services.database.categories.actions import get_sold_accounts_by_account_id, get_tg_account_media, \
+from src.services._database.admins.actions import check_admin
+from src.services._database.categories.actions import get_sold_accounts_by_account_id, get_tg_account_media, \
     update_tg_account_media
 from src.database.models.categories import AccountStorage, AccountServiceType
 from src.models.read_models import SoldAccountFull
-from src.services.database.users.actions import get_user
+from src.services._database.users.actions import get_user
 from src.database.models.users import Users
 from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text

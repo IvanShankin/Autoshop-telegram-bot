@@ -17,8 +17,8 @@ from src.infrastructure.rebbit_mq.producer import publish_event
 from src.models.read_models import ProductUniversalFull
 from src.models.read_models.categories.purshanse_schem import StartPurchaseUniversalOne, StartPurchaseUniversal
 from src.repository.redis import UsersCacheRepository
-from src.services.database.categories.events.schemas import NewPurchaseUniversal, UniversalProductData
-from src.services.database.discounts.events import NewActivatePromoCode
+from src.services._database.categories.events.schemas import NewPurchaseUniversal, UniversalProductData
+from src.services._database.discounts.events import NewActivatePromoCode
 from src.services.filesystem.actions import move_file, copy_file
 from src.services.filesystem.account_actions import rename_file
 from src.services.filesystem.media_paths import create_path_universal_storage

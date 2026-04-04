@@ -5,10 +5,10 @@ from orjson import orjson
 from sqlalchemy import delete, select
 
 from src.database.models.categories import ProductType
-from src.services.database.system.actions.actions import get_all_types_payments, add_backup_log, update_type_payment, \
+from src.services._database.system.actions.actions import get_all_types_payments, add_backup_log, update_type_payment, \
     get_type_payment, update_ui_image, get_all_ui_images, get_ui_image, get_statistics
 from src.database.models.system import Settings, BackupLogs, TypePayments
-from src.services.database.system.actions import get_settings, update_settings
+from src.services._database.system.actions import get_settings, update_settings
 from src.database import get_db
 from src.services.filesystem.media_paths import create_path_ui_image
 from src.infrastructure.redis import get_redis
@@ -62,7 +62,7 @@ async def test_update_settings(create_settings):
 @pytest.mark.asyncio
 async def test_create_ui_image_new_record(tmp_path, monkeypatch):
     """Проверяет, что функция создаёт новую запись и файл, если key не существует."""
-    from src.services.database.system.actions import create_ui_image
+    from src.services._database.system.actions import create_ui_image
     from src.services.filesystem.actions import get_default_image_bytes
 
     # Подготовка
@@ -91,7 +91,7 @@ async def test_create_ui_image_new_record(tmp_path, monkeypatch):
 @pytest.mark.asyncio
 async def test_create_ui_image_existing_record(replacement_needed_modules, monkeypatch, tmp_path, create_ui_image):
     """Проверяет, что при существующей записи файл перезаписывается и запись обновляется."""
-    from src.services.database.system.actions import create_ui_image as testing_fun
+    from src.services._database.system.actions import create_ui_image as testing_fun
     from src.services.filesystem.actions import get_default_image_bytes
 
     fake_data = get_default_image_bytes()
@@ -176,7 +176,7 @@ async def test_update_ui_image_updates_db_and_redis(create_ui_image):
 
 @pytest.mark.asyncio
 async def test_delete_ui_image(create_ui_image):
-    from src.services.database.system.actions import delete_ui_image
+    from src.services._database.system.actions import delete_ui_image
 
     ui_image, _ = await create_ui_image(key="test_ui_image")
     assert os.path.isfile(create_path_ui_image(ui_image.file_name)) # что бы убедиться что файл был

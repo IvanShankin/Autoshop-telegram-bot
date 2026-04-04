@@ -17,7 +17,7 @@ from src.repository.database.discount import (
 )
 from src.repository.database.users import UserAuditLogsRepository, UsersRepository, WalletTransactionRepository
 from src.repository.redis import UsersCacheRepository, VouchersCacheRepository
-from src.services.database.discounts.events import NewActivationVoucher
+from src.services._database.discounts.events import NewActivationVoucher
 from src.utils.codes import generate_code
 from src.utils.i18n import get_text
 

@@ -4,7 +4,7 @@ from src.models.read_models import LogLevel
 from src.exceptions.business import AlreadyActivated
 from src.exceptions.domain import PromoCodeNotFound
 from src.config import get_config
-from src.services.database.discounts.events.schemas import NewActivatePromoCode
+from src.services._database.discounts.events.schemas import NewActivatePromoCode
 from src.services.events.publish_event_handler import PublishEventHandler
 from src.services.models.discounts import PromoCodeService
 from src.utils.core_logger import get_logger

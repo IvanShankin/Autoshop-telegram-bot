@@ -13,10 +13,10 @@ from src.modules.categories.services import check_category, edit_message_categor
 from src.modules.categories.shemas import BuyProductsData
 from src.modules.categories.states import BuyProduct
 from src.modules.keyboard_main import support_kb
-from src.services.database.categories.actions import get_categories
-from src.services.database.discounts.actions import get_promo_code
-from src.services.database.discounts.actions.actions_promo import check_activate_promo_code
-from src.services.database.discounts.utils.calculation import discount_calculation
+from src.services._database.categories.actions import get_categories
+from src.services._database.discounts.actions import get_promo_code
+from src.services._database.discounts.actions.actions_promo import check_activate_promo_code
+from src.services._database.discounts.utils.calculation import discount_calculation
 from src.database.models.users import Users
 from src.services.redis.actions import delete_subscription_prompt, get_subscription_prompt
 from src.utils.converter import safe_int_conversion

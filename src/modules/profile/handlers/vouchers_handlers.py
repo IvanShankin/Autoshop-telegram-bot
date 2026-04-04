@@ -11,11 +11,11 @@ from src.modules.profile.keyboards import back_in_balance_transfer_kb, replenish
     confirmation_voucher_kb, all_vouchers_kb, back_in_all_voucher_kb, show_voucher_kb, confirm_deactivate_voucher_kb
 from src.modules.profile.schemas.transfer_balance import CreateVoucherData
 from src.modules.profile.state.transfer_balance import CreateVoucher
-from src.services.database.admins.actions import check_admin
-from src.services.database.discounts.actions import (create_voucher as create_voucher_db, get_voucher_by_id,
+from src.services._database.admins.actions import check_admin
+from src.services._database.discounts.actions import (create_voucher as create_voucher_db, get_voucher_by_id,
                                                      deactivate_voucher as deactivate_voucher_server)
-from src.services.database.system.actions import get_settings
-from src.services.database.users.actions import get_user
+from src.services._database.system.actions import get_settings
+from src.services._database.users.actions import get_user
 from src.database.models.users import Users
 from src.services.bot import Messages
 from src.utils.i18n import get_text

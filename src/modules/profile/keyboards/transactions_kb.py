@@ -3,7 +3,7 @@ from math import ceil
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from src.config import get_config
-from src.services.database.users.actions.action_other_with_user import get_wallet_transaction_page, \
+from src.services._database.users.actions.action_other_with_user import get_wallet_transaction_page, \
     get_count_wallet_transaction
 from src.services.keyboards.keyboard_with_pages import pagination_keyboard
 from src.utils.i18n import get_text

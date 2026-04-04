@@ -18,7 +18,7 @@ async def test_delete_product_account_success_and_error(create_product_account, 
     - успешное удаление из БД и очистка key product_account
     - ошибка при попытке удалить несуществующий аккаунт
     """
-    from src.services.database.categories.actions import delete_product_account
+    from src.services._database.categories.actions import delete_product_account
 
     cat = await create_category(filling_redis=True)
     prod, _ = await create_product_account(filling_redis=True, category_id=cat.category_id)
@@ -51,7 +51,7 @@ async def test_delete_sold_account_success_and_redis_update(create_new_user, cre
     - запись удалена из БД (SoldAccounts и SoldAccountsTranslation)
     - Redis обновлён: список владельца и одиночный ключ удалены
     """
-    from src.services.database.categories.actions import delete_sold_account
+    from src.services._database.categories.actions import delete_sold_account
 
     # создаём user и sold_account через фабрику
     full, _ = await create_sold_account(filling_redis=True, language="ru", name="to_del")
@@ -101,7 +101,7 @@ async def test_delete_product_accounts_by_category_success(
     - вызываются filling_* функции
     - очищается product_account
     """
-    from src.services.database.categories.actions import delete_product_accounts_by_category
+    from src.services._database.categories.actions import delete_product_accounts_by_category
     from src.services.filesystem.media_paths import create_path_account
 
     # Создаём категорию

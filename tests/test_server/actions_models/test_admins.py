@@ -1,10 +1,10 @@
 import pytest
 from sqlalchemy import select
 
-from src.services.database.admins.actions.actions_admin import get_sent_mass_messages_by_page, delete_admin
+from src.services._database.admins.actions.actions_admin import get_sent_mass_messages_by_page, delete_admin
 from src.database.models.system import UiImages
 from src.infrastructure.redis import get_redis
-from src.services.database.admins.actions import check_admin, create_admin as create_admin_fun, get_message_for_sending, \
+from src.services._database.admins.actions import check_admin, create_admin as create_admin_fun, get_message_for_sending, \
     update_message_for_sending
 from src.database.models.admins import MessageForSending, Admins
 from src.database import get_db

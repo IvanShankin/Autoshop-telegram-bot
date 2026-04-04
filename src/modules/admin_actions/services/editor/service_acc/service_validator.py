@@ -2,8 +2,8 @@
 #
 # from src.bot_actions.messages import edit_message, send_message
 # from src.modules.admin_actions.keyboards import show_service_acc_admin_kb
-# from src.services.database.categories.actions import get_account_service
-# from src.services.database.users.categories import Users
+# from src.services._database.categories.actions import get_account_service
+# from src.services._database.users.categories import Users
 # from src.utils.i18n import  get_text
 #
 # async def show_service(user: Users, service_id: int, send_new_message: bool = False, message_id: int = None, callback: CallbackQuery = None):

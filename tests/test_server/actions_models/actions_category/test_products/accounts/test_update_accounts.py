@@ -11,7 +11,7 @@ from src.models.read_models import  ProductAccountFull
 class TestUpdateAccountStorage:
     @pytest.mark.asyncio
     async def test_update_account_storage_sold_account(self, create_sold_account, create_account_storage):
-        from src.services.database.categories.actions import update_account_storage
+        from src.services._database.categories.actions import update_account_storage
         account_storage = await create_account_storage()
         _, full_account = await create_sold_account(
             filling_redis=True, account_storage_id=account_storage.account_storage_id, language="ru"
@@ -37,7 +37,7 @@ class TestUpdateAccountStorage:
 
     @pytest.mark.asyncio
     async def test_update_account_storage_product_account(self, create_product_account, create_account_storage):
-        from src.services.database.categories.actions import update_account_storage
+        from src.services._database.categories.actions import update_account_storage
         account_storage = await create_account_storage()
         _, full_account = await create_product_account(filling_redis=True, account_storage_id=account_storage.account_storage_id)
         product_account_id = full_account.account_id
@@ -59,7 +59,7 @@ class TestUpdateAccountStorage:
 
 @pytest.mark.asyncio
 async def test_update_tg_account_media(create_tg_account_media):
-    from src.services.database.categories.actions import update_tg_account_media
+    from src.services._database.categories.actions import update_tg_account_media
 
     tg_media = await create_tg_account_media()
 

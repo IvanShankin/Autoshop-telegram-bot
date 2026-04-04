@@ -42,7 +42,7 @@ class TestStartPurchaseUniversalDifferent:
         - UniversalStorage.status -> RESERVED
         - корректный StartPurchaseUniversal
         """
-        from src.services.database.categories.actions.purchases.universal.start import start_purchase_universal
+        from src.services._database.categories.actions.purchases.universal.start import start_purchase_universal
 
         user = await create_new_user(balance=10_000)
         category = await create_category(
@@ -140,7 +140,7 @@ class TestStartPurchaseUniversalDifferent:
         """
         Недостаточно товаров → NotEnoughProducts
         """
-        from src.services.database.categories.actions.purchases.universal.start import start_purchase_universal
+        from src.services._database.categories.actions.purchases.universal.start import start_purchase_universal
 
         user = await create_new_user(balance=10_000)
         category = await create_category(
@@ -186,7 +186,7 @@ class TestStartPurchaseUniversalOne:
         - покупка одного и того же товара
         - корректный StartPurchaseUniversalOne
         """
-        from src.services.database.categories.actions.purchases.universal.start import start_purchase_universal
+        from src.services._database.categories.actions.purchases.universal.start import start_purchase_universal
 
         user = await create_new_user(balance=10_000)
         category = await create_category(
@@ -239,7 +239,7 @@ class TestStartPurchaseUniversalOne:
         """
         Если get_product_universal_by_category_id вернул пусто → NotEnoughProducts
         """
-        from src.services.database.categories.actions.purchases.universal.start import start_purchase_universal
+        from src.services._database.categories.actions.purchases.universal.start import start_purchase_universal
 
         user = await create_new_user(balance=10_000)
         category = await create_category(

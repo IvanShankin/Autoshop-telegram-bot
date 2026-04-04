@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery, Message
 from src.bot_actions.messages import edit_message, send_message
 from src.modules.admin_actions.keyboards import change_admin_settings_kb, back_in_change_admin_settings_kb
 from src.modules.admin_actions.state.settings import UpdateAdminSettings
-from src.services.database.system.actions import get_settings, update_settings
+from src.services._database.system.actions import get_settings, update_settings
 from src.database.models.users import Users
 from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_text

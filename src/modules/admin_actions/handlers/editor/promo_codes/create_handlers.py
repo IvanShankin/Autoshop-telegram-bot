@@ -8,7 +8,7 @@ from src.modules.admin_actions.keyboards import select_promo_code_type_kb, \
     skip_expire_at_promo_or_in_start_kb, in_show_admin_promo_kb
 from src.modules.admin_actions.schemas import CreatePromoCodeData
 from src.modules.admin_actions.state import CreatePromoCode
-from src.services.database.discounts.actions import get_promo_code, create_promo_code
+from src.services._database.discounts.actions import get_promo_code, create_promo_code
 from src.database.models.users import Users
 from src.utils.converter import safe_int_conversion, safe_parse_datetime
 from src.utils.i18n import get_text

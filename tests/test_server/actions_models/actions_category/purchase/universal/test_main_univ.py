@@ -37,7 +37,7 @@ class TestDifferentPurchase:
         - файлы перемещены в финальный путь.
         """
         from src.services.filesystem.media_paths import create_path_universal_storage
-        from src.services.database.categories.actions.purchases.main_purchase import purchase_universal
+        from src.services._database.categories.actions.purchases.main_purchase import purchase_universal
 
         user = await create_new_user(balance=10_000)
         category = await create_category(price=200)
@@ -141,8 +141,8 @@ class TestDifferentPurchase:
         - баланс пользователя восстановлен
         """
         from src.services.filesystem.media_paths import create_path_universal_storage
-        from src.services.database.categories.actions.purchases.main_purchase import purchase_universal
-        from src.services.database.categories.actions.purchases.universal import verify as verify_mod
+        from src.services._database.categories.actions.purchases.main_purchase import purchase_universal
+        from src.services._database.categories.actions.purchases.universal import verify as verify_mod
 
         user = await create_new_user(balance=5_000)
         category = await create_category(price=500)
@@ -236,7 +236,7 @@ class TestOnePurchase:
         - файл реально перемещён в bought
         """
         from src.services.filesystem.media_paths import create_path_universal_storage
-        from src.services.database.categories.actions.purchases.main_purchase import purchase_universal
+        from src.services._database.categories.actions.purchases.main_purchase import purchase_universal
 
         user = await create_new_user(balance=5_000)
         category = await create_category(
@@ -350,7 +350,7 @@ class TestOnePurchase:
         - баланс пользователя восстановлен
         """
         from src.services.filesystem.media_paths import create_path_universal_storage
-        from src.services.database.categories.actions.purchases.main_purchase import purchase_universal
+        from src.services._database.categories.actions.purchases.main_purchase import purchase_universal
 
         user = await create_new_user(balance=5_000)
         category = await create_category(

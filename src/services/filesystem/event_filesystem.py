@@ -1,6 +1,6 @@
 import asyncio
 
-from src.services.database.system.actions import update_ui_image
+from src.services._database.system.actions import update_ui_image
 from src.services.filesystem.actions import get_default_image_bytes
 from src.services.filesystem.media_paths import create_path_ui_image
 from src.services.filesystem.schemas import EventCreateUiImage

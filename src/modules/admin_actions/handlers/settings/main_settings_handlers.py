@@ -10,8 +10,8 @@ from src.infrastructure.rebbit_mq.producer import publish_event
 from src.config import get_config
 from src.modules.admin_actions.keyboards import admin_settings_kb
 from src.modules.admin_actions.keyboards.settings_kb import confirm_overwrite_cache_kb, back_in_admin_settings_kb
-from src.services.database.admins.actions import check_admin
-from src.services.database.system.actions import get_settings
+from src.services._database.admins.actions import check_admin
+from src.services._database.system.actions import get_settings
 from src.database.models.users import Users
 from src.services.filesystem.actions import split_file_on_chunk
 from src.services.redis.filling import filling_all_redis

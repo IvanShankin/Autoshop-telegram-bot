@@ -7,10 +7,10 @@ from orjson import orjson
 
 from src.bot_actions.messages.even_handlers import message_event_handler
 from src.config import get_config
-from src.services.database.discounts.events import promo_code_event_handler, voucher_event_handler
-from src.services.database.referrals.events import referral_event_handler
-from src.services.database.replenishments_event.event_handlers_replenishments import replenishment_event_handler
-from src.services.database.categories.events.even_handlers import purchase_event_handler
+from src.services._database.discounts.events import promo_code_event_handler, voucher_event_handler
+from src.services._database.referrals.events import referral_event_handler
+from src.services._database.replenishments_event.event_handlers_replenishments import replenishment_event_handler
+from src.services._database.categories.events.even_handlers import purchase_event_handler
 from src.services.filesystem.event_filesystem import filesystem_event_handler
 from src.utils.core_logger import get_logger
 

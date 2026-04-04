@@ -12,8 +12,8 @@ from src.infrastructure.redis import get_redis
 
 @pytest.mark.asyncio
 async def test_delete_prod_universal_success_and_error(create_product_universal, create_category):
-    from src.services.database.categories.actions import delete_prod_universal
-    from src.services.database.categories.actions import get_category_by_category_id
+    from src.services._database.categories.actions import delete_prod_universal
+    from src.services._database.categories.actions import get_category_by_category_id
 
     category = await create_category(filling_redis=True)
 
@@ -52,7 +52,7 @@ async def test_delete_prod_universal_success_and_error(create_product_universal,
 
 @pytest.mark.asyncio
 async def test_delete_sold_universal_success_and_error(create_sold_universal):
-    from src.services.database.categories.actions import delete_sold_universal
+    from src.services._database.categories.actions import delete_sold_universal
 
     sold, _ = await create_sold_universal(filling_redis=True)
     sid = sold.sold_universal_id
@@ -95,7 +95,7 @@ async def test_delete_product_accounts_by_category_success(
         create_product_universal,
         create_category,
 ):
-    from src.services.database.categories.actions import delete_product_universal_by_category
+    from src.services._database.categories.actions import delete_product_universal_by_category
     from src.services.filesystem.media_paths import create_path_universal_storage
 
     # Создаём категорию

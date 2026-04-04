@@ -5,7 +5,7 @@ from tests.helpers.helper_functions import comparison_models
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_product_account_by_category_id(use_redis, create_category, create_product_account):
-    from src.services.database.categories.actions import get_product_account_by_category_id
+    from src.services._database.categories.actions import get_product_account_by_category_id
 
     category = await create_category()
     account_1, _ = await create_product_account(use_redis, category_id=category.category_id)
@@ -22,7 +22,7 @@ async def test_get_product_account_by_category_id(use_redis, create_category, cr
 
 @pytest.mark.asyncio
 async def test_get_full_product_account_by_category_id(create_category, create_product_account):
-    from src.services.database.categories.actions import get_product_account_by_category_id
+    from src.services._database.categories.actions import get_product_account_by_category_id
 
     category = await create_category()
     _, account_1 = await create_product_account(category_id=category.category_id)
@@ -40,7 +40,7 @@ async def test_get_full_product_account_by_category_id(create_category, create_p
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_product_account_by_account_id(use_redis, create_category, create_product_account):
-    from src.services.database.categories.actions import get_product_account_by_account_id
+    from src.services._database.categories.actions import get_product_account_by_account_id
     category = await create_category()
     _, account = await create_product_account(use_redis, category_id=category.category_id)
     _, account_other = await create_product_account(use_redis)
@@ -52,7 +52,7 @@ async def test_get_product_account_by_account_id(use_redis, create_category, cre
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_sold_accounts_by_owner_id(use_redis, create_new_user, create_sold_account):
-    from src.services.database.categories.actions import get_sold_accounts_by_owner_id
+    from src.services._database.categories.actions import get_sold_accounts_by_owner_id
 
     owner = await create_new_user()
     account_1, _ = await create_sold_account(use_redis, owner_id=owner.user_id)
@@ -71,7 +71,7 @@ async def test_get_sold_accounts_by_owner_id(use_redis, create_new_user, create_
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_sold_account_by_page(use_redis, create_new_user, create_sold_account):
-    from src.services.database.categories.actions import get_sold_account_by_page
+    from src.services._database.categories.actions import get_sold_account_by_page
 
     owner = await create_new_user()
     account_1, account_1_full = await create_sold_account(use_redis, owner_id=owner.user_id)
@@ -95,7 +95,7 @@ async def test_get_sold_account_by_page(use_redis, create_new_user, create_sold_
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_sold_accounts_by_account_id(use_redis, create_sold_account):
-    from src.services.database.categories.actions import get_sold_accounts_by_account_id
+    from src.services._database.categories.actions import get_sold_accounts_by_account_id
 
     _, account = await create_sold_account(use_redis)
     _, account_other = await create_sold_account(use_redis)

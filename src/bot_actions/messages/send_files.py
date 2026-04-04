@@ -16,7 +16,7 @@ from aiogram.types import (
 
 from src.bot_actions.bot_instance import get_bot
 from src.config import get_global_rate_limit, get_config
-from src.services.database.system.actions import get_file, update_file
+from src.services._database.system.actions import get_file, update_file
 from src.utils.core_logger import get_logger
 
 

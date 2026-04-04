@@ -26,7 +26,7 @@ def confirm_destruction(env: str, force: bool):
     if force:
         return
 
-    print(f"\nWARNING: This will DESTROY {env} database.")
+    print(f"\nWARNING: This will DESTROY {env} _database.")
     phrase = f"RESTORE {env} DATABASE"
 
     typed = input(f'Type "{phrase}" to continue: ')
@@ -43,7 +43,7 @@ def get_kek() -> bytes:
 
 
 def restore_postgres(dump_file: Path, config):
-    print("Restoring PostgreSQL database...")
+    print("Restoring PostgreSQL _database...")
 
     subprocess.run(
         [

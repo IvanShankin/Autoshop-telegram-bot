@@ -5,9 +5,9 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.config import get_config
-from src.services.database.categories.actions import get_count_sold_account, \
+from src.services._database.categories.actions import get_count_sold_account, \
     get_types_product_where_the_user_has_product, get_types_account_service_where_the_user_purchase
-from src.services.database.categories.actions import get_sold_account_by_page
+from src.services._database.categories.actions import get_sold_account_by_page
 from src.database.models.categories import ProductType, AccountServiceType
 from src.services.keyboards.keyboard_with_pages import pagination_keyboard
 from src.utils.i18n import get_text, n_get_text

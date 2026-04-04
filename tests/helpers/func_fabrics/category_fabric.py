@@ -17,7 +17,7 @@ async def create_translate_category_factory(
         name: str = "name",
         description: str = "description"
 ) -> CategoryFull:
-    from src.services.database.categories.actions import get_quantity_products_in_category
+    from src.services._database.categories.actions import get_quantity_products_in_category
 
     async with get_db() as session_db:
         new_translate = CategoryTranslation(
@@ -66,7 +66,7 @@ async def create_category_factory(
         name: str = "name",
         description: str = "description"
 ) -> CategoryFull:
-    from src.services.database.categories.actions import get_quantity_products_in_category
+    from src.services._database.categories.actions import get_quantity_products_in_category
 
     async with get_db() as session_db:
         if parent_id is not None:

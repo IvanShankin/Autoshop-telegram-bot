@@ -12,7 +12,7 @@ from src.infrastructure.redis import get_redis
 
 @pytest.mark.asyncio
 async def test_add_product_account(replacement_needed_modules, create_category, create_account_storage):
-    from src.services.database.categories.actions import add_product_account
+    from src.services._database.categories.actions import add_product_account
     # Создаём категорию-хранилище
     account_storage = await create_account_storage()
     category = await create_category(is_product_storage=True, filling_redis=False)
@@ -48,7 +48,7 @@ async def test_add_product_account(replacement_needed_modules, create_category, 
 
 @pytest.mark.asyncio
 async def test_add_translation_in_sold_account(replacement_needed_modules):
-    from src.services.database.categories.actions import add_account_storage
+    from src.services._database.categories.actions import add_account_storage
 
     new_acc = await add_account_storage(
         is_file=True,
@@ -77,7 +77,7 @@ async def test_add_translation_in_sold_account(replacement_needed_modules):
 
 @pytest.mark.asyncio
 async def test_add_translation_in_sold_account(replacement_needed_modules, create_sold_account):
-    from src.services.database.categories.actions import add_translation_in_sold_account
+    from src.services._database.categories.actions import add_translation_in_sold_account
     sold_account, _ = await create_sold_account(filling_redis=False)
 
     # Успешное добавление нового перевода
@@ -124,7 +124,7 @@ async def test_add_translation_in_sold_account(replacement_needed_modules, creat
 
 @pytest.mark.asyncio
 async def test_add_sold_account(replacement_needed_modules, create_new_user, create_account_storage):
-    from src.services.database.categories.actions import add_sold_account
+    from src.services._database.categories.actions import add_sold_account
     user = await create_new_user()
     account_storage = await create_account_storage()
 
@@ -159,7 +159,7 @@ async def test_add_sold_account(replacement_needed_modules, create_new_user, cre
 
 @pytest.mark.asyncio
 async def test_add_deleted_accounts(replacement_needed_modules, create_account_storage):
-    from src.services.database.categories.actions import add_deleted_accounts
+    from src.services._database.categories.actions import add_deleted_accounts
     account_storage = await create_account_storage()
 
     deleted = await add_deleted_accounts(

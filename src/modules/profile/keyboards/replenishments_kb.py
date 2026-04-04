@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.services.database.system.actions.actions import get_all_types_payments
+from src.services._database.system.actions.actions import get_all_types_payments
 from src.utils.i18n import get_text
 
 

@@ -10,7 +10,7 @@ from aiocryptopay.models.invoice import Invoice
 from httpx import AsyncClient, ASGITransport
 
 from src.config import get_config
-from src.services.database.replenishments_event.schemas import NewReplenishment
+from src.services._database.replenishments_event.schemas import NewReplenishment
 from src.infrastructure.redis import get_redis
 
 

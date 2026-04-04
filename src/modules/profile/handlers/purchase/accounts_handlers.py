@@ -7,7 +7,7 @@ from src.modules.profile.keyboards import confirm_del_acc_kb, login_details_kb
 from src.modules.profile.services.purchases_accounts import show_all_sold_account, show_sold_account, get_file_for_login, \
     check_sold_account, show_types_services_sold_account
 from src.services.products.accounts.tg.actions import check_account_validity, get_auth_codes
-from src.services.database.categories.actions import update_account_storage, \
+from src.services._database.categories.actions import update_account_storage, \
     delete_sold_account, get_type_service_account, add_deleted_accounts
 from src.database.models.categories import AccountStorage, StorageStatus
 from src.database.models.users import Users

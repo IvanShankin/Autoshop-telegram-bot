@@ -1,17 +1,23 @@
 from datetime import datetime
-from typing import Type
+from typing import Type, Any, Dict
 from dateutil.parser import parse
 from pydantic import BaseModel
 
+from src.database import Base
 from src.utils.core_logger import get_logger
+
+
+def _get_dict(obj: Any) -> Dict:
+    if isinstance(obj, dict): return obj
+    if isinstance(obj, BaseModel): return obj.model_dump()
+    elif isinstance(obj, Base): return obj.to_dict()
+    else: raise RuntimeError(f"невалидный формат у: {obj}")
 
 
 def comparison_models(Expected: Type | dict, Actual: Type | dict, keys_not_checked: list = []):
     """Сравнивает две модели БД"""
-    if not isinstance(Expected, dict):
-        Expected: dict = Expected.to_dict()
-    if not isinstance(Actual, dict):
-        Actual: dict = Actual.to_dict()
+    Expected = _get_dict(Expected)
+    Actual = _get_dict(Actual)
 
     if not Actual:
         return False

@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone, timedelta
-from typing import Tuple
+from typing import Tuple, Optional
 
 import orjson
 from sqlalchemy import select
@@ -331,7 +331,11 @@ async def create_transfer_moneys_fabric(
         return new_transfer
 
 
-async def create_wallet_transaction_fabric(user_id: int, type: str = 'replenish', amount: int = 100) -> WalletTransaction:
+async def create_wallet_transaction_fabric(
+    user_id: Optional[int] = None,
+    type: str = 'replenish',
+    amount: int = 100
+) -> WalletTransaction:
     if user_id is None:
         user = await create_new_user_fabric()
         user_id = user.user_id

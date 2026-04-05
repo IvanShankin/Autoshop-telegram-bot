@@ -7,7 +7,11 @@ from src.infrastructure.files.file_system import FileStorage
 from src.infrastructure.files.path_builder import PathBuilder
 from src.infrastructure.redis import get_redis
 from src.infrastructure.telegram.rate_limit import RateLimiter
+from src.repository.database.discount import VouchersRepository, VoucherActivationsRepository, PromoCodeRepository, \
+    ActivatedPromoCodeRepository
 from src.repository.database.replanishments import ReplenishmentsRepository
+from src.services.models.discounts import ActivatedPromoCodesService, PromoCodeService
+from src.services.models.discounts.vouchers_service import VoucherService
 from src.services.models.module import ProfileModule
 from src.repository.database.admins import (
     AdminActionsRepository,
@@ -31,7 +35,7 @@ from src.repository.redis import (
     StickersCacheRepository,
     SubscriptionCacheRepository,
     UiImagesCacheRepository,
-    UsersCacheRepository, SettingsCacheRepository,
+    UsersCacheRepository, SettingsCacheRepository, VouchersCacheRepository, PromoCodesCacheRepository,
 )
 from src.services.bot import Messages, MassTgMailingService, SendFileService, SendLogs
 from src.services.bot.edit_message import EditMessageService
@@ -270,6 +274,55 @@ class Container:
             wallet_transaction_service=self.wallet_transaction_service,
             session_db=self.session_db,
         )
+        self.voucher_activations_repo = VoucherActivationsRepository(
+            session_db=session_db,
+            config=self.config,
+        )
+        self.vouchers_cache__repo = VouchersCacheRepository(
+            redis_session=self.session_redis,
+            config=self.config,
+        )
+        self.vouchers_repo = VouchersRepository(
+            session_db=session_db,
+            config=self.config,
+        )
+        self.voucher_service = VoucherService(
+            vouchers_repo=self.vouchers_repo,
+            voucher_activations_repo=self.voucher_activations_repo,
+            users_repo=self.users_repo,
+            user_log_repo=self.user_log_repo,
+            wallet_transaction_repo=self.wallet_transaction_repo,
+            admin_actions_repo=self.admin_actions_repo,
+            cache_vouchers_repo=self.vouchers_cache__repo,
+            cache_users_repo=self.users_cache_repo,
+            publish_event_handler=self.publish_event_handler,
+            conf=self.config,
+            session_db=self.session_db,
+        )
+
+        self.promo_code_repo = PromoCodeRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.promo_code_cache_repo = PromoCodesCacheRepository(
+            redis_session=self.session_redis,
+            config=self.config,
+        )
+        self.activated_promo_code_repo = ActivatedPromoCodeRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.activated_service = ActivatedPromoCodesService(activated_repo=self.activated_promo_code_repo)
+
+        self.promo_code_service = PromoCodeService(
+            promo_repo=self.promo_code_repo,
+            admin_actions_repo=self.admin_actions_repo,
+            cache_repo=self.promo_code_cache_repo,
+            activate_promo_code_service=self.activated_service,
+            user_log=self.user_log_service,
+            conf=self.config,
+            session_db=self.session_db,
+        )
 
     def get_message_service(self,) -> Messages:
         rate_limiter = RateLimiter(
@@ -279,6 +332,7 @@ class Container:
         sticker_sender = StickerSender(
             tg_client=self.telegram_client,
             sticker_service=self.stickers_service,
+            publish_event_handler=self.publish_event_handler
         )
 
         send_msg_logger = get_logger("send_message_service")

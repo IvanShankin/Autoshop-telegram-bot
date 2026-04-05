@@ -1,5 +1,6 @@
+from src.models.event_models.discounts import NewActivationVoucher
 from src.models.read_models import EventSentLog, LogLevel
-from src.infrastructure.rebbit_mq.producer import publish_event
+from src.infrastructure.rabbit_mq.producer import publish_event
 from src.services.filesystem.schemas import EventCreateUiImage
 
 
@@ -75,3 +76,6 @@ class PublishEventHandler:
             EventCreateUiImage(ui_image_key=ui_image_key).model_dump(),
             "filesystem.create_ui_image"
         )
+
+    async def voucher_activated(cls, data: NewActivationVoucher):
+        await publish_event(data.model_dump(), "voucher.activated")

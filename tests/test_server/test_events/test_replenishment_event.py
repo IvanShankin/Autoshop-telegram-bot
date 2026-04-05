@@ -3,7 +3,7 @@ import pytest
 from sqlalchemy import MetaData, Table
 from sqlalchemy import select
 
-from src.infrastructure.rebbit_mq.producer import publish_event
+from src.infrastructure.rabbit_mq.producer import publish_event
 from src.database import get_db
 from src.services._database.replenishments_event.schemas import ReplenishmentFailed, ReplenishmentCompleted, \
     NewReplenishment

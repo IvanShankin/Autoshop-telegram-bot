@@ -4,7 +4,7 @@ import hashlib
 from fastapi import Request, HTTPException, APIRouter
 from pydantic import ValidationError
 
-from src.infrastructure.rebbit_mq.producer import publish_event
+from src.infrastructure.rabbit_mq.producer import publish_event
 from src.config import get_config
 from src.services._database.users.actions import update_replenishment, get_replenishment
 from src.services.payments.crypto_bot.schemas import WebhookCryptoBot

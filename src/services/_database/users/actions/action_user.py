@@ -6,7 +6,7 @@ from orjson import orjson
 from sqlalchemy import select, update, func
 
 from src.models.read_models import LogLevel, EventSentLog
-from src.infrastructure.rebbit_mq.producer import publish_event
+from src.infrastructure.rabbit_mq.producer import publish_event
 from src.services._database.admins.actions.actions_admin import add_admin_action
 from src.infrastructure.redis import get_redis
 from src.services.redis.time_storage import TIME_USER

@@ -11,7 +11,7 @@ from src.bot_actions.bot_instance import get_bot
 from src.bot_actions.messages import send_message
 from src.models.read_models import EventSentLog, LogLevel
 from src.bot_actions.messages.send_stickers import send_sticker
-from src.infrastructure.rebbit_mq.producer import publish_event
+from src.infrastructure.rabbit_mq.producer import publish_event
 from src.exceptions.domain import StickerNotFound
 from src.services._database.system.actions import get_ui_image, update_ui_image
 from src.services.filesystem.actions import check_file_exists

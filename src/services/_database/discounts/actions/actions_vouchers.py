@@ -6,7 +6,7 @@ from dateutil.parser import parse
 from sqlalchemy import update, select, func
 
 from src.models.read_models import LogLevel, EventSentLog
-from src.infrastructure.rebbit_mq.producer import publish_event
+from src.infrastructure.rabbit_mq.producer import publish_event
 from src.config import get_config
 from src.exceptions import NotEnoughMoney
 from src.infrastructure.redis import get_redis

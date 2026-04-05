@@ -10,6 +10,7 @@ from src.database.models.admins import Admins, SentMasMessages, MessageForSendin
 from src.database.models.categories import PurchaseRequests
 from src.database.models.discount import Vouchers, PromoCodes, ActivatedPromoCodes
 from src.database.models.referrals import Referrals, IncomeFromReferrals
+from src.models.read_models import UsersDTO
 from src.services._database.referrals.utils import create_unique_referral_code
 from src.database.models.system import TypePayments
 from src.database.models.system import UiImages, BackupLogs
@@ -27,7 +28,7 @@ async def create_new_user_fabric(
     balance: int = 0,
     total_sum_replenishment: int = 0,
     filling_redis: bool = True
-) -> Users:
+) -> UsersDTO:
     """ Создаст нового пользователя в БД"""
     if union_ref_code is None:
         union_ref_code = await create_unique_referral_code()
@@ -61,7 +62,7 @@ async def create_new_user_fabric(
         session_redis = get_redis()
         await session_redis.set(f"user:{new_user.user_id}", orjson.dumps(new_user.to_dict()))
 
-    return new_user
+    return UsersDTO.model_validate(new_user)
 
 
 

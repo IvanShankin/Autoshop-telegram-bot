@@ -10,7 +10,7 @@ from src.models.read_models import EventSentLog, LogLevel
 from src.config import Config
 from src.database.models.categories import AccountServiceType, StorageStatus, ProductType
 from src.exceptions import NotEnoughAccounts
-from src.infrastructure.rebbit_mq.producer import publish_event
+from src.infrastructure.rabbit_mq.producer import publish_event
 from src.models.create_models.accounts import CreateDeletedAccountDTO
 from src.models.read_models import StartPurchaseAccount
 from src.repository.redis import UsersCacheRepository

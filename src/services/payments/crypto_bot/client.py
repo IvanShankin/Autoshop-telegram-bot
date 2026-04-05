@@ -4,7 +4,7 @@ from typing import Optional
 from aiocryptopay import AioCryptoPay, Networks
 
 from src.models.read_models import EventSentLog
-from src.infrastructure.rebbit_mq.producer import publish_event
+from src.infrastructure.rabbit_mq.producer import publish_event
 from src.config import get_config
 from src.services._database.replenishments_event.schemas import NewReplenishment
 from src.services._database.users.actions import create_replenishment, update_replenishment

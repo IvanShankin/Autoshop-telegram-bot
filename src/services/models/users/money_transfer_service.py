@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.read_models import LogLevel, EventSentLog
 from src.config import Config
 from src.exceptions import UserNotFound, NotEnoughMoney
-from src.infrastructure.rebbit_mq.producer import publish_event
+from src.infrastructure.rabbit_mq.producer import publish_event
 from src.models.create_models.users import CreateWalletTransactionDTO, CreateUserAuditLogDTO
 from src.models.read_models import UsersDTO
 from src.models.read_models.other import TransferMoneysDTO

@@ -13,7 +13,7 @@ from src.database.models.categories import StorageStatus, ProductType
 from src.database.models.categories.product_universal import UniversalStorage, UniversalStorageTranslation
 from src.exceptions.business import NotEnoughProducts
 from src.exceptions.domain import UniversalProductNotFound
-from src.infrastructure.rebbit_mq.producer import publish_event
+from src.infrastructure.rabbit_mq.producer import publish_event
 from src.models.read_models import ProductUniversalFull
 from src.models.read_models.categories.purshanse_schem import StartPurchaseUniversalOne, StartPurchaseUniversal
 from src.repository.redis import UsersCacheRepository

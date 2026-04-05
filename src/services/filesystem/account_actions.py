@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import AsyncGenerator
 
 from src.models.read_models import EventSentLog
-from src.infrastructure.rebbit_mq.producer import publish_event
+from src.infrastructure.rabbit_mq.producer import publish_event
 from src.database.models.categories import AccountStorage, AccountServiceType, StorageStatus
 from src.models.read_models import AccountStorageDTO
 from src.services.filesystem.actions import move_file

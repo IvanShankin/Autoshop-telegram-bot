@@ -50,9 +50,9 @@ class VouchersRepository(DatabaseBase):
         page_size: Optional[int] = None,
         only_created_admin: bool = False,
     ) -> Sequence[VouchersDTO]:
-        if page_size is None:
-            page_size = self.conf.different.page_size
-
+        """
+        :param page: Если не указывать, то вернёт все ваучеры
+        """
         stmt = select(Vouchers).order_by(Vouchers.start_at.desc())
 
         if only_created_admin:
@@ -66,6 +66,9 @@ class VouchersRepository(DatabaseBase):
                 stmt = stmt.where(Vouchers.creator_id == user_id)
 
         if page is not None:
+            if page_size is None:
+                page_size = self.conf.different.page_size
+
             offset = (page - 1) * page_size
             stmt = stmt.limit(page_size).offset(offset)
 

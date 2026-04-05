@@ -170,6 +170,6 @@ async def handle_event(event: dict):
         logger.error(f"Ошибка при обращении с каналом! {str(e)}")
     except Exception as e:
         logger = get_logger(__name__)
-        logger.exception(f"Ошибка при обработке сообщения у RebbitMQ. Ошибка: {str(e)}")
+        logger.exception(f"Ошибка при обработке сообщения у RabbitMQ. Ошибка: {str(e)}")
 
 

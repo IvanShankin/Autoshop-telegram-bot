@@ -6,7 +6,7 @@ from asyncpg.pgproto.pgproto import timedelta
 from sqlalchemy import select, update, delete, func
 
 from src.models.read_models import EventSentLog, LogLevel
-from src.infrastructure.rebbit_mq.producer import publish_event
+from src.infrastructure.rabbit_mq.producer import publish_event
 from src.config import get_config
 from src.exceptions import UserNotFound, NotEnoughMoney
 from src.services.redis.filling import filling_user

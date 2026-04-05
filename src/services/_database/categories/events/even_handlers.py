@@ -1,5 +1,5 @@
 from src.models.read_models import EventSentLog, LogLevel
-from src.infrastructure.rebbit_mq.producer import publish_event
+from src.infrastructure.rabbit_mq.producer import publish_event
 from src.database import get_db
 from src.services._database.categories.events.schemas import NewPurchaseAccount, NewPurchaseUniversal
 from src.database.models.users import UserAuditLogs, WalletTransaction

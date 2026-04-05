@@ -3,7 +3,7 @@ import shutil
 from pathlib import Path
 
 from src.models.read_models import EventSentLog
-from src.infrastructure.rebbit_mq.producer import publish_event
+from src.infrastructure.rabbit_mq.producer import publish_event
 from src.database.models.categories import StorageStatus
 from src.models.read_models import ProductUniversalFull, UniversalStoragePydantic
 from src.services.filesystem.actions import move_file

@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.read_models import EventSentLog, LogLevel
 from src.config import Config
 from src.database.models.users import Users
-from src.infrastructure.rebbit_mq.producer import publish_event
+from src.infrastructure.rabbit_mq.producer import publish_event
 from src.models.create_models.users import CreateUserDTO, CreateUserAuditLogDTO
 from src.models.read_models import UsersDTO
 from src.models.update_models.users import UpdateUserDTO

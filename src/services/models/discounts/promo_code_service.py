@@ -5,7 +5,7 @@ from src.models.read_models import EventSentLog, LogLevel
 from src.config import Config
 from src.exceptions.business import AlreadyActivated
 from src.exceptions.domain import PromoCodeNotFound
-from src.infrastructure.rebbit_mq.producer import publish_event
+from src.infrastructure.rabbit_mq.producer import publish_event
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.create_models.discounts import CreatePromoCodeDTO, CreateActivatedPromoCodeDTO
@@ -169,7 +169,7 @@ class PromoCodeService:
             user_id=user_id
         )
         if activate_promo_code:  # если активировал ранее
-            return AlreadyActivated()
+            raise AlreadyActivated()
 
         new_activated_counter = await self.promo_repo.increment_activation(
             promo_code_id=promo_code_id, current_counter=promo_code.activated_counter

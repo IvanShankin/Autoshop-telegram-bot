@@ -1,7 +1,7 @@
 from sqlalchemy import update
 
 from src.models.read_models import LogLevel, EventSentLog
-from src.infrastructure.rebbit_mq.producer import publish_event
+from src.infrastructure.rabbit_mq.producer import publish_event
 from src.config import get_config
 from src.infrastructure.redis import get_redis
 from src.database import get_db

@@ -147,7 +147,7 @@ async def rabbit_channel():
 @pytest_asyncio.fixture(scope="function")
 async def start_consumer():
     """ Запускает consumer и корректно его останавливает по завершению теста. """
-    from src.infrastructure.rebbit_mq._consumer import _run_single_consumer_loop
+    from src.infrastructure.rabbit_mq._consumer import _run_single_consumer_loop
 
     started_event = asyncio.Event()
     stop_event = asyncio.Event()

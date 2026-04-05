@@ -6,7 +6,7 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
 from src.models.read_models import EventSentLog, LogLevel
-from src.infrastructure.rebbit_mq.producer import publish_event
+from src.infrastructure.rabbit_mq.producer import publish_event
 from src.services._database.categories.actions.actions_get import get_category_by_category_id
 from src.services._database.categories.actions.products.accounts.actions_add import add_deleted_accounts
 from src.services._database.categories.actions.products.accounts.actions_delete import delete_product_account

@@ -3,11 +3,11 @@ from typing import Tuple, Optional, List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.read_models import EventSentLog, LogLevel
+from src.models.event_models.discounts import NewActivationVoucher
+from src.models.read_models import LogLevel
 from src.config import Config
 from src.database.models.discount import SmallVoucher
 from src.exceptions import NotEnoughMoney
-from src.infrastructure.rebbit_mq.producer import publish_event
 from src.models.create_models.discounts import CreateVoucherDTO
 from src.models.read_models.other import UsersDTO, VouchersDTO
 from src.repository.database.admins import AdminActionsRepository
@@ -17,7 +17,7 @@ from src.repository.database.discount import (
 )
 from src.repository.database.users import UserAuditLogsRepository, UsersRepository, WalletTransactionRepository
 from src.repository.redis import UsersCacheRepository, VouchersCacheRepository
-from src.services._database.discounts.events import NewActivationVoucher
+from src.services.events.publish_event_handler import PublishEventHandler
 from src.utils.codes import generate_code
 from src.utils.i18n import get_text
 
@@ -34,6 +34,7 @@ class VoucherService:
         admin_actions_repo: AdminActionsRepository,
         cache_vouchers_repo: VouchersCacheRepository,
         cache_users_repo: UsersCacheRepository,
+        publish_event_handler: PublishEventHandler,
         conf: Config,
         session_db: AsyncSession,
     ):
@@ -45,6 +46,7 @@ class VoucherService:
         self.admin_actions_repo = admin_actions_repo
         self.cache_vouchers_repo = cache_vouchers_repo
         self.cache_users_repo = cache_users_repo
+        self.publish_event_handler = publish_event_handler
         self.conf = conf
         self.session_db = session_db
 
@@ -58,29 +60,29 @@ class VoucherService:
         :param user_id: id пользователя
         :exception NotEnoughMoney: если у пользователя недостаточно денег
         """
-        user_db = await self.users_repo.get_by_id_for_update(user_id)
-        if not user_db:
-            raise ValueError("Пользователь не найден")
-
-        required_amount = data.amount * data.number_of_activations if data.number_of_activations else 0
-
-        if user_db.balance < required_amount and data.is_created_admin is False:
-            raise NotEnoughMoney(
-                "У пользователя недостаточно денег",
-                required_amount - user_db.balance
-            )
-
-        while True:
-            code = generate_code(15)
-            cached = await self.cache_vouchers_repo.get_by_code(code)
-            if cached:
-                continue
-
-            exists = await self.vouchers_repo.get_by_code(code, only_valid=True)
-            if not exists:
-                break
-
         async with self.session_db.begin():
+            user_db = await self.users_repo.get_by_id_for_update(user_id)
+            if not user_db:
+                raise ValueError("Пользователь не найден")
+
+            required_amount = data.amount * data.number_of_activations if data.number_of_activations else 0
+
+            if user_db.balance < required_amount and data.is_created_admin is False:
+                raise NotEnoughMoney(
+                    "У пользователя недостаточно денег",
+                    required_amount - user_db.balance
+                )
+
+            while True:
+                code = generate_code(15)
+                cached = await self.cache_vouchers_repo.get_by_code(code)
+                if cached:
+                    continue
+
+                exists = await self.vouchers_repo.get_by_code(code, only_valid=True)
+                if not exists:
+                    break
+
             if not data.is_created_admin:
                 new_balance = user_db.balance - required_amount
                 await self.users_repo.update(user_id=user_db.user_id, balance=new_balance)
@@ -118,7 +120,7 @@ class VoucherService:
                 )
 
         if data.is_created_admin:
-            event = EventSentLog(
+            await self.publish_event_handler.send_log(
                 text=(
                     f"🛠️\n"
                     f"#Админ_создал_ваучер \n\n"
@@ -128,7 +130,6 @@ class VoucherService:
                 ),
                 log_lvl=LogLevel.INFO,
             )
-            await publish_event(event.model_dump(), "message.send_log")
 
         ttl = None
         if data.expire_at:
@@ -253,11 +254,10 @@ class VoucherService:
                 await self.cache_vouchers_repo.delete_by_code(voucher.activation_code)
 
             if voucher.is_created_admin:
-                event = EventSentLog(
+                await self.publish_event_handler.send_log(
                     text=f"#Деактивация_ваучера_созданным_админом \n\nID: {voucher.voucher_id}",
                     log_lvl=LogLevel.INFO,
                 )
-                await publish_event(event.model_dump(), "message.send_log")
                 return 0
 
             remaining = (voucher.number_of_activations or 0) - voucher.activated_counter
@@ -333,8 +333,7 @@ class VoucherService:
                 "log_error_refunding_money_from_voucher",
             ).format(voucher_id=voucher_id, owner_id=owner_id, error=str(e))
 
-            event = EventSentLog(text=log_message)
-            await publish_event(event.model_dump(), "message.send_log")
+            await self.publish_event_handler.send_log(text=log_message, log_lvl=LogLevel.INFO)
 
             raise e
 
@@ -396,15 +395,16 @@ class VoucherService:
             ttl=int(self.conf.redis_time_storage.user.total_seconds()),
         )
 
-        new_event = NewActivationVoucher(
-            user_id=user.user_id,
-            language=user.language,
-            voucher_id=voucher.voucher_id,
-            amount=voucher.amount,
-            balance_before=balance_before,
-            balance_after=updated_user.balance,
+        await self.publish_event_handler.voucher_activated(
+            NewActivationVoucher(
+                user_id=user.user_id,
+                language=user.language,
+                voucher_id=voucher.voucher_id,
+                amount=voucher.amount,
+                balance_before=balance_before,
+                balance_after=updated_user.balance,
+            )
         )
-        await publish_event(new_event.model_dump(), "voucher.activated")
 
         return get_text(
             language, "discount", "voucher_successfully_activated"

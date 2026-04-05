@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery, FSInputFile, Message
 from src.bot_actions.bot_instance import get_bot, get_bot_logger
 from src.bot_actions.messages import edit_message
 from src.models.read_models import LogLevel, EventSentLog
-from src.infrastructure.rebbit_mq.producer import publish_event
+from src.infrastructure.rabbit_mq.producer import publish_event
 from src.config import get_config
 from src.modules.admin_actions.keyboards import admin_settings_kb
 from src.modules.admin_actions.keyboards.settings_kb import confirm_overwrite_cache_kb, back_in_admin_settings_kb

@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from sqlalchemy import select, and_, update
 
 from src.models.read_models import EventSentLog, LogLevel
-from src.infrastructure.rebbit_mq.producer import publish_event
+from src.infrastructure.rabbit_mq.producer import publish_event
 from src.database import get_db
 from src.services._database.discounts.actions.actions_vouchers import deactivate_voucher
 from src.database.models.discount import Vouchers, PromoCodes

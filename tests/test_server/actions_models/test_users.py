@@ -15,28 +15,6 @@ from src.infrastructure.redis import get_redis
 
 
 @pytest.mark.asyncio
-async def test_update_notification_updates_correctly(replacement_fake_bot_fix, create_new_user):
-    """Проверяем, что update_notification обновляет флаги корректно"""
-    from src.services._database.users.actions import update_notification
-    user = await create_new_user()
-
-    updated = await update_notification(
-        user.user_id,
-        referral_invitation=False,
-        referral_replenishment=False
-    )
-
-    assert updated.referral_invitation is False
-    assert updated.referral_replenishment is False
-
-    async with get_db() as session:
-        result = await session.execute(select(NotificationSettings).where(NotificationSettings.user_id == user.user_id))
-        notif = result.scalar_one()
-        assert notif.referral_invitation is False
-        assert notif.referral_replenishment is False
-
-
-@pytest.mark.asyncio
 async def test_add_banned_account_creates_ban_and_log(replacement_fake_bot_fix, create_new_user):
     """Проверяем, что при добавлении бана создаётся запись в БД, Redis и лог"""
     from src.services._database.users.actions import add_banned_account

@@ -189,7 +189,8 @@ class BannedAccountsCacheRepository(BaseRedisRepo):
         await self.redis_session.set(self._key(user_id), reason)
 
     async def get(self, user_id: int) -> Optional[str]:
-        return await self.redis_session.get(self._key(user_id))
+        result = await self.redis_session.get(self._key(user_id))
+        return result.decode("utf-8") if isinstance(result, bytes)  else result
 
     async def delete(self, user_id: int) -> None:
         await self.redis_session.delete(self._key(user_id))

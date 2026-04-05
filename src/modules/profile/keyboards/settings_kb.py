@@ -3,6 +3,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.config import get_config
 from src.database.models.users import NotificationSettings
+from src.models.read_models.other import NotificationSettingsDTO
 from src.utils.i18n import get_text
 
 
@@ -29,7 +30,7 @@ def settings_language_kb(language: str):
     return keyboard.as_markup()
 
 
-def setting_notification_kb(language: str, notification: NotificationSettings):
+def setting_notification_kb(language: str, notification: NotificationSettingsDTO):
     return InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(

@@ -399,6 +399,7 @@ class Container:
             permission_service=self.permission_service,
             wallet_transaction_service=self.wallet_transaction_service,
             money_transfer_service=self.money_transfer_service,
+            notification_service=self.notification_service,
         )
 
 

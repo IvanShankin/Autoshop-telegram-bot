@@ -7,6 +7,7 @@ from src.infrastructure.files.file_system import FileStorage
 from src.infrastructure.files.path_builder import PathBuilder
 from src.infrastructure.redis import get_redis
 from src.infrastructure.telegram.rate_limit import RateLimiter
+from src.repository.database.replanishments import ReplenishmentsRepository
 from src.services.models.module import ProfileModule
 from src.repository.database.admins import (
     AdminActionsRepository,
@@ -44,7 +45,7 @@ from src.services.models.users import (
     BannedAccountService,
     UserLogService,
     UserService,
-    WalletTransactionService, MoneyTransferService,
+    WalletTransactionService, MoneyTransferService, ReplenishmentsService,
 )
 from src.services.models.users.notifications_service import NotificationSettingsService
 from src.services.models.users.permission_service import PermissionService
@@ -257,6 +258,17 @@ class Container:
             session_db=session_db,
             conf=self.config,
             logger=self.logger,
+        )
+        self.replenishment_repo = ReplenishmentsRepository(
+            session_db=session_db,
+            config=self.config,
+        )
+        self.replenishment_service = ReplenishmentsService(
+            replenishment_repo=self.replenishment_repo,
+            user_service=self.user_service,
+            user_log_service=self.user_log_service,
+            wallet_transaction_service=self.wallet_transaction_service,
+            session_db=self.session_db,
         )
 
     def get_message_service(self,) -> Messages:

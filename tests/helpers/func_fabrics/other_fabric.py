@@ -8,7 +8,6 @@ from sqlalchemy import select
 from src.database.core import get_session_factory
 from src.database.models.admins import Admins, SentMasMessages, MessageForSending
 from src.database.models.categories import PurchaseRequests
-from src.database import get_db
 from src.database.models.discount import Vouchers, PromoCodes, ActivatedPromoCodes
 from src.database.models.referrals import Referrals, IncomeFromReferrals
 from src.services._database.referrals.utils import create_unique_referral_code
@@ -71,7 +70,7 @@ async def create_admin_fabric(filling_redis: bool = True, user_id: int = None) -
         user = await create_new_user_fabric()
         user_id = user.user_id
 
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
         new_admin = Admins(user_id=user_id)
 
         ui_image, _ = await create_ui_image_factory(str(uuid.uuid4()))
@@ -94,7 +93,7 @@ async def create_referral_fabric(owner_id: int = None, referral_id: int = None) 
        Создаёт тестовый реферала (у нового пользователя появляется владелец)
        :return Реферал(Referrals), Владельца(Users) и Реферала(Users)
     """
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
         if referral_id is None:
             user = await create_new_user_fabric() # новый реферал
         else:
@@ -133,7 +132,7 @@ async def create_income_from_referral_fabric(
         Создаёт доход от реферала, если не указать реферала, то создаст нового, если не указать владельца, то создаст нового.
         :return Доход(IncomeFromReferrals), Реферал(Users), Владелец(Users)
     """
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
         if owner_id is None: # создаём владельца
             owner = await create_new_user_fabric(user_name='owner_user')
             owner_id = owner.user_id
@@ -167,12 +166,12 @@ async def create_income_from_referral_fabric(
 
 
 async def create_replenishment_fabric(
-        amount: int = 110,
-        user_id: int = None,
-        status: str = "completed"
+    amount: int = 110,
+    user_id: int = None,
+    status: str = "completed"
 ) -> Replenishments:
     """Создаёт пополнение для пользователя"""
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
         if user_id is None:
             user = await create_new_user_fabric()
             user_id = user.user_id
@@ -215,7 +214,7 @@ async def create_type_payment_factory(
         extra_data: dict = None,
 ) -> TypePayments:
     """Создаст новый тип оплаты в БД"""
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
         if index is None:
             result = await session_db.execute(select(TypePayments))
             all_types = result.scalars().all()
@@ -269,7 +268,7 @@ async def create_voucher_factory(
         is_created_admin=is_created_admin,
     )
 
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
         session_db.add(voucher)
         await session_db.commit()
         await session_db.refresh(voucher)
@@ -294,7 +293,7 @@ async def create_ui_image_factory(key: str = "main_menu", show: bool = True, fil
     file_abs = create_path_ui_image(f"{key}.png")
     file_abs.write_bytes(b"fake-image-bytes")       # создаём тестовый файл
 
-    async with get_db() as session:
+    async with get_session_factory() as session:
         ui_image = UiImages(
             key=key,
             file_name=f"{key}.png",
@@ -323,7 +322,7 @@ async def create_transfer_moneys_fabric(
         user = await create_new_user_fabric()
         user_where_id = user.user_id
 
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
         new_transfer = TransferMoneys(
             user_from_id = user_from_id,
             user_where_id = user_where_id,
@@ -346,7 +345,7 @@ async def create_wallet_transaction_fabric(
         user = await create_new_user_fabric()
         user_id = user.user_id
 
-    async with get_db() as session:
+    async with get_session_factory() as session:
         transaction = WalletTransaction(
             user_id = user_id,
             type = type,
@@ -380,7 +379,7 @@ async def create_promo_codes_fabric(
         is_valid=is_valid,
     )
 
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
         session_db.add(promo)
         await session_db.commit()
         await session_db.refresh(promo)
@@ -404,7 +403,7 @@ async def create_promo_code_activation_fabric(
         user = await create_new_user_fabric()
         user_id = user.user_id
 
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
         new_activated_promo_codes = ActivatedPromoCodes(
             promo_code_id=promo_code_id,
             user_id=user_id
@@ -429,7 +428,7 @@ async def create_sent_mass_message_fabric(
         admin = await create_admin_fabric() 
         admin_id = admin.user_id
         
-    async with get_db() as session_db: 
+    async with get_session_factory() as session_db:
         sent_message = SentMasMessages(
             user_id = admin_id,
             content = content,
@@ -458,7 +457,7 @@ async def create_backup_log_fabric(
     if storage_encrypted_dek_name is None:
         storage_encrypted_dek_name = str(uuid.uuid4())
 
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
         log = BackupLogs(
             storage_file_name=storage_file_name,
             storage_encrypted_dek_name=storage_encrypted_dek_name,
@@ -484,7 +483,7 @@ async def create_purchase_request_fabric(
         user = await create_new_user_fabric()
         user_id = user.user_id
 
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
         new_request = PurchaseRequests(
             user_id=user_id,
             promo_code_id=promo_code_id,
@@ -513,7 +512,7 @@ async def create_balance_holder_factory(
         purchase_request = await create_purchase_request_fabric(user_id=user_id)
         purchase_request_id = purchase_request.purchase_request_id
 
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
         balance_holder = BalanceHolder(
             purchase_request_id=purchase_request_id,
             user_id=user_id,

@@ -27,5 +27,5 @@ class CreateWalletTransactionDTO(BaseModel):
 
 
 class CreateReplenishmentDTO(BaseModel):
-    origin_amount_rub: int  # Сумма в рублях без учёта комиссии
-    amount_rub: int         # Сумма в рублях с учётом комиссии
+    origin_amount: int  # Сумма в рублях без учёта комиссии
+    amount: int         # Сумма в рублях с учётом комиссии

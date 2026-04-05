@@ -131,9 +131,9 @@ class ReplenishmentsService:
                     ),
                 )
 
-                await self.session_db.commit()
-                money_credited = True
-                error = False
+            money_credited = True
+            error = False
+
         except Exception as e:
             error_str = str(e)
             await self._update_replenishment_status_on_error(

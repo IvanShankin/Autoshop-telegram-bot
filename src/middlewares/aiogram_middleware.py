@@ -14,6 +14,7 @@ from src.modules.keyboard_main import support_kb
 from src.services._database.admins.actions import check_admin
 from src.services._database.system.actions import get_settings
 from src.services._database.users.actions import get_user, get_banned_account
+from src.services.models.module import ProfileModule
 from src.utils.i18n import get_text
 
 
@@ -95,7 +96,8 @@ class UserMiddleware(BaseMiddleware):
             username = event_user.username
 
             # Получаем или создаём пользователя
-            user = await get_user(user_id, username, update_last_used=True)
+            profile_module: ProfileModule = data["profile_module"]
+            user = await profile_module.user_service.get_user(user_id, username, update_last_used=True)
             data["user"] = user
 
         # даже если from_user нет, не ломаем обработку

@@ -20,6 +20,7 @@ from tests.helpers.monkeypatch_data import (
     create_crypto_context_fix,
     set_need_config,
     fake_storage,
+    publish_event_service_fix,
 )
 from src.infrastructure.redis import get_redis, init_redis, close_redis
 

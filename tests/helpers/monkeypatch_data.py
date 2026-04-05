@@ -19,6 +19,38 @@ from tests.helpers.fake_aiogram.fake_aiogram_module import FakeBot
 fake_bot = FakeBot()
 
 
+class FakePublishEventHandler:
+    def __init__(self):
+        self.counter_send_log = 0
+        self.counter_ban_account = 0
+        self.counter_delete_ban_account = 0
+        self.counter_admin_update_balance = 0
+        self.counter_error_message_effect = 0
+        self.counter_create_ui_image = 0
+        self.counter_voucher_activated = 0
+
+    async def send_log(self, *args, **kwargs):
+        self.counter_send_log += 1
+
+    async def ban_account(self, *args, **kwargs):
+        self.counter_ban_account += 1
+
+    async def delete_ban_account(self, *args, **kwargs):
+        self.counter_delete_ban_account += 1
+
+    async def admin_update_balance(self, *args, **kwargs):
+        self.counter_admin_update_balance += 1
+
+    async def error_message_effect(self, *args, **kwargs):
+        self.counter_error_message_effect += 1
+
+    async def create_ui_image(self, *args, **kwargs):
+        self.counter_create_ui_image += 1
+
+    async def voucher_activated(self, *args, **kwargs):
+        self.counter_voucher_activated += 1
+
+
 async def replacement_redis(monkeypatch):
     redis = fakeredis.aioredis.FakeRedis()
 
@@ -250,3 +282,8 @@ def fake_storage(monkeypatch):
     )
 
     return storage
+
+
+@pytest.fixture(autouse=True)
+async def publish_event_service_fix(container_fix):
+    container_fix.publish_event_handler = FakePublishEventHandler()

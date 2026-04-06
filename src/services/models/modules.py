@@ -4,6 +4,10 @@ from src.config import Config
 from src.infrastructure.files.excel_reports import ExcelReportExporter
 from src.services.models.discounts import VoucherService
 from src.services.models.payment_services import PaymentService
+from src.services.models.products.accounts import AccountDeletedService, AccountProductService, AccountSoldService, \
+    AccountStorageService, AccountTgMediaService, AccountTranslationsService, AccountsCacheFillerService
+from src.services.models.products.universal import UniversalDeletedService, UniversalProductService, \
+    UniversalSoldService, UniversalStorageService, UniversalTranslationsService, UniversalCacheFillerService
 from src.services.models.referrals import ReferralService, ReferralIncomeService, ReferralLevelsService
 from src.services.models.systems import TypesPaymentsService, SettingsService
 from src.services.models.users import WalletTransactionService, UserService, MoneyTransferService, \
@@ -46,3 +50,51 @@ class ProfileModule:
         self.type_payments_service = type_payments_service
         self.payment_service = payment_service
         self.settings_service = settings_service
+
+
+class AccountsModuls:
+
+    def __init__(
+        self,
+        deleted_service: AccountDeletedService,
+        product_service: AccountProductService,
+        sold_service: AccountSoldService,
+        storage_service: AccountStorageService,
+        tg_media_service: AccountTgMediaService,
+        translations_service: AccountTranslationsService,
+        cache_filler_service: AccountsCacheFillerService,
+        conf: Config,
+        logger: Logger,
+    ):
+        self.deleted_service = deleted_service
+        self.product_service = product_service
+        self.sold_service = sold_service
+        self.storage_service = storage_service
+        self.tg_media_service = tg_media_service
+        self.translations_service = translations_service
+        self.cache_filler_service = cache_filler_service
+        self.conf = conf
+        self.logger = logger
+
+
+class UniversalModuls:
+
+    def __init__(
+            self,
+        deleted_service: UniversalDeletedService,
+        product_service: UniversalProductService,
+        sold_service: UniversalSoldService,
+        storage_service: UniversalStorageService,
+        translations_service: UniversalTranslationsService,
+        cache_filler_service: UniversalCacheFillerService,
+        conf: Config,
+        logger: Logger,
+    ):
+        self.deleted_service = deleted_service
+        self.product_service = product_service
+        self.sold_service = sold_service
+        self.storage_service = storage_service
+        self.translations_service = translations_service
+        self.cache_filler_service = cache_filler_service
+        self.conf = conf
+        self.logger = logger

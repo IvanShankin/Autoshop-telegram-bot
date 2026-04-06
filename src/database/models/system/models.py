@@ -68,12 +68,11 @@ class TypePayments(Base):
     type_payment_id = Column(Integer, primary_key=True, autoincrement=True)
     # у админа будет собственное название (только для него в панели администратора)
     name_for_user = Column(String(200), nullable=False)  # Название метода (CryptoBot, ЮMoney и т.д.)
-    # name_for_admin мы устанавливаем сами, админ не может поменять (значения берутся с переменной get_config().app.type_payments)
     service = Column(
         Enum(
             ReplenishmentService,
             values_callable=lambda x: [e.value for e in x],
-            name="name_for_admin"
+            name="service"
         ),
         nullable=True
     )

@@ -7,7 +7,7 @@ from src.models.read_models import UsersDTO
 from src.modules.profile.keyboards import profile_kb
 from src.modules.profile.services.profile_message import get_main_message_profile
 from src.services.bot import Messages
-from src.services.models.module import ProfileModule
+from src.services.models.modules import ProfileModule
 
 router_with_repl_kb = Router()
 router = Router()

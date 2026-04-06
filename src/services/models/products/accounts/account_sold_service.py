@@ -157,7 +157,7 @@ class AccountSoldService:
 
         translation_payload = CreateSoldAccountTranslationDTO(
             sold_account_id=sold_account.sold_account_id,
-            language=data.language,
+            lang=data.lang,
             name=data.name,
             description=data.description,
         )
@@ -171,7 +171,7 @@ class AccountSoldService:
             await self.accounts_cache_filler.fill_sold_accounts_by_account_id(sold_account.sold_account_id)
 
         refreshed = await self.sold_repo.get_by_id_with_relations(sold_account.sold_account_id, active_only=False)
-        return SoldAccountSmall.from_orm_with_translation(refreshed, lang=data.language)
+        return SoldAccountSmall.from_orm_with_translation(refreshed, lang=data.lang)
 
     async def delete_sold_account(
         self,

@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.services.models.module import ProfileModule
+from src.services.models.modules import ProfileModule
 from src.utils.i18n import get_text
 
 

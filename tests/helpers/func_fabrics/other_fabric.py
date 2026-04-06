@@ -10,6 +10,7 @@ from src.database.models.admins import Admins, SentMasMessages, MessageForSendin
 from src.database.models.categories import PurchaseRequests
 from src.database.models.discount import Vouchers, PromoCodes, ActivatedPromoCodes
 from src.database.models.referrals import Referrals, IncomeFromReferrals
+from src.database.models.system.models import ReplenishmentService
 from src.models.read_models import UsersDTO
 from src.services._database.referrals.utils import create_unique_referral_code
 from src.database.models.system import TypePayments
@@ -183,7 +184,7 @@ async def create_replenishment_fabric(
         if not type_payment:
             type_payment = TypePayments(
                 name_for_user="TestPay",
-                name_for_admin="TestPayAdmin",
+                service=ReplenishmentService.CRYPTO_BOT,
                 index=1,
                 commission=0.0,
             )
@@ -208,7 +209,7 @@ async def create_replenishment_fabric(
 async def create_type_payment_factory(
         filling_redis: bool = True,
         name_for_user: str = None,
-        name_for_admin: str = None,
+        service: ReplenishmentService = None,
         is_active: bool = None,
         commission: float = None,
         index: int = None,
@@ -223,7 +224,7 @@ async def create_type_payment_factory(
 
         new_type_payment = TypePayments(
             name_for_user= name_for_user if name_for_user else "Test Payment Method",
-            name_for_admin= name_for_admin if name_for_admin else "Test Payment Method (Admin)",
+            service= service if service else ReplenishmentService.CRYPTO_BOT,
             is_active= is_active if is_active else True,
             commission= commission if commission else 5,
             index= index,

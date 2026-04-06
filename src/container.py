@@ -15,13 +15,27 @@ from src.repository.database.refferals import ReferralsRepository, ReferralIncom
 from src.repository.database.replanishments import ReplenishmentsRepository
 from src.services.models.discounts import ActivatedPromoCodesService, PromoCodeService
 from src.services.models.discounts.vouchers_service import VoucherService
-from src.services.models.module import ProfileModule
+from src.services.models.modules import ProfileModule, AccountsModuls, UniversalModuls
 from src.repository.database.admins import (
     AdminActionsRepository,
     AdminsRepository,
     MessageForSendingRepository, SentMasMessagesRepository,
 )
 from src.repository.database.base import DatabaseBase
+from src.repository.database.categories import (
+    CategoriesRepository,
+    DeletedAccountsRepository,
+    ProductAccountsRepository,
+    SoldAccountsRepository,
+    SoldAccountsTranslationRepository,
+    AccountStorageRepository,
+    TgAccountMediaRepository,
+    DeletedUniversalRepository,
+    ProductUniversalRepository,
+    SoldUniversalRepository,
+    UniversalStorageRepository,
+    UniversalTranslationRepository,
+)
 from src.repository.database.systems import (
     StickersRepository,
     UiImagesRepository, FilesRepository, SettingsRepository, TypePaymentsRepository,
@@ -40,6 +54,12 @@ from src.repository.redis import (
     UiImagesCacheRepository,
     UsersCacheRepository, SettingsCacheRepository, VouchersCacheRepository, PromoCodesCacheRepository,
     ReferralLevelsCacheRepository, TypePaymentsCacheRepository, DollarRateRepository,
+    AccountsCacheRepository,
+    CategoriesCacheRepository,
+    ProductUniversalCacheRepository,
+    ProductUniversalSingleCacheRepository,
+    SoldUniversalCacheRepository,
+    SoldUniversalSingleCacheRepository,
 )
 from src.services.bot import Messages, MassTgMailingService, SendFileService, SendLogs
 from src.services.bot.edit_message import EditMessageService
@@ -60,6 +80,24 @@ from src.services.models.users import (
 )
 from src.services.models.users.notifications_service import NotificationSettingsService
 from src.services.models.users.permission_service import PermissionService
+from src.services.models.categories.categories_cache_filler_service import CategoriesCacheFillerService
+from src.services.models.products.accounts import (
+    AccountDeletedService,
+    AccountProductService,
+    AccountSoldService,
+    AccountStorageService,
+    AccountTgMediaService,
+    AccountTranslationsService,
+    AccountsCacheFillerService,
+)
+from src.services.models.products.universal import (
+    UniversalCacheFillerService,
+    UniversalDeletedService,
+    UniversalProductService,
+    UniversalSoldService,
+    UniversalStorageService,
+    UniversalTranslationsService,
+)
 from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text
 
@@ -256,6 +294,181 @@ class Container:
             session_db=session_db,
         )
         self.permission_service = PermissionService(admin_service=self.admin_service)
+
+        self.categories_repo = CategoriesRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.categories_cache_repo = CategoriesCacheRepository(
+            redis_session=self.session_redis,
+            config=self.config,
+        )
+        self.categories_cache_filler_service = CategoriesCacheFillerService(
+            category_repo=self.categories_repo,
+            category_cache_repo=self.categories_cache_repo,
+        )
+
+        self.accounts_cache_repo = AccountsCacheRepository(
+            redis_session=self.session_redis,
+            config=self.config,
+        )
+        self.product_accounts_repo = ProductAccountsRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.account_storage_repo = AccountStorageRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.sold_accounts_repo = SoldAccountsRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.sold_accounts_translation_repo = SoldAccountsTranslationRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.tg_account_media_repo = TgAccountMediaRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.deleted_accounts_repo = DeletedAccountsRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+
+        self.accounts_cache_filler_service = AccountsCacheFillerService(
+            product_repo=self.product_accounts_repo,
+            sold_repo=self.sold_accounts_repo,
+            cache_repo=self.accounts_cache_repo,
+        )
+
+        self.account_storage_service = AccountStorageService(
+            storage_repo=self.account_storage_repo,
+            product_repo=self.product_accounts_repo,
+            sold_repo=self.sold_accounts_repo,
+            tg_media_repo=self.tg_account_media_repo,
+            accounts_cache_filler=self.accounts_cache_filler_service,
+            session_db=self.session_db,
+        )
+        self.account_product_service = AccountProductService(
+            product_repo=self.product_accounts_repo,
+            category_repo=self.categories_repo,
+            storage_repo=self.account_storage_repo,
+            accounts_cache_repo=self.accounts_cache_repo,
+            accounts_cache_filler=self.accounts_cache_filler_service,
+            category_filler_service=self.categories_cache_filler_service,
+            session_db=self.session_db,
+        )
+        self.account_deleted_service = AccountDeletedService(
+            deleted_repo=self.deleted_accounts_repo,
+            session_db=self.session_db,
+        )
+        self.account_tg_media_service = AccountTgMediaService(
+            tg_media_repo=self.tg_account_media_repo,
+            session_db=self.session_db,
+        )
+        self.account_sold_service = AccountSoldService(
+            sold_repo=self.sold_accounts_repo,
+            translations_repo=self.sold_accounts_translation_repo,
+            user_repo=self.users_repo,
+            accounts_cache_repo=self.accounts_cache_repo,
+            accounts_cache_filler=self.accounts_cache_filler_service,
+            conf=self.config,
+            session_db=self.session_db,
+        )
+        self.account_translations_service = AccountTranslationsService(
+            sold_repo=self.sold_accounts_repo,
+            translations_repo=self.sold_accounts_translation_repo,
+            accounts_cache_filler=self.accounts_cache_filler_service,
+            session_db=self.session_db,
+        )
+
+        self.deleted_universal_repo = DeletedUniversalRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.product_universal_repo = ProductUniversalRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.sold_universal_repo = SoldUniversalRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.universal_storage_repo = UniversalStorageRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.universal_translation_repo = UniversalTranslationRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+
+        self.product_universal_cache_repo = ProductUniversalCacheRepository(
+            redis_session=self.session_redis,
+            config=self.config,
+        )
+        self.product_universal_single_cache_repo = ProductUniversalSingleCacheRepository(
+            redis_session=self.session_redis,
+            config=self.config,
+        )
+        self.sold_universal_cache_repo = SoldUniversalCacheRepository(
+            redis_session=self.session_redis,
+            config=self.config,
+        )
+        self.sold_universal_single_cache_repo = SoldUniversalSingleCacheRepository(
+            redis_session=self.session_redis,
+            config=self.config,
+        )
+
+        self.universal_cache_filler_service = UniversalCacheFillerService(
+            product_repo=self.product_universal_repo,
+            sold_repo=self.sold_universal_repo,
+            product_cache_repo=self.product_universal_cache_repo,
+            product_single_cache_repo=self.product_universal_single_cache_repo,
+            sold_cache_repo=self.sold_universal_cache_repo,
+            sold_single_cache_repo=self.sold_universal_single_cache_repo,
+            conf=self.config,
+        )
+        self.universal_deleted_service = UniversalDeletedService(
+            deleted_repo=self.deleted_universal_repo,
+            session_db=self.session_db,
+        )
+        self.universal_product_service = UniversalProductService(
+            product_repo=self.product_universal_repo,
+            storage_repo=self.universal_storage_repo,
+            category_repo=self.categories_repo,
+            product_cache_repo=self.product_universal_cache_repo,
+            product_single_cache_repo=self.product_universal_single_cache_repo,
+            cache_filler=self.universal_cache_filler_service,
+            category_filler=self.categories_cache_filler_service,
+            conf=self.config,
+            session_db=self.session_db,
+        )
+        self.universal_storage_service = UniversalStorageService(
+            storage_repo=self.universal_storage_repo,
+            translation_repo=self.universal_translation_repo,
+            cache_filler=self.universal_cache_filler_service,
+            conf=self.config,
+            session_db=self.session_db,
+        )
+        self.universal_sold_service = UniversalSoldService(
+            sold_repo=self.sold_universal_repo,
+            storage_repo=self.universal_storage_repo,
+            user_repo=self.users_repo,
+            sold_cache_repo=self.sold_universal_cache_repo,
+            sold_single_cache_repo=self.sold_universal_single_cache_repo,
+            cache_filler=self.universal_cache_filler_service,
+            conf=self.config,
+            session_db=self.session_db,
+        )
+        self.universal_translations_service = UniversalTranslationsService(
+            storage_repo=self.universal_storage_repo,
+            translation_repo=self.universal_translation_repo,
+            cache_filler=self.universal_cache_filler_service,
+            session_db=self.session_db,
+        )
 
         self.transfer_moneys_repo = TransferMoneysRepository(
             session_db=session_db,
@@ -489,6 +702,30 @@ class Container:
             settings_service=self.settings_service,
         )
 
+    def get_account_modul(self) -> AccountsModuls:
+        return AccountsModuls(
+            deleted_service=self.account_deleted_service,
+            product_service=self.account_product_service,
+            sold_service=self.account_sold_service,
+            storage_service=self.account_storage_service,
+            tg_media_service=self.account_tg_media_service,
+            translations_service=self.account_translations_service,
+            cache_filler_service=self.accounts_cache_filler_service,
+            conf=self.config,
+            logger=self.logger,
+        )
+
+    def get_universal_product_modul(self) -> UniversalModuls:
+        return UniversalModuls(
+            deleted_service=self.universal_deleted_service,
+            product_service=self.universal_product_service,
+            sold_service=self.universal_sold_service,
+            storage_service=self.universal_storage_service,
+            translations_service=self.universal_translations_service,
+            cache_filler_service=self.universal_cache_filler_service,
+            conf=self.config,
+            logger=self.logger,
+        )
 
 def init_container(
     session_db: AsyncSession,

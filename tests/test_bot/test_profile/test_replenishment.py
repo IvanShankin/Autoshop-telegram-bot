@@ -2,6 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from src.database.models.system.models import ReplenishmentService
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery, FakeFSMContext
 from src.config import get_config
 from src.utils.i18n import get_text, n_get_text
@@ -129,7 +130,7 @@ async def test_start_replenishment_crypto_bot_success(
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
-    type_payment = await create_type_payment(name_for_admin='crypto_bot')
+    type_payment = await create_type_payment(service=ReplenishmentService.CRYPTO_BOT)
 
 
     def fake_get_crypto_bot():

@@ -14,6 +14,8 @@ from tests.helpers.func_fabrics import create_new_user_fabric, create_admin_fabr
     create_universal_storage_factory, create_product_universal_factory, create_sold_universal_factory
 from src.database.models.system import  Settings
 from src.database import get_db
+from src.infrastructure.crypto_bot.core import CryptoProvider
+from types import SimpleNamespace
 
 
 
@@ -34,8 +36,16 @@ async def fake_tg_client():
 
 
 @pytest_asyncio.fixture
-async def container_fix(fake_tg_client, session_db_fix):
-    container = init_container(session_db_fix, fake_tg_client, fake_tg_client)
+async def crypto_bot_provider():
+    class FakeCryptoClient:
+        async def create_invoice(self, amount, payload, expires_in):
+            return SimpleNamespace(invoice_id="inv", bot_invoice_url="url")
+
+    yield CryptoProvider(FakeCryptoClient())
+
+@pytest_asyncio.fixture
+async def container_fix(fake_tg_client, session_db_fix, crypto_bot_provider):
+    container = init_container(session_db_fix, fake_tg_client, fake_tg_client, crypto_bot_provider)
     yield container
 
 
@@ -129,6 +139,11 @@ async def create_category():
 
 
 @pytest_asyncio.fixture
+async def create_purchase():
+    return create_purchase_fabric
+
+
+@pytest_asyncio.fixture
 async def create_account_storage():
     return create_account_storage_factory
 
@@ -139,13 +154,13 @@ async def create_product_account():
 
 
 @pytest_asyncio.fixture
-async def create_purchase():
-    return create_purchase_fabric
+async def create_sold_account():
+    return create_sold_account_factory
 
 
 @pytest_asyncio.fixture
-async def create_sold_account():
-    return create_sold_account_factory
+async def create_tg_account_media():
+    return create_tg_account_media_factory
 
 
 @pytest_asyncio.fixture
@@ -161,11 +176,6 @@ async def create_product_universal():
 @pytest_asyncio.fixture
 async def create_sold_universal():
     return create_sold_universal_factory
-
-
-@pytest_asyncio.fixture
-async def create_tg_account_media():
-    return create_tg_account_media_factory
 
 
 @pytest_asyncio.fixture

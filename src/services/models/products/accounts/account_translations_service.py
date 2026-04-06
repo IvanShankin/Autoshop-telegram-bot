@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -50,9 +50,9 @@ class AccountTranslationsService:
                 f"Проданный аккаунт с ID = {data.sold_account_id} не найден"
             )
 
-        if await self.translations_repo.exists(data.sold_account_id, data.language):
+        if await self.translations_repo.exists(data.sold_account_id, data.lang):
             raise TranslationAlreadyExists(
-                f"Перевод по языку '{data.language}' уже существует"
+                f"Перевод по языку '{data.lang}' уже существует"
             )
 
         await self.translations_repo.create_translate(**data.model_dump(exclude_unset=True))
@@ -69,7 +69,7 @@ class AccountTranslationsService:
             data.sold_account_id,
             active_only=False,
         )
-        return SoldAccountSmall.from_orm_with_translation(refreshed, lang=data.language)
+        return SoldAccountSmall.from_orm_with_translation(refreshed, lang=data.lang)
 
     async def update_translation(
         self,

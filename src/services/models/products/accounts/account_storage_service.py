@@ -68,7 +68,7 @@ class AccountStorageService:
             if data.login_encrypted is None or data.password_encrypted is None:
                 raise ValueError("Необходимо указать login_encrypted и password_encrypted")
 
-        values = data.model_dump(exclude_unset=True)
+        values = data.model_dump()
         values["phone_number"] = phone_in_e164(values["phone_number"])
 
         if data.type_account_service == AccountServiceType.TELEGRAM:

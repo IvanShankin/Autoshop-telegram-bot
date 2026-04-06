@@ -285,5 +285,5 @@ def fake_storage(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-async def publish_event_service_fix(container_fix):
+def publish_event_service_fix(container_fix):
     container_fix.publish_event_handler = FakePublishEventHandler()

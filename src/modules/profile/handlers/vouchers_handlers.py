@@ -13,7 +13,7 @@ from src.modules.profile.schemas.transfer_balance import CreateVoucherData
 from src.modules.profile.state.transfer_balance import CreateVoucher
 
 from src.services.bot import Messages
-from src.services.models.module import ProfileModule
+from src.services.models.modules import ProfileModule
 from src.utils.i18n import get_text
 
 router = Router()

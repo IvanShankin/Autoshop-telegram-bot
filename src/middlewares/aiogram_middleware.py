@@ -15,7 +15,7 @@ from src.modules.keyboard_main import support_kb
 from src.services._database.admins.actions import check_admin
 from src.services._database.system.actions import get_settings
 from src.services._database.users.actions import get_user, get_banned_account
-from src.services.models.module import ProfileModule
+from src.services.models.modules import ProfileModule
 from src.utils.i18n import get_text
 
 

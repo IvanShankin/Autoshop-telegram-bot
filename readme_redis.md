@@ -56,7 +56,7 @@
     {
         "type_payment_id": "int",
         "name_for_user": "str",
-        "name_for_admin": "str",
+        "service": "ReplenishmentService",
         "is_active": "bool",
         "commission": "float",
         "index": "int",
@@ -73,7 +73,7 @@
 {
     "type_payment_id": "int", 
     "name_for_user": "str",
-    "name_for_admin": "str",
+    "service": "ReplenishmentService",
     "is_active": "bool",
     "commission": "float",
     "index": "int",

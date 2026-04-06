@@ -6,7 +6,7 @@ from src.modules.profile.keyboards import ref_system_kb, accrual_ref_list_kb, ba
 from src.modules.profile.services.profile_message import message_income_ref, message_ref_system
 from src.database.models.users import Users
 from src.services.bot import Messages
-from src.services.models.module import ProfileModule
+from src.services.models.modules import ProfileModule
 from src.utils.i18n import get_text
 
 router_with_repl_kb = Router()

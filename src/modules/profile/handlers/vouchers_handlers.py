@@ -2,22 +2,18 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src.bot_actions.messages import edit_message, send_message
 from src.bot_actions.bot_instance import get_bot
+from src.models.create_models.discounts import CreateVoucherDTO
+from src.models.read_models import UsersDTO
 from src.modules.profile.services.checking_data import checking_availability_money, checking_correctness_number
 from src.exceptions import NotEnoughMoney
-from src.exceptions.business import ForbiddenError
 from src.modules.profile.keyboards import back_in_balance_transfer_kb, replenishment_and_back_in_transfer_kb, \
     confirmation_voucher_kb, all_vouchers_kb, back_in_all_voucher_kb, show_voucher_kb, confirm_deactivate_voucher_kb
 from src.modules.profile.schemas.transfer_balance import CreateVoucherData
 from src.modules.profile.state.transfer_balance import CreateVoucher
-from src.services._database.admins.actions import check_admin
-from src.services._database.discounts.actions import (create_voucher as create_voucher_db, get_voucher_by_id,
-                                                     deactivate_voucher as deactivate_voucher_server)
-from src.services._database.system.actions import get_settings
-from src.services._database.users.actions import get_user
-from src.database.models.users import Users
+
 from src.services.bot import Messages
+from src.services.models.module import ProfileModule
 from src.utils.i18n import get_text
 
 router = Router()
@@ -25,11 +21,13 @@ router = Router()
 
 
 @router.callback_query(F.data == "create_voucher")
-async def create_voucher(callback: CallbackQuery, state: FSMContext, user: Users):
+async def create_voucher(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
     await state.clear()
 
     text = get_text(user.language, "profile_messages", "enter_amount")
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,
@@ -40,7 +38,9 @@ async def create_voucher(callback: CallbackQuery, state: FSMContext, user: Users
 
 
 @router.message(CreateVoucher.amount)
-async def create_voucher_get_amount(message: Message, state: FSMContext, user: Users, messages_service: Messages):
+async def create_voucher_get_amount(
+    message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
     if not await checking_correctness_number(
         message=message.text,
         language=user.language,
@@ -55,7 +55,7 @@ async def create_voucher_get_amount(message: Message, state: FSMContext, user: U
     await state.update_data(amount=message.text)
 
     text = get_text(user.language, "profile_messages", "enter_number_of_activations_for_voucher")
-    await send_message(
+    await messages_service.send_msg.send(
         chat_id=message.from_user.id,
         message=text,
         event_message_key='enter_number_activations_for_voucher',
@@ -66,7 +66,7 @@ async def create_voucher_get_amount(message: Message, state: FSMContext, user: U
 
 @router.message(CreateVoucher.number_of_activations)
 async def create_voucher_get_number_of_activations(
-        message: Message, state: FSMContext, user: Users, messages_service: Messages
+        message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages,
 ):
     if not await checking_correctness_number(
         message=message.text,
@@ -98,7 +98,7 @@ async def create_voucher_get_number_of_activations(
         "profile_messages",
         "check_voucher_data_for_accuracy"
     ).format(total_sum=data.amount * data.number_of_activations, amount=data.amount, number_activations=data.number_of_activations)
-    await send_message(
+    await messages_service.send_msg.send(
         chat_id=message.from_user.id,
         message=text,
         event_message_key='confirm_the_data',
@@ -108,21 +108,25 @@ async def create_voucher_get_number_of_activations(
 
 
 @router.callback_query(F.data == "confirm_create_voucher")
-async def confirm_create_voucher(callback: CallbackQuery, state: FSMContext, user: Users):
+async def confirm_create_voucher(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages, profile_module: ProfileModule,
+):
     data = CreateVoucherData(**(await state.get_data()))
     await state.clear()
 
     try:
-        voucher = await create_voucher_db(
+        voucher = await profile_module.voucher_service.create_voucher(
             user_id=user.user_id,
-            is_created_admin=False,
-            amount=data.amount,
-            number_of_activations=data.number_of_activations
+            data=CreateVoucherDTO(
+                is_created_admin=False,
+                amount=data.amount,
+                number_of_activations=data.number_of_activations
+            )
         )
     except NotEnoughMoney as e:
         text_1 = get_text(user.language, "miscellaneous", 'funds_not_written_off')
         text_2 = get_text(user.language, "miscellaneous", 'insufficient_funds').format(amount=e.need_money)
-        await edit_message(
+        await messages_service.edit_msg.edit(
             chat_id=callback.from_user.id,
             message_id=callback.message.message_id,
             message=f'{text_1}\n\n{text_2}',
@@ -145,7 +149,7 @@ async def confirm_create_voucher(callback: CallbackQuery, state: FSMContext, use
         total_sum=voucher.amount * voucher.number_of_activations,
         balance=user.balance - voucher.amount * voucher.number_of_activations
     )
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,
@@ -155,13 +159,15 @@ async def confirm_create_voucher(callback: CallbackQuery, state: FSMContext, use
 
 
 @router.callback_query(F.data.startswith("voucher_list:"))
-async def voucher_list(callback: CallbackQuery, user: Users):
+async def voucher_list(
+    callback: CallbackQuery, user: UsersDTO, messages_service: Messages,
+):
     target_user_id = callback.data.split(":")[1]
     current_page = callback.data.split(":")[2]
 
     text = get_text(user.language, "profile_messages", "all_vouchers_list")
 
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,
@@ -176,19 +182,22 @@ async def voucher_list(callback: CallbackQuery, user: Users):
 
 
 @router.callback_query(F.data.startswith("show_voucher:"))
-async def show_voucher(callback: CallbackQuery, user: Users):
+async def show_voucher(
+    callback: CallbackQuery, user: UsersDTO, messages_service: Messages, profile_module: ProfileModule,
+):
     target_user_id = int(callback.data.split(':')[1])
     current_page = int(callback.data.split(':')[2])
     voucher_id = int(callback.data.split(":")[3])
 
-    voucher = await get_voucher_by_id(voucher_id)
+    voucher = await profile_module.voucher_service.get_voucher_by_id(voucher_id)
 
-    if voucher.creator_id != user.user_id and not await check_admin(user.user_id):
-        raise ForbiddenError()
+    await profile_module.permission_service.check_permission(
+        current_user_id=user.user_id, target_user_id=target_user_id
+    )
 
     if not voucher or not voucher.is_valid:
         text = get_text(user.language, "profile_messages", 'voucher_currently_inactive')
-        reply_markup=back_in_all_voucher_kb(user.language, current_page, target_user_id)
+        reply_markup = back_in_all_voucher_kb(user.language, current_page, target_user_id)
     else:
         bot = get_bot()
         bot_me = await bot.me()
@@ -212,7 +221,7 @@ async def show_voucher(callback: CallbackQuery, user: Users):
             voucher_id=voucher_id
         )
 
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,
@@ -222,14 +231,17 @@ async def show_voucher(callback: CallbackQuery, user: Users):
 
 
 @router.callback_query(F.data.startswith("confirm_deactivate_voucher:"))
-async def confirm_deactivate_voucher(callback: CallbackQuery, user: Users):
+async def confirm_deactivate_voucher(
+    callback: CallbackQuery, user: UsersDTO, messages_service: Messages, profile_module: ProfileModule,
+):
     voucher_id = int(callback.data.split(":")[1])
     current_page = int(callback.data.split(':')[2])
 
-    voucher = await get_voucher_by_id(voucher_id)
+    voucher = await profile_module.voucher_service.get_voucher_by_id(voucher_id)
 
-    if voucher.creator_id != user.user_id and not await check_admin(user.user_id):
-        raise ForbiddenError()
+    await profile_module.permission_service.check_permission(
+        current_user_id=user.user_id, target_user_id=voucher.creator_id
+    )
 
     if not voucher or not voucher.is_valid:
         text = get_text(user.language, "profile_messages", 'voucher_currently_inactive')
@@ -244,7 +256,7 @@ async def confirm_deactivate_voucher(callback: CallbackQuery, user: Users):
         image_key = 'confirm_deactivate_voucher'
         reply_markup = confirm_deactivate_voucher_kb(user.language, current_page, user.user_id, voucher_id)
 
-    await edit_message(
+    await messages_service.edit_msg.edit(
             chat_id=callback.from_user.id,
             message_id=callback.message.message_id,
             message=text,
@@ -253,35 +265,41 @@ async def confirm_deactivate_voucher(callback: CallbackQuery, user: Users):
     )
 
 @router.callback_query(F.data.startswith("deactivate_voucher:"))
-async def deactivate_voucher(callback: CallbackQuery, user: Users):
+async def deactivate_voucher(
+    callback: CallbackQuery, user: UsersDTO, messages_service: Messages, profile_module: ProfileModule,
+):
     voucher_id = int(callback.data.split(":")[1])
     current_page = int(callback.data.split(':')[2])
 
-    voucher = await get_voucher_by_id(voucher_id)
+    voucher = await profile_module.voucher_service.get_voucher_by_id(voucher_id)
 
-    if voucher.creator_id != user.user_id and not await check_admin(user.user_id):
-        raise ForbiddenError()
+    await profile_module.permission_service.check_permission(
+        current_user_id=user.user_id, target_user_id=voucher.creator_id
+    )
 
     if not voucher or not voucher.is_valid:
         text = get_text(user.language, "profile_messages", 'voucher_currently_inactive')
         image_key = 'voucher_successful_deactivate'
     else:
         try:
-            await deactivate_voucher_server(voucher_id)
-            user = await get_user(callback.from_user.id, callback.from_user.username)
+            await profile_module.voucher_service.deactivate_voucher(voucher_id)
+
+            user = await profile_module.user_service.get_user(callback.from_user.id, callback.from_user.username)
+
             text = get_text(user.language, "profile_messages",
                 "voucher_successfully_deactivated"
             ).format(amount=voucher.amount * (voucher.number_of_activations - voucher.activated_counter), balance=user.balance)
             image_key = 'voucher_successful_deactivate'
         except Exception as e:
-            settings = await get_settings()
+            profile_module.logger.exception("Ошибка при деактивации ваучера")
+            settings = await profile_module.settings_service.get_settings()
 
             text = get_text(user.language, "profile_messages",
                 "error_deactivating_voucher"
             ).format(username_support=settings.support_username)
             image_key = 'server_error'
 
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,

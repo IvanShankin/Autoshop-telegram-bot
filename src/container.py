@@ -486,6 +486,7 @@ class Container:
             excel_report_exporter=self.excel_report_exporter,
             type_payments_service=self.type_payments_service,
             payment_service=self.payment_service,
+            settings_service=self.settings_service,
         )
 
 

@@ -5,7 +5,7 @@ from src.infrastructure.files.excel_reports import ExcelReportExporter
 from src.services.models.discounts import VoucherService
 from src.services.models.payment_services import PaymentService
 from src.services.models.referrals import ReferralService, ReferralIncomeService, ReferralLevelsService
-from src.services.models.systems import TypesPaymentsService
+from src.services.models.systems import TypesPaymentsService, SettingsService
 from src.services.models.users import WalletTransactionService, UserService, MoneyTransferService, \
     NotificationSettingsService
 from src.services.models.users.permission_service import PermissionService
@@ -29,6 +29,7 @@ class ProfileModule:
         excel_report_exporter: ExcelReportExporter,
         type_payments_service: TypesPaymentsService,
         payment_service: PaymentService,
+        settings_service: SettingsService,
     ):
         self.conf = conf
         self.logger = logger
@@ -44,3 +45,4 @@ class ProfileModule:
         self.excel_report_exporter = excel_report_exporter
         self.type_payments_service = type_payments_service
         self.payment_service = payment_service
+        self.settings_service = settings_service

@@ -3,11 +3,11 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from src.database.models.system.models import ReplenishmentService
+from src.models.read_models import UsersDTO
 from src.modules.profile.services.checking_data import checking_correctness_number
 from src.modules.profile.keyboards import type_replenishment_kb, back_in_type_replenishment_kb, payment_invoice
 from src.modules.profile.schemas.replenishment import GetAmountData
 from src.modules.profile.state.replenishment import GetAmount
-from src.database.models.users import Users
 from src.services.bot import Messages
 from src.services.models.module import ProfileModule
 from src.utils.i18n import get_text, n_get_text
@@ -18,7 +18,7 @@ router = Router()
 
 @router.callback_query(F.data == "show_type_replenishment")
 async def show_type_replenishment(
-    callback: CallbackQuery, state: FSMContext, user: Users, profile_module: ProfileModule, messages_service: Messages
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, profile_module: ProfileModule, messages_service: Messages
 ):
     await state.clear()
     text = get_text(user.language, "profile_messages",'select_replenishment_service')
@@ -33,7 +33,7 @@ async def show_type_replenishment(
 
 @router.callback_query(F.data.startswith('replenishment:'))
 async def get_amount(
-    callback: CallbackQuery, state: FSMContext, user: Users, profile_module: ProfileModule, messages_service: Messages
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, profile_module: ProfileModule, messages_service: Messages
 ):
     payment_id = int(callback.data.split(':')[1])
     type_payment = await profile_module.type_payments_service.get_type_payment(payment_id)
@@ -65,7 +65,7 @@ async def get_amount(
 
 @router.message(GetAmount.amount)
 async def start_replenishment(
-    message: Message, state: FSMContext, user: Users, messages_service: Messages, profile_module: ProfileModule,
+    message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages, profile_module: ProfileModule,
 ):
     data_state = await state.get_data()
 

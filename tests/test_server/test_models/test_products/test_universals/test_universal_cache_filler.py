@@ -1,0 +1,77 @@
+from types import SimpleNamespace
+
+import pytest
+
+from src.services.models.products.universal.universal_cache_filler_service import UniversalCacheFillerService
+
+
+class TestUniversalCacheFillerService:
+
+    @pytest.mark.asyncio
+    async def test_fill_product_universal_by_category_id_sets_cache(
+        self,
+        container_fix,
+        create_product_universal,
+    ):
+        _, full = await create_product_universal(filling_redis=False)
+        await container_fix.universal_cache_filler_service.fill_product_universal_by_category_id(
+            full.category_id,
+        )
+
+        cached = await container_fix.product_universal_cache_repo.get_by_category(full.category_id)
+
+        assert cached
+        assert any(item.product_universal_id == full.product_universal_id for item in cached)
+
+    @pytest.mark.asyncio
+    async def test_fill_product_universal_by_product_id_sets_cache(
+        self,
+        container_fix,
+        create_product_universal,
+    ):
+        _, full = await create_product_universal(filling_redis=False)
+        await container_fix.universal_cache_filler_service.fill_product_universal_by_product_id(
+            full.product_universal_id,
+        )
+
+        cached = await container_fix.product_universal_single_cache_repo.get(full.product_universal_id)
+
+        assert cached is not None
+
+    @pytest.mark.asyncio
+    async def test_fill_sold_universal_by_owner_id_sets_cache(
+        self,
+        container_fix,
+        create_sold_universal,
+    ):
+        sold, _ = await create_sold_universal(filling_redis=False)
+        await container_fix.universal_cache_filler_service.fill_sold_universal_by_owner_id(
+            sold.owner_id,
+        )
+
+        cached = await container_fix.sold_universal_cache_repo.get_by_owner(sold.owner_id, "ru")
+
+        assert cached
+
+    @pytest.mark.asyncio
+    async def test_fill_sold_universal_by_universal_id_sets_cache(
+        self,
+        container_fix,
+        create_sold_universal,
+    ):
+        _, full = await create_sold_universal(filling_redis=False)
+        await container_fix.universal_cache_filler_service.fill_sold_universal_by_universal_id(
+            full.sold_universal_id,
+        )
+
+        cached = await container_fix.sold_universal_single_cache_repo.get(full.sold_universal_id, "ru")
+
+        assert cached is not None
+
+    def test_extract_languages_returns_unique(self):
+        item_with_translations = SimpleNamespace(
+            storage=SimpleNamespace(translations=[SimpleNamespace(lang="ru"), SimpleNamespace(lang=None)])
+        )
+        languages = UniversalCacheFillerService._extract_languages([item_with_translations])
+
+        assert languages == {"ru"}

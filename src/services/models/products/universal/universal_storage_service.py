@@ -101,7 +101,9 @@ class UniversalStorageService:
             encrypted_description=data.encrypted_description,
             encrypted_description_nonce=data.encrypted_description_nonce,
         )
-        await self.translation_repo.create_translate(**translation_payload.model_dump(exclude_unset=True))
+        translation_values = translation_payload.model_dump(exclude_unset=True)
+        translation_values["lang"] = translation_values.pop("language")
+        await self.translation_repo.create_translate(**translation_values)
 
         if make_commit:
             await self.session_db.commit()

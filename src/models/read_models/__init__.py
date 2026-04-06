@@ -26,6 +26,8 @@ from src.models.read_models.events.referrals import ReferralReplenishmentComplet
 from src.models.read_models.events.replenishments import NewReplenishment, ReplenishmentCompleted, ReplenishmentFailed
 from src.models.read_models.events.message import LogLevel, EventSentLog
 
+from src.models.read_models.referral_report import ReferralIncomeItemDTO, ReferralReportItemDTO, ReferralReportDTO
+
 from src.models.read_models.purchase import PurchaseRequestsDTO, StartPurchaseUniversalOne, StartPurchaseUniversal
 from src.models.read_models.admins import AdminsDTO, AdminActionsDTO
 from src.models.read_models.other import (
@@ -70,6 +72,10 @@ __all__ = [
 
     "AdminsDTO",
     "AdminActionsDTO",
+
+    "ReferralReportItemDTO",
+    "ReferralIncomeItemDTO",
+    "ReferralReportDTO",
 
     # Other models
     "SettingsDTO",

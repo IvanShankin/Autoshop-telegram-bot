@@ -4,7 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.create_models.referrals import CreateReferralIncomeDTO
 from src.models.create_models.users import CreateUserAuditLogDTO, CreateWalletTransactionDTO
-from src.models.read_models import ReferralIncomeResult, ReferralReplenishmentCompleted
+from src.models.read_models import ReferralIncomeResult, ReferralReplenishmentCompleted, ReferralReportItemDTO, \
+    ReferralIncomeItemDTO, ReferralReportDTO
 from src.models.read_models.other import ReferralsDTO, UsersDTO
 from src.repository.database.refferals import ReferralsRepository
 from src.services.models.referrals.referral_income_service import ReferralIncomeService
@@ -181,4 +182,48 @@ class ReferralService:
             last_level=last_level,
             current_level=current_level,
             percent=percent_current_level,
+        )
+
+    async def build_report_data(self, owner_user_id: int) -> ReferralReportDTO:
+        referrals = await self.referral_repo.get_all_by_owner(owner_user_id)
+        incomes = await self.referral_income_service.get_referral_income_page(owner_user_id)
+
+        users_map = {
+            user.user_id: user
+            for user in await self.user_service.get_user_by_ids([r.referral_id for r in referrals])
+        }
+
+        referral_items = []
+
+        for referral in referrals:
+            user = users_map.get(referral.referral_id)
+
+            total_income = sum(
+                i.amount for i in incomes if i.referral_id == referral.referral_id
+            )
+
+            referral_items.append(
+                ReferralReportItemDTO(
+                    referral_id=referral.referral_id,
+                    username=user.username if user else None,
+                    level=referral.level,
+                    join_date=referral.created_at,
+                    total_income=total_income
+                )
+            )
+
+        income_items = [
+            ReferralIncomeItemDTO(
+                deposit_id=i.income_from_referral_id,
+                referral_id=i.referral_id,
+                amount=i.amount,
+                percentage=i.percentage_of_replenishment,
+                created_at=i.created_at
+            )
+            for i in incomes
+        ]
+
+        return ReferralReportDTO(
+            referrals=referral_items,
+            incomes=income_items
         )

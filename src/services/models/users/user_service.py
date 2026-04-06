@@ -1,5 +1,5 @@
 from datetime import datetime, UTC
-from typing import Optional, Sequence
+from typing import Optional, Sequence, List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -82,6 +82,9 @@ class UserService:
             return user_db
 
         return None
+
+    async def get_user_by_ids(self, user_ids: List[int]) -> List[UsersDTO]:
+        return await self.user_repo.get_by_ids(user_ids)
 
     async def get_user_for_update(self, user_id: int) -> Optional[Users]:
         return await self.user_repo.get_by_id_for_update(user_id)

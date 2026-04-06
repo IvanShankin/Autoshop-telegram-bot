@@ -1,11 +1,10 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
 
-from src.models.read_models.other import NotificationSettingsDTO
+from src.models.read_models.other import NotificationSettingsDTO, UsersDTO
 from src.models.update_models import UpdateUserDTO, UpdateNotificationSettingDTO
 from src.modules.profile.keyboards import profile_settings_kb, settings_language_kb, \
     setting_notification_kb
-from src.database.models.users import Users
 from src.services.bot import Messages
 from src.services.models.module import ProfileModule
 from src.utils.i18n import get_text
@@ -16,7 +15,7 @@ async def notification_settings(
     user_id: int,
     message_id: int,
     messages_service: Messages,
-    user: Users,
+    user: UsersDTO,
     notification: NotificationSettingsDTO
 ):
     await messages_service.edit_msg.edit(
@@ -27,7 +26,7 @@ async def notification_settings(
         reply_markup=setting_notification_kb(user.language, notification=notification)
     )
 
-async def language_settings(user_id: int, message_id: int, user: Users, messages_service: Messages):
+async def language_settings(user_id: int, message_id: int, user: UsersDTO, messages_service: Messages):
     text = get_text(user.language, "profile_messages", "language_in_bot")
 
     await messages_service.edit_msg.edit(
@@ -40,7 +39,7 @@ async def language_settings(user_id: int, message_id: int, user: Users, messages
 
 @router.callback_query(F.data == "profile_settings")
 async def profile_settings(
-        callback: CallbackQuery, user: Users, messages_service: Messages
+        callback: CallbackQuery, user: UsersDTO, messages_service: Messages
 ):
     text = get_text(user.language, "profile_messages", "select_settings_item")
 
@@ -53,7 +52,7 @@ async def profile_settings(
     )
 
 @router.callback_query(F.data == "selecting_language")
-async def open_language_settings(callback: CallbackQuery, user: Users, messages_service: Messages):
+async def open_language_settings(callback: CallbackQuery, user: UsersDTO, messages_service: Messages):
     await language_settings(
         user_id=callback.from_user.id,
         message_id=callback.message.message_id,
@@ -62,7 +61,7 @@ async def open_language_settings(callback: CallbackQuery, user: Users, messages_
     )
 
 @router.callback_query(F.data.startswith('language_selection:'))
-async def update_language(callback: CallbackQuery, user: Users, profile_module: ProfileModule, messages_service: Messages):
+async def update_language(callback: CallbackQuery, user: UsersDTO, profile_module: ProfileModule, messages_service: Messages):
     new_lang = callback.data.split(':')[1]
 
     await profile_module.user_service.update_user(
@@ -81,7 +80,7 @@ async def update_language(callback: CallbackQuery, user: Users, profile_module: 
 
 @router.callback_query(F.data == "notification_settings")
 async def open_notification_settings(
-    callback: CallbackQuery, user: Users, profile_module: ProfileModule, messages_service: Messages
+    callback: CallbackQuery, user: UsersDTO, profile_module: ProfileModule, messages_service: Messages
 ):
     notification = await profile_module.notification_service.get_notification(user_id=callback.from_user.id)
 
@@ -95,7 +94,7 @@ async def open_notification_settings(
 
 @router.callback_query(F.data.startswith('update_notif:'))
 async def update_notification_settings(
-    callback: CallbackQuery, user: Users, profile_module: ProfileModule, messages_service: Messages
+    callback: CallbackQuery, user: UsersDTO, profile_module: ProfileModule, messages_service: Messages
 ):
     column = callback.data.split(':')[1]
     new_value = True if callback.data.split(':')[2] == "True" else False

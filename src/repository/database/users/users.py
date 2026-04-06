@@ -1,4 +1,4 @@
-from typing import Optional, Sequence, AsyncGenerator
+from typing import Optional, Sequence, AsyncGenerator, List
 
 from sqlalchemy import func, select, update
 
@@ -8,6 +8,13 @@ from src.repository.database.base import DatabaseBase
 
 
 class UsersRepository(DatabaseBase):
+
+    async def get_by_ids(self, user_ids: List[int]) -> List[UsersDTO]:
+        result = await self.session_db.execute(
+            select(Users).where(Users.user_id.in_(user_ids))
+        )
+        users = result.scalars()
+        return [UsersDTO.model_validate(user) for user in users]
 
     async def get_by_id(self, user_id: int) -> Optional[UsersDTO]:
         result = await self.session_db.execute(

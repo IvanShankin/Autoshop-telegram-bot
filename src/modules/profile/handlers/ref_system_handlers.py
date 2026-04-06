@@ -1,15 +1,12 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery, BufferedInputFile
 
-from src.bot_actions.messages import edit_message
-from src.bot_actions.bot_instance import get_bot
-from src.exceptions.business import ForbiddenError
+from src.infrastructure.telegram.bot_instance import get_bot
 from src.modules.profile.keyboards import ref_system_kb, accrual_ref_list_kb, back_in_ref_system_kb
 from src.modules.profile.services.profile_message import message_income_ref, message_ref_system
-from src.services._database.admins.actions import check_admin
-from src.services._database.referrals.actions import get_all_referrals, get_income_from_referral
-from src.services._database.referrals.reports import generate_referral_report_excel
 from src.database.models.users import Users
+from src.services.bot import Messages
+from src.services.models.module import ProfileModule
 from src.utils.i18n import get_text
 
 router_with_repl_kb = Router()
@@ -17,10 +14,12 @@ router = Router()
 
 
 @router.callback_query(F.data == "referral_system")
-async def referral_system(callback: CallbackQuery, user: Users):
+async def referral_system(
+    callback: CallbackQuery, user: Users, profile_module: ProfileModule, messages_service: Messages
+):
     bot = get_bot()
     bot_me = await bot.me()
-    referrals = await get_all_referrals(user.user_id)
+    referrals = await profile_module.referral_service.get_all_referrals(user.user_id)
     ref_first_lvl = 0
     ref_second_lvl = 0
 
@@ -42,7 +41,7 @@ async def referral_system(callback: CallbackQuery, user: Users):
         ref_second_lvl=ref_second_lvl
     )
 
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,
@@ -52,11 +51,12 @@ async def referral_system(callback: CallbackQuery, user: Users):
 
 
 @router.callback_query(F.data.startswith('accrual_ref_list:'))
-async def accrual_ref_list(callback: CallbackQuery, user: Users):
+async def accrual_ref_list(
+    callback: CallbackQuery, user: Users, profile_module: ProfileModule, messages_service: Messages
+):
     _,  target_user_id,  current_page = callback.data.split(':')
 
-    if target_user_id != user.user_id and not await check_admin(user.user_id):
-        raise ForbiddenError()
+    await profile_module.permission_service.check_permission(user.user_id, int(target_user_id))
 
     text = get_text(
         user.language,
@@ -64,7 +64,7 @@ async def accrual_ref_list(callback: CallbackQuery, user: Users):
         'referral_earnings_history'
     )
 
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,
@@ -74,49 +74,59 @@ async def accrual_ref_list(callback: CallbackQuery, user: Users):
 
 
 @router.callback_query(F.data.startswith('detail_income_from_ref:'))
-async def detail_income_from_ref(callback: CallbackQuery, user: Users):
+async def detail_income_from_ref(
+    callback: CallbackQuery, user: Users, profile_module: ProfileModule, messages_service: Messages
+):
     income_from_ref_id = callback.data.split(':')[1]
     current_page = int(callback.data.split(':')[2])
-    income = await get_income_from_referral(int(income_from_ref_id))
+
+    income = await profile_module.referral_income_service.get_income_from_referral(int(income_from_ref_id))
 
     if income is None:
         await callback.answer(text=get_text(user.language, "miscellaneous",'data_not_found'), show_alert=True)
 
-    if income.owner_user_id != user.user_id and not await check_admin(user.user_id):
-        raise ForbiddenError()
+    await profile_module.permission_service.check_permission(user.user_id, int(income.owner_user_id))
 
     await message_income_ref(
         income=income,
         callback=callback,
         language=user.language,
         current_page=current_page,
+        messages_service=messages_service,
+        profile_module=profile_module,
     )
 
 
 @router.callback_query(F.data.startswith("download_ref_list:"))
-async def download_ref_list(callback: CallbackQuery, user: Users):
+async def download_ref_list(
+    callback: CallbackQuery, user: Users, profile_module: ProfileModule
+):
     user_id = int(callback.data.split(':')[1])
 
-    if user_id != user.user_id and not await check_admin(user.user_id):
-        raise ForbiddenError()
+    await profile_module.permission_service.check_permission(user.user_id, user_id)
 
-    bytes_data = await generate_referral_report_excel(user_id, user.language)
+    data = await profile_module.referral_service.build_report_data(user_id)
+    file_bytes = profile_module.excel_report_exporter.export(
+        data=data,
+        language=user.language,
+        owner_user_id=user_id
+    )
+
     filename = f"referrals_{user_id}.xlsx"
 
-    text = get_text(user.language, "profile_messages","referral_income_details")
-
     await callback.message.answer_document(
-        document=BufferedInputFile(bytes_data, filename=filename)
+        document=BufferedInputFile(file_bytes, filename=filename)
     )
-    await callback.answer(text)
 
 
 @router.callback_query(F.data.startswith("ref_system_info"))
-async def ref_system_info(callback: CallbackQuery, user: Users):
-    await edit_message(
+async def ref_system_info(
+    callback: CallbackQuery, user: Users, profile_module: ProfileModule, messages_service: Messages
+):
+    await messages_service.edit_msg.edit(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
-        message=await message_ref_system(user.language),
+        message=await message_ref_system(user.language, profile_module),
         event_message_key="ref_system",
         reply_markup=back_in_ref_system_kb(user.language)
     )

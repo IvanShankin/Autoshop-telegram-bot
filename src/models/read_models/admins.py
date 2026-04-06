@@ -1,7 +1,5 @@
 from datetime import datetime
 
-from pydantic import BaseModel
-
 from src.models.base import ORMDTO
 
 

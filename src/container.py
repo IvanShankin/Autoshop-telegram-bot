@@ -3,12 +3,14 @@ from typing import TYPE_CHECKING
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import get_config
+from src.infrastructure.files.excel_reports import ExcelReportExporter
 from src.infrastructure.files.file_system import FileStorage
 from src.infrastructure.files.path_builder import PathBuilder
 from src.infrastructure.redis import get_redis
 from src.infrastructure.telegram.rate_limit import RateLimiter
 from src.repository.database.discount import VouchersRepository, VoucherActivationsRepository, PromoCodeRepository, \
     ActivatedPromoCodeRepository
+from src.repository.database.refferals import ReferralsRepository, ReferralIncomeRepository, ReferralLevelsRepository
 from src.repository.database.replanishments import ReplenishmentsRepository
 from src.services.models.discounts import ActivatedPromoCodesService, PromoCodeService
 from src.services.models.discounts.vouchers_service import VoucherService
@@ -36,6 +38,7 @@ from src.repository.redis import (
     SubscriptionCacheRepository,
     UiImagesCacheRepository,
     UsersCacheRepository, SettingsCacheRepository, VouchersCacheRepository, PromoCodesCacheRepository,
+    ReferralLevelsCacheRepository,
 )
 from src.services.bot import Messages, MassTgMailingService, SendFileService, SendLogs
 from src.services.bot.edit_message import EditMessageService
@@ -44,6 +47,7 @@ from src.services.bot.sticker_sender import StickerSender
 from src.services.events.publish_event_handler import PublishEventHandler
 from src.services.models.admins import AdminActionsService, AdminsService, MessageForSendingService, \
     SentMassMessagesService
+from src.services.models.referrals import ReferralService, ReferralIncomeService, ReferralLevelsService
 from src.services.models.systems import StickersService, UiImagesService, FilesService, SettingsService
 from src.services.models.users import (
     BannedAccountService,
@@ -54,7 +58,7 @@ from src.services.models.users import (
 from src.services.models.users.notifications_service import NotificationSettingsService
 from src.services.models.users.permission_service import PermissionService
 from src.utils.core_logger import get_logger
-
+from src.utils.i18n import get_text
 
 if TYPE_CHECKING:
     from src.infrastructure.telegram.client import TelegramClient
@@ -324,6 +328,47 @@ class Container:
             session_db=self.session_db,
         )
 
+        self.referral_income_repo = ReferralIncomeRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.referral_income_service = ReferralIncomeService(
+            income_repo=self.referral_income_repo,
+        )
+
+        self.referral_levels_repo = ReferralLevelsRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.referral_levels_cache_repo = ReferralLevelsCacheRepository(
+            redis_session=self.session_redis,
+            config=self.config,
+        )
+        self.referral_levels_service = ReferralLevelsService(
+            referral_lvl_repo=self.referral_levels_repo,
+            cache_repo=self.referral_levels_cache_repo,
+            session_db=self.session_db
+        )
+
+        self.referrals_repository = ReferralsRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.referral_service = ReferralService(
+            referral_repo=self.referrals_repository,
+            referral_income_service=self.referral_income_service,
+            referral_lvls_service=self.referral_levels_service,
+            log_service=self.user_log_service,
+            user_service=self.user_service,
+            wallet_transaction_service=self.wallet_transaction_service,
+            session_db=self.session_db
+        )
+
+        self.excel_report_exporter = ExcelReportExporter(
+            get_text=get_text,
+            dt_format=self.config.different.dt_format,
+        )
+
     def get_message_service(self,) -> Messages:
         rate_limiter = RateLimiter(
             max_calls=self.config.different.rate_send_msg_limit,
@@ -400,6 +445,11 @@ class Container:
             wallet_transaction_service=self.wallet_transaction_service,
             money_transfer_service=self.money_transfer_service,
             notification_service=self.notification_service,
+            voucher_service=self.voucher_service,
+            referral_income_service=self.referral_income_service,
+            referral_levels_service=self.referral_levels_service,
+            referral_service=self.referral_service,
+            excel_report_exporter=self.excel_report_exporter,
         )
 
 

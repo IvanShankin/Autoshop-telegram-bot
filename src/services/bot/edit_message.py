@@ -232,7 +232,9 @@ class EditMessageService:
         chat_id: int,
         message_id: int,
         text: str,
-        reply_markup,
+        reply_markup: Optional[Union[
+            "InlineKeyboardMarkup", "ReplyKeyboardMarkup", "ReplyKeyboardRemove", "ForceReply"
+        ]] = None,
         parse_mode: Optional[str] = "HTML"
     ) -> Optional[bool]:
         """

@@ -2,6 +2,7 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
+from src.models.read_models import UsersDTO
 from src.services.models.module import ProfileModule
 from src.modules.profile.services.checking_data import checking_availability_money, checking_correctness_number
 from src.exceptions import UserNotFound, NotEnoughMoney
@@ -10,13 +11,12 @@ from src.modules.profile.keyboards import balance_transfer_kb, \
 from src.modules.profile.schemas import TransferData
 from src.modules.profile.state import TransferMoney
 from src.services.bot import Messages
-from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 router = Router()
 
 @router.callback_query(F.data == "balance_transfer")
-async def balance_transfer(callback: CallbackQuery, state: FSMContext, user: Users, messages_service: Messages):
+async def balance_transfer(callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages):
     await state.clear()
 
     text = get_text(user.language, "profile_messages", "select_desired_action")
@@ -30,7 +30,7 @@ async def balance_transfer(callback: CallbackQuery, state: FSMContext, user: Use
     )
 
 @router.callback_query(F.data == "transfer_money")
-async def transfer_money_start(callback: CallbackQuery, state: FSMContext, user: Users, messages_service: Messages):
+async def transfer_money_start(callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages):
     text = get_text(user.language, "profile_messages", "enter_amount")
 
     await messages_service.edit_msg.edit(
@@ -44,7 +44,7 @@ async def transfer_money_start(callback: CallbackQuery, state: FSMContext, user:
 
 
 @router.message(TransferMoney.amount)
-async def transfer_money_get_amount(message: Message, state: FSMContext, user: Users, messages_service: Messages):
+async def transfer_money_get_amount(message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages):
     if not await checking_correctness_number(
         message=message.text,
         language=user.language,
@@ -83,7 +83,7 @@ async def transfer_money_get_amount(message: Message, state: FSMContext, user: U
 
 @router.message(TransferMoney.recipient_id)
 async def transfer_money_get_recipient_id(
-    message: Message, state: FSMContext, user: Users, profile_module: ProfileModule, messages_service: Messages
+    message: Message, state: FSMContext, user: UsersDTO, profile_module: ProfileModule, messages_service: Messages
 ):
     if not await checking_correctness_number(
         message=message.text,
@@ -127,7 +127,7 @@ async def transfer_money_get_recipient_id(
 async def confirm_transfer_money(
     callback: CallbackQuery,
     state: FSMContext,
-    user: Users,
+    user: UsersDTO,
     profile_module: ProfileModule,
     messages_service: Messages
 ):

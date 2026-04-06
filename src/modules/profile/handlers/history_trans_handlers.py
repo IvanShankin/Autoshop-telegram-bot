@@ -1,10 +1,10 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
 
+from src.models.read_models import UsersDTO
 from src.modules.profile.keyboards import wallet_transactions_kb, back_in_wallet_transactions_kb
 from src.services.models.module import ProfileModule
 from src.services.bot import Messages
-from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 router = Router()
@@ -16,7 +16,7 @@ async def list_is_over(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("transaction_list:"))
 async def cb_transaction_list(
-    callback: CallbackQuery, user: Users, profile_module: ProfileModule, messages_service: Messages
+    callback: CallbackQuery, user: UsersDTO, profile_module: ProfileModule, messages_service: Messages
 ):
     """Данный хендлер используется для админ панели и для пользователя"""
     _, target_user_id, page = callback.data.split(":")
@@ -38,7 +38,7 @@ async def cb_transaction_list(
 
 @router.callback_query(F.data.startswith("transaction_show:"))
 async def cb_transaction_show(
-    callback: CallbackQuery, user: Users, profile_module: ProfileModule, messages_service: Messages
+    callback: CallbackQuery, user: UsersDTO, profile_module: ProfileModule, messages_service: Messages
 ):
     """Данный хендлер используется для админ панели и для пользователя"""
     _, target_user_id, transaction_id, current_page = callback.data.split(":")

@@ -1,18 +1,13 @@
-from aiogram.types import CallbackQuery
-
-from src.bot_actions.messages import edit_message
-from src.bot_actions.bot_instance import get_bot
-from src.config import get_config
-from src.modules.profile.keyboards import back_in_wallet_transactions_kb, back_in_accrual_ref_list_kb
-from src.services._database.discounts.actions import get_valid_voucher_by_page
-from src.services._database.referrals.actions import get_referral_lvl
-from src.database.models.referrals import IncomeFromReferrals
-from src.services._database.users.actions import get_wallet_transaction, get_user
-from src.database.models.users import Users
+from src.infrastructure.telegram.bot_instance import get_bot
+from src.models.read_models import UsersDTO
+from src.models.read_models.other import IncomeFromReferralsDTO
+from src.modules.profile.keyboards import back_in_accrual_ref_list_kb
+from src.services.bot import Messages
+from src.services.models.module import ProfileModule
 from src.utils.i18n import get_text
 
 
-async def get_main_message_profile(user: Users, language: str) -> str:
+async def get_main_message_profile(user: UsersDTO, language: str, profile_module: ProfileModule) -> str:
     """
     Вернёт сообщение с данными о пользователе
     :param user: пользователя о котором будут выведены данные
@@ -22,7 +17,7 @@ async def get_main_message_profile(user: Users, language: str) -> str:
 
     bot = get_bot()
     bot_me = await bot.me()
-    vouchers = await get_valid_voucher_by_page(user.user_id)
+    vouchers = await profile_module.voucher_service.get_valid_voucher_by_page(user.user_id)
 
     money_in_vouchers = 0
     for voucher in vouchers:
@@ -42,46 +37,14 @@ async def get_main_message_profile(user: Users, language: str) -> str:
     )
 
 
-async def message_show_transaction(
-    transaction_id: int,
-    language: str,
-    callback: CallbackQuery,
-    current_page: int,
-    target_user_id: int = None,
-):
-    transaction = await get_wallet_transaction(transaction_id)
-
-    if transaction is None:
-        await callback.answer(text=get_text(language, "miscellaneous", 'data_not_found'), show_alert=True)
-        return
-
-    text = get_text(
-        language,
-        "profile_messages",
-        "transaction_details"
-    ).format(
-        transaction_id=transaction.wallet_transaction_id,
-        type=get_text(language, "type_wallet_transaction", f'{transaction.type}'),
-        amount=transaction.amount,
-        balance_before=transaction.balance_before,
-        balance_after=transaction.balance_after,
-        created_at=transaction.created_at.strftime(get_config().different.dt_format),
-    )
-
-    await edit_message(
-        chat_id=callback.from_user.id,
-        message_id=callback.message.message_id,
-        message=text,
-        event_message_key='history_transections',
-        reply_markup=back_in_wallet_transactions_kb(language, target_user_id, current_page=current_page)
-    )
-
 async def message_income_ref(
-    income: IncomeFromReferrals,
+    income: IncomeFromReferralsDTO,
     callback, language: str,
     current_page: int,
+    messages_service: Messages,
+    profile_module: ProfileModule,
 ):
-    referral_user = await get_user(income.referral_id)
+    referral_user = await profile_module.user_service.get_user(income.referral_id)
     username = f"@{referral_user.username}" if referral_user.username else 'None'
 
     text = get_text(
@@ -93,10 +56,10 @@ async def message_income_ref(
         username=username,
         amount=income.amount,
         percentage_of_replenishment=income.percentage_of_replenishment,
-        date=income.created_at.strftime(get_config().different.dt_format),
+        date=income.created_at.strftime(profile_module.conf.different.dt_format),
     )
 
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=text,
@@ -105,15 +68,14 @@ async def message_income_ref(
     )
 
 
-async def message_ref_system(language: str) -> str:
+async def message_ref_system(language: str, profile_module: ProfileModule,) -> str:
     text = get_text(
         language,
         "referral_messages",
         "referral_system_faq"
     )
 
-
-    ref_lvls = await get_referral_lvl()
+    ref_lvls = await profile_module.referral_levels_service.get_referral_levels()
     length_list = len(ref_lvls)
     for i in range(len(ref_lvls)):
         if i == 0: # если это первый уровень

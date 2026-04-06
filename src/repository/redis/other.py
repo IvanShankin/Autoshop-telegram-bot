@@ -110,7 +110,8 @@ class DollarRateRepository(BaseRedisRepo):
         return await self.redis_session.set(f"dollar_rate", rate)
 
     async def get(self) -> float | None:
-        return await self.redis_session.get(f"dollar_rate")
+        result = await self.redis_session.get(f"dollar_rate")
+        return orjson.loads(result) if result else result
 
 
 class SubscriptionCacheRepository(BaseRedisRepo):

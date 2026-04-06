@@ -4,7 +4,7 @@ from typing import List, Dict
 
 class AppConfig(BaseModel):
     # Типы оплаты и пополнения
-    type_payments: List[str] = ['crypto_bot', 'zelenka']  # отображают в типах оплаты для админа
+    # type_payments: List[str] = ['crypto_bot', 'zelenka']  # отображают в типах оплаты для админа
     min_max_replenishment: Dict[str, Dict[str, int]] = {
         'crypto_bot': {"min": 1, "max": 99999999}
     }

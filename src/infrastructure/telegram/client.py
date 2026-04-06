@@ -13,7 +13,7 @@ from src.models.telegram import InlineKeyboardMarkupService
 from src.models.update_models.bot_actions import EditMessagePhoto
 
 
-def handle_telegram_errors(func):
+async def handle_telegram_errors(func):
     async def wrapper(self, *args, **kwargs):
         try:
             return await func(self, *args, **kwargs)
@@ -178,7 +178,7 @@ class TelegramClient:
             raise ValueError(f"Необходимо хотя бы одно из этого: 'file_path', 'file_id' ")
 
         if data.file_path:
-            media = self.get_input_file(data.file_path)
+            media = await self.get_input_file(data.file_path)
         else:
             media = data.file_id
 
@@ -192,11 +192,11 @@ class TelegramClient:
         )
 
     @handle_telegram_errors
-    def get_input_file(self, file_path: str | Path) -> FSInputFile:
+    async def get_input_file(self, file_path: str | Path) -> FSInputFile:
         return FSInputFile(file_path)
 
     @handle_telegram_errors
-    def get_inline_keyboard_markup(
+    async def get_inline_keyboard_markup(
         self,
         inline_keyboard: InlineKeyboardMarkupService
     ) -> InlineKeyboardMarkup:

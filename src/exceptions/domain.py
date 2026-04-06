@@ -65,3 +65,6 @@ class PromoCodeNotFound(Exception):
 
 class MessageEventNotFound(Exception):
     pass
+
+class TypePaymentServiceNotFound(Exception):
+    pass

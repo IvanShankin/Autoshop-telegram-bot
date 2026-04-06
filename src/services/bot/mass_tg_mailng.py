@@ -96,7 +96,7 @@ class MassTgMailingService:
             if not validators.url(button_url):
                 raise TextNotLinc()
 
-            self.tg_client.get_inline_keyboard_markup()
+            await self.tg_client.get_inline_keyboard_markup()
             inline_kb = InlineKeyboardMarkupService(inline_keyboard=[
                 [InlineKeyboardButtonService(text="Open", url=button_url)]
             ])

@@ -1,6 +1,7 @@
 from typing import Optional, Dict
 
 from pydantic import BaseModel
+from src.database.models.system.models import ReplenishmentService
 
 
 class CreateUserDTO(BaseModel):
@@ -29,3 +30,4 @@ class CreateWalletTransactionDTO(BaseModel):
 class CreateReplenishmentDTO(BaseModel):
     origin_amount: int  # Сумма в рублях без учёта комиссии
     amount: int         # Сумма в рублях с учётом комиссии
+    service: ReplenishmentService

@@ -1,8 +1,7 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
-
 from src.database.models.categories import ProductType
+from src.database.models.system.models import ReplenishmentService
 from src.models.base import ORMDTO
 
 
@@ -69,7 +68,7 @@ class ReferralLevelsDTO(ORMDTO):
 class TypePaymentsDTO(ORMDTO):
     type_payment_id: int
     name_for_user: str           # Название метода (CryptoBot, ЮMoney и т.д.)
-    name_for_admin: str          # Название для админа (из get_config().app.type_payments)
+    service: ReplenishmentService
     is_active: bool              # Активен ли метод
     commission: float            # Комиссия в процентах
     index: int                   # порядковый индекс
@@ -124,6 +123,7 @@ class ReplenishmentsDTO(ORMDTO):
     status: str
     created_at: datetime
     updated_at: datetime | None
+    service: ReplenishmentService
     payment_system_id: str | None
     invoice_url: str | None
     expire_at: datetime

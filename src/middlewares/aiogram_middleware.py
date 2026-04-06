@@ -9,6 +9,7 @@ from src.bot_actions.bot_instance import get_bot, get_bot_logger
 from src.bot_actions.messages import send_message
 from src.config import get_config
 from src.container import init_container
+from src.infrastructure.crypto_bot.core import get_crypto_provider
 from src.infrastructure.telegram.client import TelegramClient
 from src.modules.keyboard_main import support_kb
 from src.services._database.admins.actions import check_admin
@@ -36,8 +37,9 @@ class ModulesMiddleware(BaseMiddleware):
 
         telegram_client = TelegramClient(bot=bot)
         telegram_logger_client = TelegramClient(bot=logger_bot)
+        crypto_provider = get_crypto_provider()
 
-        container = init_container(session_db, telegram_client, telegram_logger_client)
+        container = init_container(session_db, telegram_client, telegram_logger_client, crypto_provider)
 
         data["profile_module"] = container.get_profile_modul()
         data["messages_service"] = container.get_message_service()

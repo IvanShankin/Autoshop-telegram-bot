@@ -11,7 +11,7 @@ async def edit_type_payments_list_kb(language: str):
     for type_payment in type_payments:
         keyboard.row(
             InlineKeyboardButton(
-                text=get_text(language, "kb_admin_panel", type_payment.name_for_admin),
+                text=get_text(language, "kb_admin_panel", type_payment.service.value),
                 callback_data=f'edit_type_payment:{type_payment.type_payment_id}'
             )
         )

@@ -19,7 +19,7 @@ class UpdateNotificationSettingDTO(BaseModel):
 
 
 class UpdateReplenishment(BaseModel):
-    status: str
+    status: Optional[str] = None
     payment_system_id: Optional[str] = None
     invoice_url: Optional[str] = None
     expire_at: datetime = None

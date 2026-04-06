@@ -148,7 +148,7 @@ class SendFileService:
                 self.logger.warning("file_path not exists: %s", file_path)
                 return None
 
-            input_file = self.tg_client.get_input_file(p)
+            input_file = await self.tg_client.get_input_file(p)
 
             try:
                 if kind == "photo":
@@ -255,7 +255,7 @@ class SendFileService:
             if not self.file_system.exists(full_file_path):
                 raise FileNotFoundError()
 
-            document = self.tg_client.get_input_file(full_file_path)
+            document = await self.tg_client.get_input_file(full_file_path)
 
         await self.limiter.acquire()
         try:

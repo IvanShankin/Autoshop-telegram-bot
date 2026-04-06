@@ -1,5 +1,6 @@
 import asyncio
 
+from src.infrastructure.crypto_bot.core import init_crypto_provider
 from src.infrastructure.rabbit_mq._consumer import start_background_consumer, stop_background_consumer
 from src.deferred_tasks.core import init_scheduler
 from src.services._database.backups.backup_db import add_backup_create, add_backup_cleanup
@@ -20,15 +21,16 @@ async def start_app():
     Асинхронный контекстный менеджер для запуска приложения.
     Инициализирует конфиг, Redis, Database, запуск отложенных задач.
     """
-    init_config()  # конфиги необходимо до init_crypto_context
+    conf = init_config()
     await init_redis()
+    init_crypto_provider(conf.secrets.token_crypto_bot)
 
     try:
-        init_crypto_context()
+        init_crypto_context() # необходим config
     except RuntimeError as e: # если уже есть
         pass
 
-    setup_logging(get_config().paths.log_file)
+    setup_logging(conf.paths.log_file)
     await create_database()
     await filling_all_redis()
     await start_background_consumer()

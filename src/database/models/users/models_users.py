@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from src.database import Base
+from src.database.models.system.models import ReplenishmentService
 
 
 class Users(Base):
@@ -108,6 +109,14 @@ class Replenishments(Base):
     status = Column(Enum('pending', 'processing', 'completed', 'error', 'cancelled', name='replenishment_status'), server_default='pending')
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    service = Column(
+        Enum(
+            ReplenishmentService,
+            values_callable=lambda x: [e.value for e in x],
+            name="replenishment_service"
+        ),
+        nullable=True
+    )
 
     # Универсальные поля для разных платежных систем
     payment_system_id = Column(String(500), nullable=True)  # ID транзакции в системе платежа

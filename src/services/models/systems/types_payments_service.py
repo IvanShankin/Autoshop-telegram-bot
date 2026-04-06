@@ -42,6 +42,9 @@ class TypesPaymentsService:
             await self.cache_repo.set_one(item)
         return item
 
+    async def calculate_replenishment_amount(self, amount: int, type_payment: TypePaymentsDTO) -> int:
+        return amount + (amount * type_payment.commission // 100) if type_payment.commission else amount
+
     async def update_type_payment(
         self,
         type_payment_id: int,

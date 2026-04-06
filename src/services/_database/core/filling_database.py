@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from src.config import get_config
 from src.database.creating import create_table
 from src.services._database.admins.actions import create_admin
-from src.database.models.system.models import Files, Stickers
+from src.database.models.system.models import Files, Stickers, ReplenishmentService
 from src.database.models.users import Users, NotificationSettings
 from src.database.models.system import Settings, TypePayments, UiImages
 from src.database import get_db
@@ -51,7 +51,7 @@ async def create_database():
     await filling_settings()
     await filling_referral_lvl()
     await filling_admins(conf.env.main_admin)
-    for type_payment in conf.app.type_payments:
+    for type_payment in ReplenishmentService:
         await filling_type_payment(type_payment)
 
     for key in conf.message_event.all_keys:
@@ -91,7 +91,7 @@ async def filling_ui_image(key: str):
         result_image = result.scalar_one_or_none()
 
         if result_image is None:
-            image = UiImages(key=key, file_name=f"{key}.png")
+            image = UiImages(key=key, file_name=f"{key}.png", show=False)
             session_db.add(image)
             await session_db.commit()
 
@@ -147,9 +147,9 @@ async def filling_admins(admin_id: int):
         await create_admin(admin_id)
 
 
-async def filling_type_payment(type_payments: str):
+async def filling_type_payment(service_payments: ReplenishmentService):
     async with get_db() as session_db:
-        result = await session_db.execute(select(TypePayments).where(TypePayments.name_for_admin == type_payments))
+        result = await session_db.execute(select(TypePayments).where(TypePayments.service == service_payments))
         result_payment = result.scalar()
 
         if not result_payment:
@@ -157,7 +157,7 @@ async def filling_type_payment(type_payments: str):
             all_types = result.scalars().all()
             new_index = max((service.index for service in all_types), default=-1) + 1  # вычисляем максимальный индекс
 
-            new_type_payment = TypePayments(name_for_user=type_payments, name_for_admin=type_payments, index=new_index)
+            new_type_payment = TypePayments(name_for_user=service_payments.value, service=service_payments.value, index=new_index)
             session_db.add(new_type_payment)
             await session_db.commit()
 

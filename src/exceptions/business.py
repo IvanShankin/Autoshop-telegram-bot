@@ -141,3 +141,6 @@ class ValueErrorService(Exception):
 
 class AlreadyActivated(Exception):
     pass
+
+class IncorrectedReplenishmentService(Exception):
+    pass

@@ -1,7 +1,11 @@
+from logging import Logger
+
 from src.config import Config
 from src.infrastructure.files.excel_reports import ExcelReportExporter
 from src.services.models.discounts import VoucherService
+from src.services.models.payment_services import PaymentService
 from src.services.models.referrals import ReferralService, ReferralIncomeService, ReferralLevelsService
+from src.services.models.systems import TypesPaymentsService
 from src.services.models.users import WalletTransactionService, UserService, MoneyTransferService, \
     NotificationSettingsService
 from src.services.models.users.permission_service import PermissionService
@@ -12,6 +16,7 @@ class ProfileModule:
     def __init__(
         self,
         conf: Config,
+        logger: Logger,
         user_service: UserService,
         permission_service: PermissionService,
         wallet_transaction_service: WalletTransactionService,
@@ -22,8 +27,11 @@ class ProfileModule:
         referral_levels_service: ReferralLevelsService,
         referral_service: ReferralService,
         excel_report_exporter: ExcelReportExporter,
+        type_payments_service: TypesPaymentsService,
+        payment_service: PaymentService,
     ):
         self.conf = conf
+        self.logger = logger
         self.user_service = user_service
         self.permission_service = permission_service
         self.wallet_transaction_service = wallet_transaction_service
@@ -34,3 +42,5 @@ class ProfileModule:
         self.referral_levels_service = referral_levels_service
         self.referral_service = referral_service
         self.excel_report_exporter = excel_report_exporter
+        self.type_payments_service = type_payments_service
+        self.payment_service = payment_service

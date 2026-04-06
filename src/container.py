@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import get_config
+from src.infrastructure.crypto_bot.core import CryptoProvider
 from src.infrastructure.files.excel_reports import ExcelReportExporter
 from src.infrastructure.files.file_system import FileStorage
 from src.infrastructure.files.path_builder import PathBuilder
@@ -23,7 +24,7 @@ from src.repository.database.admins import (
 from src.repository.database.base import DatabaseBase
 from src.repository.database.systems import (
     StickersRepository,
-    UiImagesRepository, FilesRepository, SettingsRepository,
+    UiImagesRepository, FilesRepository, SettingsRepository, TypePaymentsRepository,
 )
 from src.repository.database.users import (
     BannedAccountsRepository,
@@ -38,7 +39,7 @@ from src.repository.redis import (
     SubscriptionCacheRepository,
     UiImagesCacheRepository,
     UsersCacheRepository, SettingsCacheRepository, VouchersCacheRepository, PromoCodesCacheRepository,
-    ReferralLevelsCacheRepository,
+    ReferralLevelsCacheRepository, TypePaymentsCacheRepository, DollarRateRepository,
 )
 from src.services.bot import Messages, MassTgMailingService, SendFileService, SendLogs
 from src.services.bot.edit_message import EditMessageService
@@ -47,8 +48,10 @@ from src.services.bot.sticker_sender import StickerSender
 from src.services.events.publish_event_handler import PublishEventHandler
 from src.services.models.admins import AdminActionsService, AdminsService, MessageForSendingService, \
     SentMassMessagesService
+from src.services.models.payment_services import PaymentService
 from src.services.models.referrals import ReferralService, ReferralIncomeService, ReferralLevelsService
-from src.services.models.systems import StickersService, UiImagesService, FilesService, SettingsService
+from src.services.models.systems import StickersService, UiImagesService, FilesService, SettingsService, \
+    TypesPaymentsService
 from src.services.models.users import (
     BannedAccountService,
     UserLogService,
@@ -74,6 +77,7 @@ class Container:
         session_db: AsyncSession,
         telegram_client : "TelegramClient",
         telegram_logger_client: "TelegramClient",
+        crypto_bot_provider: CryptoProvider,
     ):
         self.session_db = session_db
         self.telegram_client = telegram_client
@@ -369,6 +373,35 @@ class Container:
             dt_format=self.config.different.dt_format,
         )
 
+        self.type_payment_repo = TypePaymentsRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.type_payment_cache_repo = TypePaymentsCacheRepository(
+            redis_session=self.session_redis,
+            config=self.config,
+        )
+        self.type_payments_service = TypesPaymentsService(
+            type_payment_repo=self.type_payment_repo,
+            cache_repo=self.type_payment_cache_repo,
+            session_db=self.session_db
+        )
+
+        self.dollar_rate_repo = DollarRateRepository(
+            redis_session=self.session_redis,
+            config=self.config,
+        )
+        self.payment_service = PaymentService(
+            replenishments_service=self.replenishment_service,
+            publish_event_handler=self.publish_event_handler,
+            types_payments_service=self.type_payments_service,
+            user_service=self.user_service,
+            dollar_rate_repo=self.dollar_rate_repo,
+            crypto_provider=crypto_bot_provider,
+            conf=self.config,
+            logger=self.logger,
+        )
+
     def get_message_service(self,) -> Messages:
         rate_limiter = RateLimiter(
             max_calls=self.config.different.rate_send_msg_limit,
@@ -440,6 +473,7 @@ class Container:
     def get_profile_modul(self,) -> ProfileModule:
         return ProfileModule(
             conf=self.config,
+            logger=self.logger,
             user_service=self.user_service,
             permission_service=self.permission_service,
             wallet_transaction_service=self.wallet_transaction_service,
@@ -450,6 +484,8 @@ class Container:
             referral_levels_service=self.referral_levels_service,
             referral_service=self.referral_service,
             excel_report_exporter=self.excel_report_exporter,
+            type_payments_service=self.type_payments_service,
+            payment_service=self.payment_service,
         )
 
 
@@ -457,5 +493,6 @@ def init_container(
     session_db: AsyncSession,
     telegram_client: "TelegramClient",
     telegram_logger_client: "TelegramClient",
+    crypto_bot_provider: CryptoProvider,
 ) -> Container:
-    return Container(session_db, telegram_client, telegram_logger_client)
+    return Container(session_db, telegram_client, telegram_logger_client, crypto_bot_provider)

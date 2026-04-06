@@ -73,9 +73,10 @@ _config: Optional[Config] = None
 _GLOBAL_RATE_LIMITER: Optional[RateLimiter] = None
 _SEMAPHORE_MAILING: Optional[Semaphore] = None
 
-def init_config():
+def init_config() -> Config:
     global _config
     _config = Config()
+    return _config
 
 
 def set_config(config: Config):

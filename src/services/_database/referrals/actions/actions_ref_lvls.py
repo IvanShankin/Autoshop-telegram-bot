@@ -9,7 +9,7 @@ from src.services._database.core.filling_database import filling_referral_lvl as
 from src.database.models.referrals import ReferralLevels, Referrals
 from src.database.models.users import Users
 from src.infrastructure.redis import get_redis
-from src.services.redis.filling import filling_referral_levels
+from src.services._redis.filling import filling_referral_levels
 
 
 async def get_referral_lvl() -> List[ReferralLevels]:

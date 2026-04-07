@@ -9,7 +9,7 @@ from src.database import get_db
 from src.exceptions import ProductAccountNotFound
 from src.exceptions.domain import SoldAccountNotFound
 from src.services.filesystem.media_paths import create_path_account
-from src.services.redis.filling import filling_all_keys_category, filling_sold_accounts_by_owner_id, \
+from src.services._redis.filling import filling_all_keys_category, filling_sold_accounts_by_owner_id, \
     filling_product_account_by_account_id, filling_product_accounts_by_category_id, filling_sold_account_by_account_id
 
 
@@ -26,7 +26,7 @@ async def delete_product_account(account_id: int):
         await session_db.execute(delete(ProductAccounts).where(ProductAccounts.account_id == account_id))
         await session_db.commit()
 
-        # обновляем redis
+        # обновляем _redis
         await filling_product_accounts_by_category_id()
         await filling_product_account_by_account_id(account_id)
         await filling_all_keys_category(account.category_id)
@@ -46,7 +46,7 @@ async def delete_sold_account(account_id: int):
         await session_db.execute(delete(SoldAccountsTranslation).where(SoldAccountsTranslation.sold_account_id == account_id))
         await session_db.commit()
 
-        # обновляем redis
+        # обновляем _redis
         await filling_sold_accounts_by_owner_id(account.owner_id)
         await filling_sold_account_by_account_id(account.sold_account_id)
 

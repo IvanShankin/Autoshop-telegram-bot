@@ -9,7 +9,7 @@ from src.database.models.categories import Categories
 from src.models.read_models import CategoryFull
 from src.database import get_db
 from src.infrastructure.redis import get_redis
-from src.services.redis.filling.helpers_func import _filling_categories, \
+from src.services._redis.filling.helpers_func import _filling_categories, \
     _delete_keys_by_pattern, _get_quantity_products_in_category
 from src.utils.core_logger import get_logger
 
@@ -101,7 +101,7 @@ async def filling_category_by_category(category_ids: List):
 
 
 async def filling_all_keys_category(category_id: int = None):
-    """Заполняет redis всеми ключами для категорий
+    """Заполняет _redis всеми ключами для категорий
     :param category_id: Если передать, то заполнит по всем значениям, которые связаны с ним"""
     await filling_main_categories(category_id)
     await filling_categories_by_parent(category_id)

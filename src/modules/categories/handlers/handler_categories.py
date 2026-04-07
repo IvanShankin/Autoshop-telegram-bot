@@ -18,7 +18,7 @@ from src.services._database.discounts.actions import get_promo_code
 from src.services._database.discounts.actions.actions_promo import check_activate_promo_code
 from src.services._database.discounts.utils.calculation import discount_calculation
 from src.database.models.users import Users
-from src.services.redis.actions import delete_subscription_prompt, get_subscription_prompt
+from src.services._redis.actions import delete_subscription_prompt, get_subscription_prompt
 from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_text
 

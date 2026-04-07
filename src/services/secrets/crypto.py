@@ -11,11 +11,13 @@ class CryptoContext:
 _CRYPTO_CTX: CryptoContext | None = None
 
 
-def set_crypto_context(ctx: CryptoContext):
+def set_crypto_context(ctx: CryptoContext) -> CryptoContext:
     global _CRYPTO_CTX
     if _CRYPTO_CTX is not None:
         raise RuntimeError("CryptoContext already set")
     _CRYPTO_CTX = ctx
+
+    return ctx
 
 
 def get_crypto_context() -> CryptoContext:

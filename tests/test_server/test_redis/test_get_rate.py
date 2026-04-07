@@ -1,7 +1,7 @@
 import pytest
 
 from src.infrastructure.redis import get_redis
-from src.services.redis.tasks import _set_dollar_rate
+from src.services._redis.tasks import _set_dollar_rate
 
 
 @pytest.mark.asyncio

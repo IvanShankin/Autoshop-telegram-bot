@@ -6,7 +6,7 @@ from src.database.models.categories import Categories, ProductAccounts, \
     CategoryTranslation
 from src.database import get_db
 from src.services._database.system.actions import delete_ui_image
-from src.services.redis.filling import filling_all_keys_category
+from src.services._redis.filling import filling_all_keys_category
 
 
 async def delete_translate_category(category_id: int, language: str):
@@ -41,7 +41,7 @@ async def delete_translate_category(category_id: int, language: str):
 
         await session_db.commit()
 
-        # обновление redis
+        # обновление _redis
         await filling_all_keys_category(category_id=category_id)
 
 
@@ -105,7 +105,7 @@ async def delete_category(category_id: int):
 
         await session_db.commit()
 
-        # обновление redis
+        # обновление _redis
         await filling_all_keys_category()
 
     if deleted_cat and deleted_cat.ui_image_key:

@@ -61,7 +61,7 @@ async def test_handler_new_activate_promo_code(
         async with get_redis() as session_redis:
             redis_result = await session_redis.get(f"promo_code:{old_promo.activation_code}")
 
-            if should_become_inactive: # если промокод был на одну активацию, то должен удалиться с redis
+            if should_become_inactive: # если промокод был на одну активацию, то должен удалиться с _redis
                 assert not redis_result
             else:
                 assert redis_result

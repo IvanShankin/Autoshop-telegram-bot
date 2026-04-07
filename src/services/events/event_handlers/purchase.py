@@ -32,7 +32,7 @@ class PurchaseEventHandler:
             await self._handler_new_purchase_universal(obj)
 
     async def _handler_new_purchase_account(self, new_purchase: NewPurchaseAccount):
-        """Отошлёт логи в канал, обновит SoldAccount в redis, добавить в БД запись о покупке"""
+        """Отошлёт логи в канал, обновит SoldAccount в _redis, добавить в БД запись о покупке"""
         for account_data in new_purchase.account_movement:
             await self.publish_event.send_log(
                 text=(

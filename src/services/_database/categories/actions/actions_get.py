@@ -13,7 +13,7 @@ from src.database.models.categories import Categories, ProductUniversal, Account
 from src.models.read_models import CategoryFull
 from src.database.models.categories import ProductType, Purchases, UniversalStorage, StorageStatus
 from src.database import get_db
-from src.services.redis.filling import (
+from src.services._redis.filling import (
     filling_category_by_category,
     filling_categories_by_parent, filling_main_categories
 )

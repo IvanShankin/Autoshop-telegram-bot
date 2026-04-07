@@ -377,7 +377,7 @@ class CategoryService:
 
         await self.session_db.commit()
 
-        # обновление redis
+        # обновление _redis
         await self.category_filler_service.fill_need_category(category_id)
 
         if category.ui_image_key:

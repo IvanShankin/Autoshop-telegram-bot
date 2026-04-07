@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from sqlalchemy import select, delete
 
@@ -34,6 +34,10 @@ class AdminsRepository(DatabaseBase):
         await self.session_db.execute(
             delete(Admins).where(Admins.user_id == user_id)
         )
+
+    async def get_all_user_ids(self) -> List[int]:
+        result = await self.session_db.execute(select(Admins.user_id))
+        return list(result.scalars().all())
 
 
 

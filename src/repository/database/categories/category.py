@@ -160,6 +160,10 @@ class CategoriesRepository(DatabaseBase):
         result = await self.session_db.execute(select(func.count()).select_from(Categories))
         return int(result.scalar() or 0)
 
+    async def get_all_ids(self) -> List[int]:
+        result = await self.session_db.execute(select(Categories.category_id))
+        return list(result.scalars().all())
+
     async def create_category(self, **values) -> CategoriesDTO:
         created = await super().create(Categories, **values)
         return CategoriesDTO.model_validate(created)

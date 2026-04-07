@@ -4,7 +4,7 @@ from src.database.models.discount import Vouchers
 
 
 class SmallVoucher(BaseModel):
-    """Хранится в redis"""
+    """Хранится в _redis"""
     voucher_id: int
     creator_id: int
     amount: int

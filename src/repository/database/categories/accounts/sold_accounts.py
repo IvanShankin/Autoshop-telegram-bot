@@ -206,3 +206,15 @@ class SoldAccountsRepository(DatabaseBase):
             )
         )
         return result.scalar_one_or_none() is not None
+
+    async def get_all_owner_ids(self) -> List[int]:
+        result = await self.session_db.execute(
+            select(distinct(SoldAccounts.owner_id))
+        )
+        return list(result.scalars().all())
+
+    async def get_all_ids(self) -> List[int]:
+        result = await self.session_db.execute(
+            select(SoldAccounts.sold_account_id)
+        )
+        return list(result.scalars().all())

@@ -15,9 +15,9 @@ from src.services._database.system.shemas.shemas import StatisticsData, Replenis
 from src.database.models.users import Users, Replenishments
 from src.services.filesystem.actions import get_ext_image
 from src.services.filesystem.media_paths import create_path_ui_image
-from src.services.redis.filling import filling_types_payments_by_id, filling_all_types_payments, \
+from src.services._redis.filling import filling_types_payments_by_id, filling_all_types_payments, \
     filling_ui_image
-from src.services.redis.time_storage import TIME_SETTINGS
+from src.services._redis.time_storage import TIME_SETTINGS
 from src.database.models.system import Settings, TypePayments, BackupLogs
 from src.database import get_db
 from src.infrastructure.redis import get_redis
@@ -286,7 +286,7 @@ async def create_ui_image(key: str, file_data: bytes, show: bool = True, file_id
             session_db.add(ui_image)
             await session_db.commit()
 
-        await filling_ui_image(key) # обновление redis
+        await filling_ui_image(key) # обновление _redis
         return ui_image
 
 
@@ -335,14 +335,14 @@ async def update_ui_image(
             result = result_db.scalar_one_or_none()
             await session_db.commit()
             if result:
-                await filling_ui_image(key) # обновление redis
+                await filling_ui_image(key) # обновление _redis
             return result
     return None
 
 
 async def delete_ui_image(key: str) -> UiImages | None:
     """
-    Удалит UiImage с БД и redis, удалит связанный с ним файл.
+    Удалит UiImage с БД и _redis, удалит связанный с ним файл.
     :return: Удалённый объект (если удалили)
     """
     async with get_db() as session_db:
@@ -482,7 +482,7 @@ async def update_type_payment(
             type_payment = result_db.scalar_one_or_none()
             await session_db.commit()
 
-            # обновление redis
+            # обновление _redis
             await filling_all_types_payments()
 
             result_db = await session_db.execute(select(TypePayments))

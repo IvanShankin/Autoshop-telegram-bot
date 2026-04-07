@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from sqlalchemy import delete, select, update
 
@@ -13,6 +13,11 @@ class StickersRepository(DatabaseBase):
         result = await self.session_db.execute(select(Stickers).where(Stickers.key == key))
         sticker = result.scalar_one_or_none()
         return StickersDTO.model_validate(sticker) if sticker else None
+
+    async def get_all(self) -> List[StickersDTO]:
+        result = await self.session_db.execute(select(Stickers))
+        stickers = result.scalars()
+        return [StickersDTO.model_validate(sticker) for sticker in stickers]
 
     async def create_sticker(self, **values) -> StickersDTO:
         created = await super().create(Stickers, **values)

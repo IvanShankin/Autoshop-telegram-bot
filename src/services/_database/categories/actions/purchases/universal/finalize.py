@@ -25,8 +25,8 @@ from src.database.models.users import BalanceHolder
 from src.services.filesystem.account_actions import rename_file
 from src.services.filesystem.actions import move_file, copy_file
 from src.services.filesystem.media_paths import create_path_universal_storage
-from src.services.redis.filling import filling_all_keys_category
-from src.services.redis.filling.filling_universal import filling_sold_universal_by_owner_id, \
+from src.services._redis.filling import filling_all_keys_category
+from src.services._redis.filling.filling_universal import filling_sold_universal_by_owner_id, \
     filling_product_universal_by_category, filling_universal_by_product_id, filling_sold_universal_by_universal_id
 from src.utils.core_logger import get_logger
 
@@ -37,7 +37,7 @@ async def _filling_redis_universal(
     full_reserved_products: List[ProductUniversalFull],
     sold_product_ids: List[int]
 ):
-    """Заполнит redis необходимыми ключами для универсальных товаров"""
+    """Заполнит _redis необходимыми ключами для универсальных товаров"""
     await filling_product_universal_by_category()
     await filling_sold_universal_by_owner_id(user_id)
     for product in full_reserved_products:

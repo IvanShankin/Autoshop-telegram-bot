@@ -12,8 +12,8 @@ from src.database.models.categories import SoldUniversal, UniversalStorage, \
 from src.models.read_models import ProductUniversalFull
 from src.database import get_db
 from src.database.models.users import Users
-from src.services.redis.filling import filling_user, filling_all_keys_category
-from src.services.redis.filling.filling_universal import filling_product_universal_by_category, \
+from src.services._redis.filling import filling_user, filling_all_keys_category
+from src.services._redis.filling.filling_universal import filling_product_universal_by_category, \
     filling_sold_universal_by_owner_id, filling_sold_universal_by_universal_id, filling_universal_by_product_id
 from src.utils.core_logger import get_logger
 
@@ -25,7 +25,7 @@ async def _filling_redis_universal(
     sold_universal_ids: List[int],
     product_universal: List[ProductUniversalFull]
 ):
-    """Для заполнения redis по всем необходимым ключам для универсальных товаров"""
+    """Для заполнения _redis по всем необходимым ключам для универсальных товаров"""
     if user:
         await filling_user(user)
 

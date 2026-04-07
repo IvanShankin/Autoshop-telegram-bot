@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional, List
 
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, distinct
 from sqlalchemy.orm import selectinload
 
 from src.database.models.categories import (
@@ -183,4 +183,16 @@ class ProductAccountsRepository(DatabaseBase):
             .limit(limit)
         )
         result = await self.session_db.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_all_category_ids(self) -> List[int]:
+        result = await self.session_db.execute(
+            select(distinct(ProductAccounts.category_id))
+        )
+        return list(result.scalars().all())
+
+    async def get_all_account_ids(self) -> List[int]:
+        result = await self.session_db.execute(
+            select(ProductAccounts.account_id)
+        )
         return list(result.scalars().all())

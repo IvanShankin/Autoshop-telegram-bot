@@ -11,7 +11,7 @@ from src.models.read_models import CategoryFull
 from src.database import get_db
 from src.services._database.system.actions.actions import create_ui_image
 from src.services.filesystem.actions import get_default_image_bytes
-from src.services.redis.filling import filling_main_categories, filling_categories_by_parent, \
+from src.services._redis.filling import filling_main_categories, filling_categories_by_parent, \
     filling_category_by_category
 
 

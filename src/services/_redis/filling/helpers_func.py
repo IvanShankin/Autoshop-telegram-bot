@@ -64,7 +64,7 @@ async def _fill_redis_single_objects(
     """
     Заполняет Redis одиночными объектами. Если объекты в БД не будут найдены, то ничего не заполнит
     :param model: модель БД
-    :param key_prefix: префикс у ключа redis ("key_prefix:other_data")
+    :param key_prefix: префикс у ключа _redis ("key_prefix:other_data")
     :param field_condition: условие отбора. Пример: (User.user_id == 1)
     :param key_extractor: lambda функция для вызова второй части ключа. Пример: lambda user: user.user_id
     :param value_extractor: lambda функция для метода преобразования в json строку исходное значение. Пример:  lambda x: orjson.dumps(x.to_dict())
@@ -174,11 +174,11 @@ async def _filling_product_by_category_id(
     join: Any = None
 ):
     """
-    Заполнит redis по category_id. Результат - это список по category_id.
+    Заполнит _redis по category_id. Результат - это список по category_id.
 
     Результат ключа: "{key_prefix}:{category_id}"
     :param model_db: любой продукт (orm объект), который имеет поле category_id
-    :param key_prefix: префикс у ключа в redis
+    :param key_prefix: префикс у ключа в _redis
     :return:
     """
     await _delete_keys_by_pattern(f"{key_prefix}:*")  # удаляем по каждой категории
@@ -228,7 +228,7 @@ async def filling_sold_products_by_owner_id(
 
     :param model_db: ORM модель (SoldUniversal / SoldAccounts)
     :param owner_id: ID владельца
-    :param key_prefix: Префикс redis ключа
+    :param key_prefix: Префикс _redis ключа
     :param ttl: TTL ключа
     :param options: SQLAlchemy loader options
     :param filter_expr: SQLAlchemy фильтр
@@ -291,7 +291,7 @@ async def filling_sold_entity_by_id(
 
     :param model_db: ORM модель (SoldAccounts / SoldUniversal)
     :param entity_id: ID сущности
-    :param key_prefix: префикс redis ключа
+    :param key_prefix: префикс _redis ключа
     :param ttl: TTL ключа
     :param options: SQLAlchemy loader options
     :param filter_expr: SQLAlchemy фильтр

@@ -176,7 +176,7 @@ class TestUpdateAccountCategoryTranslation:
         async with get_redis() as r:
             key_single = f"category:{full_category.category_id}:ru"
             raw_single = await r.get(key_single)
-            assert raw_single is not None, "Ожидается наличие ключа в redis для отдельной категории"
+            assert raw_single is not None, "Ожидается наличие ключа в _redis для отдельной категории"
             parsed_single = orjson.loads(raw_single)
             assert parsed_single["name"] == new_name
             assert parsed_single["description"] == new_description

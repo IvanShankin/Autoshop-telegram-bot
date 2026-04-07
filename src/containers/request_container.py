@@ -13,6 +13,7 @@ from src.repository.database.discount import VouchersRepository, VoucherActivati
     ActivatedPromoCodeRepository
 from src.repository.database.refferals import ReferralsRepository, ReferralIncomeRepository, ReferralLevelsRepository
 from src.repository.database.replanishments import ReplenishmentsRepository
+from src.services.cache_warmup import CacheWarmupService
 from src.services.models.discounts import ActivatedPromoCodesService, PromoCodeService
 from src.services.models.discounts.vouchers_service import VoucherService
 from src.services.models.modules import ProfileModule, AccountsModuls, UniversalModuls
@@ -105,7 +106,7 @@ if TYPE_CHECKING:
     from src.infrastructure.telegram.client import TelegramClient
 
 
-class Container:
+class RequestContainer:
     """
     Контейнер для сборки сервисного слоя. Вызывается строго только в middleware!
     """
@@ -140,15 +141,18 @@ class Container:
             wallet_transaction=self.wallet_transaction_repo,
             session_db=session_db,
         )
+
+        self.settings_repo = SettingsRepository(
+            session_db=session_db,
+            config=self.config,
+        )
+        self.settings_cache_repo = SettingsCacheRepository(
+            redis_session=self.session_redis,
+            config=self.config,
+        )
         self.settings_service = SettingsService(
-            settings_repo=SettingsRepository(
-                session_db=session_db,
-                config=self.config,
-            ),
-            cache_repo=SettingsCacheRepository(
-                redis_session=self.session_redis,
-                config=self.config,
-            ),
+            settings_repo=self.settings_repo,
+            cache_repo=self.settings_cache_repo,
             conf=self.config,
             session_db=session_db
         )
@@ -727,10 +731,50 @@ class Container:
             logger=self.logger,
         )
 
-def init_container(
+    def get_cache_warmup_service(self) -> CacheWarmupService:
+        return CacheWarmupService(
+            settings_repo=self.settings_repo,
+            stickers_repo=self.stickers_repo,
+            referral_levels_repo=self.referral_levels_repo,
+            type_payments_repo=self.type_payment_repo,
+            admins_repo=self.admin_repo,
+            banned_accounts_repo=self.banned_accounts_repo,
+            categories_repo=self.categories_repo,
+            product_accounts_repo=self.product_accounts_repo,
+            sold_accounts_repo=self.sold_accounts_repo,
+            product_universal_repo=self.product_universal_repo,
+            sold_universal_repo=self.sold_universal_repo,
+            users_repo=self.users_repo,
+            promo_codes_repo=self.promo_code_repo,
+            ui_image_repo=self.ui_image_repo,
+            vouchers_repo=self.vouchers_repo,
+
+            settings_cache_repo=self.settings_cache_repo,
+            stickers_cache_repo=self.stickers_cache_repo,
+            referral_levels_cache_repo=self.referral_levels_cache_repo,
+            type_payments_cache_repo=self.type_payment_cache_repo,
+            admins_cache_repo=self.admin_cache_repo,
+            banned_accounts_cache_repo=self.banned_accounts_cache_repo,
+            categories_cache_repo=self.categories_cache_repo,
+            promo_codes_cache_repo=self.promo_code_cache_repo,
+            vouchers_cache_repo=self.vouchers_cache__repo,
+            ui_images_cache_repo=self.ui_images_cache_repo,
+            accounts_cache_repo=self.accounts_cache_repo,
+            sold_universal_cache_repo=self.sold_universal_cache_repo,
+            sold_universal_single_cache_repo=self.sold_universal_single_cache_repo,
+            category_cache_filler_service=self.categories_cache_filler_service,
+
+            accounts_cache_filler_service=self.accounts_cache_filler_service,
+            universal_cache_filler_service=self.universal_cache_filler_service,
+            logger=self.logger,
+            conf=self.config,
+        )
+
+
+def init_request_container(
     session_db: AsyncSession,
     telegram_client: "TelegramClient",
     telegram_logger_client: "TelegramClient",
     crypto_bot_provider: CryptoProvider,
-) -> Container:
-    return Container(session_db, telegram_client, telegram_logger_client, crypto_bot_provider)
+) -> RequestContainer:
+    return RequestContainer(session_db, telegram_client, telegram_logger_client, crypto_bot_provider)

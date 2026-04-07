@@ -1,7 +1,7 @@
 import pytest
 
 from src.database.models.categories import AccountServiceType
-from src.services.redis.filling import filling_category_by_category
+from src.services._redis.filling import filling_category_by_category
 
 
 
@@ -28,7 +28,7 @@ async def test_get_category_by_category_id(use_redis, create_category, create_pr
     _ = await create_product_account(filling_redis=use_redis, category_id=category_1.category_id)
     category_1.quantity_product = 1
     if use_redis:
-        await filling_category_by_category([category_1.category_id]) # для поддержания актуальных данных в redis
+        await filling_category_by_category([category_1.category_id]) # для поддержания актуальных данных в _redis
 
     result_category = await get_category_by_category_id(category_1.category_id, return_not_show=True)
 

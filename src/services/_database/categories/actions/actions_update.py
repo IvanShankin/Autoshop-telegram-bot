@@ -13,7 +13,7 @@ from src.models.read_models import CategoryFull
 from src.database.models.categories import ProductType, AccountServiceType, UniversalMediaType
 from src.database import get_db
 from src.services._database.system.actions import create_ui_image, delete_ui_image
-from src.services.redis.filling import filling_all_keys_category
+from src.services._redis.filling import filling_all_keys_category
 
 
 async def update_category(
@@ -188,7 +188,7 @@ async def update_category(
                 setattr(category, key, value)
 
     if update_data:
-        # обновит redis с новыми index
+        # обновит _redis с новыми index
         await filling_all_keys_category()
 
     return category
@@ -247,7 +247,7 @@ async def update_category_translation(
                 setattr(translation, key, value)
 
     if update_data:
-        # обновит redis с новыми index
+        # обновит _redis с новыми index
         await filling_all_keys_category(category_id=category_id)
 
     return translation

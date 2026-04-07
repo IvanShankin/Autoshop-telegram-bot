@@ -8,7 +8,8 @@ from typing import Callable, Dict, Any, Awaitable, Type
 from src.bot_actions.bot_instance import get_bot, get_bot_logger
 from src.bot_actions.messages import send_message
 from src.config import get_config
-from src.container import init_container
+from src.containers import init_request_container
+from src.containers.app_container import AppContainer
 from src.infrastructure.crypto_bot.core import get_crypto_provider
 from src.infrastructure.telegram.client import TelegramClient
 from src.modules.keyboard_main import support_kb
@@ -19,32 +20,21 @@ from src.services.models.modules import ProfileModule
 from src.utils.i18n import get_text
 
 
-
-class DbSessionMiddleware(BaseMiddleware):
-    async def __call__(self, handler, event, data):
-        async_session_factory = get_config().db_connection.session_local
-        async with async_session_factory() as session_db:
-            data["session_db"] = session_db
-            return await handler(event, data)
-
-
 class ModulesMiddleware(BaseMiddleware):
+    def __init__(self, app_container: AppContainer):
+        self.app_container = app_container
+
     async def __call__(self, handler, event, data):
-        session_db = data["session_db"]
+        async_session_factory = self.app_container.conf.db_connection.session_local
 
-        bot = get_bot()
-        logger_bot = get_bot_logger()
+        async with async_session_factory() as session:
+            request_container = self.app_container.get_request_container(session)
 
-        telegram_client = TelegramClient(bot=bot)
-        telegram_logger_client = TelegramClient(bot=logger_bot)
-        crypto_provider = get_crypto_provider()
+            data["profile_module"] = request_container.get_profile_modul()
+            data["messages_service"] = request_container.get_message_service()
+            # создание модулей под другие разделы
 
-        container = init_container(session_db, telegram_client, telegram_logger_client, crypto_provider)
-
-        data["profile_module"] = container.get_profile_modul()
-        data["messages_service"] = container.get_message_service()
-        # создание модулей под другие разделы
-        return await handler(event, data)
+            return await handler(event, data)
 
 
 class DeleteMessageOnErrorMiddleware(BaseMiddleware):

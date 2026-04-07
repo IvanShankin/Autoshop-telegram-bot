@@ -39,7 +39,7 @@ async def test_create_admin_creates_new_admin_and_message(create_new_user):
         ui_image = result.scalar_one_or_none()
         assert ui_image is not None
 
-    # проверяем, что в redis появился ключ
+    # проверяем, что в _redis появился ключ
     async with get_redis() as session_redis:
         redis_value = await session_redis.get(f"admin:{user.user_id}")
         assert redis_value == b'_'

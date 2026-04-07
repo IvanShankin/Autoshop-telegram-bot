@@ -14,7 +14,7 @@ from src.services._database.admins.actions import check_admin
 from src.services._database.system.actions import get_settings
 from src.database.models.users import Users
 from src.services.filesystem.actions import split_file_on_chunk
-from src.services.redis.filling import filling_all_redis
+from src.services._redis.filling import filling_all_redis
 from src.utils.i18n import get_text
 
 router = Router()

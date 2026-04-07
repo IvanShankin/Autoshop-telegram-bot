@@ -44,7 +44,7 @@ class TestMoneyTransferService:
         assert sender.balance == 0
         assert recipient.balance == 100
 
-        # проверка redis
+        # проверка _redis
         sender_redis = await session_redis.get(f"user:{sender.user_id}")
         recipient_redis = await session_redis.get(f"user:{recipient.user_id}")
 

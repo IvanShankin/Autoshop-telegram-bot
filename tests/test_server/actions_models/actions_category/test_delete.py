@@ -15,7 +15,7 @@ from src.database.models.categories import Categories, CategoryTranslation
 async def test_delete_translate_category_success_and_error_when_last_translation(create_category):
     """
     Проверяет удаление перевода:
-    - если переводов > 1 — перевод удаляется и ключ в redis удаляется
+    - если переводов > 1 — перевод удаляется и ключ в _redis удаляется
     - если перевод единственный — ValueError
     """
     from src.services._database.categories.actions import delete_translate_category, add_translation_in_category
@@ -98,7 +98,7 @@ async def test_delete_account_category_various_errors_and_index_shift(create_cat
         assert ids_idx.get(cat1.category_id) == 0
         assert ids_idx.get(cat3.category_id) == 1
 
-    # проверка redis: ключи по сервису и по категории должны быть обновлены/удалены
+    # проверка _redis: ключи по сервису и по категории должны быть обновлены/удалены
     async with get_redis() as r:
         key_list = f"main_categories:ru"
         raw_list = await r.get(key_list)

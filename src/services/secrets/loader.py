@@ -24,13 +24,13 @@ def get_storage_client() -> SecretsStorageClient:
 
 
 
-def init_crypto_context():
+def init_crypto_context() -> CryptoContext:
     # для тестов и разработки
     logger = get_logger(__name__)
     runtime = get_runtime()
 
     if runtime.mode in {"DEV", "TEST"}:
-        set_crypto_context(
+        ctx = set_crypto_context(
             CryptoContext(
                 kek=b"fake_kek_32byteslong____",
                 dek=b"test" * 8,
@@ -38,7 +38,7 @@ def init_crypto_context():
             )
         )
         logger.info("crypto_context initialized for DEV/TEST")
-        return
+        return ctx
 
 
     # ==== PROD ====
@@ -56,10 +56,12 @@ def init_crypto_context():
     except InvalidTag:
         raise CryptoInitializationError("Invalid KEK or corrupted DEK")
 
-    set_crypto_context(
+    ctx = set_crypto_context(
         CryptoContext(kek=kek, dek=dek, nonce_b64_dek=payload["nonce"])
     )
     logger.info("crypto_context initialized for PROD")
+
+    return ctx
 
 
 def check_storage_service() -> bool:

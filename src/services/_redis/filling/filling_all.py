@@ -9,16 +9,16 @@ from src.database.models.system import TypePayments
 from src.database.models.system import UiImages
 from src.database.models.users import Users
 from src.infrastructure.redis import get_redis
-from src.services.redis.filling.filling_categories import filling_all_keys_category
-from src.services.redis.filling.filling_other import filling_types_payments_by_id, filling_ui_image, \
+from src.services._redis.filling.filling_categories import filling_all_keys_category
+from src.services._redis.filling.filling_other import filling_types_payments_by_id, filling_ui_image, \
     filling_voucher_by_user_id, filling_settings, filling_referral_levels, filling_all_types_payments, filling_admins, filling_banned_accounts, filling_promo_code, filling_vouchers, filling_all_stickers
-from src.services.redis.filling.filling_accounts import filling_product_account_by_account_id, \
+from src.services._redis.filling.filling_accounts import filling_product_account_by_account_id, \
     filling_sold_accounts_by_owner_id, filling_sold_account_by_account_id, filling_product_accounts_by_category_id
 from src.utils.core_logger import get_logger
 
 
 async def filling_all_redis():
-    """Заполняет redis необходимыми данными. Использовать только после заполнения БД"""
+    """Заполняет _redis необходимыми данными. Использовать только после заполнения БД"""
     async with get_redis() as session_redis:
         await session_redis.flushall()
 

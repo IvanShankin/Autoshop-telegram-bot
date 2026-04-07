@@ -19,7 +19,7 @@ from src.database.models.users import Users, Replenishments, NotificationSetting
     TransferMoneys
 from src.database.models.users import BalanceHolder
 from src.infrastructure.redis import get_redis
-from src.services.redis.filling import filling_all_types_payments, \
+from src.services._redis.filling import filling_all_types_payments, \
     filling_types_payments_by_id
 
 
@@ -254,7 +254,7 @@ async def create_voucher_factory(
         is_created_admin: bool = False,
         number_of_activations: int = 5,
 ) -> Vouchers:
-    """Создаст новый ваучер в БД и в redis."""
+    """Создаст новый ваучер в БД и в _redis."""
     if creator_id is None:
         user = await create_new_user_fabric()
         creator_id = user.user_id

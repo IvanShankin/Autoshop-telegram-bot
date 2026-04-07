@@ -53,7 +53,7 @@ async def get_promo_code(
     promo_code_id: int | None = None,
     get_only_valid: bool = True
 ) -> PromoCodes | None:
-    if code and get_only_valid: # в redis хранятся только валидные
+    if code and get_only_valid: # в _redis хранятся только валидные
         async with get_redis() as session_redis:
             promo_code_json = await session_redis.get(f"promo_code:{code}")
             if promo_code_json:

@@ -1,6 +1,6 @@
 import pytest
 
-from src.services.redis.actions import delete_subscription_prompt, get_subscription_prompt
+from src.services._redis.actions import delete_subscription_prompt, get_subscription_prompt
 from src.infrastructure.redis import get_redis
 
 

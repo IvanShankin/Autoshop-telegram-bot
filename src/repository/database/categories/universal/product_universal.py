@@ -1,6 +1,6 @@
 from typing import Optional, List
 
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, distinct
 from sqlalchemy.orm import selectinload
 
 from src.database.models.categories import ProductUniversal, UniversalStorage, StorageStatus
@@ -160,4 +160,16 @@ class ProductUniversalRepository(DatabaseBase):
             .limit(limit)
         )
         result = await self.session_db.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_all_category_ids(self) -> List[int]:
+        result = await self.session_db.execute(
+            select(distinct(ProductUniversal.category_id))
+        )
+        return list(result.scalars().all())
+
+    async def get_all_ids(self) -> List[int]:
+        result = await self.session_db.execute(
+            select(ProductUniversal.product_universal_id)
+        )
         return list(result.scalars().all())

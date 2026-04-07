@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from src.database.models.categories import ProductType
 from src.database.models.system.models import ReplenishmentService
@@ -8,13 +9,13 @@ from src.models.base import ORMDTO
 class SettingsDTO(ORMDTO):
     settings_id: int
     maintenance_mode: bool
-    support_username: str               # хранит просто текст, без @
-    channel_for_logging_id: int         # ID канала для логирования
-    channel_for_subscription_id: int    # ID канала для подписки пользователя
-    channel_for_subscription_url: str   # опционально
-    channel_name: str
-    shop_name: str
-    FAQ: str                            # ссылка
+    support_username: Optional[str]               # хранит просто текст, без @
+    channel_for_logging_id: Optional[int]         # ID канала для логирования
+    channel_for_subscription_id: Optional[int]    # ID канала для подписки пользователя
+    channel_for_subscription_url: Optional[str]   # опционально
+    channel_name: Optional[str]
+    shop_name: Optional[str]
+    FAQ: Optional[str]                            # ссылка
 
 
 class UsersDTO(ORMDTO):

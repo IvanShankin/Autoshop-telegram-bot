@@ -435,7 +435,7 @@ class UniversalPurchaseService:
         :return: True при успехе и False при откате.
         """
         """
-        Переносит файлы в final, создаёт SoldUniversal + Purchases и обновляет redis + статусы.
+        Переносит файлы в final, создаёт SoldUniversal + Purchases и обновляет _redis + статусы.
         :return: True при успехе, False при откате.
         """
         mapping: List[Tuple[str, str, str]] = []

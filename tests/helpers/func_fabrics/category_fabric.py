@@ -7,7 +7,7 @@ from tests.helpers.func_fabrics.other_fabric import create_ui_image_factory
 from src.database.models.categories import Categories, CategoryTranslation, ProductType, AccountServiceType
 from src.models.read_models import CategoryFull
 from src.database import get_db
-from src.services.redis.filling import filling_all_keys_category
+from src.services._redis.filling import filling_all_keys_category
 
 
 async def create_translate_category_factory(

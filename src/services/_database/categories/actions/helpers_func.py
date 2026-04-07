@@ -37,9 +37,9 @@ async def _get_single_obj(
     post_process: Callable[[Any], Any] | None = None
 ) -> Any | None:
     """
-    Ищет один объект, такой как: dict. Ищет в redis, если нет то в БД.
+    Ищет один объект, такой как: dict. Ищет в _redis, если нет то в БД.
     :param model_db: Модель БД которую необходимо вернуть.
-    :param redis_key: Ключ для поиска по redis.
+    :param redis_key: Ключ для поиска по _redis.
     :param filter_expr: SQLAlchemy-выражение фильтрации (например, Model.id == 123).
     :param call_fun_filling: Асинхронная функция для заполнения Redis.
     :param post_process: Асинхронная/Синхронная функция для преобразования в особый класс.
@@ -67,7 +67,7 @@ async def _get_single_obj(
         result = result_db.scalar_one_or_none()
 
         if result:
-            await call_fun_filling()  # заполнение redis
+            await call_fun_filling()  # заполнение _redis
             return await maybe_await(post_process(result)) if post_process else result
 
     return None
@@ -84,9 +84,9 @@ async def _get_grouped_objects(
     post_process: Callable[[Any], Any] | None = None
 ) -> List[Any]:
     """
-    Ищет группированные объекты, такие как: List[dict]. Ищет в redis, если нет то в БД.
+    Ищет группированные объекты, такие как: List[dict]. Ищет в _redis, если нет то в БД.
     :param model_db: Модель БД которую необходимо вернуть.
-    :param redis_key: Ключ для поиска по redis.
+    :param redis_key: Ключ для поиска по _redis.
     :param join: join запрос.
     :param filter_expr: SQLAlchemy-выражение фильтрации (например, Model.id == 123).
     :param call_fun_filling: Асинхронная функция для заполнения Redis.
@@ -97,7 +97,7 @@ async def _get_grouped_objects(
     async with get_redis() as session_redis:
         result_redis = await session_redis.get(redis_key)
         if result_redis:
-            objs_list: list[dict] = orjson.loads(result_redis)  # список с redis
+            objs_list: list[dict] = orjson.loads(result_redis)  # список с _redis
             if objs_list:
                 if post_process:
                     return [await maybe_await(post_process(obj)) for obj in objs_list]
@@ -120,7 +120,7 @@ async def _get_grouped_objects(
         result = result_db.scalars().unique().all()
 
         if result:
-            await call_fun_filling()  # заполнение redis
+            await call_fun_filling()  # заполнение _redis
             return [ await maybe_await(post_process(obj)) for obj in result] if post_process else result
 
         return result
@@ -165,7 +165,7 @@ async def get_sold_items_by_page(
         filling_redis_func: Callable[[int], Any],
 ) -> List[Any]:
     """
-    Универсальная функция получения проданных объектов с пагинацией через redis + db fallback
+    Универсальная функция получения проданных объектов с пагинацией через _redis + db fallback
     """
 
     async with get_redis() as session_redis:

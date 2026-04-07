@@ -15,8 +15,8 @@ from src.database.models.categories import StorageStatus, PurchaseRequestUnivers
 from src.models.read_models.categories.purshanse_schem import StartPurchaseUniversal, \
     StartPurchaseUniversalOne
 from src.database import get_db
-from src.services.redis.filling import filling_user, filling_all_keys_category
-from src.services.redis.filling.filling_universal import filling_product_universal_by_category, \
+from src.services._redis.filling import filling_user, filling_all_keys_category
+from src.services._redis.filling.filling_universal import filling_product_universal_by_category, \
     filling_universal_by_product_id
 
 
@@ -154,7 +154,7 @@ async def _purchase_universal_different(
 
         await filling_user(user)
 
-        # обновление redis
+        # обновление _redis
         await filling_product_universal_by_category()
         for prod_id in [product.product_universal_id for product in reserved_products]:
             await filling_universal_by_product_id(prod_id)

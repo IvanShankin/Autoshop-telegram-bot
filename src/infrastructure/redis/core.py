@@ -5,7 +5,7 @@ from src.config import get_config
 redis_client: Redis | None = None
 
 
-async def init_redis():
+def init_redis() -> Redis:
     global redis_client
 
     conf = get_config()
@@ -16,6 +16,7 @@ async def init_redis():
         db=0,
         decode_responses=True,
     )
+    return redis_client
 
 
 async def close_redis():

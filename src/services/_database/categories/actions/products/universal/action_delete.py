@@ -6,8 +6,8 @@ from sqlalchemy import select, delete
 from src.database.models.categories import ProductUniversal, SoldUniversal, UniversalStorage
 from src.database import get_db
 from src.services.filesystem.media_paths import create_path_universal_storage
-from src.services.redis.filling import filling_all_keys_category
-from src.services.redis.filling.filling_universal import filling_product_universal_by_category, \
+from src.services._redis.filling import filling_all_keys_category
+from src.services._redis.filling.filling_universal import filling_product_universal_by_category, \
     filling_universal_by_product_id, filling_sold_universal_by_owner_id, filling_sold_universal_by_universal_id
 
 
@@ -29,7 +29,7 @@ async def delete_prod_universal(
         )
         await session_db.commit()
 
-        # обновляем redis
+        # обновляем _redis
         await filling_product_universal_by_category()
         await filling_universal_by_product_id(product.product_universal_id)
         await filling_all_keys_category(product.category_id)
@@ -53,7 +53,7 @@ async def delete_sold_universal(
         )
         await session_db.commit()
 
-        # обновляем redis
+        # обновляем _redis
         await filling_sold_universal_by_owner_id(sold.owner_id)
         await filling_sold_universal_by_universal_id(sold_universal_id)
 

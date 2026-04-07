@@ -9,7 +9,7 @@ from src.models.read_models import EventSentLog, LogLevel
 from src.infrastructure.rabbit_mq.producer import publish_event
 from src.config import get_config
 from src.exceptions import UserNotFound, NotEnoughMoney
-from src.services.redis.filling import filling_user
+from src.services._redis.filling import filling_user
 from src.database.models.admins import AdminActions
 from src.services._database.referrals.utils import create_unique_referral_code
 from src.services._database.users.actions.action_user import get_user
@@ -18,7 +18,7 @@ from src.database.models.users import Users, NotificationSettings, BannedAccount
     TransferMoneys, Replenishments
 from src.database import get_db
 from src.infrastructure.redis import get_redis
-from src.services.redis.time_storage import TIME_USER, TIME_SUBSCRIPTION_PROMPT
+from src.services._redis.time_storage import TIME_USER, TIME_SUBSCRIPTION_PROMPT
 from src.utils.core_logger import get_logger
 
 
@@ -87,7 +87,7 @@ async def update_notification(
 
 async def get_banned_account(user_id: int) -> str | None:
     """
-    Проверит только в redis (в нём сохраняется навсегда)
+    Проверит только в _redis (в нём сохраняется навсегда)
     :return: Причина бана, если забанен иначе None
     """
     async with get_redis() as session_redis:

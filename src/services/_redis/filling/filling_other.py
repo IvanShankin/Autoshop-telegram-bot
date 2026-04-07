@@ -14,8 +14,8 @@ from src.database.models.system import UiImages
 from src.database.models.system.models import Stickers
 from src.database.models.users import Users, BannedAccounts
 from src.infrastructure.redis import get_redis
-from src.services.redis.filling.helpers_func import _fill_redis_single_objects
-from src.services.redis.time_storage import TIME_USER, TIME_ALL_VOUCHER
+from src.services._redis.filling.helpers_func import _fill_redis_single_objects
+from src.services._redis.time_storage import TIME_USER, TIME_ALL_VOUCHER
 
 
 async def filling_settings():

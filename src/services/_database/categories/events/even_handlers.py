@@ -16,7 +16,7 @@ async def purchase_event_handler(event):
         await handler_new_purchase_universal(obj)
 
 async def handler_new_purchase_account(new_purchase: NewPurchaseAccount):
-    """Отошлёт логи в канал, обновит SoldAccount в redis, добавить в БД запись о покупке"""
+    """Отошлёт логи в канал, обновит SoldAccount в _redis, добавить в БД запись о покупке"""
     logs = []
     for account_data in new_purchase.account_movement:
         event = EventSentLog(

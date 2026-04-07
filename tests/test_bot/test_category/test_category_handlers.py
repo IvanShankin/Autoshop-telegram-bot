@@ -264,7 +264,7 @@ async def test_set_promo_code_success_updates_state_and_notifies_user(
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
     category = await create_category(is_product_storage=True)
-    promo = await create_promo_code()  # фикстура создаёт promo в БД и redis (activation_code = "TESTCODE")
+    promo = await create_promo_code()  # фикстура создаёт promo в БД и _redis (activation_code = "TESTCODE")
 
     # подготовим state like user opened promo input
     fsm = FakeFSMContext()

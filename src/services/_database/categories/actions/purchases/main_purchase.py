@@ -17,7 +17,7 @@ from src.services._database.categories.actions.purchases.universal.verify import
 from src.database.models.categories import ProductType
 from src.models.read_models.categories.purshanse_schem import StartPurchaseUniversal, \
     StartPurchaseUniversalOne
-from src.services.redis.filling import filling_all_keys_category
+from src.services._redis.filling import filling_all_keys_category
 
 
 async def purchase(
@@ -90,7 +90,7 @@ async def purchase_accounts(
         data.product_accounts = valid_list      # обновляем data.product_accounts на валидные
         result = await finalize_purchase_accounts(user_id, data)
 
-    # обновляем redis
+    # обновляем _redis
     await filling_all_keys_category(category_id=category_id)
     return result
 

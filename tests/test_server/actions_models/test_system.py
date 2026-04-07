@@ -56,7 +56,7 @@ async def test_update_settings(create_settings):
         redis_data = await session_redis.get(f"settings")
         assert redis_data is not None
         redis_settings = Settings(**orjson.loads(redis_data))
-        assert comparison_models(settings, redis_settings, ['settings_id'])# проверка redis
+        assert comparison_models(settings, redis_settings, ['settings_id'])# проверка _redis
 
 
 @pytest.mark.asyncio

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from sqlalchemy import delete, select
 
@@ -30,3 +30,8 @@ class BannedAccountsRepository(DatabaseBase):
         result = await self.session_db.execute(stmt)
         deleted = result.scalar_one_or_none()
         return BannedAccountsDTO.model_validate(deleted) if deleted else None
+
+    async def get_all(self) -> List[BannedAccountsDTO]:
+        result = await self.session_db.execute(select(BannedAccounts))
+        accounts = list(result.scalars().all())
+        return [BannedAccountsDTO.model_validate(account) for account in accounts]

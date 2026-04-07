@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 
-def setup_logging(log_file: Path, level: int = logging.INFO) -> None:
+def setup_logging(log_file: Path, level: int = logging.INFO) -> logging.Logger:
     """Настройка root logger и добавление FileHandler + StreamHandler"""
     log_file.parent.mkdir(parents=True, exist_ok=True)
 
@@ -22,6 +22,8 @@ def setup_logging(log_file: Path, level: int = logging.INFO) -> None:
 
         root_logger.addHandler(file_handler)
         root_logger.addHandler(stream_handler)
+
+    return root_logger
 
 
 def get_logger(name: str) -> logging.Logger:

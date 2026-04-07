@@ -4,7 +4,7 @@ from sqlalchemy.orm import selectinload
 from src.database.models.categories import UniversalMediaType, UniversalStorage, \
     StorageStatus
 from src.database import get_db
-from src.services.redis.filling.filling_universal import filling_product_universal_by_category, \
+from src.services._redis.filling.filling_universal import filling_product_universal_by_category, \
     filling_universal_by_product_id, filling_sold_universal_by_owner_id, filling_sold_universal_by_universal_id
 
 

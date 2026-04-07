@@ -48,7 +48,7 @@ if MODE != "TEST":
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def start_tests():
-    await init_redis()
+    init_redis()
 
     yield
 
@@ -125,12 +125,9 @@ async def clean_db(monkeypatch, create_database_fixture):
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
-async def clean_redis(replacement_redis_fix):
-    from src.services.redis.filling import filling_all_redis
+async def clean_redis(container_fix):
     async with get_redis() as session_redis:
         await session_redis.flushdb()
-
-    await filling_all_redis()
 
 
 @pytest_asyncio.fixture(scope="function")

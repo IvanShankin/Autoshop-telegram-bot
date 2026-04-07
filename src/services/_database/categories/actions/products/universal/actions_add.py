@@ -12,8 +12,8 @@ from src.database.models.categories import UniversalMediaType, UniversalStorage,
 from src.models.read_models import UniversalStoragePydantic
 from src.database import get_db
 from src.services._database.users.actions import get_user
-from src.services.redis.filling import filling_all_keys_category
-from src.services.redis.filling.filling_universal import filling_sold_universal_by_owner_id, \
+from src.services._redis.filling import filling_all_keys_category
+from src.services._redis.filling.filling_universal import filling_sold_universal_by_owner_id, \
     filling_sold_universal_by_universal_id, filling_product_universal_by_category, filling_universal_by_product_id
 
 
@@ -32,7 +32,7 @@ async def add_translate_in_universal_storage(
     :param name: имя категории
     :param encrypted_description: зашифрованное описание. Шифровать при помощи ключа который указан в universal_storage. Для каждого товара своё описание
     :param encrypted_description_nonce: nonce для зашифрованного encrypted_description
-    :param filling_redis: флаг необходимости заполнить redis
+    :param filling_redis: флаг необходимости заполнить _redis
     """
 
     async with get_db() as session_db:

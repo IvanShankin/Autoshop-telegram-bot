@@ -10,7 +10,7 @@ from src.services._database.categories.actions.purchases.general.start import wr
 from src.database.models.categories import ProductAccounts, AccountStorage, StorageStatus, PurchaseRequestAccount
 from src.models.read_models import StartPurchaseAccount
 from src.database import get_db
-from src.services.redis.filling import filling_product_account_by_account_id, filling_user, filling_all_keys_category
+from src.services._redis.filling import filling_product_account_by_account_id, filling_user, filling_all_keys_category
 
 
 async def _set_reserved_accounts(

@@ -10,7 +10,7 @@ from src.infrastructure.rabbit_mq.producer import publish_event
 from src.config import get_config
 from src.exceptions import NotEnoughMoney
 from src.infrastructure.redis import get_redis
-from src.services.redis.filling import filling_voucher_by_user_id, filling_user
+from src.services._redis.filling import filling_voucher_by_user_id, filling_user
 from src.database.models.admins import AdminActions
 from src.database import get_db
 from src.services._database.discounts.events import NewActivationVoucher
@@ -245,7 +245,7 @@ async def create_voucher(
     else:
         second_storage = None
 
-    # заполнение redis
+    # заполнение _redis
     await filling_user(user)
 
     async with get_redis() as session_redis:
@@ -270,7 +270,7 @@ async def create_voucher(
 
 async def deactivate_voucher(voucher_id: int) -> int:
     """
-    Сделает ваучер невалидным в БД (is_valid = False), вернёт деньги пользователю и удалит ваучер с redis.
+    Сделает ваучер невалидным в БД (is_valid = False), вернёт деньги пользователю и удалит ваучер с _redis.
     Сообщение пользователю НЕ будет отправлено!
     :return Возвращённая сумма пользователю
     :except Exception вызовет ошибку если произойдёт
@@ -288,7 +288,7 @@ async def deactivate_voucher(voucher_id: int) -> int:
             owner_id = voucher.creator_id
             await session_db.commit()
 
-            # удаление с redis
+            # удаление с _redis
             async with get_redis() as session_redis:
                 await session_redis.delete(f"voucher:{voucher.activation_code}")
 

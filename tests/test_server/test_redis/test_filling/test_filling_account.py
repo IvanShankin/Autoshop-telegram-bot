@@ -1,7 +1,7 @@
 import orjson
 import pytest
 
-from src.services.redis.filling import  filling_product_accounts_by_category_id, filling_product_account_by_account_id,\
+from src.services._redis.filling import  filling_product_accounts_by_category_id, filling_product_account_by_account_id,\
     filling_sold_accounts_by_owner_id, filling_sold_account_by_account_id
 from tests.helpers.helper_functions import comparison_models
 from src.infrastructure.redis import get_redis

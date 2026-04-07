@@ -1,6 +1,6 @@
 from typing import Optional, List
 
-from sqlalchemy import select, delete, func
+from sqlalchemy import select, delete, func, distinct
 from sqlalchemy.orm import selectinload
 
 from src.database.models.categories import SoldUniversal, UniversalStorage
@@ -129,3 +129,15 @@ class SoldUniversalRepository(DatabaseBase):
             delete(SoldUniversal)
             .where(SoldUniversal.sold_universal_id.in_(sold_ids))
         )
+
+    async def get_all_owner_ids(self) -> List[int]:
+        result = await self.session_db.execute(
+            select(distinct(SoldUniversal.owner_id))
+        )
+        return list(result.scalars().all())
+
+    async def get_all_ids(self) -> List[int]:
+        result = await self.session_db.execute(
+            select(SoldUniversal.sold_universal_id)
+        )
+        return list(result.scalars().all())

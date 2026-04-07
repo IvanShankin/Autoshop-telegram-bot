@@ -157,7 +157,7 @@ async def filling_type_payment(service_payments: ReplenishmentService):
             all_types = result.scalars().all()
             new_index = max((service.index for service in all_types), default=-1) + 1  # вычисляем максимальный индекс
 
-            new_type_payment = TypePayments(name_for_user=service_payments.value, service=service_payments.value, index=new_index)
+            new_type_payment = TypePayments(name_for_user=service_payments.value, service=service_payments, index=new_index)
             session_db.add(new_type_payment)
             await session_db.commit()
 

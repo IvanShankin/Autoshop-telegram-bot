@@ -9,14 +9,14 @@ from src.models.read_models import LogLevel, EventSentLog
 from src.infrastructure.rabbit_mq.producer import publish_event
 from src.services._database.admins.actions.actions_admin import add_admin_action
 from src.infrastructure.redis import get_redis
-from src.services.redis.time_storage import TIME_USER
+from src.services._redis.time_storage import TIME_USER
 from src.database import get_db
 from src.database.models.users import Users, WalletTransaction, UserAuditLogs
 
 
 async def get_user(user_id: int, username: str | None = False, update_last_used: bool = False)->Users | None:
     """
-    Берёт с redis, если там нет, то возьмёт с БД и запишет в redis.
+    Берёт с _redis, если там нет, то возьмёт с БД и запишет в _redis.
     :param username: обновит username если он не сходится с имеющимся
     """
     async with get_redis() as session_redis:
@@ -43,8 +43,8 @@ async def get_user(user_id: int, username: str | None = False, update_last_used:
             if update_data:
                 await update_user(user_id=user_id, **update_data)
             else:
-                # redis обновляем только тут ибо если попали в условие для вызова функции update_user,
-                # то в этой функции обновится redis
+                # _redis обновляем только тут ибо если попали в условие для вызова функции update_user,
+                # то в этой функции обновится _redis
                 async with get_redis() as session_redis:
                     await session_redis.setex(f'user:{user_id}', TIME_USER, orjson.dumps(user_db.to_dict()))
 

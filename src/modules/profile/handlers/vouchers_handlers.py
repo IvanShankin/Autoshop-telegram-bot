@@ -160,7 +160,7 @@ async def confirm_create_voucher(
 
 @router.callback_query(F.data.startswith("voucher_list:"))
 async def voucher_list(
-    callback: CallbackQuery, user: UsersDTO, messages_service: Messages,
+    callback: CallbackQuery, user: UsersDTO, messages_service: Messages, profile_module: ProfileModule,
 ):
     target_user_id = callback.data.split(":")[1]
     current_page = callback.data.split(":")[2]
@@ -176,7 +176,8 @@ async def voucher_list(
             current_page=int(current_page),
             target_user_id=int(target_user_id),
             user_id=user.user_id,
-            language=user.language
+            language=user.language,
+            profile_module=profile_module
         )
     )
 

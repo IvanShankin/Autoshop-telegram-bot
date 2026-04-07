@@ -44,6 +44,7 @@ async def show_all_sold_universal(
     message_id: int,
     current_page: int,
     messages_service: Messages,
+    profile_module: ProfileModule,
 ):
     """Отредактирует сообщение и покажет необходимое для аккаунтов по всем сервисам"""
     await messages_service.edit_msg.edit(
@@ -53,7 +54,8 @@ async def show_all_sold_universal(
         reply_markup=await sold_universal_kb(
             language=user.language,
             current_page=current_page,
-            user_id=user.user_id
+            user_id=user.user_id,
+            profile_module=profile_module
         )
     )
 
@@ -172,4 +174,5 @@ async def delete_sold_universal_han(
         message_id=callback.message.message_id,
         current_page=current_page,
         messages_service=messages_service,
+        profile_module=profile_module,
     )

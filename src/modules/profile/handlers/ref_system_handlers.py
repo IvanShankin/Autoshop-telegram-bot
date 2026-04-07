@@ -69,7 +69,9 @@ async def accrual_ref_list(
         message_id=callback.message.message_id,
         message=text,
         event_message_key='history_income_from_referrals',
-        reply_markup= await accrual_ref_list_kb(user.language, int(current_page), int(target_user_id), user.user_id)
+        reply_markup= await accrual_ref_list_kb(
+            user.language, int(current_page), int(target_user_id), user.user_id, profile_module
+        )
     )
 
 

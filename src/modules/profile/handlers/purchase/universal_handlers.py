@@ -15,7 +15,7 @@ router = Router()
 
 @router.callback_query(F.data.startswith("all_sold_universal:"))
 async def all_sold_universal(
-    callback: CallbackQuery, user: UsersDTO, messages_service: Messages
+    callback: CallbackQuery, user: UsersDTO, messages_service: Messages, profile_module: ProfileModule,
 ):
     current_page = int(callback.data.split(':')[1])
 
@@ -24,6 +24,7 @@ async def all_sold_universal(
         message_id=callback.message.message_id,
         current_page=current_page,
         messages_service=messages_service,
+        profile_module=profile_module,
     )
 
 

@@ -3,10 +3,8 @@ from math import ceil
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.config import get_config
-from src.services._database.discounts.actions import get_count_voucher
-from src.services._database.discounts.actions import get_valid_voucher_by_page
 from src.services.keyboards.keyboard_with_pages import pagination_keyboard
+from src.services.models.modules import ProfileModule
 from src.utils.i18n import get_text
 
 
@@ -48,11 +46,19 @@ def replenishment_and_back_in_transfer_kb(language: str):
     ])
 
 
-async def all_vouchers_kb(current_page: int, target_user_id: int, user_id: int, language: str):
+async def all_vouchers_kb(
+    current_page: int,
+    target_user_id: int,
+    user_id: int,
+    language: str,
+    profile_module: ProfileModule
+):
     """Клавиатура со списком только активных ваучеров у данного пользователя"""
-    records = await get_valid_voucher_by_page(target_user_id, current_page, get_config().different.page_size)
-    total = await get_count_voucher(target_user_id)
-    total_pages = max(ceil(total / get_config().different.page_size), 1)
+    records = await profile_module.voucher_service.get_valid_voucher_by_page(
+        target_user_id, current_page, profile_module.conf.different.page_size
+    )
+    total = await profile_module.voucher_service.get_count_voucher(target_user_id)
+    total_pages = max(ceil(total / profile_module.conf.different.page_size), 1)
 
     def item_button(voucher):
         return InlineKeyboardButton(

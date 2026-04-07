@@ -3,11 +3,9 @@ from typing import Optional
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from src.config import get_config
-from src.services._database.categories.actions.products.universal.actions_get import get_sold_universal_by_page, \
-    get_count_sold_universal
 from src.models.read_models import SoldUniversalSmall
 from src.services.keyboards.keyboard_with_pages import pagination_keyboard
+from src.services.models.modules import ProfileModule
 from src.utils.i18n import get_text, n_get_text
 
 
@@ -35,11 +33,14 @@ def in_purchased_universal_product_kb(
 async def sold_universal_kb(
     language: str,
     current_page: int,
-    user_id: int
+    user_id: int,
+    profile_module: ProfileModule
 ):
-    records = await get_sold_universal_by_page(user_id, current_page, language, get_config().different.page_size)
-    total = await get_count_sold_universal(user_id)
-    total_pages = max(ceil(total / get_config().different.page_size), 1)
+    records = await profile_module.universal_moduls.sold_service.get_sold_universal_by_page(
+        user_id, current_page, language, profile_module.conf.different.page_size
+    )
+    total = await profile_module.universal_moduls.sold_service.get_count_sold_universal(user_id)
+    total_pages = max(ceil(total / profile_module.conf.different.page_size), 1)
 
     def item_button(sold_universal: SoldUniversalSmall):
         return InlineKeyboardButton(

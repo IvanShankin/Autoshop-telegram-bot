@@ -257,6 +257,56 @@ class RequestContainer:
             session_db=session_db,
         )
 
+        self.deleted_universal_repo = DeletedUniversalRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.product_universal_repo = ProductUniversalRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.sold_universal_repo = SoldUniversalRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.universal_storage_repo = UniversalStorageRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.universal_translation_repo = UniversalTranslationRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+
+        self.accounts_cache_repo = AccountsCacheRepository(
+            redis_session=self.session_redis,
+            config=self.config,
+        )
+        self.product_accounts_repo = ProductAccountsRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.account_storage_repo = AccountStorageRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.sold_accounts_repo = SoldAccountsRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.sold_accounts_translation_repo = SoldAccountsTranslationRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.tg_account_media_repo = TgAccountMediaRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.deleted_accounts_repo = DeletedAccountsRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+
         self.user_service = UserService(
             user_repo=self.users_repo,
             cache_user_repo=self.users_cache_repo,
@@ -265,6 +315,8 @@ class RequestContainer:
             log_service=self.user_log_service,
             conf=self.config,
             session_db=session_db,
+            sold_universal_repo=self.sold_universal_repo,
+            sold_accounts_repo=self.sold_accounts_repo,
         )
 
         self.banned_account_service = BannedAccountService(
@@ -319,35 +371,6 @@ class RequestContainer:
             category_cache_repo=self.categories_cache_repo,
         )
 
-        self.accounts_cache_repo = AccountsCacheRepository(
-            redis_session=self.session_redis,
-            config=self.config,
-        )
-        self.product_accounts_repo = ProductAccountsRepository(
-            session_db=self.session_db,
-            config=self.config,
-        )
-        self.account_storage_repo = AccountStorageRepository(
-            session_db=self.session_db,
-            config=self.config,
-        )
-        self.sold_accounts_repo = SoldAccountsRepository(
-            session_db=self.session_db,
-            config=self.config,
-        )
-        self.sold_accounts_translation_repo = SoldAccountsTranslationRepository(
-            session_db=self.session_db,
-            config=self.config,
-        )
-        self.tg_account_media_repo = TgAccountMediaRepository(
-            session_db=self.session_db,
-            config=self.config,
-        )
-        self.deleted_accounts_repo = DeletedAccountsRepository(
-            session_db=self.session_db,
-            config=self.config,
-        )
-
         self.accounts_cache_filler_service = AccountsCacheFillerService(
             product_repo=self.product_accounts_repo,
             sold_repo=self.sold_accounts_repo,
@@ -393,27 +416,6 @@ class RequestContainer:
             translations_repo=self.sold_accounts_translation_repo,
             accounts_cache_filler=self.accounts_cache_filler_service,
             session_db=self.session_db,
-        )
-
-        self.deleted_universal_repo = DeletedUniversalRepository(
-            session_db=self.session_db,
-            config=self.config,
-        )
-        self.product_universal_repo = ProductUniversalRepository(
-            session_db=self.session_db,
-            config=self.config,
-        )
-        self.sold_universal_repo = SoldUniversalRepository(
-            session_db=self.session_db,
-            config=self.config,
-        )
-        self.universal_storage_repo = UniversalStorageRepository(
-            session_db=self.session_db,
-            config=self.config,
-        )
-        self.universal_translation_repo = UniversalTranslationRepository(
-            session_db=self.session_db,
-            config=self.config,
         )
 
         self.product_universal_cache_repo = ProductUniversalCacheRepository(
@@ -711,6 +713,8 @@ class RequestContainer:
             type_payments_service=self.type_payments_service,
             payment_service=self.payment_service,
             settings_service=self.settings_service,
+            account_moduls=self.get_account_modul(),
+            universal_moduls=self.get_universal_product_modul(),
         )
 
     def get_account_modul(self) -> AccountsModuls:

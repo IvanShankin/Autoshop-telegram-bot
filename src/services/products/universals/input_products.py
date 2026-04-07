@@ -195,10 +195,10 @@ async def input_universal_products(
     files_dir = Path(unpacked_archive) / Path("files")
 
     if not os.path.isfile(manifest_file):
-        raise FileNotFoundError("manifest.csv не найден")
+        raise ImportUniversalFileNotFound("manifest.csv не найден")
 
     if not os.path.isdir(files_dir):
-        raise NotADirectoryError("Директория для файлов не найдена")
+        raise ImportUniversalFileNotFound("Директория для файлов не найдена")
 
     reader = parse_csv_from_file(manifest_file)
     rows = [

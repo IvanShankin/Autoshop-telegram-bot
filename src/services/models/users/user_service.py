@@ -3,6 +3,7 @@ from typing import Optional, Sequence, List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.database.models.categories import ProductType
 from src.models.read_models import EventSentLog, LogLevel
 from src.config import Config
 from src.database.models.users import Users
@@ -10,6 +11,7 @@ from src.infrastructure.rabbit_mq.producer import publish_event
 from src.models.create_models.users import CreateUserDTO, CreateUserAuditLogDTO
 from src.models.read_models import UsersDTO
 from src.models.update_models.users import UpdateUserDTO
+from src.repository.database.categories import SoldUniversalRepository, SoldAccountsRepository
 from src.repository.database.users import UsersRepository
 from src.repository.redis import UsersCacheRepository, SubscriptionCacheRepository
 from src.services.models.users.notifications_service import NotificationSettingsService
@@ -25,6 +27,8 @@ class UserService:
         cache_user_repo: UsersCacheRepository,
         cache_subscription_repo: SubscriptionCacheRepository,
         notif_service: NotificationSettingsService,
+        sold_universal_repo: SoldUniversalRepository,
+        sold_accounts_repo: SoldAccountsRepository,
         log_service: UserLogService,
         conf: Config,
         session_db: AsyncSession
@@ -34,6 +38,8 @@ class UserService:
         self.cache_user_repo = cache_user_repo
         self.cache_subscription_repo = cache_subscription_repo
         self.notif_service = notif_service
+        self.sold_universal_repo = sold_universal_repo
+        self.sold_accounts_repo = sold_accounts_repo
         self.log_service = log_service
         self.session_db = session_db
 
@@ -147,5 +153,18 @@ class UserService:
 
         return user
 
+
+    async def get_types_product_where_the_user_has_product(self, user_id: int):
+        result_list: List[ProductType] = []
+
+        if await self.sold_universal_repo.get_by_owner(user_id):
+            result_list.append(ProductType.ACCOUNT)
+
+        if await self.sold_universal_repo.get_by_owner(user_id):
+            result_list.append(ProductType.UNIVERSAL)
+
+        # ПРИ ДОБАВЛЕНИЕ НОВЫХ ТОВАРОВ, РАСШИРИТЬ ПОИСК
+
+        return result_list
 
 

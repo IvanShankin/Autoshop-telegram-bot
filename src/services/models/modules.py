@@ -15,43 +15,6 @@ from src.services.models.users import WalletTransactionService, UserService, Mon
 from src.services.models.users.permission_service import PermissionService
 
 
-class ProfileModule:
-
-    def __init__(
-        self,
-        conf: Config,
-        logger: Logger,
-        user_service: UserService,
-        permission_service: PermissionService,
-        wallet_transaction_service: WalletTransactionService,
-        money_transfer_service: MoneyTransferService,
-        notification_service: NotificationSettingsService,
-        voucher_service: VoucherService,
-        referral_income_service: ReferralIncomeService,
-        referral_levels_service: ReferralLevelsService,
-        referral_service: ReferralService,
-        excel_report_exporter: ExcelReportExporter,
-        type_payments_service: TypesPaymentsService,
-        payment_service: PaymentService,
-        settings_service: SettingsService,
-    ):
-        self.conf = conf
-        self.logger = logger
-        self.user_service = user_service
-        self.permission_service = permission_service
-        self.wallet_transaction_service = wallet_transaction_service
-        self.money_transfer_service = money_transfer_service
-        self.notification_service = notification_service
-        self.voucher_service = voucher_service
-        self.referral_income_service = referral_income_service
-        self.referral_levels_service = referral_levels_service
-        self.referral_service = referral_service
-        self.excel_report_exporter = excel_report_exporter
-        self.type_payments_service = type_payments_service
-        self.payment_service = payment_service
-        self.settings_service = settings_service
-
-
 class AccountsModuls:
 
     def __init__(
@@ -80,7 +43,7 @@ class AccountsModuls:
 class UniversalModuls:
 
     def __init__(
-            self,
+        self,
         deleted_service: UniversalDeletedService,
         product_service: UniversalProductService,
         sold_service: UniversalSoldService,
@@ -98,3 +61,44 @@ class UniversalModuls:
         self.cache_filler_service = cache_filler_service
         self.conf = conf
         self.logger = logger
+
+
+class ProfileModule:
+
+    def __init__(
+        self,
+        conf: Config,
+        logger: Logger,
+        user_service: UserService,
+        permission_service: PermissionService,
+        wallet_transaction_service: WalletTransactionService,
+        money_transfer_service: MoneyTransferService,
+        notification_service: NotificationSettingsService,
+        voucher_service: VoucherService,
+        referral_income_service: ReferralIncomeService,
+        referral_levels_service: ReferralLevelsService,
+        referral_service: ReferralService,
+        excel_report_exporter: ExcelReportExporter,
+        type_payments_service: TypesPaymentsService,
+        payment_service: PaymentService,
+        settings_service: SettingsService,
+        account_moduls: AccountsModuls,
+        universal_moduls: UniversalModuls,
+    ):
+        self.conf = conf
+        self.logger = logger
+        self.user_service = user_service
+        self.permission_service = permission_service
+        self.wallet_transaction_service = wallet_transaction_service
+        self.money_transfer_service = money_transfer_service
+        self.notification_service = notification_service
+        self.voucher_service = voucher_service
+        self.referral_income_service = referral_income_service
+        self.referral_levels_service = referral_levels_service
+        self.referral_service = referral_service
+        self.excel_report_exporter = excel_report_exporter
+        self.type_payments_service = type_payments_service
+        self.payment_service = payment_service
+        self.settings_service = settings_service
+        self.account_moduls = account_moduls
+        self.universal_moduls = universal_moduls

@@ -2,7 +2,7 @@ from aiogram import Router
 
 from src.modules.profile.handlers.main_handlers import router as main_router, router_with_repl_kb
 from src.modules.profile.handlers.purchase.accounts_handlers import router as account_router
-from src.modules.profile.handlers.purchase.uinversal_handlers import router as universal_prod_router
+from src.modules.profile.handlers.purchase.universal_handlers import router as universal_prod_router
 from src.modules.profile.handlers.purchase.main_purchases_handlers import router as main_purchases_router
 from src.modules.profile.handlers.settings_handlers import router as settings_router
 from src.modules.profile.handlers.history_trans_handlers import router as history_router

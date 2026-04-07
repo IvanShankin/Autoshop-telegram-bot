@@ -13,7 +13,7 @@ from src.models.telegram import InlineKeyboardMarkupService
 from src.models.update_models.bot_actions import EditMessagePhoto
 
 
-async def handle_telegram_errors(func):
+def handle_telegram_errors(func):
     async def wrapper(self, *args, **kwargs):
         try:
             return await func(self, *args, **kwargs)

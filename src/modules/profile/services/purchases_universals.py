@@ -3,89 +3,57 @@ from pathlib import Path
 
 from aiogram.types import CallbackQuery
 
-from src.bot_actions.messages import edit_message, send_document, send_message
-from src.config import get_config
-from src.exceptions.business import ForbiddenError
-from src.modules.profile.keyboards.purchased_universals_kb import sold_universal_kb, universal_kb
-from src.services._database.admins.actions import check_admin
-from src.services._database.categories.actions.products.universal.action_delete import delete_sold_universal
-from src.services._database.categories.actions.products.universal.action_update import update_universal_storage
-from src.services._database.categories.actions.products.universal.actions_add import add_deleted_universal
-from src.services._database.categories.actions.products.universal.actions_get import get_sold_universal_by_universal_id
+from src.models.create_models.universal import CreateDeletedUniversalDTO
+from src.models.update_models import UpdateUniversalStorageDTO
+from src.modules.profile.keyboards.purchased_universals_kb import sold_universal_kb
 from src.database.models.categories import StorageStatus, UniversalMediaType
-from src.models.read_models import SoldUniversalFull
-from src.database.models.users import Users
+from src.models.read_models import SoldUniversalFull, UsersDTO
+from src.services.bot import Messages
 from src.services.filesystem.actions import create_temp_dir
 from src.services.filesystem.universals_products import move_in_universal
 from src.services.filesystem.media_paths import create_path_universal_storage
+from src.services.models.modules import ProfileModule
 from src.services.secrets import decrypt_text, unwrap_dek, get_crypto_context
 from src.services.secrets.decrypt import decrypt_file
-from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text
 
 
 async def check_universal_product(
     callback: CallbackQuery,
-    user: Users,
-    sold_universal_id: int
+    user: UsersDTO,
+    sold_universal_id: int,
+    profile_module: ProfileModule,
 ) -> SoldUniversalFull | None:
     """
     Произведёт поиск универсального товара, если не найдёт, то выведет соответствующие сообщение.
     Проверит что данный товар принадлежит пользователю, если нет, то вызовет ошибку
     """
-    universal = await get_sold_universal_by_universal_id(sold_universal_id, language=user.language)
+    universal = await profile_module.universal_moduls.sold_service.get_sold_universal_by_universal_id(
+        sold_universal_id=sold_universal_id, language=user.language
+    )
     if not universal:
         await callback.answer(get_text(user.language, "profile_messages", "product_not_found"))
 
-    if universal.owner_id != user.user_id and not await check_admin(user.user_id):
-        raise ForbiddenError()
+    await profile_module.permission_service.check_permission(user.user_id, universal.owner_id)
 
     return universal
 
 
 async def show_all_sold_universal(
-    user_id: int,
-    language: str,
+    user: UsersDTO,
     message_id: int,
     current_page: int,
+    messages_service: Messages,
 ):
     """Отредактирует сообщение и покажет необходимое для аккаунтов по всем сервисам"""
-    await edit_message(
-        chat_id=user_id,
+    await messages_service.edit_msg.edit(
+        chat_id=user.user_id,
         message_id=message_id,
         event_message_key='purchased_universal',
         reply_markup=await sold_universal_kb(
-            language=language,
+            language=user.language,
             current_page=current_page,
-            user_id=user_id
-        )
-    )
-
-
-async def show_sold_universal(
-    callback: CallbackQuery,
-    universal: SoldUniversalFull,
-    language: str,
-    current_page: int,
-):
-    """Отредактирует сообщение и покажет необходимое для универсального продукта"""
-    await edit_message(
-        chat_id=callback.from_user.id,
-        message_id=callback.message.message_id,
-        message=get_text(
-            language,
-            "profile_messages",
-            "universal_product_details"
-        ).format(
-            product_id=universal.sold_universal_id,
-            name=universal.universal_storage.name,
-            sold_at=universal.sold_at.strftime(get_config().different.dt_format),
-        ),
-        event_message_key='purchased_universal',
-        reply_markup=universal_kb(
-            language=language,
-            sold_universal_id=universal.sold_universal_id,
-            current_page=current_page,
+            user_id=user.user_id
         )
     )
 
@@ -94,6 +62,8 @@ async def send_media_sold_universal(
     user_id: int,
     language: str,
     universal: SoldUniversalFull,
+    messages_service: Messages,
+    profile_module: ProfileModule,
 ):
     """SoldUniversalFull должен быть с переводом для данного пользователя"""
     file_id = None
@@ -136,16 +106,16 @@ async def send_media_sold_universal(
             )
 
         if file_id or decrypted_file_path:
-            await send_document(
+            await messages_service.send_file.send_document(
                 chat_id=user_id,
                 file_id=file_id,
                 file_path=decrypted_file_path,
-                type_based=True if universal.universal_storage.media_type == UniversalMediaType.DOCUMENT else True
+                type_based=False if universal.universal_storage.media_type == UniversalMediaType.DOCUMENT else True
             )
 
 
         if description:
-            await send_message(
+            await messages_service.send_msg.send(
                 chat_id=user_id,
                 message=get_text(
                     language,
@@ -154,7 +124,7 @@ async def send_media_sold_universal(
                 ).format(description=description),
             )
     except Exception as e:
-        get_logger(__name__).exception(f"[send_media_sold_universal] Ошибка выдаче данных о товаре пользователю: {e}")
+        profile_module.logger.exception(f"[send_media_sold_universal] Ошибка выдаче данных о товаре пользователю: {e}")
 
     if decrypted_file_path:
         shutil.rmtree(decrypted_file_path.parent, ignore_errors=True)
@@ -162,9 +132,11 @@ async def send_media_sold_universal(
 
 async def delete_sold_universal_han(
     callback: CallbackQuery,
-    user: Users,
+    user: UsersDTO,
     universal: SoldUniversalFull,
     current_page: int,
+    messages_service: Messages,
+    profile_module: ProfileModule,
 ):
     result = await move_in_universal(universal=universal, status=StorageStatus.DELETED)
     if not result:
@@ -174,13 +146,21 @@ async def delete_sold_universal_han(
         )
         return
 
-    await update_universal_storage(
+    await profile_module.universal_moduls.storage_service.update_universal_storage(
         universal_storage_id=universal.universal_storage_id,
-        status=StorageStatus.DELETED,
-        is_active=False
+        data=UpdateUniversalStorageDTO(
+            status=StorageStatus.DELETED,
+            is_active=False,
+        )
     )
-    await delete_sold_universal(universal.sold_universal_id)
-    await add_deleted_universal(universal_storage_id=universal.universal_storage_id)
+    await profile_module.universal_moduls.sold_service.delete_sold_universal(
+        universal.sold_universal_id,
+    )
+    await profile_module.universal_moduls.deleted_service.create_deleted_universal(
+        data=CreateDeletedUniversalDTO(
+            universal_storage_id=universal.universal_storage_id
+        ),
+    )
 
     await callback.answer(
         get_text(user.language, "profile_messages", "product_successfully_deleted"),
@@ -188,8 +168,8 @@ async def delete_sold_universal_han(
     )
 
     await show_all_sold_universal(
-        user_id=callback.from_user.id,
-        language=user.language,
+        user=user,
         message_id=callback.message.message_id,
         current_page=current_page,
+        messages_service=messages_service,
     )

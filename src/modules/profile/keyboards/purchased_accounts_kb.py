@@ -4,12 +4,9 @@ from typing import Optional
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.config import get_config
-from src.services._database.categories.actions import get_count_sold_account, \
-    get_types_product_where_the_user_has_product, get_types_account_service_where_the_user_purchase
-from src.services._database.categories.actions import get_sold_account_by_page
 from src.database.models.categories import ProductType, AccountServiceType
 from src.services.keyboards.keyboard_with_pages import pagination_keyboard
+from src.services.models.modules import ProfileModule
 from src.utils.i18n import get_text, n_get_text
 from src.utils.pars_number import e164_to_pretty
 
@@ -37,10 +34,14 @@ def in_purchased_account_kb(
     ])
 
 
-async def type_product_in_purchases_kb(language: str, user_id: int) -> InlineKeyboardMarkup:
+async def type_product_in_purchases_kb(
+    language: str,
+    user_id: int,
+    profile_module: ProfileModule,
+) -> InlineKeyboardMarkup:
     """Отобразит только те сервисы в которых у пользователя есть купленные товары"""
 
-    type_products = await get_types_product_where_the_user_has_product(user_id)
+    type_products = await profile_module.user_service.get_types_product_where_the_user_has_product(user_id)
 
     keyboard = InlineKeyboardBuilder()
 
@@ -64,8 +65,13 @@ async def type_product_in_purchases_kb(language: str, user_id: int) -> InlineKey
     return keyboard.as_markup()
 
 
-async def sold_account_type_service_kb(language: str, user_id: int) -> InlineKeyboardMarkup:
-    types_accounts = await get_types_account_service_where_the_user_purchase(user_id)
+async def sold_account_type_service_kb(
+    language: str,
+    user_id: int,
+    profile_module: ProfileModule,
+) -> InlineKeyboardMarkup:
+
+    types_accounts = await profile_module.user_service.get_types_product_where_the_user_has_product(user_id)
     keyboard = InlineKeyboardBuilder()
 
     for account_type in types_accounts:
@@ -86,11 +92,18 @@ async def sold_accounts_kb(
     language: str,
     current_page: int,
     type_account_service: AccountServiceType,
-    user_id: int
+    user_id: int,
+    profile_module: ProfileModule,
 ):
-    records = await get_sold_account_by_page(user_id, type_account_service, current_page, language, get_config().different.page_size)
-    total = await get_count_sold_account(user_id, type_account_service)
-    total_pages = max(ceil(total / get_config().different.page_size), 1)
+    records = await profile_module.account_moduls.sold_service.get_sold_account_by_page(
+        user_id=user_id,
+        type_account_service=type_account_service,
+        page=current_page,
+        language=language,
+        page_size=profile_module.conf.different.page_size
+    )
+    total = await profile_module.account_moduls.sold_service.get_count_sold_account(user_id, type_account_service)
+    total_pages = max(ceil(total / profile_module.conf.different.page_size), 1)
 
     def item_button(acc):
         text = e164_to_pretty(acc.phone_number) if acc.phone_number else acc.name

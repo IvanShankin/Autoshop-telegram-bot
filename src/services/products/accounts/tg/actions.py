@@ -11,6 +11,7 @@ from telethon.tl.types import Message, User
 
 from src.database.models.categories import AccountStorage, StorageStatus
 from src.database.models.categories import AccountServiceType
+from src.models.read_models import AccountStorageDTO
 from src.services.filesystem.account_actions import decryption_tg_account
 from src.utils.core_logger import get_logger
 from src.services.secrets import get_crypto_context
@@ -60,7 +61,7 @@ async def check_valid_accounts_telethon(folder_path: str) -> User | bool:
 
 
 async def check_account_validity(
-    account_storage: AccountStorage,
+    account_storage: AccountStorageDTO,
     type_account_service: AccountServiceType,
     status: StorageStatus
 ) -> bool:
@@ -70,6 +71,11 @@ async def check_account_validity(
     """
     if not any(type_account_service.value == member.value for member in AccountServiceType): # если нет такого типа сервиса
         return False
+
+    # КОСТЫЛЬ, ИЗМЕНИТЬ!!!
+    # КОСТЫЛЬ, ИЗМЕНИТЬ!!!
+    if type_account_service == AccountServiceType.OTHER:
+        return True
 
     temp_folder = None
     try:

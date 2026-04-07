@@ -14,6 +14,13 @@ from src.repository.database.discount import VouchersRepository, VoucherActivati
 from src.repository.database.refferals import ReferralsRepository, ReferralIncomeRepository, ReferralLevelsRepository
 from src.repository.database.replanishments import ReplenishmentsRepository
 from src.services.cache_warmup import CacheWarmupService
+from src.services.events.event_handlers.file_system import FileSystemEventHandler
+from src.services.events.event_handlers.main_event_handler import EventHandler
+from src.services.events.event_handlers.message import MessageEventHandler
+from src.services.events.event_handlers.promo_code import PromoCodeEventHandler
+from src.services.events.event_handlers.purchase import PurchaseEventHandler
+from src.services.events.event_handlers.referrals import ReferralEventHandler
+from src.services.events.event_handlers.replenishments import ReplenishmentsEventHandler
 from src.services.models.discounts import ActivatedPromoCodesService, PromoCodeService
 from src.services.models.discounts.vouchers_service import VoucherService
 from src.services.models.modules import ProfileModule, AccountsModuls, UniversalModuls
@@ -768,6 +775,43 @@ class RequestContainer:
             universal_cache_filler_service=self.universal_cache_filler_service,
             logger=self.logger,
             conf=self.config,
+        )
+
+    def get_event_handler(self) -> EventHandler:
+        messages = self.get_message_service()
+
+        return EventHandler(
+            promo_code_ev_hand=PromoCodeEventHandler(
+                publish_event=self.publish_event_handler,
+                promo_code_service=self.promo_code_service,
+                session_db=self.session_db,
+            ),
+            referral_ev_hand=ReferralEventHandler(
+                publish_event=self.publish_event_handler,
+                referral_service=self.referral_service,
+                notification_service=self.notification_service,
+                send_msg_service=messages.send_msg,
+            ),
+            replenishment_ev_hand=ReplenishmentsEventHandler(
+                publish_event=self.publish_event_handler,
+                replenishment_service=self.replenishment_service,
+                send_msg_service=messages.send_msg,
+            ),
+            purchase_ev_hand=PurchaseEventHandler(
+                publish_event=self.publish_event_handler,
+                user_log_service=self.user_log_service,
+                wallet_trans_service=self.wallet_transaction_service,
+                session_db=self.session_db,
+            ),
+            filesystem_ev_hand=FileSystemEventHandler(
+                path_builder=self.path_builder,
+                ui_image_service=self.ui_images_service,
+                logger=self.logger,
+            ),
+            message_ev_hand=MessageEventHandler(
+                send_log=messages.send_log,
+            ),
+            logger=self.logger,
         )
 
 

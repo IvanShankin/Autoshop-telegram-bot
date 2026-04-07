@@ -1,7 +1,7 @@
 from src.config import init_config
 from src.containers import RequestContainer
 from src.infrastructure.crypto_bot.core import init_crypto_provider
-from src.infrastructure.rabbit_mq._consumer import stop_background_consumer
+from src.infrastructure.rabbit_mq.consumer import RabbitMQConsumer
 from src.infrastructure.redis import init_redis, close_redis
 from src.infrastructure.telegram.bot_instance import get_bot_logger, get_bot
 from src.infrastructure.telegram.client import TelegramClient
@@ -29,12 +29,14 @@ class AppContainer:
         self.telegram_client = TelegramClient(bot=self.bot)
         self.telegram_logger_client = TelegramClient(bot=self.logger_bot)
 
+        self.consumer = RabbitMQConsumer(self.handle_event, conf=self.conf, logger=self.logger)
+
 
     async def shutdown(self):
-        await stop_background_consumer()
+        await self.consumer.stop()
         await close_redis()
 
-    def get_request_container(self, session_db):
+    def get_request_container(self, session_db) -> RequestContainer:
         return RequestContainer(
             session_db,
             self.telegram_client,
@@ -42,3 +44,13 @@ class AppContainer:
             self.crypto_provider,
         )
 
+    def _create_event_handler(self, session):
+        container = self.get_request_container(session)
+        return container.get_event_handler()
+
+    async def handle_event(self, event: dict):
+        async_session_factory = self.conf.db_connection.session_local
+
+        async with async_session_factory() as session:
+            handler = self._create_event_handler(session)
+            await handler.handle(event)

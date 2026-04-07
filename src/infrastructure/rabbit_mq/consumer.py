@@ -1,13 +1,13 @@
 import asyncio
 from contextlib import suppress
+from logging import Logger
 from typing import Optional, Callable, Awaitable
 
 import aio_pika
 import aiormq
 from orjson import orjson
 
-from src.config import get_config
-from src.utils.core_logger import get_logger
+from src.config import Config
 
 
 ROUTING_KEYS = [
@@ -26,6 +26,8 @@ class RabbitMQConsumer:
     def __init__(
         self,
         event_handler: Callable[[dict], Awaitable[None]],
+        conf: Config,
+        logger: Logger,
     ):
         """
         :param event_handler: функция из сервисного слоя (dispatcher / use-case)
@@ -36,7 +38,8 @@ class RabbitMQConsumer:
         self._consumer_start_event: Optional[asyncio.Event] = None
         self._consumer_stop_event: Optional[asyncio.Event] = None
 
-        self._logger = get_logger(__name__)
+        self.logger = logger
+        self.conf = conf
 
     async def start(self):
         if self._consumer_task and not self._consumer_task.done():
@@ -54,20 +57,20 @@ class RabbitMQConsumer:
 
         self._consumer_task.add_done_callback(self._on_done)
 
-        self._logger.info("Consumer started")
+        self.logger.info("Consumer started")
 
     async def stop(self):
         if not self._consumer_task:
             return
 
-        self._logger.info("Stopping consumer...")
+        self.logger.info("Stopping consumer...")
 
         self._consumer_stop_event.set()
 
         try:
             await asyncio.wait_for(self._consumer_task, timeout=10.0)
         except asyncio.TimeoutError:
-            self._logger.warning("Consumer didn't stop in time, cancelling...")
+            self.logger.warning("Consumer didn't stop in time, cancelling...")
             self._consumer_task.cancel()
             with suppress(asyncio.CancelledError):
                 await self._consumer_task
@@ -77,17 +80,17 @@ class RabbitMQConsumer:
         self._consumer_task = None
         self._consumer_stop_event = None
 
-        self._logger.info("Consumer stopped cleanly")
+        self.logger.info("Consumer stopped cleanly")
 
     def _on_done(self, task: asyncio.Task):
         try:
             exc = task.exception()
             if exc and not isinstance(exc, asyncio.CancelledError):
-                self._logger.error("Consumer task crashed: %s", exc)
+                self.logger.error("Consumer task crashed: %s", exc)
         except asyncio.CancelledError:
             pass
         except Exception as e:
-            self._logger.error("Error while checking consumer task: %s", e)
+            self.logger.error("Error while checking consumer task: %s", e)
 
     async def _consumer_runner(
         self,
@@ -103,7 +106,7 @@ class RabbitMQConsumer:
             except asyncio.CancelledError:
                 raise
             except Exception:
-                self._logger.exception(
+                self.logger.exception(
                     "Consumer crashed, will reconnect in %s seconds",
                     reconnect_delay,
                 )
@@ -115,7 +118,7 @@ class RabbitMQConsumer:
         stop_event: asyncio.Event,
     ):
         connection = await aio_pika.connect_robust(
-            get_config().env.rabbitmq_url
+            self.conf.env.rabbitmq_url
         )
 
         try:
@@ -159,7 +162,7 @@ class RabbitMQConsumer:
                     await self._process_message(message)
 
             finally:
-                self._logger.info("Cancelling consumer %s", consumer_tag)
+                self.logger.info("Cancelling consumer %s", consumer_tag)
                 with suppress(Exception):
                     await queue.cancel(consumer_tag)
 
@@ -173,8 +176,8 @@ class RabbitMQConsumer:
                 await self._event_handler(event)
 
         except aiormq.exceptions.ChannelInvalidStateError as e:
-            self._logger.error(f"Ошибка при работе с каналом: {str(e)}")
+            self.logger.error(f"Ошибка при работе с каналом: {str(e)}")
         except Exception as e:
-            self._logger.exception(
+            self.logger.exception(
                 f"Ошибка при обработке сообщения RabbitMQ: {str(e)}"
             )

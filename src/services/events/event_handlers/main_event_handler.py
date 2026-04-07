@@ -1,5 +1,5 @@
 from logging import Logger
-from typing import Dict, Callable, Awaitable, Any
+from typing import Callable, Awaitable, Any
 
 from src.services.events.event_handlers.file_system import FileSystemEventHandler
 from src.services.events.event_handlers.message import MessageEventHandler

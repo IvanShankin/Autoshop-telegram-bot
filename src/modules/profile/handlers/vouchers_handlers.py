@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src.bot_actions.bot_instance import get_bot
+from src._bot_actions.bot_instance import get_bot
 from src.models.create_models.discounts import CreateVoucherDTO
 from src.models.read_models import UsersDTO
 from src.modules.profile.services.checking_data import checking_availability_money, checking_correctness_number

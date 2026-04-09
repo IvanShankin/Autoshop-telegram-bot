@@ -4,7 +4,7 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src.bot_actions.messages import edit_message, send_message
+from src._bot_actions.messages import edit_message, send_message
 from src.config import get_config
 from src.exceptions.business import InvalidImage
 from src.modules.admin_actions.keyboards import image_editor, back_in_image_editor

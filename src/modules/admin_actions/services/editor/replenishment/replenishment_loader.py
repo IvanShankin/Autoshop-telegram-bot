@@ -1,6 +1,6 @@
 from aiogram.types import CallbackQuery
 
-from src.bot_actions.messages import send_message
+from src._bot_actions.messages import send_message
 from src.application._database.system.actions.actions import get_type_payment
 from src.database.models.users import Users
 from src.utils.i18n import get_text

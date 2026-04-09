@@ -10,7 +10,7 @@ from src.database import get_db
 
 
 def test_visible_text_length_plain_text():
-    from src.bot_actions.messages.mass_tg_mailing import visible_text_length
+    from src._bot_actions.messages.mass_tg_mailing import visible_text_length
 
     assert visible_text_length("hello") == 5
     assert visible_text_length("<b>hello</b> world") == 11
@@ -20,12 +20,12 @@ def test_visible_text_length_plain_text():
 
 @pytest.mark.asyncio
 async def test_validate_inputs_success_without_photo(monkeypatch):
-    from src.bot_actions.messages.mass_tg_mailing import validate_broadcast_inputs
+    from src._bot_actions.messages.mass_tg_mailing import validate_broadcast_inputs
 
     async def fake_get_photo(bot, admin_chat_id, photo_path):
         return None, None
 
-    from src.bot_actions.messages import mass_tg_mailing as modul
+    from src._bot_actions.messages import mass_tg_mailing as modul
     monkeypatch.setattr(
         modul,
         "get_photo_identifier",
@@ -45,14 +45,14 @@ async def test_validate_inputs_success_without_photo(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_validate_inputs_empty_text():
-    from src.bot_actions.messages.mass_tg_mailing import validate_broadcast_inputs
+    from src._bot_actions.messages.mass_tg_mailing import validate_broadcast_inputs
 
     with pytest.raises(TextTooLong):
         await validate_broadcast_inputs(bot=None, admin_chat_id=1, text="   ", show_image=False)
 
 @pytest.mark.asyncio
 async def test_validate_inputs_text_too_long(monkeypatch):
-    from src.bot_actions.messages.mass_tg_mailing import (
+    from src._bot_actions.messages.mass_tg_mailing import (
         validate_broadcast_inputs,
         TextTooLong,
         MAX_CHARS_WITHOUT_PHOTO,
@@ -70,12 +70,12 @@ async def test_validate_inputs_text_too_long(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_validate_inputs_button_valid_url(monkeypatch):
-    from src.bot_actions.messages.mass_tg_mailing import validate_broadcast_inputs
+    from src._bot_actions.messages.mass_tg_mailing import validate_broadcast_inputs
 
     async def fake_get_photo(bot, admin_chat_id, photo_path):
         return None, None
 
-    from src.bot_actions.messages import mass_tg_mailing as modul
+    from src._bot_actions.messages import mass_tg_mailing as modul
     monkeypatch.setattr(
         modul,
         "get_photo_identifier",
@@ -96,7 +96,7 @@ async def test_validate_inputs_button_valid_url(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_photo_id_success(monkeypatch, replacement_fake_bot_fix):
-    from src.bot_actions.messages.mass_tg_mailing import get_photo_identifier
+    from src._bot_actions.messages.mass_tg_mailing import get_photo_identifier
 
     # создаём временный файл
     tmp = tempfile.NamedTemporaryFile(delete=False)
@@ -140,8 +140,8 @@ async def test_broadcast_success_flow(
     - проверяем, что генератор yield'ит успехи
     - проверяем запись SentMasMessages
     """
-    from src.bot_actions.messages.mass_tg_mailing import broadcast_message_generator
-    from src.bot_actions.messages import mass_tg_mailing as module
+    from src._bot_actions.messages.mass_tg_mailing import broadcast_message_generator
+    from src._bot_actions.messages import mass_tg_mailing as module
 
     admin_user = await create_new_user()
     second_user = await create_new_user()
@@ -190,8 +190,8 @@ async def test_broadcast_partial_fail(
     """
     Тестируем ситуацию, когда часть отправок падает.
     """
-    from src.bot_actions.messages.mass_tg_mailing import broadcast_message_generator
-    from src.bot_actions.messages import mass_tg_mailing as module
+    from src._bot_actions.messages.mass_tg_mailing import broadcast_message_generator
+    from src._bot_actions.messages import mass_tg_mailing as module
 
     # Добавляем 3 юзеров
     admin_user = await create_new_user()

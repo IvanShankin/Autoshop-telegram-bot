@@ -1,6 +1,6 @@
 # from aiogram.types import CallbackQuery
 #
-# from src.bot_actions.messages import edit_message, send_message
+# from src._bot_actions.messages import edit_message, send_message
 # from src.modules.admin_actions.keyboards import show_service_acc_admin_kb
 # from src.application._database.categories.actions import get_account_service
 # from src.application._database.users.categories import Users

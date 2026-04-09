@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src.bot_actions.messages import edit_message, send_message
+from src._bot_actions.messages import edit_message, send_message
 from src.modules.admin_actions.keyboards.editors.replenishment_kb import edit_type_payments_list_kb, edit_type_payment_kb, \
     back_in_edit_type_payment_kb
 from src.modules.admin_actions.schemas import GetTypePaymentNameData, GetTypePaymentCommissionData

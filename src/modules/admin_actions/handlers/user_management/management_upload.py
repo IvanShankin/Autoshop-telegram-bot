@@ -2,7 +2,7 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, BufferedInputFile
 
-from src.bot_actions.bot_instance import get_bot
+from src._bot_actions.bot_instance import get_bot
 from src.application.products.accounts.utils.generate_report import get_user_audit_log_bites
 from src.database.models.users import Users
 from src.utils.i18n import get_text

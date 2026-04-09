@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src.bot_actions.messages import edit_message, send_message
+from src._bot_actions.messages import edit_message, send_message
 from src.exceptions import UserNotFound, UnableRemoveMainAdmin, AdminNotFound
 from src.modules.admin_actions.keyboards import back_in_admin_settings_kb
 from src.modules.admin_actions.state.settings import AddAdmin, DeleteAdmin

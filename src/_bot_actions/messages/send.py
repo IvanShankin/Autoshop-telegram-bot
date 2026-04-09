@@ -4,9 +4,9 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply, FSInputFile, \
     Message
 
-from src.bot_actions.bot_instance import get_bot
+from src._bot_actions.bot_instance import get_bot
 from src.models.read_models import LogLevel, EventSentLog
-from src.bot_actions.messages.send_stickers import send_sticker
+from src._bot_actions.messages.send_stickers import send_sticker
 from src.infrastructure.rabbit_mq.producer import publish_event
 from src.config import get_global_rate_limit
 from src.exceptions.domain import StickerNotFound

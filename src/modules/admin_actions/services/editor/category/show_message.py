@@ -1,7 +1,7 @@
 from aiogram.types import CallbackQuery
 
 from src.modules.admin_actions.keyboards.editors.category_kb import show_main_categories_kb
-from src.bot_actions.messages import edit_message, send_message
+from src._bot_actions.messages import edit_message, send_message
 from src.modules.admin_actions.keyboards import show_category_admin_kb, change_category_data_kb
 from src.modules.admin_actions.services import safe_get_category
 from src.database.models.categories import ProductType

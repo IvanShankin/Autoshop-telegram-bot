@@ -2,8 +2,8 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src.bot_actions.messages import edit_message, send_message
-from src.bot_actions.messages.send_stickers import send_sticker
+from src._bot_actions.messages import edit_message, send_message
+from src._bot_actions.messages.send_stickers import send_sticker
 from src.modules.admin_actions.keyboards.editors.event_message_kb import sticker_editor_kb, back_in_sticker_editor
 from src.modules.admin_actions.schemas import UpdateEventMsgData
 from src.modules.admin_actions.state.editors.editor_event_msg import UpdateEventMsg

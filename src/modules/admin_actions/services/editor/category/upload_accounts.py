@@ -1,7 +1,7 @@
 from aiogram.types import CallbackQuery, FSInputFile, BufferedInputFile
 
-from src.bot_actions.messages import send_message
-from src.bot_actions.bot_instance import get_bot
+from src._bot_actions.messages import send_message
+from src._bot_actions.bot_instance import get_bot
 from src.exceptions import ProductAccountNotFound, ProductNotFound
 from src.exceptions.business import ServerError
 from src.modules.admin_actions.keyboards.editors.category_kb import in_category_kb

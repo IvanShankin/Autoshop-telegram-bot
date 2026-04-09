@@ -1,5 +1,5 @@
-from src.bot_actions.bot_instance import get_bot
-from src.bot_actions.messages.send_log import send_log
+from src._bot_actions.bot_instance import get_bot
+from src._bot_actions.messages.send_log import send_log
 from src.exceptions.domain import StickerNotFound
 from src.application._database.system.actions.actions import get_sticker
 from src.utils.core_logger import get_logger

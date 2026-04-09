@@ -5,7 +5,7 @@ import aio_pika
 import aiormq
 from orjson import orjson
 
-from src.bot_actions.messages.even_handlers import message_event_handler
+from src._bot_actions.messages.even_handlers import message_event_handler
 from src.config import get_config
 from src.application._database.discounts.events import promo_code_event_handler, voucher_event_handler
 from src.application._database.referrals.events import referral_event_handler

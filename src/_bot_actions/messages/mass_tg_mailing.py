@@ -9,7 +9,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, FSInputFil
 from aiogram.exceptions import TelegramForbiddenError, TelegramNotFound, TelegramRetryAfter
 from sqlalchemy import select
 
-from src.bot_actions.bot_instance import get_bot
+from src._bot_actions.bot_instance import get_bot
 from src.config import get_config, get_global_rate_limit, get_semaphore_mailing
 from src.exceptions import TextTooLong, TextNotLinc
 from src.database import get_db

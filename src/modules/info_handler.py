@@ -2,7 +2,7 @@ from aiogram import Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from src.bot_actions.messages import send_message
+from src._bot_actions.messages import send_message
 from src.middlewares.aiogram_middleware import I18nKeyFilter
 from src.modules.keyboard_main import info_kb
 from src.database.models.users import Users

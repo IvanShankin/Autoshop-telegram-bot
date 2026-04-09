@@ -1,4 +1,4 @@
-from src.bot_actions.messages import send_message, edit_message
+from src._bot_actions.messages import send_message, edit_message
 from src.modules.admin_actions.keyboards.user_management_kb import user_management_kb
 from src.modules.profile.services.profile_message import get_main_message_profile
 from src.application._database.users.actions import get_banned_account

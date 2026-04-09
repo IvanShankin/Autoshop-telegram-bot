@@ -2,8 +2,8 @@ from typing import Optional
 
 from aiogram.types import CallbackQuery
 
-from src.bot_actions.messages import send_message
-from src.bot_actions.bot_instance import get_bot
+from src._bot_actions.messages import send_message
+from src._bot_actions.bot_instance import get_bot
 from src.modules.admin_actions.keyboards import in_category_editor_kb
 from src.application._database.categories.actions import get_category_by_category_id
 from src.models.read_models import CategoryFull

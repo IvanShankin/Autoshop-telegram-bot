@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
 
-from src.bot_actions.messages import edit_message
+from src._bot_actions.messages import edit_message
 from src.modules.admin_actions.keyboards import back_in_all_admin_promo_kb, \
     confirm_deactivate_promo_code_kb
 from src.application._database.discounts.actions import get_promo_code

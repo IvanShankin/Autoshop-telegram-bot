@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src.bot_actions.messages import edit_message, send_message
+from src._bot_actions.messages import edit_message, send_message
 from src.modules.admin_actions.keyboards import select_promo_code_type_kb, \
     back_in_start_creating_promo_code_kb, skip_number_activations_promo_or_in_start_kb, \
     skip_expire_at_promo_or_in_start_kb, in_show_admin_promo_kb

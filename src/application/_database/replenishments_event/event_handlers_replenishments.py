@@ -12,7 +12,7 @@ from src.utils.i18n import  get_text, n_get_text
 from src.modules.keyboard_main import support_kb
 from src.application._database.replenishments_event.schemas import ReplenishmentCompleted, ReplenishmentFailed
 from src.utils.core_logger import get_logger
-from src.bot_actions.messages import send_message
+from src._bot_actions.messages import send_message
 
 
 async def replenishment_event_handler(event):

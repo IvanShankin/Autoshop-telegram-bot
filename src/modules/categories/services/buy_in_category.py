@@ -2,8 +2,8 @@ from typing import Callable, Coroutine, Any
 
 from aiogram.types import CallbackQuery
 
-from src.bot_actions.bot_instance import get_bot
-from src.bot_actions.messages import edit_message, send_message
+from src._bot_actions.bot_instance import get_bot
+from src._bot_actions.messages import edit_message, send_message
 from src.exceptions import InvalidPromoCode, CategoryNotFound, NotEnoughMoney, NotEnoughAccounts
 from src.exceptions.business import NotEnoughProducts
 from src.modules.categories.keyboards import replenishment_and_back_in_cat, back_in_account_category_kb

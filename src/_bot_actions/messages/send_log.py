@@ -1,6 +1,6 @@
 from typing import Optional
 
-from src.bot_actions.bot_instance import get_bot_logger
+from src._bot_actions.bot_instance import get_bot_logger
 from src.models.read_models import LogLevel
 from src.config import get_config, get_global_rate_limit
 

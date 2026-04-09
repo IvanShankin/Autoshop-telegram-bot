@@ -1,4 +1,4 @@
-from src.bot_actions.messages.send_log import send_log
+from src._bot_actions.messages.send_log import send_log
 from src.models.read_models import EventSentLog
 
 

@@ -3,7 +3,7 @@ from datetime import datetime
 from aiogram.exceptions import TelegramForbiddenError
 from sqlalchemy import update, select
 
-from src.bot_actions.bot_instance import get_bot_logger
+from src._bot_actions.bot_instance import get_bot_logger
 from src.models.read_models import EventSentLog, LogLevel
 from src.infrastructure.rabbit_mq.producer import publish_event
 from src.config import get_config

@@ -3,7 +3,7 @@ import asyncio
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 
-from src.bot_actions.messages import send_message
+from src._bot_actions.messages import send_message
 from src.exceptions import IncorrectedAmountSale, IncorrectedCostPrice, \
     IncorrectedNumberButton, AccountCategoryNotFound, TheCategoryStorageAccount, CategoryStoresSubcategories
 from src.modules.admin_actions.schemas import UpdateCategoryOnlyId

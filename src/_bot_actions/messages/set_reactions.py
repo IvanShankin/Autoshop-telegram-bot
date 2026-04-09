@@ -1,6 +1,6 @@
 from aiogram.types import ReactionTypeEmoji
 
-from src.bot_actions.bot_instance import get_bot
+from src._bot_actions.bot_instance import get_bot
 from src.utils.core_logger import get_logger
 
 

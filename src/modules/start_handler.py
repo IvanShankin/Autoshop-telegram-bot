@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 
 from src.modules.keyboard_main import main_kb, selecting_language
-from src.bot_actions.messages import send_message
+from src._bot_actions.messages import send_message
 from src.application._database.admins.actions import check_admin
 from src.application._database.discounts.actions import get_valid_voucher_by_code, activate_voucher
 from src.database.models.discount import Vouchers

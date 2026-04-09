@@ -3,8 +3,8 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, FSInputFile, Message
 
-from src.bot_actions.bot_instance import get_bot, get_bot_logger
-from src.bot_actions.messages import edit_message
+from src._bot_actions.bot_instance import get_bot, get_bot_logger
+from src._bot_actions.messages import edit_message
 from src.models.read_models import LogLevel, EventSentLog
 from src.infrastructure.rabbit_mq.producer import publish_event
 from src.config import get_config

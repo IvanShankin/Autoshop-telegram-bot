@@ -8,7 +8,7 @@ class TestSendMessage:
     @pytest.mark.asyncio
     async def test_send_message_with_valid_file_id(self, patch_fake_aiogram, replacement_fake_bot_fix, create_ui_image, monkeypatch):
         """Валидный file_id: отправляется фото без загрузки"""
-        from src.bot_actions.messages import send_message
+        from src._bot_actions.messages import send_message
         fake_bot = replacement_fake_bot_fix
         ui_image, _ = await create_ui_image(key="welcome", file_id='existing_file_id')
 
@@ -25,7 +25,7 @@ class TestSendMessage:
         self, patch_fake_aiogram, replacement_fake_bot_fix, create_ui_image, monkeypatch, tmp_path
     ):
         """Недействительный file_id — fallback на загрузку файла с диска"""
-        from src.bot_actions.messages import send_message
+        from src._bot_actions.messages import send_message
         fake_bot = replacement_fake_bot_fix
 
         # Подготовим подмену get_config().paths.media_dir, чтобы send_message открыл файл по правильному пути
@@ -57,8 +57,8 @@ class TestSendMessage:
         async def fake_update_ui_image(**kwargs):
             updated.update(kwargs)
 
-        from src.bot_actions.messages import edit as modul_1
-        from src.bot_actions.messages import send as modul_2
+        from src._bot_actions.messages import edit as modul_1
+        from src._bot_actions.messages import send as modul_2
         monkeypatch.setattr(modul_1, "update_ui_image", fake_update_ui_image)
         monkeypatch.setattr(modul_2, "update_ui_image", fake_update_ui_image)
 
@@ -80,7 +80,7 @@ class TestSendMessage:
         self, patch_fake_aiogram, replacement_fake_bot_fix, create_ui_image
     ):
         """ show=False — фото не отправляется, только текст"""
-        from src.bot_actions.messages import send_message
+        from src._bot_actions.messages import send_message
 
         fake_bot = replacement_fake_bot_fix
         ui_image, _ = await create_ui_image(key="hidden_img", show=False, file_id="file123")
@@ -98,14 +98,14 @@ class TestSendMessage:
         self, patch_fake_aiogram, replacement_fake_bot_fix, monkeypatch
     ):
         """ Нет изображения по ключу — отправляется обычный текст"""
-        from src.bot_actions.messages import send_message
+        from src._bot_actions.messages import send_message
 
         fake_bot = replacement_fake_bot_fix
 
         async def fake_get_ui_image(key: str):
             return None
 
-        from src.bot_actions.messages import edit as modul
+        from src._bot_actions.messages import edit as modul
         monkeypatch.setattr(modul, "get_ui_image", fake_get_ui_image)
 
         await send_message(chat_id=555, message="Plain text", image_key="missing")
@@ -121,7 +121,7 @@ class TestSendMessage:
         self, patch_fake_aiogram, replacement_fake_bot_fix
     ):
         """Без image_key — просто сообщение"""
-        from src.bot_actions.messages import send_message
+        from src._bot_actions.messages import send_message
 
         fake_bot = replacement_fake_bot_fix
 

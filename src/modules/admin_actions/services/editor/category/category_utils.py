@@ -2,7 +2,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
 from aiogram.types import CallbackQuery
 
-from src.bot_actions.messages import edit_message, send_message
+from src._bot_actions.messages import edit_message, send_message
 from src.config import get_config
 from src.modules.admin_actions.keyboards import back_in_category_update_data_kb
 from src.modules.admin_actions.keyboards.editors.category_kb import back_in_category_editor_kb

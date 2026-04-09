@@ -11,7 +11,7 @@ from src.modules.info_handler import router_with_repl_kb as info_router_router_w
 from src.modules.admin_actions.handlers import router as admin_router
 from src.modules.admin_actions.handlers import router_with_repl_kb as admin_router_with_repl_kb
 from src.modules.admin_actions.handlers import router_logger
-from src.bot_actions.bot_instance import get_bot, get_dispatcher, get_dispatcher_logger, get_bot_logger
+from src._bot_actions.bot_instance import get_bot, get_dispatcher, get_dispatcher_logger, get_bot_logger
 
 
 async def _including_router():

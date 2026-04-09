@@ -10,7 +10,7 @@ import fakeredis
 import pytest
 import pytest_asyncio
 
-from src.bot_actions.throttler import RateLimiter
+from src._bot_actions.throttler import RateLimiter
 from src.config import get_config, set_config, Config, FilePathAndKey, FileKeysConf
 from src.infrastructure.redis import core
 from src.application.secrets import init_crypto_context
@@ -75,10 +75,10 @@ def replacement_fake_bot(monkeypatch):
     fake_bot.clear()
 
     # удаляем старый модуль полностью
-    sys.modules.pop("src.bot_actions.bot_instance", None)
+    sys.modules.pop("src._bot_actions.bot_instance", None)
 
     # Создаём поддельный модуль
-    fake_module = types.ModuleType("src.bot_actions.bot_instance")
+    fake_module = types.ModuleType("src._bot_actions.bot_instance")
 
     async def fake_get_bot():
         return fake_bot
@@ -104,9 +104,9 @@ def replacement_fake_bot(monkeypatch):
     fake_module._dp_logger = None
 
     # Подменяем модуль в sys.modules
-    monkeypatch.setitem(sys.modules, "src.bot_actions.bot_instance", fake_module)
+    monkeypatch.setitem(sys.modules, "src._bot_actions.bot_instance", fake_module)
 
-    import src.bot_actions.messages
+    import src._bot_actions.messages
     importlib.reload(src.bot_actions.messages)
     importlib.reload(src.bot_actions.messages.edit)
     importlib.reload(src.bot_actions.messages.send)

@@ -2,7 +2,7 @@ from src.models.read_models import LogLevel, EventSentLog
 from src.infrastructure.rabbit_mq.producer import publish_event
 from src.database.models.discount import Vouchers
 from src.utils.i18n import get_text
-from src.bot_actions.messages import send_message
+from src._bot_actions.messages import send_message
 
 
 async def send_set_not_valid_voucher(user_id: int, voucher: Vouchers, limit_reached: bool, language: str):

@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
 
-from src.bot_actions.messages import edit_message
+from src._bot_actions.messages import edit_message
 from src.models.read_models import UsersDTO
 from src.modules.profile.keyboards.purchased_universals_kb import confirm_del_universal_kb, universal_kb
 from src.modules.profile.services.purchases_universals import show_all_sold_universal, \

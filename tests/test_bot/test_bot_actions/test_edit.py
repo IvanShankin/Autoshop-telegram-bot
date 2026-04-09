@@ -10,7 +10,7 @@ class TestEditMessage:
         Если ui_image.file_id есть и bot.edit_message_media по file_id проходит успешно,
         то edit_message должен успешно завершиться и НЕ вызывать send_message.
         """
-        from src.bot_actions.messages import edit as bot_actions
+        from src._bot_actions.messages import edit as bot_actions
 
         ui_image, _ = await create_ui_image(key="test_key", show=True, file_id="existing_file_id")
         bot = replacement_fake_bot_fix
@@ -39,7 +39,7 @@ class TestEditMessage:
         Если edit_message_text бросает TelegramBadRequest('message is not modified') —
         это не ошибка: send_message не вызывается.
         """
-        from src.bot_actions.messages import edit as bot_actions
+        from src._bot_actions.messages import edit as bot_actions
         from aiogram import exceptions as aiogram_excs
         not_modified_exc = aiogram_excs.TelegramBadRequest("message is not modified")
 
@@ -68,7 +68,7 @@ class TestEditMessage:
         Если edit_message_text бросает TelegramBadRequest('message not found'),
         то должно произойти fallback-отправление через send_message.
         """
-        from src.bot_actions.messages import edit as bot_actions
+        from src._bot_actions.messages import edit as bot_actions
         from aiogram import exceptions as aiogram_excs
 
         not_found_exc = aiogram_excs.TelegramBadRequest("message not found")
@@ -102,7 +102,7 @@ class TestEditMessage:
         Симулируем отсутствие локального файла (FileNotFoundError при создании FSInputFile)
         и убеждаемся, что происходит fallback: send_message вызывается.
         """
-        from src.bot_actions.messages import edit as bot_actions
+        from src._bot_actions.messages import edit as bot_actions
         ui_image, _ = await create_ui_image(key="missing_local", show=True, file_id=None)
         # делаем несуществующий путь
         ui_image.file_name = "no_such_file.png"

@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
 from aiogram.types import CallbackQuery, Message
 
-from src.bot_actions.messages import edit_message, send_message
+from src._bot_actions.messages import edit_message, send_message
 from src.modules.admin_actions.keyboards import change_admin_settings_kb, back_in_change_admin_settings_kb
 from src.modules.admin_actions.state.settings import UpdateAdminSettings
 from src.application._database.system.actions import get_settings, update_settings

@@ -5,8 +5,8 @@ from aiogram.types import Message, TelegramObject, CallbackQuery
 
 from typing import Callable, Dict, Any, Awaitable, Type
 
-from src.bot_actions.bot_instance import get_bot, get_bot_logger
-from src.bot_actions.messages import send_message
+from src._bot_actions.bot_instance import get_bot, get_bot_logger
+from src._bot_actions.messages import send_message
 from src.config import get_config
 from src.containers import init_request_container
 from src.containers.app_container import AppContainer

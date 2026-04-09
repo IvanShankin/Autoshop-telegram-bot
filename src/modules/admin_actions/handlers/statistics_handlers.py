@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
 
-from src.bot_actions.messages import edit_message
+from src._bot_actions.messages import edit_message
 from src.modules.admin_actions.keyboards.statistics_kb import admin_statistics_kb
 from src.modules.admin_actions.services.statistics_msg import get_statistics_message
 from src.database.models.users import Users

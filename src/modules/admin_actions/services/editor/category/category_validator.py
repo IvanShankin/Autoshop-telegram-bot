@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
 from aiogram.types import Document
 
-from src.bot_actions.messages import send_message
+from src._bot_actions.messages import send_message
 from src.config import get_config
 from src.modules.admin_actions.keyboards.editors.category_kb import in_category_kb
 from src.models.read_models import CategoryFull

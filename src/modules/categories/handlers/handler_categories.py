@@ -4,7 +4,7 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src.bot_actions.messages import edit_message, send_message
+from src._bot_actions.messages import edit_message, send_message
 from src.exceptions import InvalidPromoCode
 from src.middlewares.aiogram_middleware import I18nKeyFilter
 from src.modules.categories.keyboards import subscription_prompt_kb, back_in_account_category_kb, confirm_buy_kb, \

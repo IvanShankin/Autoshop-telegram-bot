@@ -2,8 +2,8 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from src.bot_actions.bot_instance import get_bot
-from src.bot_actions.messages import edit_message
+from src._bot_actions.bot_instance import get_bot
+from src._bot_actions.messages import edit_message
 from src.config import get_config
 from src.modules.admin_actions.keyboards import admin_vouchers_kb, all_admin_vouchers_kb, \
     back_in_all_admin_voucher_kb, show_admin_voucher_kb

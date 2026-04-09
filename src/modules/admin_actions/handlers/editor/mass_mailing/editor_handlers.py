@@ -6,8 +6,8 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src.bot_actions.messages import edit_message, send_message
-from src.bot_actions.messages.mass_tg_mailing import visible_text_length, broadcast_message_generator
+from src._bot_actions.messages import edit_message, send_message
+from src._bot_actions.messages.mass_tg_mailing import visible_text_length, broadcast_message_generator
 from src.config import get_config
 from src.exceptions import TextTooLong
 from src.modules.admin_actions.keyboards import editor_message_mailing_kb

@@ -4,7 +4,7 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src.bot_actions.messages import edit_message, send_message
+from src._bot_actions.messages import edit_message, send_message
 from src.config import get_config
 from src.exceptions import AccountCategoryNotFound, TheCategoryStorageProducts
 from src.modules.admin_actions.handlers.editor.category.show_handlers import show_category

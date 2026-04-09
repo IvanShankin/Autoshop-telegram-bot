@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
 from aiogram.types import CallbackQuery, Message
 
-from src.bot_actions.messages import edit_message
+from src._bot_actions.messages import edit_message
 from src.modules.admin_actions.keyboards import back_in_show_data_by_id_kb, data_by_id_by_page_kb
 from src.modules.admin_actions.schemas.show_data_by_id import CurrentPage
 from src.modules.admin_actions.services.show_data_by_id import show_data_by_id_handler

@@ -2,8 +2,8 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src.bot_actions.bot_instance import get_bot
-from src.bot_actions.messages import edit_message, send_message
+from src._bot_actions.bot_instance import get_bot
+from src._bot_actions.messages import edit_message, send_message
 from src.modules.admin_actions.keyboards import skip_number_activations_or_back_kb, \
     back_in_start_creating_admin_vouchers_kb, skip_expire_at_or_back_kb, in_admin_voucher_kb
 from src.modules.admin_actions.schemas import CreateAdminVoucherData

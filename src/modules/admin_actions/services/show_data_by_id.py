@@ -1,7 +1,7 @@
 from typing import Tuple
 from aiogram.types import InlineKeyboardMarkup
 
-from src.bot_actions.messages import send_message
+from src._bot_actions.messages import send_message
 from src.config import get_config
 from src.modules.admin_actions.keyboards.show_data_kb import back_in_show_data_by_id_kb, get_data_universal_product
 from src.modules.admin_actions.state.show_data_by_id import ShowDataById

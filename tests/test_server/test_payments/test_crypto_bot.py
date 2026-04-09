@@ -10,13 +10,13 @@ from aiocryptopay.models.invoice import Invoice
 from httpx import AsyncClient, ASGITransport
 
 from src.config import get_config
-from src.services._database.replenishments_event.schemas import NewReplenishment
+from src.application._database.replenishments_event.schemas import NewReplenishment
 from src.infrastructure.redis import get_redis
 
 
 @pytest.mark.asyncio
 async def test_create_invoice_handles_exception(monkeypatch, create_new_user, create_type_payment, replacement_needed_modules, replacement_fake_bot_fix):
-    from src.services.payments.crypto_bot.client import CryptoPayService
+    from src.application.payments.crypto_bot.client import CryptoPayService
     user = await create_new_user()
     type_payment = await create_type_payment()
 
@@ -40,7 +40,7 @@ async def test_create_invoice_handles_exception(monkeypatch, create_new_user, cr
 
 @pytest.mark.asyncio
 async def test_create_invoice_handles(monkeypatch, create_new_user, create_type_payment, replacement_needed_modules, replacement_fake_bot_fix):
-    from src.services.payments.crypto_bot.client import CryptoPayService
+    from src.application.payments.crypto_bot.client import CryptoPayService
     user = await create_new_user()
     type_payment = await create_type_payment()
 
@@ -71,7 +71,7 @@ async def test_create_invoice_handles(monkeypatch, create_new_user, create_type_
 
 @pytest.mark.asyncio
 async def test_webhook_crypto_bot(monkeypatch, create_new_user, create_replenishment, replacement_needed_modules, replacement_fake_bot_fix):
-    from src.services.fastapi_core.server import app
+    from src.application.fastapi_core.server import app
     user = await create_new_user()
     replenishment = await create_replenishment()
 
@@ -120,7 +120,7 @@ async def test_webhook_crypto_bot(monkeypatch, create_new_user, create_replenish
 
 @pytest.mark.asyncio
 async def test_webhook_crypto_bot_missing_signature():
-    from src.services.fastapi_core.server import app
+    from src.application.fastapi_core.server import app
 
     data = {"update_type": "invoice_paid"}
     raw_body = orjson.dumps(data)
@@ -136,7 +136,7 @@ async def test_webhook_crypto_bot_missing_signature():
 
 @pytest.mark.asyncio
 async def test_webhook_crypto_bot_invalid_signature():
-    from src.services.fastapi_core.server import app
+    from src.application.fastapi_core.server import app
 
     data = {"update_type": "invoice_paid"}
     raw_body = orjson.dumps(data)
@@ -153,7 +153,7 @@ async def test_webhook_crypto_bot_invalid_signature():
 
 @pytest.mark.asyncio
 async def test_webhook_crypto_bot_no_payload(monkeypatch):
-    from src.services.fastapi_core.server import app
+    from src.application.fastapi_core.server import app
 
     data = {
         "update_id": 1,

@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import select, update
 
 from src.database import get_db
-from src.services._database.discounts.events import handler_new_activate_promo_code
+from src.application._database.discounts.events import handler_new_activate_promo_code
 from src.infrastructure.redis import get_redis
 
 
@@ -14,7 +14,7 @@ async def test_handler_new_activate_promo_code(
     create_new_user,
     create_settings,
 ):
-    from src.services._database.discounts.events.schemas import NewActivatePromoCode
+    from src.application._database.discounts.events.schemas import NewActivatePromoCode
     from src.database.models.discount import PromoCodes, ActivatedPromoCodes
     promo_code = await create_promo_code()
     old_promo = promo_code

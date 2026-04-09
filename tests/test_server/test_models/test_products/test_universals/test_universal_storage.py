@@ -6,7 +6,7 @@ from src.database.models.categories import StorageStatus, UniversalMediaType
 from src.exceptions.business import ValueErrorService
 from src.models.create_models.universal import CreateUniversalStorageWithTranslationDTO
 from src.models.update_models.universal import UpdateUniversalStorageDTO
-from src.services.secrets import encrypt_text, get_crypto_context, make_account_key
+from src.application.secrets import encrypt_text, get_crypto_context, make_account_key
 
 
 def _build_storage_encryption_payload() -> tuple[str, bytes, str, str, str]:

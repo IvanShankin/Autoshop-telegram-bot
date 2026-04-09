@@ -13,7 +13,7 @@ from src.infrastructure.redis import get_redis
 from src.models.create_models.discounts import CreatePromoCodeDTO
 from src.repository.database.discount import PromoCodeRepository, ActivatedPromoCodeRepository
 from src.repository.redis import PromoCodesCacheRepository
-from src.services.models.discounts import PromoCodeService, ActivatedPromoCodesService
+from src.application.models.discounts import PromoCodeService, ActivatedPromoCodesService
 
 
 @pytest.fixture()
@@ -24,8 +24,8 @@ def stub_publish_event(monkeypatch):
         calls.append((payload, routing_key))
 
     monkeypatch.setattr("src.infrastructure.rabbit_mq.producer.publish_event", _fake_publish_event)
-    monkeypatch.setattr("src.services.models.discounts.promo_code_service.publish_event", _fake_publish_event)
-    monkeypatch.setattr("src.services.events.publish_event_handler.publish_event", _fake_publish_event)
+    monkeypatch.setattr("src.application.models.discounts.promo_code_service.publish_event", _fake_publish_event)
+    monkeypatch.setattr("src.application.events.publish_event_handler.publish_event", _fake_publish_event)
     return calls
 
 

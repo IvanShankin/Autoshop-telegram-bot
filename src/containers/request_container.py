@@ -13,17 +13,17 @@ from src.repository.database.discount import VouchersRepository, VoucherActivati
     ActivatedPromoCodeRepository
 from src.repository.database.refferals import ReferralsRepository, ReferralIncomeRepository, ReferralLevelsRepository
 from src.repository.database.replanishments import ReplenishmentsRepository
-from src.services.cache_warmup import CacheWarmupService
-from src.services.events.event_handlers.file_system import FileSystemEventHandler
-from src.services.events.event_handlers.main_event_handler import EventHandler
-from src.services.events.event_handlers.message import MessageEventHandler
-from src.services.events.event_handlers.promo_code import PromoCodeEventHandler
-from src.services.events.event_handlers.purchase import PurchaseEventHandler
-from src.services.events.event_handlers.referrals import ReferralEventHandler
-from src.services.events.event_handlers.replenishments import ReplenishmentsEventHandler
-from src.services.models.discounts import ActivatedPromoCodesService, PromoCodeService
-from src.services.models.discounts.vouchers_service import VoucherService
-from src.services.models.modules import ProfileModule, AccountsModuls, UniversalModuls
+from src.application.cache_warmup import CacheWarmupService
+from src.application.events.event_handlers.file_system import FileSystemEventHandler
+from src.application.events.event_handlers.main_event_handler import EventHandler
+from src.application.events.event_handlers.message import MessageEventHandler
+from src.application.events.event_handlers.promo_code import PromoCodeEventHandler
+from src.application.events.event_handlers.purchase import PurchaseEventHandler
+from src.application.events.event_handlers.referrals import ReferralEventHandler
+from src.application.events.event_handlers.replenishments import ReplenishmentsEventHandler
+from src.application.models.discounts import ActivatedPromoCodesService, PromoCodeService
+from src.application.models.discounts.vouchers_service import VoucherService
+from src.application.models.modules import ProfileModule, AccountsModuls, UniversalModuls
 from src.repository.database.admins import (
     AdminActionsRepository,
     AdminsRepository,
@@ -69,27 +69,27 @@ from src.repository.redis import (
     SoldUniversalCacheRepository,
     SoldUniversalSingleCacheRepository,
 )
-from src.services.bot import Messages, MassTgMailingService, SendFileService, SendLogs
-from src.services.bot.edit_message import EditMessageService
-from src.services.bot.send_message import SendMessageService
-from src.services.bot.sticker_sender import StickerSender
-from src.services.events.publish_event_handler import PublishEventHandler
-from src.services.models.admins import AdminActionsService, AdminsService, MessageForSendingService, \
+from src.application.bot import Messages, MassTgMailingService, SendFileService, SendLogs
+from src.application.bot.edit_message import EditMessageService
+from src.application.bot.send_message import SendMessageService
+from src.application.bot.sticker_sender import StickerSender
+from src.application.events.publish_event_handler import PublishEventHandler
+from src.application.models.admins import AdminActionsService, AdminsService, MessageForSendingService, \
     SentMassMessagesService
-from src.services.models.payment_services import PaymentService
-from src.services.models.referrals import ReferralService, ReferralIncomeService, ReferralLevelsService
-from src.services.models.systems import StickersService, UiImagesService, FilesService, SettingsService, \
+from src.application.models.payment_services import PaymentService
+from src.application.models.referrals import ReferralService, ReferralIncomeService, ReferralLevelsService
+from src.application.models.systems import StickersService, UiImagesService, FilesService, SettingsService, \
     TypesPaymentsService
-from src.services.models.users import (
+from src.application.models.users import (
     BannedAccountService,
     UserLogService,
     UserService,
     WalletTransactionService, MoneyTransferService, ReplenishmentsService,
 )
-from src.services.models.users.notifications_service import NotificationSettingsService
-from src.services.models.users.permission_service import PermissionService
-from src.services.models.categories.categories_cache_filler_service import CategoriesCacheFillerService
-from src.services.models.products.accounts import (
+from src.application.models.users.notifications_service import NotificationSettingsService
+from src.application.models.users.permission_service import PermissionService
+from src.application.models.categories.categories_cache_filler_service import CategoriesCacheFillerService
+from src.application.models.products.accounts import (
     AccountDeletedService,
     AccountProductService,
     AccountSoldService,
@@ -98,7 +98,7 @@ from src.services.models.products.accounts import (
     AccountTranslationsService,
     AccountsCacheFillerService,
 )
-from src.services.models.products.universal import (
+from src.application.models.products.universal import (
     UniversalCacheFillerService,
     UniversalDeletedService,
     UniversalProductService,

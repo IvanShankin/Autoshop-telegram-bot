@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.services.models.products.universal.universal_cache_filler_service import UniversalCacheFillerService
+from src.application.models.products.universal.universal_cache_filler_service import UniversalCacheFillerService
 
 
 class TestUniversalCacheFillerService:

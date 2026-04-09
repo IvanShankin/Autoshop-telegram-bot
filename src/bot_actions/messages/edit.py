@@ -13,10 +13,10 @@ from src.models.read_models import EventSentLog, LogLevel
 from src.bot_actions.messages.send_stickers import send_sticker
 from src.infrastructure.rabbit_mq.producer import publish_event
 from src.exceptions.domain import StickerNotFound
-from src.services._database.system.actions import get_ui_image, update_ui_image
-from src.services.filesystem.actions import check_file_exists
-from src.services.filesystem.media_paths import create_path_ui_image
-from src.services.filesystem.schemas import EventCreateUiImage
+from src.application._database.system.actions import get_ui_image, update_ui_image
+from src.application.filesystem.actions import check_file_exists
+from src.application.filesystem.media_paths import create_path_ui_image
+from src.application.filesystem.schemas import EventCreateUiImage
 from src.utils.core_logger import get_logger
 
 

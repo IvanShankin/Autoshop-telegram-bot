@@ -3,7 +3,7 @@ import orjson
 from sqlalchemy import select
 
 from src.exceptions import TheCategoryStorageAccount, CategoryStoresSubcategories
-from src.services._database.system.actions import get_ui_image
+from src.application._database.system.actions import get_ui_image
 from src.infrastructure.redis import get_redis
 from src.database import get_db
 
@@ -18,7 +18,7 @@ async def test_delete_translate_category_success_and_error_when_last_translation
     - если переводов > 1 — перевод удаляется и ключ в _redis удаляется
     - если перевод единственный — ValueError
     """
-    from src.services._database.categories.actions import delete_translate_category, add_translation_in_category
+    from src.application._database.categories.actions import delete_translate_category, add_translation_in_category
 
     # создаём категорию с переводом ru
     full_cat = await create_category(filling_redis=True, language="ru", name="orig")
@@ -60,7 +60,7 @@ async def test_delete_account_category_various_errors_and_index_shift(create_cat
     - нельзя удалить если есть дочерние категории
     - при успешном удалении индексы сдвигаются
     """
-    from src.services._database.categories.actions import delete_category
+    from src.application._database.categories.actions import delete_category
 
     # создаём три основные категории (siblings) для проверки индексов
     cat1 = await create_category(filling_redis=True, language="ru", name="c1")
@@ -110,7 +110,7 @@ async def test_delete_account_category_various_errors_and_index_shift(create_cat
 
 @pytest.mark.asyncio
 async def test_delete_category_deleted_ui_image(create_category, create_ui_image):
-    from src.services._database.categories.actions import delete_category
+    from src.application._database.categories.actions import delete_category
 
     ui_image, _ = await create_ui_image()
     category = await create_category(ui_image_key=ui_image.key)

@@ -16,10 +16,10 @@ from src.modules.admin_actions.keyboards.editors.mass_mailing_kb import confirm_
     back_in_editor_mes_mailing_kb
 from src.modules.admin_actions.state import GetImageMassMailing, GetTextMassMailing
 from src.modules.admin_actions.state.editors.editor_mass_mailing import GetBtnUrlMassMailing
-from src.services._database.admins.actions import get_message_for_sending, update_message_for_sending
-from src.services._database.users.actions.action_user import get_quantity_users
+from src.application._database.admins.actions import get_message_for_sending, update_message_for_sending
+from src.application._database.users.actions.action_user import get_quantity_users
 from src.database.models.users import Users
-from src.services.filesystem.media_paths import create_path_ui_image
+from src.application.filesystem.media_paths import create_path_ui_image
 from src.utils.i18n import get_text
 
 router = Router()

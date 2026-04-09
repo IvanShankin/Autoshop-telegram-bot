@@ -91,7 +91,7 @@ class TestBuyAccount:
         async def fake_discount_calculation(amount, promo_code_id=None):
             raise InvalidPromoCode()
 
-        from src.services._database.discounts.utils import calculation
+        from src.application._database.discounts.utils import calculation
         monkeypatch.setattr(calculation, "discount_calculation", fake_discount_calculation)
 
         cb = FakeCallbackQuery(data=f"buy_in_category:{category.category_id}:1:9999",

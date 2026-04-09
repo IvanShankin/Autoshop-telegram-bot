@@ -1,0 +1,78 @@
+import asyncio
+
+from datetime import datetime, timezone
+from sqlalchemy import select, and_, update
+
+from src.models.read_models import EventSentLog, LogLevel
+from src.infrastructure.rabbit_mq.producer import publish_event
+from src.database import get_db
+from src.application._database.discounts.actions.actions_vouchers import deactivate_voucher
+from src.database.models.discount import Vouchers, PromoCodes
+from src.application._database.discounts.utils.sending import send_set_not_valid_voucher
+from src.application._database.users.actions import get_user
+from src.utils.core_logger import get_logger
+from src.utils.i18n import get_text
+
+
+async def _set_not_valid_promo_code() -> None:
+    """Сделает все записи в БД is_valid=False у переданной модели если срок годности истёк"""
+    async with get_db() as session:
+        now = datetime.now(timezone.utc)
+        result_db = await session.execute(
+            update(PromoCodes)
+            .where(
+                and_(
+                    PromoCodes.is_valid.is_(True),
+                    PromoCodes.expire_at.isnot(None),
+                    PromoCodes.expire_at <= now
+                )
+            )
+            .values(is_valid=False)
+            .returning(PromoCodes)
+        )
+        await session.commit()
+
+        changed_promo_codes = result_db.scalars().all()
+        for promo in changed_promo_codes:
+            message_log = get_text(
+                'ru',
+                "discount",
+                "log_promo_code_expired"
+            ).format(id=promo.promo_code_id, code=promo.activation_code)
+            event = EventSentLog(
+                text=message_log,
+                log_lvl=LogLevel.WARNING
+            )
+            await publish_event(event.model_dump(), "message.send_log")
+
+
+async def _set_not_valid_vouchers() -> None:
+    async with get_db() as session_db:
+        now = datetime.now(timezone.utc)
+        result_db = await session_db.execute(
+            select(Vouchers)
+            .where(
+                and_(
+                    Vouchers.is_valid.is_(True),
+                    Vouchers.expire_at.isnot(None),
+                    Vouchers.expire_at <= now
+                )
+            )
+        )
+        vouchers = result_db.scalars().all()
+
+        for voucher in vouchers:
+            await deactivate_voucher(voucher.voucher_id)
+            user = await get_user(voucher.creator_id)
+            await send_set_not_valid_voucher(voucher.creator_id, voucher, False, user.language)
+
+async def deactivate_expired_promo_codes_and_vouchers(interval: int = 60):
+    """Бесконечный цикл, удаляет промокоды и ваучеры с истёкшим сроком годности"""
+    while True:
+        try:
+            await _set_not_valid_promo_code()
+            await _set_not_valid_vouchers()
+        except Exception as e:
+            logger = get_logger(__name__)
+            logger.error(f"Ошибка при деактивации промокодов/ваучеров. Ошибка: {str(e)}")
+        await asyncio.sleep(interval)

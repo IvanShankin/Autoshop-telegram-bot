@@ -18,8 +18,8 @@ async def test_input_other_account_full_flow_create_and_return_reports(
         successfully_added == количество добавленных аккаунтов (без дублей)
         total_processed == общее количество строк в CSV
     """
-    from src.services.products.accounts.other.input_account import input_other_account
-    from src.services.filesystem.account_products import make_csv_bytes
+    from src.application.products.accounts.other.input_account import input_other_account
+    from src.application.filesystem.account_products import make_csv_bytes
 
     category = await create_category(type_account_service=AccountServiceType.TELEGRAM, is_product_storage=True)
 

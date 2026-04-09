@@ -13,7 +13,7 @@ import pytest_asyncio
 from src.bot_actions.throttler import RateLimiter
 from src.config import get_config, set_config, Config, FilePathAndKey, FileKeysConf
 from src.infrastructure.redis import core
-from src.services.secrets import init_crypto_context
+from src.application.secrets import init_crypto_context
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeBot
 
 fake_bot = FakeBot()
@@ -274,7 +274,7 @@ async def set_need_config():
 def fake_storage(monkeypatch):
     storage = MagicMock()
 
-    from src.services._database.backups import backup_db as core_modul
+    from src.application._database.backups import backup_db as core_modul
     monkeypatch.setattr(
         core_modul,
         "get_storage_client",

@@ -6,8 +6,8 @@ from src.models.update_models import UpdateTgAccountMediaDTO
 from src.modules.profile.keyboards import sold_accounts_kb, account_kb, sold_account_type_service_kb
 from src.database.models.categories import AccountStorage, AccountServiceType
 from src.models.read_models import SoldAccountFull, UsersDTO
-from src.services.bot import Messages
-from src.services.models.modules import ProfileModule
+from src.application.bot import Messages
+from src.application.models.modules import ProfileModule
 from src.utils.i18n import get_text
 from src.utils.pars_number import e164_to_pretty
 

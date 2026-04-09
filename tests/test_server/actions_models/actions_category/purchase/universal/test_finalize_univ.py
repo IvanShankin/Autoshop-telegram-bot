@@ -45,10 +45,10 @@ class TestFinalizePurchaseUniversalOne:
         - BalanceHolder.status == used,
         - publish_event вызван.
         """
-        from src.services._database.categories.actions.purchases.universal.finalize import (
+        from src.application._database.categories.actions.purchases.universal.finalize import (
             finalize_purchase_universal_one,
         )
-        import src.services.database.categories.actions.purchases.universal.finalize as finalize_mod
+        import src.application.database.categories.actions.purchases.universal.finalize as finalize_mod
 
         # --- данные ---
         user = await create_new_user(balance=1000)
@@ -179,10 +179,10 @@ class TestFinalizePurchaseUniversalOne:
         вызывается cancel_purchase_universal_one,
         данные в БД не остаются.
         """
-        from src.services._database.categories.actions.purchases.universal.finalize import (
+        from src.application._database.categories.actions.purchases.universal.finalize import (
             finalize_purchase_universal_one,
         )
-        import src.services.database.categories.actions.purchases.universal.finalize as finalize_mod
+        import src.application.database.categories.actions.purchases.universal.finalize as finalize_mod
 
         user = await create_new_user(balance=1000)
         category = await create_category(allow_multiple_purchase=True)
@@ -277,10 +277,10 @@ class TestFinalizePurchaseUniversalDifferent:
         - BalanceHolder.status == used
         - publish_event вызван
         """
-        from src.services._database.categories.actions.purchases.universal.finalize import (
+        from src.application._database.categories.actions.purchases.universal.finalize import (
             finalize_purchase_universal_different,
         )
-        import src.services.database.categories.actions.purchases.universal.finalize as finalize_mod
+        import src.application.database.categories.actions.purchases.universal.finalize as finalize_mod
 
         user = await create_new_user(balance=1000)
         category = await create_category(allow_multiple_purchase=False)
@@ -405,10 +405,10 @@ class TestFinalizePurchaseUniversalDifferent:
         move_file вернул False → send_log + cancel_purchase_universal_different,
         DB изменения не применяются.
         """
-        from src.services._database.categories.actions.purchases.universal.finalize import (
+        from src.application._database.categories.actions.purchases.universal.finalize import (
             finalize_purchase_universal_different,
         )
-        import src.services.database.categories.actions.purchases.universal.finalize as finalize_mod
+        import src.application.database.categories.actions.purchases.universal.finalize as finalize_mod
 
         user = await create_new_user()
         category = await create_category()
@@ -476,10 +476,10 @@ class TestFinalizePurchaseUniversalDifferent:
         rename_file = False после commit →
         cancel_purchase_universal_different откатывает DB.
         """
-        from src.services._database.categories.actions.purchases.universal.finalize import (
+        from src.application._database.categories.actions.purchases.universal.finalize import (
             finalize_purchase_universal_different,
         )
-        import src.services.database.categories.actions.purchases.universal.finalize as finalize_mod
+        import src.application.database.categories.actions.purchases.universal.finalize as finalize_mod
 
         user = await create_new_user()
         category = await create_category()

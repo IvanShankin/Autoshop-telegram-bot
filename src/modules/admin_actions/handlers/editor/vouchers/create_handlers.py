@@ -8,7 +8,7 @@ from src.modules.admin_actions.keyboards import skip_number_activations_or_back_
     back_in_start_creating_admin_vouchers_kb, skip_expire_at_or_back_kb, in_admin_voucher_kb
 from src.modules.admin_actions.schemas import CreateAdminVoucherData
 from src.modules.admin_actions.state import CreateAdminVoucher
-from src.services._database.discounts.actions import create_voucher
+from src.application._database.discounts.actions import create_voucher
 from src.database.models.users import Users
 from src.utils.converter import safe_int_conversion, safe_parse_datetime
 from src.utils.i18n import get_text

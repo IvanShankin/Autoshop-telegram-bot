@@ -5,7 +5,7 @@ from src.bot_actions.messages import edit_message, send_message
 from src.modules.admin_actions.keyboards import show_category_admin_kb, change_category_data_kb
 from src.modules.admin_actions.services import safe_get_category
 from src.database.models.categories import ProductType
-from src.services._database.system.actions import get_ui_image
+from src.application._database.system.actions import get_ui_image
 from src.database.models.users import Users
 from src.utils.i18n import get_text
 

@@ -3,7 +3,7 @@ import pytest
 from sqlalchemy import select
 
 from src.database import get_db
-from src.services._database.replenishments_event.schemas import ReplenishmentCompleted
+from src.application._database.replenishments_event.schemas import ReplenishmentCompleted
 from src.database.models.users import Users, WalletTransaction, UserAuditLogs
 from src.infrastructure.redis import get_redis
 from src.utils.i18n import get_text
@@ -17,8 +17,8 @@ async def test_handler_new_income_referral(
     create_replenishment
 ):
     """Проверяем корректную работу handler_new_income_referral"""
-    from src.services._database.referrals.events import handler_new_income_referral
-    from src.services._database.referrals.actions import get_referral_lvl
+    from src.application._database.referrals.events import handler_new_income_referral
+    from src.application._database.referrals.actions import get_referral_lvl
     from src.database.models.referrals import IncomeFromReferrals, Referrals
 
     _, owner, referral = await create_referral()
@@ -107,7 +107,7 @@ async def test_handler_new_income_referral(
 @pytest.mark.asyncio
 async def test_on_referral_income_completed_no_level_up():
     """Проверяет сообщение без повышения уровня (last_lvl == current_lvl)"""
-    from src.services._database.referrals.events import on_referral_income_completed
+    from src.application._database.referrals.events import on_referral_income_completed
     user_id = 101
     language = "ru"
     amount = 50
@@ -129,7 +129,7 @@ async def test_on_referral_income_completed_no_level_up():
 @pytest.mark.asyncio
 async def test_on_referral_income_completed_with_level_up():
     """Проверяет сообщение с повышением уровня (last_lvl != current_lvl)"""
-    from src.services._database.referrals.events import on_referral_income_completed
+    from src.application._database.referrals.events import on_referral_income_completed
     user_id = 202
     language = "ru"
     amount = 100

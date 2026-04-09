@@ -8,9 +8,9 @@ from src.modules.admin_actions.handlers.editor.category.show_handlers import sho
 from src.modules.admin_actions.keyboards import delete_category_kb, back_in_category_kb, \
     delete_product_kb, in_category_editor_kb
 from src.modules.admin_actions.services import safe_get_category, upload_category
-from src.services._database.categories.actions import delete_category as delete_category_service, \
+from src.application._database.categories.actions import delete_category as delete_category_service, \
     delete_product_accounts_by_category
-from src.services._database.categories.actions.products.universal.action_delete import \
+from src.application._database.categories.actions.products.universal.action_delete import \
     delete_product_universal_by_category
 from src.database.models.categories import ProductType
 from src.database.models.users import Users

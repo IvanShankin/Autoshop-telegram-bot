@@ -3,8 +3,8 @@ from math import ceil
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from src.config import get_config
-from src.services._database.system.actions.actions import get_event_message_by_page
-from src.services.keyboards.keyboard_with_pages import pagination_keyboard
+from src.application._database.system.actions.actions import get_event_message_by_page
+from src.application.keyboards.keyboard_with_pages import pagination_keyboard
 from src.utils.i18n import get_text
 
 

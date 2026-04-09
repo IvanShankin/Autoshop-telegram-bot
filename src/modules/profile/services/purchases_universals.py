@@ -8,13 +8,13 @@ from src.models.update_models import UpdateUniversalStorageDTO
 from src.modules.profile.keyboards.purchased_universals_kb import sold_universal_kb
 from src.database.models.categories import StorageStatus, UniversalMediaType
 from src.models.read_models import SoldUniversalFull, UsersDTO
-from src.services.bot import Messages
-from src.services.filesystem.actions import create_temp_dir
-from src.services.filesystem.universals_products import move_in_universal
-from src.services.filesystem.media_paths import create_path_universal_storage
-from src.services.models.modules import ProfileModule
-from src.services.secrets import decrypt_text, unwrap_dek, get_crypto_context
-from src.services.secrets.decrypt import decrypt_file
+from src.application.bot import Messages
+from src.application.filesystem.actions import create_temp_dir
+from src.application.filesystem.universals_products import move_in_universal
+from src.application.filesystem.media_paths import create_path_universal_storage
+from src.application.models.modules import ProfileModule
+from src.application.secrets import decrypt_text, unwrap_dek, get_crypto_context
+from src.application.secrets.decrypt import decrypt_file
 from src.utils.i18n import get_text
 
 

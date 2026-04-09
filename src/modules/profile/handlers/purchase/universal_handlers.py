@@ -6,8 +6,8 @@ from src.models.read_models import UsersDTO
 from src.modules.profile.keyboards.purchased_universals_kb import confirm_del_universal_kb, universal_kb
 from src.modules.profile.services.purchases_universals import show_all_sold_universal, \
     delete_sold_universal_han, check_universal_product, send_media_sold_universal
-from src.services.bot import Messages
-from src.services.models.modules import ProfileModule
+from src.application.bot import Messages
+from src.application.models.modules import ProfileModule
 from src.utils.i18n import get_text
 
 router = Router()

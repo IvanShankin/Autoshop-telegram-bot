@@ -13,10 +13,10 @@ from src.containers.app_container import AppContainer
 from src.infrastructure.crypto_bot.core import get_crypto_provider
 from src.infrastructure.telegram.client import TelegramClient
 from src.modules.keyboard_main import support_kb
-from src.services._database.admins.actions import check_admin
-from src.services._database.system.actions import get_settings
-from src.services._database.users.actions import get_user, get_banned_account
-from src.services.models.modules import ProfileModule
+from src.application._database.admins.actions import check_admin
+from src.application._database.system.actions import get_settings
+from src.application._database.users.actions import get_user, get_banned_account
+from src.application.models.modules import ProfileModule
 from src.utils.i18n import get_text
 
 

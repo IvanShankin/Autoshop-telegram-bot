@@ -4,7 +4,7 @@ from src.bot_actions.bot_instance import get_bot_logger
 from src.models.read_models import LogLevel
 from src.config import get_config, get_global_rate_limit
 
-from src.services._database.system.actions import get_settings
+from src.application._database.system.actions import get_settings
 from src.utils.core_logger import get_logger
 
 

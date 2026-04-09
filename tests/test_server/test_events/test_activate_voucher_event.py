@@ -4,7 +4,7 @@ from sqlalchemy import select
 
 from src.database import get_db
 from src.database.models.discount import Vouchers
-from src.services._database.system.actions import update_settings
+from src.application._database.system.actions import update_settings
 from src.database.models.users import Users, WalletTransaction, UserAuditLogs
 from src.infrastructure.redis import get_redis
 from src.utils.i18n import get_text
@@ -17,7 +17,7 @@ async def _create_voucher_activation_event(
     balance_after: int
 ):
     """Создает событие активации ваучера"""
-    from src.services._database.discounts.events import NewActivationVoucher
+    from src.application._database.discounts.events import NewActivationVoucher
 
     return NewActivationVoucher(
         voucher_id=voucher.voucher_id,
@@ -34,8 +34,8 @@ async def test_successful_voucher_activation(
     create_voucher,
 ):
     """Тест успешной активации ваучера"""
-    from src.services._database.users.actions import get_user
-    from src.services._database.discounts.events import handler_new_activated_voucher
+    from src.application._database.users.actions import get_user
+    from src.application._database.discounts.events import handler_new_activated_voucher
 
     user = await create_new_user()
     voucher = await create_voucher(is_created_admin=False)
@@ -95,7 +95,7 @@ async def test_voucher_activation_with_activation_limit(
     clean_rabbit,
 ):
     """Тест активации ваучера с достижением лимита активаций"""
-    from src.services._database.discounts.events import handler_new_activated_voucher
+    from src.application._database.discounts.events import handler_new_activated_voucher
 
     user = await create_new_user()
     voucher = await create_voucher(number_of_activations=1)
@@ -139,7 +139,7 @@ async def test_voucher_activation_failure(
     get_engine,
 ):
     """Тест обработки ошибки при активации ваучера"""
-    from src.services._database.discounts.events import handler_new_activated_voucher
+    from src.application._database.discounts.events import handler_new_activated_voucher
 
     user = await create_new_user()
     voucher = await create_voucher()
@@ -172,7 +172,7 @@ async def test_send_set_not_valid_voucher(
     create_voucher,
 ):
     """Тест отправки сообщений при истечении ваучера"""
-    from src.services._database.discounts.utils.set_not_valid import send_set_not_valid_voucher
+    from src.application._database.discounts.utils.set_not_valid import send_set_not_valid_voucher
 
     user = await create_new_user()
     voucher = await create_voucher(is_created_admin=is_created_admin)

@@ -14,7 +14,7 @@ from types import SimpleNamespace
 
 from telethon.tl.types import User
 from src.database.models.categories import ProductAccounts
-from src.services.products.accounts.tg.shemas import BaseAccountProcessingResult, ArchiveProcessingResult
+from src.application.products.accounts.tg.shemas import BaseAccountProcessingResult, ArchiveProcessingResult
 
 VALID_USER = User(
     id=1,
@@ -47,8 +47,8 @@ class TestImportAccount:
         - запускает import_telegram_accounts_from_archive
         - ожидает ImportResult и затем проверяет, что в БД появился ProductAccounts
         """
-        from src.services.products.accounts.tg import input_account
-        from src.services.products.accounts.tg.input_account import import_telegram_accounts_from_archive
+        from src.application.products.accounts.tg import input_account
+        from src.application.products.accounts.tg.input_account import import_telegram_accounts_from_archive
 
         # подготовка: создаём две директории acc1 и acc2 с минимальной структурой
         work_dir = tmp_path / "work"
@@ -131,8 +131,8 @@ class TestImportAccount:
         - импорт должен поместить один уникальный в БД, а второй — в duplicate_dir (архив)
         - проверяем, что duplicate_archive_path в результате не None и что в БД только один ProductAccounts
         """
-        from src.services.products.accounts.tg import input_account
-        from src.services.products.accounts.tg.input_account import import_telegram_accounts_from_archive
+        from src.application.products.accounts.tg import input_account
+        from src.application.products.accounts.tg.input_account import import_telegram_accounts_from_archive
 
         work_dir = tmp_path / "work_dup"
         acc1 = work_dir / "acc1"
@@ -198,8 +198,8 @@ class TestImportAccount:
         - duplicate_archive_path должен быть None
         - в БД не должно быть ни одного ProductAccounts
         """
-        from src.services.products.accounts.tg import input_account
-        from src.services.products.accounts.tg.input_account import import_telegram_accounts_from_archive
+        from src.application.products.accounts.tg import input_account
+        from src.application.products.accounts.tg.input_account import import_telegram_accounts_from_archive
 
         work_dir = tmp_path / "work_invalid"
         acc_bad = work_dir / "acc_bad"
@@ -254,8 +254,8 @@ class TestImportAccount:
 
 @pytest.mark.asyncio
 async def test_import_in_db_valid_and_invalid(tmp_path, create_category):
-    from src.services.products.accounts.tg import input_account
-    from src.services.products.accounts.tg.input_account import import_in_db
+    from src.application.products.accounts.tg import input_account
+    from src.application.products.accounts.tg.input_account import import_in_db
 
     category = await create_category(is_product_storage=True)
     valid_item = BaseAccountProcessingResult(valid=True, dir_path=str(tmp_path / "valid_acc"), user=VALID_USER)
@@ -297,7 +297,7 @@ async def test_import_in_db_valid_and_invalid(tmp_path, create_category):
 
 
 async def test_split_unique_and_duplicates_basic():
-    from src.services.products.accounts.tg.input_account import split_unique_and_duplicates
+    from src.application.products.accounts.tg.input_account import split_unique_and_duplicates
 
     user_1 = VALID_USER
     user_2 = copy(VALID_USER)
@@ -319,8 +319,8 @@ async def test_split_unique_and_duplicates_basic():
 
 @pytest.mark.asyncio
 async def test_process_duplicates_calls_make_archive(tmp_path):
-    from src.services.products.accounts.tg import input_account
-    from src.services.products.accounts.tg.input_account import process_inappropriate_acc
+    from src.application.products.accounts.tg import input_account
+    from src.application.products.accounts.tg.input_account import process_inappropriate_acc
 
     items = [SimpleNamespace(dir_path=str(tmp_path / f"dup{i}")) for i in range(2)]
     for item in items:
@@ -337,15 +337,15 @@ async def test_process_duplicates_calls_make_archive(tmp_path):
 
 @pytest.mark.asyncio
 async def test_process_archives_batch_no_archives(tmp_path):
-    from src.services.products.accounts.tg.input_account import process_archives_batch
+    from src.application.products.accounts.tg.input_account import process_archives_batch
     with pytest.raises(ArchiveNotFount):
         await process_archives_batch(str(tmp_path))
 
 
 @pytest.mark.asyncio
 async def test_process_archives_batch_calls_process_single_archive(tmp_path):
-    from src.services.products.accounts.tg import input_account
-    from src.services.products.accounts.tg.input_account import process_archives_batch
+    from src.application.products.accounts.tg import input_account
+    from src.application.products.accounts.tg.input_account import process_archives_batch
 
     archive = tmp_path / "a.zip"
     archive.write_text("")
@@ -364,7 +364,7 @@ async def test_process_archives_batch_calls_process_single_archive(tmp_path):
 
 @pytest.mark.asyncio
 async def test_process_dirs_batch_no_dirs(tmp_path):
-    from src.services.products.accounts.tg.input_account import process_dirs_batch
+    from src.application.products.accounts.tg.input_account import process_dirs_batch
 
     test_dir = (tmp_path / "fake_dir")
     test_dir.mkdir(parents=True)
@@ -375,8 +375,8 @@ async def test_process_dirs_batch_no_dirs(tmp_path):
 
 @pytest.mark.asyncio
 async def test_process_dirs_batch_calls_process_single_dir(tmp_path):
-    from src.services.products.accounts.tg import input_account
-    from src.services.products.accounts.tg.input_account import process_dirs_batch
+    from src.application.products.accounts.tg import input_account
+    from src.application.products.accounts.tg.input_account import process_dirs_batch
 
     test_dir = tmp_path / "test_processing_dir"
     (test_dir / "dir1").mkdir(parents=True)
@@ -396,8 +396,8 @@ async def test_process_dirs_batch_calls_process_single_dir(tmp_path):
 
 @pytest.mark.asyncio
 async def test_process_single_dir_valid(tmp_path):
-    from src.services.products.accounts.tg import input_account
-    from src.services.products.accounts.tg.input_account import process_single_dir
+    from src.application.products.accounts.tg import input_account
+    from src.application.products.accounts.tg.input_account import process_single_dir
 
     (tmp_path / "acc").mkdir()
     user = SimpleNamespace(id=1, phone="123")
@@ -414,8 +414,8 @@ async def test_process_single_dir_valid(tmp_path):
 
 @pytest.mark.asyncio
 async def test_process_single_dir_invalid(tmp_path):
-    from src.services.products.accounts.tg import input_account
-    from src.services.products.accounts.tg.input_account import process_single_dir
+    from src.application.products.accounts.tg import input_account
+    from src.application.products.accounts.tg.input_account import process_single_dir
 
     (tmp_path / "acc").mkdir()
 
@@ -430,8 +430,8 @@ async def test_process_single_dir_invalid(tmp_path):
 
 @pytest.mark.asyncio
 async def test_process_single_archive_valid(tmp_path):
-    from src.services.products.accounts.tg import input_account
-    from src.services.products.accounts.tg.input_account import process_single_archive
+    from src.application.products.accounts.tg import input_account
+    from src.application.products.accounts.tg.input_account import process_single_archive
 
     archive = tmp_path / "a.zip"
     archive.write_text("")
@@ -453,8 +453,8 @@ async def test_process_single_archive_valid(tmp_path):
 
 @pytest.mark.asyncio
 async def test_process_single_archive_invalid(tmp_path):
-    from src.services.products.accounts.tg import input_account
-    from src.services.products.accounts.tg.input_account import process_single_archive
+    from src.application.products.accounts.tg import input_account
+    from src.application.products.accounts.tg.input_account import process_single_archive
 
     archive = tmp_path / "a.zip"
     archive.write_text("")

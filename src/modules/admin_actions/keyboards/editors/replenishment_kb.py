@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.services._database.system.actions.actions import get_all_types_payments
+from src.application._database.system.actions.actions import get_all_types_payments
 from src.utils.i18n import get_text
 
 async def edit_type_payments_list_kb(language: str):

@@ -36,8 +36,8 @@ class TestDifferentPurchase:
         - UniversalStorage.status -> bought;
         - файлы перемещены в финальный путь.
         """
-        from src.services.filesystem.media_paths import create_path_universal_storage
-        from src.services._database.categories.actions.purchases.main_purchase import purchase_universal
+        from src.application.filesystem.media_paths import create_path_universal_storage
+        from src.application._database.categories.actions.purchases.main_purchase import purchase_universal
 
         user = await create_new_user(balance=10_000)
         category = await create_category(price=200)
@@ -140,9 +140,9 @@ class TestDifferentPurchase:
         - UniversalStorage.status возвращён в for_sale
         - баланс пользователя восстановлен
         """
-        from src.services.filesystem.media_paths import create_path_universal_storage
-        from src.services._database.categories.actions.purchases.main_purchase import purchase_universal
-        from src.services._database.categories.actions.purchases.universal import verify as verify_mod
+        from src.application.filesystem.media_paths import create_path_universal_storage
+        from src.application._database.categories.actions.purchases.main_purchase import purchase_universal
+        from src.application._database.categories.actions.purchases.universal import verify as verify_mod
 
         user = await create_new_user(balance=5_000)
         category = await create_category(price=500)
@@ -235,8 +235,8 @@ class TestOnePurchase:
         - UniversalStorage.status -> bought
         - файл реально перемещён в bought
         """
-        from src.services.filesystem.media_paths import create_path_universal_storage
-        from src.services._database.categories.actions.purchases.main_purchase import purchase_universal
+        from src.application.filesystem.media_paths import create_path_universal_storage
+        from src.application._database.categories.actions.purchases.main_purchase import purchase_universal
 
         user = await create_new_user(balance=5_000)
         category = await create_category(
@@ -349,8 +349,8 @@ class TestOnePurchase:
         - UniversalStorage.status -> for_sale
         - баланс пользователя восстановлен
         """
-        from src.services.filesystem.media_paths import create_path_universal_storage
-        from src.services._database.categories.actions.purchases.main_purchase import purchase_universal
+        from src.application.filesystem.media_paths import create_path_universal_storage
+        from src.application._database.categories.actions.purchases.main_purchase import purchase_universal
 
         user = await create_new_user(balance=5_000)
         category = await create_category(

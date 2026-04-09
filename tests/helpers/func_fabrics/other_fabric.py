@@ -12,14 +12,14 @@ from src.database.models.discount import Vouchers, PromoCodes, ActivatedPromoCod
 from src.database.models.referrals import Referrals, IncomeFromReferrals
 from src.database.models.system.models import ReplenishmentService
 from src.models.read_models import UsersDTO
-from src.services._database.referrals.utils import create_unique_referral_code
+from src.application._database.referrals.utils import create_unique_referral_code
 from src.database.models.system import TypePayments
 from src.database.models.system import UiImages, BackupLogs
 from src.database.models.users import Users, Replenishments, NotificationSettings, WalletTransaction, \
     TransferMoneys
 from src.database.models.users import BalanceHolder
 from src.infrastructure.redis import get_redis
-from src.services._redis.filling import filling_all_types_payments, \
+from src.application._redis.filling import filling_all_types_payments, \
     filling_types_payments_by_id
 
 
@@ -288,7 +288,7 @@ async def create_ui_image_factory(key: str = "main_menu", show: bool = True, fil
        сохраняет запись UiImages в БД и возвращает (ui_image, abs_path).
     """
     from src.config import get_config
-    from src.services.filesystem.media_paths import create_path_ui_image
+    from src.application.filesystem.media_paths import create_path_ui_image
     # Подготовим директорию и файл
     conf = get_config()
 

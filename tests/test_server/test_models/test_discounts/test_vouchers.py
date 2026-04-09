@@ -15,7 +15,7 @@ from src.models.read_models.other import UsersDTO
 from src.repository.database.admins import AdminActionsRepository
 from src.repository.database.discount import VoucherActivationsRepository, VouchersRepository
 from src.repository.database.users import UserAuditLogsRepository, UsersRepository, WalletTransactionRepository
-from src.services.models.discounts.vouchers_service import VoucherService
+from src.application.models.discounts.vouchers_service import VoucherService
 
 
 @pytest.fixture()
@@ -26,7 +26,7 @@ def stub_publish_event(monkeypatch):
         calls.append((payload, routing_key))
 
     monkeypatch.setattr("src.infrastructure.rabbit_mq.producer.publish_event", _fake_publish_event)
-    monkeypatch.setattr("src.services.events.publish_event_handler.publish_event", _fake_publish_event)
+    monkeypatch.setattr("src.application.events.publish_event_handler.publish_event", _fake_publish_event)
     return calls
 
 

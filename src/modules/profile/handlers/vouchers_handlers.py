@@ -12,8 +12,8 @@ from src.modules.profile.keyboards import back_in_balance_transfer_kb, replenish
 from src.modules.profile.schemas.transfer_balance import CreateVoucherData
 from src.modules.profile.state.transfer_balance import CreateVoucher
 
-from src.services.bot import Messages
-from src.services.models.modules import ProfileModule
+from src.application.bot import Messages
+from src.application.models.modules import ProfileModule
 from src.utils.i18n import get_text
 
 router = Router()

@@ -4,8 +4,8 @@ from typing import Optional
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from src.models.read_models import SoldUniversalSmall
-from src.services.keyboards.keyboard_with_pages import pagination_keyboard
-from src.services.models.modules import ProfileModule
+from src.application.keyboards.keyboard_with_pages import pagination_keyboard
+from src.application.models.modules import ProfileModule
 from src.utils.i18n import get_text, n_get_text
 
 

@@ -3,8 +3,8 @@ from aiogram.types import CallbackQuery
 
 from src.models.read_models import UsersDTO
 from src.modules.profile.keyboards import wallet_transactions_kb, back_in_wallet_transactions_kb
-from src.services.models.modules import ProfileModule
-from src.services.bot import Messages
+from src.application.models.modules import ProfileModule
+from src.application.bot import Messages
 from src.utils.i18n import get_text
 
 router = Router()

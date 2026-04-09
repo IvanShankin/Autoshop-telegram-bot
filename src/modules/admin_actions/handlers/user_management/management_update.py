@@ -7,8 +7,8 @@ from src.modules.admin_actions.keyboards import back_in_user_management_kb, \
     confirm_remove_ban_kb
 from src.modules.admin_actions.schemas import SetNewBalanceData, IssueBanData
 from src.modules.admin_actions.state import SetNewBalance, IssueBan
-from src.services._database.users.actions import get_user, add_banned_account, delete_banned_account
-from src.services._database.users.actions.action_user import admin_update_user_balance
+from src.application._database.users.actions import get_user, add_banned_account, delete_banned_account
+from src.application._database.users.actions.action_user import admin_update_user_balance
 from src.database.models.users import Users
 from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_text

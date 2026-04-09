@@ -1,0 +1,235 @@
+import asyncio
+import csv
+import io
+import random
+import shutil
+import tempfile
+from pathlib import Path
+from typing import Optional, List, Sequence, Dict
+
+from src.config import get_config
+from src.application.filesystem.actions import _sync_cleanup_used_data, make_archive
+from src.application.products.accounts.other.shemas import REQUIRED_HEADERS, HEADERS_DICT
+from src.application.products.accounts.tg.shemas import CreatedEncryptedArchive, BaseAccountProcessingResult
+from src.utils.core_logger import get_logger
+from src.application.secrets import encrypt_folder, make_account_key, sha256_file, get_crypto_context
+
+
+TXT_FILES = [
+    "example_input_data_1.txt",
+    "example_input_data_2.txt",
+]
+
+
+async def encrypted_tg_account(
+    src_directory: str,
+    dest_encrypted_path: str
+) -> CreatedEncryptedArchive:
+    """
+    Шифрует данные TG аккаунта в указанный путь.
+    Ключ генерируется здесь, путь НЕ генерируется.
+    """
+
+    try:
+        crypto = get_crypto_context()
+        encrypted_key_b64, account_key, nonce = make_account_key(crypto.kek)
+
+        # создаём директорию под файл
+        Path(dest_encrypted_path).parent.mkdir(parents=True, exist_ok=True)
+
+        # шифруем
+        encrypt_folder(
+            folder_path=src_directory,
+            encrypted_path=dest_encrypted_path,
+            dek=account_key
+        )
+
+        # считаем checksum
+        checksum = sha256_file(dest_encrypted_path)
+
+        return CreatedEncryptedArchive(
+            result=True,
+            encrypted_key_b64=encrypted_key_b64,
+            path_encrypted_acc=dest_encrypted_path,
+            encrypted_key_nonce=nonce,
+            checksum=checksum
+        )
+
+    except Exception as e:
+        logger = get_logger(__name__)
+        logger.exception(f"Ошибка при шифровании: {e}")
+        return CreatedEncryptedArchive(result=False)
+
+
+#  безопасная архивирующая функция (не блокирует loop)
+async def archive_if_not_empty(directory: str) -> Optional[str]:
+    dir_path = Path(directory)
+    if not dir_path.exists():
+        return None
+    # проверяем наличие любых элементов
+    if not any(dir_path.iterdir()):
+        return None
+    # вызов blocking make_archive в thread
+    archive_path = await asyncio.to_thread(
+        shutil.make_archive,
+        str(dir_path),  # base_name
+        "zip",
+        str(dir_path)   # root_dir
+    )
+    return archive_path
+
+
+# --- Асинхронная-обёртка (вызывать в async коде) ---
+async def cleanup_used_data(
+    dir_with_archive: Optional[str],
+    archive_path: Optional[str],
+    base_dir: Optional[str],
+    invalid_dir: Optional[str],
+    duplicate_dir: Optional[str],
+    invalid_archive: Optional[str],
+    duplicate_archive: Optional[str],
+    all_items: List[BaseAccountProcessingResult],
+):
+    item_dirs = [getattr(it, "dir_path", None) for it in all_items]
+    await asyncio.to_thread(
+        _sync_cleanup_used_data,
+        dir_with_archive,
+        archive_path,
+        base_dir,
+        invalid_dir,
+        duplicate_dir,
+        invalid_archive,
+        duplicate_archive,
+        item_dirs
+    )
+
+
+def make_csv_bytes(
+    data: Sequence[Dict[str, str]],
+    headers: Sequence[str],
+    *,
+    excel_compatible: bool = True,
+    encoding: str = "utf-8"
+) -> bytes:
+    """
+    Создаёт CSV в памяти и возвращает bytes.
+    По умолчанию делает excel_compatible CSV (delimiter=';' + BOM),
+    чтобы Excel корректно открыл файл в большинстве локалей.
+    """
+    if not data or not headers:
+        raise ValueError("Data is empty")
+
+    # text stream для csv.writer (работаем с текстом)
+    stream = io.StringIO()
+    delimiter = ";" if excel_compatible else ","
+
+    writer = csv.DictWriter(stream, fieldnames=list(headers), delimiter=delimiter, extrasaction="ignore")
+    writer.writeheader()
+    writer.writerows(data)
+
+    text = stream.getvalue()
+
+    # Для Excel лучше отдавать BOM (utf-8-sig)
+    if excel_compatible:
+        return text.encode("utf-8-sig")
+    else:
+        return text.encode(encoding)
+
+
+def generate_example_import_other_acc() -> None:
+    """Создаёт пример CSV-файла для импорта аккаунтов"""
+
+    data = [
+        {
+            "phone": "+79161234567",
+            "login": "ivan.petrov",
+            "password": "Qwerty123!",
+        },
+        {
+            "phone": "+79169876543",
+            "login": "anna.smirnova",
+            "password": "StrongPass#9",
+        },
+        {
+            "phone": "+79005554433",
+            "login": "test.user",
+            "password": "Test1234",
+        },
+    ]
+
+    bytes_csv = make_csv_bytes(
+        data=data,
+        headers=REQUIRED_HEADERS,
+        excel_compatible=True,
+    )
+
+    conf = get_config()
+    path = Path(conf.file_keys.example_csv_for_import_other_acc_key.path)
+
+    path.write_bytes(bytes_csv)
+
+
+async def generate_example_import_tg_acc() -> bool:
+    """
+    Создаёт пример ZIP-архива для импорта аккаунтов
+    Создаёт архив со структурой:
+    ├── archive_1.zip
+    ├── archive_2.zip
+    └── dir/
+        └── tdata/
+            ├── example_input_data_1.txt
+            └── example_input_data_2.txt
+    """
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_path = Path(tmp_dir)
+
+        #  archive_1
+        archive_1_dir = tmp_path / "archive_1" / "tdata"
+        archive_1_dir.mkdir(parents=True)
+
+        for name in TXT_FILES:
+            (archive_1_dir / name).touch()
+
+        archive_1_zip = tmp_path / "archive_1.zip"
+        ok = await make_archive(
+            data_for_archiving=str(tmp_path / "archive_1"),
+            new_path_archive=str(archive_1_zip),
+        )
+        if not ok:
+            return False
+
+        #  archive_2
+        archive_2_dir = tmp_path / "archive_2" / "tdata"
+        archive_2_dir.mkdir(parents=True)
+
+        for name in TXT_FILES:
+            (archive_2_dir / name).touch()
+
+        archive_2_zip = tmp_path / "archive_2.zip"
+        ok = await make_archive(
+            data_for_archiving=str(tmp_path / "archive_2"),
+            new_path_archive=str(archive_2_zip),
+        )
+        if not ok:
+            return False
+
+        #  dir (НЕ архивируется отдельно)
+        dir_tdata = tmp_path / "dir" / "tdata"
+        dir_tdata.mkdir(parents=True)
+
+        for name in TXT_FILES:
+            (dir_tdata / name).touch()
+
+        conf = get_config()
+        #  финальный архив
+        ok = await make_archive(
+            data_for_archiving=[
+                str(archive_1_zip),
+                str(archive_2_zip),
+                str(tmp_path / "dir"),
+            ],
+            new_path_archive=conf.file_keys.example_zip_for_import_tg_acc_key.path,
+        )
+        return ok
+
+

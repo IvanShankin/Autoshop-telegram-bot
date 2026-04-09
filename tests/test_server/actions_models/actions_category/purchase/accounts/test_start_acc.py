@@ -32,7 +32,7 @@ class TestStartPurchaseRequest:
         - AccountStorage.status -> 'reserved' для задействованных аккаунтов
         - возвращаемый StartPurchaseAccount содержит согласованные поля
         """
-        from src.services._database.categories.actions.purchases.main_purchase import start_purchase_account
+        from src.application._database.categories.actions.purchases.main_purchase import start_purchase_account
         # подготовка
         user = await create_new_user(balance=10_000)
         full_category = await create_category(price=100)
@@ -133,7 +133,7 @@ class TestStartPurchaseRequest:
         - создаётся PurchaseRequests с промокодом
         - баланс списывается с учётом скидки
         """
-        from src.services._database.categories.actions.purchases.main_purchase import start_purchase_account
+        from src.application._database.categories.actions.purchases.main_purchase import start_purchase_account
 
         # подготовка данных
         user = await create_new_user(balance=10_000)
@@ -183,7 +183,7 @@ class TestStartPurchaseRequest:
         """
         Если в категории меньше аккаунтов, чем требуется — возникает NotEnoughAccounts.
         """
-        from src.services._database.categories.actions.purchases.main_purchase import start_purchase_account
+        from src.application._database.categories.actions.purchases.main_purchase import start_purchase_account
         user = await create_new_user(balance=10000)
         full_category = await create_category()
         category_id = full_category.category_id
@@ -211,7 +211,7 @@ class TestStartPurchaseRequest:
         """
         Если у пользователя не хватает денег — возникает NotEnoughMoney.
         """
-        from src.services._database.categories.actions.purchases.main_purchase import start_purchase_account
+        from src.application._database.categories.actions.purchases.main_purchase import start_purchase_account
         user = await create_new_user(balance=10)  # маленький баланс
         full_category = await create_category(price=1000)
         category_id = full_category.category_id

@@ -5,8 +5,8 @@ from src.infrastructure.telegram.bot_instance import get_bot
 from src.modules.profile.keyboards import ref_system_kb, accrual_ref_list_kb, back_in_ref_system_kb
 from src.modules.profile.services.profile_message import message_income_ref, message_ref_system
 from src.database.models.users import Users
-from src.services.bot import Messages
-from src.services.models.modules import ProfileModule
+from src.application.bot import Messages
+from src.application.models.modules import ProfileModule
 from src.utils.i18n import get_text
 
 router_with_repl_kb = Router()

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from src.services.secrets.loader import get_secret
+from src.application.secrets.loader import get_secret
 
 
 class SecretSettings(BaseModel):

@@ -1,13 +1,13 @@
 import pytest
 
 from src.database.models.categories import AccountServiceType
-from src.services._redis.filling import filling_category_by_category
+from src.application._redis.filling import filling_category_by_category
 
 
 
 @pytest.mark.asyncio
 async def test_get_quantity_products_in_category(create_category, create_product_account):
-    from src.services._database.categories.actions import get_quantity_products_in_category
+    from src.application._database.categories.actions import get_quantity_products_in_category
     category = await create_category()
 
     for i in range(5):
@@ -21,7 +21,7 @@ async def test_get_quantity_products_in_category(create_category, create_product
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_category_by_category_id(use_redis, create_category, create_product_account):
-    from src.services._database.categories.actions import get_category_by_category_id
+    from src.application._database.categories.actions import get_category_by_category_id
 
     category_1 = await create_category(filling_redis=use_redis)
     category_other = await create_category(filling_redis=use_redis)
@@ -37,7 +37,7 @@ async def test_get_category_by_category_id(use_redis, create_category, create_pr
 
 @pytest.mark.asyncio
 async def test_get_all_phone_in_account_storage(create_product_account, create_sold_account):
-    from src.services._database.categories.actions import get_all_phone_in_account_storage
+    from src.application._database.categories.actions import get_all_phone_in_account_storage
 
     _, account_1 = await create_product_account(type_account_service=AccountServiceType.TELEGRAM)
     account_2, _ = await create_sold_account(type_account_service=AccountServiceType.TELEGRAM, phone_number = "+7 32949 543543")
@@ -52,7 +52,7 @@ async def test_get_all_phone_in_account_storage(create_product_account, create_s
 @pytest.mark.asyncio
 @pytest.mark.parametrize('use_redis', (True, False))
 async def test_get_categories(use_redis, create_category, create_product_account):
-    from src.services._database.categories.actions import get_categories
+    from src.application._database.categories.actions import get_categories
 
     category_owner = await create_category(filling_redis=use_redis)
     category_3 = await create_category(
@@ -99,7 +99,7 @@ async def test_subtree_with_visible_storage_returns_true(create_category, create
     grand.is_product_storage=True и в grand есть аккаунт
     все show=True -> root/child/grand => True
     """
-    from src.services._database.categories.actions.actions_get import _has_accounts_in_subtree
+    from src.application._database.categories.actions.actions_get import _has_accounts_in_subtree
     # создаём дерево
     root = await create_category()
     child = await create_category(parent_id=root.category_id)
@@ -127,7 +127,7 @@ async def test_subtree_blocked_by_hidden_node(create_category, create_product_ac
     root -> child (show=False) -> grand(is_product_storage=True, has account)
     child.show == False => child и root должны вернуть False, grand True
     """
-    from src.services._database.categories.actions.actions_get import _has_accounts_in_subtree
+    from src.application._database.categories.actions.actions_get import _has_accounts_in_subtree
     root = await create_category()
     # child скрыт
     child = await create_category(parent_id=root.category_id, show=False)
@@ -155,7 +155,7 @@ async def test_subtree_wide_siblings_only_one_branch_has_accounts(create_categor
     child_2 -> grand_target(is_product_storage=True, has account)
     Ожидаем: root True; child_2 True; другие child False
     """
-    from src.services._database.categories.actions.actions_get import _has_accounts_in_subtree
+    from src.application._database.categories.actions.actions_get import _has_accounts_in_subtree
     root = await create_category()
     children = []
     for _i in range(5):
@@ -186,7 +186,7 @@ async def test_subtree_wide_siblings_only_one_branch_has_accounts(create_categor
 
 @pytest.mark.asyncio
 async def test_update_tg_account_media(create_tg_account_media):
-    from src.services._database.categories.actions import get_tg_account_media
+    from src.application._database.categories.actions import get_tg_account_media
 
     tg_media = await create_tg_account_media()
     result_tg_media = await get_tg_account_media(tg_media.account_storage_id)

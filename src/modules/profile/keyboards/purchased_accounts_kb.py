@@ -5,8 +5,8 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.database.models.categories import ProductType, AccountServiceType
-from src.services.keyboards.keyboard_with_pages import pagination_keyboard
-from src.services.models.modules import ProfileModule
+from src.application.keyboards.keyboard_with_pages import pagination_keyboard
+from src.application.models.modules import ProfileModule
 from src.utils.i18n import get_text, n_get_text
 from src.utils.pars_number import e164_to_pretty
 

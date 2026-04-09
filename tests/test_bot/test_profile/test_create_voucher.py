@@ -153,7 +153,7 @@ async def test_confirm_create_voucher_success(
     """
     from src.modules.profile.handlers.vouchers_handlers import confirm_create_voucher
     from tests.helpers.fake_aiogram.fake_aiogram_module import FakeCallbackQuery
-    from src.services._database.discounts.actions import get_valid_voucher_by_page
+    from src.application._database.discounts.actions import get_valid_voucher_by_page
 
     fake_bot = replacement_fake_bot_fix
     bot_me = await fake_bot.me()

@@ -6,8 +6,8 @@ from src.bot_actions.messages import edit_message, send_message
 from src.exceptions import UserNotFound, UnableRemoveMainAdmin, AdminNotFound
 from src.modules.admin_actions.keyboards import back_in_admin_settings_kb
 from src.modules.admin_actions.state.settings import AddAdmin, DeleteAdmin
-from src.services._database.admins.actions import create_admin
-from src.services._database.admins.actions.actions_admin import delete_admin
+from src.application._database.admins.actions import create_admin
+from src.application._database.admins.actions.actions_admin import delete_admin
 from src.database.models.users import Users
 from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_text

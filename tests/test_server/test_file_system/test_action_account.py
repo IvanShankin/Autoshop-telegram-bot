@@ -8,9 +8,9 @@ from unittest.mock import AsyncMock
 from src.config import get_config
 from src.database.models.categories import AccountStorage, ProductAccounts, StorageStatus
 from src.database.models.categories import AccountServiceType
-from src.services.filesystem.account_products import generate_example_import_other_acc, generate_example_import_tg_acc
-from src.services.filesystem.media_paths import create_path_account
-from src.services.secrets import get_crypto_context
+from src.application.filesystem.account_products import generate_example_import_other_acc, generate_example_import_tg_acc
+from src.application.filesystem.media_paths import create_path_account
+from src.application.secrets import get_crypto_context
 
 
 # импортируем тестируемые функции
@@ -30,7 +30,7 @@ def create_test_directory(base: Path) -> Path:
 
 
 def test_move_file_sync_success(tmp_path):
-    from src.services.filesystem.actions import move_file_sync
+    from src.application.filesystem.actions import move_file_sync
     src = tmp_path / "file.txt"
     dst = tmp_path / "dest" / "file.txt"
     src.write_text("data")
@@ -43,7 +43,7 @@ def test_move_file_sync_success(tmp_path):
 
 
 def test_move_file_sync_not_found(tmp_path):
-    from src.services.filesystem.actions import move_file_sync
+    from src.application.filesystem.actions import move_file_sync
     src = tmp_path / "no_file.txt"
     dst = tmp_path / "dest" / "file.txt"
     result = move_file_sync(str(src), str(dst))
@@ -52,7 +52,7 @@ def test_move_file_sync_not_found(tmp_path):
 
 @pytest.mark.asyncio
 async def test_move_file_async(tmp_path):
-    from src.services.filesystem.actions import move_file
+    from src.application.filesystem.actions import move_file
     src = tmp_path / "src.txt"
     dst = tmp_path / "dst" / "src.txt"
     src.write_text("abc")
@@ -64,7 +64,7 @@ async def test_move_file_async(tmp_path):
 
 
 def test_rename_sync_success(tmp_path):
-    from src.services.filesystem.account_actions import rename_sync
+    from src.application.filesystem.account_actions import rename_sync
     src = tmp_path / "a.txt"
     dst = tmp_path / "b.txt"
     src.write_text("x")
@@ -78,7 +78,7 @@ def test_rename_sync_success(tmp_path):
 
 @pytest.mark.asyncio
 async def test_rename_file_async(tmp_path):
-    from src.services.filesystem.account_actions import rename_file
+    from src.application.filesystem.account_actions import rename_file
     src = tmp_path / "a.txt"
     dst = tmp_path / "b.txt"
     src.write_text("y")
@@ -91,7 +91,7 @@ async def test_rename_file_async(tmp_path):
 
 
 def test_create_path_account_builds_correct_path(monkeypatch):
-    from src.services.filesystem.media_paths import create_path_account
+    from src.application.filesystem.media_paths import create_path_account
 
     conf = get_config()
     result = create_path_account(StorageStatus.BOUGHT,  AccountServiceType.TELEGRAM, "1234")
@@ -102,7 +102,7 @@ def test_create_path_account_builds_correct_path(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_move_in_account_success(monkeypatch, create_product_account, create_account_storage):
-    from src.services.filesystem.account_actions import move_in_account
+    from src.application.filesystem.account_actions import move_in_account
 
     storage = await create_account_storage()
     _, product = await create_product_account(account_storage_id=storage.account_storage_id)
@@ -129,10 +129,10 @@ async def test_move_in_account_success(monkeypatch, create_product_account, crea
 
 @pytest.mark.asyncio
 async def test_move_in_account_fail(monkeypatch, create_account_storage):
-    from src.services.filesystem.account_actions import move_in_account
+    from src.application.filesystem.account_actions import move_in_account
     # имитируем ошибку при move_file
     fake_move = AsyncMock(return_value=False)
-    from src.services.filesystem import account_actions
+    from src.application.filesystem import account_actions
     monkeypatch.setattr(account_actions, "move_file", fake_move)
 
     storage = await create_account_storage()
@@ -143,8 +143,8 @@ async def test_move_in_account_fail(monkeypatch, create_account_storage):
 
 
 async def test_decryption_tg_account_calls_correct(monkeypatch, create_account_storage):
-    from src.services.filesystem.account_actions import decryption_tg_account
-    from src.services.filesystem import account_actions
+    from src.application.filesystem.account_actions import decryption_tg_account
+    from src.application.filesystem import account_actions
 
     crypto = get_crypto_context()
     acc_storage = await create_account_storage()
@@ -162,8 +162,8 @@ async def test_encrypt_decrypt_directory_roundtrip(create_account_storage):
     Полный round-trip:
     directory -> encrypt -> decrypt -> directory
     """
-    from src.services.filesystem.account_products import encrypted_tg_account
-    from src.services.filesystem.account_actions import decryption_tg_account
+    from src.application.filesystem.account_products import encrypted_tg_account
+    from src.application.filesystem.account_actions import decryption_tg_account
 
     storage = await create_account_storage()
     encrypted_file = create_path_account(
@@ -208,7 +208,7 @@ async def test_get_tdata_tg_acc_creates_archive(tmp_path, monkeypatch):
     """
     Интеграционный тест: функция должна создать zip архив из tdata.
     """
-    from src.services.filesystem.account_actions import get_tdata_tg_acc
+    from src.application.filesystem.account_actions import get_tdata_tg_acc
     # создаём фейковую структуру папки, будто она "расшифрована"
     folder_path = tmp_path / "decrypted"
     tdata_dir = folder_path / "tdata"
@@ -216,7 +216,7 @@ async def test_get_tdata_tg_acc_creates_archive(tmp_path, monkeypatch):
     (tdata_dir / "data.txt").write_text("hello")
 
     # переопределяем decryption_tg_account, чтобы вернуть этот путь
-    from src.services.filesystem import account_actions
+    from src.application.filesystem import account_actions
     monkeypatch.setattr(account_actions, "decryption_tg_account", lambda account, kek, status: folder_path)
 
     # создаём объект AccountStorage
@@ -243,11 +243,11 @@ async def test_get_tdata_tg_acc_handles_missing_tdata(tmp_path, monkeypatch):
     """
     Если папки tdata нет — должно вернуть False.
     """
-    from src.services.filesystem.account_actions import get_tdata_tg_acc
+    from src.application.filesystem.account_actions import get_tdata_tg_acc
     folder_path = tmp_path / "decrypted"
     folder_path.mkdir()
 
-    from src.services.filesystem import account_actions
+    from src.application.filesystem import account_actions
     monkeypatch.setattr(account_actions, "decryption_tg_account", lambda account, kek: folder_path)
 
     acc = AccountStorage(account_storage_id=2)
@@ -262,12 +262,12 @@ async def test_get_session_tg_acc_reads_existing_file(tmp_path, monkeypatch):
     """
     Проверяем, что get_session_tg_acc возвращает путь к session.session.
     """
-    from src.services.filesystem.account_actions import get_session_tg_acc
+    from src.application.filesystem.account_actions import get_session_tg_acc
     folder_path = tmp_path / "decrypted"
     folder_path.mkdir()
     (folder_path / "session.session").write_text("data")
 
-    from src.services.filesystem import account_actions
+    from src.application.filesystem import account_actions
     monkeypatch.setattr(account_actions, "decryption_tg_account", lambda account, kek, status: folder_path)
 
     acc = AccountStorage(account_storage_id=3)
@@ -283,11 +283,11 @@ async def test_get_session_tg_acc_missing_file(tmp_path, monkeypatch):
     """
     Если session.session отсутствует — возвращает False.
     """
-    from src.services.filesystem.account_actions import get_session_tg_acc
+    from src.application.filesystem.account_actions import get_session_tg_acc
     folder_path = tmp_path / "decrypted"
     folder_path.mkdir()
 
-    from src.services.filesystem import account_actions
+    from src.application.filesystem import account_actions
     monkeypatch.setattr(account_actions, "decryption_tg_account", lambda account, kek: folder_path)
 
     acc = AccountStorage(account_storage_id=4)

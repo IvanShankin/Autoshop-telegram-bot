@@ -3,7 +3,7 @@ import base64
 import pytest
 from pathlib import Path
 
-from src.services.secrets import encrypt_text, decrypt_text, gen_key, encrypt_bytes, \
+from src.application.secrets import encrypt_text, decrypt_text, gen_key, encrypt_bytes, \
     decrypt_bytes, \
     decrypt_file_to_bytes, encrypt_folder, decrypt_folder, get_crypto_context, unwrap_dek
 

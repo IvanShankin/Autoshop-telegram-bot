@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy import select
 
-from src.services._database.backups.backup_db import cleanup_old_backups
+from src.application._database.backups.backup_db import cleanup_old_backups
 from src.database import get_db
 from src.database.models.system import BackupLogs
 

@@ -11,7 +11,7 @@ from src.modules.admin_actions.keyboards.editors.category_kb import in_category_
 from src.modules.admin_actions.schemas import GetDataForCategoryData
 from src.modules.admin_actions.services import safe_get_category, set_state_create_category, name_input_prompt_by_language
 from src.modules.admin_actions.state import GetDataForCategory
-from src.services._database.categories.actions import add_category, add_translation_in_category
+from src.application._database.categories.actions import add_category, add_translation_in_category
 from src.database.models.users import Users
 from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_text

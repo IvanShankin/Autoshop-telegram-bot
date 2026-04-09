@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.config import get_config
-from src.services._database.categories.actions import get_categories
+from src.application._database.categories.actions import get_categories
 from src.models.read_models import CategoryFull
 from src.database.models.categories import ProductType, Categories, UniversalMediaType, AccountServiceType
 from src.utils.i18n import get_text

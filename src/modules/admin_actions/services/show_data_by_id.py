@@ -6,19 +6,19 @@ from src.config import get_config
 from src.modules.admin_actions.keyboards.show_data_kb import back_in_show_data_by_id_kb, get_data_universal_product
 from src.modules.admin_actions.state.show_data_by_id import ShowDataById
 from src.modules.profile.keyboards import login_details_kb
-from src.services._database.categories.actions.products.universal.actions_get import get_sold_universal_by_universal_id
+from src.application._database.categories.actions.products.universal.actions_get import get_sold_universal_by_universal_id
 from src.database.models.categories import ProductType, UniversalMediaType, StorageStatus, AccountServiceType
-from src.services._database.discounts.actions import get_voucher_by_id, get_promo_code
-from src.services._database.discounts.actions.actions_promo import get_activated_promo_code
-from src.services._database.discounts.actions.actions_vouchers import get_activate_voucher
-from src.services._database.referrals.actions.actions_ref import get_referral, get_income_from_referral
-from src.services._database.categories.actions import get_purchases, get_sold_accounts_by_account_id
-from src.services._database.users.actions import get_replenishment
-from src.services._database.users.actions.action_other_with_user import get_transfer_money, get_wallet_transaction
+from src.application._database.discounts.actions import get_voucher_by_id, get_promo_code
+from src.application._database.discounts.actions.actions_promo import get_activated_promo_code
+from src.application._database.discounts.actions.actions_vouchers import get_activate_voucher
+from src.application._database.referrals.actions.actions_ref import get_referral, get_income_from_referral
+from src.application._database.categories.actions import get_purchases, get_sold_accounts_by_account_id
+from src.application._database.users.actions import get_replenishment
+from src.application._database.users.actions.action_other_with_user import get_transfer_money, get_wallet_transaction
 from src.database.models.users import Users
 from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_text
-from src.services.secrets import decrypt_text, get_crypto_context, unwrap_dek
+from src.application.secrets import decrypt_text, get_crypto_context, unwrap_dek
 
 
 async def show_data_by_id_handler(state: str, message_text: str, user: Users, current_page: int):

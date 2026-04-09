@@ -1,7 +1,7 @@
 import orjson
 import pytest
 
-from src.services._redis.filling import filling_voucher_by_user_id, filling_types_payments_by_id, \
+from src.application._redis.filling import filling_voucher_by_user_id, filling_types_payments_by_id, \
     filling_all_types_payments, filling_user, filling_vouchers, filling_promo_code, \
     filling_banned_accounts, filling_admins
 from tests.helpers.helper_functions import comparison_models

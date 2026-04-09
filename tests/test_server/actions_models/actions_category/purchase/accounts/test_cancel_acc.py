@@ -32,7 +32,7 @@ class TestCancelPurchase:
         - AccountStorage.status -> 'for_sale';
         - ProductAccounts строки восстановлены (если их удалить заранее).
         """
-        from src.services._database.categories.actions.purchases.accounts.cancel import cancel_purchase_request_accounts
+        from src.application._database.categories.actions.purchases.accounts.cancel import cancel_purchase_request_accounts
 
         # подготовка: пользователь
         user = await create_new_user(balance=100)
@@ -138,7 +138,7 @@ class TestCancelPurchase:
         - SoldAccounts и Purchases удаляются при передаче sold_account_ids
         - остальные восстановительные операции тоже выполняются
         """
-        from src.services._database.categories.actions.purchases.accounts.cancel import cancel_purchase_request_accounts
+        from src.application._database.categories.actions.purchases.accounts.cancel import cancel_purchase_request_accounts
 
         user = await create_new_user(balance=200)
         cat = await create_category()

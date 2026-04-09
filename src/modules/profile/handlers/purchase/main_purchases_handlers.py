@@ -3,8 +3,8 @@ from aiogram.types import CallbackQuery
 
 from src.models.read_models import UsersDTO
 from src.modules.profile.keyboards import type_product_in_purchases_kb
-from src.services.bot import Messages
-from src.services.models.modules import ProfileModule
+from src.application.bot import Messages
+from src.application.models.modules import ProfileModule
 
 router = Router()
 

@@ -4,7 +4,7 @@ from src.exceptions import TranslationAlreadyExists
 from src.exceptions.domain import UniversalStorageNotFound
 from src.models.create_models.universal import CreateUniversalTranslationDTO
 from src.models.update_models.universal import UpdateUniversalTranslationDTO
-from src.services.secrets import encrypt_text, get_crypto_context, make_account_key
+from src.application.secrets import encrypt_text, get_crypto_context, make_account_key
 
 
 def _encrypt_description() -> tuple[str, str]:

@@ -11,7 +11,7 @@ from src.database.models.categories import AccountServiceType
 class TestCheckValidAccounts:
     @pytest.mark.asyncio
     async def test_check_valid_accounts_success(self, monkeypatch, tmp_path):
-        from src.services.products.accounts.tg.actions import check_valid_accounts_telethon
+        from src.application.products.accounts.tg.actions import check_valid_accounts_telethon
         tdata_path = tmp_path / "tdata"
         os.makedirs(tdata_path, exist_ok=True)
 
@@ -23,7 +23,7 @@ class TestCheckValidAccounts:
         fake_tdesk = MagicMock()
         fake_tdesk.ToTelethon = AsyncMock(return_value=fake_client)
 
-        from src.services.products.accounts.tg import actions
+        from src.application.products.accounts.tg import actions
         monkeypatch.setattr(actions, "TDesktop", lambda path: fake_tdesk)
 
         res = bool(await check_valid_accounts_telethon(str(tmp_path)))
@@ -32,9 +32,9 @@ class TestCheckValidAccounts:
 
     @pytest.mark.asyncio
     async def test_check_valid_accounts_fail(self, monkeypatch, tmp_path):
-        from src.services.products.accounts.tg.actions import check_valid_accounts_telethon
+        from src.application.products.accounts.tg.actions import check_valid_accounts_telethon
         # выкидываем ошибку при инициализации
-        from src.services.products.accounts.tg import actions
+        from src.application.products.accounts.tg import actions
         monkeypatch.setattr(actions, "TDesktop", lambda path: (_ for _ in ()).throw(Exception("bad")))
 
         res = bool(await check_valid_accounts_telethon(str(tmp_path)))
@@ -47,7 +47,7 @@ async def test_check_account_validity_true(tmp_path, monkeypatch):
     """
     Проверяем связку дешифровки и проверки аккаунта: возвращает True.
     """
-    from src.services.products.accounts.tg.actions import check_account_validity
+    from src.application.products.accounts.tg.actions import check_account_validity
     folder_path = tmp_path / "decrypted"
     (folder_path / "tdata").mkdir(parents=True)
     (folder_path / "session.session").write_text("abc")
@@ -64,7 +64,7 @@ async def test_check_account_validity_true(tmp_path, monkeypatch):
     class FakeTDesktop:
         async def ToTelethon(self, *a, **kw): return FakeClient()
 
-    from src.services.products.accounts.tg import actions
+    from src.application.products.accounts.tg import actions
     monkeypatch.setattr(actions, "decryption_tg_account", lambda account, crypto, status: folder_path)
     monkeypatch.setattr(actions, "TDesktop", lambda path: FakeTDesktop())
 
@@ -78,7 +78,7 @@ async def test_check_account_validity_false(tmp_path, monkeypatch):
     """
     Проверка возвращает False, если Telethon возвращает None.id.
     """
-    from src.services.products.accounts.tg.actions import check_account_validity
+    from src.application.products.accounts.tg.actions import check_account_validity
     folder_path = tmp_path / "decrypted"
     (folder_path / "tdata").mkdir(parents=True)
     (folder_path / "session.session").write_text("abc")
@@ -94,7 +94,7 @@ async def test_check_account_validity_false(tmp_path, monkeypatch):
     class FakeTDesktop:
         async def ToTelethon(self, *a, **kw): return FakeClient()
 
-    from src.services.products.accounts.tg import actions
+    from src.application.products.accounts.tg import actions
     monkeypatch.setattr(actions, "decryption_tg_account", lambda account, crypto: folder_path)
     monkeypatch.setattr(actions, "TDesktop", lambda path: FakeTDesktop())
 
@@ -108,13 +108,13 @@ async def test_get_auth_codes_reads_codes(tmp_path, monkeypatch):
     """
     Интеграционный тест get_auth_codes — извлекает коды из сообщений.
     """
-    from src.services.products.accounts.tg.actions import get_auth_codes
+    from src.application.products.accounts.tg.actions import get_auth_codes
     folder_path = tmp_path / "dec"
     (folder_path / "tdata").mkdir(parents=True)
     (folder_path / "session.session").write_text("abc")
 
     # подменяем decryption_tg_account, чтобы вернуть нашу папку
-    from src.services.products.accounts.tg import actions
+    from src.application.products.accounts.tg import actions
     monkeypatch.setattr(actions, "decryption_tg_account", lambda account, crypto, status: folder_path)
 
     fake_msg1 = type("Msg", (), {"message": "Your code: 12345", "date": datetime.now(timezone.utc)})

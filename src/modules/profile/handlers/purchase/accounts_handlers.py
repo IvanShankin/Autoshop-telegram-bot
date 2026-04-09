@@ -8,11 +8,11 @@ from src.modules.profile.keyboards import confirm_del_acc_kb, login_details_kb
 from src.modules.profile.services.purchases_accounts import show_all_sold_account, show_sold_account, get_file_for_login, \
     check_sold_account, show_types_services_sold_account
 from src.database.models.categories import AccountStorage, StorageStatus
-from src.services.bot import Messages
-from src.services.filesystem.account_actions import move_in_account, get_tdata_tg_acc, get_session_tg_acc
-from src.services.models.modules import ProfileModule
-from src.services.products.accounts.tg.actions import get_auth_codes, check_account_validity
-from src.services.secrets import decrypt_text, get_crypto_context, unwrap_dek
+from src.application.bot import Messages
+from src.application.filesystem.account_actions import move_in_account, get_tdata_tg_acc, get_session_tg_acc
+from src.application.models.modules import ProfileModule
+from src.application.products.accounts.tg.actions import get_auth_codes, check_account_validity
+from src.application.secrets import decrypt_text, get_crypto_context, unwrap_dek
 from src.utils.i18n import get_text
 from src.utils.pars_number import e164_to_pretty
 

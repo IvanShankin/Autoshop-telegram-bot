@@ -5,7 +5,7 @@ from sqlalchemy import delete, select
 from tests.helpers.helper_functions import parse_redis_user, comparison_models
 from src.exceptions import UserNotFound, NotEnoughMoney
 from src.database.models.admins import AdminActions
-from src.services._database.users.actions.action_user import get_user_by_ref_code
+from src.application._database.users.actions.action_user import get_user_by_ref_code
 from src.database.models.users import Users, NotificationSettings, BannedAccounts, WalletTransaction, \
     TransferMoneys, \
     UserAuditLogs, Replenishments
@@ -17,7 +17,7 @@ from src.infrastructure.redis import get_redis
 @pytest.mark.asyncio
 async def test_add_banned_account_creates_ban_and_log(replacement_fake_bot_fix, create_new_user):
     """Проверяем, что при добавлении бана создаётся запись в БД, Redis и лог"""
-    from src.services._database.users.actions import add_banned_account
+    from src.application._database.users.actions import add_banned_account
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
@@ -46,7 +46,7 @@ async def test_add_banned_account_creates_ban_and_log(replacement_fake_bot_fix, 
 @pytest.mark.asyncio
 async def test_add_banned_account_user_not_found(replacement_fake_bot_fix):
     """Если пользователя нет — должно выбрасываться исключение UserNotFound"""
-    from src.services._database.users.actions import add_banned_account
+    from src.application._database.users.actions import add_banned_account
     with pytest.raises(UserNotFound):
         await add_banned_account(1, 999999, "reason")
 
@@ -54,8 +54,8 @@ async def test_add_banned_account_user_not_found(replacement_fake_bot_fix):
 @pytest.mark.asyncio
 async def test_delete_banned_account_removes_data(replacement_fake_bot_fix, create_new_user):
     """Проверяет, что при удалении бана — Redis очищается, запись удаляется, лог пишется"""
-    from src.services._database.users.actions import add_banned_account
-    from src.services._database.users.actions import delete_banned_account
+    from src.application._database.users.actions import add_banned_account
+    from src.application._database.users.actions import delete_banned_account
 
     fake_bot = replacement_fake_bot_fix
     user = await create_new_user()
@@ -81,7 +81,7 @@ async def test_delete_banned_account_removes_data(replacement_fake_bot_fix, crea
 @pytest.mark.asyncio
 async def test_delete_banned_account_not_found(replacement_fake_bot_fix):
     """Если в Redis нет ключа — должно выбрасываться UserNotFound"""
-    from src.services._database.users.actions import delete_banned_account
+    from src.application._database.users.actions import delete_banned_account
     with pytest.raises(UserNotFound):
         await delete_banned_account(1, 999999)
 
@@ -89,7 +89,7 @@ async def test_delete_banned_account_not_found(replacement_fake_bot_fix):
 
 @pytest.mark.asyncio
 async def test_get_income_from_referral(replacement_fake_bot_fix, create_new_user, create_wallet_transaction):
-    from src.services._database.users.actions import get_count_wallet_transaction
+    from src.application._database.users.actions import get_count_wallet_transaction
 
     user = await create_new_user()
     transaction_1 = await create_wallet_transaction(user.user_id, amount=100)
@@ -102,7 +102,7 @@ async def test_get_income_from_referral(replacement_fake_bot_fix, create_new_use
 
 @pytest.mark.asyncio
 async def test_admin_update_user_balance(replacement_fake_bot_fix, create_new_user, create_admin_fix):
-    from src.services._database.users.actions import admin_update_user_balance
+    from src.application._database.users.actions import admin_update_user_balance
     user = await create_new_user()
     admin = await create_admin_fix()
 

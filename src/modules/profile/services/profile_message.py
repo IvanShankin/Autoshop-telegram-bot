@@ -2,8 +2,8 @@ from src.infrastructure.telegram.bot_instance import get_bot
 from src.models.read_models import UsersDTO
 from src.models.read_models.other import IncomeFromReferralsDTO
 from src.modules.profile.keyboards import back_in_accrual_ref_list_kb
-from src.services.bot import Messages
-from src.services.models.modules import ProfileModule
+from src.application.bot import Messages
+from src.application.models.modules import ProfileModule
 from src.utils.i18n import get_text
 
 

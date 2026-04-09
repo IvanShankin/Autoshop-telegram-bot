@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 import pytest
 
-from src.services.filesystem.media_paths import create_path_ui_image
+from src.application.filesystem.media_paths import create_path_ui_image
 
 
 class TestSendMessage:

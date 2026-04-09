@@ -8,8 +8,8 @@ from src.modules.profile.services.checking_data import checking_correctness_numb
 from src.modules.profile.keyboards import type_replenishment_kb, back_in_type_replenishment_kb, payment_invoice
 from src.modules.profile.schemas.replenishment import GetAmountData
 from src.modules.profile.state.replenishment import GetAmount
-from src.services.bot import Messages
-from src.services.models.modules import ProfileModule
+from src.application.bot import Messages
+from src.application.models.modules import ProfileModule
 from src.utils.i18n import get_text, n_get_text
 
 router_with_repl_kb = Router()

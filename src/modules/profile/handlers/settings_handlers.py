@@ -5,8 +5,8 @@ from src.models.read_models.other import NotificationSettingsDTO, UsersDTO
 from src.models.update_models import UpdateUserDTO, UpdateNotificationSettingDTO
 from src.modules.profile.keyboards import profile_settings_kb, settings_language_kb, \
     setting_notification_kb
-from src.services.bot import Messages
-from src.services.models.modules import ProfileModule
+from src.application.bot import Messages
+from src.application.models.modules import ProfileModule
 from src.utils.i18n import get_text
 
 router = Router()

@@ -5,7 +5,7 @@ from src.infrastructure.rabbit_mq.consumer import RabbitMQConsumer
 from src.infrastructure.redis import init_redis, close_redis
 from src.infrastructure.telegram.bot_instance import get_bot_logger, get_bot
 from src.infrastructure.telegram.client import TelegramClient
-from src.services.secrets import init_crypto_context
+from src.application.secrets import init_crypto_context
 from src.utils.core_logger import setup_logging
 
 

@@ -35,7 +35,7 @@ class TestCancelPurchaseUniversalDifferent:
         - UniversalStorage.status -> FOR_SALE;
         - ProductUniversal строка восстановлена, если её удалить заранее.
         """
-        from src.services._database.categories.actions.purchases.universal.cancel import (
+        from src.application._database.categories.actions.purchases.universal.cancel import (
             cancel_purchase_universal_different,
         )
 
@@ -145,7 +145,7 @@ class TestCancelPurchaseUniversalDifferent:
         - SoldUniversal и Purchases удаляются, если переданы их id;
         - остальные восстановительные операции выполняются.
         """
-        from src.services._database.categories.actions.purchases.universal.cancel import (
+        from src.application._database.categories.actions.purchases.universal.cancel import (
             cancel_purchase_universal_different,
         )
 

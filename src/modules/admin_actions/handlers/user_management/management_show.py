@@ -6,8 +6,8 @@ from src.bot_actions.messages import edit_message, send_message
 from src.modules.admin_actions.keyboards import back_in_main_admin_kb
 from src.modules.admin_actions.services import message_about_user
 from src.modules.admin_actions.state import GetUserIdOrUsername
-from src.services._database.users.actions import get_user
-from src.services._database.users.actions.action_user import get_user_by_username
+from src.application._database.users.actions import get_user
+from src.application._database.users.actions.action_user import get_user_by_username
 from src.database.models.users import Users
 from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_text

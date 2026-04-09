@@ -3,7 +3,7 @@ import io
 import pytest
 from openpyxl import load_workbook
 
-from src.services._database.referrals.reports import generate_referral_report_excel
+from src.application._database.referrals.reports import generate_referral_report_excel
 
 
 

@@ -5,7 +5,7 @@ from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage, FakeFSMC
 from tests.helpers.helper_fixture import create_new_user, create_settings
 from src.database import get_db
 from src.database.models.referrals import Referrals
-from src.services._database.system.actions import get_settings, update_settings
+from src.application._database.system.actions import get_settings, update_settings
 from src.utils.i18n import get_text
 
 
@@ -13,7 +13,7 @@ from src.utils.i18n import get_text
 async def test_start_non_existing_user(patch_fake_aiogram, replacement_fake_bot_fix):
     """Проверяем: при старте не существующий пользователь получает сообщение с просьбой выбрать язык и его добавляют в БД"""
     from src.modules import start_handler as start
-    from src.services._database.users.actions import get_user
+    from src.application._database.users.actions import get_user
 
     fake_bot = replacement_fake_bot_fix
     msg = FakeMessage(text="/start", chat_id=123, username="User")
@@ -51,7 +51,7 @@ async def test_start_existing_user(patch_fake_aiogram, replacement_fake_bot_fix,
 @pytest.mark.asyncio
 async def test_start_with_new_referral(patch_fake_aiogram, replacement_fake_bot_fix, create_new_user):
     from src.modules import start_handler as start
-    from src.services._database.users.actions import get_user
+    from src.application._database.users.actions import get_user
 
     fake_bot = replacement_fake_bot_fix
     owner = await create_new_user()
@@ -93,7 +93,7 @@ async def test_start_activate_voucher_existing_user_1(
 ):
     """Активация ваучера уже имеющимся пользователем"""
     from src.modules import start_handler as start
-    from src.services._database.users.actions import get_user
+    from src.application._database.users.actions import get_user
 
     voucher = await create_voucher()
 
@@ -126,7 +126,7 @@ async def test_start_activate_voucher_existing_user_2(
 ):
     """Активация ваучера уже имеющимся пользователем"""
     from src.modules import start_handler as start
-    from src.services._database.users.actions import get_user
+    from src.application._database.users.actions import get_user
 
     voucher = await create_voucher()
     owner = await get_user(voucher.creator_id)
@@ -165,7 +165,7 @@ async def test_start_activate_voucher_existing_user_2(
 
 async def test_select_language(patch_fake_aiogram, replacement_fake_bot_fix, create_new_user):
     from src.modules import start_handler as start
-    from src.services._database.users.actions import get_user
+    from src.application._database.users.actions import get_user
 
     user = await create_new_user()
     setting = await get_settings()

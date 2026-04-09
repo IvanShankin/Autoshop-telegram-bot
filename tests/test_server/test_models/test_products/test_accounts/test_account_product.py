@@ -9,7 +9,7 @@ from src.exceptions.domain import CategoryNotFound, ProductAccountNotFound
 from src.models.create_models.accounts import CreateProductAccountDTO
 from src.models.read_models import ProductAccountFull
 from src.repository.database.categories import CategoriesRepository
-from src.services.filesystem.media_paths import create_path_account
+from src.application.filesystem.media_paths import create_path_account
 
 
 class TestAccountProductService:

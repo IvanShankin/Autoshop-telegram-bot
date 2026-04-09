@@ -7,11 +7,11 @@ from orjson import orjson
 
 from src.bot_actions.messages.even_handlers import message_event_handler
 from src.config import get_config
-from src.services._database.discounts.events import promo_code_event_handler, voucher_event_handler
-from src.services._database.referrals.events import referral_event_handler
-from src.services._database.replenishments_event.event_handlers_replenishments import replenishment_event_handler
-from src.services._database.categories.events.even_handlers import purchase_event_handler
-from src.services.filesystem.event_filesystem import filesystem_event_handler
+from src.application._database.discounts.events import promo_code_event_handler, voucher_event_handler
+from src.application._database.referrals.events import referral_event_handler
+from src.application._database.replenishments_event.event_handlers_replenishments import replenishment_event_handler
+from src.application._database.categories.events.even_handlers import purchase_event_handler
+from src.application.filesystem.event_filesystem import filesystem_event_handler
 from src.utils.core_logger import get_logger
 
 # глобальные переменные для управления задачей

@@ -65,7 +65,7 @@ async def test_get_file_for_login_without_prior_file_calls_func_and_updates_medi
     - update_tg_account_media должен получить новый file_id (реальное обновление происходит через fixture)
     """
     from src.modules.profile.handlers.purchase.accounts_handlers import get_file_for_login
-    from src.services._database.categories.actions import get_tg_account_media
+    from src.application._database.categories.actions import get_tg_account_media
 
     user = await create_new_user()
     sold_small, sold_full = await create_sold_account(owner_id=user.user_id)

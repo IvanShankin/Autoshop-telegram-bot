@@ -7,9 +7,9 @@ from sqlalchemy.orm import selectinload
 from src.database.models.categories import ProductUniversal
 from src.database.models.categories import UniversalMediaType
 from src.database import get_db
-from src.services.filesystem.universals_products import generate_example_zip_for_import
-from src.services.filesystem.media_paths import create_path_universal_storage
-from src.services.products.universals.input_products import input_universal_products
+from src.application.filesystem.universals_products import generate_example_zip_for_import
+from src.application.filesystem.media_paths import create_path_universal_storage
+from src.application.products.universals.input_products import input_universal_products
 
 
 async def test_input_universal_products(create_category):

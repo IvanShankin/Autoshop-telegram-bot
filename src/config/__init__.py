@@ -12,7 +12,7 @@ from src.config.paths_conf import PathSettings
 from src.config.redis_conf import RedisTimeStorage
 from src.config.secrets_conf import load_secrets
 from src.config.sizes_conf import FileLimits
-from src.services.secrets.runtime import set_runtime, RuntimeMode, SecretsRuntime
+from src.application.secrets.runtime import set_runtime, RuntimeMode, SecretsRuntime
 from src.bot_actions.throttler import RateLimiter
 
 

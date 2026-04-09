@@ -7,7 +7,7 @@ from src.bot_actions.messages import edit_message
 from src.config import get_config
 from src.modules.admin_actions.keyboards import admin_vouchers_kb, all_admin_vouchers_kb, \
     back_in_all_admin_voucher_kb, show_admin_voucher_kb
-from src.services._database.discounts.actions import get_voucher_by_id
+from src.application._database.discounts.actions import get_voucher_by_id
 from src.database.models.users import Users
 from src.utils.i18n import get_text
 

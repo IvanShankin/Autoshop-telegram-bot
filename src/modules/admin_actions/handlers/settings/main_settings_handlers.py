@@ -10,11 +10,11 @@ from src.infrastructure.rabbit_mq.producer import publish_event
 from src.config import get_config
 from src.modules.admin_actions.keyboards import admin_settings_kb
 from src.modules.admin_actions.keyboards.settings_kb import confirm_overwrite_cache_kb, back_in_admin_settings_kb
-from src.services._database.admins.actions import check_admin
-from src.services._database.system.actions import get_settings
+from src.application._database.admins.actions import check_admin
+from src.application._database.system.actions import get_settings
 from src.database.models.users import Users
-from src.services.filesystem.actions import split_file_on_chunk
-from src.services._redis.filling import filling_all_redis
+from src.application.filesystem.actions import split_file_on_chunk
+from src.application._redis.filling import filling_all_redis
 from src.utils.i18n import get_text
 
 router = Router()

@@ -3,7 +3,7 @@ import asyncio
 import pytest
 from sqlalchemy import select
 
-from src.services._database.categories.events.schemas import NewPurchaseAccount, AccountsData
+from src.application._database.categories.events.schemas import NewPurchaseAccount, AccountsData
 from src.database import get_db
 from src.database.models.users import WalletTransaction, UserAuditLogs
 
@@ -21,7 +21,7 @@ async def test_handler_new_purchase_creates_wallet_and_logs(
     - отправляются логи (проверяется fake_bot)
     """
 
-    from src.services._database.categories.events.even_handlers import handler_new_purchase_account
+    from src.application._database.categories.events.even_handlers import handler_new_purchase_account
     # подготовка данных
     user = await create_new_user()
     # создаём sold_account в БД и перевод для языка 'ru'
@@ -91,7 +91,7 @@ async def test_account_purchase_event_handler_parses_and_calls_handler(
     Проверяем, что purchase_event_handler корректно парсит dict-ивент
     и вызывает handler_new_purchase_account (через этот wrapper вставится Pydantic->handler).
     """
-    from src.services._database.categories.events.even_handlers import purchase_event_handler
+    from src.application._database.categories.events.even_handlers import purchase_event_handler
     user = await create_new_user()
     _, sold_full = await create_sold_account(filling_redis=False, owner_id=user.user_id, language='ru')
 

@@ -8,8 +8,8 @@ from src.bot_actions.messages import edit_message
 from src.config import get_config
 from src.modules.admin_actions.keyboards import admin_mailing_kb, all_admin_mass_mailing_kb, show_sent_mass_message_kb
 from src.modules.admin_actions.keyboards.editors.mass_mailing_kb import back_in_show_sent_mass_message_kb
-from src.services._database.admins.actions.actions_admin import get_sent_mass_messages
-from src.services._database.system.actions import create_ui_image, delete_ui_image
+from src.application._database.admins.actions.actions_admin import get_sent_mass_messages
+from src.application._database.system.actions import create_ui_image, delete_ui_image
 from src.database.models.users import Users
 from src.utils.i18n import get_text
 

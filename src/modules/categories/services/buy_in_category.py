@@ -9,12 +9,12 @@ from src.exceptions.business import NotEnoughProducts
 from src.modules.categories.keyboards import replenishment_and_back_in_cat, back_in_account_category_kb
 from src.modules.categories.services.helpers import check_category
 from src.modules.profile.keyboards import in_purchased_account_kb, in_purchased_universal_product_kb
-from src.services._database.categories.actions import purchase
-from src.services._database.categories.actions.products.accounts.actions_get import get_sold_accounts_by_owner_id
-from src.services._database.categories.actions.products.universal.actions_get import get_sold_universal_by_owner_id
+from src.application._database.categories.actions import purchase
+from src.application._database.categories.actions.products.accounts.actions_get import get_sold_accounts_by_owner_id
+from src.application._database.categories.actions.products.universal.actions_get import get_sold_universal_by_owner_id
 from src.database.models.categories import ProductType
 from src.models.read_models import CategoryFull
-from src.services._database.discounts.utils.calculation import discount_calculation
+from src.application._database.discounts.utils.calculation import discount_calculation
 from src.database.models.users import Users
 from src.utils.i18n import get_text, n_get_text
 

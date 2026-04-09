@@ -2,7 +2,7 @@ import os.path
 
 
 async def test_upload_universal_products(create_category, create_product_universal):
-    from src.services.products.universals.upload_products import upload_universal_products
+    from src.application.products.universals.upload_products import upload_universal_products
     cat = await create_category()
 
     for i in range(10):

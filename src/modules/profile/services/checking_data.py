@@ -1,4 +1,4 @@
-from src.services.bot import Messages
+from src.application.bot import Messages
 from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_text
 

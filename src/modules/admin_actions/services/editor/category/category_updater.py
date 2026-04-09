@@ -9,7 +9,7 @@ from src.exceptions import IncorrectedAmountSale, IncorrectedCostPrice, \
 from src.modules.admin_actions.schemas import UpdateCategoryOnlyId
 from src.modules.admin_actions.services.editor.category.show_message import show_category_update_data, show_category
 from src.modules.admin_actions.state import UpdateNumberInCategory
-from src.services._database.categories.actions import update_category
+from src.application._database.categories.actions import update_category
 from src.database.models.categories import ProductType, AccountServiceType, UniversalMediaType
 from src.database.models.users import Users
 from src.utils.converter import safe_int_conversion

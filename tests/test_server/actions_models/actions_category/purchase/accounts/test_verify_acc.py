@@ -23,8 +23,8 @@ async def test_check_account_validity_async_success(
     - вызвать check_valid_accounts_telethon (мокаем) и вернуть True,
     - вызвать shutil.rmtree в finally (мокаем).
     """
-    from src.services.products.accounts.tg import actions
-    from src.services.products.accounts.tg.actions import check_account_validity
+    from src.application.products.accounts.tg import actions
+    from src.application.products.accounts.tg.actions import check_account_validity
 
     # создаём тестовую категорию и продукт (этот шаг даёт нам AccountStorage)
     cat = await create_category()
@@ -94,8 +94,8 @@ class TestVerifyReservedAccounts:
         Интеграционный: verify_reserved_accounts возвращает список тех же ProductAccounts,
         если все слоты валидны.
         """
-        from src.services._database.categories.actions.purchases.accounts import verify as verify_mod
-        from src.services._database.categories.actions.purchases.accounts.verify import verify_reserved_accounts
+        from src.application._database.categories.actions.purchases.accounts import verify as verify_mod
+        from src.application._database.categories.actions.purchases.accounts.verify import verify_reserved_accounts
         # Подготовка: пользователь + purchase_request в БД
         cat = await create_category()
 
@@ -144,8 +144,8 @@ class TestVerifyReservedAccounts:
         - bad slot помечается удалённым (через вызовы update_account_storage/delete_product_account)
         - найден valid candidate, который возвращается в списке
         """
-        from src.services._database.categories.actions.purchases.accounts import verify as verify_mod
-        from src.services._database.categories.actions.purchases.accounts.verify import verify_reserved_accounts
+        from src.application._database.categories.actions.purchases.accounts import verify as verify_mod
+        from src.application._database.categories.actions.purchases.accounts.verify import verify_reserved_accounts
         user = await create_new_user()
         category = await create_category()
 
@@ -198,8 +198,8 @@ class TestVerifyReservedAccounts:
         Ожидаем: verify_reserved_accounts возвращает пустой список,
         AccountStorage у невалидных аккаунтов помечен как 'deleted'.
         """
-        from src.services._database.categories.actions.purchases.accounts import verify as verify_mod
-        from src.services._database.categories.actions.purchases.accounts.verify import verify_reserved_accounts
+        from src.application._database.categories.actions.purchases.accounts import verify as verify_mod
+        from src.application._database.categories.actions.purchases.accounts.verify import verify_reserved_accounts
 
         user = await create_new_user()
         cat = await create_category()
@@ -253,8 +253,8 @@ class TestVerifyReservedAccounts:
         Сценарий: часть аккаунтов невалидны, и нет замены.
         Ожидаем: Возвращается False т.к. пользователю не найдённо необходимое количество.
         """
-        from src.services._database.categories.actions.purchases.accounts import verify as verify_mod
-        from src.services._database.categories.actions.purchases.accounts.verify import verify_reserved_accounts
+        from src.application._database.categories.actions.purchases.accounts import verify as verify_mod
+        from src.application._database.categories.actions.purchases.accounts.verify import verify_reserved_accounts
 
         user = await create_new_user()
         cat = await create_category()
@@ -303,8 +303,8 @@ class TestVerifyReservedAccounts:
         Сценарий: Пользователю необходим 1 аккаунт. есть 3 невалидных аккаунта и только 1 кандидат.
         Ожидаем: возвращается 1 аккаунт (замена), остальные невалидные удалены.
         """
-        from src.services._database.categories.actions.purchases.accounts import verify as verify_mod
-        from src.services._database.categories.actions.purchases.accounts.verify import verify_reserved_accounts
+        from src.application._database.categories.actions.purchases.accounts import verify as verify_mod
+        from src.application._database.categories.actions.purchases.accounts.verify import verify_reserved_accounts
 
         user = await create_new_user()
         cat = await create_category()
@@ -371,8 +371,8 @@ class TestVerifyReservedAccounts:
         В БД есть 3 валидных кандидата.
         Ожидаем: Возьмёт с БД один аккаунт.
         """
-        from src.services._database.categories.actions.purchases.accounts import verify as verify_mod
-        from src.services._database.categories.actions.purchases.accounts.verify import verify_reserved_accounts
+        from src.application._database.categories.actions.purchases.accounts import verify as verify_mod
+        from src.application._database.categories.actions.purchases.accounts.verify import verify_reserved_accounts
 
         user = await create_new_user()
         cat = await create_category()

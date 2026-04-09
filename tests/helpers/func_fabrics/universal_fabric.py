@@ -5,8 +5,8 @@ from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from src.services._redis.filling import filling_all_keys_category
-from src.services.secrets.encrypt import encrypt_file
+from src.application._redis.filling import filling_all_keys_category
+from src.application.secrets.encrypt import encrypt_file
 from tests.helpers.func_fabrics.category_fabric import create_category_factory
 from tests.helpers.func_fabrics.other_fabric import create_new_user_fabric
 from src.database.models.categories import UniversalMediaType, UniversalStorage, \
@@ -14,10 +14,10 @@ from src.database.models.categories import UniversalMediaType, UniversalStorage,
 from src.models.read_models import UniversalStoragePydantic, ProductUniversalSmall, ProductUniversalFull, SoldUniversalSmall, \
     SoldUniversalFull
 from src.database import get_db
-from src.services._redis.filling.filling_universal import filling_product_universal_by_category, \
+from src.application._redis.filling.filling_universal import filling_product_universal_by_category, \
     filling_universal_by_product_id, filling_sold_universal_by_universal_id, \
     filling_sold_universal_by_owner_id
-from src.services.secrets import encrypt_text, get_crypto_context, make_account_key
+from src.application.secrets import encrypt_text, get_crypto_context, make_account_key
 
 
 async def _make_encrypted_universal_storage_file(
@@ -26,7 +26,7 @@ async def _make_encrypted_universal_storage_file(
     uuid: str,
     file_path: str = None
 ) -> Path:
-    from src.services.filesystem.media_paths import create_path_universal_storage
+    from src.application.filesystem.media_paths import create_path_universal_storage
     if file_path is None:
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=".enc") as f:
             f.write("Данные о продукте")

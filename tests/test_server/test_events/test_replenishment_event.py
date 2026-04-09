@@ -5,9 +5,9 @@ from sqlalchemy import select
 
 from src.infrastructure.rabbit_mq.producer import publish_event
 from src.database import get_db
-from src.services._database.replenishments_event.schemas import ReplenishmentFailed, ReplenishmentCompleted, \
+from src.application._database.replenishments_event.schemas import ReplenishmentFailed, ReplenishmentCompleted, \
     NewReplenishment
-from src.services._database.system.actions import update_settings
+from src.application._database.system.actions import update_settings
 from src.database.models.users import Replenishments, Users, WalletTransaction, UserAuditLogs
 from src.infrastructure.redis import get_redis
 from src.utils.i18n import get_text, n_get_text
@@ -53,7 +53,7 @@ async def test_access(
     create_replenishment
 ):
     """Интеграционный тест"""
-    from src.services._database.replenishments_event.event_handlers_replenishments import replenishment_event_handler
+    from src.application._database.replenishments_event.event_handlers_replenishments import replenishment_event_handler
 
     user = await create_new_user()
 
@@ -176,7 +176,7 @@ async def test_fail(
     Интеграционный тест:
     - Пользователь получает сообщение об ошибке
     """
-    from src.services._database.replenishments_event.event_handlers_replenishments import replenishment_event_handler
+    from src.application._database.replenishments_event.event_handlers_replenishments import replenishment_event_handler
 
     user = await create_new_user()
     new_replenishment = await create_replenishment(amount=105, user_id=user.user_id, status="processing")
@@ -216,7 +216,7 @@ async def test_on_replenishment_completed(create_new_user):
     - Пользователь получает сообщение об успешном пополнении
     - В лог уходит корректная запись
     """
-    from src.services._database.replenishments_event.event_handlers_replenishments import on_replenishment_completed
+    from src.application._database.replenishments_event.event_handlers_replenishments import on_replenishment_completed
 
     user = await create_new_user()
     amount = 150
@@ -252,7 +252,7 @@ async def test_on_replenishment_failed(create_new_user):
     - Пользователь получает сообщение об ошибке
     - В лог уходит корректная запись
     """
-    from src.services._database.replenishments_event.event_handlers_replenishments import on_replenishment_failed
+    from src.application._database.replenishments_event.event_handlers_replenishments import on_replenishment_failed
 
     user = await create_new_user()
     replenishment_id = 8888

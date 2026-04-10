@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import get_config
-from src.infrastructure.crypto_bot.core import CryptoProvider
+from src.infrastructure.crypto_bot.core import CryptoBotProvider
 from src.infrastructure.files.excel_reports import ExcelReportExporter
 from src.infrastructure.files.file_system import FileStorage
 from src.infrastructure.files.path_builder import PathBuilder
@@ -123,7 +123,7 @@ class RequestContainer:
         session_db: AsyncSession,
         telegram_client : "TelegramClient",
         telegram_logger_client: "TelegramClient",
-        crypto_bot_provider: CryptoProvider,
+        crypto_bot_provider: CryptoBotProvider,
     ):
         self.session_db = session_db
         self.telegram_client = telegram_client
@@ -823,6 +823,6 @@ def init_request_container(
     session_db: AsyncSession,
     telegram_client: "TelegramClient",
     telegram_logger_client: "TelegramClient",
-    crypto_bot_provider: CryptoProvider,
+    crypto_bot_provider: CryptoBotProvider,
 ) -> RequestContainer:
     return RequestContainer(session_db, telegram_client, telegram_logger_client, crypto_bot_provider)

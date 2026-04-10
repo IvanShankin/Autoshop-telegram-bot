@@ -24,8 +24,14 @@ class EnvSettings(BaseModel):
 
     mode: Mode
 
+    use_secret_storage: bool
+
     @classmethod
     def from_env(cls) -> "EnvSettings":
+        use_secret_storage_str = os.getenv('USE_SECRET_STORAGE')
+        use_secret_storage_str = use_secret_storage_str.lower() if use_secret_storage_str else False
+        use_secret_storage = True if use_secret_storage_str == "true" else False
+
         return cls(
             main_admin=int(os.environ["MAIN_ADMIN"]),
             rabbitmq_url=os.environ["RABBITMQ_URL"],
@@ -34,7 +40,7 @@ class EnvSettings(BaseModel):
             redis_port=os.environ["REDIS_PORT"],
             mode=Mode(os.environ["MODE"]),
             db_host=os.getenv('DB_HOST'),
-            db_user = os.getenv('DB_USER'),
-            db_name = os.getenv('DB_NAME')
-
+            db_user=os.getenv('DB_USER'),
+            db_name=os.getenv('DB_NAME'),
+            use_secret_storage=use_secret_storage
         )

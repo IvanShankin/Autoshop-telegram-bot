@@ -14,7 +14,7 @@ from tests.helpers.func_fabrics import create_new_user_fabric, create_admin_fabr
     create_universal_storage_factory, create_product_universal_factory, create_sold_universal_factory
 from src.database.models.system import  Settings
 from src.database import get_db
-from src.infrastructure.crypto_bot.core import CryptoProvider
+from src.infrastructure.crypto_bot.core import CryptoBotProvider
 from types import SimpleNamespace
 
 
@@ -41,7 +41,7 @@ async def crypto_bot_provider():
         async def create_invoice(self, amount, payload, expires_in):
             return SimpleNamespace(invoice_id="inv", bot_invoice_url="url")
 
-    yield CryptoProvider(FakeCryptoClient())
+    yield CryptoBotProvider(FakeCryptoClient())
 
 @pytest_asyncio.fixture
 async def container_fix(fake_tg_client, session_db_fix, crypto_bot_provider):

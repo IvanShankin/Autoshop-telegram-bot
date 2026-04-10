@@ -20,7 +20,7 @@ from src.application.filesystem.media_paths import create_path_universal_storage
 from src.application.products.universals.shemas import UniversalProductsParse, \
     get_import_universal_headers, PreparedUniversalProduct
 from src.application.secrets import encrypt_text, make_account_key, get_crypto_context, sha256_file, CryptoContext
-from src.application.secrets.encrypt import encrypt_file
+from src.domain.crypto.encrypt import encrypt_file
 
 
 def _validate_product(

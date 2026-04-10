@@ -7,9 +7,9 @@ import sys
 from pathlib import Path
 from getpass import getpass
 
+from src.application.crypto.secrets_storage import get_storage_client
 from src.config import init_env, get_config
 from src.application.secrets import decrypt_bytes, unwrap_dek, derive_kek
-from src.application.secrets.loader import get_storage_client
 
 
 def parse_args():

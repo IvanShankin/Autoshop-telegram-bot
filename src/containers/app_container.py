@@ -1,27 +1,56 @@
+from src.application.crypto.crypto_context import CryptoProvider, InitCryptoContext
+from src.application.crypto.secrets_storage import GetSecret
 from src.config import init_config
+from src.config.runtime_conf import  RuntimeConfig
 from src.containers import RequestContainer
-from src.infrastructure.crypto_bot.core import init_crypto_provider
+from src.infrastructure.crypto.key_store import KeyStore
+from src.infrastructure.crypto.secret_storage.client import SecretsStorageClient
+from src.infrastructure.crypto.secret_storage.http_secrets_storage import HttpSecretsStorage
+from src.infrastructure.crypto.secret_storage.secrets_storage import SecretsStorage
+from src.infrastructure.crypto_bot.core import init_crypto_bot_provider
 from src.infrastructure.rabbit_mq.consumer import RabbitMQConsumer
 from src.infrastructure.redis import init_redis, close_redis
 from src.infrastructure.telegram.bot_instance import get_bot_logger, get_bot
 from src.infrastructure.telegram.client import TelegramClient
-from src.application.secrets import init_crypto_context
 from src.utils.core_logger import setup_logging
 
 
 class AppContainer:
 
     def __init__(self):
-        self.conf = init_config()
+
+        runtime_conf = RuntimeConfig()
+        secret_client = SecretsStorageClient(
+            base_url=runtime_conf.env.storage_server_url,
+            cert=(
+                str(runtime_conf.paths.ssl_client_cert_file),
+                str(runtime_conf.paths.ssl_client_key_file),
+            ),
+            ca=runtime_conf.paths.ssl_ca_file,
+        )
+        self.secret_storage: SecretsStorage = HttpSecretsStorage(secret_client) # используется адаптер
+        self.logger = setup_logging(runtime_conf.paths.log_file)
+        self.crypto_provider = CryptoProvider()
+
+        init_crypto_context = InitCryptoContext(
+            storage=self.secret_storage,
+            keystore=KeyStore(),
+            logger=self.logger,
+            runtime_conf=runtime_conf
+        )
+        self._crypto_context = init_crypto_context.execute()
+        self.crypto_provider.set(self._crypto_context)  # ИСПОЛЬЗОВАТЬ ТОЛЬКО ЕГО ДЛЯ ШИФРОВАНИЯ И ДЕШИФРОВАНИЯ
+
+        get_secret = GetSecret(
+            storage=self.secret_storage,
+            crypto_provider=self.crypto_provider,
+            logger=self.logger,
+            runtime_conf=runtime_conf
+        )
+
+        self.conf = init_config(get_secret)
         self.redis = init_redis()
-        self.crypto_provider = init_crypto_provider(self.conf.secrets.token_crypto_bot)
-
-        try:
-            self.crypto_context = init_crypto_context()  # необходим config
-        except RuntimeError as e:  # если уже есть
-            pass
-
-        self.logger = setup_logging(self.conf.paths.log_file)
+        self.crypto_bot_provider = init_crypto_bot_provider(self.conf.secrets.token_crypto_bot)
 
         self.bot = get_bot()
         self.logger_bot = get_bot_logger()
@@ -41,7 +70,7 @@ class AppContainer:
             session_db,
             self.telegram_client,
             self.telegram_logger_client,
-            self.crypto_provider,
+            self.crypto_bot_provider,
         )
 
     def _create_event_handler(self, session):

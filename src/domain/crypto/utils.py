@@ -1,44 +1,11 @@
 import base64
 import hashlib
 import os
-import getpass
-import sys
-import warnings
-
 from pathlib import Path
 from argon2.low_level import hash_secret_raw, Type
 
-from src.application.secrets.runtime import get_runtime
 
 SALT = b"autoservice.master.kek.v1"
-
-
-def read_secret(prompt: str, name: str) -> str:
-    """
-    Безопасный ввод пароля.
-    В реальном терминале используется getpass.
-    В IDE используется метод input() с предупреждением.
-    """
-    runtime = get_runtime()
-    if runtime.mode == "TEST":
-        try:
-            return runtime.mode
-        except KeyError:
-            raise RuntimeError(
-                f"{name} must be set in test environment"
-            )
-
-    if sys.stdin.isatty():
-        # Реальный терминал — безопасный ввод
-        return getpass.getpass(prompt)
-
-    warnings.warn(
-        "Secure input is not supported in this environment. "
-        "Password will be echoed. "
-        "Run the program in a system terminal for secure input.",
-        RuntimeWarning,
-    )
-    return input(prompt)
 
 
 def derive_kek(passphrase: str, salt: bytes = SALT) -> bytes:

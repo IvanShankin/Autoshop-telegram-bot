@@ -7,12 +7,12 @@ from pathlib import Path
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
+from src.application.crypto.secrets_storage import get_storage_client
 from src.config import get_config
 from src.application._database.system.actions.actions import add_backup_log, get_all_backup_logs_desc, delete_backup_log
 from src.application.secrets import get_crypto_context
-from src.application.secrets.encrypt import encrypt_file, wrap_dek
-from src.application.secrets.loader import get_storage_client
-from src.application.secrets.utils import extract_nonce_b64, calc_sha256_b64
+from src.domain.crypto.encrypt import encrypt_file, wrap_dek
+from src.domain.crypto.utils import extract_nonce_b64, calc_sha256_b64
 from src.utils.core_logger import get_logger
 
 

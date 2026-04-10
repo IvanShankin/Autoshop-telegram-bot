@@ -12,7 +12,7 @@ from src.application.filesystem.universals_products import create_manifest_csv, 
 from src.application.filesystem.media_paths import create_path_universal_storage
 from src.application.products.universals.shemas import UploadUniversalProduct, get_import_universal_headers
 from src.application.secrets import get_crypto_context, unwrap_dek
-from src.application.secrets.decrypt import decrypt_file, decrypt_text
+from src.domain.crypto.decrypt import decrypt_file, decrypt_text
 from src.utils.core_logger import get_logger
 
 

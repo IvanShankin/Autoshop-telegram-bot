@@ -14,7 +14,7 @@ from src.application.filesystem.universals_products import move_in_universal
 from src.application.filesystem.media_paths import create_path_universal_storage
 from src.application.models.modules import ProfileModule
 from src.application.secrets import decrypt_text, unwrap_dek, get_crypto_context
-from src.application.secrets.decrypt import decrypt_file
+from src.domain.crypto.decrypt import decrypt_file
 from src.utils.i18n import get_text
 
 

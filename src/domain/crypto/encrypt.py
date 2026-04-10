@@ -38,29 +38,6 @@ def wrap_dek(dek: bytes, kek: bytes) -> tuple[str, str, str]:
     )
 
 
-def encrypt_text(plaintext: str, dek: bytes, nonce_b64:  bytes = None) -> tuple[str, str, str]:
-    """
-    Возвращает:
-    encrypted_data_b64, nonce_b64, sha256_b64
-    """
-    data = plaintext.encode("utf-8")
-
-    if not nonce_b64:
-        nonce_b64 = os.urandom(12)
-
-    aesgcm = AESGCM(dek)
-
-    ciphertext = aesgcm.encrypt(nonce_b64, data, None)
-
-    sha256 = hashlib.sha256(ciphertext).digest()
-
-    return (
-        base64.b64encode(ciphertext).decode("ascii"),
-        base64.b64encode(nonce_b64).decode("ascii"),
-        base64.b64encode(sha256).decode("ascii"),
-    )
-
-
 def make_account_key(kek: bytes) -> tuple[str, bytes, str]:
     """
     Создаёт DEK (account_key)

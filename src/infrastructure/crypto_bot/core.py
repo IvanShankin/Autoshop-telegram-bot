@@ -3,7 +3,7 @@ from typing import Optional
 from aiocryptopay import AioCryptoPay, Networks
 
 
-class CryptoProvider:
+class CryptoBotProvider:
     def __init__(self, client: AioCryptoPay):
         self.client = client
 
@@ -27,23 +27,23 @@ class CryptoProvider:
         return str(invoice.invoice_id), invoice.bot_invoice_url
 
 
-crypto_provider: Optional[CryptoProvider] = None
+crypto_provider: Optional[CryptoBotProvider] = None
 
 
-def init_crypto_provider(token: str, testnet: bool = False) -> CryptoProvider:
+def init_crypto_bot_provider(token: str, testnet: bool = False) -> CryptoBotProvider:
     global crypto_provider
 
-    crypto_provider = CryptoProvider(
+    crypto_provider = CryptoBotProvider(
         client=AioCryptoPay(token, network=Networks.TEST_NET if testnet else Networks.MAIN_NET)
     )
 
     return crypto_provider
 
 
-def get_crypto_provider() -> CryptoProvider:
+def get_crypto_bot_provider() -> CryptoBotProvider:
     global crypto_provider
 
     if crypto_provider is None:
-        raise RuntimeError("CryptoProvider not initialized")
+        raise RuntimeError("CryptoBotProvider not initialized")
 
     return crypto_provider

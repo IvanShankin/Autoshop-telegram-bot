@@ -5,13 +5,9 @@ from aiogram.types import Message, TelegramObject, CallbackQuery
 
 from typing import Callable, Dict, Any, Awaitable, Type
 
-from src._bot_actions.bot_instance import get_bot, get_bot_logger
 from src._bot_actions.messages import send_message
 from src.config import get_config
-from src.containers import init_request_container
 from src.containers.app_container import AppContainer
-from src.infrastructure.crypto_bot.core import get_crypto_provider
-from src.infrastructure.telegram.client import TelegramClient
 from src.modules.keyboard_main import support_kb
 from src.application._database.admins.actions import check_admin
 from src.application._database.system.actions import get_settings

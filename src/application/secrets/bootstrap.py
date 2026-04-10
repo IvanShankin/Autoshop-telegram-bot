@@ -1,14 +1,15 @@
 from getpass import getpass
 
+from src.application.crypto.crypto_context import GLOBAL_DEK_NAME
+from src.application.crypto.secrets_storage import get_storage_client
 from src.config import EnvSettings, PathSettings, init_env
+from src.domain.crypto.key_ops import encrypt_text
 from src.exceptions import StorageNotFound, StorageConflict
 from src.application.secrets import get_crypto_context, set_crypto_context, CryptoContext, unwrap_dek
-from src.application.secrets.runtime import set_runtime, RuntimeMode, SecretsRuntime
-from src.application.secrets.shemas import SecretSettings
-from src.application.secrets.utils import derive_kek, gen_key, read_secret
-from src.application.secrets.encrypt import wrap_dek, encrypt_text
-from src.application.secrets.keyring_store import store_kek
-from src.application.secrets.loader import get_storage_client, GLOBAL_DEK_NAME
+from src.application.secrets._runtime import set_runtime, RuntimeMode, SecretsRuntime
+from src.domain.crypto.utils import derive_kek, gen_key
+from src.domain.crypto.encrypt import wrap_dek
+from src.application.secrets._keyring_store import store_kek
 
 
 
@@ -24,7 +25,7 @@ def _init_runtime():
     init_env()
 
     env = EnvSettings.from_env()
-    paths = PathSettings.build(env.mode)
+    paths = PathSettings.build(env.use_secret_storage)
 
     set_runtime(
         SecretsRuntime(

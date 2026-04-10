@@ -5,7 +5,7 @@ import orjson
 from src.config import Config
 from src.database.models.system.models import ReplenishmentService
 from src.exceptions.business import IncorrectedReplenishmentService
-from src.infrastructure.crypto_bot.core import CryptoProvider
+from src.infrastructure.crypto_bot.core import CryptoBotProvider
 from src.models.create_models.users import CreateReplenishmentDTO
 from src.models.read_models.events.message import LogLevel
 from src.models.update_models.users import UpdateReplenishment
@@ -23,7 +23,7 @@ class PaymentService:
         types_payments_service: TypesPaymentsService,
         user_service: UserService,
         dollar_rate_repo: DollarRateRepository,
-        crypto_provider: CryptoProvider,
+        crypto_provider: CryptoBotProvider,
         conf: Config,
         logger: Logger,
     ):

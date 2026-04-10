@@ -22,15 +22,15 @@ class SecretsStorageClient:
         self.session.proxies = {"http": None, "https": None}
 
     def _request(
-            self,
-            method: str,
-            path: str,
-            *,
-            json: dict | None = None,
-            files: dict | None = None,
-            data: dict | None = None,
-            stream: bool = False,
-            expected_status: tuple[int, ...],
+        self,
+        method: str,
+        path: str,
+        *,
+        json: dict | None = None,
+        files: dict | None = None,
+        data: dict | None = None,
+        stream: bool = False,
+        expected_status: tuple[int, ...],
     ) -> requests.Response:
 
         try:

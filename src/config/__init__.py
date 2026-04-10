@@ -1,6 +1,7 @@
 from asyncio import Semaphore
 from typing import Optional
 
+from src.application.crypto.secrets_storage import GetSecret
 from src.config.base import init_env
 from src.config.db_conf import DbConnectionSettings
 from src.config.env_conf import EnvSettings, Mode
@@ -12,36 +13,21 @@ from src.config.paths_conf import PathSettings
 from src.config.redis_conf import RedisTimeStorage
 from src.config.secrets_conf import load_secrets
 from src.config.sizes_conf import FileLimits
-from src.application.secrets.runtime import set_runtime, RuntimeMode, SecretsRuntime
 from src._bot_actions.throttler import RateLimiter
 
 
-
 class Config:
-    def __init__(self):
+    def __init__(self, get_secret: GetSecret):
         init_env()
 
         self.env = EnvSettings.from_env()
         self.app = AppConfig()
         self.different = MiscellaneousConf()
         self.message_event = MessageEventConf.build()
-        self.paths = PathSettings.build(self.env.mode)
+        self.paths = PathSettings.build(self.env.use_secret_storage)
         self.redis_time_storage = RedisTimeStorage.build()
 
-        # инициализировать необходимо не позже чем устанавливаем секреты (при установке секретов используется runtime)
-        set_runtime(
-            SecretsRuntime(
-                mode=RuntimeMode(self.env.mode),
-                storage_url=self.env.storage_server_url,
-                cert=(
-                    str(self.paths.ssl_client_cert_file),
-                    str(self.paths.ssl_client_key_file),
-                ),
-                ca=str(self.paths.ssl_ca_file),
-            )
-        )
-
-        self.secrets = load_secrets()
+        self.secrets = load_secrets(get_secret)
         self.limits = FileLimits()
         self.db_connection = DbConnectionSettings.create(
             db_user=self.env.db_user,
@@ -73,9 +59,9 @@ _config: Optional[Config] = None
 _GLOBAL_RATE_LIMITER: Optional[RateLimiter] = None
 _SEMAPHORE_MAILING: Optional[Semaphore] = None
 
-def init_config() -> Config:
+def init_config(get_secret: GetSecret) -> Config:
     global _config
-    _config = Config()
+    _config = Config(get_secret)
     return _config
 
 
@@ -87,7 +73,7 @@ def set_config(config: Config):
 def get_config() -> Config:
     global _config
     if _config is None:
-        _config = Config()
+        raise RuntimeError()
     return _config
 
 

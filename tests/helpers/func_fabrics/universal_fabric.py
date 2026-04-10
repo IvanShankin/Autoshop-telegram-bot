@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.application._redis.filling import filling_all_keys_category
-from src.application.secrets.encrypt import encrypt_file
+from src.domain.crypto.encrypt import encrypt_file
 from tests.helpers.func_fabrics.category_fabric import create_category_factory
 from tests.helpers.func_fabrics.other_fabric import create_new_user_fabric
 from src.database.models.categories import UniversalMediaType, UniversalStorage, \

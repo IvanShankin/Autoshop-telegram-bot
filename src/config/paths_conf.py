@@ -29,7 +29,7 @@ class PathSettings(BaseModel):
     ssl_ca_file: Path
 
     @classmethod
-    def build(cls, mode: str) -> "PathSettings":
+    def build(cls, use_secret_storage: bool) -> "PathSettings":
         base = Path(__file__).resolve().parents[2]
         media = base / Path("media")
         products = media / Path("products")
@@ -46,7 +46,7 @@ class PathSettings(BaseModel):
         ssl_ca_file = cert_dir / Path("ca") / Path("client_ca_chain.pem")
 
         if (
-            not mode in {"DEV", "TEST"} and
+            use_secret_storage == True and
             (
                 not os.path.isfile(str(ssl_client_cert_file)) or
                 not os.path.isfile(str(ssl_client_key_file)) or

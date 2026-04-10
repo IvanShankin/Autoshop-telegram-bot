@@ -1,16 +1,14 @@
-from pathlib import Path
-
 import pytest
 import tempfile
 import zipfile
 import os
-from unittest.mock import patch
 
+from src.infrastructure.files.file_system import archive_if_not_empty, make_csv_bytes, cleanup_used_data
 
 
 @pytest.mark.asyncio
 async def test_extract_archive_to_temp_success():
-    from src.application.filesystem.actions import extract_archive_to_temp
+    from src.infrastructure.files.file_system import extract_archive_to_temp
     # создаём временный zip
     with tempfile.TemporaryDirectory() as tmpdir:
         zip_path = os.path.join(tmpdir, "test.zip")
@@ -26,7 +24,7 @@ async def test_extract_archive_to_temp_success():
 
 @pytest.mark.asyncio
 async def test_extract_archive_to_temp_invalid_zip():
-    from src.application.filesystem.actions import extract_archive_to_temp
+    from src.infrastructure.files.file_system import extract_archive_to_temp
     with tempfile.TemporaryDirectory() as tmpdir:
         bad_zip = os.path.join(tmpdir, "bad.zip")
         with open(bad_zip, "w") as f:
@@ -37,7 +35,7 @@ async def test_extract_archive_to_temp_invalid_zip():
 
 @pytest.mark.asyncio
 async def test_make_archive_success():
-    from src.application.filesystem.actions import make_archive
+    from src.infrastructure.files.file_system import make_archive
     with tempfile.TemporaryDirectory() as tmpdir:
         file_path = os.path.join(tmpdir, "file.txt")
         with open(file_path, "w") as f:
@@ -50,7 +48,7 @@ async def test_make_archive_success():
 
 @pytest.mark.asyncio
 async def test_make_archive_nonexistent_source():
-    from src.application.filesystem.actions import make_archive
+    from src.infrastructure.files.file_system import make_archive
     with tempfile.TemporaryDirectory() as tmpdir:
         archive_path = os.path.join(tmpdir, "out.zip")
         result = await make_archive("/nonexistent/path", archive_path)
@@ -59,7 +57,7 @@ async def test_make_archive_nonexistent_source():
 
 @pytest.mark.asyncio
 async def test_encrypted_tg_account_success(tmp_path):
-    from src.application.filesystem.account_products import encrypted_tg_account
+    from src.application.products.accounts._account_products import encrypted_tg_account
     src_dir = tmp_path / "account"
     src_dir.mkdir()
     (src_dir / "file.txt").write_text("test")
@@ -76,7 +74,6 @@ async def test_encrypted_tg_account_success(tmp_path):
 
 @pytest.mark.asyncio
 async def test_archive_if_not_empty_creates_archive(tmp_path):
-    from src.application.filesystem.account_products import archive_if_not_empty
     d = tmp_path / "folder"
     d.mkdir()
     (d / "file.txt").write_text("data")
@@ -88,7 +85,6 @@ async def test_archive_if_not_empty_creates_archive(tmp_path):
 
 @pytest.mark.asyncio
 async def test_archive_if_not_empty_empty_dir(tmp_path):
-    from src.application.filesystem.account_products import archive_if_not_empty
     d = tmp_path / "empty"
     d.mkdir()
     archive_path = await archive_if_not_empty(str(d))
@@ -98,7 +94,6 @@ async def test_archive_if_not_empty_empty_dir(tmp_path):
 
 @pytest.mark.asyncio
 async def test_cleanup_used_data(tmp_path):
-    from src.application.filesystem.account_products import cleanup_used_data
     # создаём папки и файлы
     base_dir = tmp_path / "base"
     base_dir.mkdir()
@@ -139,7 +134,6 @@ async def test_cleanup_used_data(tmp_path):
 
 
 def test_make_csv_bytes_happy_path():
-    from src.application.filesystem.account_products import make_csv_bytes
     data = [
         {"phone": "+79991234567", "login": "user1", "password": "p1"},
         {"phone": "+380501234567", "login": "user2", "password": "p2"},
@@ -157,6 +151,5 @@ def test_make_csv_bytes_happy_path():
 
 
 def test_make_csv_bytes_empty_raises():
-    from src.application.filesystem.account_products import make_csv_bytes
     with pytest.raises(ValueError):
         make_csv_bytes([], [])

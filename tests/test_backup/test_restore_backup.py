@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 from pathlib import Path
 import pytest
 
-from src.application.secrets import encrypt_bytes
+from src.domain.crypto.encrypt import encrypt_bytes
 from src.tools import restore_backup
 from src.tools.restore_backup import restore_postgres
 

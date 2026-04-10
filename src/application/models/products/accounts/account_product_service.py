@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.exceptions import TheCategoryNotStorageAccount
 from src.exceptions.domain import CategoryNotFound, ProductAccountNotFound
+from src.infrastructure.files.path_builder import PathBuilder
 from src.models.create_models.accounts import CreateProductAccountDTO
 from src.models.read_models import ProductAccountFull, ProductAccountSmall
 from src.repository.database.categories import CategoriesRepository
@@ -13,7 +14,6 @@ from src.repository.database.categories.accounts import (
     ProductAccountsRepository,
 )
 from src.repository.redis import AccountsCacheRepository
-from src.application.filesystem.media_paths import create_path_account
 from src.application.models.categories.categories_cache_filler_service import CategoriesCacheFillerService
 from src.application.models.products.accounts.accounts_cache_filler_service import AccountsCacheFillerService
 
@@ -28,6 +28,7 @@ class AccountProductService:
         accounts_cache_repo: AccountsCacheRepository,
         accounts_cache_filler: AccountsCacheFillerService,
         category_filler_service: CategoriesCacheFillerService,
+        path_builder: PathBuilder,
         session_db: AsyncSession,
     ):
         self.product_repo = product_repo
@@ -36,6 +37,7 @@ class AccountProductService:
         self.accounts_cache_repo = accounts_cache_repo
         self.accounts_cache_filler = accounts_cache_filler
         self.category_filler_service = category_filler_service
+        self.path_builder = path_builder
         self.session_db = session_db
 
     async def get_product_accounts_by_category_id(
@@ -153,11 +155,11 @@ class AccountProductService:
             if not acc.is_file:
                 continue
 
-            folder = create_path_account(
+            folder = self.path_builder.build_path_account(
                 status=acc.status,
                 type_account_service=acc.type_account_service,
                 uuid=acc.storage_uuid,
-                return_path_obj=True
+                as_path=True
             ).parent
             shutil.rmtree(folder, ignore_errors=True)
 

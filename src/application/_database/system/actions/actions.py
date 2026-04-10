@@ -13,8 +13,8 @@ from src.database.models.categories import Purchases, ProductAccounts, Categorie
 from src.database.models.system.models import Files, Stickers
 from src.application._database.system.shemas.shemas import StatisticsData, ReplenishmentPaymentSystem
 from src.database.models.users import Users, Replenishments
-from src.application.filesystem.actions import get_ext_image
-from src.application.filesystem.media_paths import create_path_ui_image
+from src.infrastructure.files.file_system import get_ext_image
+from src.infrastructure.files._media_paths import create_path_ui_image
 from src.application._redis.filling import filling_types_payments_by_id, filling_all_types_payments, \
     filling_ui_image
 from src.application._redis.time_storage import TIME_SETTINGS

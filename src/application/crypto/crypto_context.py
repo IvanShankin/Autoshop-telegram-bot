@@ -2,7 +2,7 @@ from logging import Logger
 
 from cryptography.exceptions import InvalidTag
 
-from src.config.runtime_conf import RuntimeConfig
+from src.config import RuntimeConfig
 from src.infrastructure.crypto.key_store import KeyStore
 from src.domain.crypto.key_ops import unwrap_dek
 from src.domain.crypto.models import CryptoContext
@@ -35,7 +35,7 @@ class InitCryptoContext:
         self.runtime_conf = runtime_conf
 
     def execute(self) -> CryptoContext:
-        if self.runtime_conf.env.use_secret_storage:
+        if not self.runtime_conf.env.use_secret_storage:
             ctx = CryptoContext(
                 kek=b"fake_kek_32byteslong____",
                 dek=b"test" * 8,

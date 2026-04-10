@@ -36,7 +36,7 @@ class TestDifferentPurchase:
         - UniversalStorage.status -> bought;
         - файлы перемещены в финальный путь.
         """
-        from src.application.filesystem.media_paths import create_path_universal_storage
+        from src.infrastructure.files._media_paths import create_path_universal_storage
         from src.application._database.categories.actions.purchases.main_purchase import purchase_universal
 
         user = await create_new_user(balance=10_000)
@@ -140,7 +140,7 @@ class TestDifferentPurchase:
         - UniversalStorage.status возвращён в for_sale
         - баланс пользователя восстановлен
         """
-        from src.application.filesystem.media_paths import create_path_universal_storage
+        from src.infrastructure.files._media_paths import create_path_universal_storage
         from src.application._database.categories.actions.purchases.main_purchase import purchase_universal
         from src.application._database.categories.actions.purchases.universal import verify as verify_mod
 
@@ -235,7 +235,7 @@ class TestOnePurchase:
         - UniversalStorage.status -> bought
         - файл реально перемещён в bought
         """
-        from src.application.filesystem.media_paths import create_path_universal_storage
+        from src.infrastructure.files._media_paths import create_path_universal_storage
         from src.application._database.categories.actions.purchases.main_purchase import purchase_universal
 
         user = await create_new_user(balance=5_000)
@@ -349,7 +349,7 @@ class TestOnePurchase:
         - UniversalStorage.status -> for_sale
         - баланс пользователя восстановлен
         """
-        from src.application.filesystem.media_paths import create_path_universal_storage
+        from src.infrastructure.files._media_paths import create_path_universal_storage
         from src.application._database.categories.actions.purchases.main_purchase import purchase_universal
 
         user = await create_new_user(balance=5_000)

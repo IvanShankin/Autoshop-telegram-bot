@@ -9,8 +9,8 @@ from src.models.read_models.other import UiImagesDTO
 from src.models.update_models.system import UpdateUiImageDTO
 from src.repository.database.systems import UiImagesRepository
 from src.repository.redis import UiImagesCacheRepository
-from src.application.filesystem.actions import get_ext_image, get_default_image_bytes
-from src.application.filesystem.media_paths import create_path_ui_image
+from src.infrastructure.files.file_system import get_ext_image, get_default_image_bytes
+from src.infrastructure.files._media_paths import create_path_ui_image
 
 
 class UiImagesService:

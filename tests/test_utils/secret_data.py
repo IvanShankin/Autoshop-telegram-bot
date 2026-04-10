@@ -3,9 +3,11 @@ import base64
 import pytest
 from pathlib import Path
 
-from src.application.secrets import encrypt_text, decrypt_text, gen_key, encrypt_bytes, \
-    decrypt_bytes, \
-    decrypt_file_to_bytes, encrypt_folder, decrypt_folder, get_crypto_context, unwrap_dek
+from src.application._secrets.crypto_context import get_crypto_context
+from src.domain.crypto.decrypt import decrypt_text, decrypt_bytes, decrypt_file_to_bytes, decrypt_folder
+from src.domain.crypto.encrypt import encrypt_bytes, encrypt_folder
+from src.domain.crypto.key_ops import encrypt_text, unwrap_dek
+from src.domain.crypto.utils import gen_key
 
 
 @pytest.mark.asyncio

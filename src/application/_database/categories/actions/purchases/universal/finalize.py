@@ -22,9 +22,8 @@ from src.models.read_models.categories.purshanse_schem import StartPurchaseUnive
 from src.database import get_db
 from src.application._database.discounts.events import NewActivatePromoCode
 from src.database.models.users import BalanceHolder
-from src.application.filesystem.account_actions import rename_file
-from src.application.filesystem.actions import move_file, copy_file
-from src.application.filesystem.media_paths import create_path_universal_storage
+from src.infrastructure.files.file_system import move_file, copy_file, rename_file
+from src.infrastructure.files._media_paths import create_path_universal_storage
 from src.application._redis.filling import filling_all_keys_category
 from src.application._redis.filling.filling_universal import filling_sold_universal_by_owner_id, \
     filling_product_universal_by_category, filling_universal_by_product_id, filling_sold_universal_by_universal_id

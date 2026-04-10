@@ -2,11 +2,13 @@ import uuid
 
 import pytest
 
+from src.application._secrets.crypto_context import get_crypto_context
 from src.database.models.categories import StorageStatus, UniversalMediaType
+from src.domain.crypto.encrypt import make_account_key
+from src.domain.crypto.key_ops import encrypt_text
 from src.exceptions.business import ValueErrorService
 from src.models.create_models.universal import CreateUniversalStorageWithTranslationDTO
 from src.models.update_models.universal import UpdateUniversalStorageDTO
-from src.application.secrets import encrypt_text, get_crypto_context, make_account_key
 
 
 def _build_storage_encryption_payload() -> tuple[str, bytes, str, str, str]:

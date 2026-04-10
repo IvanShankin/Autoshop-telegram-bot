@@ -7,7 +7,10 @@ from typing import List, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.read_models import EventSentLog, LogLevel
+from src.application.crypto.crypto_context import CryptoProvider
+from src.application.events.publish_event_handler import PublishEventHandler
+from src.infrastructure.files.path_builder import PathBuilder
+from src.models.read_models import EventSentLog, LogLevel, NewActivatePromoCode
 from src.config import Config
 from src.database.models.categories import StorageStatus, ProductType
 from src.database.models.categories.product_universal import UniversalStorage, UniversalStorageTranslation
@@ -16,14 +19,10 @@ from src.exceptions.domain import UniversalProductNotFound
 from src.infrastructure.rabbit_mq.producer import publish_event
 from src.models.read_models import ProductUniversalFull
 from src.models.read_models.categories.purshanse_schem import StartPurchaseUniversalOne, StartPurchaseUniversal
+from src.models.read_models.events.purchase import UniversalProductData, NewPurchaseUniversal
 from src.repository.redis import UsersCacheRepository
-from src.application._database.categories.events.schemas import NewPurchaseUniversal, UniversalProductData
-from src.application._database.discounts.events import NewActivatePromoCode
-from src.application.filesystem.actions import move_file, copy_file
-from src.application.filesystem.account_actions import rename_file
-from src.application.filesystem.media_paths import create_path_universal_storage
+from src.infrastructure.files.file_system import move_file, copy_file, rename_file
 from src.application.products.universals.actions import check_valid_universal_product, move_universal_storage
-from src.application.secrets import get_crypto_context
 from src.application.models.categories.categories_cache_filler_service import CategoriesCacheFillerService
 from src.application.models.categories.category_service import CategoryService
 from src.application.models.products.universal.universal_cache_filler_service import UniversalCacheFillerService
@@ -63,6 +62,9 @@ class UniversalPurchaseService:
         cache_filler: UniversalCacheFillerService,
         categories_cache_filler: CategoriesCacheFillerService,
         user_cache_repo: UsersCacheRepository,
+        publish_event_handler: PublishEventHandler,
+        path_builder: PathBuilder,
+        crypto_provider: CryptoProvider,
         conf: Config,
         session_db: AsyncSession,
     ):
@@ -79,6 +81,9 @@ class UniversalPurchaseService:
         self.cache_filler = cache_filler
         self.categories_cache_filler = categories_cache_filler
         self.user_cache_repo = user_cache_repo
+        self.publish_event_handler = publish_event_handler
+        self.path_builder = path_builder
+        self.crypto_provider = crypto_provider
         self.conf = conf
         self.session_db = session_db
 
@@ -258,7 +263,7 @@ class UniversalPurchaseService:
         """
         Проверяет файл/описание по DEK; при ошибке перемещает в удалённые и логирует.
         """
-        crypto = get_crypto_context()
+        crypto = self.crypto_provider.get()
         result_check = await check_valid_universal_product(
             product=product_universal,
             status=StorageStatus.FOR_SALE,
@@ -298,7 +303,7 @@ class UniversalPurchaseService:
             return False
 
         logger = get_logger(__name__)
-        crypto = get_crypto_context()
+        crypto = self.crypto_provider.get()
         sem = asyncio.Semaphore(SEMAPHORE_LIMIT_UNIVERSAL)
 
         async def validate_slot(product: ProductUniversalFull):
@@ -450,11 +455,11 @@ class UniversalPurchaseService:
                 if not product.universal_storage.original_filename:
                     continue
 
-                orig = create_path_universal_storage(
+                orig = self.path_builder.build_path_universal_storage(
                     status=StorageStatus.FOR_SALE,
                     uuid=product.universal_storage.storage_uuid,
                 )
-                final = create_path_universal_storage(
+                final = self.path_builder.build_path_universal_storage(
                     status=StorageStatus.BOUGHT,
                     uuid=product.universal_storage.storage_uuid,
                 )
@@ -699,7 +704,7 @@ class UniversalPurchaseService:
                 user_id=user_id,
                 category_id=data.category_id,
                 paths_created_storage=[
-                    create_path_universal_storage(status=StorageStatus.BOUGHT, uuid=s.storage_uuid)
+                    self.path_builder.build_path_universal_storage(status=StorageStatus.BOUGHT, uuid=s.storage_uuid)
                     for s in created_storages if s.original_filename
                 ],
                 sold_universal_ids=sold_ids,
@@ -895,14 +900,14 @@ class UniversalPurchaseService:
             new_uuid = str(uuid.uuid4())
             final_path = None
             if src_storage.original_filename:
-                src_path = create_path_universal_storage(
+                src_path = self.path_builder.build_path_universal_storage(
                     status=StorageStatus.FOR_SALE,
                     uuid=src_storage.storage_uuid,
                 )
-                final_path = create_path_universal_storage(
+                final_path = self.path_builder.build_path_universal_storage(
                     status=new_status,
                     uuid=new_uuid,
-                    return_path_obj=True,
+                    as_path=True,
                 )
                 final_path.parent.mkdir(parents=True, exist_ok=True)
                 await asyncio.to_thread(

@@ -1,10 +1,12 @@
 import pytest
 
+from src.application._secrets.crypto_context import get_crypto_context
+from src.domain.crypto.encrypt import make_account_key
+from src.domain.crypto.key_ops import encrypt_text
 from src.exceptions import TranslationAlreadyExists
 from src.exceptions.domain import UniversalStorageNotFound
 from src.models.create_models.universal import CreateUniversalTranslationDTO
 from src.models.update_models.universal import UpdateUniversalTranslationDTO
-from src.application.secrets import encrypt_text, get_crypto_context, make_account_key
 
 
 def _encrypt_description() -> tuple[str, str]:

@@ -19,7 +19,7 @@ from src.modules.admin_actions.state.editors.editor_mass_mailing import GetBtnUr
 from src.application._database.admins.actions import get_message_for_sending, update_message_for_sending
 from src.application._database.users.actions.action_user import get_quantity_users
 from src.database.models.users import Users
-from src.application.filesystem.media_paths import create_path_ui_image
+from src.infrastructure.files._media_paths import create_path_ui_image
 from src.utils.i18n import get_text
 
 router = Router()

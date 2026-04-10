@@ -4,7 +4,11 @@ import uuid
 from pathlib import Path
 from typing import List, Dict
 
+from src.application._secrets.crypto_context import get_crypto_context
 from src.config import get_config
+from src.domain.crypto.key_ops import encrypt_text
+from src.domain.crypto.models import CryptoContext
+from src.domain.crypto.utils import sha256_file
 from src.exceptions import InvalidFormatRows, CategoryNotFound
 from src.exceptions.business import ImportUniversalFileNotFound, ImportUniversalInvalidMediaData, \
     CsvHasMoreThanTwoProducts
@@ -14,13 +18,12 @@ from src.application._database.categories.actions.products.universal.actions_add
 from src.application._database.categories.actions.products.universal.actions_get import get_product_universal_by_category_id
 from src.database.models.categories import CategoryTranslation
 from src.database.models.categories import UniversalMediaType, StorageStatus
-from src.application.filesystem.actions import extract_archive_to_temp
-from src.application.filesystem.csv_parse import parse_csv_from_file
-from src.application.filesystem.media_paths import create_path_universal_storage
+from src.infrastructure.files.file_system import extract_archive_to_temp
+from src.infrastructure.files.csv_parse import parse_csv_from_file
+from src.infrastructure.files._media_paths import create_path_universal_storage
 from src.application.products.universals.shemas import UniversalProductsParse, \
     get_import_universal_headers, PreparedUniversalProduct
-from src.application.secrets import encrypt_text, make_account_key, get_crypto_context, sha256_file, CryptoContext
-from src.domain.crypto.encrypt import encrypt_file
+from src.domain.crypto.encrypt import encrypt_file, make_account_key
 
 
 def _validate_product(

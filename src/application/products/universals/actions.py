@@ -2,13 +2,15 @@ import os
 import shutil
 from pathlib import Path
 
+from src.domain.crypto.decrypt import decrypt_file_to_bytes, decrypt_text
+from src.domain.crypto.key_ops import unwrap_dek
+from src.domain.crypto.models import CryptoContext
 from src.models.read_models import EventSentLog
 from src.infrastructure.rabbit_mq.producer import publish_event
 from src.database.models.categories import StorageStatus
 from src.models.read_models import ProductUniversalFull, UniversalStoragePydantic
-from src.application.filesystem.actions import move_file
-from src.application.filesystem.media_paths import create_path_universal_storage
-from src.application.secrets import unwrap_dek, CryptoContext, decrypt_text, decrypt_file_to_bytes
+from src.infrastructure.files.file_system import move_file
+from src.infrastructure.files._media_paths import create_path_universal_storage
 from src.utils.core_logger import get_logger
 
 

@@ -288,7 +288,7 @@ async def create_ui_image_factory(key: str = "main_menu", show: bool = True, fil
        сохраняет запись UiImages в БД и возвращает (ui_image, abs_path).
     """
     from src.config import get_config
-    from src.application.filesystem.media_paths import create_path_ui_image
+    from src.infrastructure.files._media_paths import create_path_ui_image
     # Подготовим директорию и файл
     conf = get_config()
 

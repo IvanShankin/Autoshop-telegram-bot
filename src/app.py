@@ -2,7 +2,6 @@ import asyncio
 
 from src.containers.app_container import AppContainer
 from src.deferred_tasks.core import init_scheduler
-from src.application._database.backups.backup_db import add_backup_create, add_backup_cleanup
 from src.application._database.core.filling_database import create_database
 from src.application.fastapi_core.server import start_server
 from src.application._database.discounts.utils.set_not_valid import deactivate_expired_promo_codes_and_vouchers
@@ -35,8 +34,11 @@ async def start_app():
 
     # отложенный задачник
     scheduler = init_scheduler()
-    add_backup_create(scheduler)
-    add_backup_cleanup(scheduler)
+
+    backup_db = request_container.get_backup_db()
+    backup_db.add_backup_create(scheduler)
+    backup_db.add_backup_cleanup(scheduler)
+
     scheduler.start()
 
     try:

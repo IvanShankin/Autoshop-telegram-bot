@@ -5,13 +5,14 @@ from pathlib import Path
 from typing import List, AsyncGenerator, Any, Tuple
 
 from src.exceptions import ArchiveNotFount, DirNotFount
-from src.application.filesystem.media_paths import create_path_account
+from src.infrastructure.files._media_paths import create_path_account
 from src.application.products.accounts.utils.helper_imports import get_unique_tg_acc_among_db
 from src.application._database.categories.actions import add_account_storage, add_product_account, \
     update_account_storage
 from src.database.models.categories import AccountServiceType
-from src.application.filesystem.actions import extract_archive_to_temp, make_archive
-from src.application.filesystem.account_products import encrypted_tg_account, cleanup_used_data, archive_if_not_empty
+from src.infrastructure.files.file_system import extract_archive_to_temp, make_archive, archive_if_not_empty, \
+    cleanup_used_data
+from src.application.products.accounts._account_products import encrypted_tg_account
 from src.application.products.accounts.tg.actions import check_valid_accounts_telethon
 from src.application.products.accounts.tg.shemas import ArchiveProcessingResult, ArchivesBatchResult, BaseAccountProcessingResult, \
      DirsBatchResult, ImportResult

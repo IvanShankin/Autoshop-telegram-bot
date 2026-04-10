@@ -16,7 +16,7 @@ from src.repository.redis.product_universal import (
     ProductUniversalCacheRepository,
     ProductUniversalSingleCacheRepository,
 )
-from src.application.filesystem.media_paths import create_path_universal_storage
+from src.infrastructure.files._media_paths import create_path_universal_storage
 from src.application.models.categories.categories_cache_filler_service import CategoriesCacheFillerService
 from src.application.models.products.universal.universal_cache_filler_service import UniversalCacheFillerService
 

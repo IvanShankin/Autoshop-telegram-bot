@@ -11,7 +11,7 @@ from src.database.models.admins import MessageForSending, Admins, AdminActions, 
 from src.database import get_db
 from src.application._database.system.actions import create_ui_image, delete_ui_image, update_ui_image
 from src.database.models.users import Users
-from src.application.filesystem.actions import get_default_image_bytes
+from src.infrastructure.files.file_system import get_default_image_bytes
 from src.infrastructure.redis import get_redis
 
 

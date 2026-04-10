@@ -3,11 +3,11 @@ import shutil
 import tempfile
 from typing import AsyncGenerator
 
+from src.application._secrets.crypto_context import get_crypto_context
 from src.config import get_config
 from src.application.products.accounts.utils.helper_upload import get_account_storage_by_category_id
-from src.application.filesystem.account_actions import decryption_tg_account
-from src.application.filesystem.actions import get_dir_size, make_archive
-from src.application.secrets import get_crypto_context
+from src.application.products.accounts.account_service import decryption_tg_account
+from src.infrastructure.files.file_system import get_dir_size, make_archive
 
 
 async def upload_tg_account(category_id: int) -> AsyncGenerator[str, str]:

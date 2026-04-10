@@ -13,7 +13,7 @@ from src.modules.admin_actions.state import UpdateEventMsg
 from src.application._database.system.actions.actions import  update_ui_image, get_ui_image, \
     delete_ui_image, create_ui_image
 from src.database.models.users import Users
-from src.application.filesystem.actions import get_ext_image
+from src.infrastructure.files.file_system import get_ext_image
 from src.utils.i18n import get_text
 
 

@@ -8,7 +8,7 @@ from src.database.models.categories import ProductAccounts, \
 from src.database import get_db
 from src.exceptions import ProductAccountNotFound
 from src.exceptions.domain import SoldAccountNotFound
-from src.application.filesystem.media_paths import create_path_account
+from src.infrastructure.files._media_paths import create_path_account
 from src.application._redis.filling import filling_all_keys_category, filling_sold_accounts_by_owner_id, \
     filling_product_account_by_account_id, filling_product_accounts_by_category_id, filling_sold_account_by_account_id
 

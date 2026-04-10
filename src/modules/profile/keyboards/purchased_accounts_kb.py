@@ -71,7 +71,7 @@ async def sold_account_type_service_kb(
     profile_module: ProfileModule,
 ) -> InlineKeyboardMarkup:
 
-    types_accounts = await profile_module.user_service.get_types_product_where_the_user_has_product(user_id)
+    types_accounts = await profile_module.user_service.get_types_account_service_where_the_user_purchase(user_id)
     keyboard = InlineKeyboardBuilder()
 
     for account_type in types_accounts:

@@ -4,7 +4,7 @@ from logging import Logger
 from src.infrastructure.files.path_builder import PathBuilder
 from src.models.read_models import EventCreateUiImage
 from src.models.update_models import UpdateUiImageDTO
-from src.application.filesystem.actions import get_default_image_bytes
+from src.infrastructure.files.file_system import get_default_image_bytes
 from src.application.models.systems import UiImagesService
 
 
@@ -23,7 +23,7 @@ class FileSystemEventHandler:
     async def filesystem_event_handler(self, event):
         payload = event["payload"]
 
-        if event["event"] == "filesystem.create_ui_image":
+        if event["event"] == "_filesystem.create_ui_image":
             obj = EventCreateUiImage.model_validate(payload)
             await self.handler_create_ui_image(obj)
 

@@ -11,8 +11,8 @@ from src.infrastructure.rabbit_mq.producer import publish_event
 from src.config import get_config
 from src.database.models.categories import StorageStatus
 from src.models.read_models import SoldUniversalFull
-from src.application.filesystem.actions import get_default_image_bytes, move_file
-from src.application.filesystem.media_paths import create_path_universal_storage
+from src.infrastructure.files.file_system import get_default_image_bytes, move_file
+from src.infrastructure.files._media_paths import create_path_universal_storage
 from src.application.products.universals.shemas import get_import_universal_headers, UploadUniversalProduct
 from src.utils.core_logger import get_logger
 
@@ -132,22 +132,6 @@ def generate_example_zip_for_import() -> Path:
         )
 
     return zip_path
-
-
-def create_import_zip(
-    base_dir: Path,
-    zip_path: Path
-) -> None:
-    """
-    Упаковывает manifest.csv и files/ в zip
-    """
-    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
-        for path in base_dir.rglob("*"):
-            if path.is_file():
-                zipf.write(
-                    path,
-                    arcname=path.relative_to(base_dir)
-                )
 
 
 def create_manifest_csv(

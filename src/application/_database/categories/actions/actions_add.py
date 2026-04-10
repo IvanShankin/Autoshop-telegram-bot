@@ -10,7 +10,7 @@ from src.database.models.categories import Categories, CategoryTranslation
 from src.models.read_models import CategoryFull
 from src.database import get_db
 from src.application._database.system.actions.actions import create_ui_image
-from src.application.filesystem.actions import get_default_image_bytes
+from src.infrastructure.files.file_system import get_default_image_bytes
 from src.application._redis.filling import filling_main_categories, filling_categories_by_parent, \
     filling_category_by_category
 

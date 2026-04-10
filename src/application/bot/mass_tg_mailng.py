@@ -13,7 +13,7 @@ from src.infrastructure.telegram.rate_limit import RateLimiter
 from src.models.create_models.admins import CreateSentMassMessages
 from src.models.telegram import InlineKeyboardMarkupService, InlineKeyboardButtonService
 from src.repository.database.users import UsersRepository
-from src.application.filesystem.actions import copy_file
+from src.infrastructure.files.file_system import copy_file
 from src.application.models.admins import SentMassMessagesService
 
 

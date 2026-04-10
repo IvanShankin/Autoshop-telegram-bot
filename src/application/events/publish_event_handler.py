@@ -1,12 +1,12 @@
-from src.models.event_models.discounts import NewActivationVoucher
-from src.models.read_models import EventSentLog, LogLevel
+from src.models.read_models.events.discounts import NewActivationVoucher, NewActivatePromoCode
+from src.models.read_models import EventSentLog, LogLevel, NewPurchaseAccount
 from src.infrastructure.rabbit_mq.producer import publish_event
-from src.application.filesystem.schemas import EventCreateUiImage
+from src.models.read_models import EventCreateUiImage
 
 
 class PublishEventHandler:
 
-    async def send_log(cls, text: str, log_lvl: LogLevel):
+    async def send_log(cls, text: str, log_lvl: LogLevel = None):
         event = EventSentLog(text=text, log_lvl=log_lvl)
         await publish_event(event.model_dump(), "message.send_log")
 
@@ -74,8 +74,22 @@ class PublishEventHandler:
     ):
         await publish_event(
             EventCreateUiImage(ui_image_key=ui_image_key).model_dump(),
-            "filesystem.create_ui_image"
+            "_filesystem.create_ui_image"
         )
+
+    async def promo_code_activated(
+        cls,
+        promo_code_id: int,
+        user_id: int,
+    ):
+        new_activate = NewActivatePromoCode(
+            promo_code_id=promo_code_id,
+            user_id=user_id,
+        )
+        await publish_event(new_activate.model_dump(), "promo_code.activated")
 
     async def voucher_activated(cls, data: NewActivationVoucher):
         await publish_event(data.model_dump(), "voucher.activated")
+
+    async def new_purchase_account(self, data: NewPurchaseAccount):
+        await publish_event(data.model_dump(), "purchase.account")

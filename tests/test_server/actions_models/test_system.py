@@ -10,7 +10,7 @@ from src.application._database.system.actions.actions import get_all_types_payme
 from src.database.models.system import Settings, BackupLogs, TypePayments
 from src.application._database.system.actions import get_settings, update_settings
 from src.database import get_db
-from src.application.filesystem.media_paths import create_path_ui_image
+from src.infrastructure.files._media_paths import create_path_ui_image
 from src.infrastructure.redis import get_redis
 from src.database.models.system import UiImages
 
@@ -63,7 +63,7 @@ async def test_update_settings(create_settings):
 async def test_create_ui_image_new_record(tmp_path, monkeypatch):
     """Проверяет, что функция создаёт новую запись и файл, если key не существует."""
     from src.application._database.system.actions import create_ui_image
-    from src.application.filesystem.actions import get_default_image_bytes
+    from src.infrastructure.files.file_system import get_default_image_bytes
 
     # Подготовка
     fake_key = "banner"
@@ -92,7 +92,7 @@ async def test_create_ui_image_new_record(tmp_path, monkeypatch):
 async def test_create_ui_image_existing_record(replacement_needed_modules, monkeypatch, tmp_path, create_ui_image):
     """Проверяет, что при существующей записи файл перезаписывается и запись обновляется."""
     from src.application._database.system.actions import create_ui_image as testing_fun
-    from src.application.filesystem.actions import get_default_image_bytes
+    from src.infrastructure.files.file_system import get_default_image_bytes
 
     fake_data = get_default_image_bytes()
     origin_ui_image, abs_path = await create_ui_image(key="existing_banner")

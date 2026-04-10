@@ -6,20 +6,17 @@ from typing import List, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.read_models import EventSentLog, LogLevel
+from src.application.events.publish_event_handler import PublishEventHandler
+from src.infrastructure.files.path_builder import PathBuilder
 from src.config import Config
 from src.database.models.categories import AccountServiceType, StorageStatus, ProductType
 from src.exceptions import NotEnoughAccounts
-from src.infrastructure.rabbit_mq.producer import publish_event
 from src.models.create_models.accounts import CreateDeletedAccountDTO
 from src.models.read_models import StartPurchaseAccount
+from src.models.read_models.events.purchase import AccountsData, NewPurchaseAccount
 from src.repository.redis import UsersCacheRepository
-from src.application._database.categories.events.schemas import NewPurchaseAccount, AccountsData
-from src.application._database.discounts.events import NewActivatePromoCode
-from src.application.filesystem.account_actions import move_in_account
-from src.application.filesystem.actions import move_file
-from src.application.filesystem.media_paths import create_path_account
-from src.application.filesystem.account_actions import rename_file
+from src.application.products.accounts.account_service import AccountService
+from src.infrastructure.files.file_system import move_file, rename_file
 from src.application.products.accounts.tg.actions import check_account_validity
 from src.application.models.categories.categories_cache_filler_service import CategoriesCacheFillerService
 from src.application.models.categories.category_service import CategoryService
@@ -61,6 +58,9 @@ class AccountPurchaseService:
         accounts_cache_filler: AccountsCacheFillerService,
         categories_cache_filler: CategoriesCacheFillerService,
         user_cache_repo: UsersCacheRepository,
+        account_service: AccountService,
+        path_build: PathBuilder,
+        publish_event_handler: PublishEventHandler,
         conf: Config,
         session_db: AsyncSession,
     ):
@@ -78,6 +78,9 @@ class AccountPurchaseService:
         self.accounts_cache_filler = accounts_cache_filler
         self.categories_cache_filler = categories_cache_filler
         self.user_cache_repo = user_cache_repo
+        self.account_service = account_service
+        self.path_build = path_build
+        self.publish_event_handler = publish_event_handler
         self.conf = conf
         self.session_db = session_db
 
@@ -321,12 +324,12 @@ class AccountPurchaseService:
 
         try:
             for account in data.product_accounts:
-                orig = create_path_account(
+                orig = self.path_build.build_path_account(
                     status=StorageStatus.FOR_SALE,
                     type_account_service=data.type_service_account,
                     uuid=account.account_storage.storage_uuid,
                 )
-                final = create_path_account(
+                final = self.path_build.build_path_account(
                     status=StorageStatus.BOUGHT,
                     type_account_service=data.type_service_account,
                     uuid=account.account_storage.storage_uuid,
@@ -337,8 +340,7 @@ class AccountPurchaseService:
                 if not moved:
                     text = f"#Внимание \n\nАккаунт не найден/не удалось переместить: {orig}"
                     logger.exception(text)
-                    event = EventSentLog(text=text)
-                    await publish_event(event.model_dump(), "message.send_log")
+                    await self.publish_event_handler.send_log(text=text)
 
                     await self.cancel_purchase_request(
                         user_id=user_id,
@@ -438,11 +440,10 @@ class AccountPurchaseService:
             await self.categories_cache_filler.fill_need_category(data.category_id)
 
             if data.promo_code_id:
-                event = NewActivatePromoCode(
+                await self.publish_event_handler.promo_code_activated(
                     promo_code_id=data.promo_code_id,
                     user_id=user_id,
                 )
-                await publish_event(event.model_dump(), "promo_code.activated")
 
             product_left = len(
                 await self.product_repo.get_by_category_id(
@@ -459,14 +460,13 @@ class AccountPurchaseService:
                 user_balance_after=data.user_balance_after,
                 product_left=product_left,
             )
-            await publish_event(new_purchase.model_dump(), "purchase.account")
+            await self.publish_event_handler.new_purchase_account(new_purchase)
 
             return True
 
         except Exception as e:
             logger.exception("Error in finalize_purchase: %s", e)
-            event = EventSentLog(text=f"#Ошибка finalise_purchase: {e}")
-            await publish_event(event.model_dump(), "message.send_log")
+            await self.publish_event_handler.send_log(text=f"#Ошибка finalise_purchase: {e}")
 
             await self.cancel_purchase_request(
                 user_id=user_id,
@@ -560,7 +560,7 @@ class AccountPurchaseService:
 
         for bad_account in account_storage:
             bad_account.account_storage.status = StorageStatus.FOR_SALE
-            await move_in_account(
+            await self.account_service.move_in_account(
                 account=bad_account.account_storage,
                 type_service_name=type_service_account,
                 status=StorageStatus.DELETED,
@@ -592,17 +592,15 @@ class AccountPurchaseService:
                         make_commit=False,
                     )
 
-                event = EventSentLog(
+                await self.publish_event_handler.send_log(
                     text=(
                         "\n#Невалидный_аккаунт \n"
                         "При покупке был найден невалидный аккаунт, он удален с продажи \n"
                         "Данные об аккаунте: \n"
                         f"storage_account_id: {bad_account.account_storage.account_storage_id}\n"
                         f"Себестоимость: {category.cost_price if category else 'unknown'}\n"
-                    ),
-                    log_lvl=LogLevel.INFO,
+                    )
                 )
-                await publish_event(event.model_dump(), "message.send_log")
             except Exception:
                 logger = get_logger(__name__)
                 logger.exception(

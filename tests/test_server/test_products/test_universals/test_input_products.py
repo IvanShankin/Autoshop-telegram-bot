@@ -7,8 +7,8 @@ from sqlalchemy.orm import selectinload
 from src.database.models.categories import ProductUniversal
 from src.database.models.categories import UniversalMediaType
 from src.database import get_db
-from src.application.filesystem.universals_products import generate_example_zip_for_import
-from src.application.filesystem.media_paths import create_path_universal_storage
+from src.application.products.universals.universals_products import generate_example_zip_for_import
+from src.infrastructure.files._media_paths import create_path_universal_storage
 from src.application.products.universals.input_products import input_universal_products
 
 

@@ -14,9 +14,9 @@ from src._bot_actions.messages.send_stickers import send_sticker
 from src.infrastructure.rabbit_mq.producer import publish_event
 from src.exceptions.domain import StickerNotFound
 from src.application._database.system.actions import get_ui_image, update_ui_image
-from src.application.filesystem.actions import check_file_exists
-from src.application.filesystem.media_paths import create_path_ui_image
-from src.application.filesystem.schemas import EventCreateUiImage
+from src.infrastructure.files.file_system import check_file_exists
+from src.infrastructure.files._media_paths import create_path_ui_image
+from src.models.read_models import EventCreateUiImage
 from src.utils.core_logger import get_logger
 
 
@@ -118,7 +118,7 @@ async def _try_edit_media_by_file(
         logger.warning(f"[edit_message] Local file not found: {file_path}")
         await publish_event(
             EventCreateUiImage(ui_image_key=ui_image.key).model_dump(),
-            "filesystem.create_ui_image"
+            "_filesystem.create_ui_image"
         )
 
         if fallback_image_key:
@@ -134,7 +134,7 @@ async def _try_edit_media_by_file(
                 if not os.path.isfile(file_path):
                     await publish_event(
                         EventCreateUiImage(ui_image_key=ui_image.key).model_dump(),
-                        "filesystem.create_ui_image"
+                        "_filesystem.create_ui_image"
                     )
                     event = EventSentLog(
                         text=f"#Не_найдено_фото [edit_message]. \nget_ui_image='{ui_image.key}'",
@@ -312,7 +312,7 @@ async def edit_message(
                 text = f"#Не_найдено_фото [edit_message]. \nget_ui_image='{image_key}'"
                 await publish_event(
                     EventCreateUiImage(ui_image_key=ui_image.key).model_dump(),
-                    "filesystem.create_ui_image"
+                    "_filesystem.create_ui_image"
                 )
 
                 # если не нашли ui_image или не надо отсылать его (not ui_image.show)
@@ -353,7 +353,7 @@ async def edit_message(
                     logger.warning(text)
                     await publish_event(
                         EventCreateUiImage(ui_image_key=ui_image.key).model_dump(),
-                        "filesystem.create_ui_image"
+                        "_filesystem.create_ui_image"
                     )
 
             else:

@@ -1,11 +1,13 @@
 from getpass import getpass
 
+from src.application._secrets.crypto_context import get_crypto_context
 from src.application.crypto.crypto_context import GLOBAL_DEK_NAME
 from src.application.crypto.secrets_storage import get_storage_client
 from src.config import EnvSettings, PathSettings, init_env
+from src.config.secrets_conf import SecretSettings
 from src.domain.crypto.key_ops import encrypt_text
+from src.domain.crypto.models import CryptoContext
 from src.exceptions import StorageNotFound, StorageConflict
-from src.application.secrets import get_crypto_context, set_crypto_context, CryptoContext, unwrap_dek
 from src.application.secrets._runtime import set_runtime, RuntimeMode, SecretsRuntime
 from src.domain.crypto.utils import derive_kek, gen_key
 from src.domain.crypto.encrypt import wrap_dek

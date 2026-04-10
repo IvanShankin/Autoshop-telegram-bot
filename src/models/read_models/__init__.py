@@ -20,6 +20,7 @@ from src.models.read_models.categories.product_universal import (
 
 from src.models.read_models.categories.purshanse_schem import ResultCheckCategory, StartPurchaseAccount, \
     PurchaseAccountSchema
+from src.models.read_models.events.discounts import NewActivationVoucher, NewActivatePromoCode
 from src.models.read_models.events.filesystem import EventCreateUiImage
 from src.models.read_models.events.purchase import NewPurchaseAccount, NewPurchaseUniversal
 from src.models.read_models.events.referrals import ReferralReplenishmentCompleted, ReferralIncomeResult
@@ -91,6 +92,8 @@ __all__ = [
     "PurchasesDTO",
 
     # events
+    "NewActivatePromoCode",
+    "NewActivationVoucher",
     "LogLevel",
     "EventSentLog",
     "NewPurchaseAccount",
@@ -101,5 +104,9 @@ __all__ = [
     "ReplenishmentCompleted",
     "ReplenishmentFailed",
     "EventCreateUiImage",
+
+    # purchase
+    "StartPurchaseUniversal",
+    "StartPurchaseUniversalOne",
 ]
 

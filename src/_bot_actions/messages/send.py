@@ -11,9 +11,9 @@ from src.infrastructure.rabbit_mq.producer import publish_event
 from src.config import get_global_rate_limit
 from src.exceptions.domain import StickerNotFound
 from src.application._database.system.actions import get_ui_image, update_ui_image
-from src.application.filesystem.actions import check_file_exists
-from src.application.filesystem.media_paths import create_path_ui_image
-from src.application.filesystem.schemas import EventCreateUiImage
+from src.infrastructure.files.file_system import check_file_exists
+from src.infrastructure.files._media_paths import create_path_ui_image
+from src.models.read_models import EventCreateUiImage
 from src.utils.core_logger import get_logger
 
 
@@ -147,7 +147,7 @@ async def send_message(
                     logger.info(text)
                     await publish_event(
                         EventCreateUiImage(ui_image_key=ui_image.key).model_dump(),
-                        "filesystem.create_ui_image"
+                        "_filesystem.create_ui_image"
                     )
 
             except TelegramBadRequest as e:
@@ -195,7 +195,7 @@ async def send_message(
                         logger.warning(text)
                         await publish_event(
                             EventCreateUiImage(ui_image_key=ui_image.key).model_dump(),
-                            "filesystem.create_ui_image"
+                            "_filesystem.create_ui_image"
                         )
                 except TelegramBadRequest as e:
                     await handler_tg_except(e)

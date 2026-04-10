@@ -3,8 +3,9 @@ from typing import Optional, Sequence, List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database.models.categories import ProductType
-from src.models.read_models import EventSentLog, LogLevel
+from src.application.models.products.accounts import AccountSoldService
+from src.database.models.categories import ProductType, AccountServiceType, SoldAccounts
+from src.models.read_models import EventSentLog, LogLevel, SoldAccountFull, SoldAccountsDTO
 from src.config import Config
 from src.database.models.users import Users
 from src.infrastructure.rabbit_mq.producer import publish_event
@@ -164,6 +165,16 @@ class UserService:
             result_list.append(ProductType.UNIVERSAL)
 
         # ПРИ ДОБАВЛЕНИЕ НОВЫХ ТОВАРОВ, РАСШИРИТЬ ПОИСК
+
+        return result_list
+
+    async def get_types_account_service_where_the_user_purchase(self, user_id: int):
+        result_list: List[AccountServiceType] = []
+
+        all_account: List[SoldAccounts] = await self.sold_accounts_repo.get_by_owner_id_with_relations(user_id,)
+        for account in all_account:
+            if not account.account_storage.type_account_service in result_list:
+                result_list.append(account.account_storage.type_account_service)
 
         return result_list
 

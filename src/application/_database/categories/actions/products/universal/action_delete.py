@@ -5,7 +5,7 @@ from sqlalchemy import select, delete
 
 from src.database.models.categories import ProductUniversal, SoldUniversal, UniversalStorage
 from src.database import get_db
-from src.application.filesystem.media_paths import create_path_universal_storage
+from src.infrastructure.files._media_paths import create_path_universal_storage
 from src.application._redis.filling import filling_all_keys_category
 from src.application._redis.filling.filling_universal import filling_product_universal_by_category, \
     filling_universal_by_product_id, filling_sold_universal_by_owner_id, filling_sold_universal_by_universal_id

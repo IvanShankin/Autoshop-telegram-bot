@@ -1,6 +1,5 @@
+from typing import Callable
 from pydantic import BaseModel
-
-from src.application.crypto.secrets_storage import GetSecret
 
 
 class SecretSettings(BaseModel):
@@ -10,11 +9,11 @@ class SecretSettings(BaseModel):
     db_password: str
 
 
-def load_secrets(get_secret: GetSecret) -> SecretSettings:
-    """Данные переменные могут браться как из .env, так и из удалённого хранилища секретов"""
+
+def load_secrets(get_secret: Callable[[str], str]) -> SecretSettings:
     return SecretSettings(
-        token_bot=get_secret.execute("TOKEN_BOT"),
-        token_logger_bot=get_secret.execute("TOKEN_LOGGER_BOT"),
-        token_crypto_bot=get_secret.execute("TOKEN_CRYPTO_BOT"),
-        db_password=get_secret.execute("DB_PASSWORD"),
+        token_bot=get_secret("TOKEN_BOT"),
+        token_logger_bot=get_secret("TOKEN_LOGGER_BOT"),
+        token_crypto_bot=get_secret("TOKEN_CRYPTO_BOT"),
+        db_password=get_secret("DB_PASSWORD"),
     )

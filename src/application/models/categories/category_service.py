@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database.models.categories import Categories, ProductType
+from src.database.models.categories import ProductType
 from src.exceptions import IncorrectedNumberButton, AccountCategoryNotFound, TheCategoryStorageAccount, \
     IncorrectedAmountSale, IncorrectedCostPrice, CategoryStoresSubcategories
 from src.exceptions.business import NotEnoughArguments, TheCategoryStorageProducts, ValueErrorService
@@ -12,7 +12,6 @@ from src.models.read_models import CategoryFull, CategoriesDTO
 from src.models.update_models.category import UpdateCategory
 from src.repository.database.categories import CategoriesRepository, ProductAccountsRepository
 from src.repository.redis import CategoriesCacheRepository, UiImagesCacheRepository
-from src.application.filesystem.actions import get_default_image_bytes
 from src.application.models.categories.categories_cache_filler_service import CategoriesCacheFillerService
 from src.application.models.categories.category_translate_service import TranslationsCategoryService
 from src.application.models.systems.ui_image_service import UiImagesService

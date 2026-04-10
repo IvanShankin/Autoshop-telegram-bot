@@ -28,9 +28,9 @@ from src.modules.admin_actions.services import check_valid_file, check_category_
 from src.modules.admin_actions.state import ImportTgAccounts, ImportOtherAccounts
 from src.modules.admin_actions.state.editors.editor_categories import ImportUniversalProducts
 from src.database.models.categories import ProductType
-from src.application.filesystem.account_products import generate_example_import_other_acc, generate_example_import_tg_acc
-from src.application.filesystem.actions import create_temp_dir
-from src.application.filesystem.universals_products import generate_example_zip_for_import
+from src.application.products.accounts._account_products import generate_example_import_other_acc, generate_example_import_tg_acc
+from src.infrastructure.files.file_system import create_temp_dir
+from src.application.products.universals.universals_products import generate_example_zip_for_import
 from src.application.products.accounts.other.input_account import input_other_account
 from src.application.products.accounts.tg.input_account import import_telegram_accounts_from_archive
 from src.database.models.categories import AccountServiceType
@@ -198,7 +198,7 @@ async def import_tg_account(message: Message, state: FSMContext, user: Users):
     if not valid_file:
         return
 
-    save_path = str(create_temp_dir() / doc.file_name)
+    save_path = str(create_temp_dir(get_config()) / doc.file_name)
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     file = await message.bot.get_file(doc.file_id) # Получаем объект файла
 
@@ -385,7 +385,7 @@ async def import_universal_products(message: Message, state: FSMContext, user: U
     gen_mes_info = message_info_load_file(user)
     await gen_mes_info.__anext__()
 
-    temp_dir = create_temp_dir()
+    temp_dir = create_temp_dir(get_config())
     archive_path = Path(temp_dir) / doc.file_name
 
     file = await message.bot.get_file(doc.file_id)

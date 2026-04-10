@@ -1,5 +1,7 @@
 from logging import Logger
 
+from src.application.crypto.crypto_context import CryptoProvider
+from src.application.products.accounts.account_service import AccountService
 from src.config import Config
 from src.infrastructure.files.excel_reports import ExcelReportExporter
 from src.application.models.discounts import VoucherService
@@ -84,6 +86,8 @@ class ProfileModule:
         settings_service: SettingsService,
         account_moduls: AccountsModuls,
         universal_moduls: UniversalModuls,
+        account_service: AccountService,
+        crypto_provider: CryptoProvider,
     ):
         self.conf = conf
         self.logger = logger
@@ -102,3 +106,5 @@ class ProfileModule:
         self.settings_service = settings_service
         self.account_moduls = account_moduls
         self.universal_moduls = universal_moduls
+        self.account_service = account_service
+        self.crypto_provider = crypto_provider

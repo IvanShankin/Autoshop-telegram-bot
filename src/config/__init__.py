@@ -1,7 +1,6 @@
 from asyncio import Semaphore
-from typing import Optional
+from typing import Optional, Callable
 
-from src.application.crypto.secrets_storage import GetSecret
 from src.config.base import init_env
 from src.config.db_conf import DbConnectionSettings
 from src.config.env_conf import EnvSettings, Mode
@@ -16,8 +15,17 @@ from src.config.sizes_conf import FileLimits
 from src._bot_actions.throttler import RateLimiter
 
 
+class RuntimeConfig:
+    """Все необходимые конфиги для получения секретных данных и работы с сервером хранящий секреты"""
+
+    def __init__(self):
+        init_env()
+        self.env = EnvSettings.from_env()
+        self.paths = PathSettings.build(self.env.use_secret_storage)
+
+
 class Config:
-    def __init__(self, get_secret: GetSecret):
+    def __init__(self, get_secret: Callable[[str], str]):
         init_env()
 
         self.env = EnvSettings.from_env()
@@ -59,7 +67,7 @@ _config: Optional[Config] = None
 _GLOBAL_RATE_LIMITER: Optional[RateLimiter] = None
 _SEMAPHORE_MAILING: Optional[Semaphore] = None
 
-def init_config(get_secret: GetSecret) -> Config:
+def init_config(get_secret: Callable[[str], str]) -> Config:
     global _config
     _config = Config(get_secret)
     return _config

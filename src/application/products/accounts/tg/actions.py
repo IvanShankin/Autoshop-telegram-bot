@@ -9,12 +9,12 @@ from opentele.api import UseCurrentSession
 from opentele.td import TDesktop
 from telethon.tl.types import Message, User
 
+from src.application._secrets.crypto_context import get_crypto_context
 from src.database.models.categories import AccountStorage, StorageStatus
 from src.database.models.categories import AccountServiceType
 from src.models.read_models import AccountStorageDTO
-from src.application.filesystem.account_actions import decryption_tg_account
+from src.application.products.accounts.account_service import decryption_tg_account
 from src.utils.core_logger import get_logger
-from src.application.secrets import get_crypto_context
 
 CODE_PATTERN = [
         r"\b\d{5}\b",  # например: 56741

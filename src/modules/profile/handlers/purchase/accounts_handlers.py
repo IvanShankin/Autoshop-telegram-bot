@@ -1,6 +1,8 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
 
+from src.domain.crypto.decrypt import decrypt_text
+from src.domain.crypto.key_ops import unwrap_dek
 from src.models.create_models.accounts import CreateDeletedAccountDTO
 from src.models.read_models import UsersDTO
 from src.models.update_models import UpdateAccountStorageDTO
@@ -9,10 +11,8 @@ from src.modules.profile.services.purchases_accounts import show_all_sold_accoun
     check_sold_account, show_types_services_sold_account
 from src.database.models.categories import AccountStorage, StorageStatus
 from src.application.bot import Messages
-from src.application.filesystem.account_actions import move_in_account, get_tdata_tg_acc, get_session_tg_acc
 from src.application.models.modules import ProfileModule
 from src.application.products.accounts.tg.actions import get_auth_codes, check_account_validity
-from src.application.secrets import decrypt_text, get_crypto_context, unwrap_dek
 from src.utils.i18n import get_text
 from src.utils.pars_number import e164_to_pretty
 
@@ -190,7 +190,7 @@ async def get_code_acc(
 @router.callback_query(F.data.startswith("get_tdata_acc:"))
 async def get_tdata_acc(callback: CallbackQuery, profile_module: ProfileModule, messages_service: Messages):
     await get_file_for_login(
-        callback, get_tdata_tg_acc, type_media='tdata_tg_id',
+        callback, profile_module.account_service.get_tdata_tg_acc, type_media='tdata_tg_id',
         profile_module=profile_module, messages_service=messages_service
     )
 
@@ -198,7 +198,7 @@ async def get_tdata_acc(callback: CallbackQuery, profile_module: ProfileModule, 
 @router.callback_query(F.data.startswith("get_session_acc:"))
 async def get_session_acc(callback: CallbackQuery, profile_module: ProfileModule, messages_service: Messages):
     await get_file_for_login(
-        callback, get_session_tg_acc, type_media='session_tg_id',
+        callback, profile_module.account_service.get_session_tg_acc, type_media='session_tg_id',
         profile_module=profile_module, messages_service=messages_service
     )
 
@@ -223,7 +223,7 @@ async def get_log_pas(
     if not account:
         return
 
-    crypto = get_crypto_context()
+    crypto = profile_module.crypto_provider.get()
     account_key = unwrap_dek(
         account.account_storage.encrypted_key,
         account.account_storage.encrypted_key_nonce,
@@ -378,7 +378,7 @@ async def del_account(
     if not account:
         return
 
-    result = await move_in_account(
+    result = await profile_module.account_service.move_in_account(
         account=AccountStorage(**account.account_storage.model_dump()),
         type_service_name=type_account_service,
         status=StorageStatus.DELETED

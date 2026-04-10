@@ -7,6 +7,9 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from src.application._secrets.crypto_context import get_crypto_context
+from src.domain.crypto.encrypt import make_account_key
+from src.domain.crypto.key_ops import encrypt_text
 from tests.helpers.func_fabrics.category_fabric import create_category_factory
 from tests.helpers.func_fabrics.other_fabric import create_new_user_fabric
 
@@ -18,7 +21,6 @@ from src.database.models.categories import AccountServiceType
 from src.database import get_db
 from src.application._redis.filling import filling_sold_accounts_by_owner_id, \
     filling_sold_account_by_account_id, filling_all_keys_category, filling_product_account_by_account_id
-from src.application.secrets import encrypt_text, get_crypto_context, make_account_key
 
 
 def make_fake_encrypted_archive_for_test(
@@ -39,7 +41,7 @@ def make_fake_encrypted_archive_for_test(
         └── loans.txt
     """
 
-    from src.application.filesystem.media_paths import create_path_account
+    from src.infrastructure.files._media_paths import create_path_account
     # генерируем UUID
     # === 1. Генерация UUID и путей ===
     encrypted_path = create_path_account(status, type_account_service, uuid)

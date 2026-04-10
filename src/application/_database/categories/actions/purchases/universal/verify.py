@@ -5,6 +5,7 @@ from typing import List, Tuple
 from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
+from src.application._secrets.crypto_context import get_crypto_context
 from src.models.read_models import LogLevel, EventSentLog
 from src.infrastructure.rabbit_mq.producer import publish_event
 from src.config import get_config
@@ -18,7 +19,6 @@ from src.database.models.categories import StorageStatus, \
 from src.models.read_models import ProductUniversalFull
 from src.database import get_db
 from src.application.products.universals.actions import check_valid_universal_product, move_universal_storage
-from src.application.secrets import get_crypto_context
 from src.utils.core_logger import get_logger
 
 SEMAPHORE_LIMIT_ACCOUNT = 12

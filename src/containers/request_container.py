@@ -1,8 +1,12 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.application.crypto.crypto_context import CryptoProvider
+from src.application.models.systems.backup_db_service import BackupDBService
+from src.application.products.accounts.account_service import AccountService
 from src.config import get_config
+from src.infrastructure.crypto.secret_storage.secrets_storage import SecretsStorage
 from src.infrastructure.crypto_bot.core import CryptoBotProvider
 from src.infrastructure.files.excel_reports import ExcelReportExporter
 from src.infrastructure.files.file_system import FileStorage
@@ -46,7 +50,7 @@ from src.repository.database.categories import (
 )
 from src.repository.database.systems import (
     StickersRepository,
-    UiImagesRepository, FilesRepository, SettingsRepository, TypePaymentsRepository,
+    UiImagesRepository, FilesRepository, SettingsRepository, TypePaymentsRepository, BackupLogsRepository,
 )
 from src.repository.database.users import (
     BannedAccountsRepository,
@@ -79,7 +83,7 @@ from src.application.models.admins import AdminActionsService, AdminsService, Me
 from src.application.models.payment_services import PaymentService
 from src.application.models.referrals import ReferralService, ReferralIncomeService, ReferralLevelsService
 from src.application.models.systems import StickersService, UiImagesService, FilesService, SettingsService, \
-    TypesPaymentsService
+    TypesPaymentsService, BackupLogsService
 from src.application.models.users import (
     BannedAccountService,
     UserLogService,
@@ -124,10 +128,17 @@ class RequestContainer:
         telegram_client : "TelegramClient",
         telegram_logger_client: "TelegramClient",
         crypto_bot_provider: CryptoBotProvider,
+        crypto_provider: CryptoProvider,
+        secret_storage: SecretsStorage,
     ):
         self.session_db = session_db
         self.telegram_client = telegram_client
         self.telegram_logger_client = telegram_logger_client
+
+        self.crypto_provider = crypto_provider
+        self.secret_storage = secret_storage
+
+        self.account_sold_service: Optional[AccountSoldService] = None
 
         self.config = get_config()
         self.logger = get_logger(__name__)
@@ -393,6 +404,7 @@ class RequestContainer:
             accounts_cache_filler=self.accounts_cache_filler_service,
             category_filler_service=self.categories_cache_filler_service,
             session_db=self.session_db,
+            path_builder=self.path_builder,
         )
         self.account_deleted_service = AccountDeletedService(
             deleted_repo=self.deleted_accounts_repo,
@@ -628,6 +640,31 @@ class RequestContainer:
             logger=self.logger,
         )
 
+        self.backup_logs_repository = BackupLogsRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+
+        self.backup_logs_service = BackupLogsService(
+            backup_logs_repo=self.backup_logs_repository,
+            session_db=self.session_db
+        )
+        self.account_service = AccountService(
+            publish_event_handler=self.publish_event_handler,
+            path_builder=self.path_builder,
+            crypto_provider=self.crypto_provider,
+            logger=self.logger,
+        )
+
+    def get_backup_db(self):
+        return BackupDBService(
+            conf=self.config,
+            logger=self.logger,
+            crypto_provider=self.crypto_provider,
+            secret_storage=self.secret_storage,
+            backup_logs_service=self.backup_logs_service,
+        )
+
     def get_message_service(self,) -> Messages:
         rate_limiter = RateLimiter(
             max_calls=self.config.different.rate_send_msg_limit,
@@ -715,6 +752,8 @@ class RequestContainer:
             settings_service=self.settings_service,
             account_moduls=self.get_account_modul(),
             universal_moduls=self.get_universal_product_modul(),
+            account_service=self.account_service,
+            crypto_provider=self.crypto_provider,
         )
 
     def get_account_modul(self) -> AccountsModuls:
@@ -824,5 +863,14 @@ def init_request_container(
     telegram_client: "TelegramClient",
     telegram_logger_client: "TelegramClient",
     crypto_bot_provider: CryptoBotProvider,
+    crypto_provider: CryptoProvider,
+    secret_storage: SecretsStorage,
 ) -> RequestContainer:
-    return RequestContainer(session_db, telegram_client, telegram_logger_client, crypto_bot_provider)
+    return RequestContainer(
+        session_db,
+        telegram_client,
+        telegram_logger_client,
+        crypto_bot_provider,
+        crypto_provider,
+        secret_storage
+    )

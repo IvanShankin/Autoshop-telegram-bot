@@ -1,7 +1,8 @@
+from src.application._secrets.crypto_context import set_crypto_context
 from src.application.crypto.crypto_context import CryptoProvider, InitCryptoContext
 from src.application.crypto.secrets_storage import GetSecret
 from src.config import init_config
-from src.config.runtime_conf import  RuntimeConfig
+from src.config import RuntimeConfig
 from src.containers import RequestContainer
 from src.infrastructure.crypto.key_store import KeyStore
 from src.infrastructure.crypto.secret_storage.client import SecretsStorageClient
@@ -41,6 +42,10 @@ class AppContainer:
         self._crypto_context = init_crypto_context.execute()
         self.crypto_provider.set(self._crypto_context)  # ИСПОЛЬЗОВАТЬ ТОЛЬКО ЕГО ДЛЯ ШИФРОВАНИЯ И ДЕШИФРОВАНИЯ
 
+        # ВРЕМЕННОЕ РЕШЕНИЕ ДО ПОЛНОГО ПЕРЕХОДА НА НОВУЮ АРХИТЕКТУРУ
+        set_crypto_context(self._crypto_context)
+        # ВРЕМЕННОЕ РЕШЕНИЕ ДО ПОЛНОГО ПЕРЕХОДА НА НОВУЮ АРХИТЕКТУРУ
+
         get_secret = GetSecret(
             storage=self.secret_storage,
             crypto_provider=self.crypto_provider,
@@ -48,7 +53,7 @@ class AppContainer:
             runtime_conf=runtime_conf
         )
 
-        self.conf = init_config(get_secret)
+        self.conf = init_config(get_secret.execute)
         self.redis = init_redis()
         self.crypto_bot_provider = init_crypto_bot_provider(self.conf.secrets.token_crypto_bot)
 
@@ -71,6 +76,8 @@ class AppContainer:
             self.telegram_client,
             self.telegram_logger_client,
             self.crypto_bot_provider,
+            self.crypto_provider,
+            self.secret_storage,
         )
 
     def _create_event_handler(self, session):

@@ -15,7 +15,7 @@ from src.exceptions import TextTooLong, TextNotLinc
 from src.database import get_db
 from src.database.models.users import Users
 from src.database.models.admins import SentMasMessages
-from src.application.filesystem.actions import copy_file
+from src.infrastructure.files.file_system import copy_file
 from src.utils.core_logger import get_logger
 
 

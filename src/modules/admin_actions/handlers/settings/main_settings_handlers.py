@@ -13,7 +13,7 @@ from src.modules.admin_actions.keyboards.settings_kb import confirm_overwrite_ca
 from src.application._database.admins.actions import check_admin
 from src.application._database.system.actions import get_settings
 from src.database.models.users import Users
-from src.application.filesystem.actions import split_file_on_chunk
+from src.infrastructure.files.file_system import split_file_on_chunk
 from src.application._redis.filling import filling_all_redis
 from src.utils.i18n import get_text
 
@@ -27,7 +27,7 @@ async def send_log_files(bot: Bot, chat_id: int, language: str):
         text=get_text(language, "admins_settings", "log_upload_begun")
     )
 
-    async for chunk_path in split_file_on_chunk(get_config().paths.log_file):
+    async for chunk_path in split_file_on_chunk(get_config().paths.log_file, get_config()):
         await bot.send_document(chat_id,FSInputFile(chunk_path))
 
     await bot.send_message(

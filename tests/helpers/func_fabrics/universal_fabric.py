@@ -6,7 +6,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from src.application._redis.filling import filling_all_keys_category
-from src.domain.crypto.encrypt import encrypt_file
+from src.application._secrets.crypto_context import get_crypto_context
+from src.domain.crypto.encrypt import encrypt_file, make_account_key
+from src.domain.crypto.key_ops import encrypt_text
 from tests.helpers.func_fabrics.category_fabric import create_category_factory
 from tests.helpers.func_fabrics.other_fabric import create_new_user_fabric
 from src.database.models.categories import UniversalMediaType, UniversalStorage, \
@@ -17,7 +19,6 @@ from src.database import get_db
 from src.application._redis.filling.filling_universal import filling_product_universal_by_category, \
     filling_universal_by_product_id, filling_sold_universal_by_universal_id, \
     filling_sold_universal_by_owner_id
-from src.application.secrets import encrypt_text, get_crypto_context, make_account_key
 
 
 async def _make_encrypted_universal_storage_file(
@@ -26,7 +27,7 @@ async def _make_encrypted_universal_storage_file(
     uuid: str,
     file_path: str = None
 ) -> Path:
-    from src.application.filesystem.media_paths import create_path_universal_storage
+    from src.infrastructure.files._media_paths import create_path_universal_storage
     if file_path is None:
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=".enc") as f:
             f.write("Данные о продукте")

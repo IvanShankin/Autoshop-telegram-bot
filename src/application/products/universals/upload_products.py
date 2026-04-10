@@ -3,15 +3,17 @@ import shutil
 from pathlib import Path
 from typing import List, AsyncGenerator
 
+from src.application._secrets.crypto_context import get_crypto_context
+from src.config import get_config
+from src.domain.crypto.key_ops import unwrap_dek
 from src.exceptions import ProductNotFound
 from src.application._database.categories.actions.products.universal.actions_get import \
     get_product_universal_by_category_id, get_translations_universal_storage
 from src.models.read_models import CategoryFull, ProductUniversalFull
-from src.application.filesystem.actions import create_temp_dir
-from src.application.filesystem.universals_products import create_manifest_csv, create_import_zip
-from src.application.filesystem.media_paths import create_path_universal_storage
+from src.infrastructure.files.file_system import create_temp_dir, create_import_zip
+from src.application.products.universals.universals_products import create_manifest_csv
+from src.infrastructure.files._media_paths import create_path_universal_storage
 from src.application.products.universals.shemas import UploadUniversalProduct, get_import_universal_headers
-from src.application.secrets import get_crypto_context, unwrap_dek
 from src.domain.crypto.decrypt import decrypt_file, decrypt_text
 from src.utils.core_logger import get_logger
 
@@ -42,7 +44,7 @@ async def upload_universal_products(category: CategoryFull) -> AsyncGenerator[Pa
     headers = get_import_universal_headers()
     parse_products: List[UploadUniversalProduct] = []
 
-    temp_dir = create_temp_dir()
+    temp_dir = create_temp_dir(get_config())
     for_archived_dir = temp_dir / Path("uploaded_products")
     for_archived_dir.mkdir(parents=True, exist_ok=True)
     files_dir = for_archived_dir / Path("files")

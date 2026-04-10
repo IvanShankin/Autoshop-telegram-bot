@@ -14,7 +14,7 @@ from src.application._database.categories.actions.products.accounts.actions_upda
 from src.database.models.categories import ProductAccounts, AccountStorage, PurchaseRequests, \
     PurchaseRequestAccount, AccountServiceType, StorageStatus
 from src.database import get_db
-from src.application.filesystem.account_actions import move_in_account
+from src.application.products.accounts.account_service import move_in_account
 from src.application.products.accounts.tg.actions import check_account_validity
 from src.utils.core_logger import get_logger
 

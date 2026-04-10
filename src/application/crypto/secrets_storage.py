@@ -2,7 +2,7 @@ import os
 from logging import Logger
 
 from src.application.crypto.crypto_context import CryptoProvider
-from src.config.runtime_conf import RuntimeConfig
+from src.config import RuntimeConfig
 from src.domain.crypto.decrypt import decrypt_text
 from src.infrastructure.crypto.secret_storage.secrets_storage import SecretsStorage
 
@@ -21,8 +21,8 @@ class GetSecret:
         self.runtime_conf = runtime_conf
 
     def execute(self, secret_name: str) -> str:
-        # для тестов и разработки
-        if self.runtime_conf.env.use_secret_storage:
+        # если не надо
+        if not self.runtime_conf.env.use_secret_storage:
             value = os.getenv(secret_name)
             if value is None:
                 raise RuntimeError(

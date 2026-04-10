@@ -17,7 +17,7 @@ ROUTING_KEYS = [
     "replenishment.*",
     "account.*",
     "purchase.*",
-    "filesystem.*",
+    "_filesystem.*",
     "message.*"
 ]
 

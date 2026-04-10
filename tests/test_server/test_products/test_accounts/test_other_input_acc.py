@@ -2,6 +2,7 @@ import io
 import pytest
 
 from src.database.models.categories import AccountServiceType
+from src.infrastructure.files.file_system import make_csv_bytes
 
 pytestmark = pytest.mark.asyncio
 
@@ -19,7 +20,6 @@ async def test_input_other_account_full_flow_create_and_return_reports(
         total_processed == общее количество строк в CSV
     """
     from src.application.products.accounts.other.input_account import input_other_account
-    from src.application.filesystem.account_products import make_csv_bytes
 
     category = await create_category(type_account_service=AccountServiceType.TELEGRAM, is_product_storage=True)
 

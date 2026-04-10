@@ -1,9 +1,8 @@
 import os.path
 from pathlib import Path
 
-from src.application.filesystem.event_filesystem import handler_create_ui_image
-from src.application.filesystem.media_paths import create_path_ui_image
-from src.application.filesystem.schemas import EventCreateUiImage
+from src.infrastructure.files._media_paths import create_path_ui_image
+from src.models.read_models import EventCreateUiImage
 
 
 async def test_handler_create_ui_image(create_ui_image):

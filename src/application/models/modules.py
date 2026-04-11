@@ -1,10 +1,13 @@
 from logging import Logger
 
 from src.application.crypto.crypto_context import CryptoProvider
+from src.application.models.categories import CategoryService
+from src.application.models.purchases import PurchaseService
+from src.application.models.users.pubscription_prompt import SubscriptionService
 from src.application.products.accounts.account_service import AccountService
 from src.config import Config
 from src.infrastructure.files.excel_reports import ExcelReportExporter
-from src.application.models.discounts import VoucherService
+from src.application.models.discounts import VoucherService, PromoCodeService
 from src.application.models.payment_services import PaymentService
 from src.application.models.products.accounts import AccountDeletedService, AccountProductService, AccountSoldService, \
     AccountStorageService, AccountTgMediaService, AccountTranslationsService, AccountsCacheFillerService
@@ -15,6 +18,7 @@ from src.application.models.systems import TypesPaymentsService, SettingsService
 from src.application.models.users import WalletTransactionService, UserService, MoneyTransferService, \
     NotificationSettingsService
 from src.application.models.users.permission_service import PermissionService
+from src.infrastructure.files.path_builder import PathBuilder
 
 
 class AccountsModuls:
@@ -88,6 +92,7 @@ class ProfileModule:
         universal_moduls: UniversalModuls,
         account_service: AccountService,
         crypto_provider: CryptoProvider,
+        path_builder: PathBuilder,
     ):
         self.conf = conf
         self.logger = logger
@@ -108,3 +113,31 @@ class ProfileModule:
         self.universal_moduls = universal_moduls
         self.account_service = account_service
         self.crypto_provider = crypto_provider
+        self.path_builder = path_builder
+
+
+class CatalogModule:
+
+    def __init__(
+        self,
+        conf: Config,
+        logger: Logger,
+        user_service: UserService,
+        purchase_service: PurchaseService,
+        category_service: CategoryService,
+        promo_code_service: PromoCodeService,
+        subscription_service: SubscriptionService,
+        account_moduls: AccountsModuls,
+        universal_moduls: UniversalModuls,
+        settings_service: SettingsService,
+    ):
+        self.conf = conf
+        self.logger = logger
+        self.user_service = user_service
+        self.purchase_service = purchase_service
+        self.category_service = category_service
+        self.promo_code_service = promo_code_service
+        self.subscription_service = subscription_service
+        self.account_moduls = account_moduls
+        self.universal_moduls = universal_moduls
+        self.settings_service = settings_service

@@ -27,7 +27,16 @@ from src.application.events.event_handlers.referrals import ReferralEventHandler
 from src.application.events.event_handlers.replenishments import ReplenishmentsEventHandler
 from src.application.models.discounts import ActivatedPromoCodesService, PromoCodeService
 from src.application.models.discounts.vouchers_service import VoucherService
-from src.application.models.modules import ProfileModule, AccountsModuls, UniversalModuls
+from src.application.models.categories.category_service import CategoryService
+from src.application.models.categories.category_translate_service import TranslationsCategoryService
+from src.application.models.purchases.purchase_service import PurchaseService
+from src.application.models.purchases.accounts.account_purchase_service import AccountPurchaseService
+from src.application.models.purchases.general.purchase_cancel_service import PurchaseCancelService
+from src.application.models.purchases.general.purchase_request_service import PurchaseRequestService
+from src.application.models.purchases.general.purchase_validation_service import PurchaseValidationService
+from src.application.models.purchases.universal.universal_purchase_service import UniversalPurchaseService
+from src.application.models.users.pubscription_prompt import SubscriptionService
+from src.application.models.modules import ProfileModule, AccountsModuls, UniversalModuls, CatalogModule
 from src.repository.database.admins import (
     AdminActionsRepository,
     AdminsRepository,
@@ -36,6 +45,7 @@ from src.repository.database.admins import (
 from src.repository.database.base import DatabaseBase
 from src.repository.database.categories import (
     CategoriesRepository,
+    CategoryTranslationsRepository,
     DeletedAccountsRepository,
     ProductAccountsRepository,
     SoldAccountsRepository,
@@ -47,6 +57,10 @@ from src.repository.database.categories import (
     SoldUniversalRepository,
     UniversalStorageRepository,
     UniversalTranslationRepository,
+    PurchaseRequestsRepository,
+    PurchaseRequestAccountsRepository,
+    PurchaseRequestUniversalRepository,
+    PurchasesRepository,
 )
 from src.repository.database.systems import (
     StickersRepository,
@@ -54,6 +68,7 @@ from src.repository.database.systems import (
 )
 from src.repository.database.users import (
     BannedAccountsRepository,
+    BalanceHolderRepository,
     NotificationSettingsRepository,
     UserAuditLogsRepository,
     UsersRepository, TransferMoneysRepository, WalletTransactionRepository,
@@ -381,6 +396,27 @@ class RequestContainer:
             category_repo=self.categories_repo,
             category_cache_repo=self.categories_cache_repo,
         )
+        self.category_translations_repo = CategoryTranslationsRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.translations_category_service = TranslationsCategoryService(
+            category_translations_repo=self.category_translations_repo,
+            category_repo=self.categories_repo,
+            category_cache_repo=self.categories_cache_repo,
+            category_filler_service=self.categories_cache_filler_service,
+            session_db=self.session_db,
+        )
+        self.category_service = CategoryService(
+            category_repo=self.categories_repo,
+            category_cache_repo=self.categories_cache_repo,
+            product_accounts_repository=self.product_accounts_repo,
+            translations_category_service=self.translations_category_service,
+            category_filler_service=self.categories_cache_filler_service,
+            ui_image_cache_repo=self.ui_images_cache_repo,
+            ui_image_service=self.ui_images_service,
+            session_db=self.session_db,
+        )
 
         self.accounts_cache_filler_service = AccountsCacheFillerService(
             product_repo=self.product_accounts_repo,
@@ -570,6 +606,98 @@ class RequestContainer:
             session_db=self.session_db,
         )
 
+        self.account_service = AccountService(
+            publish_event_handler=self.publish_event_handler,
+            path_builder=self.path_builder,
+            crypto_provider=self.crypto_provider,
+            logger=self.logger,
+        )
+
+        self.purchase_requests_repo = PurchaseRequestsRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.balance_holder_repo = BalanceHolderRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.purchase_request_service = PurchaseRequestService(
+            purchase_request_repo=self.purchase_requests_repo,
+            balance_holder_repo=self.balance_holder_repo,
+            users_repo=self.users_repo,
+        )
+        self.purchase_cancel_service = PurchaseCancelService(
+            purchase_request_service=self.purchase_request_service,
+        )
+        self.purchase_validation_service = PurchaseValidationService(
+            categories_repo=self.categories_repo,
+            users_repo=self.users_repo,
+            promo_code_service=self.promo_code_service,
+            conf=self.config,
+        )
+        self.account_purchase_service = AccountPurchaseService(
+            validation_service=self.purchase_validation_service,
+            purchase_request_service=self.purchase_request_service,
+            purchase_cancel_service=self.purchase_cancel_service,
+            product_repo=self.product_accounts_repo,
+            storage_repo=self.account_storage_repo,
+            purchase_request_account_repo=PurchaseRequestAccountsRepository(
+                session_db=self.session_db,
+                config=self.config,
+            ),
+            sold_repo=self.sold_accounts_repo,
+            sold_trans_repo=self.sold_accounts_translation_repo,
+            purchases_repo=PurchasesRepository(
+                session_db=self.session_db,
+                config=self.config,
+            ),
+            deleted_service=self.account_deleted_service,
+            category_service=self.category_service,
+            accounts_cache_filler=self.accounts_cache_filler_service,
+            categories_cache_filler=self.categories_cache_filler_service,
+            user_cache_repo=self.users_cache_repo,
+            account_service=self.account_service,
+            path_build=self.path_builder,
+            publish_event_handler=self.publish_event_handler,
+            conf=self.config,
+            session_db=self.session_db,
+        )
+        self.universal_purchase_service = UniversalPurchaseService(
+            validation_service=self.purchase_validation_service,
+            purchase_request_service=self.purchase_request_service,
+            purchase_cancel_service=self.purchase_cancel_service,
+            product_repo=self.product_universal_repo,
+            storage_repo=self.universal_storage_repo,
+            purchase_request_universal_repo=PurchaseRequestUniversalRepository(
+                session_db=self.session_db,
+                config=self.config,
+            ),
+            sold_repo=self.sold_universal_repo,
+            purchases_repo=PurchasesRepository(
+                session_db=self.session_db,
+                config=self.config,
+            ),
+            deleted_service=self.universal_deleted_service,
+            category_service=self.category_service,
+            cache_filler=self.universal_cache_filler_service,
+            categories_cache_filler=self.categories_cache_filler_service,
+            user_cache_repo=self.users_cache_repo,
+            publish_event_handler=self.publish_event_handler,
+            path_builder=self.path_builder,
+            crypto_provider=self.crypto_provider,
+            conf=self.config,
+            session_db=self.session_db,
+        )
+        self.subscription_service = SubscriptionService(
+            subscription_cache_repo=self.subscription_cache_repo,
+            conf=self.config,
+        )
+        self.purchase_service = PurchaseService(
+            account_purchase_service=self.account_purchase_service,
+            universal_purchase_service=self.universal_purchase_service,
+            categories_cache_filler=self.categories_cache_filler_service,
+        )
+
         self.referral_income_repo = ReferralIncomeRepository(
             session_db=self.session_db,
             config=self.config,
@@ -648,12 +776,6 @@ class RequestContainer:
         self.backup_logs_service = BackupLogsService(
             backup_logs_repo=self.backup_logs_repository,
             session_db=self.session_db
-        )
-        self.account_service = AccountService(
-            publish_event_handler=self.publish_event_handler,
-            path_builder=self.path_builder,
-            crypto_provider=self.crypto_provider,
-            logger=self.logger,
         )
 
     def get_backup_db(self):
@@ -754,6 +876,21 @@ class RequestContainer:
             universal_moduls=self.get_universal_product_modul(),
             account_service=self.account_service,
             crypto_provider=self.crypto_provider,
+            path_builder=self.path_builder,
+        )
+
+    def get_catalog_modul(self) -> CatalogModule:
+        return CatalogModule(
+            conf=self.config,
+            logger=self.logger,
+            user_service=self.user_service,
+            purchase_service=self.purchase_service,
+            category_service=self.category_service,
+            promo_code_service=self.promo_code_service,
+            subscription_service=self.subscription_service,
+            account_moduls=self.get_account_modul(),
+            universal_moduls=self.get_universal_product_modul(),
+            settings_service=self.settings_service,
         )
 
     def get_account_modul(self) -> AccountsModuls:

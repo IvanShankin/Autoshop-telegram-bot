@@ -55,6 +55,7 @@ __all__ = [
     'SoldAccountSmall',
     'SoldAccountFull',
     'CategoryFull',
+    "CategoryTranslationDTO",
 
     "PurchaseAccountSchema",
     "StartPurchaseAccount",

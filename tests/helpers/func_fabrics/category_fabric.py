@@ -3,23 +3,22 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from src.containers import RequestContainer
+from src.database.core import get_session_factory
 from tests.helpers.func_fabrics.other_fabric import create_ui_image_factory
 from src.database.models.categories import Categories, CategoryTranslation, ProductType, AccountServiceType
 from src.models.read_models import CategoryFull
-from src.database import get_db
-from src.application._redis.filling import filling_all_keys_category
 
 
 async def create_translate_category_factory(
-        category_id: int,
-        filling_redis: bool = True,
-        language: str = "ru",
-        name: str = "name",
-        description: str = "description"
+    container: RequestContainer,
+    category_id: int,
+    filling_redis: bool = True,
+    language: str = "ru",
+    name: str = "name",
+    description: str = "description"
 ) -> CategoryFull:
-    from src.application._database.categories.actions import get_quantity_products_in_category
-
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
         new_translate = CategoryTranslation(
             category_id=category_id,
             lang=language,
@@ -38,37 +37,36 @@ async def create_translate_category_factory(
 
         full_category = CategoryFull.from_orm_with_translation(
             category=category,
-            quantity_product=await get_quantity_products_in_category(category_id),
+            quantity_product=await container.category_service.get_quantity_products_in_category(category_id),
             lang=language
         )
 
     if filling_redis:
-        await filling_all_keys_category()
+        await container.categories_cache_filler_service.fill_category_by_id(full_category.category_id)
 
     return full_category
 
 
 async def create_category_factory(
-        filling_redis: bool = True,
-        parent_id: int = None,
-        ui_image_key: str = None,
-        index: int = None,
-        show: bool = True,
-        is_main: bool = True,
-        is_product_storage: bool = False,
-        allow_multiple_purchase: bool = False,
-        product_type: str = ProductType.ACCOUNT,
-        type_account_service: AccountServiceType = AccountServiceType.TELEGRAM,
-        reuse_product: bool = False,
-        price: int = 150,
-        cost_price: int = 100,
-        language: str = "ru",
-        name: str = "name",
-        description: str = "description"
+    container: RequestContainer,
+    filling_redis: bool = True,
+    parent_id: int = None,
+    ui_image_key: str = None,
+    index: int = None,
+    show: bool = True,
+    is_main: bool = True,
+    is_product_storage: bool = False,
+    allow_multiple_purchase: bool = False,
+    product_type: str = ProductType.ACCOUNT,
+    type_account_service: AccountServiceType = AccountServiceType.TELEGRAM,
+    reuse_product: bool = False,
+    price: int = 150,
+    cost_price: int = 100,
+    language: str = "ru",
+    name: str = "name",
+    description: str = "description"
 ) -> CategoryFull:
-    from src.application._database.categories.actions import get_quantity_products_in_category
-
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
         if parent_id is not None:
             is_main = False
         if ui_image_key is None:
@@ -119,12 +117,14 @@ async def create_category_factory(
         new_category = result.scalar_one()
 
         full_category = CategoryFull.from_orm_with_translation(
-            category = new_category,
-            quantity_product=await get_quantity_products_in_category(new_category.category_id),
-            lang = language,
+            category=new_category,
+            quantity_product=await container.category_service.get_quantity_products_in_category(
+                new_category.category_id
+            ),
+            lang=language,
         )
         if filling_redis:
-            await filling_all_keys_category()
+            await container.categories_cache_filler_service.fill_category_by_id(full_category.category_id)
 
     return full_category
 

@@ -4,13 +4,14 @@ import shutil
 import sys
 import types
 from typing import Generator
-from unittest.mock import MagicMock
 
 import fakeredis
 import pytest
 import pytest_asyncio
 
+from tests.helpers.func_fabrics.fake_objects_fabric import crypto_provider_factory
 from src._bot_actions.throttler import RateLimiter
+from src.application._secrets.crypto_context import set_crypto_context
 from src.config import get_config, set_config, Config, FilePathAndKey, FileKeysConf
 from src.infrastructure.redis import core
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeBot
@@ -69,51 +70,52 @@ async def replacement_redis(monkeypatch):
 
 
 def replacement_fake_bot(monkeypatch):
-    from src.config import get_config
-    # очищаем бота
-    fake_bot.clear()
-
-    # удаляем старый модуль полностью
-    sys.modules.pop("src._bot_actions.bot_instance", None)
-
-    # Создаём поддельный модуль
-    fake_module = types.ModuleType("src._bot_actions.bot_instance")
-
-    async def fake_get_bot():
-        return fake_bot
-
-    async def get_dispatcher():
-        return None
-
-    async def run_bot():
-        return fake_bot, None
-
-    fake_module.GLOBAL_RATE_LIMITER = RateLimiter(max_calls=get_config().different.rate_send_msg_limit, period=1.0)
-
-    fake_module.get_bot = fake_get_bot
-    fake_module.get_dispatcher = get_dispatcher
-    fake_module.run_bot = run_bot
-    fake_module._bot = fake_bot
-    fake_module._dp = None
-
-    fake_module.get_bot_logger = fake_get_bot
-    fake_module.get_dispatcher_logger = get_dispatcher
-    fake_module.run_bot_logger = run_bot
-    fake_module._bot_logger = fake_bot
-    fake_module._dp_logger = None
-
-    # Подменяем модуль в sys.modules
-    monkeypatch.setitem(sys.modules, "src._bot_actions.bot_instance", fake_module)
-
-    import src._bot_actions.messages
-    importlib.reload(src.bot_actions.messages)
-    importlib.reload(src.bot_actions.messages.edit)
-    importlib.reload(src.bot_actions.messages.send)
-
-    # Очищаем сообщения перед каждым тестом
-    fake_bot.sent.clear()
-
-    return fake_bot
+    pass
+    # from src.config import get_config
+    # # очищаем бота
+    # fake_bot.clear()
+    #
+    # # удаляем старый модуль полностью
+    # sys.modules.pop("src._bot_actions.bot_instance", None)
+    #
+    # # Создаём поддельный модуль
+    # fake_module = types.ModuleType("src._bot_actions.bot_instance")
+    #
+    # async def fake_get_bot():
+    #     return fake_bot
+    #
+    # async def get_dispatcher():
+    #     return None
+    #
+    # async def run_bot():
+    #     return fake_bot, None
+    #
+    # fake_module.GLOBAL_RATE_LIMITER = RateLimiter(max_calls=get_config().different.rate_send_msg_limit, period=1.0)
+    #
+    # fake_module.get_bot = fake_get_bot
+    # fake_module.get_dispatcher = get_dispatcher
+    # fake_module.run_bot = run_bot
+    # fake_module._bot = fake_bot
+    # fake_module._dp = None
+    #
+    # fake_module.get_bot_logger = fake_get_bot
+    # fake_module.get_dispatcher_logger = get_dispatcher
+    # fake_module.run_bot_logger = run_bot
+    # fake_module._bot_logger = fake_bot
+    # fake_module._dp_logger = None
+    #
+    # # Подменяем модуль в sys.modules
+    # monkeypatch.setitem(sys.modules, "src._bot_actions.bot_instance", fake_module)
+    #
+    # import src._bot_actions.messages
+    # importlib.reload(src._bot_actions.messages)
+    # importlib.reload(src._bot_actions.messages.edit)
+    # importlib.reload(src._bot_actions.messages.send)
+    #
+    # # Очищаем сообщения перед каждым тестом
+    # fake_bot.sent.clear()
+    #
+    # return fake_bot
 
 
 def replacement_path_product(conf: Config) -> Generator[None, None, None]:
@@ -255,7 +257,8 @@ def replace_paths() -> Generator[None, None, None]:
 async def create_crypto_context_fix():
     """Создаёт CryptoContext"""
     try:
-        init_crypto_context()
+        crypto_provider = crypto_provider_factory()
+        set_crypto_context(crypto_provider.get())
     except RuntimeError:
         pass
 
@@ -268,19 +271,6 @@ async def set_need_config():
 
     set_config(conf)
 
-#
-# @pytest.fixture
-# def fake_storage(monkeypatch):
-#     storage = MagicMock()
-#
-#     from src.application._database.backups import backup_db as core_modul
-#     monkeypatch.setattr(
-#         core_modul,
-#         "get_storage_client",
-#         lambda: storage
-#     )
-#
-#     return storage
 
 
 @pytest.fixture(autouse=True)

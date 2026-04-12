@@ -57,7 +57,7 @@ class SendMessageService:
         fallback_image_key: str = None,
         event_message_key: Optional[str] = None,
         reply_markup: Optional[Union[
-                "InlineKeyboardMarkup", "ReplyKeyboardMarkup", "ReplyKeyboardRemove", "ForceReply"
+            "InlineKeyboardMarkup", "ReplyKeyboardMarkup", "ReplyKeyboardRemove", "ForceReply"
         ]] = None,
         parse_mode: Optional[str] = "HTML",
         always_show_photos: bool = False,

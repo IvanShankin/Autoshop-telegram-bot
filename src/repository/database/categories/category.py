@@ -3,15 +3,34 @@ from __future__ import annotations
 from typing import Any, Optional, List, Dict
 
 from sqlalchemy import select, func, update, delete
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm.attributes import set_committed_value
 
-from src.database.models.categories import Categories, ProductAccounts, AccountStorage, UniversalStorage, \
+from src.database.models.categories import Categories, CategoryTranslation, ProductAccounts, AccountStorage, UniversalStorage, \
     ProductUniversal, StorageStatus
 from src.models.read_models import CategoriesDTO
 from src.repository.database.base import DatabaseBase
 
 
 class CategoriesRepository(DatabaseBase):
+
+    async def _load_translations_for_categories(self, categories: list[Categories]) -> list[Categories]:
+        if not categories:
+            return categories
+
+        category_ids = [category.category_id for category in categories]
+        result = await self.session_db.execute(
+            select(CategoryTranslation).where(CategoryTranslation.category_id.in_(category_ids))
+        )
+        translations = list(result.scalars().all())
+
+        translations_by_category: dict[int, list[CategoryTranslation]] = {}
+        for translation in translations:
+            translations_by_category.setdefault(translation.category_id, []).append(translation)
+
+        for category in categories:
+            set_committed_value(category, "translations", translations_by_category.get(category.category_id, []))
+
+        return categories
 
     async def get_categories_by_ids(
         self,
@@ -48,10 +67,13 @@ class CategoriesRepository(DatabaseBase):
         result = await self.session_db.execute(
             select(Categories)
             .where(Categories.category_id == category_id)
-            .options(selectinload(Categories.translations))
             .order_by(Categories.index.asc())
         )
-        return result.scalar_one_or_none()  # ORM
+        category = result.scalar_one_or_none()
+        if not category:
+            return None
+        await self._load_translations_for_categories([category])
+        return category  # ORM
 
     async def get_children(
         self,
@@ -78,10 +100,10 @@ class CategoriesRepository(DatabaseBase):
         result = await self.session_db.execute(
             select(Categories)
             .where(Categories.parent_id == parent_id)
-            .options(selectinload(Categories.translations))
             .order_by(Categories.index.asc())
         )
-        return list(result.scalars().all()) # ORM
+        categories = list(result.scalars().all())
+        return await self._load_translations_for_categories(categories)
 
     async def get_main_categories(
         self,
@@ -98,10 +120,10 @@ class CategoriesRepository(DatabaseBase):
         result = await self.session_db.execute(
             select(Categories)
             .where(Categories.is_main == True)
-            .options(selectinload(Categories.translations))
             .order_by(Categories.index.asc())
         )
-        return list(result.scalars().all())  # ORM
+        categories = list(result.scalars().all())
+        return await self._load_translations_for_categories(categories)
 
     async def get_max_index_by_parent(self, parent_id: Optional[int]) -> int:
         """

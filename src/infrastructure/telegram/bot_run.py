@@ -6,8 +6,8 @@ from src.infrastructure.telegram.bot_instance import get_dispatcher, get_dispatc
 from src.middlewares.aiogram_middleware import MaintenanceMiddleware, UserMiddleware, OnlyAdminsMiddleware, \
     DeleteMessageOnErrorMiddleware, CheckuserNotBlok, ModulesMiddleware
 from src.modules.profile.handlers import router_with_repl_kb as profile_router_with_repl_kb, router as profile_router
-from src.modules.categories import router_with_repl_kb as catalog_router_with_repl_kb
-from src.modules.categories import router as catalog_router
+from src.modules.categories.handlers import router_with_repl_kb as catalog_router_with_repl_kb
+from src.modules.categories.handlers import router as catalog_router
 from src.modules.start_handler import router as start_router
 from src.modules.info_handler import router_with_repl_kb as info_router_router_with_repl_kb
 from src.modules.admin_actions.handlers import router as admin_router

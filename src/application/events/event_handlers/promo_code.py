@@ -1,10 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.read_models import LogLevel
+from src.models.read_models import LogLevel, NewActivatePromoCode
 from src.exceptions.business import AlreadyActivated
 from src.exceptions.domain import PromoCodeNotFound
 from src.config import get_config
-from src.application._database.discounts.events.schemas import NewActivatePromoCode
 from src.application.events.publish_event_handler import PublishEventHandler
 from src.application.models.discounts import PromoCodeService
 from src.utils.core_logger import get_logger

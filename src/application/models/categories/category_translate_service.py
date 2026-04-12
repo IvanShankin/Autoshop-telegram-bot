@@ -45,7 +45,7 @@ class TranslationsCategoryService:
         if not category:
             raise AccountCategoryNotFound()
 
-        if await self.category_translations_repo.exists(data.category_id, data.language):
+        if await self.category_translations_repo.exists(data.category_id, data.lang):
             raise TranslationAlreadyExists()
 
 
@@ -62,7 +62,9 @@ class TranslationsCategoryService:
         return CategoryFull.from_orm_with_translation(
             category=category,
             quantity_product=quantity_map.get(category.category_id, 0),
-            lang=data.language
+            lang=data.lang,
+            name=data.name,
+            description=data.description,
         )
 
     async def update_category_translation(
@@ -93,6 +95,7 @@ class TranslationsCategoryService:
             await self.session_db.commit()
 
         if filling_redis:
+            await self.category_cache_repo.delete_category(category_id)
             await self.category_filler_service.fill_need_category(category_id)
 
     async def delete_category_translation(
@@ -119,7 +122,8 @@ class TranslationsCategoryService:
         if make_commit:
             await self.session_db.commit()
 
-        if filling_redis and trans:
+        if filling_redis:
+            await self.category_cache_repo.delete_category(category_id)
             await self.category_filler_service.fill_need_category(category_id)
 
 

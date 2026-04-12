@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Callable, Awaitable, Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -145,6 +145,7 @@ class RequestContainer:
         crypto_bot_provider: CryptoBotProvider,
         crypto_provider: CryptoProvider,
         secret_storage: SecretsStorage,
+        support_kb_builder: Callable[[str, str], Awaitable[Any]],
     ):
         self.session_db = session_db
         self.telegram_client = telegram_client
@@ -152,6 +153,7 @@ class RequestContainer:
 
         self.crypto_provider = crypto_provider
         self.secret_storage = secret_storage
+        self.support_kb_builder = support_kb_builder
 
         self.account_sold_service: Optional[AccountSoldService] = None
 
@@ -975,7 +977,11 @@ class RequestContainer:
             replenishment_ev_hand=ReplenishmentsEventHandler(
                 publish_event=self.publish_event_handler,
                 replenishment_service=self.replenishment_service,
+                settings_service=self.settings_service,
                 send_msg_service=messages.send_msg,
+                logger=self.logger,
+                conf=self.config,
+                support_kb_builder=self.support_kb_builder,
             ),
             purchase_ev_hand=PurchaseEventHandler(
                 publish_event=self.publish_event_handler,
@@ -1002,12 +1008,14 @@ def init_request_container(
     crypto_bot_provider: CryptoBotProvider,
     crypto_provider: CryptoProvider,
     secret_storage: SecretsStorage,
+    support_kb_builder: Callable[[str, str], Awaitable[Any]],
 ) -> RequestContainer:
     return RequestContainer(
-        session_db,
-        telegram_client,
-        telegram_logger_client,
-        crypto_bot_provider,
-        crypto_provider,
-        secret_storage
+        session_db=session_db,
+        telegram_client=telegram_client,
+        telegram_logger_client=telegram_logger_client,
+        crypto_bot_provider=crypto_bot_provider,
+        crypto_provider=crypto_provider,
+        secret_storage=secret_storage,
+        support_kb_builder=support_kb_builder,
     )

@@ -13,6 +13,7 @@ from src.infrastructure.rabbit_mq.consumer import RabbitMQConsumer
 from src.infrastructure.redis import init_redis, close_redis
 from src.infrastructure.telegram.bot_instance import get_bot_logger, get_bot
 from src.infrastructure.telegram.client import TelegramClient
+from src.infrastructure.telegram.ui.keyboard import support_kb
 from src.utils.core_logger import setup_logging
 
 
@@ -78,6 +79,7 @@ class AppContainer:
             self.crypto_bot_provider,
             self.crypto_provider,
             self.secret_storage,
+            support_kb,
         )
 
     def _create_event_handler(self, session):

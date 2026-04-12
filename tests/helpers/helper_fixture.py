@@ -1,6 +1,7 @@
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from tests.helpers.func_fabrics.fake_objects_fabric import crypto_provider_factory, secret_storage_factory
 from src.config import get_config
 from src.containers import init_request_container
 from tests.helpers.func_fabrics.other_fabric import create_purchase_request_fabric, create_balance_holder_factory
@@ -36,16 +37,39 @@ async def fake_tg_client():
 
 
 @pytest_asyncio.fixture
-async def crypto_bot_provider():
-    class FakeCryptoClient:
+async def crypto_bot_provider_fix():
+    class FakeCryptoBotClient:
         async def create_invoice(self, amount, payload, expires_in):
             return SimpleNamespace(invoice_id="inv", bot_invoice_url="url")
 
-    yield CryptoBotProvider(FakeCryptoClient())
+    yield CryptoBotProvider(FakeCryptoBotClient())
+
+
+@pytest_asyncio.fixture()
+async def secret_storage_fix():
+    return secret_storage_factory()
+
 
 @pytest_asyncio.fixture
-async def container_fix(fake_tg_client, session_db_fix, crypto_bot_provider):
-    container = init_request_container(session_db_fix, fake_tg_client, fake_tg_client, crypto_bot_provider)
+async def crypto_provider_fix():
+    return crypto_provider_factory()
+
+
+@pytest_asyncio.fixture
+async def container_fix(
+    fake_tg_client,
+    session_db_fix,
+    crypto_bot_provider_fix,
+    crypto_provider_fix,
+    secret_storage_fix
+):
+    async def fake_support_kb(*args, **kwargs) -> None:
+        pass
+
+    container = init_request_container(
+        session_db_fix, fake_tg_client, fake_tg_client, crypto_bot_provider_fix, crypto_provider_fix,
+        secret_storage_fix, fake_support_kb
+    )
     yield container
 
 

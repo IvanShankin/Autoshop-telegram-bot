@@ -8,7 +8,7 @@ from src.utils.core_logger import get_logger
 
 
 if TYPE_CHECKING:
-    from src.infrastructure.telegram.client import TelegramClient
+    from src.infrastructure.telegram.bot_client import TelegramClient
 
 
 class StickerSender:

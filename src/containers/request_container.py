@@ -1,10 +1,14 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Callable, Awaitable, Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.crypto.crypto_context import CryptoProvider
 from src.application.models.systems.backup_db_service import BackupDBService
 from src.application.products.accounts.account_service import AccountService
+from src.application.products.accounts.other.use_cases.validate import ValidateOtherAccountsUseCase
+from src.application.products.accounts.tg.use_cases.validate import ValidateTgAccount
+from src.application.products.universals.universal_products import UniversalProduct
+from src.application.products.universals.use_cases import ValidationsUniversalProducts
 from src.config import get_config
 from src.infrastructure.crypto.secret_storage.secrets_storage import SecretsStorage
 from src.infrastructure.crypto_bot.core import CryptoBotProvider
@@ -12,6 +16,7 @@ from src.infrastructure.files.excel_reports import ExcelReportExporter
 from src.infrastructure.files.file_system import FileStorage
 from src.infrastructure.files.path_builder import PathBuilder
 from src.infrastructure.redis import get_redis
+from src.infrastructure.telegram.account_client import TelegramAccountClient
 from src.infrastructure.telegram.rate_limit import RateLimiter
 from src.repository.database.discount import VouchersRepository, VoucherActivationsRepository, PromoCodeRepository, \
     ActivatedPromoCodeRepository
@@ -27,7 +32,16 @@ from src.application.events.event_handlers.referrals import ReferralEventHandler
 from src.application.events.event_handlers.replenishments import ReplenishmentsEventHandler
 from src.application.models.discounts import ActivatedPromoCodesService, PromoCodeService
 from src.application.models.discounts.vouchers_service import VoucherService
-from src.application.models.modules import ProfileModule, AccountsModuls, UniversalModuls
+from src.application.models.categories.category_service import CategoryService
+from src.application.models.categories.category_translate_service import TranslationsCategoryService
+from src.application.models.purchases.purchase_service import PurchaseService
+from src.application.models.purchases.accounts.account_purchase_service import AccountPurchaseService
+from src.application.models.purchases.general.purchase_cancel_service import PurchaseCancelService
+from src.application.models.purchases.general.purchase_request_service import PurchaseRequestService
+from src.application.models.purchases.general.purchase_validation_service import PurchaseValidationService
+from src.application.models.purchases.universal.universal_purchase_service import UniversalPurchaseService
+from src.application.models.users.pubscription_prompt import SubscriptionService
+from src.application.models.modules import ProfileModule, AccountsModuls, UniversalModuls, CatalogModule
 from src.repository.database.admins import (
     AdminActionsRepository,
     AdminsRepository,
@@ -36,6 +50,7 @@ from src.repository.database.admins import (
 from src.repository.database.base import DatabaseBase
 from src.repository.database.categories import (
     CategoriesRepository,
+    CategoryTranslationsRepository,
     DeletedAccountsRepository,
     ProductAccountsRepository,
     SoldAccountsRepository,
@@ -47,6 +62,10 @@ from src.repository.database.categories import (
     SoldUniversalRepository,
     UniversalStorageRepository,
     UniversalTranslationRepository,
+    PurchaseRequestsRepository,
+    PurchaseRequestAccountsRepository,
+    PurchaseRequestUniversalRepository,
+    PurchasesRepository,
 )
 from src.repository.database.systems import (
     StickersRepository,
@@ -54,6 +73,7 @@ from src.repository.database.systems import (
 )
 from src.repository.database.users import (
     BannedAccountsRepository,
+    BalanceHolderRepository,
     NotificationSettingsRepository,
     UserAuditLogsRepository,
     UsersRepository, TransferMoneysRepository, WalletTransactionRepository,
@@ -114,7 +134,7 @@ from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text
 
 if TYPE_CHECKING:
-    from src.infrastructure.telegram.client import TelegramClient
+    from src.infrastructure.telegram.bot_client import TelegramClient
 
 
 class RequestContainer:
@@ -130,6 +150,8 @@ class RequestContainer:
         crypto_bot_provider: CryptoBotProvider,
         crypto_provider: CryptoProvider,
         secret_storage: SecretsStorage,
+        support_kb_builder: Callable[[str, str], Awaitable[Any]],
+        telegram_account_client: TelegramAccountClient,
     ):
         self.session_db = session_db
         self.telegram_client = telegram_client
@@ -137,6 +159,8 @@ class RequestContainer:
 
         self.crypto_provider = crypto_provider
         self.secret_storage = secret_storage
+        self.support_kb_builder = support_kb_builder
+        self.telegram_account_client = telegram_account_client
 
         self.account_sold_service: Optional[AccountSoldService] = None
 
@@ -381,6 +405,27 @@ class RequestContainer:
             category_repo=self.categories_repo,
             category_cache_repo=self.categories_cache_repo,
         )
+        self.category_translations_repo = CategoryTranslationsRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.translations_category_service = TranslationsCategoryService(
+            category_translations_repo=self.category_translations_repo,
+            category_repo=self.categories_repo,
+            category_cache_repo=self.categories_cache_repo,
+            category_filler_service=self.categories_cache_filler_service,
+            session_db=self.session_db,
+        )
+        self.category_service = CategoryService(
+            category_repo=self.categories_repo,
+            category_cache_repo=self.categories_cache_repo,
+            product_accounts_repository=self.product_accounts_repo,
+            translations_category_service=self.translations_category_service,
+            category_filler_service=self.categories_cache_filler_service,
+            ui_image_cache_repo=self.ui_images_cache_repo,
+            ui_image_service=self.ui_images_service,
+            session_db=self.session_db,
+        )
 
         self.accounts_cache_filler_service = AccountsCacheFillerService(
             product_repo=self.product_accounts_repo,
@@ -570,6 +615,125 @@ class RequestContainer:
             session_db=self.session_db,
         )
 
+        self.account_service = AccountService(
+            publish_event_handler=self.publish_event_handler,
+            path_builder=self.path_builder,
+            crypto_provider=self.crypto_provider,
+            logger=self.logger,
+        )
+
+        self.purchase_requests_repo = PurchaseRequestsRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.balance_holder_repo = BalanceHolderRepository(
+            session_db=self.session_db,
+            config=self.config,
+        )
+        self.purchase_request_service = PurchaseRequestService(
+            purchase_request_repo=self.purchase_requests_repo,
+            balance_holder_repo=self.balance_holder_repo,
+            users_repo=self.users_repo,
+        )
+        self.purchase_cancel_service = PurchaseCancelService(
+            purchase_request_service=self.purchase_request_service,
+            logger=self.logger,
+        )
+        self.purchase_validation_service = PurchaseValidationService(
+            categories_repo=self.categories_repo,
+            users_repo=self.users_repo,
+            promo_code_service=self.promo_code_service,
+            conf=self.config,
+        )
+        self.validate_tg_account = ValidateTgAccount(
+            logger=self.logger,
+            tg_client=self.telegram_account_client,
+            crypto_provider=self.crypto_provider,
+        )
+        self.validate_other_account = ValidateOtherAccountsUseCase(
+            logger=self.logger,
+            crypto_provider=self.crypto_provider,
+        )
+        self.account_purchase_service = AccountPurchaseService(
+            validation_service=self.purchase_validation_service,
+            purchase_request_service=self.purchase_request_service,
+            purchase_cancel_service=self.purchase_cancel_service,
+            product_repo=self.product_accounts_repo,
+            storage_repo=self.account_storage_repo,
+            purchase_request_account_repo=PurchaseRequestAccountsRepository(
+                session_db=self.session_db,
+                config=self.config,
+            ),
+            sold_repo=self.sold_accounts_repo,
+            sold_trans_repo=self.sold_accounts_translation_repo,
+            purchases_repo=PurchasesRepository(
+                session_db=self.session_db,
+                config=self.config,
+            ),
+            deleted_service=self.account_deleted_service,
+            category_service=self.category_service,
+            accounts_cache_filler=self.accounts_cache_filler_service,
+            categories_cache_filler=self.categories_cache_filler_service,
+            user_cache_repo=self.users_cache_repo,
+            account_service=self.account_service,
+            path_build=self.path_builder,
+            publish_event_handler=self.publish_event_handler,
+            logger=self.logger,
+            conf=self.config,
+            session_db=self.session_db,
+            validate_tg_account=self.validate_tg_account,
+            validate_other_account=self.validate_other_account,
+        )
+        self.validations_universal_products = ValidationsUniversalProducts(
+            crypto_provider=self.crypto_provider,
+            path_builder=self.path_builder,
+            logger=self.logger,
+        )
+        self.universal_product = UniversalProduct(
+            crypto_provider=self.crypto_provider,
+            path_builder=self.path_builder,
+            publish_event_handler=self.publish_event_handler,
+            logger=self.logger,
+        )
+        self.universal_purchase_service = UniversalPurchaseService(
+            validation_service=self.purchase_validation_service,
+            purchase_request_service=self.purchase_request_service,
+            purchase_cancel_service=self.purchase_cancel_service,
+            product_repo=self.product_universal_repo,
+            storage_repo=self.universal_storage_repo,
+            purchase_request_universal_repo=PurchaseRequestUniversalRepository(
+                session_db=self.session_db,
+                config=self.config,
+            ),
+            sold_repo=self.sold_universal_repo,
+            purchases_repo=PurchasesRepository(
+                session_db=self.session_db,
+                config=self.config,
+            ),
+            deleted_service=self.universal_deleted_service,
+            category_service=self.category_service,
+            cache_filler=self.universal_cache_filler_service,
+            categories_cache_filler=self.categories_cache_filler_service,
+            user_cache_repo=self.users_cache_repo,
+            publish_event_handler=self.publish_event_handler,
+            path_builder=self.path_builder,
+            validations_universal_products=self.validations_universal_products,
+            universal_product=self.universal_product,
+            crypto_provider=self.crypto_provider,
+            conf=self.config,
+            logger=self.logger,
+            session_db=self.session_db,
+        )
+        self.subscription_service = SubscriptionService(
+            subscription_cache_repo=self.subscription_cache_repo,
+            conf=self.config,
+        )
+        self.purchase_service = PurchaseService(
+            account_purchase_service=self.account_purchase_service,
+            universal_purchase_service=self.universal_purchase_service,
+            categories_cache_filler=self.categories_cache_filler_service,
+        )
+
         self.referral_income_repo = ReferralIncomeRepository(
             session_db=self.session_db,
             config=self.config,
@@ -648,12 +812,6 @@ class RequestContainer:
         self.backup_logs_service = BackupLogsService(
             backup_logs_repo=self.backup_logs_repository,
             session_db=self.session_db
-        )
-        self.account_service = AccountService(
-            publish_event_handler=self.publish_event_handler,
-            path_builder=self.path_builder,
-            crypto_provider=self.crypto_provider,
-            logger=self.logger,
         )
 
     def get_backup_db(self):
@@ -754,6 +912,21 @@ class RequestContainer:
             universal_moduls=self.get_universal_product_modul(),
             account_service=self.account_service,
             crypto_provider=self.crypto_provider,
+            path_builder=self.path_builder,
+        )
+
+    def get_catalog_modul(self) -> CatalogModule:
+        return CatalogModule(
+            conf=self.config,
+            logger=self.logger,
+            user_service=self.user_service,
+            purchase_service=self.purchase_service,
+            category_service=self.category_service,
+            promo_code_service=self.promo_code_service,
+            subscription_service=self.subscription_service,
+            account_moduls=self.get_account_modul(),
+            universal_moduls=self.get_universal_product_modul(),
+            settings_service=self.settings_service,
         )
 
     def get_account_modul(self) -> AccountsModuls:
@@ -838,7 +1011,11 @@ class RequestContainer:
             replenishment_ev_hand=ReplenishmentsEventHandler(
                 publish_event=self.publish_event_handler,
                 replenishment_service=self.replenishment_service,
+                settings_service=self.settings_service,
                 send_msg_service=messages.send_msg,
+                logger=self.logger,
+                conf=self.config,
+                support_kb_builder=self.support_kb_builder,
             ),
             purchase_ev_hand=PurchaseEventHandler(
                 publish_event=self.publish_event_handler,
@@ -865,12 +1042,16 @@ def init_request_container(
     crypto_bot_provider: CryptoBotProvider,
     crypto_provider: CryptoProvider,
     secret_storage: SecretsStorage,
+    support_kb_builder: Callable[[str, str], Awaitable[Any]],
+    telegram_account_client: TelegramAccountClient,
 ) -> RequestContainer:
     return RequestContainer(
-        session_db,
-        telegram_client,
-        telegram_logger_client,
-        crypto_bot_provider,
-        crypto_provider,
-        secret_storage
+        session_db=session_db,
+        telegram_client=telegram_client,
+        telegram_logger_client=telegram_logger_client,
+        crypto_bot_provider=crypto_bot_provider,
+        crypto_provider=crypto_provider,
+        secret_storage=secret_storage,
+        support_kb_builder=support_kb_builder,
+        telegram_account_client=telegram_account_client,
     )

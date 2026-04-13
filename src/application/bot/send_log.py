@@ -8,7 +8,7 @@ from src.application.models.systems import SettingsService
 
 
 if TYPE_CHECKING:
-    from src.infrastructure.telegram.client import TelegramClient
+    from src.infrastructure.telegram.bot_client import TelegramClient
 
 
 class SendLogs:

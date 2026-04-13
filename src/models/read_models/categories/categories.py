@@ -71,7 +71,9 @@ class CategoryFull(ORMDTO):
             category: Categories,
             quantity_product:int,
             lang: str,
-            fallback: str | None = None
+            fallback: str | None = None,
+            name: str = None,
+            description: str = None,
         ):
         """orm модель превратит в CategoryFull"""
         return cls(
@@ -84,8 +86,8 @@ class CategoryFull(ORMDTO):
             is_main=category.is_main,
 
             language=lang,
-            name=category.get_name(lang, fallback),
-            description=category.get_description(lang, fallback),
+            name=name if name else category.get_name(lang, fallback),
+            description=description if description else category.get_description(lang, fallback),
 
             is_product_storage=category.is_product_storage,
             allow_multiple_purchase=category.allow_multiple_purchase,

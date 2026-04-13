@@ -96,7 +96,7 @@ class CategoryService:
         return await self.translations_category_service.create_translation_in_category(
             data=CreateCategoryTranslate(
                 category_id=category.category_id,
-                language=data.language,
+                lang=data.language,
                 name=data.name,
                 description=data.description
             ),
@@ -171,8 +171,6 @@ class CategoryService:
             if not categories_db:
                 return []
 
-            await self.category_cache_repo.set_main_categories(categories=category_list, language = 'ru')
-
 
         quantity_map = await self.category_repo.get_quantity_products_map(
             [cat.category_id for cat in categories_db]
@@ -200,7 +198,7 @@ class CategoryService:
 
     async def get_quantity_products_in_category(self, category_id: int) -> int:
         products_map = await self.category_repo.get_quantity_products_map([category_id])
-        return products_map.get(category_id)
+        return products_map.get(category_id, 0)
 
     async def update_category(
         self,
@@ -232,18 +230,18 @@ class CategoryService:
         if data.number_buttons_in_row is not None and (data.number_buttons_in_row < 1 or data.number_buttons_in_row > 8):
             raise IncorrectedNumberButton("Количество кнопок в строке, должно быть в диапазоне от 1 до 8")
 
-        category = await self.category_repo.get_by_id(data.category_id)
+        category = await self.category_repo.get_by_id(category_id)
         if not category:
-            raise AccountCategoryNotFound(f"Категория с id = {data.category_id} не найдена")
+            raise AccountCategoryNotFound(f"Категория с id = {category_id} не найдена")
 
         old_ui_image = category.ui_image_key
 
         if data.is_product_storage is not None:
             if data.is_product_storage:  # если хотим установить хранилище аккаунтов
-                subcategories = await self.category_repo.get_children(parent_id=data.category_id, order_by_index=False)
+                subcategories = await self.category_repo.get_children(parent_id=category_id, order_by_index=False)
                 if subcategories:  # если данная категория хранит подкатегории
                     raise CategoryStoresSubcategories(
-                        f"Категория с id = {data.category_id} хранит подкатегории. Сперва удалите их"
+                        f"Категория с id = {category_id} хранит подкатегории. Сперва удалите их"
                     )
 
                 if not data.product_type:
@@ -261,17 +259,17 @@ class CategoryService:
 
             else:  # если хотим убрать хранилище аккаунтов
                 product_accounts = await self.product_accounts_repository.get_by_category_id(
-                    category_id=data.category_id,
+                    category_id=category_id,
                     only_for_sale = False
                 )
                 if product_accounts:  # если данная категория хранит аккаунты
                     raise TheCategoryStorageAccount(
-                        f"Категория с id = {data.category_id} хранит товары. "
+                        f"Категория с id = {category_id} хранит товары. "
                         f"Необходимо извлечь их для применения изменений"
                     )
 
         if data.reuse_product is not None:
-            if data.reuse_product and await self.get_quantity_products_in_category(data.category_id) > 0:
+            if data.reuse_product and await self.get_quantity_products_in_category(category_id) > 0:
                 raise TheCategoryStorageProducts()
 
         if data.index is not None:

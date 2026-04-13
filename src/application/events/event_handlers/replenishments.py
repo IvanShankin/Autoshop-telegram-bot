@@ -1,14 +1,15 @@
 from datetime import datetime
+from logging import Logger
+from typing import Callable, Awaitable, Any
 
+from src.application.models.systems import SettingsService
+from src.config import Config
 from src.models.read_models import LogLevel
-from src.config import get_config
 from src.models.read_models import NewReplenishment, ReplenishmentCompleted, ReplenishmentFailed
 from src.application.bot import SendMessageService
 from src.application.events.publish_event_handler import PublishEventHandler
 from src.application.models.users.replenishment_service import ReplenishmentsService
-from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text, n_get_text
-from src.modules.keyboard_main import support_kb
 
 
 class ReplenishmentsEventHandler:
@@ -17,11 +18,19 @@ class ReplenishmentsEventHandler:
         self,
         publish_event: PublishEventHandler,
         replenishment_service: ReplenishmentsService,
+        settings_service: SettingsService,
         send_msg_service: SendMessageService,
+        logger: Logger,
+        conf: Config,
+        support_kb_builder: Callable[[str, str], Awaitable[Any]],
     ):
         self.publish_event = publish_event
         self.replenishment_service = replenishment_service
+        self.settings_service = settings_service
         self.send_msg_service = send_msg_service
+        self.logger = logger
+        self.conf = conf
+        self.support_kb_builder = support_kb_builder
 
     async def replenishment_event_handler(self, event):
         payload = event["payload"]
@@ -41,8 +50,7 @@ class ReplenishmentsEventHandler:
             elif isinstance(result, ReplenishmentFailed):
                 await self._on_replenishment_failed(result)
         except Exception as e:
-            logger = get_logger(__name__)
-            logger.exception(
+            self.logger.exception(
                 "Ошибка при обработке пополнения. replenishment_id=%s, error=%s",
                 new_replenishment.replenishment_id,
                 str(e),
@@ -62,7 +70,7 @@ class ReplenishmentsEventHandler:
 
         if not event.error:
             message_log = n_get_text(
-                get_config().app.default_lang,
+                self.conf.app.default_lang,
                 "replenishment",
                 "log_replenishment",
                 "log_replenishment",
@@ -71,19 +79,19 @@ class ReplenishmentsEventHandler:
                 username=self._format_username(event),
                 sum=event.amount,
                 replenishment_id=event.replenishment_id,
-                time=datetime.now().strftime(get_config().different.dt_format),
+                time=datetime.now().strftime(self.conf.different.dt_format),
             )
             log_lvl = LogLevel.INFO
         else:
             message_log = get_text(
-                get_config().app.default_lang,
+                self.conf.app.default_lang,
                 "replenishment",
                 "log_replenishment_error_server",
             ).format(
                 username=self._format_username(event),
                 replenishment_id=event.replenishment_id,
                 error=str(event.error_str),
-                time=datetime.now().strftime(get_config().different.dt_format),
+                time=datetime.now().strftime(self.conf.different.dt_format),
             )
             log_lvl = LogLevel.ERROR
 
@@ -99,18 +107,18 @@ class ReplenishmentsEventHandler:
         await self.send_msg_service.send(
             event.user_id,
             message_for_user,
-            reply_markup=await support_kb(event.language),
+            reply_markup=await self.support_kb_builder(event.language, ),
         )
 
         message_log = get_text(
-            get_config().app.default_lang,
+            self.conf.app.default_lang,
             "replenishment",
             "log_replenishment_error_balance_not_updated",
         ).format(
             username=self._format_username(event),
             replenishment_id=event.replenishment_id,
             error=str(event.error_str),
-            time=datetime.now().strftime(get_config().different.dt_format),
+            time=datetime.now().strftime(self.conf.different.dt_format),
         )
 
         await self.publish_event.send_log(text=message_log, log_lvl=LogLevel.ERROR)
@@ -123,14 +131,14 @@ class ReplenishmentsEventHandler:
     async def _send_error_log(self, error: str) -> None:
         await self.publish_event.send_log(
             text=get_text(
-                get_config().app.default_lang,
+                self.conf.app.default_lang,
                 "replenishment",
                 "log_replenishment_error_balance_not_updated",
             ).format(
-                username=get_text(get_config().app.default_lang, "miscellaneous", "no"),
+                username=get_text(self.conf.app.default_lang, "miscellaneous", "no"),
                 replenishment_id="unknown",
                 error=error,
-                time=datetime.now().strftime(get_config().different.dt_format),
+                time=datetime.now().strftime(self.conf.different.dt_format),
             ),
             log_lvl=LogLevel.ERROR,
         )

@@ -6,8 +6,8 @@ from logging import Logger
 from pathlib import Path
 from typing import AsyncGenerator
 
-from src.application.products.accounts.other.shemas import REQUIRED_HEADERS
-from src.application.products.accounts.tg.shemas import CreatedEncryptedArchive
+from src.application.products.accounts.other.dto.schemas import REQUIRED_HEADERS
+from src.application.products.accounts.tg.dto.schemas import CreatedEncryptedArchive
 from src.config import Config
 from src.domain.crypto.encrypt import encrypt_folder, make_account_key
 from src.domain.crypto.utils import sha256_file

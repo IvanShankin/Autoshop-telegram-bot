@@ -1,23 +1,24 @@
 ﻿import asyncio
 import shutil
 from collections import deque
+from logging import Logger
 from pathlib import Path
 from typing import List, Tuple
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.events.publish_event_handler import PublishEventHandler
+from src.application.products.accounts.other.use_cases.validate import ValidateOtherAccountsUseCase
+from src.application.products.accounts.tg.use_cases.validate import ValidateTgAccount
 from src.infrastructure.files.path_builder import PathBuilder
 from src.config import Config
 from src.database.models.categories import AccountServiceType, StorageStatus, ProductType
 from src.exceptions import NotEnoughAccounts
 from src.models.create_models.accounts import CreateDeletedAccountDTO
-from src.models.read_models import StartPurchaseAccount
+from src.models.read_models import StartPurchaseAccount, AccountStorageDTO
 from src.models.read_models.events.purchase import AccountsData, NewPurchaseAccount
 from src.repository.redis import UsersCacheRepository
 from src.application.products.accounts.account_service import AccountService
 from src.infrastructure.files.file_system import move_file, rename_file
-from src.application.products.accounts.tg.actions import check_account_validity
 from src.application.models.categories.categories_cache_filler_service import CategoriesCacheFillerService
 from src.application.models.categories.category_service import CategoryService
 from src.application.models.products.accounts.account_deleted_service import AccountDeletedService
@@ -33,7 +34,6 @@ from src.repository.database.categories import (
     SoldAccountsTranslationRepository,
     PurchasesRepository,
 )
-from src.utils.core_logger import get_logger
 
 SEMAPHORE_LIMIT_ACCOUNT = 12
 MAX_REPLACEMENT_ATTEMPTS = 3
@@ -61,7 +61,10 @@ class AccountPurchaseService:
         account_service: AccountService,
         path_build: PathBuilder,
         publish_event_handler: PublishEventHandler,
+        validate_tg_account: ValidateTgAccount,
+        validate_other_account: ValidateOtherAccountsUseCase,
         conf: Config,
+        logger: Logger,
         session_db: AsyncSession,
     ):
         self.validation_service = validation_service
@@ -81,7 +84,10 @@ class AccountPurchaseService:
         self.account_service = account_service
         self.path_build = path_build
         self.publish_event_handler = publish_event_handler
+        self.validate_tg_account = validate_tg_account
+        self.validate_other_account = validate_other_account
         self.conf = conf
+        self.logger = logger
         self.session_db = session_db
 
     async def start_purchase(
@@ -178,13 +184,12 @@ class AccountPurchaseService:
         if not product_accounts:
             return False
 
-        logger = get_logger(__name__)
         slots = [pa for pa in product_accounts]
         sem = asyncio.Semaphore(SEMAPHORE_LIMIT_ACCOUNT)
 
         async def validate_slot(pa):
             async with sem:
-                return pa, await check_account_validity(
+                return pa, await self.check_account_validity(
                     pa.account_storage,
                     type_service_account,
                     StorageStatus.FOR_SALE,
@@ -196,7 +201,7 @@ class AccountPurchaseService:
         valid_accounts = []
         for res in initial_checks:
             if isinstance(res, Exception):
-                logger.exception("Validation task exception: %s", res)
+                self.logger.exception("Validation task exception: %s", res)
                 return False
             pa, ok = res
             if ok:
@@ -224,7 +229,7 @@ class AccountPurchaseService:
                         limit=to_fetch,
                     )
                     if not candidates:
-                        logger.debug(
+                        self.logger.debug(
                             "No replacement candidates on attempt %s for request %s",
                             attempts,
                             purchase_request_id,
@@ -237,21 +242,21 @@ class AccountPurchaseService:
                         status=StorageStatus.RESERVED,
                     )
             except Exception as e:
-                logger.exception("DB error while selecting/reserving replacement batch: %s", e)
+                self.logger.exception("DB error while selecting/reserving replacement batch: %s", e)
                 await asyncio.sleep(0.2)
                 continue
 
             async def validate_candidate(candidate):
                 async with sem:
                     try:
-                        ok = await check_account_validity(
+                        ok = await self.check_account_validity(
                             candidate.account_storage,
                             type_service_account,
                             StorageStatus.FOR_SALE,
                         )
                         return candidate, ok
                     except Exception as e:
-                        logger.exception(
+                        self.logger.exception(
                             "Candidate validation exception for %s: %s",
                             getattr(candidate.account_storage, "account_storage_id", None),
                             e,
@@ -286,7 +291,7 @@ class AccountPurchaseService:
                             status=StorageStatus.FOR_SALE,
                         )
             except Exception as e:
-                logger.exception("DB error while applying candidate results: %s", e)
+                self.logger.exception("DB error while applying candidate results: %s", e)
                 try:
                     ids = [c.account_storage.account_storage_id for c in candidates]
                     await self.storage_repo.update_status_by_ids(
@@ -295,12 +300,12 @@ class AccountPurchaseService:
                     )
                     await self.session_db.commit()
                 except Exception:
-                    logger.exception("Failed to revert candidate statuses after error")
+                    self.logger.exception("Failed to revert candidate statuses after error")
                 await asyncio.sleep(0.2)
                 continue
 
         if bad_queue:
-            logger.error(
+            self.logger.error(
                 "Could not find replacements for %d accounts after %d attempts (request %s)",
                 len(bad_queue),
                 attempts,
@@ -320,8 +325,6 @@ class AccountPurchaseService:
         purchase_ids: List[int] = []
         account_movement: List[AccountsData] = []
 
-        logger = get_logger(__name__)
-
         try:
             for account in data.product_accounts:
                 orig = self.path_build.build_path_account(
@@ -339,7 +342,7 @@ class AccountPurchaseService:
                 moved = await move_file(orig, temp)
                 if not moved:
                     text = f"#Внимание \n\nАккаунт не найден/не удалось переместить: {orig}"
-                    logger.exception(text)
+                    self.logger.exception(text)
                     await self.publish_event_handler.send_log(text=text)
 
                     await self.cancel_purchase_request(
@@ -414,7 +417,7 @@ class AccountPurchaseService:
             for orig, temp, final in mapping:
                 ok = await rename_file(temp, final)
                 if not ok:
-                    logger.exception("Failed to rename temp %s -> %s", temp, final)
+                    self.logger.exception("Failed to rename temp %s -> %s", temp, final)
                     rename_fail = True
                     break
 
@@ -465,7 +468,7 @@ class AccountPurchaseService:
             return True
 
         except Exception as e:
-            logger.exception("Error in finalize_purchase: %s", e)
+            self.logger.exception("Error in finalize_purchase: %s", e)
             await self.publish_event_handler.send_log(text=f"#Ошибка finalise_purchase: {e}")
 
             await self.cancel_purchase_request(
@@ -495,10 +498,9 @@ class AccountPurchaseService:
         :exception UserNotFound: Если пользователь не найден.
         :summary: Восстанавливает деньги, статусы хранилищ и записи по продаже после отката.
         """
-        logger = get_logger(__name__)
         user = None
 
-        await self.purchase_cancel_service.return_files(mapping, logger)
+        await self.purchase_cancel_service.return_files(mapping)
 
         async with self.session_db.begin():
             user = await self.purchase_request_service.release_funds(user_id, total_amount)
@@ -526,9 +528,9 @@ class AccountPurchaseService:
                             account_storage_id=aid,
                         )
             except Exception:
-                logger.exception("Failed to restore account storage status")
+                self.logger.exception("Failed to restore account storage status")
 
-            await self.purchase_cancel_service.mark_failed(purchase_request_id, logger)
+            await self.purchase_cancel_service.mark_failed(purchase_request_id)
 
         if user:
             await self.user_cache_repo.set(user, int(self.conf.redis_time_storage.user))
@@ -542,7 +544,7 @@ class AccountPurchaseService:
 
         await self.categories_cache_filler.fill_need_category(category_id)
 
-        logger.info("cancel_purchase_request_accounts finished for purchase %s", purchase_request_id)
+        self.logger.info("cancel_purchase_request_accounts finished for purchase %s", purchase_request_id)
 
     async def _delete_accounts(
         self,
@@ -575,8 +577,7 @@ class AccountPurchaseService:
                 )
                 await self.product_repo.delete_by_account_id(bad_account.account_id)
             except Exception:
-                logger = get_logger(__name__)
-                logger.exception(
+                self.logger.exception(
                     "Error marking bad account deleted %s",
                     bad_account.account_storage.account_storage_id,
                 )
@@ -602,10 +603,28 @@ class AccountPurchaseService:
                     )
                 )
             except Exception:
-                logger = get_logger(__name__)
-                logger.exception(
+                self.logger.exception(
                     "Failed to log deleted account %s",
                     bad_account.account_storage.account_storage_id,
                 )
 
         await self.session_db.commit()
+
+    async def check_account_validity(
+        self,
+        account_storage: AccountStorageDTO,
+        type_account_service: AccountServiceType,
+        status: StorageStatus
+    ) -> bool:
+        if type_account_service.TELEGRAM:
+            return await self.validate_tg_account.check_account_validity(
+                account_storage=account_storage,
+                type_account_service=type_account_service,
+                status=status,
+            )
+        elif type_account_service.OTHER:
+            return await self.validate_other_account.check_valid(account=account_storage)
+        else:
+            return False
+
+

@@ -1,6 +1,6 @@
 from src._bot_actions.bot_instance import get_bot
 from src._bot_actions.messages import edit_message, send_message
-from src.modules.categories.keyboards.keyboard_categories import account_category_kb
+from src.modules.categories.keyboards import account_category_kb
 from src.modules.categories.shemas import BuyProductsData
 from src.application._database.categories.actions import get_category_by_category_id
 from src.models.read_models import CategoryFull

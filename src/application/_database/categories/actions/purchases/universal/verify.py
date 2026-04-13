@@ -18,7 +18,7 @@ from src.database.models.categories import StorageStatus, \
     ProductUniversal, UniversalStorage, PurchaseRequestUniversal
 from src.models.read_models import ProductUniversalFull
 from src.database import get_db
-from src.application.products.universals.actions import check_valid_universal_product, move_universal_storage
+from src.application.products.universals._actions import check_valid_universal_product, move_universal_storage
 from src.utils.core_logger import get_logger
 
 SEMAPHORE_LIMIT_ACCOUNT = 12

@@ -1,12 +1,12 @@
 ﻿from typing import Optional
 
+from src.application.models.discounts import PromoCodeService
 from src.config import Config
 from src.exceptions import CategoryNotFound, NotEnoughMoney
 from src.exceptions.domain import UserNotFound
 from src.models.read_models import ResultCheckCategory
 from src.repository.database.categories import CategoriesRepository
 from src.repository.database.users import UsersRepository
-from src.application._database.discounts.utils.calculation import discount_calculation
 from src.models.read_models import CategoryFull
 
 
@@ -16,10 +16,12 @@ class PurchaseValidationService:
         self,
         categories_repo: CategoriesRepository,
         users_repo: UsersRepository,
+        promo_code_service: PromoCodeService,
         conf: Config,
     ):
         self.categories_repo = categories_repo
         self.users_repo = users_repo
+        self.promo_code_service = promo_code_service
         self.conf = conf
 
     async def check_category_and_money(
@@ -56,7 +58,9 @@ class PurchaseValidationService:
         original_total = original_price_per * quantity_products
 
         if promo_code_id:
-            discount_amount, _ = await discount_calculation(original_total, promo_code_id=promo_code_id)
+            discount_amount, _ = await self.promo_code_service.discount_calculation(
+                amount=original_total, promo_code_id=promo_code_id
+            )
         else:
             discount_amount = 0
 

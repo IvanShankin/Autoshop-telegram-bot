@@ -11,8 +11,10 @@ from src.infrastructure.crypto.secret_storage.secrets_storage import SecretsStor
 from src.infrastructure.crypto_bot.core import init_crypto_bot_provider
 from src.infrastructure.rabbit_mq.consumer import RabbitMQConsumer
 from src.infrastructure.redis import init_redis, close_redis
+from src.infrastructure.telegram.account_client import TelegramAccountClient
 from src.infrastructure.telegram.bot_instance import get_bot_logger, get_bot
-from src.infrastructure.telegram.client import TelegramClient
+from src.infrastructure.telegram.bot_client import TelegramClient
+from src.infrastructure.telegram.ui.keyboard import support_kb
 from src.utils.core_logger import setup_logging
 
 
@@ -60,8 +62,9 @@ class AppContainer:
         self.bot = get_bot()
         self.logger_bot = get_bot_logger()
 
-        self.telegram_client = TelegramClient(bot=self.bot)
-        self.telegram_logger_client = TelegramClient(bot=self.logger_bot)
+        self.telegram_bot_client = TelegramClient(bot=self.bot)
+        self.telegram_bot_logger_client = TelegramClient(bot=self.logger_bot)
+        self.telegram_account_client = TelegramAccountClient(self.logger)
 
         self.consumer = RabbitMQConsumer(self.handle_event, conf=self.conf, logger=self.logger)
 
@@ -72,12 +75,14 @@ class AppContainer:
 
     def get_request_container(self, session_db) -> RequestContainer:
         return RequestContainer(
-            session_db,
-            self.telegram_client,
-            self.telegram_logger_client,
-            self.crypto_bot_provider,
-            self.crypto_provider,
-            self.secret_storage,
+            session_db=session_db,
+            telegram_client=self.telegram_bot_client,
+            telegram_logger_client=self.telegram_bot_logger_client,
+            crypto_bot_provider=self.crypto_bot_provider,
+            crypto_provider=self.crypto_provider,
+            secret_storage=self.secret_storage,
+            support_kb_builder=support_kb,
+            telegram_account_client=self.telegram_account_client
         )
 
     def _create_event_handler(self, session):

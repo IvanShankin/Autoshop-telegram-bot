@@ -96,12 +96,12 @@ def make_fake_encrypted_archive_for_test(
 
 
 async def create_account_storage_factory(
-        is_active: bool = True,
-        is_valid: bool = True,
-        is_file: bool = True,
-        status: StorageStatus = StorageStatus.FOR_SALE,
-        type_account_service: AccountServiceType = AccountServiceType.TELEGRAM,
-        phone_number: str = '+7 920 107-42-12'
+    is_active: bool = True,
+    is_valid: bool = True,
+    is_file: bool = True,
+    status: StorageStatus = StorageStatus.FOR_SALE,
+    type_account_service: AccountServiceType = AccountServiceType.TELEGRAM,
+    phone_number: str = '+7 920 107-42-12'
 ) -> AccountStorage:
     crypto = get_crypto_context()
     encrypted_key_b64, account_key, encrypted_key_nonce = make_account_key(crypto.kek)
@@ -140,13 +140,13 @@ async def create_account_storage_factory(
 
 
 async def create_product_account_factory(
-        filling_redis: bool = True,
-        type_account_service: AccountServiceType = AccountServiceType.TELEGRAM,
-        category_id: int = None,
-        account_storage_id: int = None,
-        status: StorageStatus = StorageStatus.FOR_SALE,
-        phone_number: str = '+7 920 107-42-12',
-        price: int = 150
+    filling_redis: bool = True,
+    type_account_service: AccountServiceType = AccountServiceType.TELEGRAM,
+    category_id: int = None,
+    account_storage_id: int = None,
+    status: StorageStatus = StorageStatus.FOR_SALE,
+    phone_number: str = '+7 920 107-42-12',
+    price: int = 150
 ) -> (ProductAccounts, ProductAccountFull):
     async with get_db() as session_db:
         if category_id is None:

@@ -1,32 +1,30 @@
-import asyncio
+from tests.helpers.import_tracker import enable_import_tracking
+
+# В ТЕСТАХ НЕЛЬЗЯ ИСПОЛЬЗОВАТЬ AIOGRAM, ИНАЧЕ БУДЕТ БЕСКОНЕЧНАЯ ЗАГРУЗКА В РЕЖИМЕ ОТЛАДКИ
+enable_import_tracking("aiogram")
+
 import os
-import sys
 
 import aio_pika
-
-from contextlib import suppress
-
 
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from src.config import init_config, set_config
+
+from src.application.crypto.secrets_storage import GetSecret
+from src.config import init_config, set_config, RuntimeConfig
 from src.database import Base
-from src.utils.core_logger import setup_logging
+from src.utils.core_logger import setup_logging, get_logger
+from tests.helpers.fixtures.replace_paths import replace_paths_in_config
 from tests.helpers.monkeypatch_data import (
     replacement_redis,
     replacement_fake_bot,
-    replace_paths,
-    create_crypto_context_fix,
-    set_need_config,
-    fake_storage,
-    publish_event_service_fix,
 )
 from src.infrastructure.redis import get_redis, init_redis, close_redis
 
 from tests.helpers.fake_aiogram.fake_aiogram import patch_fake_aiogram
 
-from tests.helpers.helper_fixture import *
+from helpers.fixtures.helper_fixture import *
 # ИМПОРТЫ НЕ УБИРАТЬ, ОНИ ИСПОЛЬЗУЮТСЯ В ТЕСТАХ ПОДГРУЖАЯСЬ С conftest.py
 
 load_dotenv()  # Загружает переменные из .env
@@ -35,10 +33,6 @@ RABBITMQ_URL = os.getenv('RABBITMQ_URL')
 import pytest_asyncio
 from src.application._database.core.filling_database import create_database
 
-consumer_started = False
-
-if "aiogram" in sys.modules:
-    raise RuntimeError("aiogram был импортирован слишком рано! Используй локальный импорт в функции/фикстуре.")
 
 if MODE != "TEST":
     raise Exception("Используется основная БД!")
@@ -49,20 +43,18 @@ if MODE != "TEST":
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def start_tests():
     init_redis()
-
     yield
-
     await close_redis()
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def replacement_needed_modules(
-        start_tests,
-        replacement_redis_fix,
-        replacement_fake_bot_fix,
-        patch_fake_aiogram,
-        replacement_paths_fix,
-        replacement_logger_fix,
+    start_tests,
+    replacement_redis_fix,
+    replacement_fake_bot_fix,
+    patch_fake_aiogram,
+    replace_paths_in_config,
+    replacement_logger_fix,
 ):
     """Заменит все необходимые модули"""
     yield
@@ -76,7 +68,7 @@ async def replacement_redis_fix(monkeypatch):
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
-async def replacement_fake_bot_fix(monkeypatch, replacement_paths_fix):
+async def replacement_fake_bot_fix(monkeypatch, replace_paths_in_config):
     return replacement_fake_bot(monkeypatch)
 
 
@@ -86,12 +78,6 @@ async def replacement_logger_fix():
     test_log_file = path_log_file.parent / "auto_shop_bot_tests.log"
     setup_logging(test_log_file)
     yield
-
-
-@pytest_asyncio.fixture(scope="function", autouse=True)
-async def replacement_paths_fix():
-    for _ in replace_paths():
-        yield
 
 
 @pytest_asyncio.fixture(scope='function', autouse=True)
@@ -132,6 +118,9 @@ async def clean_redis(container_fix):
 
 @pytest_asyncio.fixture(scope="function")
 async def rabbit_channel():
+    """
+    ПОСЛЕ ПОЛНОГО ПЕРЕХОДА НА НОВУЮ АРХИТЕКТУРУ, УБРАТЬ !
+    """
     connection = await aio_pika.connect_robust(RABBITMQ_URL)
     channel = await connection.channel()
 
@@ -144,34 +133,41 @@ async def rabbit_channel():
 
 @pytest_asyncio.fixture(scope="function")
 async def start_consumer():
-    """ Запускает consumer и корректно его останавливает по завершению теста. """
-    from src.infrastructure.rabbit_mq._consumer import _run_single_consumer_loop
-
-    started_event = asyncio.Event()
-    stop_event = asyncio.Event()
-
-    task = asyncio.create_task(_run_single_consumer_loop(started_event, stop_event))
-
-    # ждём сигнала, что consumer реально подписался на очередь
-    await asyncio.wait_for(started_event.wait(), timeout=7.0)
-
-    try:
-        yield
-    finally:
-        # даём время аккуратно завершить обработку текущего сообщения
-        stop_event.set()
-        try:
-            # ждем, но не вечно — чтобы тест не зависал
-            await asyncio.wait_for(task, timeout=5.0)
-        except asyncio.TimeoutError:
-            # если не завершился — принудительно отменяем
-            task.cancel()
-            with suppress(asyncio.CancelledError):
-                await task
+    """
+    ПОСЛЕ ПОЛНОГО ПЕРЕХОДА НА НОВУЮ АРХИТЕКТУРУ, УБРАТЬ !
+    Запускает consumer и корректно его останавливает по завершению теста.
+    """
+    pass
+    # from src.infrastructure.rabbit_mq. import _run_single_consumer_loop
+    #
+    # started_event = asyncio.Event()
+    # stop_event = asyncio.Event()
+    #
+    # task = asyncio.create_task(_run_single_consumer_loop(started_event, stop_event))
+    #
+    # # ждём сигнала, что consumer реально подписался на очередь
+    # await asyncio.wait_for(started_event.wait(), timeout=7.0)
+    #
+    # try:
+    #     yield
+    # finally:
+    #     # даём время аккуратно завершить обработку текущего сообщения
+    #     stop_event.set()
+    #     try:
+    #         # ждем, но не вечно — чтобы тест не зависал
+    #         await asyncio.wait_for(task, timeout=5.0)
+    #     except asyncio.TimeoutError:
+    #         # если не завершился — принудительно отменяем
+    #         task.cancel()
+    #         with suppress(asyncio.CancelledError):
+    #             await task
 
 
 @pytest_asyncio.fixture(scope="function")
 async def clean_rabbit():
+    """
+    ПОСЛЕ ПОЛНОГО ПЕРЕХОДА НА НОВУЮ АРХИТЕКТУРУ, УБРАТЬ !
+    """
     connection = await aio_pika.connect_robust(RABBITMQ_URL)
     channel = await connection.channel()
 
@@ -194,5 +190,12 @@ async def get_engine():
 
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
-async def init_conf_fix():
-    init_config()
+async def app_container_for_tests():
+    get_secret = GetSecret(
+        storage=secret_storage_factory(),
+        crypto_provider=crypto_provider_factory(),
+        logger=get_logger(__name__),
+        runtime_conf=RuntimeConfig()
+    )
+
+    init_config(get_secret.execute)

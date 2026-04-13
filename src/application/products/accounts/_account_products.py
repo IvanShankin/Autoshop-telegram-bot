@@ -6,8 +6,8 @@ from src.config import get_config
 from src.domain.crypto.encrypt import make_account_key, encrypt_folder
 from src.domain.crypto.utils import sha256_file
 from src.infrastructure.files.file_system import make_archive, make_csv_bytes
-from src.application.products.accounts.other.shemas import REQUIRED_HEADERS
-from src.application.products.accounts.tg.shemas import CreatedEncryptedArchive
+from src.application.products.accounts.other.dto.schemas import REQUIRED_HEADERS
+from src.application.products.accounts.tg.dto.schemas import CreatedEncryptedArchive
 from src.utils.core_logger import get_logger
 
 

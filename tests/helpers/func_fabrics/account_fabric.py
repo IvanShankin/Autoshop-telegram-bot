@@ -96,12 +96,12 @@ def make_fake_encrypted_archive_for_test(
 
 
 async def create_account_storage_factory(
-        is_active: bool = True,
-        is_valid: bool = True,
-        is_file: bool = True,
-        status: StorageStatus = StorageStatus.FOR_SALE,
-        type_account_service: AccountServiceType = AccountServiceType.TELEGRAM,
-        phone_number: str = '+7 920 107-42-12'
+    is_active: bool = True,
+    is_valid: bool = True,
+    is_file: bool = True,
+    status: StorageStatus = StorageStatus.FOR_SALE,
+    type_account_service: AccountServiceType = AccountServiceType.TELEGRAM,
+    phone_number: str = '+7 920 107-42-12'
 ) -> AccountStorage:
     crypto = get_crypto_context()
     encrypted_key_b64, account_key, encrypted_key_nonce = make_account_key(crypto.kek)

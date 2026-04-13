@@ -1,10 +1,10 @@
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from helpers.fake_moduls.fake_tg_account_client import FakeTelegramAccountClient
+from tests.helpers.fake_moduls.fake_tg_account_client import FakeTelegramAccountClient
 from tests.helpers.func_fabrics.fake_objects_fabric import crypto_provider_factory, secret_storage_factory
 from src.config import get_config
-from src.containers import init_request_container
+from src.containers import init_request_container, RequestContainer
 from tests.helpers.func_fabrics.other_fabric import create_purchase_request_fabric, create_balance_holder_factory
 from tests.helpers.func_fabrics import create_new_user_fabric, create_admin_fabric, create_referral_fabric, \
     create_income_from_referral_fabric, create_replenishment_fabric, create_type_payment_factory, \
@@ -63,7 +63,7 @@ async def container_fix(
     crypto_bot_provider_fix,
     crypto_provider_fix,
     secret_storage_fix
-):
+) -> RequestContainer:
     async def fake_support_kb(*args, **kwargs) -> None:
         pass
 

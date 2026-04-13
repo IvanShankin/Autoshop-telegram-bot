@@ -36,7 +36,10 @@ class UploadTGAccountsUseCase:
         current_chunk_size = 0
         temp_dir = create_temp_dir(self.conf)
 
-        accounts = await self.account_product_service.get_product_accounts_by_category_id(category_id)
+        accounts = await self.account_product_service.get_product_accounts_by_category_id(
+            category_id,
+            get_full=True,
+        )
 
         for acc in accounts:
             crypto = self.crypto_provider.get()

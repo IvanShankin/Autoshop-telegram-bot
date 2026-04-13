@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import select
 
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeMessage, FakeFSMContext, FakeCallbackQuery, FakeCommandObject
-from tests.helpers.helper_fixture import create_new_user, create_settings
+from helpers.fixtures.helper_fixture import create_new_user, create_settings
 from src.database import get_db
 from src.database.models.referrals import Referrals
 from src.application._database.system.actions import get_settings, update_settings

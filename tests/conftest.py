@@ -15,19 +15,16 @@ from src.application.crypto.secrets_storage import GetSecret
 from src.config import init_config, set_config, RuntimeConfig
 from src.database import Base
 from src.utils.core_logger import setup_logging, get_logger
+from tests.helpers.fixtures.replace_paths import replace_paths_in_config
 from tests.helpers.monkeypatch_data import (
     replacement_redis,
     replacement_fake_bot,
-    replace_paths,
-    create_crypto_context_fix,
-    set_need_config,
-    publish_event_service_fix,
 )
 from src.infrastructure.redis import get_redis, init_redis, close_redis
 
 from tests.helpers.fake_aiogram.fake_aiogram import patch_fake_aiogram
 
-from tests.helpers.helper_fixture import *
+from helpers.fixtures.helper_fixture import *
 # ИМПОРТЫ НЕ УБИРАТЬ, ОНИ ИСПОЛЬЗУЮТСЯ В ТЕСТАХ ПОДГРУЖАЯСЬ С conftest.py
 
 load_dotenv()  # Загружает переменные из .env
@@ -56,7 +53,7 @@ async def replacement_needed_modules(
     replacement_redis_fix,
     replacement_fake_bot_fix,
     patch_fake_aiogram,
-    replacement_paths_fix,
+    replace_paths_in_config,
     replacement_logger_fix,
 ):
     """Заменит все необходимые модули"""
@@ -71,7 +68,7 @@ async def replacement_redis_fix(monkeypatch):
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
-async def replacement_fake_bot_fix(monkeypatch, replacement_paths_fix):
+async def replacement_fake_bot_fix(monkeypatch, replace_paths_in_config):
     return replacement_fake_bot(monkeypatch)
 
 
@@ -81,12 +78,6 @@ async def replacement_logger_fix():
     test_log_file = path_log_file.parent / "auto_shop_bot_tests.log"
     setup_logging(test_log_file)
     yield
-
-
-@pytest_asyncio.fixture(scope="function", autouse=True)
-async def replacement_paths_fix():
-    for _ in replace_paths():
-        yield
 
 
 @pytest_asyncio.fixture(scope='function', autouse=True)

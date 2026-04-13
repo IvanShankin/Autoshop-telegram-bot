@@ -3,7 +3,6 @@ from pathlib import Path
 
 from aiogram.types import CallbackQuery
 
-from src.application._secrets.crypto_context import get_crypto_context
 from src.config import get_config
 from src.domain.crypto.key_ops import unwrap_dek
 from src.models.create_models.universal import CreateDeletedUniversalDTO
@@ -13,8 +12,7 @@ from src.database.models.categories import StorageStatus, UniversalMediaType
 from src.models.read_models import SoldUniversalFull, UsersDTO
 from src.application.bot import Messages
 from src.infrastructure.files.file_system import create_temp_dir
-from src.application.products.universals.universals_products import move_in_universal
-from src.infrastructure.files._media_paths import create_path_universal_storage
+from src.application.products.universals._universals_products import move_in_universal
 from src.application.models.modules import ProfileModule
 from src.domain.crypto.decrypt import decrypt_file, decrypt_text
 from src.utils.i18n import get_text
@@ -91,7 +89,7 @@ async def send_media_sold_universal(
             )
 
         if universal.universal_storage.original_filename:
-            file_path = create_path_universal_storage(
+            file_path = profile_module.path_builder.build_path_universal_storage(
                 status=universal.universal_storage.status,
                 uuid=universal.universal_storage.storage_uuid,
             )

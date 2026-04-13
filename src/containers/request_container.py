@@ -5,6 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.application.crypto.crypto_context import CryptoProvider
 from src.application.models.systems.backup_db_service import BackupDBService
 from src.application.products.accounts.account_service import AccountService
+from src.application.products.accounts.other.use_cases.validate import ValidateOtherAccountsUseCase
+from src.application.products.accounts.tg.use_cases.validate import ValidateTgAccount
+from src.application.products.universals.universal_products import UniversalProduct
+from src.application.products.universals.use_cases import ValidationsUniversalProducts
 from src.config import get_config
 from src.infrastructure.crypto.secret_storage.secrets_storage import SecretsStorage
 from src.infrastructure.crypto_bot.core import CryptoBotProvider
@@ -12,6 +16,7 @@ from src.infrastructure.files.excel_reports import ExcelReportExporter
 from src.infrastructure.files.file_system import FileStorage
 from src.infrastructure.files.path_builder import PathBuilder
 from src.infrastructure.redis import get_redis
+from src.infrastructure.telegram.account_client import TelegramAccountClient
 from src.infrastructure.telegram.rate_limit import RateLimiter
 from src.repository.database.discount import VouchersRepository, VoucherActivationsRepository, PromoCodeRepository, \
     ActivatedPromoCodeRepository
@@ -129,7 +134,7 @@ from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text
 
 if TYPE_CHECKING:
-    from src.infrastructure.telegram.client import TelegramClient
+    from src.infrastructure.telegram.bot_client import TelegramClient
 
 
 class RequestContainer:
@@ -146,6 +151,7 @@ class RequestContainer:
         crypto_provider: CryptoProvider,
         secret_storage: SecretsStorage,
         support_kb_builder: Callable[[str, str], Awaitable[Any]],
+        telegram_account_client: TelegramAccountClient,
     ):
         self.session_db = session_db
         self.telegram_client = telegram_client
@@ -154,6 +160,7 @@ class RequestContainer:
         self.crypto_provider = crypto_provider
         self.secret_storage = secret_storage
         self.support_kb_builder = support_kb_builder
+        self.telegram_account_client = telegram_account_client
 
         self.account_sold_service: Optional[AccountSoldService] = None
 
@@ -630,12 +637,22 @@ class RequestContainer:
         )
         self.purchase_cancel_service = PurchaseCancelService(
             purchase_request_service=self.purchase_request_service,
+            logger=self.logger,
         )
         self.purchase_validation_service = PurchaseValidationService(
             categories_repo=self.categories_repo,
             users_repo=self.users_repo,
             promo_code_service=self.promo_code_service,
             conf=self.config,
+        )
+        self.validate_tg_account = ValidateTgAccount(
+            logger=self.logger,
+            tg_client=self.telegram_account_client,
+            crypto_provider=self.crypto_provider,
+        )
+        self.validate_other_account = ValidateOtherAccountsUseCase(
+            logger=self.logger,
+            crypto_provider=self.crypto_provider,
         )
         self.account_purchase_service = AccountPurchaseService(
             validation_service=self.purchase_validation_service,
@@ -661,8 +678,22 @@ class RequestContainer:
             account_service=self.account_service,
             path_build=self.path_builder,
             publish_event_handler=self.publish_event_handler,
+            logger=self.logger,
             conf=self.config,
             session_db=self.session_db,
+            validate_tg_account=self.validate_tg_account,
+            validate_other_account=self.validate_other_account,
+        )
+        self.validations_universal_products = ValidationsUniversalProducts(
+            crypto_provider=self.crypto_provider,
+            path_builder=self.path_builder,
+            logger=self.logger,
+        )
+        self.universal_product = UniversalProduct(
+            crypto_provider=self.crypto_provider,
+            path_builder=self.path_builder,
+            publish_event_handler=self.publish_event_handler,
+            logger=self.logger,
         )
         self.universal_purchase_service = UniversalPurchaseService(
             validation_service=self.purchase_validation_service,
@@ -686,8 +717,11 @@ class RequestContainer:
             user_cache_repo=self.users_cache_repo,
             publish_event_handler=self.publish_event_handler,
             path_builder=self.path_builder,
+            validations_universal_products=self.validations_universal_products,
+            universal_product=self.universal_product,
             crypto_provider=self.crypto_provider,
             conf=self.config,
+            logger=self.logger,
             session_db=self.session_db,
         )
         self.subscription_service = SubscriptionService(
@@ -1009,6 +1043,7 @@ def init_request_container(
     crypto_provider: CryptoProvider,
     secret_storage: SecretsStorage,
     support_kb_builder: Callable[[str, str], Awaitable[Any]],
+    telegram_account_client: TelegramAccountClient,
 ) -> RequestContainer:
     return RequestContainer(
         session_db=session_db,
@@ -1018,4 +1053,5 @@ def init_request_container(
         crypto_provider=crypto_provider,
         secret_storage=secret_storage,
         support_kb_builder=support_kb_builder,
+        telegram_account_client=telegram_account_client,
     )

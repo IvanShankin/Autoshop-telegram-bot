@@ -37,6 +37,9 @@ class AccountStorageService:
     async def get_account_storage(self, account_storage_id: int) -> AccountStorageDTO | None:
         return await self.storage_repo.get_by_id(account_storage_id)
 
+    async def get_account_storage_by_category(self, category_id: int) -> AccountStorageDTO | None:
+        return await self.storage_repo.get(category_id)
+
     async def get_all_phone_numbers_by_service(self, type_account_service: AccountServiceType) -> list[str]:
         return await self.storage_repo.get_all_phone_numbers_by_service(type_account_service)
 

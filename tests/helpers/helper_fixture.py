@@ -1,6 +1,7 @@
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from helpers.fake_moduls.fake_tg_account_client import FakeTelegramAccountClient
 from tests.helpers.func_fabrics.fake_objects_fabric import crypto_provider_factory, secret_storage_factory
 from src.config import get_config
 from src.containers import init_request_container
@@ -67,8 +68,14 @@ async def container_fix(
         pass
 
     container = init_request_container(
-        session_db_fix, fake_tg_client, fake_tg_client, crypto_bot_provider_fix, crypto_provider_fix,
-        secret_storage_fix, fake_support_kb
+        session_db=session_db_fix,
+        telegram_client=fake_tg_client,
+        telegram_logger_client=fake_tg_client,
+        crypto_bot_provider=crypto_bot_provider_fix,
+        crypto_provider=crypto_provider_fix,
+        secret_storage=secret_storage_fix,
+        support_kb_builder=fake_support_kb,
+        telegram_account_client=FakeTelegramAccountClient(),
     )
     yield container
 

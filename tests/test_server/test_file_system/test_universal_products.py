@@ -4,7 +4,7 @@ from src.database.models.categories import StorageStatus
 
 @pytest.mark.asyncio
 async def test_move_in_account_success(monkeypatch, create_sold_universal):
-    from src.application.products.universals.universals_products import move_in_universal, create_path_universal_storage
+    from src.application.products.universals._universals_products import move_in_universal, create_path_universal_storage
 
     _, universal = await create_sold_universal()
 

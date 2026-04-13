@@ -2,6 +2,7 @@
 import shutil
 import uuid
 from collections import deque
+from logging import Logger
 from pathlib import Path
 from typing import List, Tuple
 
@@ -9,20 +10,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.crypto.crypto_context import CryptoProvider
 from src.application.events.publish_event_handler import PublishEventHandler
+from src.application.products.universals.universal_products import UniversalProduct
+from src.application.products.universals.use_cases import ValidationsUniversalProducts
 from src.infrastructure.files.path_builder import PathBuilder
-from src.models.read_models import EventSentLog, LogLevel, NewActivatePromoCode
 from src.config import Config
 from src.database.models.categories import StorageStatus, ProductType
 from src.database.models.categories.product_universal import UniversalStorage, UniversalStorageTranslation
 from src.exceptions.business import NotEnoughProducts
 from src.exceptions.domain import UniversalProductNotFound
-from src.infrastructure.rabbit_mq.producer import publish_event
 from src.models.read_models import ProductUniversalFull
 from src.models.read_models.categories.purshanse_schem import StartPurchaseUniversalOne, StartPurchaseUniversal
 from src.models.read_models.events.purchase import UniversalProductData, NewPurchaseUniversal
 from src.repository.redis import UsersCacheRepository
 from src.infrastructure.files.file_system import move_file, copy_file, rename_file
-from src.application.products.universals.actions import check_valid_universal_product, move_universal_storage
 from src.application.models.categories.categories_cache_filler_service import CategoriesCacheFillerService
 from src.application.models.categories.category_service import CategoryService
 from src.application.models.products.universal.universal_cache_filler_service import UniversalCacheFillerService
@@ -38,7 +38,6 @@ from src.repository.database.categories import (
     SoldUniversalRepository,
     PurchasesRepository,
 )
-from src.utils.core_logger import get_logger
 
 SEMAPHORE_LIMIT_UNIVERSAL = 50
 MAX_REPLACEMENT_ATTEMPTS = 3
@@ -65,7 +64,10 @@ class UniversalPurchaseService:
         publish_event_handler: PublishEventHandler,
         path_builder: PathBuilder,
         crypto_provider: CryptoProvider,
+        validations_universal_products: ValidationsUniversalProducts,
+        universal_product: UniversalProduct,
         conf: Config,
+        logger: Logger,
         session_db: AsyncSession,
     ):
         self.validation_service = validation_service
@@ -84,7 +86,10 @@ class UniversalPurchaseService:
         self.publish_event_handler = publish_event_handler
         self.path_builder = path_builder
         self.crypto_provider = crypto_provider
+        self.validations_universal_products = validations_universal_products
+        self.universal_product = universal_product
         self.conf = conf
+        self.logger = logger
         self.session_db = session_db
 
     async def start_purchase(
@@ -264,10 +269,9 @@ class UniversalPurchaseService:
         Проверяет файл/описание по DEK; при ошибке перемещает в удалённые и логирует.
         """
         crypto = self.crypto_provider.get()
-        result_check = await check_valid_universal_product(
+        result_check = await self.validations_universal_products.check_valid_universal_product(
             product=product_universal,
             status=StorageStatus.FOR_SALE,
-            crypto=crypto,
         )
         if not result_check:
             await self._delete_universal([product_universal])
@@ -276,7 +280,7 @@ class UniversalPurchaseService:
                 return_not_show=True,
                 language=self.conf.app.default_lang,
             )
-            event = EventSentLog(
+            await self.publish_event_handler.send_log(
                 text=(
                     "\n#Невалидный_продукт \n"
                     "При покупке был найден невалидный универсальный продукт, он удален с продажи \n"
@@ -284,10 +288,8 @@ class UniversalPurchaseService:
                     f"ID категории: {category.category_id if category else 'unknown'}\n"
                     f"Имя категории: {category.name if category else 'unknown'}\n"
                     f"Описание внутри категории: {category.description if category else 'unknown'}\n"
-                ),
-                log_lvl=LogLevel.INFO,
+                )
             )
-            await publish_event(event.model_dump(), "message.send_log")
 
         return result_check
 
@@ -302,16 +304,14 @@ class UniversalPurchaseService:
         if not reserved_products:
             return False
 
-        logger = get_logger(__name__)
         crypto = self.crypto_provider.get()
         sem = asyncio.Semaphore(SEMAPHORE_LIMIT_UNIVERSAL)
 
         async def validate_slot(product: ProductUniversalFull):
             async with sem:
-                return product, await check_valid_universal_product(
+                return product, await self.validations_universal_products.check_valid_universal_product(
                     product,
                     StorageStatus.FOR_SALE,
-                    crypto,
                 )
 
         initial_checks = await asyncio.gather(*[validate_slot(p) for p in reserved_products], return_exceptions=True)
@@ -320,7 +320,7 @@ class UniversalPurchaseService:
         valid_products: list[ProductUniversalFull] = []
         for res in initial_checks:
             if isinstance(res, Exception):
-                logger.exception("Validation task exception: %s", res)
+                self.logger.exception("Validation task exception: %s", res)
                 return False
             prod, ok = res
             if ok:
@@ -347,7 +347,7 @@ class UniversalPurchaseService:
                         limit=to_fetch,
                     )
                     if not candidates:
-                        logger.debug(
+                        self.logger.debug(
                             "No replacement candidates on attempt %s for request %s",
                             attempts,
                             purchase_request_id,
@@ -360,7 +360,7 @@ class UniversalPurchaseService:
                         status=StorageStatus.RESERVED,
                     )
             except Exception as e:
-                logger.exception("DB error while selecting/reserving replacement batch: %s", e)
+                self.logger.exception("DB error while selecting/reserving replacement batch: %s", e)
                 await asyncio.sleep(0.2)
                 continue
 
@@ -372,14 +372,13 @@ class UniversalPurchaseService:
             async def validate_candidate(cand: ProductUniversalFull):
                 async with sem:
                     try:
-                        ok = await check_valid_universal_product(
+                        ok = await self.validations_universal_products.check_valid_universal_product(
                             cand,
                             StorageStatus.FOR_SALE,
-                            crypto,
                         )
                         return cand, ok
                     except Exception as e:
-                        logger.exception("Candidate validation exception: %s", e)
+                        self.logger.exception("Candidate validation exception: %s", e)
                         return cand, False
 
             checks = await asyncio.gather(*[validate_candidate(c) for c in candidates_full], return_exceptions=False)
@@ -410,7 +409,7 @@ class UniversalPurchaseService:
                             status=StorageStatus.FOR_SALE,
                         )
             except Exception as e:
-                logger.exception("DB error while applying candidate results: %s", e)
+                self.logger.exception("DB error while applying candidate results: %s", e)
                 try:
                     ids = [c.storage.universal_storage_id for c in candidates]
                     await self.storage_repo.update_status_by_ids(
@@ -419,12 +418,12 @@ class UniversalPurchaseService:
                     )
                     await self.session_db.commit()
                 except Exception:
-                    logger.exception("Failed to revert candidate statuses after error")
+                    self.logger.exception("Failed to revert candidate statuses after error")
                 await asyncio.sleep(0.2)
                 continue
 
         if bad_queue:
-            logger.error(
+            self.logger.error(
                 "Could not find replacements for %d products after %d attempts (request %s)",
                 len(bad_queue),
                 attempts,
@@ -448,8 +447,6 @@ class UniversalPurchaseService:
         purchase_ids: List[int] = []
         product_movement: List[UniversalProductData] = []
 
-        logger = get_logger(__name__)
-
         try:
             for product in data.full_reserved_products:
                 if not product.universal_storage.original_filename:
@@ -468,9 +465,8 @@ class UniversalPurchaseService:
                 moved = await move_file(orig, temp)
                 if not moved:
                     text = f"#Внимание \n\nПродукт не найден/не удалось переместить: {orig}"
-                    logger.exception(text)
-                    event = EventSentLog(text=text)
-                    await publish_event(event.model_dump(), "message.send_log")
+                    self.logger.exception(text)
+                    await self.publish_event_handler.send_log(text)
 
                     await self.cancel_purchase_different(
                         user_id=user_id,
@@ -537,7 +533,7 @@ class UniversalPurchaseService:
             for orig, temp, final in mapping:
                 ok = await rename_file(temp, final)
                 if not ok:
-                    logger.exception("Failed to rename temp %s -> %s", temp, final)
+                    self.logger.exception("Failed to rename temp %s -> %s", temp, final)
                     rename_fail = True
                     break
 
@@ -564,30 +560,29 @@ class UniversalPurchaseService:
             await self.categories_cache_filler.fill_need_category(data.category_id)
 
             if data.promo_code_id:
-                event = NewActivatePromoCode(
+                await self.publish_event_handler.promo_code_activated(
                     promo_code_id=data.promo_code_id,
                     user_id=user_id,
                 )
-                await publish_event(event.model_dump(), "promo_code.activated")
 
             product_left = len(await self.product_repo.get_by_category_for_sale(data.category_id))
-            new_purchase = NewPurchaseUniversal(
-                user_id=user_id,
-                category_id=data.category_id,
-                amount_purchase=data.total_amount,
-                product_movement=product_movement,
-                user_balance_before=data.user_balance_before,
-                user_balance_after=data.user_balance_after,
-                product_left=product_left,
-            )
-            await publish_event(new_purchase.model_dump(), "purchase.universal")
 
+            await self.publish_event_handler.new_purchase_universal(
+                data=NewPurchaseUniversal(
+                    user_id=user_id,
+                    category_id=data.category_id,
+                    amount_purchase=data.total_amount,
+                    product_movement=product_movement,
+                    user_balance_before=data.user_balance_before,
+                    user_balance_after=data.user_balance_after,
+                    product_left=product_left,
+                )
+            )
             return True
 
         except Exception as e:
-            logger.exception("Error in finalize_purchase: %s", e)
-            event = EventSentLog(text=f"#Ошибка finalize_purchase_universal_different: {e}")
-            await publish_event(event.model_dump(), "message.send_log")
+            self.logger.exception("Error in finalize_purchase: %s", e)
+            await self.publish_event_handler.send_log(text=f"#Ошибка finalize_purchase_universal_different: {e}")
 
             await self.cancel_purchase_different(
                 user_id=user_id,
@@ -680,22 +675,22 @@ class UniversalPurchaseService:
             await self.categories_cache_filler.fill_need_category(data.category_id)
 
             if data.promo_code_id:
-                event = NewActivatePromoCode(
+                await self.publish_event_handler.promo_code_activated(
                     promo_code_id=data.promo_code_id,
                     user_id=user_id,
                 )
-                await publish_event(event.model_dump(), "promo_code.activated")
 
-            new_purchase = NewPurchaseUniversal(
-                user_id=user_id,
-                category_id=data.category_id,
-                amount_purchase=data.total_amount,
-                product_movement=product_movement,
-                user_balance_before=data.user_balance_before,
-                user_balance_after=data.user_balance_after,
-                product_left="Бесконечно ...",
+            await self.publish_event_handler.new_purchase_universal(
+                data=NewPurchaseUniversal(
+                    user_id=user_id,
+                    category_id=data.category_id,
+                    amount_purchase=data.total_amount,
+                    product_movement=product_movement,
+                    user_balance_before=data.user_balance_before,
+                    user_balance_after=data.user_balance_after,
+                    product_left="Бесконечно ...",
+                )
             )
-            await publish_event(new_purchase.model_dump(), "purchase.universal")
 
             return True
 
@@ -731,10 +726,9 @@ class UniversalPurchaseService:
         :exception UserNotFound: Если пользователь не найден.
         :summary: Возвращает средства и откатывает записи/статусы, как в `cancel_purchase_universal_different`.
         """
-        logger = get_logger(__name__)
         user = None
 
-        await self.purchase_cancel_service.return_files(mapping, logger)
+        await self.purchase_cancel_service.return_files(mapping)
 
         async with self.session_db.begin():
             user = await self.purchase_request_service.release_funds(user_id, total_amount)
@@ -759,9 +753,9 @@ class UniversalPurchaseService:
                             universal_storage_id=prod.universal_storage_id,
                         )
             except Exception:
-                logger.exception("Failed to restore universal storage status")
+                self.logger.exception("Failed to restore universal storage status")
 
-            await self.purchase_cancel_service.mark_failed(purchase_request_id, logger)
+            await self.purchase_cancel_service.mark_failed(purchase_request_id)
 
         if user:
             await self.user_cache_repo.set(user, int(self.conf.redis_time_storage.user))
@@ -791,7 +785,6 @@ class UniversalPurchaseService:
         :exception UserNotFound: Если пользователь не найден.
         :summary: Удаляет временные файлы, откатывает записи и возвращает деньги.
         """
-        logger = get_logger(__name__)
         user = None
 
         for path in paths_created_storage:
@@ -803,7 +796,7 @@ class UniversalPurchaseService:
                     else:
                         path_obj.unlink(missing_ok=True)
             except Exception:
-                logger.exception("Failed to remove created storage path %s", path)
+                self.logger.exception("Failed to remove created storage path %s", path)
 
         async with self.session_db.begin():
             user = await self.purchase_request_service.release_funds(user_id, total_amount)
@@ -815,7 +808,7 @@ class UniversalPurchaseService:
             if storage_universal_ids:
                 await self.storage_repo.delete_by_ids(storage_universal_ids)
 
-            await self.purchase_cancel_service.mark_failed(purchase_request_id, logger)
+            await self.purchase_cancel_service.mark_failed(purchase_request_id)
 
         if user:
             await self.user_cache_repo.set(user, int(self.conf.redis_time_storage.user))
@@ -841,7 +834,7 @@ class UniversalPurchaseService:
         )
 
         for bad_prod in universal_product:
-            await move_universal_storage(
+            await self.universal_product.move_universal_storage(
                 storage=bad_prod.universal_storage,
                 new_status=StorageStatus.DELETED,
             )
@@ -854,8 +847,7 @@ class UniversalPurchaseService:
                 )
                 await self.product_repo.delete(bad_prod.product_universal_id)
             except Exception:
-                logger = get_logger(__name__)
-                logger.exception(
+                self.logger.exception(
                     "Error marking bad product deleted %s",
                     bad_prod.universal_storage.universal_storage_id,
                 )
@@ -868,20 +860,17 @@ class UniversalPurchaseService:
                     make_commit=False,
                 )
 
-                event = EventSentLog(
+                await self.publish_event_handler.send_log(
                     text=(
                         "\n#Невалидный_продукт \n"
                         "При покупке был найден невалидный универсальный продукт, он удален с продажи \n"
                         "Данные об продукте: \n"
                         f"universal_storage_id: {bad_prod.universal_storage.universal_storage_id}\n"
                         f"Себестоимость: {category.cost_price if category else 'unknown'}\n"
-                    ),
-                    log_lvl=LogLevel.INFO,
+                    )
                 )
-                await publish_event(event.model_dump(), "message.send_log")
             except Exception:
-                logger = get_logger(__name__)
-                logger.exception(
+                self.logger.exception(
                     "Failed to log deleted product %s",
                     bad_prod.universal_storage.universal_storage_id,
                 )

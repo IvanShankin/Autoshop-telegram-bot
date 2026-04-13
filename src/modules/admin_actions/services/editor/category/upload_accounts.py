@@ -8,10 +8,10 @@ from src.modules.admin_actions.keyboards.editors.category_kb import in_category_
 from src.modules.admin_actions.services.editor.category.category_loader import service_not_found
 from src.database.models.categories import ProductType, AccountServiceType
 from src.models.read_models import CategoryFull
-from src.application.products.accounts.other.upload_account import upload_other_account
-from src.application.products.accounts.tg.upload_account import upload_tg_account
+from src.application.products.accounts.other._upload_account import upload_other_account
+from src.application.products.accounts.tg._upload_account import upload_tg_account
 from src.database.models.users import Users
-from src.application.products.universals.upload_products import upload_universal_products
+from src.application.products.universals._upload_products import upload_universal_products
 from src.utils.i18n import get_text
 
 async def complete_upload(category: CategoryFull, user: Users):

@@ -14,7 +14,7 @@ from src.application.events.publish_event_handler import PublishEventHandler
 
 
 if TYPE_CHECKING:
-    from src.infrastructure.telegram.client import TelegramClient
+    from src.infrastructure.telegram.bot_client import TelegramClient
     from aiogram.types import (
         InlineKeyboardMarkup,
         ReplyKeyboardMarkup,

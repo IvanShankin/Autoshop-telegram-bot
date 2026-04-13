@@ -18,7 +18,7 @@ from src.application.models.admins import SentMassMessagesService
 
 
 if TYPE_CHECKING:
-    from src.infrastructure.telegram.client import TelegramClient
+    from src.infrastructure.telegram.bot_client import TelegramClient
     from aiogram.types import InlineKeyboardMarkup
 
 

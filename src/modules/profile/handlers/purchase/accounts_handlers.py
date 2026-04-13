@@ -12,7 +12,7 @@ from src.modules.profile.services.purchases_accounts import show_all_sold_accoun
 from src.database.models.categories import AccountStorage, StorageStatus
 from src.application.bot import Messages
 from src.application.models.modules import ProfileModule
-from src.application.products.accounts.tg.actions import get_auth_codes, check_account_validity
+from src.application.products.accounts.tg._actions import get_auth_codes, check_account_validity
 from src.utils.i18n import get_text
 from src.utils.pars_number import e164_to_pretty
 

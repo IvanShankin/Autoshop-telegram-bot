@@ -30,13 +30,13 @@ from src.modules.admin_actions.state.editors.editor_categories import ImportUniv
 from src.database.models.categories import ProductType
 from src.application.products.accounts._account_products import generate_example_import_other_acc, generate_example_import_tg_acc
 from src.infrastructure.files.file_system import create_temp_dir
-from src.application.products.universals.universals_products import generate_example_zip_for_import
-from src.application.products.accounts.other.input_account import input_other_account
-from src.application.products.accounts.tg.input_account import import_telegram_accounts_from_archive
+from src.application.products.universals._universals_products import generate_example_zip_for_import
+from src.application.products.accounts.other._input_account import input_other_account
+from src.application.products.accounts.tg._input_account import import_telegram_accounts_from_archive
 from src.database.models.categories import AccountServiceType
 from src.database.models.users import Users
-from src.application.products.universals.input_products import input_universal_products
-from src.application.products.universals.shemas import get_import_universal_headers
+from src.application.products.universals._input_products import input_universal_products
+from src.application.products.universals._shemas import get_import_universal_headers
 from src.utils.core_logger import get_logger
 from src.utils.helpers_func import maybe_await
 from src.utils.i18n import get_text

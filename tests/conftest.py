@@ -1,3 +1,4 @@
+from helpers.func_fabrics.fake_objects_fabric import secret_storage_factory, crypto_provider_factory
 from tests.helpers.import_tracker import enable_import_tracking
 
 # В ТЕСТАХ НЕЛЬЗЯ ИСПОЛЬЗОВАТЬ AIOGRAM, ИНАЧЕ БУДЕТ БЕСКОНЕЧНАЯ ЗАГРУЗКА В РЕЖИМЕ ОТЛАДКИ
@@ -12,7 +13,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 
 from src.application.crypto.secrets_storage import GetSecret
-from src.config import init_config, set_config, RuntimeConfig
+from src.config import init_config, set_config, RuntimeConfig, get_config
 from src.database import Base
 from src.utils.core_logger import setup_logging, get_logger
 from tests.helpers.fixtures.replace_paths import replace_paths_in_config
@@ -24,8 +25,19 @@ from src.infrastructure.redis import get_redis, init_redis, close_redis
 
 from tests.helpers.fake_aiogram.fake_aiogram import patch_fake_aiogram
 
-from helpers.fixtures.helper_fixture import *
-# ИМПОРТЫ НЕ УБИРАТЬ, ОНИ ИСПОЛЬЗУЮТСЯ В ТЕСТАХ ПОДГРУЖАЯСЬ С conftest.py
+from tests.helpers.fixtures.helper_fixture import (
+    session_db_fix, fake_tg_client, crypto_bot_provider_fix, secret_storage_fix,
+    crypto_provider_fix, container_fix, create_new_user, create_admin_fix,
+    create_sent_mass_message, create_referral, create_income_from_referral,
+    create_replenishment, create_type_payment, create_settings, create_promo_code,
+    create_promo_code_activation, create_voucher, create_translate_category,
+    create_category, create_purchase, create_account_storage, create_product_account,
+    create_sold_account, create_tg_account_media, create_universal_storage,
+    create_product_universal, create_sold_universal, create_ui_image,
+    create_transfer_moneys, create_wallet_transaction, create_backup_log,
+    create_purchase_request, create_balance_holder,
+)
+# ИМПОРТЫ НЕ УБИРАТЬ, ОНИ ИСПОЛЬЗУЮТСЯ В ТЕСТАХ ПОДГРУЖАЯСЬ
 
 load_dotenv()  # Загружает переменные из .env
 MODE = os.getenv('MODE')

@@ -7,7 +7,8 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from src.application._secrets.crypto_context import get_crypto_context
+from src.containers import RequestContainer
+from src.database.core import get_session_factory
 from src.domain.crypto.encrypt import make_account_key
 from src.domain.crypto.key_ops import encrypt_text
 from tests.helpers.func_fabrics.category_fabric import create_category_factory
@@ -18,16 +19,14 @@ from src.database.models.categories import AccountStorage, TgAccountMedia, Purch
 from src.database.models.categories import SoldAccounts, SoldAccountsTranslation, ProductAccounts
 from src.models.read_models import SoldAccountFull, SoldAccountSmall, ProductAccountFull
 from src.database.models.categories import AccountServiceType
-from src.database import get_db
-from src.application._redis.filling import filling_sold_accounts_by_owner_id, \
-    filling_sold_account_by_account_id, filling_all_keys_category, filling_product_account_by_account_id
 
 
 def make_fake_encrypted_archive_for_test(
-        account_key: bytes,
-        uuid: str,
-        status: StorageStatus = StorageStatus.FOR_SALE,
-        type_account_service: AccountServiceType = AccountServiceType.TELEGRAM
+    container_fix: RequestContainer,
+    account_key: bytes,
+    uuid: str,
+    status: StorageStatus = StorageStatus.FOR_SALE,
+    type_account_service: AccountServiceType = AccountServiceType.TELEGRAM
 ) -> str:
     """
     Создаёт зашифрованный архив аккаунта в структуре проекта:
@@ -40,11 +39,9 @@ def make_fake_encrypted_archive_for_test(
     └── tdata/
         └── loans.txt
     """
-
-    from src.infrastructure.files._media_paths import create_path_account
     # генерируем UUID
     # === 1. Генерация UUID и путей ===
-    encrypted_path = create_path_account(status, type_account_service, uuid)
+    encrypted_path = container_fix.path_builder.build_path_account(status, type_account_service, uuid)
     account_dir = Path(os.path.dirname(encrypted_path))
     os.makedirs(account_dir, exist_ok=True)
 
@@ -96,6 +93,7 @@ def make_fake_encrypted_archive_for_test(
 
 
 async def create_account_storage_factory(
+    container_fix: RequestContainer,
     is_active: bool = True,
     is_valid: bool = True,
     is_file: bool = True,
@@ -103,12 +101,12 @@ async def create_account_storage_factory(
     type_account_service: AccountServiceType = AccountServiceType.TELEGRAM,
     phone_number: str = '+7 920 107-42-12'
 ) -> AccountStorage:
-    crypto = get_crypto_context()
+    crypto = container_fix.crypto_provider.get()
     encrypted_key_b64, account_key, encrypted_key_nonce = make_account_key(crypto.kek)
 
     storage_uuid = str(uuid.uuid4())
     if is_file == True:
-        make_fake_encrypted_archive_for_test(account_key, storage_uuid, status, type_account_service)
+        make_fake_encrypted_archive_for_test(container_fix, account_key, storage_uuid, status, type_account_service)
 
     login_encrypted, login_nonce, _ = encrypt_text('login_encrypted', account_key)
     password_encrypted, password_nonce, _ = encrypt_text('password_encrypted', account_key)
@@ -132,7 +130,7 @@ async def create_account_storage_factory(
         status = status,
         type_account_service = type_account_service
     )
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
         session_db.add(account_storage)
         await session_db.commit()
         await session_db.refresh(account_storage)
@@ -140,6 +138,7 @@ async def create_account_storage_factory(
 
 
 async def create_product_account_factory(
+    container_fix: RequestContainer,
     filling_redis: bool = True,
     type_account_service: AccountServiceType = AccountServiceType.TELEGRAM,
     category_id: int = None,
@@ -148,12 +147,13 @@ async def create_product_account_factory(
     phone_number: str = '+7 920 107-42-12',
     price: int = 150
 ) -> (ProductAccounts, ProductAccountFull):
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
         if category_id is None:
-            category = await create_category_factory(filling_redis=filling_redis, price=price)
+            category = await create_category_factory(container_fix=container_fix, filling_redis=filling_redis, price=price)
             category_id = category.category_id
         if account_storage_id is None:
             account_storage = await create_account_storage_factory(
+                container_fix=container_fix,
                 status=status,
                 phone_number=phone_number,
                 type_account_service=type_account_service
@@ -173,13 +173,18 @@ async def create_product_account_factory(
             .options(selectinload(ProductAccounts.account_storage))
             .where(ProductAccounts.account_id == new_account.account_id)
         ))
-        new_account = result_db.scalar()
+        new_account: ProductAccounts = result_db.scalar()
 
         if filling_redis:
-            await filling_product_account_by_account_id(new_account.account_id)
+            cache_warmup_service = container_fix.get_cache_warmup_service()
+            await cache_warmup_service.accounts_cache_filler_service.fill_product_account_by_account_id(
+                new_account.account_id
+            )
 
             # связанные таблицы
-            await filling_all_keys_category()
+            await cache_warmup_service.category_cache_filler_service.fill_need_category(
+                categories_ids=new_account.category_id
+            )
 
         if not account_storage:
             result_db = await session_db.execute(
@@ -192,23 +197,25 @@ async def create_product_account_factory(
 
 
 async def create_sold_account_factory(
-        filling_redis: bool = True,
-        owner_id: int = None,
-        type_account_service: AccountServiceType = AccountServiceType.TELEGRAM,
-        account_storage_id: int = None,
-        is_active: bool = True,
-        is_valid: bool = True,
-        language: str = "ru",
-        name: str = "name",
-        description: str = "description",
-        phone_number: str = "+7 920 107-42-12"
+    container_fix: RequestContainer,
+    filling_redis: bool = True,
+    owner_id: int = None,
+    type_account_service: AccountServiceType = AccountServiceType.TELEGRAM,
+    account_storage_id: int = None,
+    is_active: bool = True,
+    is_valid: bool = True,
+    language: str = "ru",
+    name: str = "name",
+    description: str = "description",
+    phone_number: str = "+7 920 107-42-12"
 ) -> (SoldAccountSmall, SoldAccountFull):
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
         if owner_id is None:
-            user = await create_new_user_fabric()
+            user = await create_new_user_fabric(container_fix)
             owner_id = user.user_id
         if account_storage_id is None:
             account_storage = await create_account_storage_factory(
+                container_fix=container_fix,
                 is_active=is_active,
                 is_valid=is_valid,
                 status=StorageStatus.BOUGHT,
@@ -247,22 +254,24 @@ async def create_sold_account_factory(
         new_sold_account = SoldAccountSmall.from_orm_with_translation(new_sold_account, language)
 
     if filling_redis:
-        await filling_sold_accounts_by_owner_id(full_account.owner_id)
-        await filling_sold_account_by_account_id(full_account.sold_account_id)
+        cache_warmup_service = container_fix.get_cache_warmup_service()
+        await cache_warmup_service.accounts_cache_filler_service.fill_sold_accounts_by_owner_id(full_account.owner_id)
+        await cache_warmup_service.accounts_cache_filler_service.fill_sold_accounts_by_account_id(full_account.sold_account_id)
 
     return new_sold_account, full_account
 
 
 async def create_tg_account_media_factory(
+    container_fix: RequestContainer,
     account_storage_id: int = None,
     tdata_tg_id: str = None,
     session_tg_id: str = None
 ) -> TgAccountMedia:
     if account_storage_id is None:
-        account_storage = await create_account_storage_factory()
+        account_storage = await create_account_storage_factory(container_fix=container_fix)
         account_storage_id = account_storage.account_storage_id
 
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
         new_tg_media = TgAccountMedia(
             account_storage_id=account_storage_id,
             tdata_tg_id=tdata_tg_id,
@@ -277,6 +286,7 @@ async def create_tg_account_media_factory(
 
 
 async def create_purchase_fabric(
+    container_fix: RequestContainer,
     user_id: int = None,
     product_type: ProductType = None,
     account_storage_id: int = None,
@@ -287,14 +297,14 @@ async def create_purchase_fabric(
     net_profit: int = 50,
 ) -> Purchases:
     if user_id is None:
-        user = await create_new_user_fabric()
+        user = await create_new_user_fabric(container_fix)
         user_id = user.user_id
 
     if account_storage_id is None:
-        acc_storage = await create_account_storage_factory()
+        acc_storage = await create_account_storage_factory(container_fix=container_fix,)
         account_storage_id = acc_storage.account_storage_id
 
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
         new_purchase_account = Purchases(
             user_id = user_id,
             product_type = product_type,

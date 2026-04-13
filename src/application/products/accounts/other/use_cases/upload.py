@@ -17,19 +17,19 @@ class UploadOtherAccountsUseCase:
         self,
         crypto_provider: CryptoProvider,
         publish_event_handler: PublishEventHandler,
-        account_storage_service: AccountStorageService,
+        account_product_service: AccountProductService,
         logger: Logger,
     ):
         self.crypto_provider = crypto_provider
         self.publish_event_handler = publish_event_handler
-        self.account_storage_service = account_storage_service
+        self.account_product_service = account_product_service
         self.logger = logger
 
     async def execute(self, category_id: int) -> bytes:
         """
         :except ServerError: Любая ошибка необрабатываемая
         """
-        accounts = await self.account_storage_service.get_account_storage_by_category(category_id)
+        accounts = await self.account_product_service.get_product_accounts_by_category_id(category_id, get_full=True)
 
         ready_acc = []
         crypto = self.crypto_provider.get()

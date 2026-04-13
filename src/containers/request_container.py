@@ -5,10 +5,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.application.crypto.crypto_context import CryptoProvider
 from src.application.models.systems.backup_db_service import BackupDBService
 from src.application.products.accounts.account_service import AccountService
+from src.application.products.accounts.other.use_cases import UploadOtherAccountsUseCase, ImportOtherAccountsUseCase
 from src.application.products.accounts.other.use_cases.validate import ValidateOtherAccountsUseCase
+from src.application.products.accounts.tg.use_cases import ImportTelegramAccountsUseCase
 from src.application.products.accounts.tg.use_cases.validate import ValidateTgAccount
 from src.application.products.universals.universal_products import UniversalProduct
-from src.application.products.universals.use_cases import ValidationsUniversalProducts
+from src.application.products.universals.use_cases import ValidationsUniversalProducts, \
+    GenerateExamplUniversalProductImport, UploadUniversalProductsUseCase, ImportUniversalProductUseCase
 from src.config import get_config
 from src.infrastructure.crypto.secret_storage.secrets_storage import SecretsStorage
 from src.infrastructure.crypto_bot.core import CryptoBotProvider
@@ -812,6 +815,48 @@ class RequestContainer:
         self.backup_logs_service = BackupLogsService(
             backup_logs_repo=self.backup_logs_repository,
             session_db=self.session_db
+        )
+        self.import_tg_account_use_case = ImportTelegramAccountsUseCase(
+            account_storage_service=self.account_storage_service,
+            account_service=self.account_service,
+            account_product_service=self.account_product_service,
+            path_builder=self.path_builder,
+            tg_client=self.telegram_account_client,
+            logger=self.logger
+        )
+        self.import_other_account_use_case = ImportOtherAccountsUseCase(
+            account_storage_service=self.account_storage_service,
+            account_product_service=self.account_product_service,
+            crypto_provider=self.crypto_provider,
+            publish_event_handler=self.publish_event_handler,
+            logger=self.logger,
+        )
+        self.upload_other_accounts_use_case = UploadOtherAccountsUseCase(
+            account_product_service=self.account_product_service,
+            logger=self.logger,
+            crypto_provider=self.crypto_provider,
+            publish_event_handler=self.publish_event_handler,
+        )
+        self.generate_exampl_universal_product_import = GenerateExamplUniversalProductImport(
+            conf=self.config,
+        )
+        self.upload_universal_products_use_case = UploadUniversalProductsUseCase(
+            path_builder=self.path_builder,
+            crypto_provider=self.crypto_provider,
+            universal_product_service=self.universal_product_service,
+            universal_translations_service=self.universal_translations_service,
+            logger=self.logger,
+            conf=self.config,
+        )
+        self.import_universal_product_use_case = ImportUniversalProductUseCase(
+            path_builder=self.path_builder,
+            crypto_provider=self.crypto_provider,
+            universal_product_service=self.universal_product_service,
+            universal_translations_service=self.universal_translations_service,
+            universal_storage_service=self.universal_storage_service,
+            translations_category_service=self.translations_category_service,
+            logger=self.logger,
+            conf=self.config,
         )
 
     def get_backup_db(self):

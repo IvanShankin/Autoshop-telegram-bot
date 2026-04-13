@@ -1,6 +1,5 @@
 import csv
 import io
-from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -12,30 +11,9 @@ from src.application.products.accounts.other.use_cases.upload import UploadOther
 from src.database.models.categories import AccountServiceType
 from src.database.models.categories.product_account import ProductAccounts
 from src.infrastructure.files.file_system import make_csv_bytes
-from src.config import get_config
+
 from src.application.products.accounts.other.use_cases import validate as validate_other_module
 
-
-class DummyLogger:
-    def info(self, *args, **kwargs):
-        pass
-
-    def warning(self, *args, **kwargs):
-        pass
-
-    def exception(self, *args, **kwargs):
-        pass
-
-
-class DummyEventHandler:
-    async def send_log(self, *args, **kwargs):
-        return None
-
-
-def _workspace_dir(name: str) -> Path:
-    path = Path(get_config().paths.files_dir.parent) / "_products_tests_tmp" / name
-    path.mkdir(parents=True, exist_ok=True)
-    return path
 
 
 @pytest.mark.asyncio
@@ -77,26 +55,7 @@ async def test_upload_other_accounts_use_case_exports_csv(
         phone_number="+79991110002",
     )
 
-    accounts = await container_fix.account_product_service.get_product_accounts_by_category_id(
-        category.category_id,
-        get_full=True,
-    )
-
-    class StubStorageService:
-        def __init__(self, values):
-            self.values = values
-
-        async def get_account_storage_by_category(self, category_id: int):
-            return self.values
-
-    use_case = UploadOtherAccountsUseCase(
-        crypto_provider=container_fix.crypto_provider,
-        publish_event_handler=DummyEventHandler(),
-        account_storage_service=StubStorageService(accounts),
-        logger=DummyLogger(),
-    )
-
-    csv_bytes = await use_case.execute(category.category_id)
+    csv_bytes = await container_fix.upload_other_accounts_use_case.execute(category.category_id)
     rows = list(
         csv.DictReader(
             io.StringIO(csv_bytes.decode("utf-8-sig")),
@@ -126,15 +85,7 @@ async def test_import_other_accounts_use_case_imports_rows(
         )
     )
 
-    use_case = ImportOtherAccountsUseCase(
-        crypto_provider=container_fix.crypto_provider,
-        publish_event_handler=DummyEventHandler(),
-        account_product_service=container_fix.account_product_service,
-        account_storage_service=container_fix.account_storage_service,
-        logger=DummyLogger(),
-    )
-
-    result = await use_case.execute(
+    result = await container_fix.import_other_account_use_case.execute(
         csv_stream,
         category.category_id,
         AccountServiceType.OTHER,

@@ -8,11 +8,11 @@ from pathlib import Path
 
 import pytest
 
+from tests.helpers.fixtures.helper_fixture import container_fix
 from src.application.products.accounts.account_service import (
     GenerateExample,
     move_in_account as move_in_account_helper,
 )
-from src.config import Config
 from src.database.models.categories import AccountServiceType, StorageStatus
 from src.domain.crypto.utils import sha256_file
 import src.domain.crypto.decrypt as decrypt_module
@@ -60,23 +60,19 @@ async def test_move_in_account_helper_and_service_move_file(
         type_account_service=AccountServiceType.TELEGRAM,
     )
 
-    helper_new_path = Path(
-        container_fix.path_builder.build_path_account(
-            StorageStatus.BOUGHT,
-            helper_account.type_account_service,
-            helper_account.storage_uuid,
-            return_path_obj=True,
-        )
+    helper_new_path = container_fix.path_builder.build_path_account(
+        StorageStatus.BOUGHT,
+        helper_account.type_account_service,
+        helper_account.storage_uuid,
+        as_path=True,
     )
     helper_new_path.parent.mkdir(parents=True, exist_ok=True)
 
-    helper_old_path = Path(
-        container_fix.path_builder.build_path_account(
-            helper_account.status,
-            helper_account.type_account_service,
-            helper_account.storage_uuid,
-            return_path_obj=True,
-        )
+    helper_old_path = container_fix.path_builder.build_path_account(
+        helper_account.status,
+        helper_account.type_account_service,
+        helper_account.storage_uuid,
+        as_path=True,
     )
     assert helper_old_path.exists()
 
@@ -92,13 +88,11 @@ async def test_move_in_account_helper_and_service_move_file(
         status=StorageStatus.FOR_SALE,
         type_account_service=AccountServiceType.TELEGRAM,
     )
-    service_new_path = Path(
-        container_fix.path_builder.build_path_account(
-            StorageStatus.BOUGHT,
-            service_account.type_account_service,
-            service_account.storage_uuid,
-            return_path_obj=True,
-        )
+    service_new_path = container_fix.path_builder.build_path_account(
+        StorageStatus.BOUGHT,
+        service_account.type_account_service,
+        service_account.storage_uuid,
+        as_path=True,
     )
     service_new_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -112,7 +106,7 @@ async def test_move_in_account_helper_and_service_move_file(
 
 @pytest.mark.asyncio
 async def test_encrypted_tg_account_creates_archive_and_checksum(container_fix):
-    work_dir = container_fix.conf.paths.temp_dir
+    work_dir = container_fix.config.paths.temp_dir
     src_dir = work_dir / "src"
     (src_dir / "tdata").mkdir(parents=True)
     (src_dir / "session.session").write_text("session-data", encoding="utf-8")
@@ -132,7 +126,7 @@ async def test_encrypted_tg_account_creates_archive_and_checksum(container_fix):
 
 @pytest.mark.asyncio
 async def test_decryption_tg_account_extracts_folder(container_fix, create_account_storage, monkeypatch):
-    work_dir = container_fix.conf.paths.temp_dir
+    work_dir = container_fix.config.paths.temp_dir
     _patch_workspace_decrypt_temp(monkeypatch, work_dir)
     account_storage = await create_account_storage(
         status=StorageStatus.FOR_SALE,
@@ -158,7 +152,7 @@ async def test_decryption_tg_account_extracts_folder(container_fix, create_accou
 
 @pytest.mark.asyncio
 async def test_get_tdata_tg_acc_yields_archive_and_cleans(container_fix, create_account_storage, monkeypatch):
-    work_dir = container_fix.conf.paths.temp_dir
+    work_dir = container_fix.config.paths.temp_dir
     _patch_workspace_decrypt_temp(monkeypatch, work_dir)
     account_storage = await create_account_storage(
         status=StorageStatus.FOR_SALE,
@@ -180,7 +174,7 @@ async def test_get_tdata_tg_acc_yields_archive_and_cleans(container_fix, create_
 
 @pytest.mark.asyncio
 async def test_get_session_tg_acc_yields_session_and_cleans(container_fix, create_account_storage, monkeypatch):
-    work_dir = container_fix.conf.paths.temp_dir
+    work_dir = container_fix.config.paths.temp_dir
     _patch_workspace_decrypt_temp(monkeypatch, work_dir)
     account_storage = await create_account_storage(
         status=StorageStatus.FOR_SALE,
@@ -202,10 +196,10 @@ async def test_get_session_tg_acc_yields_session_and_cleans(container_fix, creat
 
 @pytest.mark.asyncio
 async def test_generate_example_import_other_acc_writes_csv(container_fix):
-    generator = GenerateExample(container_fix.conf)
+    generator = GenerateExample(container_fix.config)
 
     generator.generate_example_import_other_acc()
-    path = Path(container_fix.conf.file_keys.example_csv_for_import_other_acc_key.path)
+    path = Path(container_fix.config.file_keys.example_csv_for_import_other_acc_key.path)
 
     assert path.exists()
     rows = list(
@@ -220,12 +214,12 @@ async def test_generate_example_import_other_acc_writes_csv(container_fix):
 
 @pytest.mark.asyncio
 async def test_generate_example_import_tg_acc_writes_zip(container_fix, monkeypatch):
-    generator = GenerateExample(container_fix.conf)
-    work_dir = container_fix.conf.paths.temp_dir
+    generator = GenerateExample(container_fix.config)
+    work_dir = container_fix.config.paths.temp_dir
     _patch_workspace_temporary_directory(monkeypatch, work_dir)
 
     assert await generator.generate_example_import_tg_acc() is True
-    path = Path(container_fix.conf.file_keys.example_zip_for_import_tg_acc_key.path)
+    path = Path(container_fix.config.file_keys.example_zip_for_import_tg_acc_key.path)
 
     assert path.exists()
     assert zipfile.is_zipfile(path)

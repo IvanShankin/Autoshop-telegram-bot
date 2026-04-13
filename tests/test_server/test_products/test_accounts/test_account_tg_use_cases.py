@@ -7,41 +7,13 @@ from unittest.mock import AsyncMock
 import pytest
 
 import src.application.products.accounts.tg.use_cases.import_use_case as import_use_case_module
-import src.application.products.accounts.tg.use_cases.validate as validate_tg_module
 import src.application.products.accounts.tg.use_cases.upload as upload_tg_module
+from helpers.fake_moduls.fake_tg_account_client import FakeTelegramAccountClient
 from src.application.products.accounts.tg.dto.schemas import BaseAccountProcessingResult
-from src.application.products.accounts.tg.use_cases.import_use_case import ImportTelegramAccountsUseCase
 from src.application.products.accounts.tg.use_cases.upload import UploadTGAccountsUseCase
-from src.application.products.accounts.tg.use_cases.validate import ValidateTgAccount
-from src.config import get_config
 from src.database.models.categories import AccountServiceType
 from src.utils.pars_number import phone_in_e164
 
-
-def _workspace_dir(name: str) -> Path:
-    path = Path(get_config().paths.files_dir.parent) / "_products_tests_tmp" / name
-    shutil.rmtree(path, ignore_errors=True)
-    path.mkdir(parents=True, exist_ok=True)
-    return path
-
-
-class DummyLogger:
-    def info(self, *args, **kwargs):
-        pass
-
-    def warning(self, *args, **kwargs):
-        pass
-
-    def exception(self, *args, **kwargs):
-        pass
-
-
-class AsyncTelegramClient:
-    def __init__(self, result):
-        self.result = result
-
-    async def validate(self, *args, **kwargs):
-        return self.result
 
 
 @pytest.mark.asyncio
@@ -49,10 +21,8 @@ async def test_validate_tg_account_checks_validity_and_invalid_service(
     container_fix,
     create_category,
     create_product_account,
-    monkeypatch,
 ):
-    work_dir = _workspace_dir("validate_tg")
-    monkeypatch.setattr(validate_tg_module, "decryption_tg_account", lambda *args, **kwargs: str(work_dir))
+    work_dir = container_fix.config.paths.temp_dir
     category = await create_category(container_fix, is_product_storage=True)
     _, full = await create_product_account(
         category_id=category.category_id,
@@ -60,14 +30,9 @@ async def test_validate_tg_account_checks_validity_and_invalid_service(
         filling_redis=False,
     )
 
-    validator = ValidateTgAccount(
-        logger=DummyLogger(),
-        tg_client=AsyncTelegramClient(True),
-        crypto_provider=container_fix.crypto_provider,
-    )
-
-    assert await validator.check_account_validity(
-        full,
+    container_fix.validate_tg_account.tg_client = FakeTelegramAccountClient(result_validate=True)
+    assert await container_fix.validate_tg_account.check_account_validity(
+        full.account_storage,
         AccountServiceType.TELEGRAM,
         full.account_storage.status,
     ) is True
@@ -75,8 +40,8 @@ async def test_validate_tg_account_checks_validity_and_invalid_service(
     class WrongService:
         value = "unsupported"
 
-    assert await validator.check_account_validity(
-        full,
+    assert await container_fix.validate_tg_account.check_account_validity(
+        full.account_storage,
         WrongService(),
         full.account_storage.status,
     ) is False
@@ -86,21 +51,16 @@ async def test_validate_tg_account_checks_validity_and_invalid_service(
 @pytest.mark.asyncio
 async def test_process_single_dir_and_archive(container_fix, monkeypatch):
     fake_user = SimpleNamespace(id=123, phone="+79991110000")
-    use_case = ImportTelegramAccountsUseCase(
-        account_storage_service=container_fix.account_storage_service,
-        account_service=container_fix.account_service,
-        account_product_service=container_fix.account_product_service,
-        path_builder=container_fix.path_builder,
-        tg_client=AsyncTelegramClient(fake_user),
-        logger=DummyLogger(),
-    )
 
-    work_dir = _workspace_dir("process_tg")
+    container_fix.import_tg_account_use_case.tg_client = FakeTelegramAccountClient(result_validate=fake_user)
+
+    work_dir = container_fix.config.paths.temp_dir
     directory = work_dir / "acc"
     directory.mkdir(parents=True, exist_ok=True)
     (directory / "session.session").write_text("session", encoding="utf-8")
 
-    dir_result = await use_case._process_single_dir(str(directory))
+
+    dir_result = await container_fix.import_tg_account_use_case._process_single_dir(str(directory))
     assert dir_result.valid is True
     assert dir_result.user == fake_user
     assert dir_result.phone == fake_user.phone
@@ -117,7 +77,7 @@ async def test_process_single_dir_and_archive(container_fix, monkeypatch):
         AsyncMock(return_value=str(extract_dir)),
     )
 
-    archive_result = await use_case._process_single_archive(str(archive_path))
+    archive_result = await container_fix.import_tg_account_use_case._process_single_archive(str(archive_path))
     assert archive_result.valid is True
     assert archive_result.user == fake_user
     assert archive_result.dir_path is not None
@@ -132,14 +92,7 @@ async def test_split_unique_and_duplicates_filters_duplicates_and_db_values(
     container_fix,
     monkeypatch,
 ):
-    use_case = ImportTelegramAccountsUseCase(
-        account_storage_service=container_fix.account_storage_service,
-        account_service=container_fix.account_service,
-        account_product_service=container_fix.account_product_service,
-        path_builder=container_fix.path_builder,
-        tg_client=AsyncTelegramClient(True),
-        logger=DummyLogger(),
-    )
+    container_fix.import_tg_account_use_case.tg_client = FakeTelegramAccountClient(result_validate=True)
 
     db_phone = phone_in_e164("+79991110011")
     monkeypatch.setattr(
@@ -181,7 +134,7 @@ async def test_split_unique_and_duplicates_filters_duplicates_and_db_values(
         ),
     ]
 
-    unique_items, duplicate_items, invalid_items = await use_case._split_unique_and_duplicates(
+    unique_items, duplicate_items, invalid_items = await container_fix.import_tg_account_use_case._split_unique_and_duplicates(
         items,
         AccountServiceType.TELEGRAM,
     )
@@ -212,7 +165,7 @@ async def test_upload_tg_accounts_use_case_yields_archives_and_cleans(
         get_full=True,
     )
 
-    work_dir = _workspace_dir("upload_tg")
+    work_dir = container_fix.config.paths.temp_dir
     folders = []
     for idx in range(len(accounts)):
         folder = work_dir / f"folder_{idx}"
@@ -232,7 +185,7 @@ async def test_upload_tg_accounts_use_case_yields_archives_and_cleans(
     )
 
     use_case = UploadTGAccountsUseCase(
-        conf=container_fix.conf,
+        conf=container_fix.config,
         account_service=container_fix.account_service,
         account_product_service=container_fix.account_product_service,
         crypto_provider=container_fix.crypto_provider,
@@ -255,16 +208,9 @@ async def test_import_tg_accounts_use_case_orchestrates_batches(
     monkeypatch,
 ):
     fake_user = SimpleNamespace(id=123, phone="+79991110000")
-    use_case = ImportTelegramAccountsUseCase(
-        account_storage_service=container_fix.account_storage_service,
-        account_service=container_fix.account_service,
-        account_product_service=container_fix.account_product_service,
-        path_builder=container_fix.path_builder,
-        tg_client=AsyncTelegramClient(fake_user),
-        logger=DummyLogger(),
-    )
+    container_fix.import_tg_account_use_case.tg_client = FakeTelegramAccountClient(result_validate=fake_user)
 
-    work_dir = _workspace_dir("import_tg")
+    work_dir = container_fix.config.paths.temp_dir
     input_zip = work_dir / "input.zip"
     with zipfile.ZipFile(input_zip, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr("acc/session.session", "session")
@@ -285,31 +231,6 @@ async def test_import_tg_accounts_use_case_orchestrates_batches(
         AsyncMock(return_value=str(base_dir)),
     )
     monkeypatch.setattr(
-        use_case,
-        "_process_archives_batch",
-        AsyncMock(return_value=SimpleNamespace(items=[item], total=1)),
-    )
-    monkeypatch.setattr(
-        use_case,
-        "_process_dirs_batch",
-        AsyncMock(return_value=SimpleNamespace(items=[item], total=1)),
-    )
-    monkeypatch.setattr(
-        use_case,
-        "_split_unique_and_duplicates",
-        AsyncMock(return_value=([item], [], [])),
-    )
-    monkeypatch.setattr(
-        use_case,
-        "_process_inappropriate_acc",
-        AsyncMock(return_value=None),
-    )
-    monkeypatch.setattr(
-        use_case,
-        "_import_in_db",
-        AsyncMock(return_value=1),
-    )
-    monkeypatch.setattr(
         import_use_case_module,
         "archive_if_not_empty",
         AsyncMock(side_effect=["invalid.zip", "duplicate.zip"]),
@@ -319,8 +240,21 @@ async def test_import_tg_accounts_use_case_orchestrates_batches(
         "cleanup_used_data",
         AsyncMock(return_value=None),
     )
+    async def _process_archives_batch(*args, **kwargs): return SimpleNamespace(items=[item], total=1)
+    async def _process_dirs_batch(*args, **kwargs): return SimpleNamespace(items=[item], total=1)
+    async def _split_unique_and_duplicates(*args, **kwargs): return ([item], [], [])
+    async def _process_inappropriate_acc(*args, **kwargs): return None
+    async def _import_in_db(*args, **kwargs): return 1
+    async def cleanup_used_data(*args, **kwargs): return None
+    container_fix.import_tg_account_use_case._process_archives_batch = _process_archives_batch
+    container_fix.import_tg_account_use_case._process_dirs_batch = _process_dirs_batch
+    container_fix.import_tg_account_use_case._split_unique_and_duplicates = _split_unique_and_duplicates
+    container_fix.import_tg_account_use_case._process_inappropriate_acc = _process_inappropriate_acc
+    container_fix.import_tg_account_use_case._import_in_db = _import_in_db
+    container_fix.import_tg_account_use_case.cleanup_used_data = cleanup_used_data
 
-    generator = use_case.import_telegram_accounts_from_archive(
+
+    generator = container_fix.import_tg_account_use_case.import_telegram_accounts_from_archive(
         str(input_zip),
         category_id=1,
         type_account_service=AccountServiceType.TELEGRAM,

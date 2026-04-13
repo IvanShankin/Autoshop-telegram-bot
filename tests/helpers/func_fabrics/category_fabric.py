@@ -11,7 +11,7 @@ from src.models.read_models import CategoryFull
 
 
 async def create_translate_category_factory(
-    container: RequestContainer,
+    container_fix: RequestContainer,
     category_id: int,
     filling_redis: bool = True,
     language: str = "ru",
@@ -37,18 +37,18 @@ async def create_translate_category_factory(
 
         full_category = CategoryFull.from_orm_with_translation(
             category=category,
-            quantity_product=await container.category_service.get_quantity_products_in_category(category_id),
+            quantity_product=await container_fix.category_service.get_quantity_products_in_category(category_id),
             lang=language
         )
 
     if filling_redis:
-        await container.categories_cache_filler_service.fill_category_by_id(full_category.category_id)
+        await container_fix.categories_cache_filler_service.fill_category_by_id(full_category.category_id)
 
     return full_category
 
 
 async def create_category_factory(
-    container: RequestContainer,
+    container_fix: RequestContainer,
     filling_redis: bool = True,
     parent_id: int = None,
     ui_image_key: str = None,
@@ -70,7 +70,7 @@ async def create_category_factory(
         if parent_id is not None:
             is_main = False
         if ui_image_key is None:
-            ui_image, path = await create_ui_image_factory(key=str(uuid.uuid4()))
+            ui_image, path = await create_ui_image_factory(container_fix, key=str(uuid.uuid4()))
             ui_image_key = ui_image.key
         if index is None:
             result_db = await session_db.execute(
@@ -118,13 +118,13 @@ async def create_category_factory(
 
         full_category = CategoryFull.from_orm_with_translation(
             category=new_category,
-            quantity_product=await container.category_service.get_quantity_products_in_category(
+            quantity_product=await container_fix.category_service.get_quantity_products_in_category(
                 new_category.category_id
             ),
             lang=language,
         )
         if filling_redis:
-            await container.categories_cache_filler_service.fill_category_by_id(full_category.category_id)
+            await container_fix.categories_cache_filler_service.fill_category_by_id(full_category.category_id)
 
     return full_category
 

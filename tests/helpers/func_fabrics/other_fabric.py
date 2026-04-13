@@ -5,6 +5,7 @@ from typing import Tuple, Optional
 import orjson
 from sqlalchemy import select
 
+from src.containers import RequestContainer
 from src.database.core import get_session_factory
 from src.database.models.admins import Admins, SentMasMessages, MessageForSending
 from src.database.models.categories import PurchaseRequests
@@ -24,6 +25,7 @@ from src.application._redis.filling import filling_all_types_payments, \
 
 
 async def create_new_user_fabric(
+    container_fix: RequestContainer,
     user_name: str = "test_username",
     union_ref_code: str = None,
     balance: int = 0,
@@ -67,15 +69,15 @@ async def create_new_user_fabric(
 
 
 
-async def create_admin_fabric(filling_redis: bool = True, user_id: int = None) -> Admins:
+async def create_admin_fabric(container_fix: RequestContainer, filling_redis: bool = True, user_id: int = None) -> Admins:
     if user_id is None:
-        user = await create_new_user_fabric()
+        user = await create_new_user_fabric(container_fix)
         user_id = user.user_id
 
     async with get_session_factory() as session_db:
         new_admin = Admins(user_id=user_id)
 
-        ui_image, _ = await create_ui_image_factory(str(uuid.uuid4()))
+        ui_image, _ = await create_ui_image_factory(container_fix, str(uuid.uuid4()))
         new_message = MessageForSending(user_id=user_id, ui_image_key=ui_image.key)
 
         session_db.add(new_admin)
@@ -90,14 +92,14 @@ async def create_admin_fabric(filling_redis: bool = True, user_id: int = None) -
     return new_admin
 
 
-async def create_referral_fabric(owner_id: int = None, referral_id: int = None) -> (Referrals, Users, Users):
+async def create_referral_fabric(container_fix: RequestContainer, owner_id: int = None, referral_id: int = None) -> (Referrals, Users, Users):
     """
        Создаёт тестовый реферала (у нового пользователя появляется владелец)
        :return Реферал(Referrals), Владельца(Users) и Реферала(Users)
     """
     async with get_session_factory() as session_db:
         if referral_id is None:
-            user = await create_new_user_fabric() # новый реферал
+            user = await create_new_user_fabric(container_fix) # новый реферал
         else:
             result_db = await session_db.execute(select(Users).where(Users.user_id == referral_id))
             user = result_db.scalar()
@@ -124,11 +126,12 @@ async def create_referral_fabric(owner_id: int = None, referral_id: int = None) 
 
 
 async def create_income_from_referral_fabric(
-        referral_user_id: int = None,
-        owner_id: int = None,
-        replenishment_id: int = None,
-        amount: int = 100,
-        percentage_of_replenishment: int = 5,
+    container_fix: RequestContainer,
+    referral_user_id: int = None,
+    owner_id: int = None,
+    replenishment_id: int = None,
+    amount: int = 100,
+    percentage_of_replenishment: int = 5,
 ) -> (IncomeFromReferrals, Users, Users):
     """
         Создаёт доход от реферала, если не указать реферала, то создаст нового, если не указать владельца, то создаст нового.
@@ -136,19 +139,19 @@ async def create_income_from_referral_fabric(
     """
     async with get_session_factory() as session_db:
         if owner_id is None: # создаём владельца
-            owner = await create_new_user_fabric(user_name='owner_user')
+            owner = await create_new_user_fabric(container_fix, user_name='owner_user')
             owner_id = owner.user_id
         else:
             result_db = await session_db.execute(select(Users).where(Users.user_id == owner_id))
             owner = result_db.scalar()
         if referral_user_id is None:
-            referral = await create_new_user_fabric(user_name='referral_user')
+            referral = await create_new_user_fabric(container_fix, user_name='referral_user')
             referral_user_id = referral.user_id
         else:
             result_db = await session_db.execute(select(Users).where(Users.user_id == referral_user_id))
             referral = result_db.scalar()
         if replenishment_id is None:
-            replenishment = await create_replenishment_fabric()
+            replenishment = await create_replenishment_fabric(container_fix)
             replenishment_id = replenishment.replenishment_id
 
         new_income = IncomeFromReferrals(
@@ -168,6 +171,7 @@ async def create_income_from_referral_fabric(
 
 
 async def create_replenishment_fabric(
+    container_fix: RequestContainer,
     amount: int = 110,
     user_id: int = None,
     status: str = "completed"
@@ -175,7 +179,7 @@ async def create_replenishment_fabric(
     """Создаёт пополнение для пользователя"""
     async with get_session_factory() as session_db:
         if user_id is None:
-            user = await create_new_user_fabric()
+            user = await create_new_user_fabric(container_fix)
             user_id = user.user_id
 
         # создаём тип платежа (если ещё нет)
@@ -207,13 +211,14 @@ async def create_replenishment_fabric(
 
 
 async def create_type_payment_factory(
-        filling_redis: bool = True,
-        name_for_user: str = None,
-        service: ReplenishmentService = None,
-        is_active: bool = None,
-        commission: float = None,
-        index: int = None,
-        extra_data: dict = None,
+    container_fix: RequestContainer,
+    filling_redis: bool = True,
+    name_for_user: str = None,
+    service: ReplenishmentService = None,
+    is_active: bool = None,
+    commission: float = None,
+    index: int = None,
+    extra_data: dict = None,
 ) -> TypePayments:
     """Создаст новый тип оплаты в БД"""
     async with get_session_factory() as session_db:
@@ -247,16 +252,17 @@ async def create_type_payment_factory(
 
 
 async def create_voucher_factory(
-        filling_redis: bool = True,
-        creator_id: int = None,
-        expire_at: datetime = datetime.now(timezone.utc) + timedelta(days=1),
-        is_valid: bool = True,
-        is_created_admin: bool = False,
-        number_of_activations: int = 5,
+    container_fix: RequestContainer,
+    filling_redis: bool = True,
+    creator_id: int = None,
+    expire_at: datetime = datetime.now(timezone.utc) + timedelta(days=1),
+    is_valid: bool = True,
+    is_created_admin: bool = False,
+    number_of_activations: int = 5,
 ) -> Vouchers:
     """Создаст новый ваучер в БД и в _redis."""
     if creator_id is None:
-        user = await create_new_user_fabric()
+        user = await create_new_user_fabric(container_fix)
         creator_id = user.user_id
 
     voucher = Vouchers(
@@ -283,7 +289,12 @@ async def create_voucher_factory(
     return voucher
 
 
-async def create_ui_image_factory(key: str = "main_menu", show: bool = True, file_id: str = None) -> Tuple[UiImages, str]:
+async def create_ui_image_factory(
+    container_fix: RequestContainer,
+    key: str = "main_menu",
+    show: bool = True,
+    file_id: str = None
+) -> Tuple[UiImages, str]:
     """
        сохраняет запись UiImages в БД и возвращает (ui_image, abs_path).
     """
@@ -312,16 +323,17 @@ async def create_ui_image_factory(key: str = "main_menu", show: bool = True, fil
 
 
 async def create_transfer_moneys_fabric(
+    container_fix: RequestContainer,
     user_from_id: int = None,
     user_where_id: int = None,
     amount: int = 100,
 ) -> TransferMoneys:
     if user_from_id is None:
-        user = await create_new_user_fabric()
+        user = await create_new_user_fabric(container_fix)
         user_from_id = user.user_id
 
     if user_where_id is None:
-        user = await create_new_user_fabric()
+        user = await create_new_user_fabric(container_fix)
         user_where_id = user.user_id
 
     async with get_session_factory() as session_db:
@@ -339,12 +351,13 @@ async def create_transfer_moneys_fabric(
 
 
 async def create_wallet_transaction_fabric(
+    container_fix: RequestContainer,
     user_id: Optional[int] = None,
     type: str = 'replenish',
     amount: int = 100
 ) -> WalletTransaction:
     if user_id is None:
-        user = await create_new_user_fabric()
+        user = await create_new_user_fabric(container_fix)
         user_id = user.user_id
 
     async with get_session_factory() as session:
@@ -363,6 +376,7 @@ async def create_wallet_transaction_fabric(
 
 
 async def create_promo_codes_fabric(
+    container_fix: RequestContainer,
     activation_code: str = "TESTCODE",
     min_order_amount: int = 100,
     amount: int = 100,
@@ -394,6 +408,7 @@ async def create_promo_codes_fabric(
 
 
 async def create_promo_code_activation_fabric(
+    container_fix: RequestContainer,
     promo_code_id: int = None,
     user_id: int = None,
 ) -> ActivatedPromoCodes:
@@ -402,7 +417,7 @@ async def create_promo_code_activation_fabric(
         promo_code_id = promo.promo_code_id
 
     if user_id is None:
-        user = await create_new_user_fabric()
+        user = await create_new_user_fabric(container_fix)
         user_id = user.user_id
 
     async with get_session_factory() as session_db:
@@ -419,6 +434,7 @@ async def create_promo_code_activation_fabric(
 
 
 async def create_sent_mass_message_fabric(
+    container_fix: RequestContainer,
     admin_id: int = None,
     content: str = "content",
     photo_path: str = "photo_path",
@@ -427,7 +443,7 @@ async def create_sent_mass_message_fabric(
     number_sent: int = 10,
 ) -> SentMasMessages:
     if not admin_id:
-        admin = await create_admin_fabric() 
+        admin = await create_admin_fabric(container_fix)
         admin_id = admin.user_id
         
     async with get_session_factory() as session_db:
@@ -447,6 +463,7 @@ async def create_sent_mass_message_fabric(
 
 
 async def create_backup_log_fabric(
+    container_fix: RequestContainer,
     storage_file_name: str = None,
     storage_encrypted_dek_name: str = None,
     encrypted_dek_b64: str = "encrypted_dek_b64",
@@ -475,6 +492,7 @@ async def create_backup_log_fabric(
 
 
 async def create_purchase_request_fabric(
+    container_fix: RequestContainer,
     user_id: int = None,
     promo_code_id: int = None,
     quantity: int = 1,
@@ -482,7 +500,7 @@ async def create_purchase_request_fabric(
     status: str = 'processing',
 ):
     if user_id is None:
-        user = await create_new_user_fabric()
+        user = await create_new_user_fabric(container_fix)
         user_id = user.user_id
 
     async with get_session_factory() as session_db:
@@ -501,17 +519,18 @@ async def create_purchase_request_fabric(
 
 
 async def create_balance_holder_factory(
+    container_fix: RequestContainer,
     purchase_request_id: int = None,
     user_id: int = None,
     amount: int = 100,
     status: str = 'held',
 ):
     if user_id is None:
-        user = await create_new_user_fabric()
+        user = await create_new_user_fabric(container_fix)
         user_id = user.user_id
 
     if purchase_request_id is None:
-        purchase_request = await create_purchase_request_fabric(user_id=user_id)
+        purchase_request = await create_purchase_request_fabric(container_fix, user_id=user_id)
         purchase_request_id = purchase_request.purchase_request_id
 
     async with get_session_factory() as session_db:

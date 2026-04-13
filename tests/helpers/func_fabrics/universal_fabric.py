@@ -7,6 +7,8 @@ from sqlalchemy.orm import selectinload
 
 from src.application._redis.filling import filling_all_keys_category
 from src.application._secrets.crypto_context import get_crypto_context
+from src.containers import RequestContainer
+from src.database.core import get_session_factory
 from src.domain.crypto.encrypt import encrypt_file, make_account_key
 from src.domain.crypto.key_ops import encrypt_text
 from tests.helpers.func_fabrics.category_fabric import create_category_factory
@@ -15,7 +17,6 @@ from src.database.models.categories import UniversalMediaType, UniversalStorage,
     UniversalStorageTranslation, ProductUniversal, SoldUniversal, StorageStatus
 from src.models.read_models import UniversalStoragePydantic, ProductUniversalSmall, ProductUniversalFull, SoldUniversalSmall, \
     SoldUniversalFull
-from src.database import get_db
 from src.application._redis.filling.filling_universal import filling_product_universal_by_category, \
     filling_universal_by_product_id, filling_sold_universal_by_universal_id, \
     filling_sold_universal_by_owner_id
@@ -44,6 +45,7 @@ async def _make_encrypted_universal_storage_file(
 
 
 async def create_universal_storage_factory(
+    container_fix: RequestContainer,
     media_type: UniversalMediaType = UniversalMediaType.DOCUMENT,
     original_filename: str | None = True,
     is_active: bool = True,
@@ -62,7 +64,7 @@ async def create_universal_storage_factory(
     status: StorageStatus = StorageStatus.FOR_SALE,
 ) -> tuple[UniversalStorage, UniversalStoragePydantic]:
 
-    crypto = get_crypto_context()
+    crypto = container_fix.crypto_provider.get()
     encrypted_key_b64, key, encrypted_key_nonce = make_account_key(crypto.kek)
 
     encrypted_description, encrypted_description_nonce, _ = encrypt_text(description, key)
@@ -81,7 +83,7 @@ async def create_universal_storage_factory(
         original_filename = file_path.name
 
 
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
 
         new_storage = UniversalStorage(
             storage_uuid=storage_uuid,
@@ -138,6 +140,7 @@ async def create_universal_storage_factory(
 
 
 async def create_product_universal_factory(
+    container_fix: RequestContainer,
     filling_redis: bool = True,
     universal_storage_id: int | None = None,
     encrypted_tg_file_id_nonce: str = None,
@@ -146,10 +149,11 @@ async def create_product_universal_factory(
     language: str = "ru",
 ) -> tuple[ProductUniversalSmall, ProductUniversalFull]:
 
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
 
         if universal_storage_id is None:
             storage, _ = await create_universal_storage_factory(
+                container_fix,
                 language=language,
                 encrypted_tg_file_id_nonce= encrypted_tg_file_id_nonce if encrypted_tg_file_id_nonce else None,
                 status=status
@@ -157,7 +161,7 @@ async def create_product_universal_factory(
             universal_storage_id = storage.universal_storage_id
 
         if category_id is None:
-            category = await create_category_factory()
+            category = await create_category_factory(container_fix)
             category_id = category.category_id
 
         new_product = ProductUniversal(
@@ -194,6 +198,7 @@ async def create_product_universal_factory(
 
 
 async def create_sold_universal_factory(
+    container_fix: RequestContainer,
     filling_redis: bool = True,
     owner_id: int | None = None,
     universal_storage_id: int | None = None,
@@ -201,14 +206,14 @@ async def create_sold_universal_factory(
     language: str = "ru",
 ) -> tuple[SoldUniversalSmall, SoldUniversalFull]:
 
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
 
         if owner_id is None:
-            user = await create_new_user_fabric()
+            user = await create_new_user_fabric(container_fix)
             owner_id = user.user_id
 
         if universal_storage_id is None:
-            storage, _ = await create_universal_storage_factory(language=language, is_active=is_active)
+            storage, _ = await create_universal_storage_factory(container_fix, language=language, is_active=is_active)
             universal_storage_id = storage.universal_storage_id
 
         new_sold = SoldUniversal(

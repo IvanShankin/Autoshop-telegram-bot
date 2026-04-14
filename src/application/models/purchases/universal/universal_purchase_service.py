@@ -92,6 +92,10 @@ class UniversalPurchaseService:
         self.logger = logger
         self.session_db = session_db
 
+    async def _reset_session_transaction(self) -> None:
+        if self.session_db.in_transaction():
+            await self.session_db.rollback()
+
     async def start_purchase(
         self,
         user_id: int,
@@ -114,6 +118,9 @@ class UniversalPurchaseService:
             quantity_products,
             promo_code_id,
         )
+
+        if self.session_db.in_transaction():
+            await self.session_db.rollback()
 
         if result_check.category.reuse_product:
             return await self._start_purchase_one(
@@ -153,6 +160,7 @@ class UniversalPurchaseService:
         if not product_full or not product_full[0]:
             raise UniversalProductNotFound()
 
+        await self._reset_session_transaction()
         async with self.session_db.begin():
             new_purchase_request = await self.purchase_request_service.create_request(
                 user_id=user_id,
@@ -167,7 +175,7 @@ class UniversalPurchaseService:
                 amount=result_check.final_total,
             )
 
-        await self.user_cache_repo.set(user, int(self.conf.redis_time_storage.user))
+        await self.user_cache_repo.set(user, int(self.conf.redis_time_storage.user.total_seconds()))
 
         return StartPurchaseUniversalOne(
             purchase_request_id=new_purchase_request.purchase_request_id,
@@ -201,6 +209,7 @@ class UniversalPurchaseService:
         :exception NotEnoughProducts: Если товаров недостаточно.
         :summary: Резервирует `quantity_products`, создаёт PurchaseRequestUniversal и фиксирует списание.
         """
+        await self._reset_session_transaction()
         async with self.session_db.begin():
             new_purchase_request = await self.purchase_request_service.create_request(
                 user_id=user_id,
@@ -239,7 +248,7 @@ class UniversalPurchaseService:
             for product in reserved_products
         ]
 
-        await self.user_cache_repo.set(user, int(self.conf.redis_time_storage.user))
+        await self.user_cache_repo.set(user, int(self.conf.redis_time_storage.user.total_seconds()))
         await self.cache_filler.fill_product_universal_by_category_id(category_id)
         for prod_id in [product.product_universal_id for product in reserved_products]:
             await self.cache_filler.fill_product_universal_by_product_id(prod_id)
@@ -341,6 +350,7 @@ class UniversalPurchaseService:
             to_fetch = min(max(REPLACEMENT_QUERY_LIMIT, len(bad_queue)), len(bad_queue) * 2)
 
             try:
+                await self._reset_session_transaction()
                 async with self.session_db.begin():
                     candidates = await self.product_repo.get_for_update_candidates(
                         category_id=bad_queue[0].category_id,
@@ -390,6 +400,7 @@ class UniversalPurchaseService:
                 if invalid_candidates:
                     await self._delete_universal(invalid_candidates)
 
+                await self._reset_session_transaction()
                 async with self.session_db.begin():
                     while valid_candidates and bad_queue:
                         chosen = valid_candidates.pop(0)
@@ -483,6 +494,7 @@ class UniversalPurchaseService:
                 shutil.rmtree(str(Path(orig).parent))
                 mapping.append((orig, temp, final))
 
+            await self._reset_session_transaction()
             async with self.session_db.begin():
                 for product in data.full_reserved_products:
                     await self.product_repo.delete(product.product_universal_id)
@@ -615,6 +627,7 @@ class UniversalPurchaseService:
                 quantity=data.quantity_products,
             )
 
+            await self._reset_session_transaction()
             async with self.session_db.begin():
                 for _, new_storage, trans_list in prepared:
                     self.session_db.add(new_storage)
@@ -730,6 +743,7 @@ class UniversalPurchaseService:
 
         await self.purchase_cancel_service.return_files(mapping)
 
+        await self._reset_session_transaction()
         async with self.session_db.begin():
             user = await self.purchase_request_service.release_funds(user_id, total_amount)
 
@@ -758,7 +772,7 @@ class UniversalPurchaseService:
             await self.purchase_cancel_service.mark_failed(purchase_request_id)
 
         if user:
-            await self.user_cache_repo.set(user, int(self.conf.redis_time_storage.user))
+            await self.user_cache_repo.set(user, int(self.conf.redis_time_storage.user.total_seconds()))
 
         await self.cache_filler.fill_product_universal_by_category_id(category_id)
         await self.cache_filler.fill_sold_universal_by_owner_id(user_id)
@@ -798,6 +812,7 @@ class UniversalPurchaseService:
             except Exception:
                 self.logger.exception("Failed to remove created storage path %s", path)
 
+        await self._reset_session_transaction()
         async with self.session_db.begin():
             user = await self.purchase_request_service.release_funds(user_id, total_amount)
 
@@ -811,7 +826,7 @@ class UniversalPurchaseService:
             await self.purchase_cancel_service.mark_failed(purchase_request_id)
 
         if user:
-            await self.user_cache_repo.set(user, int(self.conf.redis_time_storage.user))
+            await self.user_cache_repo.set(user, int(self.conf.redis_time_storage.user.total_seconds()))
 
         await self.cache_filler.fill_sold_universal_by_owner_id(user_id)
         for sold_id in sold_universal_ids:

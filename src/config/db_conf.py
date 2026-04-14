@@ -18,7 +18,7 @@ class DbConnectionSettings(BaseModel):
     def create(cls, db_user: str, db_password: str, db_host: str, db_name: str) -> "DbConnectionSettings":
         # postgresql+asyncpg это означает, что БД работает в асинхронном режиме
         sql_db_url = f'postgresql+asyncpg://{db_user}:{db_password}@{db_host}/{db_name}'
-        engine = create_async_engine(sql_db_url)
+        engine = create_async_engine(sql_db_url, connect_args={"statement_cache_size": 0})
         return cls(
             # URL для подключения к серверу PostgreSQL без указания конкретной базы данных
             postgres_server_url=f'postgresql+asyncpg://{db_user}:{db_password}@{db_host}/postgres',

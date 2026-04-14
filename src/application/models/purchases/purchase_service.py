@@ -2,7 +2,7 @@
 
 from src.database.models.categories import ProductType
 from src.exceptions.business import InvalidQuantityProducts
-from src.models.read_models import StartPurchaseUniversal, StartPurchaseUniversalOne
+from src.models.read_models.categories.purshanse_schem import StartPurchaseUniversal, StartPurchaseUniversalOne
 from src.application.models.categories.categories_cache_filler_service import CategoriesCacheFillerService
 from src.application.models.purchases.accounts.account_purchase_service import AccountPurchaseService
 from src.application.models.purchases.universal.universal_purchase_service import UniversalPurchaseService

@@ -104,8 +104,15 @@ async def create_database_fixture(replacement_needed_modules):
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def clean_db(monkeypatch, create_database_fixture):
     conf = get_config()
+    old_engine = conf.db_connection.engine
+    if old_engine is not None:
+        await old_engine.dispose()
     # создаём новый engine для теста
-    test_engine = create_async_engine(conf.db_connection.sql_db_url, future=True)
+    test_engine = create_async_engine(
+        conf.db_connection.sql_db_url,
+        future=True,
+        connect_args={"statement_cache_size": 0},
+    )
 
     conf.db_connection.engine = test_engine
     conf.db_connection.session_local.configure(bind=test_engine)
@@ -196,7 +203,10 @@ async def clean_rabbit():
 
 @pytest_asyncio.fixture
 async def get_engine():
-    engine = create_async_engine(get_config().db_connection.sql_db_url)
+    engine = create_async_engine(
+        get_config().db_connection.sql_db_url,
+        connect_args={"statement_cache_size": 0},
+    )
     yield engine
     await engine.dispose()
 

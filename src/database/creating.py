@@ -33,7 +33,7 @@ async def create_database():
         await engine.dispose()
 
     # создаем таблицы в целевой базе данных
-    engine = create_async_engine(conf.db_connection.sql_db_url)
+    engine = create_async_engine(conf.db_connection.sql_db_url, connect_args={"statement_cache_size": 0})
     try:
         async with engine.begin() as conn:
             logging.info("Creating _database tables...")
@@ -48,7 +48,7 @@ async def create_database():
 
 async def create_table():
     """создает таблицы в целевой базе данных"""
-    engine = create_async_engine(get_config().db_connection.sql_db_url)
+    engine = create_async_engine(get_config().db_connection.sql_db_url, connect_args={"statement_cache_size": 0})
     try:
         async with engine.begin() as conn:
             logging.info("Creating core tables...")

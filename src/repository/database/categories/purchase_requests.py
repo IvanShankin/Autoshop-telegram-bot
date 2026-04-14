@@ -17,7 +17,7 @@ class PurchaseRequestsRepository(DatabaseBase):
             select(PurchaseRequests).where(PurchaseRequests.purchase_request_id == purchase_request_id)
         )
         item = result.scalar_one_or_none()
-        return PurchaseRequestsDTO.model_validate(item) if item else None
+        return PurchaseRequestsDTO.model_validate(item, from_attributes=True) if item else None
 
     async def get_by_id_with_balance_holder(self, purchase_request_id: int) -> Optional[PurchaseRequests]:
         result = await self.session_db.execute(
@@ -43,7 +43,7 @@ class PurchaseRequestsRepository(DatabaseBase):
             total_amount=total_amount,
             status=status,
         )
-        return PurchaseRequestsDTO.model_validate(created)
+        return PurchaseRequestsDTO.model_validate(created, from_attributes=True)
 
     async def update_status(self, purchase_request_id: int, status: str) -> None:
         await self.session_db.execute(

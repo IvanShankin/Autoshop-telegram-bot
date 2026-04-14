@@ -6,8 +6,6 @@ import pytest
 from sqlalchemy import select
 
 from src.application.products.accounts.other.dto import REQUIRED_HEADERS
-from src.application.products.accounts.other.use_cases.import_use_case import ImportOtherAccountsUseCase
-from src.application.products.accounts.other.use_cases.upload import UploadOtherAccountsUseCase
 from src.database.models.categories import AccountServiceType
 from src.database.models.categories.product_account import ProductAccounts
 from src.infrastructure.files.file_system import make_csv_bytes

@@ -90,6 +90,10 @@ class AccountPurchaseService:
         self.logger = logger
         self.session_db = session_db
 
+    async def _reset_session_transaction(self) -> None:
+        if self.session_db.in_transaction():
+            await self.session_db.rollback()
+
     async def start_purchase(
         self,
         user_id: int,
@@ -114,6 +118,9 @@ class AccountPurchaseService:
             quantity_accounts,
             promo_code_id,
         )
+
+        if self.session_db.in_transaction():
+            await self.session_db.rollback()
 
         async with self.session_db.begin():
             new_purchase_request = await self.purchase_request_service.create_request(
@@ -147,10 +154,12 @@ class AccountPurchaseService:
                 amount=result_check.final_total,
             )
 
-        await self.user_cache_repo.set(user, int(self.conf.redis_time_storage.user))
+        await self.user_cache_repo.set(user, int(self.conf.redis_time_storage.user.total_seconds()))
         for acc in product_accounts:
             await self.accounts_cache_filler.fill_product_account_by_account_id(acc.account_id)
         await self.categories_cache_filler.fill_need_category(category_id)
+
+        self.session_db.expunge_all()
 
         return StartPurchaseAccount(
             purchase_request_id=new_purchase_request.purchase_request_id,
@@ -222,6 +231,7 @@ class AccountPurchaseService:
             to_fetch = min(max(REPLACEMENT_QUERY_LIMIT, len(bad_queue)), len(bad_queue) * 2)
 
             try:
+                await self._reset_session_transaction()
                 async with self.session_db.begin():
                     candidates = await self.product_repo.get_for_update_candidates(
                         category_id=bad_queue[0].category_id,
@@ -272,6 +282,7 @@ class AccountPurchaseService:
                 if invalid_candidates:
                     await self._delete_accounts(invalid_candidates, type_service_account=type_service_account)
 
+                await self._reset_session_transaction()
                 async with self.session_db.begin():
                     while valid_candidates and bad_queue:
                         chosen = valid_candidates.pop(0)
@@ -360,6 +371,7 @@ class AccountPurchaseService:
                 shutil.rmtree(str(Path(orig).parent))
                 mapping.append((orig, temp, final))
 
+            await self._reset_session_transaction()
             async with self.session_db.begin():
                 for account in data.product_accounts:
                     await self.product_repo.delete_by_account_id(account.account_id)
@@ -502,6 +514,7 @@ class AccountPurchaseService:
 
         await self.purchase_cancel_service.return_files(mapping)
 
+        await self._reset_session_transaction()
         async with self.session_db.begin():
             user = await self.purchase_request_service.release_funds(user_id, total_amount)
 
@@ -533,7 +546,7 @@ class AccountPurchaseService:
             await self.purchase_cancel_service.mark_failed(purchase_request_id)
 
         if user:
-            await self.user_cache_repo.set(user, int(self.conf.redis_time_storage.user))
+            await self.user_cache_repo.set(user, int(self.conf.redis_time_storage.user.total_seconds()))
 
         await self.accounts_cache_filler.fill_sold_accounts_by_owner_id(user_id)
         await self.accounts_cache_filler.fill_product_accounts_by_category_id(category_id)
@@ -616,13 +629,13 @@ class AccountPurchaseService:
         type_account_service: AccountServiceType,
         status: StorageStatus
     ) -> bool:
-        if type_account_service.TELEGRAM:
+        if type_account_service == AccountServiceType.TELEGRAM:
             return await self.validate_tg_account.check_account_validity(
                 account_storage=account_storage,
                 type_account_service=type_account_service,
                 status=status,
             )
-        elif type_account_service.OTHER:
+        elif type_account_service == AccountServiceType.OTHER:
             return await self.validate_other_account.check_valid(account=account_storage)
         else:
             return False

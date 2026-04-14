@@ -16,11 +16,11 @@ class PurchasesRepository(DatabaseBase):
             select(Purchases).where(Purchases.purchase_id == purchase_id)
         )
         purchase = result.scalar_one_or_none()
-        return PurchasesDTO.model_validate(purchase) if purchase else None
+        return PurchasesDTO.model_validate(purchase, from_attributes=True) if purchase else None
 
     async def create_purchase(self, **values) -> PurchasesDTO:
         created = await super().create(Purchases, **values)
-        return PurchasesDTO.model_validate(created)
+        return PurchasesDTO.model_validate(created, from_attributes=True)
 
     async def delete_by_ids(self, purchase_ids: list[int]) -> None:
         if not purchase_ids:

@@ -14,14 +14,14 @@ class UsersRepository(DatabaseBase):
             select(Users).where(Users.user_id.in_(user_ids))
         )
         users = result.scalars()
-        return [UsersDTO.model_validate(user) for user in users]
+        return [UsersDTO.model_validate(user, from_attributes=True) for user in users]
 
     async def get_by_id(self, user_id: int) -> Optional[UsersDTO]:
         result = await self.session_db.execute(
             select(Users).where(Users.user_id == user_id)
         )
         user = result.scalar_one_or_none()
-        return UsersDTO.model_validate(user) if user else None
+        return UsersDTO.model_validate(user, from_attributes=True) if user else None
 
     async def get_by_id_for_update(self, user_id: int) -> Optional[Users]:
         result = await self.session_db.execute(
@@ -36,14 +36,14 @@ class UsersRepository(DatabaseBase):
             select(Users).where(Users.unique_referral_code == code)
         )
         user = result.scalar_one_or_none()
-        return UsersDTO.model_validate(user) if user else None
+        return UsersDTO.model_validate(user, from_attributes=True) if user else None
 
     async def get_by_username(self, username: str) -> Sequence[UsersDTO]:
         result = await self.session_db.execute(
             select(Users).where(Users.username == username)
         )
         users = list(result.scalars().all())
-        return [UsersDTO.model_validate(user) for user in users]
+        return [UsersDTO.model_validate(user, from_attributes=True) for user in users]
 
     async def gen_user_ids(self) -> AsyncGenerator[int, None]:
         result = await self.session_db.stream_scalars(select(Users.user_id))
@@ -56,7 +56,7 @@ class UsersRepository(DatabaseBase):
 
     async def create_user(self, **values) -> UsersDTO:
         created = await super().create(Users, **values)
-        return UsersDTO.model_validate(created)
+        return UsersDTO.model_validate(created, from_attributes=True)
 
     async def update(self, user_id: int, **values) -> Optional[UsersDTO]:
         if not values:
@@ -70,7 +70,7 @@ class UsersRepository(DatabaseBase):
         )
         result = await self.session_db.execute(stmt)
         updated = result.scalar_one_or_none()
-        return UsersDTO.model_validate(updated) if updated else None
+        return UsersDTO.model_validate(updated, from_attributes=True) if updated else None
 
     async def update_balance_by_delta(self, user_id: int, delta: int) -> Optional[UsersDTO]:
         result = await self.session_db.execute(
@@ -80,4 +80,4 @@ class UsersRepository(DatabaseBase):
             .returning(Users)
         )
         updated = result.scalar_one_or_none()
-        return UsersDTO.model_validate(updated) if updated else None
+        return UsersDTO.model_validate(updated, from_attributes=True) if updated else None

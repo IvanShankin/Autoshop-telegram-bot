@@ -1,9 +1,9 @@
-from src.application._database.system.actions.actions import get_statistics
+from src.application.models.modules import AdminModule
 from src.utils.i18n import get_text
 
 
-async def get_statistics_message(interval_days: int, language: str) -> str:
-    statistics = await get_statistics(interval_days)
+async def get_statistics_message(interval_days: int, language: str, admin_modul: AdminModule) -> str:
+    statistics = await admin_modul.statistics_service.get_statistics(interval_days)
 
     interval_msg = get_text(
         language,

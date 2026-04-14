@@ -17,7 +17,7 @@ from src.application.models.products.accounts import AccountDeletedService, Acco
 from src.application.models.products.universal import UniversalDeletedService, UniversalProductService, \
     UniversalSoldService, UniversalStorageService, UniversalTranslationsService, UniversalCacheFillerService
 from src.application.models.referrals import ReferralService, ReferralIncomeService, ReferralLevelsService
-from src.application.models.systems import TypesPaymentsService, SettingsService, UiImagesService
+from src.application.models.systems import TypesPaymentsService, SettingsService, UiImagesService, StatisticsService
 from src.application.models.users import WalletTransactionService, UserService, MoneyTransferService, \
     NotificationSettingsService, BannedAccountService
 from src.application.models.users.permission_service import PermissionService
@@ -175,6 +175,7 @@ class AdminModule:
         crypto_provider: CryptoProvider,
         publish_event_handler: PublishEventHandler,
         cache_warmup_service: CacheWarmupService,
+        statistics_service: StatisticsService,
         path_builder: PathBuilder,
     ):
         self.conf = conf
@@ -200,4 +201,5 @@ class AdminModule:
         self.crypto_provider = crypto_provider
         self.publish_event_handler = publish_event_handler
         self.cache_warmup_service = cache_warmup_service
+        self.statistics_service = statistics_service
         self.path_builder = path_builder

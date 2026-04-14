@@ -106,7 +106,7 @@ from src.application.models.admins import AdminActionsService, AdminsService, Me
 from src.application.models.payment_services import PaymentService
 from src.application.models.referrals import ReferralService, ReferralIncomeService, ReferralLevelsService
 from src.application.models.systems import StickersService, UiImagesService, FilesService, SettingsService, \
-    TypesPaymentsService, BackupLogsService
+    TypesPaymentsService, BackupLogsService, StatisticsService
 from src.application.models.users import (
     BannedAccountService,
     UserLogService,
@@ -863,6 +863,10 @@ class RequestContainer:
             cache_repo=self.ui_images_cache_repo,
             session_db=self.session_db,
         )
+        self.statistics_service = StatisticsService(
+            type_payments_repo=self.type_payment_repo,
+            session_db=self.session_db,
+        )
 
     def get_backup_db(self):
         return BackupDBService(
@@ -1005,6 +1009,7 @@ class RequestContainer:
             crypto_provider=self.crypto_provider,
             publish_event_handler=self.publish_event_handler,
             cache_warmup_service=self.get_cache_warmup_service(),
+            statistics_service=self.statistics_service,
             path_builder=self.path_builder,
         )
 

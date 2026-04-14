@@ -44,7 +44,7 @@ from src.application.models.purchases.general.purchase_request_service import Pu
 from src.application.models.purchases.general.purchase_validation_service import PurchaseValidationService
 from src.application.models.purchases.universal.universal_purchase_service import UniversalPurchaseService
 from src.application.models.users.pubscription_prompt import SubscriptionService
-from src.application.models.modules import ProfileModule, AccountsModuls, UniversalModuls, CatalogModule
+from src.application.models.modules import ProfileModule, AccountsModuls, UniversalModuls, CatalogModule, AdminModule
 from src.repository.database.admins import (
     AdminActionsRepository,
     AdminsRepository,
@@ -978,6 +978,32 @@ class RequestContainer:
             ui_image_service=self.ui_image_service,
             account_sold_service=self.account_sold_service,
             universal_sold_service=self.universal_sold_service,
+        )
+
+    def get_admin_modul(self) -> AdminModule:
+        return AdminModule(
+            conf=self.config,
+            logger=self.logger,
+            user_service=self.user_service,
+            permission_service=self.permission_service,
+            wallet_transaction_service=self.wallet_transaction_service,
+            money_transfer_service=self.money_transfer_service,
+            notification_service=self.notification_service,
+            voucher_service=self.voucher_service,
+            referral_income_service=self.referral_income_service,
+            referral_levels_service=self.referral_levels_service,
+            referral_service=self.referral_service,
+            excel_report_exporter=self.excel_report_exporter,
+            type_payments_service=self.type_payments_service,
+            payment_service=self.payment_service,
+            settings_service=self.settings_service,
+            account_moduls=self.get_account_modul(),
+            universal_moduls=self.get_universal_product_modul(),
+            account_service=self.account_service,
+            admin_service=self.admin_service,
+            banned_account_service=self.banned_account_service,
+            crypto_provider=self.crypto_provider,
+            path_builder=self.path_builder,
         )
 
     def get_account_modul(self) -> AccountsModuls:

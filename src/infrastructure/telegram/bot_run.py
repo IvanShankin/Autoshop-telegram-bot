@@ -19,8 +19,10 @@ async def _including_router(app_container: AppContainer):
     dp = get_dispatcher()
     dp_logger = get_dispatcher_logger()
 
+    dp.update.middleware(ModulesMiddleware(app_container))
     dp.update.middleware(CheckuserNotBlok())
     dp.update.middleware(DeleteMessageOnErrorMiddleware(ForbiddenError, "Insufficient rights"))
+
     dp_logger.update.middleware(DeleteMessageOnErrorMiddleware(ForbiddenError, "Insufficient rights"))
 
     dp.include_router(start_router)
@@ -38,8 +40,6 @@ async def _including_router(app_container: AppContainer):
 
     admin_router_with_repl_kb.message.middleware(OnlyAdminsMiddleware())
     admin_router_with_repl_kb.callback_query.middleware(OnlyAdminsMiddleware())
-
-    dp.update.middleware(ModulesMiddleware(app_container))
 
     dp.update.middleware(UserMiddleware()) # использует ModulesMiddleware
     dp.update.middleware(MaintenanceMiddleware())

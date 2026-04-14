@@ -5,14 +5,10 @@ from aiogram.types import Message, TelegramObject, CallbackQuery
 
 from typing import Callable, Dict, Any, Awaitable, Type
 
-from src._bot_actions.messages import send_message
-from src.config import get_config
+from src.application.bot import Messages
 from src.containers.app_container import AppContainer
-from src.modules.keyboard_main import support_kb
-from src.application._database.admins.actions import check_admin
-from src.application._database.system.actions import get_settings
-from src.application._database.users.actions import get_user, get_banned_account
-from src.application.models.modules import ProfileModule
+from src.application.models.modules import AdminModule
+from src.infrastructure.telegram.ui.keyboard import support_kb
 from src.utils.i18n import get_text
 
 
@@ -28,6 +24,7 @@ class ModulesMiddleware(BaseMiddleware):
 
             data["profile_module"] = request_container.get_profile_modul()
             data["catalog_modul"] = request_container.get_catalog_modul()
+            data["admin_modul"] = request_container.get_admin_modul()
             data["messages_service"] = request_container.get_message_service()
             # создание модулей под другие разделы
 
@@ -85,8 +82,8 @@ class UserMiddleware(BaseMiddleware):
             username = event_user.username
 
             # Получаем или создаём пользователя
-            profile_module: ProfileModule = data["profile_module"]
-            user = await profile_module.user_service.get_user(user_id, username, update_last_used=True)
+            admin_modul: AdminModule = data["admin_modul"]
+            user = await admin_modul.user_service.get_user(user_id, username, update_last_used=True)
             data["user"] = user
 
         # даже если from_user нет, не ломаем обработку
@@ -108,18 +105,20 @@ class MaintenanceMiddleware(BaseMiddleware):
 
         user_id = event_user.id
 
+        admin_modul: AdminModule = data["admin_modul"]
+        messages_service: Messages = data["messages_service"]
         # Проверяем режим обслуживания
-        settings = await get_settings()
+        settings = await admin_modul.settings_service.get_settings()
         if not settings.maintenance_mode:
             return await handler(event, data)
 
-        if await check_admin(user_id):
+        if await admin_modul.admin_service.check_admin(user_id):
             return await handler(event, data)
 
-        user = await get_user(user_id, update_last_used=True)
-        language = user.language if user else get_config().app.default_lang
+        user = await admin_modul.user_service.get_user(user_id, update_last_used=True)
+        language = user.language if user else admin_modul.conf.app.default_lang
 
-        await send_message(
+        await messages_service.send_msg.send(
             user_id,
             message=get_text(
                 language,
@@ -145,16 +144,21 @@ class CheckuserNotBlok(BaseMiddleware):
         if not user:
             return
 
-        reason = await get_banned_account(user.id)
+        admin_modul: AdminModule = data["admin_modul"]
+        messages_service: Messages = data["messages_service"]
+        reason = await admin_modul.banned_account_service.get_ban(user.id)
+
         if reason:
-            user_db = await get_user(user.id)
-            conf = get_config()
+            user_db = await admin_modul.user_service.get_user(user.id)
             message = f"Вы были забанены в боте по причине: {reason}"
 
             if user_db:
                 message = get_text(user_db.language, "kb_start", "you_banned").format(reason=reason)
 
-            await send_message(user.id, message=message, reply_markup=await support_kb(conf.app.default_lang))
+            settings = await admin_modul.settings_service.get_settings()
+            await messages_service.send_msg.send(
+                user.id, message=message, reply_markup=await support_kb(admin_modul.conf.app.default_lang, settings.support_username)
+            )
 
             return
 
@@ -176,7 +180,8 @@ class OnlyAdminsMiddleware(BaseMiddleware):
         if not user:
             return
 
-        if not await check_admin(user.id):
+        admin_modul: AdminModule = data["admin_modul"]
+        if not await admin_modul.admin_service.check_admin(user.id):
             if isinstance(event, CallbackQuery):
                 await event.answer("Access for administrators only", show_alert=True)
                 await event.message.delete()
@@ -195,7 +200,8 @@ class I18nKeyFilter(BaseFilter):
         if not getattr(message, "text", None):
             return False
         try:
-            user = await get_user(message.from_user.id, update_last_used=True)
+            admin_modul: AdminModule = data["admin_modul"]
+            user = await admin_modul.user_service.get_user(message.from_user.id, update_last_used=True)
         except Exception:
             return False
 

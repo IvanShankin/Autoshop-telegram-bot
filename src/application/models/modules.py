@@ -1,6 +1,7 @@
 from logging import Logger
 
 from src.application.crypto.crypto_context import CryptoProvider
+from src.application.models.admins import AdminsService
 from src.application.models.categories import CategoryService
 from src.application.models.purchases import PurchaseService
 from src.application.models.users.pubscription_prompt import SubscriptionService
@@ -16,7 +17,7 @@ from src.application.models.products.universal import UniversalDeletedService, U
 from src.application.models.referrals import ReferralService, ReferralIncomeService, ReferralLevelsService
 from src.application.models.systems import TypesPaymentsService, SettingsService, UiImagesService
 from src.application.models.users import WalletTransactionService, UserService, MoneyTransferService, \
-    NotificationSettingsService
+    NotificationSettingsService, BannedAccountService
 from src.application.models.users.permission_service import PermissionService
 from src.infrastructure.files.path_builder import PathBuilder
 
@@ -143,3 +144,54 @@ class CatalogModule:
         self.ui_image_service = ui_image_service
         self.account_sold_service = account_sold_service
         self.universal_sold_service = universal_sold_service
+
+
+class AdminModule:
+
+    def __init__(
+        self,
+        conf: Config,
+        logger: Logger,
+        user_service: UserService,
+        permission_service: PermissionService,
+        wallet_transaction_service: WalletTransactionService,
+        money_transfer_service: MoneyTransferService,
+        notification_service: NotificationSettingsService,
+        voucher_service: VoucherService,
+        referral_income_service: ReferralIncomeService,
+        referral_levels_service: ReferralLevelsService,
+        referral_service: ReferralService,
+        excel_report_exporter: ExcelReportExporter,
+        type_payments_service: TypesPaymentsService,
+        payment_service: PaymentService,
+        settings_service: SettingsService,
+        account_moduls: AccountsModuls,
+        universal_moduls: UniversalModuls,
+        account_service: AccountService,
+        admin_service: AdminsService,
+        banned_account_service: BannedAccountService,
+        crypto_provider: CryptoProvider,
+        path_builder: PathBuilder,
+    ):
+        self.conf = conf
+        self.logger = logger
+        self.user_service = user_service
+        self.permission_service = permission_service
+        self.wallet_transaction_service = wallet_transaction_service
+        self.money_transfer_service = money_transfer_service
+        self.notification_service = notification_service
+        self.voucher_service = voucher_service
+        self.referral_income_service = referral_income_service
+        self.referral_levels_service = referral_levels_service
+        self.referral_service = referral_service
+        self.excel_report_exporter = excel_report_exporter
+        self.type_payments_service = type_payments_service
+        self.payment_service = payment_service
+        self.settings_service = settings_service
+        self.account_moduls = account_moduls
+        self.universal_moduls = universal_moduls
+        self.account_service = account_service
+        self.admin_service = admin_service
+        self.banned_account_service = banned_account_service
+        self.crypto_provider = crypto_provider
+        self.path_builder = path_builder

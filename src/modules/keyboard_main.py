@@ -1,9 +1,8 @@
 from aiogram.types import InlineKeyboardButton, KeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
-from src._bot_actions.bot_instance import get_bot
-from src.application._database.admins.actions import check_admin
-from src.application._database.system.actions import get_settings
+from src.application.models.modules import AdminModule
+from src.infrastructure.telegram.bot_instance import get_bot
 from src.utils.i18n import get_text
 
 
@@ -14,7 +13,7 @@ selecting_language = InlineKeyboardMarkup(
         ],
 )
 
-async def main_kb(language: str, user_id: int):
+async def main_kb(language: str, user_id: int, admin_modul: AdminModule):
     keyboard_builder = ReplyKeyboardBuilder()
 
     keyboard_builder.row(KeyboardButton(text = get_text(language, 'kb_start', "product_categories")))
@@ -22,30 +21,14 @@ async def main_kb(language: str, user_id: int):
         KeyboardButton(text = get_text(language, 'kb_start', "profile")),
         KeyboardButton(text = get_text(language, 'kb_start', 'information'))
     )
-    if await check_admin(user_id):
+    if await admin_modul.admin_service.check_admin(user_id):
         keyboard_builder.row(KeyboardButton(text=get_text(language, 'kb_start', "admin_panel")))
 
     return keyboard_builder.as_markup(resize_keyboard=True)
 
 
-async def support_kb(language: str, support_username: str = None):
-    if not support_username:
-        settings = await get_settings()
-        support_username = settings.support_username
-
-    if not support_username:
-        return None
-
-    support_name = get_text(language, 'kb_start', "support")
-
-    keyboard = InlineKeyboardBuilder()
-    keyboard.add(InlineKeyboardButton(text=support_name, url=f"https://t.me/{support_username.lstrip()}"))
-    keyboard.adjust(1)
-    return keyboard.as_markup()
-
-
-async def info_kb(language: str):
-    settings = await get_settings()
+async def info_kb(language: str,  admin_modul: AdminModule):
+    settings = await admin_modul.settings_service.get_settings()
     bot = get_bot()
     keyboard = InlineKeyboardBuilder()
 

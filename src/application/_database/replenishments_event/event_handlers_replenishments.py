@@ -9,7 +9,7 @@ from src.database.models.users import WalletTransaction, UserAuditLogs, Replenis
 from src.database import get_db
 from src.application._database.replenishments_event.schemas import NewReplenishment
 from src.utils.i18n import  get_text, n_get_text
-from src.modules.keyboard_main import support_kb
+# from src.modules.keyboard_main import support_kb
 from src.application._database.replenishments_event.schemas import ReplenishmentCompleted, ReplenishmentFailed
 from src.utils.core_logger import get_logger
 from src._bot_actions.messages import send_message
@@ -199,7 +199,8 @@ async def on_replenishment_failed(event: ReplenishmentFailed):
         "error_while_replenishing"
     ).format(replenishment_id=event.replenishment_id)
 
-    await send_message(event.user_id, message_for_user, reply_markup=await support_kb(event.language))
+    # await send_message(event.user_id, message_for_user, reply_markup=await support_kb(event.language))
+    await send_message(event.user_id, message_for_user)
 
     message_log = get_text(
         get_config().app.default_lang,

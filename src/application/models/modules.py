@@ -10,7 +10,8 @@ from src.application.models.users.pubscription_prompt import SubscriptionService
 from src.application.products.accounts.account_service import AccountService
 from src.config import Config
 from src.infrastructure.files.excel_reports import ExcelReportExporter
-from src.application.models.discounts import VoucherService, PromoCodeService
+from src.application.models.discounts import VoucherService, PromoCodeService, VoucherActivationsService, \
+    ActivatedPromoCodesService
 from src.application.models.payment_services import PaymentService
 from src.application.models.products.accounts import AccountDeletedService, AccountProductService, AccountSoldService, \
     AccountStorageService, AccountTgMediaService, AccountTranslationsService, AccountsCacheFillerService
@@ -19,9 +20,10 @@ from src.application.models.products.universal import UniversalDeletedService, U
 from src.application.models.referrals import ReferralService, ReferralIncomeService, ReferralLevelsService
 from src.application.models.systems import TypesPaymentsService, SettingsService, UiImagesService, StatisticsService
 from src.application.models.users import WalletTransactionService, UserService, MoneyTransferService, \
-    NotificationSettingsService, BannedAccountService
+    NotificationSettingsService, BannedAccountService, ReplenishmentsService
 from src.application.models.users.permission_service import PermissionService
 from src.infrastructure.files.path_builder import PathBuilder
+from src.repository.database.categories import PurchasesRepository
 
 
 class AccountsModuls:
@@ -160,6 +162,9 @@ class AdminModule:
         money_transfer_service: MoneyTransferService,
         notification_service: NotificationSettingsService,
         voucher_service: VoucherService,
+        voucher_activations_service: VoucherActivationsService,
+        promo_code_service: PromoCodeService,
+        activated_promo_codes_service: ActivatedPromoCodesService,
         referral_income_service: ReferralIncomeService,
         referral_levels_service: ReferralLevelsService,
         referral_service: ReferralService,
@@ -176,6 +181,8 @@ class AdminModule:
         publish_event_handler: PublishEventHandler,
         cache_warmup_service: CacheWarmupService,
         statistics_service: StatisticsService,
+        replenishments_service: ReplenishmentsService,
+        purchases_repo: PurchasesRepository,
         path_builder: PathBuilder,
     ):
         self.conf = conf
@@ -186,6 +193,9 @@ class AdminModule:
         self.money_transfer_service = money_transfer_service
         self.notification_service = notification_service
         self.voucher_service = voucher_service
+        self.voucher_activations_service = voucher_activations_service
+        self.promo_code_service = promo_code_service
+        self.activated_promo_codes_service = activated_promo_codes_service
         self.referral_income_service = referral_income_service
         self.referral_levels_service = referral_levels_service
         self.referral_service = referral_service
@@ -202,4 +212,6 @@ class AdminModule:
         self.publish_event_handler = publish_event_handler
         self.cache_warmup_service = cache_warmup_service
         self.statistics_service = statistics_service
+        self.replenishments_service = replenishments_service
+        self.purchases_repo = purchases_repo
         self.path_builder = path_builder

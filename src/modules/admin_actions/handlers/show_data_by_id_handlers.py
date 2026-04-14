@@ -4,21 +4,24 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
 from aiogram.types import CallbackQuery, Message
 
-from src._bot_actions.messages import edit_message
+from src.application.bot import Messages
+from src.application.models.modules import AdminModule
+from src.models.read_models import UsersDTO
 from src.modules.admin_actions.keyboards import back_in_show_data_by_id_kb, data_by_id_by_page_kb
 from src.modules.admin_actions.schemas.show_data_by_id import CurrentPage
 from src.modules.admin_actions.services.show_data_by_id import show_data_by_id_handler
 from src.modules.admin_actions.state.show_data_by_id import ShowDataById
-from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 router_with_repl_kb = Router()
 router = Router()
 
-async def set_state_and_request_id(callback: CallbackQuery, state: FSMContext, user: Users, need_state: State):
+async def set_state_and_request_id(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, need_state: State, messages_service: Messages,
+):
     current_page = int(callback.data.split(":")[1])
 
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=get_text(user.language, "admins_show_data_by_id", "enter_id"),
@@ -31,9 +34,9 @@ async def set_state_and_request_id(callback: CallbackQuery, state: FSMContext, u
 
 
 @router.callback_query(F.data.startswith("data_by_id:"))
-async def show_data_by_id(callback: CallbackQuery, state: FSMContext, user: Users):
+async def show_data_by_id(callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,):
     current_page = int(callback.data.split(":")[1])
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         event_message_key='admin_panel',
@@ -42,63 +45,87 @@ async def show_data_by_id(callback: CallbackQuery, state: FSMContext, user: User
 
 
 @router.callback_query(F.data.startswith("replenishment_by_id:"))
-async def show_replenishment_by_id(callback: CallbackQuery, state: FSMContext, user: Users):
-    await set_state_and_request_id(callback, state, user, ShowDataById.replenishment_by_id)
+async def show_replenishment_by_id(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
+    await set_state_and_request_id(callback, state, user, ShowDataById.replenishment_by_id, messages_service)
 
 
 @router.callback_query(F.data.startswith("purchase_by_id:"))
-async def show_purchase_by_id(callback: CallbackQuery, state: FSMContext, user: Users):
-    await set_state_and_request_id(callback, state, user, ShowDataById.purchase_by_id)
+async def show_purchase_by_id(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
+    await set_state_and_request_id(callback, state, user, ShowDataById.purchase_by_id, messages_service)
 
 
 @router.callback_query(F.data.startswith("sold_account_by_id:"))
-async def show_sold_account_by_id(callback: CallbackQuery, state: FSMContext, user: Users):
-    await set_state_and_request_id(callback, state, user, ShowDataById.sold_account_by_id)
+async def show_sold_account_by_id(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
+    await set_state_and_request_id(callback, state, user, ShowDataById.sold_account_by_id, messages_service)
 
 
 @router.callback_query(F.data.startswith("sold_universal_by_id:"))
-async def show_sold_universal_by_id(callback: CallbackQuery, state: FSMContext, user: Users):
-    await set_state_and_request_id(callback, state, user, ShowDataById.sold_universal_product_by_id)
+async def show_sold_universal_by_id(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
+    await set_state_and_request_id(callback, state, user, ShowDataById.sold_universal_product_by_id, messages_service)
 
 
 @router.callback_query(F.data.startswith("voucher_by_id:"))
-async def show_voucher_by_id(callback: CallbackQuery, state: FSMContext, user: Users):
-    await set_state_and_request_id(callback, state, user, ShowDataById.voucher_by_id)
+async def show_voucher_by_id(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
+    await set_state_and_request_id(callback, state, user, ShowDataById.voucher_by_id, messages_service)
 
 
 @router.callback_query(F.data.startswith("activate_voucher_by_id:"))
-async def show_activate_voucher_by_id(callback: CallbackQuery, state: FSMContext, user: Users):
-    await set_state_and_request_id(callback, state, user, ShowDataById.activate_voucher_by_id)
+async def show_activate_voucher_by_id(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
+    await set_state_and_request_id(callback, state, user, ShowDataById.activate_voucher_by_id, messages_service)
 
 
 @router.callback_query(F.data.startswith("promo_code_by_id:"))
-async def show_promo_code_by_id(callback: CallbackQuery, state: FSMContext, user: Users):
-    await set_state_and_request_id(callback, state, user, ShowDataById.promo_code_by_id)
+async def show_promo_code_by_id(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
+    await set_state_and_request_id(callback, state, user, ShowDataById.promo_code_by_id, messages_service)
 
 
 @router.callback_query(F.data.startswith("promo_code_activation_by_id:"))
-async def show_promo_code_activation_by_id(callback: CallbackQuery, state: FSMContext, user: Users):
-    await set_state_and_request_id(callback, state, user, ShowDataById.promo_code_activation_by_id)
+async def show_promo_code_activation_by_id(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
+    await set_state_and_request_id(callback, state, user, ShowDataById.promo_code_activation_by_id, messages_service)
 
 
 @router.callback_query(F.data.startswith("referral_by_id:"))
-async def show_referral_by_id(callback: CallbackQuery, state: FSMContext, user: Users):
-    await set_state_and_request_id(callback, state, user, ShowDataById.referral_by_id)
+async def show_referral_by_id(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
+    await set_state_and_request_id(callback, state, user, ShowDataById.referral_by_id, messages_service)
 
 
 @router.callback_query(F.data.startswith("income_from_ref_by_id:"))
-async def show_income_from_ref_by_id(callback: CallbackQuery, state: FSMContext, user: Users):
-    await set_state_and_request_id(callback, state, user, ShowDataById.income_from_ref_by_id)
+async def show_income_from_ref_by_id(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
+    await set_state_and_request_id(callback, state, user, ShowDataById.income_from_ref_by_id, messages_service)
 
 
 @router.callback_query(F.data.startswith("transfer_money_by_id:"))
-async def show_transfer_money_by_id(callback: CallbackQuery, state: FSMContext, user: Users):
-    await set_state_and_request_id(callback, state, user, ShowDataById.transfer_money_by_id)
+async def show_transfer_money_by_id(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
+    await set_state_and_request_id(callback, state, user, ShowDataById.transfer_money_by_id, messages_service)
 
 
 @router.callback_query(F.data.startswith("wallet_transaction_by_id:"))
-async def show_wallet_transaction_by_id(callback: CallbackQuery, state: FSMContext, user: Users):
-    await set_state_and_request_id(callback, state, user, ShowDataById.wallet_transaction_by_id)
+async def show_wallet_transaction_by_id(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
+    await set_state_and_request_id(callback, state, user, ShowDataById.wallet_transaction_by_id, messages_service)
 
 
 @router.message(
@@ -117,7 +144,11 @@ async def show_wallet_transaction_by_id(callback: CallbackQuery, state: FSMConte
         ShowDataById.wallet_transaction_by_id,
     )
 )
-async def show_data_by_id_router(message: Message, state: FSMContext, user: Users):
+async def show_data_by_id_router(
+    message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages, admin_modul: AdminModule
+):
     data = CurrentPage(**(await state.get_data()))
-    await show_data_by_id_handler(await state.get_state(), message.text, user, data.current_page)
+    await show_data_by_id_handler(
+        await state.get_state(), message.text, user, data.current_page, messages_service, admin_modul
+    )
 

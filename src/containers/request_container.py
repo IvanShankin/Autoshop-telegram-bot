@@ -33,7 +33,7 @@ from src.application.events.event_handlers.promo_code import PromoCodeEventHandl
 from src.application.events.event_handlers.purchase import PurchaseEventHandler
 from src.application.events.event_handlers.referrals import ReferralEventHandler
 from src.application.events.event_handlers.replenishments import ReplenishmentsEventHandler
-from src.application.models.discounts import ActivatedPromoCodesService, PromoCodeService
+from src.application.models.discounts import ActivatedPromoCodesService, PromoCodeService, VoucherActivationsService
 from src.application.models.discounts.vouchers_service import VoucherService
 from src.application.models.categories.category_service import CategoryService
 from src.application.models.categories.category_translate_service import TranslationsCategoryService
@@ -657,6 +657,10 @@ class RequestContainer:
             logger=self.logger,
             crypto_provider=self.crypto_provider,
         )
+        self.purchases_repo = PurchasesRepository(
+                session_db=self.session_db,
+                config=self.config,
+            )
         self.account_purchase_service = AccountPurchaseService(
             validation_service=self.purchase_validation_service,
             purchase_request_service=self.purchase_request_service,
@@ -669,10 +673,7 @@ class RequestContainer:
             ),
             sold_repo=self.sold_accounts_repo,
             sold_trans_repo=self.sold_accounts_translation_repo,
-            purchases_repo=PurchasesRepository(
-                session_db=self.session_db,
-                config=self.config,
-            ),
+            purchases_repo=self.purchases_repo,
             deleted_service=self.account_deleted_service,
             category_service=self.category_service,
             accounts_cache_filler=self.accounts_cache_filler_service,
@@ -709,10 +710,7 @@ class RequestContainer:
                 config=self.config,
             ),
             sold_repo=self.sold_universal_repo,
-            purchases_repo=PurchasesRepository(
-                session_db=self.session_db,
-                config=self.config,
-            ),
+            purchases_repo=self.purchases_repo,
             deleted_service=self.universal_deleted_service,
             category_service=self.category_service,
             cache_filler=self.universal_cache_filler_service,
@@ -867,6 +865,12 @@ class RequestContainer:
             type_payments_repo=self.type_payment_repo,
             session_db=self.session_db,
         )
+        self.voucher_activations_service = VoucherActivationsService(
+            activations_repo=self.voucher_activations_repo
+        )
+        self.activated_promo_codes_service = ActivatedPromoCodesService(
+            activated_repo=self.activated_promo_code_repo
+        )
 
     def get_backup_db(self):
         return BackupDBService(
@@ -994,6 +998,9 @@ class RequestContainer:
             money_transfer_service=self.money_transfer_service,
             notification_service=self.notification_service,
             voucher_service=self.voucher_service,
+            voucher_activations_service=self.voucher_activations_service,
+            promo_code_service=self.promo_code_service,
+            activated_promo_codes_service=self.activated_promo_codes_service,
             referral_income_service=self.referral_income_service,
             referral_levels_service=self.referral_levels_service,
             referral_service=self.referral_service,
@@ -1010,6 +1017,8 @@ class RequestContainer:
             publish_event_handler=self.publish_event_handler,
             cache_warmup_service=self.get_cache_warmup_service(),
             statistics_service=self.statistics_service,
+            replenishments_service=self.replenishment_service,
+            purchases_repo=self.purchases_repo,
             path_builder=self.path_builder,
         )
 

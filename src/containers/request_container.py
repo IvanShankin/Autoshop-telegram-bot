@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.crypto.crypto_context import CryptoProvider
 from src.application.models.systems.backup_db_service import BackupDBService
+from src.application.models.users.use_cases import GenerateUserAuditLogUseCase
 from src.application.products.accounts.account_service import AccountService
 from src.application.products.accounts.other.use_cases import UploadOtherAccountsUseCase, ImportOtherAccountsUseCase
 from src.application.products.accounts.other.use_cases.validate import ValidateOtherAccountsUseCase
@@ -871,6 +872,10 @@ class RequestContainer:
         self.activated_promo_codes_service = ActivatedPromoCodesService(
             activated_repo=self.activated_promo_code_repo
         )
+        self.generate_user_audit_log_use_case = GenerateUserAuditLogUseCase(
+            conf=self.config,
+            user_log_service=self.user_log_service,
+        )
 
     def get_backup_db(self):
         return BackupDBService(
@@ -988,7 +993,7 @@ class RequestContainer:
             universal_sold_service=self.universal_sold_service,
         )
 
-    def get_admin_modul(self) -> AdminModule:
+    def get_admin_module(self) -> AdminModule:
         return AdminModule(
             conf=self.config,
             logger=self.logger,
@@ -1020,6 +1025,7 @@ class RequestContainer:
             replenishments_service=self.replenishment_service,
             purchases_repo=self.purchases_repo,
             path_builder=self.path_builder,
+            generate_user_audit_log_use_case=self.generate_user_audit_log_use_case,
         )
 
     def get_account_modul(self) -> AccountsModuls:

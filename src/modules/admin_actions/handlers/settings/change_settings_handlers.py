@@ -17,23 +17,23 @@ router = Router()
 
 @router.callback_query(F.data == "change_admin_settings")
 async def change_admin_settings(
-    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages, admin_modul: AdminModule
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages, admin_module: AdminModule
 ):
     await state.clear()
 
     await message_change_settings(
-        user, new_message=False, callback=callback, messages_service=messages_service, admin_modul=admin_modul
+        user, new_message=False, callback=callback, messages_service=messages_service, admin_module=admin_module
     )
 
 
 @router.callback_query(F.data.startswith("update_maintenance_mode"))
 async def change_admin_settings(
-    callback: CallbackQuery, user: UsersDTO, messages_service: Messages, admin_modul: AdminModule
+    callback: CallbackQuery, user: UsersDTO, messages_service: Messages, admin_module: AdminModule
 ):
     new_maintenance_mode = bool(int(callback.data.split(":")[1]))
 
     if not new_maintenance_mode:
-        settings = await admin_modul.settings_service.get_settings()
+        settings = await admin_module.settings_service.get_settings()
 
         if not settings.channel_for_logging_id:
             await callback.answer(
@@ -42,13 +42,13 @@ async def change_admin_settings(
             )
             return
 
-    await admin_modul.settings_service.update_settings(
+    await admin_module.settings_service.update_settings(
         data=UpdateSettingsDTO(maintenance_mode=new_maintenance_mode),
         make_commit=True,
         filling_redis=True,
     )
     await message_change_settings(
-        user, new_message=False, callback=callback, messages_service=messages_service, admin_modul=admin_modul
+        user, new_message=False, callback=callback, messages_service=messages_service, admin_module=admin_module
     )
 
 
@@ -125,6 +125,6 @@ async def update_faq(
     )
 )
 async def update_admin_settings_handler(
-    message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages, admin_modul: AdminModule
+    message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages, admin_module: AdminModule
 ):
-    await update_admin_settings(message, state, user, admin_modul, messages_service)
+    await update_admin_settings(message, state, user, admin_module, messages_service)

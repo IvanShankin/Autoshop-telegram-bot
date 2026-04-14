@@ -145,10 +145,10 @@ async def show_wallet_transaction_by_id(
     )
 )
 async def show_data_by_id_router(
-    message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages, admin_modul: AdminModule
+    message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages, admin_module: AdminModule
 ):
     data = CurrentPage(**(await state.get_data()))
     await show_data_by_id_handler(
-        await state.get_state(), message.text, user, data.current_page, messages_service, admin_modul
+        await state.get_state(), message.text, user, data.current_page, messages_service, admin_module
     )
 

@@ -109,19 +109,19 @@ class UserService:
     async def create_user(self, data: CreateUserDTO) -> UsersDTO:
         values = data.model_dump(exclude_unset=True)
 
-        async with self.session_db.begin():
-            unique_referral_code = await self._create_unique_referral_code()
+        unique_referral_code = await self._create_unique_referral_code()
 
-            user = await self.user_repo.create_user(unique_referral_code=unique_referral_code, **values)
-            await self.notif_service.create_notification(user.user_id)
-            await self.log_service.create_log(
-                user_id=user.user_id,
-                data=CreateUserAuditLogDTO(
-                    action_type="new_user",
-                    message="Пользователь зарегистрировался в боте"
-                ),
-                make_commit=False
-            )
+        user = await self.user_repo.create_user(unique_referral_code=unique_referral_code, **values)
+        await self.notif_service.create_notification(user.user_id)
+        await self.log_service.create_log(
+            user_id=user.user_id,
+            data=CreateUserAuditLogDTO(
+                action_type="new_user",
+                message="Пользователь зарегистрировался в боте"
+            ),
+            make_commit=False
+        )
+        await self.session_db.commit()
 
         await self.cache_user_repo.set(user=user, ttl=int(self.conf.redis_time_storage.user.total_seconds()))
         await self.cache_subscription_repo.set(

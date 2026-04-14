@@ -29,7 +29,7 @@ async def add_admin_handler(
 
 @router.message(AddAdmin.user_id)
 async def add_admin(
-    message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages, admin_modul: AdminModule
+    message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages, admin_module: AdminModule
 ):
     new_user_id = safe_int_conversion(message.text)
 
@@ -37,7 +37,7 @@ async def add_admin(
         message = get_text(user.language, "miscellaneous", "incorrect_value_entered")
     else:
         try:
-            await admin_modul.admin_service.create_admin(new_user_id)
+            await admin_module.admin_service.create_admin(new_user_id)
             message = get_text(user.language,"admins_settings", "admin_created_successfully")
             await state.clear()
         except UserNotFound:
@@ -66,7 +66,7 @@ async def delete_admin_handler(
 
 @router.message(DeleteAdmin.user_id)
 async def delete_admin_get_user_id(
-    message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages, admin_modul: AdminModule
+    message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages, admin_module: AdminModule
 ):
     user_id = safe_int_conversion(message.text)
 
@@ -74,7 +74,7 @@ async def delete_admin_get_user_id(
         message = get_text(user.language, "miscellaneous", "incorrect_value_entered")
     else:
         try:
-            await admin_modul.admin_service.delete_admin(user_id)
+            await admin_module.admin_service.delete_admin(user_id)
             message = get_text(user.language,"admins_settings", "admin_successfully_deleted")
             await state.clear()
         except AdminNotFound:

@@ -13,7 +13,7 @@ selecting_language = InlineKeyboardMarkup(
         ],
 )
 
-async def main_kb(language: str, user_id: int, admin_modul: AdminModule):
+async def main_kb(language: str, user_id: int, admin_module: AdminModule):
     keyboard_builder = ReplyKeyboardBuilder()
 
     keyboard_builder.row(KeyboardButton(text = get_text(language, 'kb_start', "product_categories")))
@@ -21,14 +21,14 @@ async def main_kb(language: str, user_id: int, admin_modul: AdminModule):
         KeyboardButton(text = get_text(language, 'kb_start', "profile")),
         KeyboardButton(text = get_text(language, 'kb_start', 'information'))
     )
-    if await admin_modul.admin_service.check_admin(user_id):
+    if await admin_module.admin_service.check_admin(user_id):
         keyboard_builder.row(KeyboardButton(text=get_text(language, 'kb_start', "admin_panel")))
 
     return keyboard_builder.as_markup(resize_keyboard=True)
 
 
-async def info_kb(language: str,  admin_modul: AdminModule):
-    settings = await admin_modul.settings_service.get_settings()
+async def info_kb(language: str,  admin_module: AdminModule):
+    settings = await admin_module.settings_service.get_settings()
     bot = get_bot()
     keyboard = InlineKeyboardBuilder()
 

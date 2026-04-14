@@ -2,14 +2,13 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src._bot_actions.messages import send_message, edit_message
+from src.application.bot import Messages
+from src.application.models.modules import AdminModule
+from src.models.read_models import UsersDTO
 from src.modules.admin_actions.keyboards import back_in_user_management_kb, \
     confirm_remove_ban_kb
 from src.modules.admin_actions.schemas import SetNewBalanceData, IssueBanData
 from src.modules.admin_actions.state import SetNewBalance, IssueBan
-from src.application._database.users.actions import get_user, add_banned_account, delete_banned_account
-from src.application._database.users.actions.action_user import admin_update_user_balance
-from src.database.models.users import Users
 from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_text
 
@@ -17,10 +16,12 @@ from src.utils.i18n import get_text
 router = Router()
 
 @router.callback_query(F.data.startswith("change_user_bal:"))
-async def change_user_bal(callback: CallbackQuery, state: FSMContext, user: Users):
+async def change_user_bal(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages, admin_module: AdminModule
+):
     target_user_id = int(callback.data.split(':')[1])
-    target_user = await get_user(target_user_id)
-    await edit_message(
+    target_user = await admin_module.user_service.get_user(target_user_id)
+    await messages_service.edit_msg.edit(
         user.user_id,
         message_id=callback.message.message_id,
         message=get_text(
@@ -35,15 +36,17 @@ async def change_user_bal(callback: CallbackQuery, state: FSMContext, user: User
 
 
 @router.message(SetNewBalance.new_balance)
-async def set_new_balance(message: Message, state: FSMContext, user: Users):
+async def set_new_balance(
+    message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages, admin_module: AdminModule
+):
     data = SetNewBalanceData(**(await state.get_data()))
     new_balance = safe_int_conversion(message.text, positive=True)
     if new_balance:
-        await admin_update_user_balance(
+        await admin_module.admin_service.admin_update_user_balance(
             admin_id=user.user_id, target_user_id=data.target_user_id, new_balance=new_balance
         )
         await state.clear()
-        await send_message(
+        await messages_service.send_msg.send(
             user.user_id,
             get_text(
                 user.language,
@@ -54,7 +57,7 @@ async def set_new_balance(message: Message, state: FSMContext, user: Users):
         )
         return
 
-    await send_message(
+    await messages_service.send_msg.send(
         user.user_id,
         get_text(user.language,"miscellaneous","incorrect_value_entered"),
         reply_markup=back_in_user_management_kb(user.language, data.target_user_id)
@@ -62,9 +65,11 @@ async def set_new_balance(message: Message, state: FSMContext, user: Users):
 
 
 @router.callback_query(F.data.startswith("issue_ban:"))
-async def reason_issue_ban(callback: CallbackQuery, state: FSMContext, user: Users):
+async def reason_issue_ban(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
     target_user_id = int(callback.data.split(':')[1])
-    await edit_message(
+    await messages_service.edit_msg.edit(
         user.user_id,
         message_id=callback.message.message_id,
         message=get_text(
@@ -79,10 +84,14 @@ async def reason_issue_ban(callback: CallbackQuery, state: FSMContext, user: Use
 
 
 @router.message(IssueBan.issue_ban)
-async def issue_ban(message: Message, state: FSMContext, user: Users):
+async def issue_ban(
+    message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages, admin_module: AdminModule
+):
     data = IssueBanData(**(await state.get_data()))
-    await add_banned_account(admin_id=user.user_id, user_id=data.target_user_id, reason=message.text)
-    await send_message(
+    await admin_module.admin_service.create_banned_account(
+        admin_id=user.user_id, user_id=data.target_user_id, reason=message.text
+    )
+    await messages_service.send_msg.send(
         user.user_id,
         get_text(user.language,"admins_user_mang","user_successfully_banned"),
         reply_markup=back_in_user_management_kb(user.language, data.target_user_id)
@@ -90,9 +99,11 @@ async def issue_ban(message: Message, state: FSMContext, user: Users):
 
 
 @router.callback_query(F.data.startswith("confirm_remove_ban:"))
-async def confirm_remove_ban(callback: CallbackQuery, user: Users):
+async def confirm_remove_ban(
+    callback: CallbackQuery, user: UsersDTO, messages_service: Messages,
+):
     target_user_id = int(callback.data.split(':')[1])
-    await edit_message(
+    await messages_service.edit_msg.edit(
         user.user_id,
         message_id=callback.message.message_id,
         message=get_text(
@@ -105,10 +116,12 @@ async def confirm_remove_ban(callback: CallbackQuery, user: Users):
 
 
 @router.callback_query(F.data.startswith("remove_ban:"))
-async def remove_ban(callback: CallbackQuery, user: Users):
+async def remove_ban(
+    callback: CallbackQuery, user: UsersDTO, messages_service: Messages, admin_module: AdminModule
+):
     target_user_id = int(callback.data.split(':')[1])
-    await delete_banned_account(admin_id=user.user_id, user_id=target_user_id)
-    await edit_message(
+    await admin_module.admin_service.delete_banned_account(admin_id=user.user_id, user_id=target_user_id)
+    await messages_service.edit_msg.edit(
         user.user_id,
         message_id=callback.message.message_id,
         message=get_text(

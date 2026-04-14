@@ -20,7 +20,7 @@ async def show_data_by_id_handler(
     user: UsersDTO,
     current_page: int,
     messages_service: Messages,
-    admin_modul: AdminModule,
+    admin_module: AdminModule,
 ):
     entered_id = safe_int_conversion(message_text, positive=False)
     message = None
@@ -36,29 +36,29 @@ async def show_data_by_id_handler(
     reply_markup = back_in_show_data_by_id_kb(language=user.language, current_page=current_page)
 
     if state == ShowDataById.replenishment_by_id.state:
-        message = await get_message_replenishment(entered_id, user.language, admin_modul)
+        message = await get_message_replenishment(entered_id, user.language, admin_module)
     elif state == ShowDataById.purchase_by_id.state:
-        message = await get_message_purchase_account(entered_id, user.language, admin_modul)
+        message = await get_message_purchase_account(entered_id, user.language, admin_module)
     elif state == ShowDataById.sold_account_by_id.state:
-        message, reply_markup = await get_message_sold_account_full(entered_id, user.language, current_page, admin_modul)
+        message, reply_markup = await get_message_sold_account_full(entered_id, user.language, current_page, admin_module)
     elif state == ShowDataById.sold_universal_product_by_id.state:
-        message, reply_markup = await get_message_universal_product(entered_id, user.language, current_page, admin_modul)
+        message, reply_markup = await get_message_universal_product(entered_id, user.language, current_page, admin_module)
     elif state == ShowDataById.transfer_money_by_id.state:
-        message = await get_message_transfer_money(entered_id, user.language, admin_modul)
+        message = await get_message_transfer_money(entered_id, user.language, admin_module)
     elif state == ShowDataById.voucher_by_id.state:
-        message = await get_message_voucher(entered_id, user.language, admin_modul)
+        message = await get_message_voucher(entered_id, user.language, admin_module)
     elif state == ShowDataById.activate_voucher_by_id.state:
-        message = await get_message_activate_voucher(entered_id, user.language, admin_modul)
+        message = await get_message_activate_voucher(entered_id, user.language, admin_module)
     elif state == ShowDataById.promo_code_by_id.state:
-        message = await get_message_promo_code(entered_id, user.language, admin_modul)
+        message = await get_message_promo_code(entered_id, user.language, admin_module)
     elif state == ShowDataById.promo_code_activation_by_id.state:
-        message = await get_message_activated_promo_code(entered_id, user.language, admin_modul)
+        message = await get_message_activated_promo_code(entered_id, user.language, admin_module)
     elif state == ShowDataById.referral_by_id.state:
-        message = await get_message_referral(entered_id, user.language, admin_modul)
+        message = await get_message_referral(entered_id, user.language, admin_module)
     elif state == ShowDataById.income_from_ref_by_id.state:
-        message = await get_message_income_from_referral(entered_id, user.language, admin_modul)
+        message = await get_message_income_from_referral(entered_id, user.language, admin_module)
     elif state == ShowDataById.wallet_transaction_by_id.state:
-        message = await get_message_wallet_transaction(entered_id, user.language, admin_modul)
+        message = await get_message_wallet_transaction(entered_id, user.language, admin_module)
 
     if not message:
         message = get_text(user.language, "admins_show_data_by_id", "no_data_found_for_this_id")
@@ -70,8 +70,8 @@ async def show_data_by_id_handler(
     )
 
 
-async def get_message_replenishment(replenishment_id: int, language: str, admin_modul: AdminModule,) -> str | None:
-    replenishment = await admin_modul.replenishments_service.get_replenishment(replenishment_id)
+async def get_message_replenishment(replenishment_id: int, language: str, admin_module: AdminModule,) -> str | None:
+    replenishment = await admin_module.replenishments_service.get_replenishment(replenishment_id)
 
     if not replenishment:
         return None
@@ -87,15 +87,15 @@ async def get_message_replenishment(replenishment_id: int, language: str, admin_
         origin_amount=replenishment.origin_amount,
         amount=replenishment.amount,
         status=get_text(language, "status_replenishments", replenishment.status),
-        created_at=replenishment.created_at.strftime(admin_modul.conf.different.dt_format),
+        created_at=replenishment.created_at.strftime(admin_module.conf.different.dt_format),
         payment_system_id=replenishment.payment_system_id,
         invoice_url=replenishment.invoice_url,
-        expire_at=replenishment.expire_at.strftime(admin_modul.conf.different.dt_format)
+        expire_at=replenishment.expire_at.strftime(admin_module.conf.different.dt_format)
     )
 
 
-async def get_message_purchase_account(purchase_id: int, language: str, admin_modul: AdminModule,) -> str | None:
-    purchase_account = await admin_modul.purchases_repo.get_by_id(purchase_id)
+async def get_message_purchase_account(purchase_id: int, language: str, admin_module: AdminModule,) -> str | None:
+    purchase_account = await admin_module.purchases_repo.get_by_id(purchase_id)
 
     if not purchase_account:
         return None
@@ -117,7 +117,7 @@ async def get_message_purchase_account(purchase_id: int, language: str, admin_mo
         purchase_price=purchase_account.purchase_price,
         cost_price=purchase_account.cost_price,
         net_profit=purchase_account.net_profit,
-        purchase_date=purchase_account.purchase_date.strftime(admin_modul.conf.different.dt_format)
+        purchase_date=purchase_account.purchase_date.strftime(admin_module.conf.different.dt_format)
     )
 
 
@@ -125,15 +125,15 @@ async def get_message_sold_account_full(
     sold_account_id: int,
     language: str,
     current_page: int,
-    admin_modul: AdminModule,
+    admin_module: AdminModule,
 ) -> Tuple[str, InlineKeyboardMarkup]:
-    sold_account_full = await admin_modul.account_moduls.sold_service.get_sold_account_by_account_id(
+    sold_account_full = await admin_module.account_moduls.sold_service.get_sold_account_by_account_id(
         sold_account_id, language=language
     )
 
     storage = sold_account_full.account_storage
 
-    crypto = admin_modul.crypto_provider.get()
+    crypto = admin_module.crypto_provider.get()
     account_key = unwrap_dek(
         storage.encrypted_key,
         storage.encrypted_key_nonce,
@@ -168,7 +168,7 @@ async def get_message_sold_account_full(
             if sold_account_full.description else
             get_text(language, "admins_show_data_by_id", "no")
         ),
-        sold_at=sold_account_full.sold_at.strftime(admin_modul.conf.different.dt_format),
+        sold_at=sold_account_full.sold_at.strftime(admin_module.conf.different.dt_format),
 
         account_storage_id=storage.account_storage_id,
         storage_uuid=storage.storage_uuid,
@@ -185,9 +185,9 @@ async def get_message_sold_account_full(
         password_encrypted=password,
         is_active=storage.is_active,
         is_valid=storage.is_valid,
-        added_at=storage.added_at.strftime(admin_modul.conf.different.dt_format),
+        added_at=storage.added_at.strftime(admin_module.conf.different.dt_format),
         last_check_at=(
-            storage.last_check_at.strftime(admin_modul.conf.different.dt_format)
+            storage.last_check_at.strftime(admin_module.conf.different.dt_format)
             if storage.last_check_at else
             get_text(language, "admins_show_data_by_id", "no")
         ),
@@ -208,9 +208,9 @@ async def get_message_universal_product(
     universal_id: int,
     language: str,
     current_page: int,
-    admin_modul: AdminModule,
+    admin_module: AdminModule,
 ) -> Tuple[str, InlineKeyboardMarkup]:
-    universal = await admin_modul.universal_moduls.sold_service.get_sold_universal_by_universal_id(universal_id, language)
+    universal = await admin_module.universal_moduls.sold_service.get_sold_universal_by_universal_id(universal_id, language)
 
     message = get_text(
         language,
@@ -225,7 +225,7 @@ async def get_message_universal_product(
             UniversalMediaType(universal.universal_storage.media_type).value
         ),
         name=universal.universal_storage.name,
-        sold_at=universal.sold_at.strftime(admin_modul.conf.different.dt_format),
+        sold_at=universal.sold_at.strftime(admin_module.conf.different.dt_format),
         universal_storage_id=universal.universal_storage_id,
         storage_uuid=universal.universal_storage.storage_uuid,
         checksum=universal.universal_storage.checksum,
@@ -237,7 +237,7 @@ async def get_message_universal_product(
         key_version=universal.universal_storage.key_version,
         encryption_algo=universal.universal_storage.encryption_algo,
         is_active=universal.universal_storage.is_active,
-        added_at=universal.universal_storage.created_at.strftime(admin_modul.conf.different.dt_format),
+        added_at=universal.universal_storage.created_at.strftime(admin_module.conf.different.dt_format),
     )
 
     reply_markup = get_data_universal_product(
@@ -248,8 +248,8 @@ async def get_message_universal_product(
 
     return message, reply_markup
 
-async def get_message_transfer_money(transfer_money_id: int, language: str, admin_modul: AdminModule,) -> str | None:
-    transfer_money = await admin_modul.money_transfer_service.get_transfer_money(transfer_money_id)
+async def get_message_transfer_money(transfer_money_id: int, language: str, admin_module: AdminModule,) -> str | None:
+    transfer_money = await admin_module.money_transfer_service.get_transfer_money(transfer_money_id)
 
     if not transfer_money:
         return None
@@ -263,12 +263,12 @@ async def get_message_transfer_money(transfer_money_id: int, language: str, admi
         user_from_id=transfer_money.user_from_id,
         user_where_id=transfer_money.user_where_id,
         amount=transfer_money.amount,
-        created_at=transfer_money.created_at.strftime(admin_modul.conf.different.dt_format),
+        created_at=transfer_money.created_at.strftime(admin_module.conf.different.dt_format),
     )
 
 
-async def get_message_voucher(voucher_id: int, language: str, admin_modul: AdminModule,) -> str | None:
-    voucher = await admin_modul.voucher_service.get_voucher_by_id(voucher_id)
+async def get_message_voucher(voucher_id: int, language: str, admin_module: AdminModule,) -> str | None:
+    voucher = await admin_module.voucher_service.get_voucher_by_id(voucher_id)
 
     if not voucher:
         return None
@@ -285,9 +285,9 @@ async def get_message_voucher(voucher_id: int, language: str, admin_modul: Admin
         amount=voucher.amount,
         activated_counter=voucher.activated_counter,
         number_of_activations=voucher.number_of_activations,
-        start_at=voucher.start_at.strftime(admin_modul.conf.different.dt_format),
+        start_at=voucher.start_at.strftime(admin_module.conf.different.dt_format),
         expire_at=(
-            voucher.expire_at.strftime(admin_modul.conf.different.dt_format)
+            voucher.expire_at.strftime(admin_module.conf.different.dt_format)
             if voucher.expire_at else
             get_text(language,"admins_show_data_by_id", "endlessly")
         ),
@@ -295,8 +295,8 @@ async def get_message_voucher(voucher_id: int, language: str, admin_modul: Admin
     )
 
 
-async def get_message_activate_voucher(activate_voucher_id: int, language: str, admin_modul: AdminModule,) -> str | None:
-    activate_voucher = await admin_modul.voucher_activations_service.get_activate_voucher(activate_voucher_id)
+async def get_message_activate_voucher(activate_voucher_id: int, language: str, admin_module: AdminModule,) -> str | None:
+    activate_voucher = await admin_module.voucher_activations_service.get_activate_voucher(activate_voucher_id)
 
     if not activate_voucher:
         return None
@@ -309,12 +309,12 @@ async def get_message_activate_voucher(activate_voucher_id: int, language: str, 
         voucher_activation_id=activate_voucher.voucher_activation_id,
         voucher_id=activate_voucher.voucher_id,
         user_id=activate_voucher.user_id,
-        created_at=activate_voucher.created_at.strftime(admin_modul.conf.different.dt_format),
+        created_at=activate_voucher.created_at.strftime(admin_module.conf.different.dt_format),
     )
 
 
-async def get_message_promo_code(promo_code_id: int, language: str, admin_modul: AdminModule,) -> str | None:
-    promo = await admin_modul.promo_code_service.get_promo_code(promo_code_id=promo_code_id, get_only_valid=False)
+async def get_message_promo_code(promo_code_id: int, language: str, admin_module: AdminModule,) -> str | None:
+    promo = await admin_module.promo_code_service.get_promo_code(promo_code_id=promo_code_id, get_only_valid=False)
 
     if not promo:
         return None
@@ -335,9 +335,9 @@ async def get_message_promo_code(promo_code_id: int, language: str, admin_modul:
             get_text(language,"admins_show_data_by_id","no")
         ),
         number_of_activations=promo.number_of_activations,
-        start_at=promo.start_at.strftime(admin_modul.conf.different.dt_format),
+        start_at=promo.start_at.strftime(admin_module.conf.different.dt_format),
         expire_at=(
-            promo.expire_at.strftime(admin_modul.conf.different.dt_format)
+            promo.expire_at.strftime(admin_module.conf.different.dt_format)
             if promo.expire_at else
             get_text(language, "admins_show_data_by_id", "endlessly")
         ),
@@ -345,8 +345,8 @@ async def get_message_promo_code(promo_code_id: int, language: str, admin_modul:
     )
 
 
-async def get_message_activated_promo_code(activated_promo_code_id: int, language: str, admin_modul: AdminModule,) -> str | None:
-    activated_promo_code = await admin_modul.activated_promo_codes_service.get_activated_promo_code(
+async def get_message_activated_promo_code(activated_promo_code_id: int, language: str, admin_module: AdminModule,) -> str | None:
+    activated_promo_code = await admin_module.activated_promo_codes_service.get_activated_promo_code(
         activated_promo_code_id
     )
 
@@ -361,12 +361,12 @@ async def get_message_activated_promo_code(activated_promo_code_id: int, languag
         activated_promo_code_id=activated_promo_code.activated_promo_code_id,
         promo_code_id=activated_promo_code.promo_code_id,
         user_id=activated_promo_code.user_id,
-        created_at=activated_promo_code.created_at.strftime(admin_modul.conf.different.dt_format),
+        created_at=activated_promo_code.created_at.strftime(admin_module.conf.different.dt_format),
     )
 
 
-async def get_message_referral(referral_id: int, language: str, admin_modul: AdminModule,) -> str | None:
-    referral = await admin_modul.referral_service.get_referral(referral_id)
+async def get_message_referral(referral_id: int, language: str, admin_module: AdminModule,) -> str | None:
+    referral = await admin_module.referral_service.get_referral(referral_id)
 
     if not referral:
         return None
@@ -379,16 +379,16 @@ async def get_message_referral(referral_id: int, language: str, admin_modul: Adm
         referral_id=referral.referral_id,
         owner_user_id=referral.owner_user_id,
         level=referral.level,
-        created_at=referral.created_at.strftime(admin_modul.conf.different.dt_format),
+        created_at=referral.created_at.strftime(admin_module.conf.different.dt_format),
     )
 
 
 async def get_message_income_from_referral(
     income_from_referral_id: int,
     language: str,
-    admin_modul: AdminModule,
+    admin_module: AdminModule,
 ) -> str | None:
-    income = await admin_modul.referral_income_service.get_income_from_referral(income_from_referral_id)
+    income = await admin_module.referral_income_service.get_income_from_referral(income_from_referral_id)
 
     if not income:
         return None
@@ -404,16 +404,16 @@ async def get_message_income_from_referral(
         referral_id=income.referral_id,
         amount=income.amount,
         percentage_of_replenishment=income.percentage_of_replenishment,
-        created_at=income.created_at.strftime(admin_modul.conf.different.dt_format),
+        created_at=income.created_at.strftime(admin_module.conf.different.dt_format),
     )
 
 
 async def get_message_wallet_transaction(
     wallet_transaction_id: int,
     language: str,
-    admin_modul: AdminModule,
+    admin_module: AdminModule,
 ) -> str | None:
-    tx = await admin_modul.wallet_transaction_service.get_wallet_transaction(wallet_transaction_id)
+    tx = await admin_module.wallet_transaction_service.get_wallet_transaction(wallet_transaction_id)
 
     if not tx:
         return None
@@ -429,5 +429,5 @@ async def get_message_wallet_transaction(
         amount=tx.amount,
         balance_before=tx.balance_before,
         balance_after=tx.balance_after,
-        created_at=tx.created_at.strftime(admin_modul.conf.different.dt_format),
+        created_at=tx.created_at.strftime(admin_module.conf.different.dt_format),
     )

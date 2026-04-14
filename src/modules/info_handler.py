@@ -13,12 +13,12 @@ router_with_repl_kb = Router()
 
 @router_with_repl_kb.message(I18nKeyFilter("information"))
 async def handle_catalog_message(
-    message: Message, state: FSMContext, user: Users, admin_modul: AdminModule, messages_service: Messages
+    message: Message, state: FSMContext, user: Users, admin_module: AdminModule, messages_service: Messages
 ):
     await state.clear()
 
     await messages_service.send_msg.send(
         user.user_id,
-        reply_markup=await info_kb(user.language, admin_modul),
+        reply_markup=await info_kb(user.language, admin_module),
         event_message_key="info",
     )

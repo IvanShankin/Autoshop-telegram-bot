@@ -16,11 +16,11 @@ from src.utils.i18n import get_text
 async def message_change_settings(
     user: UsersDTO,
     new_message: bool,
-    admin_modul: AdminModule,
+    admin_module: AdminModule,
     messages_service: Messages,
     callback: CallbackQuery = None,
 ):
-    settings = await admin_modul.settings_service.get_settings()
+    settings = await admin_module.settings_service.get_settings()
 
     message = get_text(
         user.language,
@@ -114,7 +114,7 @@ async def update_admin_settings(
     message: Message,
     state: FSMContext,
     user: UsersDTO,
-    admin_modul: AdminModule,
+    admin_module: AdminModule,
     messages_service: Messages
 ):
     state = await state.get_state()
@@ -146,13 +146,13 @@ async def update_admin_settings(
         data_for_update = UpdateSettingsDTO(FAQ=message_text)
 
     if data_for_update:
-        await admin_modul.settings_service.update_settings(
+        await admin_module.settings_service.update_settings(
             data=data_for_update,
             make_commit=True,
             filling_redis=True
         )
 
-    await message_change_settings(user, new_message=True, messages_service=messages_service, admin_modul=admin_modul)
+    await message_change_settings(user, new_message=True, messages_service=messages_service, admin_module=admin_module)
 
 
 

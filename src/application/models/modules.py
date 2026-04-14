@@ -7,6 +7,7 @@ from src.application.models.admins import AdminsService
 from src.application.models.categories import CategoryService
 from src.application.models.purchases import PurchaseService
 from src.application.models.users.pubscription_prompt import SubscriptionService
+from src.application.models.users.use_cases import GenerateUserAuditLogUseCase
 from src.application.products.accounts.account_service import AccountService
 from src.config import Config
 from src.infrastructure.files.excel_reports import ExcelReportExporter
@@ -184,6 +185,7 @@ class AdminModule:
         replenishments_service: ReplenishmentsService,
         purchases_repo: PurchasesRepository,
         path_builder: PathBuilder,
+        generate_user_audit_log_use_case: GenerateUserAuditLogUseCase,
     ):
         self.conf = conf
         self.logger = logger
@@ -215,3 +217,4 @@ class AdminModule:
         self.replenishments_service = replenishments_service
         self.purchases_repo = purchases_repo
         self.path_builder = path_builder
+        self.generate_user_audit_log_use_case = generate_user_audit_log_use_case

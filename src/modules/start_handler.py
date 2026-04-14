@@ -17,7 +17,7 @@ router = Router()
 @router.message(CommandStart())
 async def cmd_start(
     message: Message, command: CommandObject, state: FSMContext,
-    profile_module: ProfileModule, messages_service: Messages, admin_modul: AdminModule
+    profile_module: ProfileModule, messages_service: Messages, admin_module: AdminModule
 ):
     await state.clear()
 
@@ -62,7 +62,7 @@ async def cmd_start(
                 chat_id=message.from_user.id,
                 message=text,
                 event_message_key='welcome_message',
-                reply_markup=await main_kb(language, user.user_id, admin_modul)
+                reply_markup=await main_kb(language, user.user_id, admin_module)
             )
 
     else: # если пользователя нет
@@ -85,7 +85,7 @@ async def cmd_start(
                 event_message_key=image_key,
             )
             if success_activate_voucher:
-                if not await admin_modul.admin_service.check_admin(voucher.creator_id): # если создатель ваучера это не админ
+                if not await admin_module.admin_service.check_admin(voucher.creator_id): # если создатель ваучера это не админ
                     owner_user = await profile_module.user_service.get_user(voucher.creator_id) # далее создастся реферал
 
         if owner_user: # если пользователь должен стать рефераллом
@@ -109,7 +109,7 @@ async def cmd_start(
 
 @router.callback_query(F.data.startswith('set_language_after_start'))
 async def select_language(
-    callback: CallbackQuery, user: Users, profile_module: ProfileModule, messages_service: Messages, admin_modul: AdminModule
+    callback: CallbackQuery, user: Users, profile_module: ProfileModule, messages_service: Messages, admin_module: AdminModule
 ):
     selected_lang = callback.data.split(':')[1]
     setting = await profile_module.settings_service.get_settings()
@@ -130,7 +130,7 @@ async def select_language(
         chat_id=callback.from_user.id,
         message=text,
         event_message_key='welcome_message',
-        reply_markup=await main_kb(user.language, user.user_id, admin_modul)
+        reply_markup=await main_kb(user.language, user.user_id, admin_module)
     )
 
 

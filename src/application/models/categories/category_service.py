@@ -152,6 +152,7 @@ class CategoryService:
         fallback: str = 'ru',
         return_not_show: bool = False
     ) -> List[CategoryFull]:
+        """Если не указывать `parent_id`, то вернёт по main"""
         if parent_id:
             category_list = await self.category_cache_repo.get_categories_by_parent(parent_id, language)
             if category_list:

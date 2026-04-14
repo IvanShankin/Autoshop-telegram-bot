@@ -1,15 +1,14 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src._bot_actions.bot_instance import get_bot
-from src.application._database.categories.actions import get_categories
+from src.application.models.modules import CatalogModule
+from src.infrastructure.telegram.bot_instance import get_bot
 from src.models.read_models import CategoryFull
-from src.application._database.system.actions import get_settings
 from src.utils.i18n import get_text
 
 
-async def subscription_prompt_kb(language: str):
-    settings = await get_settings()
+async def subscription_prompt_kb(language: str, catalog_modul: CatalogModule):
+    settings = await catalog_modul.settings_service.get_settings()
     bot = get_bot()
 
     url = None
@@ -30,8 +29,8 @@ async def subscription_prompt_kb(language: str):
     return keyboard.as_markup()
 
 
-async def main_categories_kb(language: str) ->  InlineKeyboardMarkup:
-    categories = await get_categories(language=language)
+async def main_categories_kb(language: str, catalog_modul: CatalogModule) ->  InlineKeyboardMarkup:
+    categories = await catalog_modul.category_service.get_categories(language=language)
     keyboard = InlineKeyboardBuilder()
 
     for cat in categories:
@@ -44,8 +43,9 @@ async def main_categories_kb(language: str) ->  InlineKeyboardMarkup:
 async def account_category_kb(
     language: str,
     category: CategoryFull,
+    catalog_modul: CatalogModule,
     quantity_for_buying: int = 0,
-    promo_code_id: int = None
+    promo_code_id: int = None,
 ) ->  InlineKeyboardMarkup:
     parent_category = category
     keyboard = InlineKeyboardBuilder()
@@ -75,7 +75,7 @@ async def account_category_kb(
             callback_data=f'enter_promo:{current_category_id}:{quantity_for_buying}')
         )
     else: # если эта категория хранит другие категории
-        categories = await get_categories(
+        categories = await catalog_modul.category_service.get_categories(
             parent_id=current_category_id,
             language=language
         )
@@ -95,7 +95,7 @@ async def account_category_kb(
         for i in range(0, len(buttons), buttons_in_row):
             keyboard.row(*buttons[i:i + buttons_in_row])
 
-    if parent_category.is_main: # если это главная категория, то вернём в выбор сервиса
+    if parent_category.is_main: # если это главная категория
         keyboard.row(InlineKeyboardButton(text=get_text(language, "kb_general", "back"), callback_data=f'show_main_categories'))
     else:
         keyboard.row(InlineKeyboardButton(

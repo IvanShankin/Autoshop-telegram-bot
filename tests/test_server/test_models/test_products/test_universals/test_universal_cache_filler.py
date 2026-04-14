@@ -1,8 +1,19 @@
 from types import SimpleNamespace
+from datetime import datetime, timezone
 
 import pytest
 
 from src.application.models.products.universal.universal_cache_filler_service import UniversalCacheFillerService
+from src.database.models.categories.product_universal import (
+    SoldUniversal,
+    StorageStatus,
+    UniversalMediaType,
+    UniversalStorage,
+)
+from src.models.read_models.categories.product_universal import (
+    SoldUniversalSmall,
+    UniversalStoragePydantic,
+)
 
 
 class TestUniversalCacheFillerService:
@@ -75,3 +86,33 @@ class TestUniversalCacheFillerService:
         languages = UniversalCacheFillerService._extract_languages([item_with_translations])
 
         assert languages == {"ru"}
+
+    def test_from_orm_model_handles_empty_universal_translations(self, create_universal_storage):
+        storage = UniversalStorage(
+            universal_storage_id=1,
+            storage_uuid="storage-uuid",
+            original_filename=None,
+            encrypted_tg_file_id=None,
+            encrypted_tg_file_id_nonce=None,
+            checksum="checksum",
+            encrypted_key="encrypted-key",
+            encrypted_key_nonce="key-nonce",
+            key_version=1,
+            encryption_algo="AES-GCM-256",
+            status=StorageStatus.FOR_SALE,
+            media_type=UniversalMediaType.DOCUMENT,
+            is_active=True,
+            created_at=datetime.now(timezone.utc),
+        )
+        storage.translations = []
+
+        sold = SoldUniversal(
+            sold_universal_id=10,
+            owner_id=20,
+            universal_storage_id=1,
+            sold_at=datetime.now(timezone.utc),
+            storage=storage,
+        )
+
+        assert UniversalStoragePydantic.from_orm_model(storage, "ru").name == ""
+        assert SoldUniversalSmall.from_orm_model(sold, "ru").name == ""

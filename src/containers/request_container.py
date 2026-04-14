@@ -858,6 +858,11 @@ class RequestContainer:
             logger=self.logger,
             conf=self.config,
         )
+        self.ui_image_service = UiImagesService(
+            ui_image_repo=self.ui_image_repo,
+            cache_repo=self.ui_images_cache_repo,
+            session_db=self.session_db,
+        )
 
     def get_backup_db(self):
         return BackupDBService(
@@ -969,9 +974,10 @@ class RequestContainer:
             category_service=self.category_service,
             promo_code_service=self.promo_code_service,
             subscription_service=self.subscription_service,
-            account_moduls=self.get_account_modul(),
-            universal_moduls=self.get_universal_product_modul(),
             settings_service=self.settings_service,
+            ui_image_service=self.ui_image_service,
+            account_sold_service=self.account_sold_service,
+            universal_sold_service=self.universal_sold_service,
         )
 
     def get_account_modul(self) -> AccountsModuls:

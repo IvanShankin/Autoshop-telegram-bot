@@ -64,8 +64,8 @@ class SendMessageService:
         message_effect_id: str = None,
         _retry_without_effect: bool = False,
     ) -> "Message":
-        if not message and not image_key:
-            raise ValueError("Нужно указать message или image_key")
+        if not message and not (image_key or event_message_key):
+            raise ValueError("Нужно указать message или (image_key или event_message_key)")
 
         await self._send_sticker_if_needed(chat_id, event_message_key)
         image_key = self._resolve_image_key(image_key, event_message_key)

@@ -4,18 +4,16 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src._bot_actions.messages import edit_message, send_message
-from src.application._database.categories.actions import get_categories
-from src.application._database.discounts.utils.calculation import discount_calculation
-from src.application._redis.actions import delete_subscription_prompt, get_subscription_prompt
+from src.application.bot import Messages
+from src.application.models.modules import CatalogModule
 from src.database.models.users import Users
 from src.exceptions import InvalidPromoCode
+from src.infrastructure.telegram.ui.keyboard import support_kb
 from src.middlewares.aiogram_middleware import I18nKeyFilter
 from src.modules.categories.keyboards import subscription_prompt_kb, confirm_buy_kb, main_categories_kb
 from src.modules.categories.services import check_category, edit_message_category, buy_product
 from src.modules.categories.shemas import BuyProductsData
 from src.modules.categories.states import BuyProduct
-from src.modules.keyboard_main import support_kb
 from src.utils.converter import safe_int_conversion
 from src.utils.i18n import get_text
 
@@ -24,11 +22,13 @@ router = Router()
 
 
 @router_with_repl_kb.message(I18nKeyFilter("product_categories"))
-async def handle_catalog_message(message: Message, state: FSMContext, user: Users):
+async def handle_catalog_message(
+    message: Message, state: FSMContext, user: Users, messages_service: Messages, catalog_modul: CatalogModule
+):
     await state.clear()
 
-    if await get_subscription_prompt(user.user_id): # если пользователю ранее не предлагали подписаться
-        await send_message(
+    if await catalog_modul.subscription_service.get(user.user_id): # если пользователю ранее не предлагали подписаться
+        await messages_service.send_msg.send(
             chat_id=user.user_id,
             message=get_text(
                 user.language,
@@ -36,67 +36,80 @@ async def handle_catalog_message(message: Message, state: FSMContext, user: User
                 "subscribe_to_channel_prompt"
             ),
             event_message_key='subscription_prompt',
-            reply_markup=await subscription_prompt_kb(user.language)
+            reply_markup=await subscription_prompt_kb(user.language, catalog_modul)
         )
         return
 
-    await message_in_main_category(user)
+    await message_in_main_category(user, messages_service, catalog_modul)
 
 
-async def message_in_main_category(user: Users, old_message_id: int | None = None):
+async def message_in_main_category(
+    user: Users, messages_service: Messages, catalog_modul: CatalogModule, old_message_id: int | None = None,
+):
     """
     :param user: пользователь
     :param old_message_id: если указать, то сообщение с данным id будет отредактировано, иначе отправится новое
     """
 
-    if not await get_categories(language=user.language):
-        await send_message(
+    if not await catalog_modul.category_service.get_categories(language=user.language):
+        settings = await catalog_modul.settings_service.get_settings()
+        await messages_service.send_msg.send(
             chat_id=user.user_id,
             message=get_text(user.language, "categories", "no_categories_available"),
-            reply_markup=await support_kb(user.language)
+            reply_markup=await support_kb(user.language, support_username=settings.support_username)
         )
         return
 
     if old_message_id:
-        await edit_message(
+        await messages_service.edit_msg.edit(
             message_id=old_message_id,
             chat_id=user.user_id,
             event_message_key='main_category',
             fallback_image_key="default_catalog_account",
-            reply_markup=await main_categories_kb(user.language)
+            reply_markup=await main_categories_kb(user.language, catalog_modul)
         )
         return
 
-    await send_message(
+    await messages_service.send_msg.send(
         chat_id=user.user_id,
         event_message_key='main_category',
         fallback_image_key="default_catalog_account",
-        reply_markup=await main_categories_kb(user.language)
+        reply_markup=await main_categories_kb(user.language, catalog_modul)
     )
 
 
 @router.callback_query(F.data == "skip_subscription")
-async def skip_subscription(callback: CallbackQuery, state: FSMContext, user: Users):
+async def skip_subscription(
+    callback: CallbackQuery, state: FSMContext, user: Users, messages_service: Messages, catalog_modul: CatalogModule
+):
     await state.clear()
-    await delete_subscription_prompt(callback.from_user.id) # больше не просим подписаться
+    await catalog_modul.subscription_service.delete(callback.from_user.id) # больше не просим подписаться
 
     await message_in_main_category(
         user=user,
-        old_message_id=callback.message.message_id
+        old_message_id=callback.message.message_id,
+        messages_service=messages_service,
+        catalog_modul=catalog_modul,
     )
 
 
 @router.callback_query(F.data == "show_main_categories")
-async def show_main_categories(callback: CallbackQuery, state: FSMContext, user: Users):
+async def show_main_categories(
+    callback: CallbackQuery, state: FSMContext, user: Users, messages_service: Messages, catalog_modul: CatalogModule
+):
     await state.clear()
     await message_in_main_category(
         user=user,
-        old_message_id=callback.message.message_id
+        old_message_id=callback.message.message_id,
+        messages_service=messages_service,
+        catalog_modul=catalog_modul,
     )
 
 
 @router.callback_query(F.data.startswith("show_category:"))
-async def show_category(callback: CallbackQuery, state: FSMContext, user: Users):
+async def show_category(
+    callback: CallbackQuery, state: FSMContext, user: Users, messages_service: Messages, catalog_modul: CatalogModule
+):
     category_id = int(callback.data.split(':')[1])
     quantity_products = int(callback.data.split(':')[2]) # число аккаунтов на приобретение
 
@@ -104,7 +117,9 @@ async def show_category(callback: CallbackQuery, state: FSMContext, user: Users)
         category_id=category_id,
         old_message_id=callback.message.message_id,
         user_id=user.user_id,
-        language=user.language
+        language=user.language,
+        messages_service=messages_service,
+        catalog_modul=catalog_modul,
     )
     if category is None:
         return
@@ -138,12 +153,16 @@ async def show_category(callback: CallbackQuery, state: FSMContext, user: Users)
         user=user,
         message_id=callback.message.message_id,
         data=data,
-        category=category
+        category=category,
+        messages_service=messages_service,
+        catalog_modul=catalog_modul,
     )
 
 
 @router.message(BuyProduct.quantity_products)
-async def set_quantity_products(message: Message, state: FSMContext, user: Users):
+async def set_quantity_products(
+    message: Message, state: FSMContext, user: Users, messages_service: Messages, catalog_modul: CatalogModule
+):
     try:
         await message.delete()
     except Exception:
@@ -155,7 +174,9 @@ async def set_quantity_products(message: Message, state: FSMContext, user: Users
         category_id=data.category_id,
         old_message_id=data.old_message_id,
         user_id=user.user_id,
-        language=user.language
+        language=user.language,
+        messages_service=messages_service,
+        catalog_modul=catalog_modul,
     )
     if category is None:
         return
@@ -163,9 +184,13 @@ async def set_quantity_products(message: Message, state: FSMContext, user: Users
     new_quantity_products = safe_int_conversion(value=message.text, default=None, positive=True)
     sent_message = None
     if new_quantity_products is None:
-        sent_message = await send_message(user.user_id, get_text(user.language, "miscellaneous","incorrect_value_entered"))
-    elif new_quantity_products > category.quantity_product:
-        sent_message = await send_message(user.user_id, get_text(user.language, "categories","out_of_stock"))
+        sent_message = await messages_service.send_msg.send(
+            user.user_id, get_text(user.language, "miscellaneous","incorrect_value_entered")
+        )
+    elif new_quantity_products > category.quantity_product and not category.reuse_product:
+        sent_message = await messages_service.send_msg.send(
+            user.user_id, get_text(user.language, "categories","out_of_stock")
+        )
     else:
         data.quantity_for_buying = new_quantity_products
         await state.update_data(**data.model_dump())
@@ -185,12 +210,16 @@ async def set_quantity_products(message: Message, state: FSMContext, user: Users
         user=user,
         message_id=data.old_message_id,
         data=data,
-        category=category
+        category=category,
+        messages_service=messages_service,
+        catalog_modul=catalog_modul,
     )
 
 
 @router.callback_query(F.data.startswith('confirm_buy_category:'))
-async def confirm_buy_category(callback: CallbackQuery, user: Users):
+async def confirm_buy_category(
+    callback: CallbackQuery, user: Users, messages_service: Messages, catalog_modul: CatalogModule
+):
     category_id = int(callback.data.split(':')[1])
     quantity_products = int(callback.data.split(':')[2]) # число аккаунтов на приобретение
     promo_code_id = safe_int_conversion(callback.data.split(':')[3], positive=True) # либо int, либо "None"
@@ -203,7 +232,9 @@ async def confirm_buy_category(callback: CallbackQuery, user: Users):
         category_id=category_id,
         old_message_id=callback.message.message_id,
         user_id=user.user_id,
-        language=user.language
+        language=user.language,
+        messages_service=messages_service,
+        catalog_modul=catalog_modul,
     )
     if category is None:
         return
@@ -212,7 +243,9 @@ async def confirm_buy_category(callback: CallbackQuery, user: Users):
 
     if promo_code_id is not None: # если есть promo_code_id
         try:
-            discount_sum, _ = await discount_calculation(amount=total_sum, promo_code_id=promo_code_id)
+            discount_sum, _ = await catalog_modul.promo_code_service.discount_calculation(
+                amount=total_sum, promo_code_id=promo_code_id
+            )
             total_sum = max(0, total_sum - discount_sum)
         except InvalidPromoCode:
             await callback.answer(
@@ -225,7 +258,7 @@ async def confirm_buy_category(callback: CallbackQuery, user: Users):
             )
             return
 
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=get_text(
@@ -250,7 +283,9 @@ async def confirm_buy_category(callback: CallbackQuery, user: Users):
 
 
 @router.callback_query(F.data.startswith('buy_in_category:'))
-async def buy_in_category(callback: CallbackQuery, state: FSMContext, user: Users):
+async def buy_in_category(
+    callback: CallbackQuery, state: FSMContext, user: Users, messages_service: Messages, catalog_modul: CatalogModule
+):
     category_id = int(callback.data.split(':')[1])
     quantity_products = int(callback.data.split(':')[2])  # число продуктов на приобретение
     promo_code_id = safe_int_conversion(callback.data.split(':')[3], positive=True)  # либо int, либо "None"
@@ -261,5 +296,7 @@ async def buy_in_category(callback: CallbackQuery, state: FSMContext, user: User
         quantity_products=quantity_products,
         callback=callback,
         user=user,
+        messages_service=messages_service,
+        catalog_modul=catalog_modul,
     )
     await state.clear()

@@ -82,7 +82,13 @@ class UniversalStoragePydantic(ORMDTO):
         """
         :param universal_storage: передавать с подгруженными translation
         """
-        encrypted_description, encrypted_description_nonce = universal_storage.get_description(language)
+        try:
+            encrypted_description, encrypted_description_nonce = universal_storage.get_description(language)
+            name = universal_storage.get_name(language)
+        except IndexError:
+            encrypted_description = None
+            encrypted_description_nonce = None
+            name = ""
 
         return cls(
             universal_storage_id=universal_storage.universal_storage_id,
@@ -100,7 +106,7 @@ class UniversalStoragePydantic(ORMDTO):
 
             status=universal_storage.status,
             media_type=universal_storage.media_type,
-            name=universal_storage.get_name(language),
+            name=name,
             encrypted_description=encrypted_description,
             encrypted_description_nonce=encrypted_description_nonce,
 
@@ -163,12 +169,17 @@ class SoldUniversalSmall(ORMDTO):
         """
         :param sold_universal: передавать с подгруженным storage, который должен быть с погруженными translation
         """
+        try:
+            name = sold_universal.storage.get_name(language)
+        except IndexError:
+            name = ""
+
         return cls(
             sold_universal_id=sold_universal.sold_universal_id,
             owner_id=sold_universal.owner_id,
             universal_storage_id=sold_universal.universal_storage_id,
             sold_at=sold_universal.sold_at,
-            name=sold_universal.storage.get_name(language),
+            name=name,
         )
 
 
@@ -193,5 +204,3 @@ class SoldUniversalFull(ORMDTO):
             sold_at=sold_universal.sold_at,
             universal_storage=UniversalStoragePydantic.from_orm_model(sold_universal.storage, language),
         )
-
-

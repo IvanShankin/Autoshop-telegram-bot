@@ -1,20 +1,25 @@
-from src._bot_actions.bot_instance import get_bot
-from src._bot_actions.messages import edit_message, send_message
+from src.application.bot import Messages
+from src.application.models.modules import CatalogModule
+from src.infrastructure.telegram.bot_instance import get_bot
 from src.modules.categories.keyboards import account_category_kb
 from src.modules.categories.shemas import BuyProductsData
-from src.application._database.categories.actions import get_category_by_category_id
 from src.models.read_models import CategoryFull
-from src.application._database.system.actions import get_ui_image
 from src.database.models.users import Users
 from src.utils.i18n import get_text
 
 
-async def check_category(category_id: int, old_message_id: int, user_id: int, language: str) -> CategoryFull | None:
+async def check_category(
+    category_id: int,
+    old_message_id: int,
+    user_id: int, language: str,
+    messages_service: Messages,
+    catalog_modul: CatalogModule
+) -> CategoryFull | None:
     """
     Если есть категория, то вернёт её, если не найдена, то отошлёт соответсвующее сообщение и удалит прошлое
     :return: Если есть категория, то вернёт CategoryFull, иначе None
     """
-    category = await get_category_by_category_id(category_id, language=language)
+    category = await catalog_modul.category_service.get_category_by_id(category_id, language=language)
     if not category:
         try:
             bot = get_bot()
@@ -22,7 +27,7 @@ async def check_category(category_id: int, old_message_id: int, user_id: int, la
         except Exception:
             pass
 
-        await send_message(
+        await messages_service.send_msg.send(
             chat_id=user_id,
             message=get_text(language, "categories","category_temporarily_unavailable"),
         )
@@ -32,12 +37,14 @@ async def check_category(category_id: int, old_message_id: int, user_id: int, la
 
 
 async def edit_message_category(
-        user: Users,
-        message_id: int,
-        data: BuyProductsData,
-        category: CategoryFull
+    user: Users,
+    message_id: int,
+    data: BuyProductsData,
+    category: CategoryFull,
+    messages_service: Messages,
+    catalog_modul: CatalogModule
 ):
-    ui_image = await get_ui_image(category.ui_image_key)
+    ui_image = await catalog_modul.ui_image_service.get_ui_image(category.ui_image_key)
 
     message = None
     if category.is_product_storage:
@@ -69,7 +76,7 @@ async def edit_message_category(
             total_price=total_price
         )
 
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=user.user_id,
         message_id=message_id,
         message=message,
@@ -78,6 +85,7 @@ async def edit_message_category(
             user.language,
             category=category,
             quantity_for_buying=data.quantity_for_buying,
-            promo_code_id=data.promo_code_id
+            promo_code_id=data.promo_code_id,
+            catalog_modul=catalog_modul,
         )
     )

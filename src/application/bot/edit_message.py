@@ -139,7 +139,7 @@ class EditMessageService:
                     await self.publish_event.create_ui_image(ui_image_key=ui_image.key)
 
             # если не нашли ui_image или не надо отсылать его (not ui_image.show)
-            elif (not ui_image or ui_image and not ui_image.show) and fallback_image_key:
+            elif not ui_image.show and fallback_image_key:
                 text = ''
                 if not ui_image:
                     text = f"#Не_найдено_фото [edit_message]. \nget_ui_image='{image_key}'"
@@ -148,7 +148,7 @@ class EditMessageService:
                 # если не нашли ui_image или не надо отсылать его
                 ui_image = await self.ui_images_service.get_ui_image(fallback_image_key)
 
-                if ui_image:
+                if ui_image and ui_image.show:
                     file_path = self.path_builder.build_path_ui_image(file_name=ui_image.file_name)
                     if ui_image.file_id:
                         ok = await self._try_edit_media_by_file_id(
@@ -182,7 +182,7 @@ class EditMessageService:
                             ui_image_key=ui_image.key
                         )
 
-                else:
+                elif text:
                     await self.publish_event.send_log(
                         text=text,
                         log_lvl=LogLevel.WARNING

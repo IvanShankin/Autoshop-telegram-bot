@@ -27,6 +27,7 @@ class ModulesMiddleware(BaseMiddleware):
             request_container = self.app_container.get_request_container(session)
 
             data["profile_module"] = request_container.get_profile_modul()
+            data["catalog_modul"] = request_container.get_catalog_modul()
             data["messages_service"] = request_container.get_message_service()
             # создание модулей под другие разделы
 

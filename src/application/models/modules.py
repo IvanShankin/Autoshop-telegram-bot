@@ -14,7 +14,7 @@ from src.application.models.products.accounts import AccountDeletedService, Acco
 from src.application.models.products.universal import UniversalDeletedService, UniversalProductService, \
     UniversalSoldService, UniversalStorageService, UniversalTranslationsService, UniversalCacheFillerService
 from src.application.models.referrals import ReferralService, ReferralIncomeService, ReferralLevelsService
-from src.application.models.systems import TypesPaymentsService, SettingsService
+from src.application.models.systems import TypesPaymentsService, SettingsService, UiImagesService
 from src.application.models.users import WalletTransactionService, UserService, MoneyTransferService, \
     NotificationSettingsService
 from src.application.models.users.permission_service import PermissionService
@@ -127,9 +127,10 @@ class CatalogModule:
         category_service: CategoryService,
         promo_code_service: PromoCodeService,
         subscription_service: SubscriptionService,
-        account_moduls: AccountsModuls,
-        universal_moduls: UniversalModuls,
         settings_service: SettingsService,
+        ui_image_service: UiImagesService,
+        account_sold_service: AccountSoldService,
+        universal_sold_service: UniversalSoldService,
     ):
         self.conf = conf
         self.logger = logger
@@ -138,6 +139,7 @@ class CatalogModule:
         self.category_service = category_service
         self.promo_code_service = promo_code_service
         self.subscription_service = subscription_service
-        self.account_moduls = account_moduls
-        self.universal_moduls = universal_moduls
         self.settings_service = settings_service
+        self.ui_image_service = ui_image_service
+        self.account_sold_service = account_sold_service
+        self.universal_sold_service = universal_sold_service

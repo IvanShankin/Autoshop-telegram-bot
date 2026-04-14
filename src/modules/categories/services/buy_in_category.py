@@ -2,19 +2,16 @@ from typing import Callable, Coroutine, Any
 
 from aiogram.types import CallbackQuery
 
-from src._bot_actions.bot_instance import get_bot
-from src._bot_actions.messages import edit_message, send_message
+from src.application.bot import Messages
+from src.application.models.modules import CatalogModule
 from src.exceptions import InvalidPromoCode, CategoryNotFound, NotEnoughMoney, NotEnoughAccounts
 from src.exceptions.business import NotEnoughProducts
+from src.infrastructure.telegram.bot_instance import get_bot
 from src.modules.categories.keyboards import replenishment_and_back_in_cat, back_in_account_category_kb
 from src.modules.categories.services.helpers import check_category
 from src.modules.profile.keyboards import in_purchased_account_kb, in_purchased_universal_product_kb
-from src.application._database.categories.actions import purchase
-from src.application._database.categories.actions.products.accounts.actions_get import get_sold_accounts_by_owner_id
-from src.application._database.categories.actions.products.universal.actions_get import get_sold_universal_by_owner_id
 from src.database.models.categories import ProductType
 from src.models.read_models import CategoryFull
-from src.application._database.discounts.utils.calculation import discount_calculation
 from src.database.models.users import Users
 from src.utils.i18n import get_text, n_get_text
 
@@ -24,9 +21,10 @@ async def _show_not_enough_money(
     category_id: int,
     quantity_products: int,
     callback: CallbackQuery,
-    user: Users
+    user: Users,
+    messages_service: Messages,
 ):
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=get_text(user.language, "miscellaneous", "insufficient_funds").format(amount=need_money),
@@ -61,9 +59,11 @@ async def _buy(
     category: CategoryFull,
     promo_code_id: int,
     quantity_products: int,
+    messages_service: Messages,
+    catalog_modul: CatalogModule,
 ):
     try:
-        result = await purchase(
+        result = await catalog_modul.purchase_service.purchase(
             user_id=user.user_id,
             category_id=category.category_id,
             quantity_products=quantity_products,
@@ -88,7 +88,9 @@ async def _buy(
             sold_account_id = None
 
             if quantity_products == 1:
-                all_sold_acc = await get_sold_accounts_by_owner_id(user.user_id, user.language)
+                all_sold_acc = await catalog_modul.account_sold_service.get_sold_accounts_by_owner_id(
+                    user.user_id, user.language
+                )
                 if all_sold_acc:
                     sold_account_id = all_sold_acc[0].sold_account_id
 
@@ -102,7 +104,9 @@ async def _buy(
             sold_universal_id = None
 
             if quantity_products == 1:
-                all_sold_uni = await get_sold_universal_by_owner_id(user.user_id, user.language)
+                all_sold_uni = await catalog_modul.universal_sold_service.get_sold_universal_by_owner_id(
+                    user.user_id, user.language
+                )
                 if all_sold_uni:
                     sold_universal_id = all_sold_uni[0].sold_universal_id
 
@@ -117,7 +121,7 @@ async def _buy(
         except:
             pass
 
-        await send_message(
+        await messages_service.send_msg.send(
             chat_id=callback.from_user.id,
             message=n_get_text(
                 user.language,
@@ -133,7 +137,7 @@ async def _buy(
         )
     else:
         # тут будем если нашли невалидные аккаунты и не смогли найти замену им
-        await edit_message(
+        await messages_service.edit_msg.edit(
             chat_id=callback.from_user.id,
             message_id=callback.message.message_id,
             message=get_text(
@@ -157,13 +161,17 @@ async def buy_product(
     quantity_products: int,
     callback: CallbackQuery,
     user: Users,
+    messages_service: Messages,
+    catalog_modul: CatalogModule,
 ):
 
     category = await check_category(
         category_id=category_id,
         old_message_id=callback.message.message_id,
         user_id=user.user_id,
-        language=user.language
+        language=user.language,
+        messages_service=messages_service,
+        catalog_modul=catalog_modul,
     )
     if category is None:
         return
@@ -180,7 +188,9 @@ async def buy_product(
 
     if promo_code_id is not None:  # если есть promo_code_id
         try:
-            discount_sum, promo_code = await discount_calculation(amount=total_sum, promo_code_id=promo_code_id)
+            discount_sum, promo_code = await catalog_modul.promo_code_service.discount_calculation(
+                amount=total_sum, promo_code_id=promo_code_id
+            )
             total_sum = max(0, total_sum - discount_sum)
 
             # если минимальная сумма активации промокода не достигнута
@@ -211,11 +221,14 @@ async def buy_product(
             category_id=category_id,
             quantity_products=quantity_products,
             callback=callback,
-            user=user
+            user=user,
+            messages_service=messages_service,
         )
         return
 
-    message_load = await send_message(user.user_id, get_text(user.language,"categories","testing_products"))
+    message_load = await messages_service.send_msg.send(
+        user.user_id, get_text(user.language,"categories","testing_products")
+    )
     async def delete_message():
         try:
             await message_load.delete()
@@ -229,7 +242,9 @@ async def buy_product(
             delete_message_def=delete_message,
             category=category,
             promo_code_id=promo_code_id,
-            quantity_products=quantity_products
+            quantity_products=quantity_products,
+            messages_service=messages_service,
+            catalog_modul=catalog_modul,
         )
 
     except CategoryNotFound as e:
@@ -240,7 +255,7 @@ async def buy_product(
         except Exception:
             pass
 
-        await send_message(
+        await messages_service.send_msg.send(
             chat_id=user.user_id,
             message=get_text(user.language, "categories","category_temporarily_unavailable"),
         )
@@ -252,7 +267,8 @@ async def buy_product(
             category_id=category_id,
             quantity_products=quantity_products,
             callback=callback,
-            user=user
+            user=user,
+            messages_service=messages_service,
         )
         return
 

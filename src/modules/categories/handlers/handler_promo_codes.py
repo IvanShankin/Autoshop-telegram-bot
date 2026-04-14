@@ -4,9 +4,8 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src._bot_actions.messages import edit_message, send_message
-from src.application._database.discounts.actions import get_promo_code
-from src.application._database.discounts.actions.actions_promo import check_activate_promo_code
+from src.application.bot import Messages
+from src.application.models.modules import CatalogModule
 from src.database.models.users import Users
 from src.modules.categories.keyboards import back_in_account_category_kb
 from src.modules.categories.services import check_category, edit_message_category
@@ -19,7 +18,9 @@ router = Router()
 
 
 @router.callback_query(F.data.startswith('enter_promo:'))
-async def enter_promo(callback: CallbackQuery, state: FSMContext, user: Users):
+async def enter_promo(
+    callback: CallbackQuery, state: FSMContext, user: Users, messages_service: Messages, catalog_modul: CatalogModule
+):
     category_id = int(callback.data.split(':')[1])
     quantity_products = int(callback.data.split(':')[2]) # число аккаунтов на приобретение
 
@@ -27,12 +28,14 @@ async def enter_promo(callback: CallbackQuery, state: FSMContext, user: Users):
         category_id=category_id,
         old_message_id=callback.message.message_id,
         user_id=user.user_id,
-        language=user.language
+        language=user.language,
+        messages_service=messages_service,
+        catalog_modul=catalog_modul,
     )
     if category is None:
         return
 
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=get_text(user.language, "categories","enter_activation_code"),
@@ -49,26 +52,30 @@ async def enter_promo(callback: CallbackQuery, state: FSMContext, user: Users):
 
 
 @router.message(BuyProduct.promo_code)
-async def set_promo_code(message: Message, state: FSMContext, user: Users):
+async def set_promo_code(
+    message: Message, state: FSMContext, user: Users, messages_service: Messages, catalog_modul: CatalogModule
+):
     try:
         await message.delete()
     except Exception:
         pass
 
-    promo = await get_promo_code(message.text)
+    promo = await catalog_modul.promo_code_service.get_promo_code(message.text)
     data = BuyProductsData(**(await state.get_data()))
 
     category = await check_category(
         category_id=data.category_id,
         old_message_id=data.old_message_id,
         user_id=user.user_id,
-        language=user.language
+        language=user.language,
+        messages_service=messages_service,
+        catalog_modul=catalog_modul,
     )
     if category is None:
         return
 
     if not promo:
-        await edit_message(
+        await messages_service.edit_msg.edit(
             chat_id=message.from_user.id,
             message_id=data.old_message_id,
             message=get_text(user.language, "discount","promo_code_not_found_or_expired"),
@@ -83,8 +90,10 @@ async def set_promo_code(message: Message, state: FSMContext, user: Users):
         return
 
     # если активирован ранее
-    if await check_activate_promo_code(promo_code_id=promo.promo_code_id, user_id=user.user_id):
-        await edit_message(
+    if await catalog_modul.promo_code_service.activate_promo_code_service.check_activate_promo_code(
+            promo_code_id=promo.promo_code_id, user_id=user.user_id
+    ):
+        await messages_service.edit_msg.edit(
             chat_id=message.from_user.id,
             message_id=data.old_message_id,
             message=get_text(user.language, "discount","promo_code_already_activated"),
@@ -109,10 +118,12 @@ async def set_promo_code(message: Message, state: FSMContext, user: Users):
         user = user,
         message_id = data.old_message_id,
         data = BuyProductsData(**(await state.get_data())),
-        category = category
+        category = category,
+        messages_service=messages_service,
+        catalog_modul=catalog_modul,
     )
 
-    promo_message = await send_message(
+    promo_message = await messages_service.send_msg.send(
         user.user_id,
         get_text(user.language, "discount", "promo_code_successfully_activated")
     )

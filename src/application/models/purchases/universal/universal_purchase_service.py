@@ -610,7 +610,7 @@ class UniversalPurchaseService:
 
     async def finalize_purchase_one(self, user_id: int, data: StartPurchaseUniversalOne) -> bool:
         """
-        Копирует storage, создаёт записи и сбрасывает результат покупки, как в старой реализации.
+        Копирует storage, создаёт записи и сбрасывает результат покупки.
         """
         created_storages: list[UniversalStorage] = []
         sold_ids: list[int] = []
@@ -707,7 +707,8 @@ class UniversalPurchaseService:
 
             return True
 
-        except Exception:
+        except Exception as e:
+            self.logger.exception("Исключение при покупки универсального товара с reuse_product")
             await self.cancel_purchase_one(
                 user_id=user_id,
                 category_id=data.category_id,

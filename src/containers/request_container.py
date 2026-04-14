@@ -1003,6 +1003,8 @@ class RequestContainer:
             admin_service=self.admin_service,
             banned_account_service=self.banned_account_service,
             crypto_provider=self.crypto_provider,
+            publish_event_handler=self.publish_event_handler,
+            cache_warmup_service=self.get_cache_warmup_service(),
             path_builder=self.path_builder,
         )
 

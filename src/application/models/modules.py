@@ -1,6 +1,8 @@
 from logging import Logger
 
+from src.application.cache_warmup import CacheWarmupService
 from src.application.crypto.crypto_context import CryptoProvider
+from src.application.events.publish_event_handler import PublishEventHandler
 from src.application.models.admins import AdminsService
 from src.application.models.categories import CategoryService
 from src.application.models.purchases import PurchaseService
@@ -171,6 +173,8 @@ class AdminModule:
         admin_service: AdminsService,
         banned_account_service: BannedAccountService,
         crypto_provider: CryptoProvider,
+        publish_event_handler: PublishEventHandler,
+        cache_warmup_service: CacheWarmupService,
         path_builder: PathBuilder,
     ):
         self.conf = conf
@@ -194,4 +198,6 @@ class AdminModule:
         self.admin_service = admin_service
         self.banned_account_service = banned_account_service
         self.crypto_provider = crypto_provider
+        self.publish_event_handler = publish_event_handler
+        self.cache_warmup_service = cache_warmup_service
         self.path_builder = path_builder

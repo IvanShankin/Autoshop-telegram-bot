@@ -108,7 +108,9 @@ async def cmd_start(
 
 
 @router.callback_query(F.data.startswith('set_language_after_start'))
-async def select_language(callback: CallbackQuery, user: Users, profile_module: ProfileModule, messages_service: Messages, admin_modul: AdminModule):
+async def select_language(
+    callback: CallbackQuery, user: Users, profile_module: ProfileModule, messages_service: Messages, admin_modul: AdminModule
+):
     selected_lang = callback.data.split(':')[1]
     setting = await profile_module.settings_service.get_settings()
 

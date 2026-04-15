@@ -50,6 +50,11 @@ class TelegramClient:
             # если не нашли — пробрасываем оригинальное
             raise
 
+    async def me(self):
+        return await self._call(
+            self.bot.me,
+        )
+
     async def send_message(
         self,
         chat_id: int | str,

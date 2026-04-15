@@ -1,9 +1,10 @@
 from logging import Logger
 
+from src.application.bot import MassTgMailingService
 from src.application.cache_warmup import CacheWarmupService
 from src.application.crypto.crypto_context import CryptoProvider
 from src.application.events.publish_event_handler import PublishEventHandler
-from src.application.models.admins import AdminsService
+from src.application.models.admins import AdminsService, SentMassMessagesService, MessageForSendingService
 from src.application.models.categories import CategoryService, TranslationsCategoryService
 from src.application.models.purchases import PurchaseService
 from src.application.models.users.pubscription_prompt import SubscriptionService
@@ -23,7 +24,8 @@ from src.application.models.products.accounts import AccountDeletedService, Acco
 from src.application.models.products.universal import UniversalDeletedService, UniversalProductService, \
     UniversalSoldService, UniversalStorageService, UniversalTranslationsService, UniversalCacheFillerService
 from src.application.models.referrals import ReferralService, ReferralIncomeService, ReferralLevelsService
-from src.application.models.systems import TypesPaymentsService, SettingsService, UiImagesService, StatisticsService
+from src.application.models.systems import TypesPaymentsService, SettingsService, UiImagesService, StatisticsService, \
+    EventMessageService, StickersService
 from src.application.models.users import WalletTransactionService, UserService, MoneyTransferService, \
     NotificationSettingsService, BannedAccountService, ReplenishmentsService
 from src.application.models.users.permission_service import PermissionService
@@ -201,6 +203,10 @@ class AdminModule:
         import_tg_account: ImportTelegramAccountsUseCase,
         import_other_account: ImportOtherAccountsUseCase,
         import_universal_product: ImportUniversalProductUseCase,
+        event_message_service: EventMessageService,
+        sent_mass_message_service: SentMassMessagesService,
+        message_for_sending_service: MessageForSendingService,
+        stickers_service: StickersService,
     ):
         self.conf = conf
         self.logger = logger
@@ -244,3 +250,7 @@ class AdminModule:
         self.import_tg_account = import_tg_account
         self.import_other_account = import_other_account
         self.import_universal_product = import_universal_product
+        self.event_message_service = event_message_service
+        self.sent_mass_message_service = sent_mass_message_service
+        self.message_for_sending_service = message_for_sending_service
+        self.stickers_service = stickers_service

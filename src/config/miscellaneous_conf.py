@@ -9,6 +9,7 @@ class MiscellaneousConf(BaseModel):
     payment_lifetime_seconds: int = 1200 # 20 минут
     fetch_interval: int = 7200  # 2 часа (для обновления курса доллара)
     semaphore_mailing_limit: Semaphore = Semaphore(15)
+    semaphore_mailing_limit_in_int: int = 15
     rate_send_msg_limit: int = 25
     page_size: int = 6
     backup_retention_count: int = 14

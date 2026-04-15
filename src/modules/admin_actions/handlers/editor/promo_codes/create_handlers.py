@@ -2,22 +2,24 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src._bot_actions.messages import edit_message, send_message
+from src.application.bot import Messages
+from src.application.models.modules import AdminModule
+from src.models.create_models.discounts import CreatePromoCodeDTO
+from src.models.read_models import UsersDTO
 from src.modules.admin_actions.keyboards import select_promo_code_type_kb, \
     back_in_start_creating_promo_code_kb, skip_number_activations_promo_or_in_start_kb, \
     skip_expire_at_promo_or_in_start_kb, in_show_admin_promo_kb
 from src.modules.admin_actions.schemas import CreatePromoCodeData
 from src.modules.admin_actions.state import CreatePromoCode
-from src.application._database.discounts.actions import get_promo_code, create_promo_code
-from src.database.models.users import Users
+
 from src.utils.converter import safe_int_conversion, safe_parse_datetime
 from src.utils.i18n import get_text
 
 router = Router()
 
 
-async def show_incorrect_data(user: Users):
-    await send_message(
+async def show_incorrect_data(user: UsersDTO, messages_service: Messages,):
+    await messages_service.send_msg.send(
         user.user_id,
         get_text(user.language, "miscellaneous","incorrect_value_entered"),
         reply_markup=back_in_start_creating_promo_code_kb(user.language)
@@ -25,8 +27,8 @@ async def show_incorrect_data(user: Users):
     return
 
 
-async def show_get_number_of_activations(state: FSMContext, user: Users):
-    await send_message(
+async def show_get_number_of_activations(state: FSMContext, user: UsersDTO, messages_service: Messages,):
+    await messages_service.send_msg.send(
         user.user_id,
         get_text(
             user.language,
@@ -39,8 +41,8 @@ async def show_get_number_of_activations(state: FSMContext, user: Users):
     return
 
 
-async def send_message_get_expire_at_date(state: FSMContext, user: Users):
-    await send_message(
+async def send_message_get_expire_at_date(state: FSMContext, user: UsersDTO, messages_service: Messages,):
+    await messages_service.send_msg.send(
         chat_id=user.user_id,
         message=get_text(
             user.language,
@@ -52,8 +54,8 @@ async def send_message_get_expire_at_date(state: FSMContext, user: Users):
     await state.set_state(CreatePromoCode.get_expire_at)
 
 
-async def send_message_get_min_order_amount(state: FSMContext, user: Users):
-    await send_message(
+async def send_message_get_min_order_amount(state: FSMContext, user: UsersDTO, messages_service: Messages,):
+    await messages_service.send_msg.send(
         chat_id=user.user_id,
         message=get_text(
             user.language,
@@ -65,8 +67,8 @@ async def send_message_get_min_order_amount(state: FSMContext, user: Users):
     await state.set_state(CreatePromoCode.get_min_order_amount)
 
 
-async def send_message_get_code(state: FSMContext, user: Users):
-    await send_message(
+async def send_message_get_code(state: FSMContext, user: UsersDTO, messages_service: Messages,):
+    await messages_service.send_msg.send(
         chat_id=user.user_id,
         message=get_text(
             user.language,
@@ -79,9 +81,9 @@ async def send_message_get_code(state: FSMContext, user: Users):
 
 
 @router.callback_query(F.data == "admin_create_promo")
-async def admin_create_promo_code(callback: CallbackQuery, state: FSMContext, user: Users):
+async def admin_create_promo_code(callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,):
     await state.clear()
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
         message=get_text(
@@ -94,8 +96,8 @@ async def admin_create_promo_code(callback: CallbackQuery, state: FSMContext, us
 
 
 @router.callback_query(F.data == "create_promo_code_amount")
-async def create_promo_code_amount(callback: CallbackQuery, state: FSMContext, user: Users):
-    await edit_message(
+async def create_promo_code_amount(callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,):
+    await messages_service.edit_msg.edit(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
         message=get_text(
@@ -109,19 +111,21 @@ async def create_promo_code_amount(callback: CallbackQuery, state: FSMContext, u
 
 
 @router.message(CreatePromoCode.get_amount)
-async def create_promo_get_amount(message: Message, state: FSMContext, user: Users):
+async def create_promo_get_amount(message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages,):
     amount = safe_int_conversion(message.text, positive=True)
     if not amount:
-        await show_incorrect_data(user)
+        await show_incorrect_data(user, messages_service)
         return
 
     await state.update_data(amount=amount)
-    await show_get_number_of_activations(state, user)
+    await show_get_number_of_activations(state, user, messages_service)
 
 
 @router.callback_query(F.data == "create_promo_code_percentage")
-async def create_promo_code_percentage(callback: CallbackQuery, state: FSMContext, user: Users):
-    await edit_message(
+async def create_promo_code_percentage(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO,  messages_service: Messages,
+):
+    await messages_service.edit_msg.edit(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
         message=get_text(
@@ -135,13 +139,15 @@ async def create_promo_code_percentage(callback: CallbackQuery, state: FSMContex
 
 
 @router.message(CreatePromoCode.get_discount_percentage)
-async def create_promo_get_get_discount_percentage(message: Message, state: FSMContext, user: Users):
+async def create_promo_get_get_discount_percentage(
+    message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
     persent = safe_int_conversion(message.text, positive=True)
     if not persent:
-        await show_incorrect_data(user)
+        await show_incorrect_data(user, messages_service)
         return
     if persent > 100:
-        await send_message(
+        await messages_service.send_msg.send(
             chat_id=user.user_id,
             message=get_text(
                 user.language,
@@ -153,64 +159,72 @@ async def create_promo_get_get_discount_percentage(message: Message, state: FSMC
         return
 
     await state.update_data(discount_percentage=persent)
-    await show_get_number_of_activations(state, user)
+    await show_get_number_of_activations(state, user, messages_service)
 
 
 @router.message(CreatePromoCode.get_number_of_activations)
-async def create_promo_get_number_of_activations(message: Message, state: FSMContext, user: Users):
+async def create_promo_get_number_of_activations(
+    message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
     number_of_activations = safe_int_conversion(message.text, positive=True)
     if not number_of_activations:
-        await show_incorrect_data(user)
+        await show_incorrect_data(user, messages_service)
         return
 
     await state.update_data(number_of_activations=number_of_activations)
-    await send_message_get_expire_at_date(state, user)
+    await send_message_get_expire_at_date(state, user, messages_service)
 
 
 @router.callback_query(F.data == "set_expire_at_promo")
-async def set_expire_at_promo(callback: CallbackQuery, state: FSMContext, user: Users):
+async def set_expire_at_promo(callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,):
     """Если попали в такой handler, значит пользователь пропустил число активаций"""
     try:
         await callback.message.delete()
     except Exception:
         pass
-    await send_message_get_expire_at_date(state, user)
+    await send_message_get_expire_at_date(state, user, messages_service)
 
 
 @router.message(CreatePromoCode.get_expire_at)
-async def get_expire_at(message: Message, state: FSMContext, user: Users):
+async def get_expire_at(message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages,):
     expire_at = safe_parse_datetime(message.text)
     if not expire_at:
-        await show_incorrect_data(user)
+        await show_incorrect_data(user, messages_service)
         return
 
     await state.update_data(expire_at=expire_at)
-    await send_message_get_min_order_amount(state, user)
+    await send_message_get_min_order_amount(state, user, messages_service)
 
 
 @router.callback_query(F.data == "set_min_order_amount_promo")
-async def set_min_order_amount_promo(callback: CallbackQuery, state: FSMContext, user: Users):
+async def set_min_order_amount_promo(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO,  messages_service: Messages,
+):
     """Если попали в такой handler, значит пользователь пропустил срок годности промокода"""
     try:
         await callback.message.delete()
     except Exception:
         pass
-    await send_message_get_min_order_amount(state, user)
+    await send_message_get_min_order_amount(state, user, messages_service)
 
 
 @router.message(CreatePromoCode.get_min_order_amount)
-async def get_min_order_amount(message: Message, state: FSMContext, user: Users):
+async def get_min_order_amount(
+    message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
     min_order_amount = safe_int_conversion(message.text)
     if not min_order_amount:
-        await show_incorrect_data(user)
+        await show_incorrect_data(user, messages_service)
         return
 
     await state.update_data(min_order_amount=min_order_amount)
-    await send_message_get_code(state, user)
+    await send_message_get_code(state, user, messages_service)
 
 
 @router.message(CreatePromoCode.get_activation_code)
-async def get_activation_code(message: Message, state: FSMContext, user: Users):
+async def get_activation_code(
+    message: Message, state: FSMContext, user: UsersDTO, admin_module: AdminModule, messages_service: Messages,
+):
     if len(message.text) > 150:
         text = get_text(
             user.language,
@@ -218,7 +232,7 @@ async def get_activation_code(message: Message, state: FSMContext, user: Users):
             "code_length_exceeded"
         )
         reply_markup = back_in_start_creating_promo_code_kb(user.language)
-    elif await get_promo_code(code=message.text):
+    elif await admin_module.promo_code_service.get_promo_code(code=message.text):
         text = get_text(
             user.language,
             "admins_editor_promo_codes",
@@ -229,14 +243,16 @@ async def get_activation_code(message: Message, state: FSMContext, user: Users):
 
         data = CreatePromoCodeData(**(await state.get_data()))
         try:
-            new_promo_code = await create_promo_code(
+            new_promo_code = await admin_module.promo_code_service.create_promo_code(
                 creator_id=user.user_id,
-                code=message.text,
-                min_order_amount=data.min_order_amount,
-                amount=data.amount,
-                discount_percentage=data.discount_percentage,
-                number_of_activations=data.number_of_activations,
-                expire_at=data.expire_at
+                data=CreatePromoCodeDTO(
+                    code=message.text,
+                    min_order_amount=data.min_order_amount,
+                    amount=data.amount,
+                    discount_percentage=data.discount_percentage,
+                    number_of_activations=data.number_of_activations,
+                    expire_at=data.expire_at
+                )
             )
             text = get_text(
                 user.language,
@@ -257,7 +273,7 @@ async def get_activation_code(message: Message, state: FSMContext, user: Users):
             )
             reply_markup = back_in_start_creating_promo_code_kb(user.language)
 
-    await send_message(
+    await messages_service.send_msg.send(
         chat_id=user.user_id,
         message=text,
         reply_markup=reply_markup

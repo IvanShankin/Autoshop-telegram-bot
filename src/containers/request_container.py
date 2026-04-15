@@ -107,7 +107,7 @@ from src.application.models.admins import AdminActionsService, AdminsService, Me
 from src.application.models.payment_services import PaymentService
 from src.application.models.referrals import ReferralService, ReferralIncomeService, ReferralLevelsService
 from src.application.models.systems import StickersService, UiImagesService, FilesService, SettingsService, \
-    TypesPaymentsService, BackupLogsService, StatisticsService
+    TypesPaymentsService, BackupLogsService, StatisticsService, EventMessageService
 from src.application.models.users import (
     BannedAccountService,
     UserLogService,
@@ -372,6 +372,7 @@ class RequestContainer:
         self.msg_for_sending_service = MessageForSendingService(
             msg_for_sending_repo=self.message_for_sending_repo,
             session_db=session_db,
+            ui_image_service=self.ui_images_service,
         )
 
         self.admin_repo = AdminsRepository(
@@ -885,6 +886,9 @@ class RequestContainer:
         self.generate_example_import_account = GenerateExamplImporteAccount(
             conf=self.config,
         )
+        self. event_message_service = EventMessageService(
+            conf=self.config,
+        )
 
     def get_backup_db(self):
         return BackupDBService(
@@ -1046,6 +1050,10 @@ class RequestContainer:
             import_tg_account=self.import_tg_account_use_case,
             import_other_account=self.import_other_account_use_case,
             import_universal_product=self.import_universal_product_use_case,
+            event_message_service=self.event_message_service,
+            sent_mass_message_service=self.sent_mass_message_service,
+            message_for_sending_service=self.msg_for_sending_service,
+            stickers_service=self.stickers_service,
         )
 
     def get_account_modul(self) -> AccountsModuls:

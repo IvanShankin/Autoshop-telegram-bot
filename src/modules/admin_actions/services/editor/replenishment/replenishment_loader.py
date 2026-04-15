@@ -1,13 +1,19 @@
 from aiogram.types import CallbackQuery
 
-from src._bot_actions.messages import send_message
-from src.application._database.system.actions.actions import get_type_payment
-from src.database.models.users import Users
+from src.application.bot import Messages
+from src.application.models.modules import AdminModule
+from src.models.read_models import UsersDTO
 from src.utils.i18n import get_text
 
 
-async def safe_get_type_payment(type_payment_id: int, user: Users, callback: CallbackQuery = None):
-    type_payment = await get_type_payment(type_payment_id)
+async def safe_get_type_payment(
+    type_payment_id: int,
+    user: UsersDTO,
+    admin_module: AdminModule,
+    messages_service: Messages,
+    callback: CallbackQuery = None,
+):
+    type_payment = await admin_module.type_payments_service.get_type_payment(type_payment_id)
     if not type_payment:
         if callback:
             try:
@@ -20,7 +26,7 @@ async def safe_get_type_payment(type_payment_id: int, user: Users, callback: Cal
             )
             return
 
-        await send_message(
+        await messages_service.send_msg.send(
             chat_id=user.user_id,
             message=get_text(user.language, "admins_editor_replenishments", "payment_method_not_exists"
         ))

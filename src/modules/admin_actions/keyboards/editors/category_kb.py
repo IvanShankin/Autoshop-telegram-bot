@@ -254,7 +254,7 @@ def select_lang_category_kb(language: str, category_id: int, admin_module: Admin
 
 def name_or_description_kb(language: str, category_id: int, lang: str):
     """
-    :param lang: Код языка из переменной get_config().app.allowed_langs
+    :param lang: Код языка из переменной admin_module.conf.app.allowed_langs
     """
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(

@@ -4,21 +4,20 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from src._bot_actions.messages import edit_message
-from src.config import get_config
+from src.application.bot import Messages
+from src.application.models.modules import AdminModule
+from src.models.read_models import UsersDTO
 from src.modules.admin_actions.keyboards import admin_mailing_kb, all_admin_mass_mailing_kb, show_sent_mass_message_kb
 from src.modules.admin_actions.keyboards.editors.mass_mailing_kb import back_in_show_sent_mass_message_kb
-from src.application._database.admins.actions.actions_admin import get_sent_mass_messages
-from src.application._database.system.actions import create_ui_image, delete_ui_image
-from src.database.models.users import Users
+
 from src.utils.i18n import get_text
 
 router = Router()
 
 @router.callback_query(F.data == "admin_mailing")
-async def admin_promo(callback: CallbackQuery, state: FSMContext, user: Users):
+async def admin_promo(callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,):
     await state.clear()
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
         event_message_key="admin_panel",
@@ -27,21 +26,25 @@ async def admin_promo(callback: CallbackQuery, state: FSMContext, user: Users):
 
 
 @router.callback_query(F.data.startswith("sent_message_list:"))
-async def sent_message_list(callback: CallbackQuery, user: Users):
+async def sent_message_list(
+    callback: CallbackQuery, user: UsersDTO, admin_module: AdminModule, messages_service: Messages,
+):
     current_page = int(callback.data.split(":")[1])
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
         event_message_key="admin_panel",
-        reply_markup=await all_admin_mass_mailing_kb(user.language, current_page)
+        reply_markup=await all_admin_mass_mailing_kb(user.language, current_page, admin_module)
     )
 
 
 @router.callback_query(F.data.startswith("show_sent_mass_message:"))
-async def show_sent_mass_message(callback: CallbackQuery, user: Users):
+async def show_sent_mass_message(
+    callback: CallbackQuery, user: UsersDTO, admin_module: AdminModule, messages_service: Messages,
+):
     current_page = int(callback.data.split(":")[1])
     msg_id = int(callback.data.split(":")[2])
-    msg = await get_sent_mass_messages(msg_id)
+    msg = await admin_module.sent_mass_message_service.get_msg(msg_id)
     image_key = None
 
     if not msg:
@@ -60,9 +63,15 @@ async def show_sent_mass_message(callback: CallbackQuery, user: Users):
 
         with open(msg.photo_path, "rb") as f:
             file_data: bytes = f.read()
-        await create_ui_image(image_key, file_data=file_data, file_id=msg.photo_id)
+        await admin_module.ui_images_service.create_ui_image(
+            image_key,
+            file_data=file_data,
+            file_id=msg.photo_id,
+            make_commit=True,
+            filling_redis=True,
+        )
 
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
         message=msg.content,
@@ -71,19 +80,22 @@ async def show_sent_mass_message(callback: CallbackQuery, user: Users):
             user.language,
             current_page=current_page,
             message_id=msg_id,
-            button_url=msg.button_url
+            button_url=msg.button_url,
+            admin_module=admin_module,
         )
     )
 
     if image_key:
-        await delete_ui_image(image_key)
+        await admin_module.ui_images_service.delete_ui_image(image_key)
 
 
 @router.callback_query(F.data.startswith("detail_mass_msg:"))
-async def detail_mass_msg(callback: CallbackQuery, user: Users):
+async def detail_mass_msg(
+    callback: CallbackQuery, user: UsersDTO, admin_module: AdminModule, messages_service: Messages,
+):
     current_page = int(callback.data.split(":")[1])
     msg_id = int(callback.data.split(":")[2])
-    msg = await get_sent_mass_messages(msg_id)
+    msg = await admin_module.sent_mass_message_service.get_msg(msg_id)
 
     if not msg:
         await callback.answer(
@@ -105,10 +117,10 @@ async def detail_mass_msg(callback: CallbackQuery, user: Users):
         admin_id=msg.user_id,
         number_received=msg.number_received,
         number_sent=msg.number_sent,
-        created_at=msg.created_at.strftime(get_config().different.dt_format)
+        created_at=msg.created_at.strftime(admin_module.conf.different.dt_format)
     )
 
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
         message=message,

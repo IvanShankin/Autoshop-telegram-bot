@@ -46,6 +46,7 @@ class UiImagesService:
         make_commit: Optional[bool] = False,
         filling_redis: Optional[bool] = False,
     ) -> UiImagesDTO:
+        """Если уже есть с таким key, то пересоздаст его"""
         ext = get_ext_image(file_data)
         file_name = f"{key}.{ext}"
 
@@ -118,6 +119,15 @@ class UiImagesService:
             await self.cache_repo.set(updated)
 
         return updated
+
+    async def update_file(
+        self,
+        key: str,
+        file_bytes: bytes,
+        make_commit: Optional[bool] = False,
+        filling_redis: Optional[bool] = False,
+    ):
+        await self.create_ui_image(key, file_data=file_bytes, make_commit=make_commit, filling_redis=filling_redis)
 
     async def delete_ui_image(
         self,

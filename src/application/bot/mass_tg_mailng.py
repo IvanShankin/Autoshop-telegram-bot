@@ -96,10 +96,11 @@ class MassTgMailingService:
             if not validators.url(button_url):
                 raise TextNotLinc()
 
-            await self.tg_client.get_inline_keyboard_markup()
-            inline_kb = InlineKeyboardMarkupService(inline_keyboard=[
-                [InlineKeyboardButtonService(text="Open", url=button_url)]
-            ])
+            inline_kb = await self.tg_client.get_inline_keyboard_markup(
+                inline_keyboard=InlineKeyboardMarkupService(inline_keyboard=[
+                    [InlineKeyboardButtonService(text="Open", url=button_url)]
+                ])
+            )
 
         photo_id = None
         new_file_path = None
@@ -201,7 +202,7 @@ class MassTgMailingService:
         tasks = set()
         success = 0
         failed = 0
-        batch_size = max(1, self.conf.different.semaphore_mailing_limit * 2)  # сколько тасков держать в пуле (безопасно немного больше concurrency)
+        batch_size = max(1, self.conf.different.semaphore_mailing_limit_in_int * 2)  # сколько тасков держать в пуле (безопасно немного больше concurrency)
 
         async for uid in self.users_repo.gen_user_ids():
             task = asyncio.create_task(self._send_single(uid, text, file_id, inline_kb))

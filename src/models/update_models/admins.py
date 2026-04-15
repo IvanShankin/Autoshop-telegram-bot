@@ -4,8 +4,7 @@ from pydantic import BaseModel
 
 
 class UpdateMessageForSending(BaseModel):
+    user_id: int
     content: Optional[str] = None # текс у будущего сообщения
-    file_bytes: Optional[bytes] = None # Поток байт для создания фото
-    show_image: Optional[bool] = None
     button_url: Optional[str] = False # можно передать None
 

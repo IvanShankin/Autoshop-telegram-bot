@@ -1,13 +1,12 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.config import get_config
-from src.application._database.referrals.actions import get_referral_lvl
+from src.application.models.modules import AdminModule
 from src.utils.i18n import get_text
 
 
-async def lvl_list_ref_system_kb(language: str):
-    ref_lvls = await get_referral_lvl()
+async def lvl_list_ref_system_kb(language: str, admin_module: AdminModule):
+    ref_lvls = await admin_module.referral_levels_service.get_referral_levels()
     keyboard = InlineKeyboardBuilder()
 
     for lvl in ref_lvls:
@@ -16,7 +15,7 @@ async def lvl_list_ref_system_kb(language: str):
             callback_data=f'show_ref_lvl_editor:{lvl.referral_level_id}'
         ))
 
-    keyboard.row(InlineKeyboardButton(text=get_text(language, "kb_admin_panel", get_config().app.solid_line), callback_data=f'none'))
+    keyboard.row(InlineKeyboardButton(text=get_text(language, "kb_admin_panel", admin_module.conf.app.solid_line), callback_data=f'none'))
     keyboard.row(InlineKeyboardButton(text=get_text(language, "kb_admin_panel",'add'), callback_data=f'add_ref_lvl'))
     keyboard.row(InlineKeyboardButton(text=get_text(language, "kb_general", "back"), callback_data=f'editors'))
 

@@ -8,7 +8,6 @@ from src.modules.admin_actions.services.editor.category.upload_accounts import u
 
 from src.modules.admin_actions.services.editor.replenishment.replenishment_loader import safe_get_type_payment
 from src.modules.admin_actions.services.editor.replenishment.replenishments_messages import message_type_payment
-from src.modules.admin_actions.services.editor.service_acc import service_validator
 
 
 from src.modules.admin_actions.services.user_managent.management_messages import message_about_user
@@ -28,7 +27,6 @@ __all__ = [
     "safe_get_type_payment",
     "message_type_payment",
     "message_about_user",
-    "service_validator",
 ]
 
 

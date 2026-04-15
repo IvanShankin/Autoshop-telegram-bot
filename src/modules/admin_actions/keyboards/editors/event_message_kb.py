@@ -2,16 +2,15 @@ from math import ceil
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from src.config import get_config
-from src.application._database.system.actions.actions import get_event_message_by_page
 from src.application.keyboards.keyboard_with_pages import pagination_keyboard
+from src.application.models.modules import AdminModule
 from src.utils.i18n import get_text
 
 
-async def images_list_kb(language: str, current_page: int):
-    event_message_keys = await get_event_message_by_page(current_page)
-    conf = get_config()
-    total_pages = max(ceil((len(conf.message_event.all_keys) - len(conf.message_event.keys_ignore_admin)) / get_config().different.page_size), 1)
+async def images_list_kb(language: str, current_page: int, admin_module: AdminModule,):
+    event_message_keys = await admin_module.event_message_service.get_event_message_by_page(current_page)
+    conf = admin_module.conf
+    total_pages = max(ceil((len(conf.message_event.all_keys) - len(conf.message_event.keys_ignore_admin)) / admin_module.conf.different.page_size), 1)
 
     def item_button(event_msg_key):
         return InlineKeyboardButton(text=event_msg_key, callback_data=f'choice_edit_event_msg:{event_msg_key}:{current_page}')

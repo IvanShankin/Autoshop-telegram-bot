@@ -2,22 +2,26 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src._bot_actions.bot_instance import get_bot
-from src._bot_actions.messages import edit_message, send_message
+from src.application.bot import Messages
+from src.application.models.modules import AdminModule
+from src.infrastructure.telegram.bot_client import TelegramClient
+from src.models.create_models.discounts import CreateVoucherDTO
+from src.models.read_models import UsersDTO
 from src.modules.admin_actions.keyboards import skip_number_activations_or_back_kb, \
     back_in_start_creating_admin_vouchers_kb, skip_expire_at_or_back_kb, in_admin_voucher_kb
 from src.modules.admin_actions.schemas import CreateAdminVoucherData
 from src.modules.admin_actions.state import CreateAdminVoucher
-from src.application._database.discounts.actions import create_voucher
-from src.database.models.users import Users
+
 from src.utils.converter import safe_int_conversion, safe_parse_datetime
 from src.utils.i18n import get_text
 
 router = Router()
 
 
-async def send_message_get_expire_at_date(state: FSMContext, user: Users):
-    await send_message(
+async def send_message_get_expire_at_date(
+    state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
+    await messages_service.send_msg.send(
         chat_id=user.user_id,
         message=get_text(
             user.language,
@@ -29,8 +33,10 @@ async def send_message_get_expire_at_date(state: FSMContext, user: Users):
     await state.set_state(CreateAdminVoucher.expire_at)
 
 
-async def send_message_get_amount(state: FSMContext, user: Users):
-    await send_message(
+async def send_message_get_amount(
+    state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
+    await messages_service.send_msg.send(
         chat_id=user.user_id,
         message=get_text(
             user.language,
@@ -43,9 +49,11 @@ async def send_message_get_amount(state: FSMContext, user: Users):
 
 
 @router.callback_query(F.data == "admin_create_voucher")
-async def admin_create_voucher(callback: CallbackQuery, state: FSMContext, user: Users):
+async def admin_create_voucher(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
     await state.clear()
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
         message=get_text(
@@ -59,10 +67,12 @@ async def admin_create_voucher(callback: CallbackQuery, state: FSMContext, user:
 
 
 @router.message(CreateAdminVoucher.number_of_activations)
-async def get_number_of_activations(message: Message, state: FSMContext, user: Users):
+async def get_number_of_activations(
+    message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
     number_of_activations = safe_int_conversion(message.text, positive=True)
     if not number_of_activations:
-        await send_message(
+        await messages_service.send_msg.send(
             user.user_id,
             get_text(user.language, "miscellaneous","incorrect_value_entered"),
             reply_markup=back_in_start_creating_admin_vouchers_kb(user.language)
@@ -70,11 +80,13 @@ async def get_number_of_activations(message: Message, state: FSMContext, user: U
         return
 
     await state.update_data(number_of_activations=number_of_activations)
-    await send_message_get_expire_at_date(state, user)
+    await send_message_get_expire_at_date(state, user, messages_service=messages_service)
 
 
 @router.callback_query(F.data == "set_expire_at")
-async def set_expire_at(callback: CallbackQuery, state: FSMContext, user: Users):
+async def set_expire_at(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
     """Если попали в такой handler, значит пользователь пропустил число активаций"""
     try:
         await callback.message.delete()
@@ -82,14 +94,14 @@ async def set_expire_at(callback: CallbackQuery, state: FSMContext, user: Users)
         pass
 
     await state.clear()
-    await send_message_get_expire_at_date(state, user)
+    await send_message_get_expire_at_date(state, user, messages_service=messages_service)
 
 
 @router.message(CreateAdminVoucher.expire_at)
-async def get_expire_at(message: Message, state: FSMContext, user: Users):
+async def get_expire_at(message: Message, state: FSMContext, user: UsersDTO, messages_service: Messages,):
     expire_at = safe_parse_datetime(message.text)
     if not expire_at:
-        await send_message(
+        await messages_service.send_msg.send(
             user.user_id,
             get_text(user.language, "miscellaneous", "incorrect_value_entered"),
             reply_markup=back_in_start_creating_admin_vouchers_kb(user.language)
@@ -97,25 +109,34 @@ async def get_expire_at(message: Message, state: FSMContext, user: Users):
         return
 
     await state.update_data(expire_at=expire_at)
-    await send_message_get_amount(state, user)
+    await send_message_get_amount(state, user, messages_service=messages_service)
 
 
 @router.callback_query(F.data == "set_amount_admin_voucher")
-async def set_amount_admin_voucher(callback: CallbackQuery, state: FSMContext, user: Users):
+async def set_amount_admin_voucher(
+    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages,
+):
     """Если попали в такой handler, значит пользователь пропустил срок годности ваучера"""
     try:
         await callback.message.delete()
     except Exception:
         pass
 
-    await send_message_get_amount(state, user)
+    await send_message_get_amount(state, user, messages_service)
 
 
 @router.message(CreateAdminVoucher.amount)
-async def get_amount(message: Message, state: FSMContext, user: Users):
+async def get_amount(
+    message: Message,
+    state: FSMContext,
+    user: UsersDTO,
+    admin_module: AdminModule,
+    messages_service: Messages,
+    tg_client: TelegramClient,
+):
     amount = safe_int_conversion(message.text, positive=True)
     if not amount:
-        await send_message(
+        await messages_service.send_msg.send(
             user.user_id,
             get_text(user.language, "miscellaneous","incorrect_value_entered"),
             reply_markup=back_in_start_creating_admin_vouchers_kb(user.language)
@@ -124,17 +145,18 @@ async def get_amount(message: Message, state: FSMContext, user: Users):
 
     data = CreateAdminVoucherData(** (await state.get_data()))
 
-    new_voucher = await create_voucher(
+    new_voucher = await admin_module.voucher_service.create_voucher(
         user_id=user.user_id,
-        is_created_admin=True,
-        amount=amount,
-        number_of_activations=data.number_of_activations,
-        expire_at=data.expire_at
+        data=CreateVoucherDTO(
+            is_created_admin=True,
+            amount=amount,
+            number_of_activations=data.number_of_activations,
+            expire_at=data.expire_at
+        ),
     )
 
-    bot = get_bot()
-    bot_me = await bot.me()
-    await send_message(
+    bot_me = await tg_client.me()
+    await messages_service.send_msg.send(
         user.user_id,
         message=get_text(
             user.language,

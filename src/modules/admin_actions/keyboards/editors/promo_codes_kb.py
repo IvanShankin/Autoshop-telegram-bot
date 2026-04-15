@@ -3,8 +3,7 @@ from math import ceil
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.config import get_config
-from src.application._database.discounts.actions.actions_promo import get_promo_code_by_page, get_count_promo_codes
+from src.application.models.modules import AdminModule
 from src.database.models.discount import PromoCodes
 from src.application.keyboards.keyboard_with_pages import pagination_keyboard
 from src.utils.i18n import get_text
@@ -18,11 +17,13 @@ def admin_promo_kb(language: str):
     ])
 
 
-async def all_admin_promo_kb(current_page: int, language: str, show_not_valid: bool):
+async def all_admin_promo_kb(current_page: int, language: str, show_not_valid: bool, admin_module: AdminModule,):
     """Клавиатура со списком только активных ваучеров у администрации"""
-    records = await get_promo_code_by_page(page=current_page, page_size=get_config().different.page_size, show_not_valid=show_not_valid)
-    total = await get_count_promo_codes(consider_invalid=show_not_valid)
-    total_pages = max(ceil(total / get_config().different.page_size), 1)
+    records = await admin_module.promo_code_service.get_promo_code_by_page(
+        page=current_page, page_size=admin_module.conf.different.page_size, show_not_valid=show_not_valid
+    )
+    total = await admin_module.promo_code_service.get_count_promo_codes(consider_invalid=show_not_valid)
+    total_pages = max(ceil(total / admin_module.conf.different.page_size), 1)
 
     def item_button(promo_code: PromoCodes):
         valid = get_text(language, "kb_admin_panel", "valid" if promo_code.is_valid else "not_valid")

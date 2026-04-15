@@ -46,7 +46,7 @@ class MessageForSendingRepository(DatabaseBase):
         user_id: int,
         content: Optional[str] = None,
         ui_image_key: Optional[str] = None,
-        button_url: Optional[str] = None,
+        button_url: Optional[str] = False,
     ) -> Optional[MessageForSendingDTO]:
 
         update_data = {}
@@ -57,7 +57,7 @@ class MessageForSendingRepository(DatabaseBase):
         if ui_image_key is not None:
             update_data["ui_image_key"] = ui_image_key
 
-        if button_url is not None:
+        if button_url is not False:
             update_data["button_url"] = button_url
 
         if not update_data:

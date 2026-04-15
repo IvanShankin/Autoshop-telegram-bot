@@ -1,16 +1,22 @@
 from aiogram.types import CallbackQuery
 
+from src.application.bot import Messages
+from src.application.models.modules import AdminModule
+from src.models.read_models import UsersDTO
 from src.modules.admin_actions.keyboards.editors.category_kb import show_main_categories_kb
-from src._bot_actions.messages import edit_message, send_message
 from src.modules.admin_actions.keyboards import show_category_admin_kb, change_category_data_kb
 from src.modules.admin_actions.services import safe_get_category
 from src.database.models.categories import ProductType
-from src.application._database.system.actions import get_ui_image
-from src.database.models.users import Users
 from src.utils.i18n import get_text
 
-async def edit_message_in_main_category_editor(user: Users, callback: CallbackQuery):
-    await edit_message(
+
+async def edit_message_in_main_category_editor(
+    user: UsersDTO,
+    callback: CallbackQuery,
+    messages_service: Messages,
+    admin_module: AdminModule,
+):
+    await messages_service.edit_msg.edit(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
         message=get_text(
@@ -19,18 +25,26 @@ async def edit_message_in_main_category_editor(user: Users, callback: CallbackQu
             "main_category_editor"
         ),
         event_message_key="admin_panel",
-        reply_markup=await show_main_categories_kb(user.language)
+        reply_markup=await show_main_categories_kb(user.language, admin_module)
     )
 
 
 async def show_category(
-        user: Users,
-        category_id: int,
-        send_new_message: bool = False,
-        message_id: int = None,
-        callback: CallbackQuery = None
+    user: UsersDTO,
+    category_id: int,
+    admin_module: AdminModule,
+    messages_service: Messages,
+    send_new_message: bool = False,
+    message_id: int = None,
+    callback: CallbackQuery = None
 ):
-    category = await safe_get_category(category_id=category_id, user=user, callback=callback)
+    category = await safe_get_category(
+        category_id=category_id,
+        user=user,
+        callback=callback,
+        admin_module=admin_module,
+        messages_service=messages_service,
+    )
     if not category:
         return
 
@@ -75,11 +89,12 @@ async def show_category(
     reply_markup = await show_category_admin_kb(
         language=user.language,
         category_id=category_id,
-        category=category
+        category=category,
+        admin_module=admin_module,
     )
 
     if send_new_message:
-        await send_message(
+        await messages_service.send_msg.send(
             chat_id=user.user_id,
             message=message,
             reply_markup=reply_markup,
@@ -87,7 +102,7 @@ async def show_category(
         )
         return
 
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=user.user_id,
         message_id=message_id,
         message=message,
@@ -97,16 +112,24 @@ async def show_category(
 
 
 async def show_category_update_data(
-        user: Users,
-        category_id: int,
-        send_new_message: bool = False,
-        callback: CallbackQuery = None
+    user: UsersDTO,
+    category_id: int,
+    admin_module: AdminModule,
+    messages_service: Messages,
+    send_new_message: bool = False,
+    callback: CallbackQuery = None,
 ):
-    category = await safe_get_category(category_id=category_id, user=user, callback=callback)
+    category = await safe_get_category(
+        category_id=category_id,
+        user=user,
+        callback=callback,
+        admin_module=admin_module,
+        messages_service=messages_service,
+    )
     if not category:
         return
 
-    ui_image = await get_ui_image(category.ui_image_key)
+    ui_image = await admin_module.ui_images_service.get_ui_image(category.ui_image_key)
     message = get_text(
         user.language,
         "admins_editor_category",
@@ -134,7 +157,7 @@ async def show_category_update_data(
     )
 
     if send_new_message:
-        await send_message(
+        await messages_service.send_msg.send(
             chat_id=user.user_id,
             message=message,
             reply_markup=reply_markup,
@@ -143,7 +166,7 @@ async def show_category_update_data(
         )
         return
 
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
         message=message,

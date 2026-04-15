@@ -5,10 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.application.crypto.crypto_context import CryptoProvider
 from src.application.models.systems.backup_db_service import BackupDBService
 from src.application.models.users.use_cases import GenerateUserAuditLogUseCase
-from src.application.products.accounts.account_service import AccountService
+from src.application.products.accounts.account_service import AccountService, GenerateExamplImporteAccount
 from src.application.products.accounts.other.use_cases import UploadOtherAccountsUseCase, ImportOtherAccountsUseCase
 from src.application.products.accounts.other.use_cases.validate import ValidateOtherAccountsUseCase
-from src.application.products.accounts.tg.use_cases import ImportTelegramAccountsUseCase
+from src.application.products.accounts.tg.use_cases import ImportTelegramAccountsUseCase, UploadTGAccountsUseCase
 from src.application.products.accounts.tg.use_cases.validate import ValidateTgAccount
 from src.application.products.universals.universal_products import UniversalProduct
 from src.application.products.universals.use_cases import ValidationsUniversalProducts, \
@@ -823,6 +823,12 @@ class RequestContainer:
             tg_client=self.telegram_account_client,
             logger=self.logger
         )
+        self.upload_tg_account_use_case = UploadTGAccountsUseCase(
+            account_service=self.account_service,
+            account_product_service=self.account_product_service,
+            conf=self.config,
+            crypto_provider=self.crypto_provider,
+        )
         self.import_other_account_use_case = ImportOtherAccountsUseCase(
             account_storage_service=self.account_storage_service,
             account_product_service=self.account_product_service,
@@ -875,6 +881,9 @@ class RequestContainer:
         self.generate_user_audit_log_use_case = GenerateUserAuditLogUseCase(
             conf=self.config,
             user_log_service=self.user_log_service,
+        )
+        self.generate_example_import_account = GenerateExamplImporteAccount(
+            conf=self.config,
         )
 
     def get_backup_db(self):
@@ -1026,6 +1035,17 @@ class RequestContainer:
             purchases_repo=self.purchases_repo,
             path_builder=self.path_builder,
             generate_user_audit_log_use_case=self.generate_user_audit_log_use_case,
+            category_service=self.category_service,
+            translations_category_service=self.translations_category_service,
+            ui_images_service=self.ui_images_service,
+            upload_universal_products_use_case=self.upload_universal_products_use_case,
+            upload_tg_account_use_case=self.upload_tg_account_use_case,
+            upload_other_account_use_case=self.upload_other_accounts_use_case,
+            generate_example_import_account=self.generate_example_import_account,
+            generate_exampl_universal_import=self.generate_exampl_universal_product_import,
+            import_tg_account=self.import_tg_account_use_case,
+            import_other_account=self.import_other_account_use_case,
+            import_universal_product=self.import_universal_product_use_case,
         )
 
     def get_account_modul(self) -> AccountsModuls:
@@ -1132,6 +1152,12 @@ class RequestContainer:
             ),
             logger=self.logger,
         )
+
+    def get_tg_client(self) -> "TelegramClient":
+        return self.telegram_client
+
+    def get_tg_logger_client(self) -> "TelegramClient":
+        return self.telegram_logger_client
 
 
 def init_request_container(

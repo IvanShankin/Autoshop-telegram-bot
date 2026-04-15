@@ -1,21 +1,20 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.config import get_config
-from src.application._database.categories.actions import get_categories
+from src.application.models.modules import AdminModule
 from src.models.read_models import CategoryFull
 from src.database.models.categories import ProductType, Categories, UniversalMediaType, AccountServiceType
 from src.utils.i18n import get_text
 
 
-async def show_main_categories_kb(language: str,):
-    categories = await get_categories(language=language, return_not_show = True)
+async def show_main_categories_kb(language: str, admin_module: AdminModule):
+    categories = await admin_module.category_service.get_categories(language=language, return_not_show = True)
     keyboard = InlineKeyboardBuilder()
 
     for cat in categories:
         keyboard.row(InlineKeyboardButton(text=str(cat.name), callback_data=f"show_category_admin:{cat.category_id}"))
 
-    keyboard.row(InlineKeyboardButton(text=get_config().app.solid_line, callback_data=f'none'))
+    keyboard.row(InlineKeyboardButton(text=admin_module.conf.app.solid_line, callback_data=f'none'))
     keyboard.row(InlineKeyboardButton(
         text=get_text(language, "kb_admin_panel", "add_category"),
         callback_data=f'add_category:None')
@@ -46,8 +45,9 @@ async def show_category_admin_kb(
     language: str,
     category_id: int,
     category: Categories | CategoryFull,
+    admin_module: AdminModule
 ):
-    categories = await get_categories(
+    categories = await  admin_module.category_service.get_categories(
         parent_id=category_id,
         return_not_show=True
     )
@@ -56,13 +56,17 @@ async def show_category_admin_kb(
     for cat in categories:
         keyboard.row(InlineKeyboardButton(text=str(cat.name), callback_data=f'show_category_admin:{cat.category_id}'))
 
-    keyboard.row(InlineKeyboardButton(text=get_config().app.solid_line, callback_data='none'))
+    keyboard.row(InlineKeyboardButton(text=admin_module.conf.app.solid_line, callback_data='none'))
     keyboard.row(InlineKeyboardButton(
         text=get_text(language, "kb_admin_panel", "add_subcategory"),
         callback_data=f'add_category:{category_id}')
     )
     keyboard.row(InlineKeyboardButton(
-        text=get_text(language, "kb_admin_panel", f"{"remove_storage" if category.is_product_storage else "make_storage"}"),
+        text=get_text(
+            language,
+            "kb_admin_panel",
+            f"{"remove_storage" if category.is_product_storage else "make_storage"}"
+        ),
         callback_data=f'category_update_storage:{category_id}:{0 if category.is_product_storage else 1}')
     )
 
@@ -93,20 +97,28 @@ async def show_category_admin_kb(
     )
 
     keyboard.row(InlineKeyboardButton(
-        text=get_text(language, "kb_admin_panel", "show_indicator").format(indicator='🟢' if category.show else '🔴'),
+        text=get_text(
+            language, "kb_admin_panel", "show_indicator"
+        ).format(indicator='🟢' if category.show else '🔴'),
         callback_data=f'category_update_show:{category_id}:{0 if category.show else 1}'
     ))
 
     if category.product_type == ProductType.UNIVERSAL:
         keyboard.row(InlineKeyboardButton(
-            text=get_text(language, "kb_admin_panel", "multiple_sale_indicator").format(indicator='🟢' if category.reuse_product else '🔴'),
+            text=get_text(
+                language, "kb_admin_panel", "multiple_sale_indicator"
+            ).format(indicator='🟢' if category.reuse_product else '🔴'),
             callback_data=f'category_update_reuse_product:{category_id}:{0 if category.reuse_product else 1}'
         ))
 
-    keyboard.row(InlineKeyboardButton(
-        text=get_text(language, "kb_admin_panel", "wholesale_purchase_indicator").format(indicator='🟢' if category.allow_multiple_purchase else '🔴'),
-        callback_data=f'category_update_multiple_purchase:{category_id}:{0 if category.allow_multiple_purchase else 1}'
-    ))
+    if category.is_product_storage:
+        keyboard.row(InlineKeyboardButton(
+            text=get_text(
+                language, "kb_admin_panel", "wholesale_purchase_indicator"
+            ).format(indicator='🟢' if category.allow_multiple_purchase else '🔴'),
+            callback_data=f'category_update_multiple_purchase:{category_id}:{0 if category.allow_multiple_purchase else 1}'
+        ))
+
     keyboard.row(InlineKeyboardButton(
         text=get_text(language, "kb_admin_panel", 'update_data'),
         callback_data=f'category_update_data:{category_id}')
@@ -220,9 +232,9 @@ def select_universal_media_type(language: str, category_id: int):
     return keyboard.as_markup()
 
 
-def select_lang_category_kb(language: str, category_id: int):
+def select_lang_category_kb(language: str, category_id: int, admin_module: AdminModule):
     keyboard = InlineKeyboardBuilder()
-    conf = get_config()
+    conf = admin_module.conf
     for lang in conf.app.allowed_langs:
         keyboard.row(
             InlineKeyboardButton(

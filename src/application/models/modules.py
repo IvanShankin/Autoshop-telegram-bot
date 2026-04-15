@@ -4,11 +4,15 @@ from src.application.cache_warmup import CacheWarmupService
 from src.application.crypto.crypto_context import CryptoProvider
 from src.application.events.publish_event_handler import PublishEventHandler
 from src.application.models.admins import AdminsService
-from src.application.models.categories import CategoryService
+from src.application.models.categories import CategoryService, TranslationsCategoryService
 from src.application.models.purchases import PurchaseService
 from src.application.models.users.pubscription_prompt import SubscriptionService
 from src.application.models.users.use_cases import GenerateUserAuditLogUseCase
-from src.application.products.accounts.account_service import AccountService
+from src.application.products.accounts.account_service import AccountService, GenerateExamplImporteAccount
+from src.application.products.accounts.other.use_cases import UploadOtherAccountsUseCase, ImportOtherAccountsUseCase
+from src.application.products.accounts.tg.use_cases import UploadTGAccountsUseCase, ImportTelegramAccountsUseCase
+from src.application.products.universals.use_cases import UploadUniversalProductsUseCase, \
+    GenerateExamplUniversalProductImport, ImportUniversalProductUseCase
 from src.config import Config
 from src.infrastructure.files.excel_reports import ExcelReportExporter
 from src.application.models.discounts import VoucherService, PromoCodeService, VoucherActivationsService, \
@@ -186,6 +190,17 @@ class AdminModule:
         purchases_repo: PurchasesRepository,
         path_builder: PathBuilder,
         generate_user_audit_log_use_case: GenerateUserAuditLogUseCase,
+        category_service: CategoryService,
+        translations_category_service: TranslationsCategoryService,
+        ui_images_service: UiImagesService,
+        upload_universal_products_use_case: UploadUniversalProductsUseCase,
+        upload_tg_account_use_case: UploadTGAccountsUseCase,
+        upload_other_account_use_case: UploadOtherAccountsUseCase,
+        generate_example_import_account: GenerateExamplImporteAccount,
+        generate_exampl_universal_import: GenerateExamplUniversalProductImport,
+        import_tg_account: ImportTelegramAccountsUseCase,
+        import_other_account: ImportOtherAccountsUseCase,
+        import_universal_product: ImportUniversalProductUseCase,
     ):
         self.conf = conf
         self.logger = logger
@@ -218,3 +233,14 @@ class AdminModule:
         self.purchases_repo = purchases_repo
         self.path_builder = path_builder
         self.generate_user_audit_log_use_case = generate_user_audit_log_use_case
+        self.category_service = category_service
+        self.translations_category_service = translations_category_service
+        self.ui_images_service = ui_images_service
+        self.upload_universal_products_use_case = upload_universal_products_use_case
+        self.upload_tg_account_use_case = upload_tg_account_use_case
+        self.upload_other_account_use_case = upload_other_account_use_case
+        self.generate_example_import_account = generate_example_import_account
+        self.generate_exampl_universal_import = generate_exampl_universal_import
+        self.import_tg_account = import_tg_account
+        self.import_other_account = import_other_account
+        self.import_universal_product = import_universal_product

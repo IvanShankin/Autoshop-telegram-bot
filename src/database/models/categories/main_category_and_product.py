@@ -57,8 +57,8 @@ class Categories(Base):
     is_main = Column(Boolean, nullable=False, server_default=text('false'))
     is_product_storage = Column(Boolean, nullable=False, server_default=text('false')) # если это хранилище товаров
 
-    # есть только когда is_product_storage == True
-    allow_multiple_purchase = Column(Boolean, nullable=False, server_default=text("true"))
+    # только для универсальных продуктов и есть только когда is_product_storage == True
+    allow_multiple_purchase = Column(Boolean, nullable=False, server_default=text("false"))
     product_type = Column(
         Enum(
             ProductType,

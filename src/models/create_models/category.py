@@ -6,7 +6,7 @@ from pydantic import BaseModel
 class CreateCategory(BaseModel):
     language: str
     name: str
-    description: str = None
+    description: Optional[str] = None
 
     # ID другой категории для которой новая категория будет дочерней и тем самым будет находиться
     # ниже по иерархии. Если не указывать, то будет категорией которая находится сразу после сервиса (главной).
@@ -20,4 +20,4 @@ class CreateCategoryTranslate(BaseModel):
     category_id: int
     lang: str
     name: str
-    description: str = None
+    description: Optional[str] = None

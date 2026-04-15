@@ -2,14 +2,14 @@ from typing import Any, AsyncGenerator
 
 from aiogram.types import Message
 
-from src._bot_actions.messages import edit_message, send_message
-from src.database.models.users import Users
+from src.application.bot import Messages
+from src.models.read_models import UsersDTO
 from src.utils.i18n import get_text
 
 
-async def message_info_load_file(user: Users) -> AsyncGenerator[Message, None]:
+async def message_info_load_file(user: UsersDTO, messages_service: Messages,) -> AsyncGenerator[Message, None]:
     """Первый вызов: сообщение о скачивание файла. Второй вызов: сообщение об обработке файла"""
-    await send_message(
+    await messages_service.send_msg.send(
         user.user_id,
         get_text(
             user.language,
@@ -17,14 +17,14 @@ async def message_info_load_file(user: Users) -> AsyncGenerator[Message, None]:
             "wait_load_products"
         )
     )
-    message_info = await send_message(
+    message_info = await messages_service.send_msg.send(
         user.user_id,
         get_text(user.language, "admins_editor_category", "file_uploaded_to_the_server")
     )
 
     yield message_info
 
-    await edit_message(
+    await messages_service.edit_msg.edit(
         user.user_id,
         message_info.message_id,
         get_text(
@@ -39,12 +39,12 @@ async def message_info_load_file(user: Users) -> AsyncGenerator[Message, None]:
 
 
 def make_result_msg(
-        user: Users,
-        successfully_added: int,
-        total_processed: int,
-        mark_invalid_acc:  Any,
-        mark_duplicate_acc: Any,
-        tg_acc: bool = False
+    user: UsersDTO,
+    successfully_added: int,
+    total_processed: int,
+    mark_invalid_acc:  Any,
+    mark_duplicate_acc: Any,
+    tg_acc: bool = False
 ) -> str:
     result_message = get_text(
         user.language,

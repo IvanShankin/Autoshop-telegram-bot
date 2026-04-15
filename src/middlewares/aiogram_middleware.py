@@ -26,6 +26,8 @@ class ModulesMiddleware(BaseMiddleware):
             data["catalog_modul"] = request_container.get_catalog_modul()
             data["admin_module"] = request_container.get_admin_module()
             data["messages_service"] = request_container.get_message_service()
+            data["tg_client"] = request_container.get_tg_client()
+            data["tg_logger_client"] = request_container.get_tg_logger_client()
             # создание модулей под другие разделы
 
             return await handler(event, data)

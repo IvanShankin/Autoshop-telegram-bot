@@ -218,7 +218,7 @@ class AccountService:
                 await asyncio.to_thread(shutil.rmtree, folder_path, ignore_errors=True)
 
 
-class GenerateExample:
+class GenerateExamplImporteAccount:
 
     def __init__(
         self,

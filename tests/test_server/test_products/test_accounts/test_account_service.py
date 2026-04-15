@@ -10,7 +10,7 @@ import pytest
 
 from tests.helpers.fixtures.helper_fixture import container_fix
 from src.application.products.accounts.account_service import (
-    GenerateExample,
+    GenerateExamplImporteAccount,
     move_in_account as move_in_account_helper,
 )
 from src.database.models.categories import AccountServiceType, StorageStatus
@@ -196,7 +196,7 @@ async def test_get_session_tg_acc_yields_session_and_cleans(container_fix, creat
 
 @pytest.mark.asyncio
 async def test_generate_example_import_other_acc_writes_csv(container_fix):
-    generator = GenerateExample(container_fix.config)
+    generator = GenerateExamplImporteAccount(container_fix.config)
 
     generator.generate_example_import_other_acc()
     path = Path(container_fix.config.file_keys.example_csv_for_import_other_acc_key.path)
@@ -214,7 +214,7 @@ async def test_generate_example_import_other_acc_writes_csv(container_fix):
 
 @pytest.mark.asyncio
 async def test_generate_example_import_tg_acc_writes_zip(container_fix, monkeypatch):
-    generator = GenerateExample(container_fix.config)
+    generator = GenerateExamplImporteAccount(container_fix.config)
     work_dir = container_fix.config.paths.temp_dir
     _patch_workspace_temporary_directory(monkeypatch, work_dir)
 

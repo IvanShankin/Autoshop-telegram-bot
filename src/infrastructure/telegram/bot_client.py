@@ -5,7 +5,7 @@ from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest, TelegramAPIError, TelegramForbiddenError, TelegramNotFound, \
     TelegramRetryAfter
 from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply, \
-    Message, FSInputFile, InputMediaPhoto, ReactionTypeEmoji, InlineKeyboardButton
+    Message, FSInputFile, InputMediaPhoto, ReactionTypeEmoji, InlineKeyboardButton, BufferedInputFile
 
 from src.exceptions.telegram import TelegramBadRequestService, TelegramAPIErrorService, TelegramForbiddenErrorService, \
     TelegramNotFoundService, TelegramRetryAfterService
@@ -137,7 +137,7 @@ class TelegramClient:
     async def send_document(
         self,
         chat_id: int,
-        document: str | FSInputFile,
+        document: str | FSInputFile | BufferedInputFile,
         caption: Optional[str] = None,
         parse_mode: Optional[str] = None,
         reply_markup: Optional[InlineKeyboardMarkup | ReplyKeyboardMarkup | ReplyKeyboardRemove | ForceReply] = None,

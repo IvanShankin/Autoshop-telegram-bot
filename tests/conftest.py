@@ -1,4 +1,5 @@
-from helpers.func_fabrics.fake_objects_fabric import secret_storage_factory, crypto_provider_factory
+from tests.helpers.func_fabrics.fake_objects_fabric import secret_storage_factory, crypto_provider_factory
+from src.database.creating import create_database, create_table
 from tests.helpers.import_tracker import enable_import_tracking
 
 # В ТЕСТАХ НЕЛЬЗЯ ИСПОЛЬЗОВАТЬ AIOGRAM, ИНАЧЕ БУДЕТ БЕСКОНЕЧНАЯ ЗАГРУЗКА В РЕЖИМЕ ОТЛАДКИ
@@ -26,14 +27,23 @@ from src.infrastructure.redis import get_redis, init_redis, close_redis
 from tests.helpers.fake_aiogram.fake_aiogram import patch_fake_aiogram
 
 from tests.helpers.fixtures.helper_fixture import (
-    container_fix, )
+    session_db_fix, fake_tg_client, crypto_bot_provider_fix, secret_storage_fix,
+    crypto_provider_fix, container_fix, create_new_user, create_admin_fix,
+    create_sent_mass_message, create_referral, create_income_from_referral,
+    create_replenishment, create_type_payment, create_settings, create_promo_code,
+    create_promo_code_activation, create_voucher, create_translate_category,
+    create_category, create_purchase, create_account_storage, create_product_account,
+    create_sold_account, create_tg_account_media, create_universal_storage,
+    create_product_universal, create_sold_universal, create_ui_image,
+    create_transfer_moneys, create_wallet_transaction, create_backup_log,
+    create_purchase_request, create_balance_holder,
+)
 # ИМПОРТЫ НЕ УБИРАТЬ, ОНИ ИСПОЛЬЗУЮТСЯ В ТЕСТАХ ПОДГРУЖАЯСЬ
 
 load_dotenv()  # Загружает переменные из .env
 MODE = os.getenv('MODE')
 RABBITMQ_URL = os.getenv('RABBITMQ_URL')
 import pytest_asyncio
-from src.tools.work_with_db.filling_database import create_database
 
 
 if MODE != "TEST":
@@ -83,12 +93,13 @@ async def replacement_logger_fix():
 
 
 @pytest_asyncio.fixture(scope='function', autouse=True)
-async def create_database_fixture(replacement_needed_modules):
+async def create_database_fixture(replacement_needed_modules, container_fix):
     if MODE != "TEST":
         raise Exception("Используется основная БД!")
 
     # Создаем БД
-    await create_database()
+    await create_database(container_fix.config)
+    await create_table(container_fix.config)
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
@@ -138,57 +149,6 @@ async def rabbit_channel():
     finally:
         await channel.close()
         await connection.close()
-
-
-@pytest_asyncio.fixture(scope="function")
-async def start_consumer():
-    """
-    ПОСЛЕ ПОЛНОГО ПЕРЕХОДА НА НОВУЮ АРХИТЕКТУРУ, УБРАТЬ !
-    Запускает consumer и корректно его останавливает по завершению теста.
-    """
-    pass
-    # from src.infrastructure.rabbit_mq. import _run_single_consumer_loop
-    #
-    # started_event = asyncio.Event()
-    # stop_event = asyncio.Event()
-    #
-    # task = asyncio.create_task(_run_single_consumer_loop(started_event, stop_event))
-    #
-    # # ждём сигнала, что consumer реально подписался на очередь
-    # await asyncio.wait_for(started_event.wait(), timeout=7.0)
-    #
-    # try:
-    #     yield
-    # finally:
-    #     # даём время аккуратно завершить обработку текущего сообщения
-    #     stop_event.set()
-    #     try:
-    #         # ждем, но не вечно — чтобы тест не зависал
-    #         await asyncio.wait_for(task, timeout=5.0)
-    #     except asyncio.TimeoutError:
-    #         # если не завершился — принудительно отменяем
-    #         task.cancel()
-    #         with suppress(asyncio.CancelledError):
-    #             await task
-
-
-@pytest_asyncio.fixture(scope="function")
-async def clean_rabbit():
-    """
-    ПОСЛЕ ПОЛНОГО ПЕРЕХОДА НА НОВУЮ АРХИТЕКТУРУ, УБРАТЬ !
-    """
-    connection = await aio_pika.connect_robust(RABBITMQ_URL)
-    channel = await connection.channel()
-
-    queues_to_purge = ["events_db"]
-    for queue_name in queues_to_purge:
-        queue = await channel.declare_queue(queue_name, durable=True)
-        await queue.purge()
-
-    await channel.close()
-    await connection.close()
-
-    yield
 
 
 @pytest_asyncio.fixture

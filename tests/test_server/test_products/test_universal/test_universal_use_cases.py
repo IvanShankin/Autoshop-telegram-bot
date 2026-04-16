@@ -17,7 +17,7 @@ async def test_move_universal_storage_moves_file_and_returns_path(
     create_category,
     create_product_universal,
 ):
-    category = await create_category(container_fix, is_product_storage=True)
+    category = await create_category(is_product_storage=True)
     _, full = await create_product_universal(category_id=category.category_id)
 
     old_path = container_fix.path_builder.build_path_universal_storage(
@@ -42,7 +42,7 @@ async def test_validations_universal_product_checks_valid_and_invalid_path(
     create_category,
     create_product_universal,
 ):
-    category = await create_category(container_fix, is_product_storage=True)
+    category = await create_category(is_product_storage=True)
     _, full = await create_product_universal(category_id=category.category_id)
 
     assert await container_fix.validations_universal_products.check_valid_universal_product(
@@ -80,7 +80,7 @@ async def test_upload_universal_products_exports_zip_and_cleans(
     create_category,
     create_product_universal,
 ):
-    category = await create_category(container_fix, is_product_storage=True)
+    category = await create_category(is_product_storage=True)
     await create_product_universal(category_id=category.category_id)
 
     use_case = container_fix.upload_universal_products_use_case
@@ -110,7 +110,7 @@ async def test_import_universal_products_imports_generated_archive(
     session_db_fix,
 ):
     work_dir = container_fix.config.paths.temp_dir
-    category = await create_category(container_fix, is_product_storage=True)
+    category = await create_category(is_product_storage=True)
     archive_source = container_fix.generate_exampl_universal_product_import.generate()
     archive_path = work_dir / archive_source.name
     shutil.copy2(archive_source, archive_path)

@@ -4,7 +4,6 @@ from src.containers import RequestContainer
 
 
 async def _create_main_branch(
-    container: RequestContainer,
     create_category,
     create_product_account,
     *,
@@ -13,13 +12,11 @@ async def _create_main_branch(
     root_index: int
 ):
     root = await create_category(
-        container=container,
         filling_redis=False,
         name=root_name,
         index=root_index,
     )
     child = await create_category(
-        container=container,
         filling_redis=False,
         parent_id=root.category_id,
         is_product_storage=True,
@@ -40,7 +37,6 @@ async def test_fill_main_categories_populates_sorted_cache(
     create_product_account,
 ):
     root_1, _ = await _create_main_branch(
-        container_fix,
         create_category,
         create_product_account,
         root_name="main-1",
@@ -48,7 +44,6 @@ async def test_fill_main_categories_populates_sorted_cache(
         root_index=1,
     )
     root_2, _ = await _create_main_branch(
-        container_fix,
         create_category,
         create_product_account,
         root_name="main-2",
@@ -68,9 +63,8 @@ async def test_fill_category_by_parent_populates_child_cache(
     create_category,
     create_product_account,
 ):
-    root = await create_category(container_fix, filling_redis=False, name="parent-root")
+    root = await create_category(filling_redis=False, name="parent-root")
     child_1 = await create_category(
-        container_fix,
         filling_redis=False,
         parent_id=root.category_id,
         is_product_storage=True,
@@ -78,7 +72,6 @@ async def test_fill_category_by_parent_populates_child_cache(
         index=1,
     )
     child_2 = await create_category(
-        container_fix,
         filling_redis=False,
         parent_id=root.category_id,
         is_product_storage=True,
@@ -103,7 +96,6 @@ async def test_fill_category_by_id_populates_single_cache(
     create_product_account,
 ):
     category = await create_category(
-        container_fix,
         filling_redis=False,
         name="single-storage",
         is_product_storage=True,
@@ -127,9 +119,8 @@ async def test_fill_need_category_handles_list_and_populates_related_cache(
     create_category,
     create_product_account,
 ):
-    root = await create_category(container_fix, filling_redis=False, name="need-root")
+    root = await create_category(filling_redis=False, name="need-root")
     child = await create_category(
-        container_fix,
         filling_redis=False,
         parent_id=root.category_id,
         is_product_storage=True,
@@ -158,9 +149,8 @@ async def test_fill_need_category_accepts_single_id(
     create_category,
     create_product_account,
 ):
-    root = await create_category(container_fix, filling_redis=False, name="single-root")
+    root = await create_category(filling_redis=False, name="single-root")
     child = await create_category(
-        container_fix,
         filling_redis=False,
         parent_id=root.category_id,
         is_product_storage=True,

@@ -1,6 +1,6 @@
 import pytest
 
-from helpers.helper_functions import comparison_models
+from tests.helpers.helper_functions import comparison_models
 
 
 class TestWalletTransactionService:

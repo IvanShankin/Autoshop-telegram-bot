@@ -201,6 +201,7 @@ async def create_replenishment_fabric(
         repl = Replenishments(
             user_id=user_id,
             type_payment_id=type_payment.type_payment_id,
+            service=ReplenishmentService.CRYPTO_BOT,
             origin_amount=100,
             amount=amount, # сумма пополнения
             status=status,

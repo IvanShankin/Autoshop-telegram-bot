@@ -1,6 +1,5 @@
 import pytest
 
-from src.application._secrets.crypto_context import get_crypto_context
 from src.domain.crypto.encrypt import make_account_key
 from src.domain.crypto.key_ops import encrypt_text
 from src.exceptions import TranslationAlreadyExists
@@ -9,8 +8,8 @@ from src.models.create_models.universal import CreateUniversalTranslationDTO
 from src.models.update_models.universal import UpdateUniversalTranslationDTO
 
 
-def _encrypt_description() -> tuple[str, str]:
-    _, dek, _ = make_account_key(get_crypto_context().kek)
+def _encrypt_description(crypto_context) -> tuple[str, str]:
+    _, dek, _ = make_account_key(crypto_context.kek)
     encrypted_description, encrypted_description_nonce, _ = encrypt_text("translated description", dek)
     return encrypted_description, encrypted_description_nonce
 
@@ -30,7 +29,7 @@ class TestUniversalTranslationsService:
     @pytest.mark.asyncio
     async def test_create_translation_persists(self, container_fix, create_universal_storage):
         storage, _ = await create_universal_storage()
-        encrypted_description, encrypted_description_nonce = _encrypt_description()
+        encrypted_description, encrypted_description_nonce = _encrypt_description(container_fix.crypto_provider.get())
 
         created = await container_fix.universal_translations_service.create_translation(
             CreateUniversalTranslationDTO(
@@ -51,7 +50,7 @@ class TestUniversalTranslationsService:
 
     @pytest.mark.asyncio
     async def test_create_translation_requires_storage(self, container_fix):
-        encrypted_description, encrypted_description_nonce = _encrypt_description()
+        encrypted_description, encrypted_description_nonce = _encrypt_description(container_fix.crypto_provider.get())
 
         with pytest.raises(UniversalStorageNotFound):
             await container_fix.universal_translations_service.create_translation(
@@ -68,7 +67,7 @@ class TestUniversalTranslationsService:
     @pytest.mark.asyncio
     async def test_create_translation_raises_if_language_exists(self, container_fix, create_universal_storage):
         storage, _ = await create_universal_storage()
-        encrypted_description, encrypted_description_nonce = _encrypt_description()
+        encrypted_description, encrypted_description_nonce = _encrypt_description(container_fix.crypto_provider.get())
 
         with pytest.raises(TranslationAlreadyExists):
             await container_fix.universal_translations_service.create_translation(
@@ -89,7 +88,7 @@ class TestUniversalTranslationsService:
         create_universal_storage,
     ):
         storage, _ = await create_universal_storage()
-        encrypted_description, encrypted_description_nonce = _encrypt_description()
+        encrypted_description, encrypted_description_nonce = _encrypt_description(container_fix.crypto_provider.get())
 
         translation = await container_fix.universal_translations_service.update_translation(
             UpdateUniversalTranslationDTO(

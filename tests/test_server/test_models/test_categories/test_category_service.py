@@ -19,13 +19,11 @@ async def _create_main_with_storage_child(
     child_index: int,
 ):
     root = await create_category(
-        container_fix,
         filling_redis=False,
         name=root_name,
         index=root_index,
     )
     child = await create_category(
-        container_fix,
         filling_redis=False,
         parent_id=root.category_id,
         is_product_storage=True,
@@ -45,16 +43,14 @@ async def test_has_accounts_in_subtree_and_filter_categories(
     create_category,
     create_product_account,
 ):
-    root = await create_category(container_fix, filling_redis=False, name="root")
+    root = await create_category(filling_redis=False, name="root")
     hidden_child = await create_category(
-        container_fix,
         filling_redis=False,
         parent_id=root.category_id,
         show=False,
         name="hidden-child",
     )
     grand = await create_category(
-        container_fix,
         filling_redis=False,
         parent_id=hidden_child.category_id,
         is_product_storage=True,
@@ -109,7 +105,7 @@ async def test_create_category_rejects_storage_parent(
     create_category,
 ):
     parent = await create_category(
-        container_fix, filling_redis=False, is_product_storage=True, name="storage-parent"
+        filling_redis=False, is_product_storage=True, name="storage-parent"
     )
 
     with pytest.raises(TheCategoryStorageAccount):
@@ -127,7 +123,7 @@ async def test_get_category_by_id_loads_from_db_and_caches(
     container_fix,
     create_category,
 ):
-    category = await create_category(container_fix, filling_redis=False, name="cached-source")
+    category = await create_category(filling_redis=False, name="cached-source")
 
     assert await container_fix.categories_cache_repo.get_category(category.category_id, "ru") is None
 
@@ -149,14 +145,12 @@ async def test_get_categories_for_main_categories_filters_and_sorts(
     create_product_account,
 ):
     root_1 = await create_category(
-        container_fix,
         filling_redis=False,
         name="main-1",
         index=1,
         is_product_storage=True,
     )
     root_2 = await create_category(
-        container_fix,
         filling_redis=False,
         name="main-2",
         index=0,
@@ -178,9 +172,8 @@ async def test_get_categories_for_children_filters_and_caches_parent_branch(
     create_category,
     create_product_account,
 ):
-    root = await create_category(container_fix, filling_redis=False, name="parent-root")
+    root = await create_category(filling_redis=False, name="parent-root")
     child_1 = await create_category(
-        container_fix,
         filling_redis=False,
         parent_id=root.category_id,
         is_product_storage=True,
@@ -188,7 +181,6 @@ async def test_get_categories_for_children_filters_and_caches_parent_branch(
         index=2,
     )
     child_2 = await create_category(
-        container_fix,
         filling_redis=False,
         parent_id=root.category_id,
         is_product_storage=True,
@@ -196,7 +188,6 @@ async def test_get_categories_for_children_filters_and_caches_parent_branch(
         index=0,
     )
     hidden = await create_category(
-        container_fix,
         filling_redis=False,
         parent_id=root.category_id,
         show=False,
@@ -219,9 +210,8 @@ async def test_get_quantity_products_in_category_returns_zero_and_nonzero(
     create_category,
     create_product_account,
 ):
-    empty_category = await create_category(container_fix, filling_redis=False, name="empty")
+    empty_category = await create_category(filling_redis=False, name="empty")
     storage_category = await create_category(
-        container_fix,
         filling_redis=False,
         name="storage",
         is_product_storage=True,
@@ -239,9 +229,8 @@ async def test_update_category_shifts_indexes_and_updates_fields(
     create_product_account,
     session_db_fix,
 ):
-    root = await create_category(container_fix, filling_redis=False, name="update-root")
+    root = await create_category(filling_redis=False, name="update-root")
     child_1 = await create_category(
-        container_fix,
         filling_redis=False,
         parent_id=root.category_id,
         is_product_storage=True,
@@ -249,7 +238,6 @@ async def test_update_category_shifts_indexes_and_updates_fields(
         index=0,
     )
     child_2 = await create_category(
-        container_fix,
         filling_redis=False,
         parent_id=root.category_id,
         is_product_storage=True,
@@ -292,7 +280,7 @@ async def test_update_category_rejects_invalid_number_buttons(container_fix):
 
 @pytest.mark.asyncio
 async def test_check_category_before_del_rejects_products(container_fix, create_category, create_product_account):
-    category = await create_category(container_fix, filling_redis=False, is_product_storage=True, name="storage")
+    category = await create_category(filling_redis=False, is_product_storage=True, name="storage")
     await create_product_account(filling_redis=False, category_id=category.category_id)
 
     with pytest.raises(TheCategoryStorageAccount):
@@ -301,9 +289,8 @@ async def test_check_category_before_del_rejects_products(container_fix, create_
 
 @pytest.mark.asyncio
 async def test_check_category_before_del_rejects_children(container_fix, create_category):
-    category = await create_category(container_fix, filling_redis=False, name="parent")
+    category = await create_category(filling_redis=False, name="parent")
     await create_category(
-        container_fix,
         filling_redis=False,
         parent_id=category.category_id,
         name="child",
@@ -319,7 +306,7 @@ async def test_delete_category_removes_rows_and_ui_image(
     create_category,
     session_db_fix,
 ):
-    category = await create_category(container_fix, filling_redis=False, name="deletable")
+    category = await create_category(filling_redis=False, name="deletable")
 
     await container_fix.category_service.delete_category(category.category_id)
 

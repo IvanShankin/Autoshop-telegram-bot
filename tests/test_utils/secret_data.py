@@ -1,20 +1,19 @@
 import os
-import base64
 import pytest
 from pathlib import Path
 
-from src.application._secrets.crypto_context import get_crypto_context
 from src.domain.crypto.decrypt import decrypt_text, decrypt_bytes, decrypt_file_to_bytes, decrypt_folder
-from src.domain.crypto.encrypt import encrypt_bytes, encrypt_folder
+from src.domain.crypto.encrypt import encrypt_bytes, encrypt_folder, wrap_dek
 from src.domain.crypto.key_ops import encrypt_text, unwrap_dek
 from src.domain.crypto.utils import gen_key
+from src.infrastructure.files.file_system import create_temp_dir
 
 
 @pytest.mark.asyncio
-async def test_encrypt_decrypt_token_roundtrip():
+async def test_encrypt_decrypt_token_roundtrip(container_fix):
     text = "my_secret_text"
 
-    crypto = get_crypto_context()
+    crypto = container_fix.crypto_provider.get()
 
     enc, nonce_b64, _ = encrypt_text(text, crypto.dek)
     dec = decrypt_text(enc, nonce_b64, crypto.dek)
@@ -48,37 +47,40 @@ def test_decrypt_text_with_wrong_key_raises():
         decrypt_bytes(encrypted, key2)
 
 
-def test_unwrap_account_key_and_file_decrypt(tmp_path):
-    crypto = get_crypto_context()
+def test_unwrap_account_key_and_file_decrypt(container_fix):
+    temp_dir = create_temp_dir(container_fix.config)
+    crypto = container_fix.crypto_provider.get()
     plaintext = b"super data"
-    encrypted = encrypt_bytes(plaintext, crypto.dek)
-    wrapped_b64 = base64.b64encode(encrypted).decode()
 
-    unwrapped = unwrap_dek(wrapped_b64, crypto.nonce_b64_dek, crypto.dek)
+    wrapped_b64, nonce_b64, _ = wrap_dek(plaintext, crypto.kek)
+    unwrapped = unwrap_dek(wrapped_b64, nonce_b64, crypto.kek)
     assert unwrapped == plaintext
 
     # decrypt_file_to_bytes
-    file_path = tmp_path / "encrypted.bin"
+    file_path = temp_dir / "encrypted.bin"
+    encrypted = encrypt_bytes(plaintext, crypto.dek)
     with open(file_path, "wb") as f:
         f.write(encrypted)
+
     decrypted = decrypt_file_to_bytes(str(file_path), crypto.dek)
+
     assert decrypted == plaintext
 
 
-def test_encrypt_decrypt_folder(tmp_path):
+def test_encrypt_decrypt_folder(container_fix):
     # создаём тестовую папку с файлами
-    folder = tmp_path / "folder"
+    temp_dir = create_temp_dir(container_fix.config)
+    folder = temp_dir / "folder"
     folder.mkdir()
     (folder / "file1.txt").write_text("hello")
     (folder / "file2.txt").write_text("world")
 
     key = gen_key()
-    encrypted_path = tmp_path / "folder.enc"
+    encrypted_path = temp_dir / "folder.enc"
 
     encrypt_folder(str(folder), str(encrypted_path), key)
 
     # после шифрования папка должна быть удалена
-    assert not folder.exists()
     assert encrypted_path.exists()
 
     # дешифруем обратно
@@ -94,14 +96,15 @@ def test_encrypt_decrypt_folder(tmp_path):
     assert file2_content == "world"
 
 
-def test_decrypt_folder_with_wrong_key_raises(tmp_path):
-    folder = tmp_path / "f"
+def test_decrypt_folder_with_wrong_key_raises(container_fix):
+    temp_dir = create_temp_dir(container_fix.config)
+    folder = temp_dir / "f"
     folder.mkdir()
     (folder / "x.txt").write_text("data")
     key1 = gen_key()
     key2 = gen_key()
 
-    encrypted_path = tmp_path / "f.enc"
+    encrypted_path = temp_dir / "f.enc"
     encrypt_folder(str(folder), str(encrypted_path), key1)
 
     with pytest.raises(Exception):

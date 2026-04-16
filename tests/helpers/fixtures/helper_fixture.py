@@ -320,7 +320,6 @@ async def create_voucher(container_fix: RequestContainer):
 @pytest_asyncio.fixture
 async def create_translate_category(container_fix: RequestContainer):
     async def _factory(
-        container_fix: RequestContainer,
         category_id: int,
         filling_redis: bool = True,
         language: str = "ru",
@@ -329,7 +328,6 @@ async def create_translate_category(container_fix: RequestContainer):
     ):
         return await create_translate_category_factory(
             container_fix=container_fix,
-            container=container_fix,
             category_id=category_id,
             filling_redis=filling_redis,
             language=language,

@@ -85,7 +85,6 @@ async def test_purchase_validation_service_checks_prices_and_errors(
 ):
     await container_fix.session_db.rollback()
     category = await create_category(
-        container_fix,
         is_product_storage=True,
         price=100,
         cost_price=60,
@@ -190,7 +189,6 @@ async def test_purchase_service_purchase_accounts_end_to_end(
     await container_fix.session_db.rollback()
     user = await create_new_user(balance=2_000)
     category = await create_category(
-        container_fix,
         is_product_storage=True,
         price=100,
         cost_price=40,
@@ -254,7 +252,6 @@ async def test_purchase_service_purchase_universal_end_to_end(
     await container_fix.session_db.rollback()
     user = await create_new_user(balance=3_000)
     category = await create_category(
-        container_fix,
         is_product_storage=True,
         product_type=ProductType.UNIVERSAL,
         reuse_product=False,
@@ -311,7 +308,6 @@ async def test_purchase_service_purchase_routes_to_real_services(
 
     account_user = await create_new_user(balance=2_000)
     account_category = await create_category(
-        container_fix,
         is_product_storage=True,
         price=100,
         cost_price=40,
@@ -326,7 +322,6 @@ async def test_purchase_service_purchase_routes_to_real_services(
 
     universal_user = await create_new_user(balance=3_000, user_name="universal_user")
     universal_category = await create_category(
-        container_fix,
         is_product_storage=True,
         product_type=ProductType.UNIVERSAL,
         reuse_product=False,

@@ -87,8 +87,8 @@ class MoneyTransferService:
                 )
                 # commit после выхода
 
-            await self.user_cache_repo.set(UsersDTO.model_validate(sender), int(self.conf.redis_time_storage.user))
-            await self.user_cache_repo.set(UsersDTO.model_validate(recipient), int(self.conf.redis_time_storage.user))
+            await self.user_cache_repo.set(UsersDTO.model_validate(sender), int(self.conf.redis_time_storage.user.total_seconds()))
+            await self.user_cache_repo.set(UsersDTO.model_validate(recipient), int(self.conf.redis_time_storage.user.total_seconds()))
 
             await self.user_log_service.create_log(
                 user_id=sender_id,

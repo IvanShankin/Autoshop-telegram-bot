@@ -26,7 +26,6 @@ async def test_account_purchase_service_start_purchase_and_finalize_success(
     await container_fix.session_db.rollback()
     user = await create_new_user(balance=2_000)
     category = await create_category(
-        container_fix,
         is_product_storage=True,
         price=100,
         cost_price=40,
@@ -105,7 +104,6 @@ async def test_account_purchase_service_cancel_purchase_request_restores_state(
     await container_fix.session_db.rollback()
     user = await create_new_user(balance=1_500)
     category = await create_category(
-        container_fix,
         is_product_storage=True,
         price=100,
         cost_price=40,
@@ -169,7 +167,6 @@ async def test_account_purchase_service_verify_reserved_accounts_replaces_invali
     await container_fix.session_db.rollback()
     user = await create_new_user(balance=2_000)
     category = await create_category(
-        container_fix,
         is_product_storage=True,
         price=100,
         cost_price=40,
@@ -226,7 +223,6 @@ async def test_account_purchase_service_verify_reserved_accounts_returns_false_w
     await container_fix.session_db.rollback()
     user = await create_new_user(balance=2_000)
     category = await create_category(
-        container_fix,
         is_product_storage=True,
         price=100,
         cost_price=40,
@@ -276,7 +272,6 @@ async def test_account_purchase_service_check_account_validity_real_branches(
 ):
     await container_fix.session_db.rollback()
     category = await create_category(
-        container_fix,
         is_product_storage=True,
         type_account_service=AccountServiceType.OTHER,
     )
@@ -337,7 +332,6 @@ async def test_account_purchase_service_finalize_failure_uses_real_cancel_path(
     await container_fix.session_db.rollback()
     user = await create_new_user(balance=2_000)
     category = await create_category(
-        container_fix,
         is_product_storage=True,
         price=100,
         cost_price=40,

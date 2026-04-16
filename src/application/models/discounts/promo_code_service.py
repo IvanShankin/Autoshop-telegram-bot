@@ -225,7 +225,7 @@ class PromoCodeService:
         promo = await self.promo_repo.deactivate(promo_code_id)
 
         if promo:
-            if user_id:
+            if user_id is not None:
                 await self.admin_actions_repo.add_admin_action(
                     user_id=user_id,
                     action_type="deactivate_promo_code",

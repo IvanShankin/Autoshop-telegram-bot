@@ -11,22 +11,6 @@ from src.exceptions.business import AlreadyActivated
 from src.exceptions.domain import PromoCodeNotFound
 from src.infrastructure.redis import get_redis
 from src.models.create_models.discounts import CreatePromoCodeDTO
-from src.repository.database.discount import PromoCodeRepository, ActivatedPromoCodeRepository
-from src.repository.redis import PromoCodesCacheRepository
-from src.application.models.discounts import PromoCodeService, ActivatedPromoCodesService
-
-
-@pytest.fixture()
-def stub_publish_event(monkeypatch):
-    calls = []
-
-    async def _fake_publish_event(payload, routing_key):
-        calls.append((payload, routing_key))
-
-    monkeypatch.setattr("src.infrastructure.rabbit_mq.producer.publish_event", _fake_publish_event)
-    monkeypatch.setattr("src.application.models.discounts.promo_code_service.publish_event", _fake_publish_event)
-    monkeypatch.setattr("src.application.events.publish_event_handler.publish_event", _fake_publish_event)
-    return calls
 
 
 class TestPromoCodeService:
@@ -141,9 +125,15 @@ class TestPromoCodeService:
         self,
         container_fix,
         create_new_user,
-        stub_publish_event,
         session_db_fix,
     ):
+        calls = []
+
+        async def _fake_send_log(*args, **kwargs):
+            calls.append(1)
+
+        container_fix.publish_event_handler.send_log = _fake_send_log
+
         user = await create_new_user()
         code = f"create_{uuid.uuid4().hex}"
         dto = CreatePromoCodeDTO(
@@ -171,7 +161,7 @@ class TestPromoCodeService:
         assert actions.scalar_one_or_none() is not None
 
         assert await get_redis().get(f"promo_code:{code}")
-        assert stub_publish_event and stub_publish_event[-1][1] == "message.send_log"
+        assert len(calls) >= 1
 
     @pytest.mark.asyncio
     async def test_activate_promo_code_creates_logs_and_deactivates(
@@ -179,8 +169,14 @@ class TestPromoCodeService:
         container_fix,
         create_new_user,
         session_db_fix,
-        stub_publish_event,
     ):
+        calls = []
+
+        async def _fake_send_log(*args, **kwargs):
+            calls.append(1)
+
+        container_fix.publish_event_handler.send_log = _fake_send_log
+
         creator = await create_new_user()
         target = await create_new_user()
         dto = CreatePromoCodeDTO(
@@ -220,7 +216,7 @@ class TestPromoCodeService:
             select(UserAuditLogs).where(UserAuditLogs.user_id == target.user_id)
         )
         assert logs.scalars().first() is not None
-        assert stub_publish_event and stub_publish_event[-1][1] == "message.send_log"
+        assert len(calls) >= 1
 
     @pytest.mark.asyncio
     async def test_activate_promo_code_already_activated(

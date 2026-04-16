@@ -1,8 +1,7 @@
-from typing import Callable, Awaitable, AsyncGenerator
+from typing import Callable, AsyncGenerator
 
 import aiohttp
 
-from src.application._secrets.crypto_context import set_crypto_context
 from src.application.crypto.crypto_context import CryptoProvider, InitCryptoContext
 from src.application.crypto.secrets_storage import GetSecret
 from src.config import init_config
@@ -47,10 +46,6 @@ class AppContainer:
         )
         self._crypto_context = init_crypto_context.execute()
         self.crypto_provider.set(self._crypto_context)  # ИСПОЛЬЗОВАТЬ ТОЛЬКО ЕГО ДЛЯ ШИФРОВАНИЯ И ДЕШИФРОВАНИЯ
-
-        # ВРЕМЕННОЕ РЕШЕНИЕ ДО ПОЛНОГО ПЕРЕХОДА НА НОВУЮ АРХИТЕКТУРУ
-        set_crypto_context(self._crypto_context)
-        # ВРЕМЕННОЕ РЕШЕНИЕ ДО ПОЛНОГО ПЕРЕХОДА НА НОВУЮ АРХИТЕКТУРУ
 
         get_secret = GetSecret(
             storage=self.secret_storage,

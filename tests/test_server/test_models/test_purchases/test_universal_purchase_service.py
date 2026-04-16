@@ -25,7 +25,6 @@ async def test_universal_purchase_service_start_and_finalize_different(
     await container_fix.session_db.rollback()
     user = await create_new_user(balance=3_000)
     category = await create_category(
-        container_fix,
         is_product_storage=True,
         product_type=ProductType.UNIVERSAL,
         reuse_product=False,
@@ -97,7 +96,6 @@ async def test_universal_purchase_service_start_and_finalize_one(
     await container_fix.session_db.rollback()
     user = await create_new_user(balance=3_000)
     category = await create_category(
-        container_fix,
         is_product_storage=True,
         product_type=ProductType.UNIVERSAL,
         reuse_product=True,
@@ -161,7 +159,6 @@ async def test_universal_purchase_service_finalize_failure_uses_real_cancel_path
     await container_fix.session_db.rollback()
     user = await create_new_user(balance=3_000)
     category = await create_category(
-        container_fix,
         is_product_storage=True,
         product_type=ProductType.UNIVERSAL,
         reuse_product=False,

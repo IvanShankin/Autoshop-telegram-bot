@@ -8,7 +8,7 @@ import pytest
 
 import src.application.products.accounts.tg.use_cases.import_use_case as import_use_case_module
 import src.application.products.accounts.tg.use_cases.upload as upload_tg_module
-from helpers.fake_moduls.fake_tg_account_client import FakeTelegramAccountClient
+from tests.helpers.fake_moduls.fake_tg_account_client import FakeTelegramAccountClient
 from src.application.products.accounts.tg.dto.schemas import BaseAccountProcessingResult
 from src.application.products.accounts.tg.use_cases.upload import UploadTGAccountsUseCase
 from src.database.models.categories import AccountServiceType
@@ -23,7 +23,7 @@ async def test_validate_tg_account_checks_validity_and_invalid_service(
     create_product_account,
 ):
     work_dir = container_fix.config.paths.temp_dir
-    category = await create_category(container_fix, is_product_storage=True)
+    category = await create_category(is_product_storage=True)
     _, full = await create_product_account(
         category_id=category.category_id,
         type_account_service=AccountServiceType.TELEGRAM,
@@ -151,7 +151,7 @@ async def test_upload_tg_accounts_use_case_yields_archives_and_cleans(
     create_product_account,
     monkeypatch,
 ):
-    category = await create_category(container_fix, is_product_storage=True)
+    category = await create_category(is_product_storage=True)
     for idx in range(5):
         await create_product_account(
             filling_redis=False,

@@ -1,17 +1,10 @@
-import importlib
-import os
-import shutil
 import sys
-import types
-from typing import Generator
 
 import fakeredis
 import pytest
 import pytest_asyncio
 
-from tests.helpers.func_fabrics.fake_objects_fabric import crypto_provider_factory
-from src.application._secrets.crypto_context import set_crypto_context
-from src.config import get_config, set_config, Config, FilePathAndKey, FileKeysConf
+from src.config import get_config, set_config
 from src.infrastructure.redis import core
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeBot
 
@@ -119,21 +112,8 @@ def replacement_fake_bot(monkeypatch):
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
-async def create_crypto_context_fix():
-    """Создаёт CryptoContext"""
-    try:
-        crypto_provider = crypto_provider_factory()
-        set_crypto_context(crypto_provider.get())
-    except RuntimeError:
-        pass
-
-
-@pytest_asyncio.fixture(scope="function", autouse=True)
 async def set_need_config():
     conf = get_config()
-
-    # conf.app.type_account_services = ["telegram"]
-
     set_config(conf)
 
 

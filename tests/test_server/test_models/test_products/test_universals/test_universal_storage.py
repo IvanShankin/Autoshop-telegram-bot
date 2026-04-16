@@ -2,7 +2,6 @@ import uuid
 
 import pytest
 
-from src.application._secrets.crypto_context import get_crypto_context
 from src.database.models.categories import StorageStatus, UniversalMediaType
 from src.domain.crypto.encrypt import make_account_key
 from src.domain.crypto.key_ops import encrypt_text
@@ -11,8 +10,8 @@ from src.models.create_models.universal import CreateUniversalStorageWithTransla
 from src.models.update_models.universal import UpdateUniversalStorageDTO
 
 
-def _build_storage_encryption_payload() -> tuple[str, bytes, str, str, str]:
-    encrypted_key, key, encrypted_key_nonce = make_account_key(get_crypto_context().kek)
+def _build_storage_encryption_payload(crypto_context) -> tuple[str, bytes, str, str, str]:
+    encrypted_key, key, encrypted_key_nonce = make_account_key(crypto_context.kek)
     encrypted_description, encrypted_description_nonce, _ = encrypt_text("description", key)
     return encrypted_key, key, encrypted_key_nonce, encrypted_description, encrypted_description_nonce
 
@@ -48,7 +47,7 @@ class TestUniversalStorageService:
     @pytest.mark.asyncio
     async def test_create_universal_storage_persists_and_returns(self, container_fix):
         encrypted_key, key, encrypted_key_nonce, encrypted_description, encrypted_description_nonce = (
-            _build_storage_encryption_payload()
+            _build_storage_encryption_payload(container_fix.crypto_provider.get())
         )
         dto = CreateUniversalStorageWithTranslationDTO(
             language="en",

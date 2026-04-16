@@ -124,7 +124,7 @@ class ReplenishmentsDTO(ORMDTO):
     status: str
     created_at: datetime
     updated_at: datetime | None
-    service: ReplenishmentService
+    service: ReplenishmentService | None
     payment_system_id: str | None
     invoice_url: str | None
     expire_at: datetime

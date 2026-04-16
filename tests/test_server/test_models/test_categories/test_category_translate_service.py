@@ -12,9 +12,8 @@ async def test_get_all_translations_category_returns_all_rows(
     create_category,
     create_translate_category,
 ):
-    category = await create_category(container_fix, filling_redis=False, name="translations-root")
+    category = await create_category(filling_redis=False, name="translations-root")
     await create_translate_category(
-        container_fix,
         category_id=category.category_id,
         filling_redis=False,
         language="en",
@@ -31,7 +30,7 @@ async def test_create_translation_in_category_persists_and_updates_cache(
     container_fix,
     create_category,
 ):
-    category = await create_category(container_fix, filling_redis=False, name="create-translate-root")
+    category = await create_category(filling_redis=False, name="create-translate-root")
 
     created = await container_fix.translations_category_service.create_translation_in_category(
         CreateCategoryTranslate(
@@ -55,7 +54,7 @@ async def test_create_translation_in_category_rejects_duplicate_language(
     container_fix,
     create_category,
 ):
-    category = await create_category(container_fix, filling_redis=False, name="duplicate-root")
+    category = await create_category(filling_redis=False, name="duplicate-root")
 
     await container_fix.translations_category_service.create_translation_in_category(
         CreateCategoryTranslate(
@@ -102,9 +101,8 @@ async def test_update_category_translation_updates_rows_and_cache(
     create_category,
     create_translate_category,
 ):
-    category = await create_category(container_fix, filling_redis=False, name="update-translate-root")
+    category = await create_category(filling_redis=False, name="update-translate-root")
     await create_translate_category(
-        container_fix,
         category_id=category.category_id,
         filling_redis=False,
         language="en",
@@ -135,9 +133,8 @@ async def test_delete_all_category_translation_clears_cache(
     create_category,
     create_translate_category,
 ):
-    category = await create_category(container_fix, filling_redis=False, name="delete-all-root")
+    category = await create_category(filling_redis=False, name="delete-all-root")
     await create_translate_category(
-        container_fix,
         category_id=category.category_id,
         filling_redis=False,
         language="en",
@@ -162,9 +159,8 @@ async def test_delete_category_translation_removes_one_language_and_refreshes_ca
     create_category,
     create_translate_category,
 ):
-    category = await create_category(container_fix, filling_redis=False, name="delete-one-root")
+    category = await create_category(filling_redis=False, name="delete-one-root")
     await create_translate_category(
-        container_fix,
         category_id=category.category_id,
         filling_redis=False,
         language="en",
@@ -190,7 +186,7 @@ async def test_delete_category_translation_rejects_last_translation(
     container_fix,
     create_category,
 ):
-    category = await create_category(container_fix, filling_redis=False, name="only-translation-root")
+    category = await create_category(filling_redis=False, name="only-translation-root")
 
     with pytest.raises(TheOnlyTranslation):
         await container_fix.translations_category_service.delete_category_translation(

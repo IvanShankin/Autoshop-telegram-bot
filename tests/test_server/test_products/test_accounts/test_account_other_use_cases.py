@@ -20,7 +20,7 @@ async def test_validate_other_accounts_use_case_checks_validity(
     create_category,
     create_product_account,
 ):
-    category = await create_category(container_fix, is_product_storage=True)
+    category = await create_category(is_product_storage=True)
     _, full = await create_product_account(
         category_id=category.category_id,
         type_account_service=AccountServiceType.OTHER,
@@ -39,7 +39,7 @@ async def test_upload_other_accounts_use_case_exports_csv(
     create_category,
     create_product_account,
 ):
-    category = await create_category(container_fix, is_product_storage=True)
+    category = await create_category(is_product_storage=True)
     await create_product_account(
         filling_redis=False,
         category_id=category.category_id,
@@ -72,7 +72,7 @@ async def test_import_other_accounts_use_case_imports_rows(
     create_category,
     session_db_fix,
 ):
-    category = await create_category(container_fix, is_product_storage=True)
+    category = await create_category(is_product_storage=True)
     csv_stream = io.BytesIO(
         make_csv_bytes(
             [
@@ -106,7 +106,7 @@ async def test_validate_other_accounts_use_case_false_on_unwrap_error(
     create_product_account,
     monkeypatch,
 ):
-    category = await create_category(container_fix, is_product_storage=True)
+    category = await create_category(is_product_storage=True)
     _, full = await create_product_account(
         category_id=category.category_id,
         type_account_service=AccountServiceType.OTHER,

@@ -1,7 +1,8 @@
 import pytest
 from sqlalchemy import select
 
-from helpers.helper_functions import comparison_models
+from tests.helpers.helper_functions import comparison_models
+from src.database.models.system.models import ReplenishmentService
 from src.database.models.users import Replenishments, WalletTransaction, UserAuditLogs
 from src.models.create_models.users import CreateReplenishmentDTO
 from src.models.read_models.events.replenishments import NewReplenishment
@@ -27,7 +28,8 @@ class TestReplenishmentsService:
             type_payment_id=type_payment.type_payment_id,
             data=CreateReplenishmentDTO(
                 origin_amount=100,
-                amount=105
+                amount=105,
+                service=ReplenishmentService.CRYPTO_BOT,
             ),
             make_commit=True
         )

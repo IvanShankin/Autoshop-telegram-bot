@@ -20,8 +20,6 @@ from src.database.models.users import Users, Replenishments, NotificationSetting
     TransferMoneys
 from src.database.models.users import BalanceHolder
 from src.infrastructure.redis import get_redis
-from src.application._redis.filling import filling_all_types_payments, \
-    filling_types_payments_by_id
 
 
 async def create_new_user_fabric(
@@ -92,7 +90,11 @@ async def create_admin_fabric(container_fix: RequestContainer, filling_redis: bo
     return new_admin
 
 
-async def create_referral_fabric(container_fix: RequestContainer, owner_id: int = None, referral_id: int = None) -> (Referrals, Users, Users):
+async def create_referral_fabric(
+    container_fix: RequestContainer,
+    owner_id: int = None,
+    referral_id: int = None,
+) -> (Referrals, Users, Users):
     """
        Создаёт тестовый реферала (у нового пользователя появляется владелец)
        :return Реферал(Referrals), Владельца(Users) и Реферала(Users)
@@ -241,12 +243,8 @@ async def create_type_payment_factory(
         await session_db.refresh(new_type_payment)
 
         if filling_redis:
-            await filling_all_types_payments()
-
-            result = await session_db.execute(select(TypePayments))
-            all_types = result.scalars().all()
-            for type_payment in all_types:
-                await filling_types_payments_by_id(type_payment.type_payment_id)
+            cache_warmup_service = container_fix.get_cache_warmup_service()
+            await cache_warmup_service._fill_type_payments()
 
     return new_type_payment
 

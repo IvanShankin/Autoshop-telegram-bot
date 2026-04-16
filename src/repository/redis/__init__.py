@@ -5,7 +5,7 @@ from src.repository.redis.categories import CategoriesCacheRepository
 from src.repository.redis.other import (
     AdminsCacheRepository,
     BannedAccountsCacheRepository,
-    DollarRateRepository,
+    DollarRateCacheRepository,
     PromoCodesCacheRepository,
     ReferralLevelsCacheRepository,
     SettingsCacheRepository,
@@ -34,7 +34,7 @@ __all__ = [
     # other.py
     "AdminsCacheRepository",
     "BannedAccountsCacheRepository",
-    "DollarRateRepository",
+    "DollarRateCacheRepository",
     "PromoCodesCacheRepository",
     "ReferralLevelsCacheRepository",
     "SettingsCacheRepository",

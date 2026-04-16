@@ -5,8 +5,6 @@ from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from src.application._redis.filling import filling_all_keys_category
-from src.application._secrets.crypto_context import get_crypto_context
 from src.containers import RequestContainer
 from src.database.core import get_session_factory
 from src.domain.crypto.encrypt import encrypt_file, make_account_key
@@ -17,9 +15,6 @@ from src.database.models.categories import UniversalMediaType, UniversalStorage,
     UniversalStorageTranslation, ProductUniversal, SoldUniversal, StorageStatus
 from src.models.read_models import UniversalStoragePydantic, ProductUniversalSmall, ProductUniversalFull, SoldUniversalSmall, \
     SoldUniversalFull
-from src.application._redis.filling.filling_universal import filling_product_universal_by_category, \
-    filling_universal_by_product_id, filling_sold_universal_by_universal_id, \
-    filling_sold_universal_by_owner_id
 
 
 async def _make_encrypted_universal_storage_file(
@@ -190,9 +185,9 @@ async def create_product_universal_factory(
         full = ProductUniversalFull.from_orm_model(new_product, language)
 
     if filling_redis:
-        await filling_product_universal_by_category()
-        await filling_universal_by_product_id(full.product_universal_id)
-        await filling_all_keys_category(full.category_id)
+        container_fix.universal_cache_filler_service.fill_product_universal_by_product_id(full.product_universal_id)
+        container_fix.universal_cache_filler_service.fill_product_universal_by_category_id(full.category_id)
+        container_fix.categories_cache_filler_service.fill_need_category(full.category_id)
 
     return small, full
 
@@ -241,8 +236,8 @@ async def create_sold_universal_factory(
         full = SoldUniversalFull.from_orm_model(new_sold, language)
 
     if filling_redis:
-        await filling_sold_universal_by_owner_id(full.owner_id)
-        await filling_sold_universal_by_universal_id(full.sold_universal_id)
+        container_fix.universal_cache_filler_service.fill_sold_universal_by_universal_id(full.owner_id)
+        container_fix.universal_cache_filler_service.fill_sold_universal_by_owner_id(full.sold_universal_id)
 
     return small, full
 

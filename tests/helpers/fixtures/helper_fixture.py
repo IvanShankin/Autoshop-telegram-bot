@@ -1,3 +1,4 @@
+import aiohttp
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -71,8 +72,11 @@ async def container_fix(
     async def fake_support_kb(*args, **kwargs) -> None:
         pass
 
+    http_session = aiohttp.ClientSession()
+
     container = init_request_container(
         session_db=session_db_fix,
+        http_session=http_session,
         telegram_client=fake_tg_client,
         telegram_logger_client=fake_tg_client,
         crypto_bot_provider=crypto_bot_provider_fix,

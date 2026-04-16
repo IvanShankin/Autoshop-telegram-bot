@@ -18,8 +18,8 @@ msgstr "📂 Категории"
 msgid "services_replenishments"
 msgstr "💳 Сервисы пополнения"
 
-msgid "images"
-msgstr "🖼️ Изображения"
+msgid "events"
+msgstr "️📅 События"
 
 msgid "vouchers"
 msgstr "🎫 Ваучеры"

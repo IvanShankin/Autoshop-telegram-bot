@@ -5,7 +5,6 @@ from src.deferred_tasks.creator_works import InitScheduler
 from src.infrastructure.scheduler.core import init_scheduler
 from src.infrastructure.web.server import start_server
 from src.infrastructure.telegram.bot_run import run_bot
-from src.application._redis.tasks import start_dollar_rate_scheduler
 
 
 async def start_app():
@@ -24,13 +23,11 @@ async def start_app():
         warmup = request_container.get_cache_warmup_service()
         await warmup.warmup()
 
+    # отложенный задачник
     scheduler = init_scheduler()
     InitScheduler(scheduler=scheduler, container_factory=app_container.get_request_container_factory())
 
-    asyncio.create_task(start_dollar_rate_scheduler())
-    asyncio.create_task(start_server(app_container))
-
-    # отложенный задачник
+    asyncio.create_task(start_server(app_container)) # FastAPI
 
     backup_db = request_container.get_backup_db()
     backup_db.add_backup_create(scheduler)

@@ -1,5 +1,7 @@
 from typing import Callable, Awaitable, AsyncGenerator
 
+import aiohttp
+
 from src.application._secrets.crypto_context import set_crypto_context
 from src.application.crypto.crypto_context import CryptoProvider, InitCryptoContext
 from src.application.crypto.secrets_storage import GetSecret
@@ -70,14 +72,21 @@ class AppContainer:
 
         self.consumer = RabbitMQConsumer(self.handle_event, conf=self.conf, logger=self.logger)
 
+        self.http_session = aiohttp.ClientSession()
+
 
     async def shutdown(self):
         await self.consumer.stop()
         await close_redis()
 
+        if self.http_session:
+            await self.http_session.close()
+
+
     def get_request_container(self, session_db) -> RequestContainer:
         return RequestContainer(
             session_db=session_db,
+            http_session=self.http_session,
             telegram_client=self.telegram_bot_client,
             telegram_logger_client=self.telegram_bot_logger_client,
             crypto_bot_provider=self.crypto_bot_provider,

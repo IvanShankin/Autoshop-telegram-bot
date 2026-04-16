@@ -4,7 +4,7 @@ from typing import AsyncGenerator
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from src.containers import RequestContainer
-from src.deferred_tasks.jobs import deactivate_discounts_job
+from src.deferred_tasks.jobs import deactivate_discounts_job, dollar_rate_job
 
 
 class InitScheduler:
@@ -20,5 +20,12 @@ class InitScheduler:
             deactivate_discounts_job,
             "interval",
             seconds=60,
+            args=[container_factory],
+        )
+
+        scheduler.add_job(
+            dollar_rate_job,
+            "interval",
+            seconds=3600, # час
             args=[container_factory],
         )

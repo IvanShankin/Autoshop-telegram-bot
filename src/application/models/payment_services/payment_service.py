@@ -9,7 +9,7 @@ from src.infrastructure.crypto_bot.core import CryptoBotProvider
 from src.models.create_models.users import CreateReplenishmentDTO
 from src.models.read_models.events.message import LogLevel
 from src.models.update_models.users import UpdateReplenishment
-from src.repository.redis import DollarRateRepository
+from src.repository.redis import DollarRateCacheRepository
 from src.application.events.publish_event_handler import PublishEventHandler
 from src.application.models.systems import TypesPaymentsService
 from src.application.models.users import ReplenishmentsService, UserService
@@ -22,7 +22,7 @@ class PaymentService:
         publish_event_handler: PublishEventHandler,
         types_payments_service: TypesPaymentsService,
         user_service: UserService,
-        dollar_rate_repo: DollarRateRepository,
+        dollar_rate_repo: DollarRateCacheRepository,
         crypto_provider: CryptoBotProvider,
         conf: Config,
         logger: Logger,

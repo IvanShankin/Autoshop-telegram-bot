@@ -104,7 +104,7 @@ class ReferralLevelsCacheRepository(BaseRedisRepo):
         await self.redis_session.delete(self._key())
 
 
-class DollarRateRepository(BaseRedisRepo):
+class DollarRateCacheRepository(BaseRedisRepo):
 
     async def set(self, rate: float) -> None:
         return await self.redis_session.set(f"dollar_rate", rate)

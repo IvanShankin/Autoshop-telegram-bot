@@ -1,8 +1,10 @@
 from typing import TYPE_CHECKING, Optional, Callable, Awaitable, Any
 
+from aiohttp import ClientSession
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.crypto.crypto_context import CryptoProvider
+from src.application.currenccy.update_dollare_rate import UpdateDollarRateUseCase
 from src.application.models.discounts.remove_invalid import RemoveInvalidDiscountsUseCase
 from src.application.models.systems.backup_db_service import BackupDBService
 from src.application.models.users.use_cases import GenerateUserAuditLogUseCase
@@ -19,6 +21,8 @@ from src.application.products.universals.use_cases import ValidationsUniversalPr
 from src.config import get_config
 from src.infrastructure.crypto.secret_storage.secrets_storage import SecretsStorage
 from src.infrastructure.crypto_bot.core import CryptoBotProvider
+from src.infrastructure.currency.cbr_client import CBRClient
+from src.infrastructure.currency.moex_client import MoexClient
 from src.infrastructure.files.excel_reports import ExcelReportExporter
 from src.infrastructure.files.file_system import FileStorage
 from src.infrastructure.files.path_builder import PathBuilder
@@ -92,7 +96,7 @@ from src.repository.redis import (
     SubscriptionCacheRepository,
     UiImagesCacheRepository,
     UsersCacheRepository, SettingsCacheRepository, VouchersCacheRepository, PromoCodesCacheRepository,
-    ReferralLevelsCacheRepository, TypePaymentsCacheRepository, DollarRateRepository,
+    ReferralLevelsCacheRepository, TypePaymentsCacheRepository, DollarRateCacheRepository,
     AccountsCacheRepository,
     CategoriesCacheRepository,
     ProductUniversalCacheRepository,
@@ -152,6 +156,7 @@ class RequestContainer:
     def __init__(
         self,
         session_db: AsyncSession,
+        http_session: ClientSession,
         telegram_client : "TelegramClient",
         telegram_logger_client: "TelegramClient",
         crypto_bot_provider: CryptoBotProvider,
@@ -161,6 +166,7 @@ class RequestContainer:
         telegram_account_client: TelegramAccountClient,
     ):
         self.session_db = session_db
+        self.http_session = http_session
         self.telegram_client = telegram_client
         self.telegram_logger_client = telegram_logger_client
 
@@ -796,7 +802,7 @@ class RequestContainer:
             session_db=self.session_db
         )
 
-        self.dollar_rate_repo = DollarRateRepository(
+        self.dollar_rate_repo = DollarRateCacheRepository(
             redis_session=self.session_redis,
             config=self.config,
         )
@@ -902,6 +908,21 @@ class RequestContainer:
             replenishment_service=self.replenishment_service,
             publish_event_handler=self.publish_event_handler,
             logger=self.logger,
+        )
+        self.update_dollar_rate_use_case = UpdateDollarRateUseCase(
+            moex_client=MoexClient(
+                session=self.http_session,
+                logger=self.logger,
+            ),
+            cbr_client=CBRClient(
+                session=self.http_session,
+                logger=self.logger,
+            ),
+            dollar_rate_repo=DollarRateCacheRepository(
+                redis_session=self.session_redis,
+                config=self.config,
+            ),
+            logger=self.logger
         )
 
     def get_backup_db(self):
@@ -1199,6 +1220,7 @@ class RequestContainer:
 
 def init_request_container(
     session_db: AsyncSession,
+    http_session: ClientSession,
     telegram_client: "TelegramClient",
     telegram_logger_client: "TelegramClient",
     crypto_bot_provider: CryptoBotProvider,
@@ -1209,6 +1231,7 @@ def init_request_container(
 ) -> RequestContainer:
     return RequestContainer(
         session_db=session_db,
+        http_session=http_session,
         telegram_client=telegram_client,
         telegram_logger_client=telegram_logger_client,
         crypto_bot_provider=crypto_bot_provider,

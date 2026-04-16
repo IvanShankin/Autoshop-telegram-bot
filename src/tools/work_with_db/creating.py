@@ -1,16 +1,17 @@
 import asyncio
 
-from src.config import Config
 from src.containers.app_container import AppContainer
 from src.database.creating import create_database, create_table
 
 
-async def create(conf: Config):
+async def create():
     """Создает базу данных и все таблицы в ней (если существует, то ничего не произойдёт)"""
-    await create_database(conf)
-    await create_table(conf)
-
+    app_container = AppContainer()
+    try:
+        await create_database(app_container.conf)
+        await create_table(app_container.conf)
+    finally:
+        await app_container.shutdown()
 
 if __name__ == "__main__":
-    app_container = AppContainer()
-    asyncio.run(create(app_container.conf))
+    asyncio.run(create())

@@ -6,6 +6,7 @@ __pycache__/
 *.log
 *.env
 *.test.env
+*.env.secrets
 tests/manual_test.py
 
 

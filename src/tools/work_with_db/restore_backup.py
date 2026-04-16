@@ -1,6 +1,5 @@
 import argparse
 import asyncio
-import shutil
 import subprocess
 import tempfile
 import sys
@@ -9,7 +8,9 @@ from getpass import getpass
 
 from src.application.crypto.secrets_storage import get_storage_client
 from src.config import init_env, get_config
-from src.application.secrets import decrypt_bytes, unwrap_dek, derive_kek
+from src.domain.crypto.decrypt import decrypt_bytes
+from src.domain.crypto.key_ops import unwrap_dek
+from src.domain.crypto.utils import derive_kek
 
 
 def parse_args():

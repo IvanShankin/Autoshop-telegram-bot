@@ -13,24 +13,30 @@ from src.database.models.admins import Admins
 
 
 
-
-async def filling(app_container: AppContainer):
+async def filling():
     """Заполнит все необходимые данные в БД"""
-    conf = app_container.conf
+    app_container = AppContainer()
+    try:
+        conf = app_container.conf
 
-    await filling_settings()
-    await filling_referral_lvl()
-    await filling_admins(conf.env.main_admin, app_container)
-    for type_payment in ReplenishmentService:
-        await filling_type_payment(type_payment)
+        await filling_settings()
+        await filling_referral_lvl()
+        await filling_admins(conf.env.main_admin, app_container)
+        for type_payment in ReplenishmentService:
+            await filling_type_payment(type_payment)
 
-    for key in conf.message_event.all_keys:
-        await filling_sticker(key=key)
-        await filling_ui_image(key=key)
+        for key in conf.message_event.all_keys:
+            await filling_sticker(key=key)
+            await filling_ui_image(key=key)
 
-    files_data = conf.file_keys.model_dump()
-    for file_key in files_data.keys():
-        await filling_files(key=files_data[file_key]["key"], path=files_data[file_key]["name_in_dir_with_files"])
+        files_data = conf.file_keys.model_dump()
+        for file_key in files_data.keys():
+            await filling_files(key=files_data[file_key]["key"], path=files_data[file_key]["name_in_dir_with_files"])
+
+        app_container.logger.info("Filling successfully")
+    finally:
+        await app_container.shutdown()
+
 
 
 async def filling_settings():
@@ -134,5 +140,4 @@ async def filling_type_payment(service_payments: ReplenishmentService):
 
 
 if __name__ == "__main__":
-    app_container = AppContainer()
-    asyncio.run(filling(app_container))
+    asyncio.run(filling())

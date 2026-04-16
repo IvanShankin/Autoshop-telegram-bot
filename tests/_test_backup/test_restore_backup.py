@@ -5,8 +5,8 @@ from pathlib import Path
 import pytest
 
 from src.domain.crypto.encrypt import encrypt_bytes
-from src.tools import restore_backup
-from src.tools.restore_backup import restore_postgres
+from src.tools.work_with_db import restore_backup
+from src.tools.work_with_db.restore_backup import restore_postgres
 
 
 

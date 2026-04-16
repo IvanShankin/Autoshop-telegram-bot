@@ -13,7 +13,7 @@ from src.database.models.categories import (
 from src.database.models.system import BackupLogs
 from src.database.models.users import Replenishments, Users
 from src.repository.database.systems import TypePaymentsRepository
-from src.application._database.system.shemas.shemas import (
+from src.models.read_models.systems import (
     ReplenishmentPaymentSystem,
     StatisticsData,
 )

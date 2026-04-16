@@ -235,7 +235,7 @@ class VoucherService:
 
     async def deactivate_voucher(self, voucher_id: int) -> int:
         """
-        Сделает ваучер невалидным в БД (is_valid = False), вернёт деньги пользователю и удалит ваучер с _redis.
+        Сделает ваучер невалидным в БД (is_valid = False), вернёт деньги пользователю и удалит ваучер с redis.
         Сообщение пользователю НЕ будет отправлено!
         :return Возвращённая сумма пользователю
         :except Exception вызовет ошибку если произойдёт

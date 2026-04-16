@@ -91,7 +91,7 @@ class SendMessageService:
             chat_id, message, reply_markup, parse_mode, message_effect_id, _retry_without_effect
         )
 
-    # -------------------- helpers --------------------
+    # -------------------- depends --------------------
 
     async def _send_sticker_if_needed(self, chat_id: int, key: Optional[str]) -> None:
         if not key:

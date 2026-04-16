@@ -2,7 +2,7 @@ from typing import Optional, Sequence
 
 from src.models.create_models.referrals import CreateReferralIncomeDTO
 from src.models.read_models.other import IncomeFromReferralsDTO
-from src.repository.database.refferals import ReferralIncomeRepository
+from src.repository.database.referrals import ReferralIncomeRepository
 
 
 class ReferralIncomeService:

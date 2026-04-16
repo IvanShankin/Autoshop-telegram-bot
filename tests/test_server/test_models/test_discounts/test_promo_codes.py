@@ -291,8 +291,8 @@ class TestPromoCodeService:
 
         assert await get_redis().get(f"promo_code:{code}")
         await container_fix.promo_code_service.deactivate_promo_code(
-            user_id=user.user_id,
             promo_code_id=promo.promo_code_id,
+            user_id=user.user_id,
         )
 
         assert await get_redis().get(f"promo_code:{code}") is None

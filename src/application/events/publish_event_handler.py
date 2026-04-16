@@ -1,5 +1,5 @@
 from src.models.read_models.events.discounts import NewActivationVoucher, NewActivatePromoCode
-from src.models.read_models import EventSentLog, LogLevel, NewPurchaseAccount, NewPurchaseUniversal
+from src.models.read_models import EventSentLog, LogLevel, NewPurchaseAccount, NewPurchaseUniversal, NewReplenishment
 from src.infrastructure.rabbit_mq.producer import publish_event
 from src.models.read_models import EventCreateUiImage
 
@@ -96,3 +96,6 @@ class PublishEventHandler:
 
     async def new_purchase_universal(self, data: NewPurchaseUniversal):
         await publish_event(data.model_dump(), "purchase.universal")
+
+    async def new_replenishment(self, data: NewReplenishment):
+        await publish_event(data.model_dump(), "replenishment.new_replenishment")

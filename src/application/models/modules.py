@@ -11,7 +11,10 @@ from src.application.models.users.pubscription_prompt import SubscriptionService
 from src.application.models.users.use_cases import GenerateUserAuditLogUseCase
 from src.application.products.accounts.account_service import AccountService, GenerateExamplImporteAccount
 from src.application.products.accounts.other.use_cases import UploadOtherAccountsUseCase, ImportOtherAccountsUseCase
-from src.application.products.accounts.tg.use_cases import UploadTGAccountsUseCase, ImportTelegramAccountsUseCase
+from src.application.products.accounts.tg.use_cases import UploadTGAccountsUseCase, ImportTelegramAccountsUseCase, \
+    ValidateTgAccount
+from src.application.products.accounts.tg.use_cases.get_auth_codes import GetAuthCodesUseCase
+from src.application.products.universals.universal_products import UniversalProduct
 from src.application.products.universals.use_cases import UploadUniversalProductsUseCase, \
     GenerateExamplUniversalProductImport, ImportUniversalProductUseCase
 from src.config import Config
@@ -30,6 +33,7 @@ from src.application.models.users import WalletTransactionService, UserService, 
     NotificationSettingsService, BannedAccountService, ReplenishmentsService
 from src.application.models.users.permission_service import PermissionService
 from src.infrastructure.files.path_builder import PathBuilder
+from src.infrastructure.telegram.account_client import TelegramAccountClient
 from src.repository.database.categories import PurchasesRepository
 
 
@@ -68,6 +72,7 @@ class UniversalModuls:
         storage_service: UniversalStorageService,
         translations_service: UniversalTranslationsService,
         cache_filler_service: UniversalCacheFillerService,
+        universal_product: UniversalProduct,
         conf: Config,
         logger: Logger,
     ):
@@ -77,6 +82,7 @@ class UniversalModuls:
         self.storage_service = storage_service
         self.translations_service = translations_service
         self.cache_filler_service = cache_filler_service
+        self.universal_product = universal_product
         self.conf = conf
         self.logger = logger
 
@@ -105,6 +111,8 @@ class ProfileModule:
         account_service: AccountService,
         crypto_provider: CryptoProvider,
         path_builder: PathBuilder,
+        get_auth_codes_use_case: GetAuthCodesUseCase,
+        validate_tg_account: ValidateTgAccount,
     ):
         self.conf = conf
         self.logger = logger
@@ -126,6 +134,8 @@ class ProfileModule:
         self.account_service = account_service
         self.crypto_provider = crypto_provider
         self.path_builder = path_builder
+        self.get_auth_codes_use_case = get_auth_codes_use_case
+        self.validate_tg_account = validate_tg_account
 
 
 class CatalogModule:

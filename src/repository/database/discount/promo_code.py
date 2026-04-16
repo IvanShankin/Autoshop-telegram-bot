@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List
 
 from sqlalchemy import select, func, update, and_
@@ -48,21 +48,18 @@ class PromoCodeRepository(DatabaseBase):
         promos = list(result.scalars().all())
         return [PromoCodesDTO.model_validate(promo) for promo in promos]
 
-    async def set_not_valid_promo_codes(self, data_time_to: datetime) -> List[PromoCodesDTO]:
+    async def get_not_valid_promo_codes(self, data_time_to: datetime) -> List[PromoCodesDTO]:
         """
-        Установит is_valid=False у промокодов где дата меньше чем `data_time_to`
-        :return:
+        :return: Промокоды где дата меньше чем `data_time_to`
         """
         result_db = await self.session_db.execute(
-            update(PromoCodes)
+            select(PromoCodes)
             .where(
                 and_(
                     PromoCodes.is_valid.is_(True),
                     PromoCodes.expire_at <= data_time_to
                 )
             )
-            .values(is_valid=False)
-            .returning(PromoCodes)
         )
         promos = list(result_db.scalars().all())
         return [PromoCodesDTO.model_validate(promo) for promo in promos]

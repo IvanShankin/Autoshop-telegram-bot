@@ -9,9 +9,8 @@ from src.exceptions import InvalidAmountOfAchievement, InvalidSelectedLevel
 from src.models.create_models.referrals import CreateReferralLevelDTO
 from src.models.read_models.other import ReferralLevelsDTO
 from src.models.update_models.referrals import UpdateReferralLevelDTO
-from src.repository.database.refferals import ReferralLevelsRepository
+from src.repository.database.referrals import ReferralLevelsRepository
 from src.repository.redis import ReferralLevelsCacheRepository
-from src.application._database.core.filling_database import filling_referral_lvl as filling_referral_lvl_in_db
 
 
 class ReferralLevelsService:
@@ -26,6 +25,14 @@ class ReferralLevelsService:
         self.cache_repo = cache_repo
         self.session_db = session_db
 
+    async def _filling_default_levels(self):
+        await self.add_referral_lvl(
+            data=CreateReferralLevelDTO(amount_of_achievement=0, percent=3)
+        )
+        await self.add_referral_lvl(
+            data=CreateReferralLevelDTO(amount_of_achievement=2000, percent=4)
+        )
+
     async def get_referral_levels(self) -> Sequence[ReferralLevelsDTO]:
         """Вернёт ReferralLevels отсортированный по возрастанию level"""
         cached = await self.cache_repo.get()
@@ -37,7 +44,7 @@ class ReferralLevelsService:
             await self.cache_repo.set(list(levels))
             return levels
 
-        await filling_referral_lvl_in_db()
+        await self._filling_default_levels()
         levels = await self.referral_lvl_repo.get_all()
         if levels:
             await self.cache_repo.set(list(levels))

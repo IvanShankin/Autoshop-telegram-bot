@@ -12,7 +12,6 @@ from src.database.models.categories import StorageStatus, UniversalMediaType
 from src.models.read_models import SoldUniversalFull, UsersDTO
 from src.application.bot import Messages
 from src.infrastructure.files.file_system import create_temp_dir
-from src.application.products.universals._universals_products import move_in_universal
 from src.application.models.modules import ProfileModule
 from src.domain.crypto.decrypt import decrypt_file, decrypt_text
 from src.utils.i18n import get_text
@@ -140,7 +139,9 @@ async def delete_sold_universal_han(
     messages_service: Messages,
     profile_module: ProfileModule,
 ):
-    result = await move_in_universal(universal=universal, status=StorageStatus.DELETED)
+    result = await profile_module.universal_moduls.universal_product.move_universal_storage(
+        storage=universal.universal_storage, new_status=StorageStatus.DELETED
+    )
     if not result:
         await callback.answer(
             get_text(user.language, "miscellaneous", "an_error_occurred"),

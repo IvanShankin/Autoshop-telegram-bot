@@ -10,7 +10,6 @@ import pytest
 import pytest_asyncio
 
 from tests.helpers.func_fabrics.fake_objects_fabric import crypto_provider_factory
-from src._bot_actions.throttler import RateLimiter
 from src.application._secrets.crypto_context import set_crypto_context
 from src.config import get_config, set_config, Config, FilePathAndKey, FileKeysConf
 from src.infrastructure.redis import core

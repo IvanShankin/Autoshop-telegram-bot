@@ -3,12 +3,15 @@ from typing import TYPE_CHECKING, Optional, Callable, Awaitable, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.crypto.crypto_context import CryptoProvider
+from src.application.models.discounts.remove_invalid import RemoveInvalidDiscountsUseCase
 from src.application.models.systems.backup_db_service import BackupDBService
 from src.application.models.users.use_cases import GenerateUserAuditLogUseCase
+from src.application.payments.crypto_bot.use_cases.process_webhook import ProcessCryptoWebhookUseCase
 from src.application.products.accounts.account_service import AccountService, GenerateExamplImporteAccount
 from src.application.products.accounts.other.use_cases import UploadOtherAccountsUseCase, ImportOtherAccountsUseCase
 from src.application.products.accounts.other.use_cases.validate import ValidateOtherAccountsUseCase
 from src.application.products.accounts.tg.use_cases import ImportTelegramAccountsUseCase, UploadTGAccountsUseCase
+from src.application.products.accounts.tg.use_cases.get_auth_codes import GetAuthCodesUseCase
 from src.application.products.accounts.tg.use_cases.validate import ValidateTgAccount
 from src.application.products.universals.universal_products import UniversalProduct
 from src.application.products.universals.use_cases import ValidationsUniversalProducts, \
@@ -24,7 +27,7 @@ from src.infrastructure.telegram.account_client import TelegramAccountClient
 from src.infrastructure.telegram.rate_limit import RateLimiter
 from src.repository.database.discount import VouchersRepository, VoucherActivationsRepository, PromoCodeRepository, \
     ActivatedPromoCodeRepository
-from src.repository.database.refferals import ReferralsRepository, ReferralIncomeRepository, ReferralLevelsRepository
+from src.repository.database.referrals import ReferralsRepository, ReferralIncomeRepository, ReferralLevelsRepository
 from src.repository.database.replanishments import ReplenishmentsRepository
 from src.application.cache_warmup import CacheWarmupService
 from src.application.events.event_handlers.file_system import FileSystemEventHandler
@@ -616,6 +619,7 @@ class RequestContainer:
             cache_repo=self.promo_code_cache_repo,
             activate_promo_code_service=self.activated_service,
             user_log=self.user_log_service,
+            publish_event_handler=self.publish_event_handler,
             conf=self.config,
             session_db=self.session_db,
         )
@@ -889,6 +893,16 @@ class RequestContainer:
         self. event_message_service = EventMessageService(
             conf=self.config,
         )
+        self.get_auth_codes_use_case = GetAuthCodesUseCase(
+            tg_client=self.telegram_account_client,
+            crypto_provider=self.crypto_provider,
+            logger=self.logger,
+        )
+        self.process_crypto_webhook_use_case = ProcessCryptoWebhookUseCase(
+            replenishment_service=self.replenishment_service,
+            publish_event_handler=self.publish_event_handler,
+            logger=self.logger,
+        )
 
     def get_backup_db(self):
         return BackupDBService(
@@ -989,6 +1003,8 @@ class RequestContainer:
             account_service=self.account_service,
             crypto_provider=self.crypto_provider,
             path_builder=self.path_builder,
+            get_auth_codes_use_case=self.get_auth_codes_use_case,
+            validate_tg_account=self.validate_tg_account,
         )
 
     def get_catalog_modul(self) -> CatalogModule:
@@ -1071,6 +1087,7 @@ class RequestContainer:
 
     def get_universal_product_modul(self) -> UniversalModuls:
         return UniversalModuls(
+            universal_product=self.universal_product,
             deleted_service=self.universal_deleted_service,
             product_service=self.universal_product_service,
             sold_service=self.universal_sold_service,
@@ -1158,6 +1175,18 @@ class RequestContainer:
             message_ev_hand=MessageEventHandler(
                 send_log=messages.send_log,
             ),
+            logger=self.logger,
+        )
+
+    def get_remove_invalid_discount_use_case(self) -> RemoveInvalidDiscountsUseCase:
+        return RemoveInvalidDiscountsUseCase(
+            user_service=self.user_service,
+            promo_code_repo=self.promo_code_repo,
+            promo_code_service=self.promo_code_service,
+            voucher_repo=self.vouchers_repo,
+            voucher_service=self.voucher_service,
+            publish_event_handler=self.publish_event_handler,
+            tg_client=self.get_tg_client(),
             logger=self.logger,
         )
 

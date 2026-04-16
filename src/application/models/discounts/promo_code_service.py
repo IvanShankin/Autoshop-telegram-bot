@@ -1,15 +1,15 @@
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from src.models.read_models import EventSentLog, LogLevel
+from src.application.events.publish_event_handler import PublishEventHandler
 from src.config import Config
 from src.exceptions.business import AlreadyActivated, InvalidPromoCode
 from src.exceptions.domain import PromoCodeNotFound
-from src.infrastructure.rabbit_mq.producer import publish_event
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.create_models.discounts import CreatePromoCodeDTO, CreateActivatedPromoCodeDTO
 from src.models.create_models.users import CreateUserAuditLogDTO
+from src.models.read_models import LogLevel
 from src.models.read_models.other import PromoCodesDTO, ResultActivatePromoCodeDTO
 from src.repository.database.admins import AdminActionsRepository
 from src.repository.database.discount import PromoCodeRepository
@@ -17,6 +17,7 @@ from src.repository.redis import PromoCodesCacheRepository
 from src.application.models.discounts import ActivatedPromoCodesService
 from src.application.models.users import UserLogService
 from src.utils.codes import generate_code
+from src.utils.i18n import get_text
 
 
 class PromoCodeService:
@@ -28,6 +29,7 @@ class PromoCodeService:
         cache_repo: PromoCodesCacheRepository,
         activate_promo_code_service: ActivatedPromoCodesService,
         user_log: UserLogService,
+        publish_event_handler: PublishEventHandler,
         conf: Config,
         session_db: AsyncSession,
     ):
@@ -36,6 +38,7 @@ class PromoCodeService:
         self.cache_repo = cache_repo
         self.activate_promo_code_service = activate_promo_code_service
         self.user_log = user_log
+        self.publish_event_handler = publish_event_handler
         self.conf = conf
         self.session_db = session_db
 
@@ -138,7 +141,7 @@ class PromoCodeService:
         elif promo.discount_percentage:
             sale += f"Процент скидки: {promo.discount_percentage} %"
 
-        event = EventSentLog(
+        await self.publish_event_handler.send_log(
             text=(
                 f"🛠️\n"
                 f"#Админ_создал_новый_промокод \n\n"
@@ -148,7 +151,6 @@ class PromoCodeService:
             ),
             log_lvl=LogLevel.INFO,
         )
-        await publish_event(event.model_dump(), "message.send_log")
 
         return promo
     
@@ -215,32 +217,38 @@ class PromoCodeService:
             deactivate=promo_code_deactivated,
         )
     
-    async def deactivate_promo_code(self, user_id: int, promo_code_id: int):
+    async def deactivate_promo_code(self, promo_code_id: int, user_id: Optional[int] = None,):
         """
         :param user_id: ID админа
         :param promo_code_id: ID промокода
         """
         promo = await self.promo_repo.deactivate(promo_code_id)
 
-        await self.admin_actions_repo.add_admin_action(
-            user_id=user_id,
-            action_type="deactivate_promo_code",
-            message="Администрация деактивировала промокод",
-            details={"promo_code_id": promo_code_id},
-        )
-        await self.session_db.commit()
+        if promo:
+            if user_id:
+                await self.admin_actions_repo.add_admin_action(
+                    user_id=user_id,
+                    action_type="deactivate_promo_code",
+                    message="Администрация деактивировала промокод",
+                    details={"promo_code_id": promo_code_id},
+                )
+                await self.session_db.commit()
 
-        event = EventSentLog(
-            text=(
-                f"🛠️\n"
-                f"#Администрация_деактивировала_промокод \n\n"
-                f"promo_code_id: {promo_code_id}\n"
-                f"Код промокода: {promo.activation_code if promo else '-'}\n"
-                f"admin_id: {user_id}"
-            ),
-            log_lvl=LogLevel.INFO,
-        )
-        await publish_event(event.model_dump(), "message.send_log")
+                await self.publish_event_handler.send_log(
+                    text=(
+                        f"🛠️\n"
+                        f"#Администрация_деактивировала_промокод \n\n"
+                        f"promo_code_id: {promo_code_id}\n"
+                        f"Код промокода: {promo.activation_code if promo else '-'}\n"
+                        f"admin_id: {user_id}"
+                    ),
+                    log_lvl=LogLevel.INFO,
+                )
+            else:
+                message_log = get_text(
+                    'ru', "discount", "log_promo_code_expired"
+                ).format(id=promo.promo_code_id, code=promo.activation_code)
+                await self.publish_event_handler.send_log(text=message_log, log_lvl=LogLevel.WARNING)
 
         if promo and promo.activation_code:
             await self.cache_repo.delete(promo.activation_code)

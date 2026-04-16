@@ -62,7 +62,6 @@ class TelegramAccountClient:
 
     async def get_auth_codes(self, tdata_path: Path, limit: int) -> List[Tuple[datetime, str]] | bool:
         """
-        Даже если аккаунт помечен как невалидный, то всё-равно будем пытаться получить данные.
         :param tdata_path: Путь к tdata.
         :param limit: Лимит сообщений которые будут извлечены
         :return: List[Tuple[время получения, код]].
@@ -93,7 +92,7 @@ class TelegramAccountClient:
                         result_list.append((msg.date, code))
         except Exception as e:
             # попадаем сюда если с аккаунтом проблемы
-            self.logger.warning(f"[get_auth_codes] - Ошибка при получении кода с аккаунта: {str(e)}")
+            self.logger.exception(f"[get_auth_codes] - Ошибка при получении кода с аккаунта: {str(e)}")
             return False
 
         return result_list

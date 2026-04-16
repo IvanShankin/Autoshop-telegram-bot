@@ -54,7 +54,7 @@ async def deactivate_promo_code_handler(
     if not promo_code or not promo_code.is_valid:
         text = get_text(user.language, "admins_editor_promo_codes", "promo_code_already_deactivated")
     else:
-        await admin_module.promo_code_service.deactivate_promo_code(user.user_id, promo_code_id)
+        await admin_module.promo_code_service.deactivate_promo_code( promo_code_id, user.user_id,)
         text = get_text(user.language, "admins_editor_promo_codes", "promo_code_successfully_deactivated")
 
 

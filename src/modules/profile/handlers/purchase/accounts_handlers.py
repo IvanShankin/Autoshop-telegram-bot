@@ -12,7 +12,6 @@ from src.modules.profile.services.purchases_accounts import show_all_sold_accoun
 from src.database.models.categories import AccountStorage, StorageStatus
 from src.application.bot import Messages
 from src.application.models.modules import ProfileModule
-from src.application.products.accounts.tg._actions import get_auth_codes, check_account_validity
 from src.utils.i18n import get_text
 from src.utils.pars_number import e164_to_pretty
 
@@ -157,7 +156,7 @@ async def get_code_acc(
         user.user_id, get_text(user.language, "profile_messages", 'search')
     )
 
-    dt_and_code = await get_auth_codes(AccountStorage(**account.account_storage.model_dump()))
+    dt_and_code = await profile_module.get_auth_codes_use_case.get_auth_codes(account.account_storage)
 
     try:
         await message_search.delete()
@@ -271,7 +270,7 @@ async def chek_valid_acc(
         message=get_text(user.language, "profile_messages", "checking_for_validity")
     )
 
-    result = await check_account_validity(
+    result = await profile_module.validate_tg_account.check_account_validity(
         account_storage=account.account_storage,
         type_account_service=type_account_service,
         status=account.account_storage.status

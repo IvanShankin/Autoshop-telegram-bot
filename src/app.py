@@ -1,10 +1,9 @@
 import asyncio
 
 from src.containers.app_container import AppContainer
-from src.deferred_tasks.core import init_scheduler
-from src.application._database.core.filling_database import create_database
-from src.application.fastapi_core.server import start_server
-from src.application._database.discounts.utils.set_not_valid import deactivate_expired_promo_codes_and_vouchers
+from src.deferred_tasks.creator_works import InitScheduler
+from src.infrastructure.scheduler.core import init_scheduler
+from src.infrastructure.web.server import start_server
 from src.infrastructure.telegram.bot_run import run_bot
 from src.application._redis.tasks import start_dollar_rate_scheduler
 
@@ -18,8 +17,6 @@ async def start_app():
     app_container = AppContainer()
     async_session_factory = app_container.conf.db_connection.session_local
 
-    await create_database()
-
     # заполнение кэша
     async with async_session_factory() as session:
         request_container = app_container.get_request_container(session)
@@ -27,13 +24,13 @@ async def start_app():
         warmup = request_container.get_cache_warmup_service()
         await warmup.warmup()
 
+    scheduler = init_scheduler()
+    InitScheduler(scheduler=scheduler, container_factory=app_container.get_request_container_factory())
 
-    asyncio.create_task(deactivate_expired_promo_codes_and_vouchers())
     asyncio.create_task(start_dollar_rate_scheduler())
-    asyncio.create_task(start_server())
+    asyncio.create_task(start_server(app_container))
 
     # отложенный задачник
-    scheduler = init_scheduler()
 
     backup_db = request_container.get_backup_db()
     backup_db.add_backup_create(scheduler)

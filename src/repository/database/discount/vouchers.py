@@ -76,13 +76,13 @@ class VouchersRepository(DatabaseBase):
         vouchers = list(result.scalars().all())
         return [VouchersDTO.model_validate(voucher) for voucher in vouchers]
 
-    async def set_not_valid_voucher(self, data_time_to: datetime) -> List[VouchersDTO]:
+    async def get_not_valid_voucher(self, data_time_to: datetime) -> List[VouchersDTO]:
         """
         Установит is_valid=False у ваучеров где дата меньше чем `data_time_to`
         :return:
         """
         result_db = await self.session_db.execute(
-            update(Vouchers)
+            select(Vouchers)
             .where(
                 and_(
                     Vouchers.is_valid.is_(True),
@@ -90,8 +90,6 @@ class VouchersRepository(DatabaseBase):
                     Vouchers.expire_at <= data_time_to
                 )
             )
-            .values(is_valid=False)
-            .returning(Vouchers)
         )
         vouchers = list(result_db.scalars().all())
         return [VouchersDTO.model_validate(voucher) for voucher in vouchers]

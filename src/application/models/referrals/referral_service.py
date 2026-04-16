@@ -7,7 +7,7 @@ from src.models.create_models.users import CreateUserAuditLogDTO, CreateWalletTr
 from src.models.read_models import ReferralIncomeResult, ReferralReplenishmentCompleted, ReferralReportItemDTO, \
     ReferralIncomeItemDTO, ReferralReportDTO
 from src.models.read_models.other import ReferralsDTO, UsersDTO
-from src.repository.database.refferals import ReferralsRepository
+from src.repository.database.referrals import ReferralsRepository
 from src.application.models.referrals.referral_income_service import ReferralIncomeService
 from src.application.models.referrals.referral_lvls_service import ReferralLevelsService
 from src.application.models.users.user_service import UserService

@@ -2,14 +2,13 @@ import logging
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy import text
 
-from src.config import get_config
+from src.config import Config
 from src.database import Base
 
 
-async def create_database():
+async def create_database(conf: Config):
     """Создает базу данных и все таблицы в ней (если существует, то ничего не произойдёт) """
     # Сначала подключаемся к серверу PostgreSQL без указания конкретной базы
-    conf = get_config()
     engine = create_async_engine(conf.db_connection.postgres_server_url, isolation_level="AUTOCOMMIT")
 
     try:
@@ -46,9 +45,9 @@ async def create_database():
         await engine.dispose()
 
 
-async def create_table():
+async def create_table(conf: Config):
     """создает таблицы в целевой базе данных"""
-    engine = create_async_engine(get_config().db_connection.sql_db_url, connect_args={"statement_cache_size": 0})
+    engine = create_async_engine(conf.db_connection.sql_db_url, connect_args={"statement_cache_size": 0})
     try:
         async with engine.begin() as conn:
             logging.info("Creating core tables...")

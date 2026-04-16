@@ -1,7 +1,6 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
 
-from src._bot_actions.messages import edit_message
 from src.models.read_models import UsersDTO
 from src.modules.profile.keyboards.purchased_universals_kb import confirm_del_universal_kb, universal_kb
 from src.modules.profile.services.purchases_universals import show_all_sold_universal, \
@@ -62,7 +61,7 @@ async def sold_universal(
 
 @router.callback_query(F.data.startswith("confirm_del_universal:"))
 async def confirm_del_universal(
-    callback: CallbackQuery, user: UsersDTO, profile_module: ProfileModule,
+    callback: CallbackQuery, user: UsersDTO, profile_module: ProfileModule, messages_service: Messages
 ):
     sold_universal_id = int(callback.data.split(':')[1])
     current_page = int(callback.data.split(':')[2])
@@ -71,7 +70,7 @@ async def confirm_del_universal(
     if not universal:
         return
 
-    await edit_message(
+    await messages_service.edit_msg.edit(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
         message=get_text(user.language, "profile_messages",

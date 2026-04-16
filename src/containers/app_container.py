@@ -1,3 +1,5 @@
+from typing import Callable, Awaitable, AsyncGenerator
+
 from src.application._secrets.crypto_context import set_crypto_context
 from src.application.crypto.crypto_context import CryptoProvider, InitCryptoContext
 from src.application.crypto.secrets_storage import GetSecret
@@ -84,6 +86,15 @@ class AppContainer:
             support_kb_builder=support_kb,
             telegram_account_client=self.telegram_account_client
         )
+
+    def get_request_container_factory(self) -> Callable[[], AsyncGenerator[RequestContainer, None]]:
+        async_session_factory = self.conf.db_connection.session_local
+
+        async def factory() -> AsyncGenerator[RequestContainer, None]:
+            async with async_session_factory() as session_db:
+                yield self.get_request_container(session_db)
+
+        return factory
 
     def _create_event_handler(self, session):
         container = self.get_request_container(session)

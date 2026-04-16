@@ -13,7 +13,7 @@ from src.database.models.discount import Vouchers, PromoCodes, ActivatedPromoCod
 from src.database.models.referrals import Referrals, IncomeFromReferrals
 from src.database.models.system.models import ReplenishmentService
 from src.models.read_models import UsersDTO
-from src.application._database.referrals.utils import create_unique_referral_code
+from src.repository.database.referrals.utils import create_unique_referral_code
 from src.database.models.system import TypePayments
 from src.database.models.system import UiImages, BackupLogs
 from src.database.models.users import Users, Replenishments, NotificationSettings, WalletTransaction, \

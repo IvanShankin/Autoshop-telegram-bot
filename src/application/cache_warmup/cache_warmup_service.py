@@ -19,7 +19,7 @@ from src.repository.database.categories.universal import (
     SoldUniversalRepository,
 )
 from src.repository.database.discount import PromoCodeRepository, VouchersRepository
-from src.repository.database.refferals import ReferralLevelsRepository
+from src.repository.database.referrals import ReferralLevelsRepository
 from src.repository.database.systems import (
     StickersRepository,
     TypePaymentsRepository,

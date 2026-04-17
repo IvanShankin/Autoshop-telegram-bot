@@ -18,6 +18,7 @@ from src.infrastructure.redis import init_redis, close_redis
 from src.infrastructure.telegram.account_client import TelegramAccountClient
 from src.infrastructure.telegram.bot_instance import init_bot, init_bot_logger, init_dispatcher
 from src.infrastructure.telegram.bot_client import TelegramClient
+from src.infrastructure.telegram.rate_limit import RateLimiter
 from src.infrastructure.telegram.ui.keyboard import support_kb
 from src.utils.core_logger import setup_logging
 
@@ -77,6 +78,11 @@ class AppContainer:
 
         self.http_session = aiohttp.ClientSession()
 
+        self.rate_limiter = RateLimiter(
+            max_calls=self.conf.different.rate_send_msg_limit,
+            period=1.0,
+        )
+
     async def start(self):
         await self.rabbit_producer.connect()
 
@@ -100,6 +106,7 @@ class AppContainer:
             crypto_provider=self.crypto_provider,
             secret_storage=self.secret_storage,
             producer=self.rabbit_producer,
+            rate_limiter=self.rate_limiter,
             support_kb_builder=support_kb,
             telegram_account_client=self.telegram_account_client
         )

@@ -5,6 +5,7 @@ import fakeredis
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.infrastructure.telegram.rate_limit import RateLimiter
 from tests.helpers.fake_moduls.fake_rebbit_mq_producer import FakeRabbitMQProducer
 from src.models.read_models import UsersDTO, ProductAccountFull
 from tests.helpers.fake_moduls.fake_tg_account_client import FakeTelegramAccountClient
@@ -80,6 +81,11 @@ async def container_fix(
     http_session = aiohttp.ClientSession()
     config = init_config(get_secret_fix.execute)
 
+    rate_limiter = RateLimiter(
+        max_calls=config.different.rate_send_msg_limit,
+        period=1.0,
+    )
+
     container = init_request_container(
         session_db=session_db_fix,
         session_redis=fakeredis.aioredis.FakeRedis(),
@@ -91,6 +97,7 @@ async def container_fix(
         crypto_provider=crypto_provider_fix,
         secret_storage=secret_storage_fix,
         producer=FakeRabbitMQProducer(),
+        rate_limiter=rate_limiter,
         support_kb_builder=fake_support_kb,
         telegram_account_client=FakeTelegramAccountClient(),
     )

@@ -167,6 +167,7 @@ class RequestContainer:
         crypto_provider: CryptoProvider,
         secret_storage: SecretsStorage,
         producer: RabbitMQProducer,
+        rate_limiter: RateLimiter,
         support_kb_builder: Callable[[str, str], Awaitable[Any]],
         telegram_account_client: TelegramAccountClient,
     ):
@@ -176,6 +177,7 @@ class RequestContainer:
         self.telegram_client = telegram_client
         self.telegram_logger_client = telegram_logger_client
         self.producer = producer
+        self.rate_limiter = rate_limiter
 
         self.crypto_provider = crypto_provider
         self.secret_storage = secret_storage
@@ -945,10 +947,6 @@ class RequestContainer:
         )
 
     def get_message_service(self,) -> Messages:
-        rate_limiter = RateLimiter(
-            max_calls=self.config.different.rate_send_msg_limit,
-            period=1.0,
-        )
         sticker_sender = StickerSender(
             tg_client=self.telegram_client,
             sticker_service=self.stickers_service,
@@ -961,7 +959,7 @@ class RequestContainer:
             tg_client=self.telegram_client,
             path_builder=self.path_builder,
             ui_images_service=self.ui_images_service,
-            limiter=rate_limiter,
+            limiter=self.rate_limiter,
             sticker_sender=sticker_sender,
             file_system=self.file_storage,
             publish_event=self.publish_event_handler,
@@ -972,7 +970,7 @@ class RequestContainer:
             send_msg_service=send_msg_service,
             path_builder=self.path_builder,
             ui_images_service=self.ui_images_service,
-            limiter=rate_limiter,
+            limiter=self.rate_limiter,
             sticker_sender=sticker_sender,
             file_system=self.file_storage,
             publish_event=self.publish_event_handler,
@@ -980,7 +978,7 @@ class RequestContainer:
         )
         mass_tg_mailing_service = MassTgMailingService(
             tg_client=self.telegram_client,
-            limiter=rate_limiter,
+            limiter=self.rate_limiter,
             users_repo=self.users_repo,
             sent_mass_msg_service=self.sent_mass_message_service,
             conf=self.config,
@@ -989,7 +987,7 @@ class RequestContainer:
         send_file_service = SendFileService(
             tg_client=self.telegram_client,
             path_builder=self.path_builder,
-            limiter=rate_limiter,
+            limiter=self.rate_limiter,
             sticker_sender=sticker_sender,
             file_system=self.file_storage,
             publish_event=self.publish_event_handler,
@@ -998,7 +996,7 @@ class RequestContainer:
         )
         send_log_service = SendLogs(
             tg_logger_client=self.telegram_logger_client,
-            limiter=rate_limiter,
+            limiter=self.rate_limiter,
             settings_service=self.settings_service,
             conf=self.config,
             logger=edit_msg_logger,
@@ -1242,6 +1240,7 @@ def init_request_container(
     crypto_provider: CryptoProvider,
     secret_storage: SecretsStorage,
     producer: RabbitMQProducer,
+    rate_limiter: RateLimiter,
     support_kb_builder: Callable[[str, str], Awaitable[Any]],
     telegram_account_client: TelegramAccountClient,
 ) -> RequestContainer:
@@ -1256,6 +1255,7 @@ def init_request_container(
         crypto_provider=crypto_provider,
         secret_storage=secret_storage,
         producer=producer,
+        rate_limiter=rate_limiter,
         support_kb_builder=support_kb_builder,
         telegram_account_client=telegram_account_client,
     )

@@ -64,8 +64,7 @@ class Config:
 
 
 _config: Optional[Config] = None
-_GLOBAL_RATE_LIMITER: Optional[RateLimiter] = None
-_SEMAPHORE_MAILING: Optional[Semaphore] = None
+
 
 def init_config(get_secret: Callable[[str], str]) -> Config:
     global _config
@@ -83,19 +82,3 @@ def get_config() -> Config:
     if _config is None:
         raise RuntimeError()
     return _config
-
-
-def get_global_rate_limit() -> RateLimiter:
-    global _GLOBAL_RATE_LIMITER
-    if _GLOBAL_RATE_LIMITER is None:
-        _GLOBAL_RATE_LIMITER = RateLimiter(max_calls=get_config().different.rate_send_msg_limit, period=1.0)
-
-    return _GLOBAL_RATE_LIMITER
-
-
-def get_semaphore_mailing() -> Semaphore:
-    global _SEMAPHORE_MAILING
-    if _SEMAPHORE_MAILING is None:
-        _SEMAPHORE_MAILING = Semaphore(15)
-
-    return _SEMAPHORE_MAILING

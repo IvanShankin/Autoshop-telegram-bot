@@ -43,24 +43,6 @@ class FakePublishEventHandler:
         self.counter_voucher_activated += 1
 
 
-async def replacement_redis(monkeypatch):
-    redis = fakeredis.aioredis.FakeRedis()
-
-    def get_fakeredis():
-        return redis
-
-    # заменяем в core
-    monkeypatch.setattr(core, "get_redis", get_fakeredis)
-
-    # заменяем во всех уже загруженных модулях, где есть get_redis
-    for name, module in sys.modules.items():
-        if hasattr(module, "get_redis"):
-            monkeypatch.setattr(module, "get_redis", get_fakeredis, raising=False)
-
-    yield redis
-    await redis.aclose()
-
-
 def replacement_fake_bot(monkeypatch):
     pass
     # from src.config import get_config

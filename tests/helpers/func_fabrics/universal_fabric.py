@@ -187,9 +187,9 @@ async def create_product_universal_factory(
         full = ProductUniversalFull.from_orm_model(new_product, language)
 
     if filling_redis:
-        container_fix.universal_cache_filler_service.fill_product_universal_by_product_id(full.product_universal_id)
-        container_fix.universal_cache_filler_service.fill_product_universal_by_category_id(full.category_id)
-        container_fix.categories_cache_filler_service.fill_need_category(full.category_id)
+        await container_fix.universal_cache_filler_service.fill_product_universal_by_product_id(full.product_universal_id)
+        await container_fix.universal_cache_filler_service.fill_product_universal_by_category_id(full.category_id)
+        await container_fix.categories_cache_filler_service.fill_need_category(full.category_id)
 
     return small, full
 
@@ -238,8 +238,8 @@ async def create_sold_universal_factory(
         full = SoldUniversalFull.from_orm_model(new_sold, language)
 
     if filling_redis:
-        container_fix.universal_cache_filler_service.fill_sold_universal_by_universal_id(full.owner_id)
-        container_fix.universal_cache_filler_service.fill_sold_universal_by_owner_id(full.sold_universal_id)
+        await container_fix.universal_cache_filler_service.fill_sold_universal_by_universal_id(full.owner_id)
+        await container_fix.universal_cache_filler_service.fill_sold_universal_by_owner_id(full.sold_universal_id)
 
     return small, full
 

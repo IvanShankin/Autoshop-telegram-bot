@@ -7,8 +7,6 @@ enable_import_tracking("aiogram")
 
 import os
 
-import aio_pika
-
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine
 
@@ -19,10 +17,9 @@ from src.database import Base
 from src.utils.core_logger import setup_logging, get_logger
 from tests.helpers.fixtures.replace_paths import replace_paths_in_config
 from tests.helpers.monkeypatch_data import (
-    replacement_redis,
     replacement_fake_bot,
 )
-from src.infrastructure.redis import get_redis, init_redis, close_redis
+from src.infrastructure.redis import init_redis, close_redis
 
 from tests.helpers.fake_aiogram.fake_aiogram import patch_fake_aiogram
 
@@ -52,17 +49,9 @@ if MODE != "TEST":
 
 # ---------- фикстуры ----------
 
-@pytest_asyncio.fixture(scope="session", autouse=True)
-async def start_tests():
-    init_redis()
-    yield
-    await close_redis()
-
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def replacement_needed_modules(
-    start_tests,
-    replacement_redis_fix,
     replacement_fake_bot_fix,
     patch_fake_aiogram,
     replace_paths_in_config,
@@ -71,12 +60,6 @@ async def replacement_needed_modules(
     """Заменит все необходимые модули"""
     yield
 
-
-
-@pytest_asyncio.fixture(scope="function", autouse=True)
-async def replacement_redis_fix(monkeypatch):
-    async for _ in replacement_redis(monkeypatch):
-        yield
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
@@ -132,23 +115,7 @@ async def clean_db(monkeypatch, create_database_fixture):
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def clean_redis(container_fix):
-    async with get_redis() as session_redis:
-        await session_redis.flushdb()
-
-
-@pytest_asyncio.fixture(scope="function")
-async def rabbit_channel():
-    """
-    ПОСЛЕ ПОЛНОГО ПЕРЕХОДА НА НОВУЮ АРХИТЕКТУРУ, УБРАТЬ !
-    """
-    connection = await aio_pika.connect_robust(RABBITMQ_URL)
-    channel = await connection.channel()
-
-    try:
-        yield channel
-    finally:
-        await channel.close()
-        await connection.close()
+    await container_fix.session_redis.flushdb()
 
 
 @pytest_asyncio.fixture

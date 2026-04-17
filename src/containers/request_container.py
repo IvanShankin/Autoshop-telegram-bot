@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Optional, Callable, Awaitable, Any
 
 from aiohttp import ClientSession
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.crypto.crypto_context import CryptoProvider
@@ -27,7 +28,6 @@ from src.infrastructure.currency.moex_client import MoexClient
 from src.infrastructure.files.excel_reports import ExcelReportExporter
 from src.infrastructure.files.file_system import FileStorage
 from src.infrastructure.files.path_builder import PathBuilder
-from src.infrastructure.redis import get_redis
 from src.infrastructure.telegram.account_client import TelegramAccountClient
 from src.infrastructure.telegram.rate_limit import RateLimiter
 from src.repository.database.discount import VouchersRepository, VoucherActivationsRepository, PromoCodeRepository, \
@@ -157,6 +157,7 @@ class RequestContainer:
     def __init__(
         self,
         session_db: AsyncSession,
+        session_redis: Redis,
         http_session: ClientSession,
         telegram_client : "TelegramClient",
         telegram_logger_client: "TelegramClient",
@@ -167,6 +168,7 @@ class RequestContainer:
         telegram_account_client: TelegramAccountClient,
     ):
         self.session_db = session_db
+        self.session_redis = session_redis
         self.http_session = http_session
         self.telegram_client = telegram_client
         self.telegram_logger_client = telegram_logger_client
@@ -180,7 +182,6 @@ class RequestContainer:
 
         self.config = get_config()
         self.logger = get_logger(__name__)
-        self.session_redis = get_redis()
         self.database_base = DatabaseBase(
             session_db=session_db,
             config=self.config,
@@ -1038,7 +1039,7 @@ class RequestContainer:
             promo_code_service=self.promo_code_service,
             subscription_service=self.subscription_service,
             settings_service=self.settings_service,
-            ui_image_service=self.ui_image_service,
+            ui_image_service=self.ui_images_service,
             account_sold_service=self.account_sold_service,
             universal_sold_service=self.universal_sold_service,
         )
@@ -1155,6 +1156,7 @@ class RequestContainer:
             accounts_cache_filler_service=self.accounts_cache_filler_service,
             universal_cache_filler_service=self.universal_cache_filler_service,
             logger=self.logger,
+            session_redis=self.session_redis,
             conf=self.config,
         )
 
@@ -1220,6 +1222,7 @@ class RequestContainer:
 
 def init_request_container(
     session_db: AsyncSession,
+    session_redis: Redis,
     http_session: ClientSession,
     telegram_client: "TelegramClient",
     telegram_logger_client: "TelegramClient",
@@ -1231,6 +1234,7 @@ def init_request_container(
 ) -> RequestContainer:
     return RequestContainer(
         session_db=session_db,
+        session_redis=session_redis,
         http_session=http_session,
         telegram_client=telegram_client,
         telegram_logger_client=telegram_logger_client,

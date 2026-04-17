@@ -3,7 +3,6 @@ import pytest
 from sqlalchemy import select
 
 from src.database.models.users import Users, NotificationSettings
-from src.infrastructure.redis import get_redis
 from src.models.create_models.users import CreateUserDTO
 from src.models.update_models import UpdateUserDTO
 from tests.helpers.helper_functions import comparison_models
@@ -51,7 +50,7 @@ class TestUserService:
         comparison_models(updated_user, db_user)
 
         # проверка Redis
-        session_redis = get_redis()
+        session_redis = container_fix.session_redis
         redis_data = await session_redis.get(f"user:{user.user_id}")
         assert redis_data is not None
         comparison_models(updated_user, orjson.loads(redis_data))
@@ -82,7 +81,7 @@ class TestUserService:
         assert notif.user_id == new_user.user_id
 
         # Проверяем Redis
-        session_redis = get_redis()
+        session_redis = container_fix.session_redis
 
         data = await session_redis.get(f"user:{new_user.user_id}")
         assert data is not None

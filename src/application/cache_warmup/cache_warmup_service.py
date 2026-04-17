@@ -2,9 +2,10 @@ from datetime import datetime, timezone
 from logging import Logger
 from typing import Iterable, Optional
 
+from redis.asyncio import Redis
+
 from src.config import Config
 from src.database.models.discount.schemas import SmallVoucher
-from src.infrastructure.redis import get_redis
 from src.models.read_models import SoldAccountFull, SoldAccountSmall
 from src.models.read_models.categories.product_universal import SoldUniversalFull, SoldUniversalSmall
 from src.models.read_models.other import VouchersDTO
@@ -83,6 +84,7 @@ class CacheWarmupService:
         accounts_cache_filler_service: AccountsCacheFillerService,
         universal_cache_filler_service: UniversalCacheFillerService,
         category_cache_filler_service: CategoriesCacheFillerService,
+        session_redis: Redis,
         logger: Logger,
         conf: Config,
     ):
@@ -119,6 +121,7 @@ class CacheWarmupService:
         self.universal_cache_filler_service = universal_cache_filler_service
         self.category_cache_filler_service = category_cache_filler_service
         self.logger = logger
+        self.session_redis = session_redis
         self.conf = conf
 
     async def warmup(self):
@@ -141,7 +144,7 @@ class CacheWarmupService:
         self.logger.info("Redis filling successfully")
 
     async def _flush_redis(self):
-        await get_redis().flushall()
+        await self.session_redis.flushall()
 
     async def _fill_settings(self):
         settings = await self.settings_repo.get()

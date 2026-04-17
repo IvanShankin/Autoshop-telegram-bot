@@ -9,7 +9,6 @@ from src.database.models.discount import PromoCodes, ActivatedPromoCodes
 from src.database.models.users import UserAuditLogs
 from src.exceptions.business import AlreadyActivated
 from src.exceptions.domain import PromoCodeNotFound
-from src.infrastructure.redis import get_redis
 from src.models.create_models.discounts import CreatePromoCodeDTO
 
 
@@ -83,7 +82,7 @@ class TestPromoCodeService:
             data=dto,
         )
 
-        assert await get_redis().get(f"promo_code:{created.activation_code}")
+        assert await container_fix.session_redis.get(f"promo_code:{created.activation_code}")
 
         cached = await container_fix.promo_code_service.get_promo_code(code=code)
         assert cached and cached.activation_code == code
@@ -160,7 +159,7 @@ class TestPromoCodeService:
         )
         assert actions.scalar_one_or_none() is not None
 
-        assert await get_redis().get(f"promo_code:{code}")
+        assert await container_fix.session_redis.get(f"promo_code:{code}")
         assert len(calls) >= 1
 
     @pytest.mark.asyncio
@@ -285,13 +284,13 @@ class TestPromoCodeService:
             data=dto,
         )
 
-        assert await get_redis().get(f"promo_code:{code}")
+        assert await container_fix.session_redis.get(f"promo_code:{code}")
         await container_fix.promo_code_service.deactivate_promo_code(
             promo_code_id=promo.promo_code_id,
             user_id=user.user_id,
         )
 
-        assert await get_redis().get(f"promo_code:{code}") is None
+        assert await container_fix.session_redis.get(f"promo_code:{code}") is None
 
         actions = await session_db_fix.execute(
             select(AdminActions).where(

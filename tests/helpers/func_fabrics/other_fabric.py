@@ -19,7 +19,6 @@ from src.database.models.system import UiImages, BackupLogs
 from src.database.models.users import Users, Replenishments, NotificationSettings, WalletTransaction, \
     TransferMoneys
 from src.database.models.users import BalanceHolder
-from src.infrastructure.redis import get_redis
 
 
 async def create_new_user_fabric(
@@ -60,7 +59,7 @@ async def create_new_user_fabric(
         await session_db.commit()
 
     if filling_redis:
-        session_redis = get_redis()
+        session_redis = container_fix.session_redis
         await session_redis.set(f"user:{new_user.user_id}", orjson.dumps(new_user.to_dict()))
 
     return UsersDTO.model_validate(new_user)
@@ -84,8 +83,8 @@ async def create_admin_fabric(container_fix: RequestContainer, filling_redis: bo
         await session_db.refresh(new_admin)
 
     if filling_redis:
-        async with get_redis() as session_redis:
-            await session_redis.set(f"admin:{new_admin.user_id}", '_')
+        session_redis = container_fix.session_redis
+        await session_redis.set(f"admin:{new_admin.user_id}", '_')
 
     return new_admin
 
@@ -107,7 +106,7 @@ async def create_referral_fabric(
             user = result_db.scalar()
 
         if owner_id is None: # создаём владельца
-            owner = await create_new_user_fabric(user_name='owner_user')
+            owner = await create_new_user_fabric(container_fix=container_fix, user_name='owner_user')
             owner_id = owner.user_id
         else:
             result_db = await session_db.execute(select(Users).where(Users.user_id == owner_id))
@@ -281,9 +280,9 @@ async def create_voucher_factory(
         await session_db.refresh(voucher)
 
     if filling_redis:
-        async with get_redis() as session_redis:
-            promo_dict = voucher.to_dict()
-            await session_redis.set(f'voucher:{voucher.activation_code}', orjson.dumps(promo_dict))
+        session_redis = container_fix.session_redis
+        promo_dict = voucher.to_dict()
+        await session_redis.set(f'voucher:{voucher.activation_code}', orjson.dumps(promo_dict))
 
     return voucher
 
@@ -395,9 +394,9 @@ async def create_promo_codes_fabric(
         await session_db.commit()
         await session_db.refresh(promo)
 
-    async with get_redis() as session_redis:
-        promo_dict = promo.to_dict()
-        await session_redis.set(f'promo_code:{promo.activation_code}', orjson.dumps(promo_dict))
+    session_redis = container_fix.session_redis
+    promo_dict = promo.to_dict()
+    await session_redis.set(f'promo_code:{promo.activation_code}', orjson.dumps(promo_dict))
 
     return promo
 
@@ -408,7 +407,7 @@ async def create_promo_code_activation_fabric(
     user_id: int = None,
 ) -> ActivatedPromoCodes:
     if promo_code_id is None:
-        promo = await create_promo_codes_fabric()
+        promo = await create_promo_codes_fabric(container_fix)
         promo_code_id = promo.promo_code_id
 
     if user_id is None:

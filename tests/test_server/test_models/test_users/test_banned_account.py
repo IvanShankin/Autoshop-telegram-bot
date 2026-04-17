@@ -2,7 +2,6 @@ import pytest
 from sqlalchemy import select
 
 from src.database.models.users import BannedAccounts
-from src.infrastructure.redis import get_redis
 from src.models.create_models.users import CreateBannedAccountsDTO
 
 
@@ -36,7 +35,7 @@ class TestBannedAccountService:
         assert db_ban is not None
         assert db_ban.reason == ban_data.reason
 
-        redis_reason = await get_redis().get(f"banned_account:{user.user_id}")
+        redis_reason = await container_fix.session_redis.get(f"banned_account:{user.user_id}")
         if isinstance(redis_reason, bytes):
             redis_reason = redis_reason.decode()
 
@@ -73,5 +72,5 @@ class TestBannedAccountService:
         )
         assert query.scalar_one_or_none() is None
 
-        assert await get_redis().get(f"banned_account:{user.user_id}") is None
+        assert await container_fix.session_redis.get(f"banned_account:{user.user_id}") is None
         assert await container_fix.banned_account_service.get_ban(user.user_id) is None

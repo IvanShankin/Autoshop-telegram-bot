@@ -9,11 +9,11 @@ from pathlib import Path
 import pytest
 
 from tests.helpers.fixtures.helper_fixture import container_fix
+import src.application.products.accounts.generate_exampl_import as generate_exampl_import_module
 from src.application.products.accounts.generate_exampl_import import GenerateExamplImportAccount
 from src.database.models.categories import AccountServiceType, StorageStatus
 from src.domain.crypto.utils import sha256_file
 import src.domain.crypto.decrypt as decrypt_module
-import src.application.products.accounts.account_service as account_service_module
 
 
 def _patch_workspace_decrypt_temp(monkeypatch, work_dir: Path):
@@ -44,7 +44,7 @@ def _patch_workspace_temporary_directory(monkeypatch, work_dir: Path):
         finally:
             shutil.rmtree(path, ignore_errors=True)
 
-    monkeypatch.setattr(account_service_module.tempfile, "TemporaryDirectory", tempdir)
+    monkeypatch.setattr(generate_exampl_import_module.tempfile, "TemporaryDirectory", tempdir)
 
 
 @pytest.mark.asyncio

@@ -5,13 +5,12 @@ from sqlalchemy.future import select
 from tests.helpers.helper_functions import comparison_models
 from src.database.models.users import TransferMoneys, UserAuditLogs, WalletTransaction, Users
 from src.exceptions import NotEnoughMoney, UserNotFound
-from src.infrastructure.redis import get_redis
 
 
 class TestMoneyTransferService:
 
     @pytest.mark.asyncio
-    async def test_money_transfer(self, session_db_fix, container_fix, create_new_user, replacement_redis_fix):
+    async def test_money_transfer(self, container_fix, session_db_fix, create_new_user):
         sender = await create_new_user(balance=100)
         recipient = await create_new_user()
 
@@ -19,7 +18,7 @@ class TestMoneyTransferService:
             sender_id=sender.user_id, recipient_id=recipient.user_id, amount=100
         )
 
-        session_redis = get_redis()
+        session_redis = container_fix.session_redis
 
         result_sender = await session_db_fix.execute(select(Users).where(Users.user_id == sender.user_id))
         result_recipient = await session_db_fix.execute(select(Users).where(Users.user_id == recipient.user_id))

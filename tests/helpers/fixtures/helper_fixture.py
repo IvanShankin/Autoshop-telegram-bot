@@ -1,4 +1,7 @@
+from typing import AsyncGenerator, Any
+
 import aiohttp
+import fakeredis
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -68,7 +71,7 @@ async def container_fix(
     crypto_bot_provider_fix,
     crypto_provider_fix,
     secret_storage_fix
-) -> RequestContainer:
+) -> AsyncGenerator[RequestContainer, Any]:
     async def fake_support_kb(*args, **kwargs) -> None:
         pass
 
@@ -76,6 +79,7 @@ async def container_fix(
 
     container = init_request_container(
         session_db=session_db_fix,
+        session_redis=fakeredis.aioredis.FakeRedis(),
         http_session=http_session,
         telegram_client=fake_tg_client,
         telegram_logger_client=fake_tg_client,

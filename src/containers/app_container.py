@@ -6,7 +6,7 @@ from src.application.crypto.crypto_context import CryptoProvider, InitCryptoCont
 from src.application.crypto.secrets_storage import GetSecret
 from src.config import init_config
 from src.config import RuntimeConfig
-from src.containers import RequestContainer
+from src.containers import RequestContainer, init_request_container
 from src.infrastructure.crypto.key_store import KeyStore
 from src.infrastructure.crypto.secret_storage.client import SecretsStorageClient
 from src.infrastructure.crypto.secret_storage.http_secrets_storage import HttpSecretsStorage
@@ -79,8 +79,9 @@ class AppContainer:
 
 
     def get_request_container(self, session_db) -> RequestContainer:
-        return RequestContainer(
+        return init_request_container(
             session_db=session_db,
+            session_redis=self.redis,
             http_session=self.http_session,
             telegram_client=self.telegram_bot_client,
             telegram_logger_client=self.telegram_bot_logger_client,

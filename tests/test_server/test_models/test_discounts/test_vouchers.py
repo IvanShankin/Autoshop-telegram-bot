@@ -1,7 +1,6 @@
-from datetime import datetime, timedelta, timezone
-import uuid
-
 import pytest
+
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import select
 
 from src.config import get_config
@@ -9,7 +8,6 @@ from src.database.models.admins import AdminActions
 from src.database.models.discount import Vouchers, VoucherActivations
 from src.database.models.users import Users, WalletTransaction, UserAuditLogs
 from src.exceptions import NotEnoughMoney
-from src.infrastructure.redis import get_redis
 from src.models.create_models.discounts import CreateVoucherDTO
 from src.models.read_models.other import UsersDTO
 from src.repository.database.admins import AdminActionsRepository
@@ -67,8 +65,8 @@ class TestVoucherService:
         )
         assert log.scalar_one_or_none() is not None
 
-        assert await get_redis().get(f"voucher:{voucher.activation_code}")
-        assert await get_redis().get(f"voucher_by_user:{user.user_id}")
+        assert await container_fix.session_redis.get(f"voucher:{voucher.activation_code}")
+        assert await container_fix.session_redis.get(f"voucher_by_user:{user.user_id}")
 
     @pytest.mark.asyncio
     async def test_create_voucher_not_enough_money(self, container_fix, create_new_user):
@@ -120,7 +118,7 @@ class TestVoucherService:
         )
         assert action.scalar_one_or_none() is not None
 
-        assert await get_redis().get(f"voucher:{voucher.activation_code}")
+        assert await container_fix.session_redis.get(f"voucher:{voucher.activation_code}")
 
     @pytest.mark.asyncio
     async def test_get_valid_voucher_by_page_and_count_use_cache(
@@ -205,7 +203,7 @@ class TestVoucherService:
         assert "deactivate_voucher" in found
         assert "return_money_from_vouchers" in found
 
-        assert (await get_redis().get(f"voucher:{voucher.activation_code}")) is None
+        assert (await container_fix.session_redis.get(f"voucher:{voucher.activation_code}")) is None
 
     @pytest.mark.asyncio
     async def test_activate_voucher_updates_balance_and_caches(
@@ -282,6 +280,6 @@ class TestVoucherService:
         )
         assert activation.scalar_one_or_none() is not None
 
-        assert await get_redis().get(f"user:{target.user_id}")
+        assert await container_fix.session_redis.get(f"user:{target.user_id}")
         assert not success2
         assert isinstance(message2, str)

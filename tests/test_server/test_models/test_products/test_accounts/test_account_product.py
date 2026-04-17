@@ -129,7 +129,7 @@ class TestAccountProductService:
             status=storage.status,
             type_account_service=storage.type_account_service,
             uuid=storage.storage_uuid,
-            return_path_obj=True,
+            as_path=True,
         ).parent
 
         assert not folder.exists()

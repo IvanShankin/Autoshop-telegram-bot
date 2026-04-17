@@ -12,7 +12,7 @@ from src.utils.i18n import get_text
 def admin_promo_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=get_text(language, "kb_admin_panel","create_promo_code"), callback_data=f'admin_create_promo'),],
-        [InlineKeyboardButton(text=get_text(language, "kb_admin_panel","promo_codes"), callback_data=f'admin_promo_list:1:0'),],
+        [InlineKeyboardButton(text=get_text(language, "kb_admin_panel","promo_codes"), callback_data=f'admin_promo_list:1:1'),],
         [InlineKeyboardButton(text=get_text(language, "kb_general", "back"), callback_data=f'editors'),]
     ])
 

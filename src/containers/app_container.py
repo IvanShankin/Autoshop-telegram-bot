@@ -85,6 +85,7 @@ class AppContainer:
 
     async def start(self):
         await self.rabbit_producer.connect()
+        await self.consumer.start()
 
     async def shutdown(self):
         await self.consumer.stop()

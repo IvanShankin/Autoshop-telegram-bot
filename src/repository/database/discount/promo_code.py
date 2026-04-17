@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional, List
 
 from sqlalchemy import select, func, update, and_

@@ -28,7 +28,7 @@ class EventHandler:
             "referral": referral_ev_hand.referral_event_handler,
             "replenishment": replenishment_ev_hand.replenishment_event_handler,
             "purchase": purchase_ev_hand.purchase_event_handler,
-            "_filesystem": filesystem_ev_hand.filesystem_event_handler,
+            "filesystem": filesystem_ev_hand.filesystem_event_handler,
             "message": message_ev_hand.message_event_handler,
         }
 

@@ -15,7 +15,7 @@ from src.infrastructure.crypto_bot.core import init_crypto_bot_provider
 from src.infrastructure.rabbit_mq.consumer import RabbitMQConsumer
 from src.infrastructure.redis import init_redis, close_redis
 from src.infrastructure.telegram.account_client import TelegramAccountClient
-from src.infrastructure.telegram.bot_instance import get_bot_logger, get_bot
+from src.infrastructure.telegram.bot_instance import init_bot, init_bot_logger, init_dispatcher
 from src.infrastructure.telegram.bot_client import TelegramClient
 from src.infrastructure.telegram.ui.keyboard import support_kb
 from src.utils.core_logger import setup_logging
@@ -58,11 +58,14 @@ class AppContainer:
         self.redis = init_redis(self.conf)
         self.crypto_bot_provider = init_crypto_bot_provider(self.conf.secrets.token_crypto_bot)
 
-        self.bot = get_bot()
-        self.logger_bot = get_bot_logger()
+        self.bot = init_bot(self.conf)
+        self.bot_logger = init_bot_logger(self.conf)
+
+        self.dp_bot = init_dispatcher()
+        self.dp_bot_logger = init_dispatcher()
 
         self.telegram_bot_client = TelegramClient(bot=self.bot)
-        self.telegram_bot_logger_client = TelegramClient(bot=self.logger_bot)
+        self.telegram_bot_logger_client = TelegramClient(bot=self.bot_logger)
         self.telegram_account_client = TelegramAccountClient(self.logger)
 
         self.consumer = RabbitMQConsumer(self.handle_event, conf=self.conf, logger=self.logger)
@@ -82,6 +85,7 @@ class AppContainer:
         return init_request_container(
             session_db=session_db,
             session_redis=self.redis,
+            config=self.conf,
             http_session=self.http_session,
             telegram_client=self.telegram_bot_client,
             telegram_logger_client=self.telegram_bot_logger_client,

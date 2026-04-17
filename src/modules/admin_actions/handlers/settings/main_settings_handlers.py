@@ -1,11 +1,11 @@
-from aiogram import Router, F, Bot
+from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, FSInputFile, Message
 
 from src.application.bot import Messages
 from src.application.models.modules import AdminModule
-from src.infrastructure.telegram.bot_instance import get_bot, get_bot_logger
+from src.infrastructure.telegram.bot_client import TelegramClient
 from src.models.read_models import UsersDTO
 from src.modules.admin_actions.keyboards import admin_settings_kb
 from src.modules.admin_actions.keyboards.settings_kb import confirm_overwrite_cache_kb, back_in_admin_settings_kb
@@ -16,18 +16,27 @@ router = Router()
 router_logger = Router()
 
 
-async def send_log_files(bot: Bot, chat_id: int, language: str, admin_module: AdminModule):
-    await bot.send_message(
+async def send_log_files(
+    messages_service: Messages,
+    chat_id: int,
+    language: str,
+    admin_module: AdminModule,
+    tg_client: TelegramClient
+):
+    await messages_service.send_msg.send(
         chat_id=chat_id,
-        text=get_text(language, "admins_settings", "log_upload_begun")
+        message=get_text(language, "admins_settings", "log_upload_begun")
     )
 
     async for chunk_path in split_file_on_chunk(admin_module.conf.paths.log_file, admin_module.conf):
-        await bot.send_document(chat_id,FSInputFile(chunk_path))
+        await tg_client.send_document(
+            chat_id=chat_id,
+            document=FSInputFile(chunk_path)
+        )
 
-    await bot.send_message(
+    await messages_service.send_msg.send(
         chat_id=chat_id,
-        text=get_text(language, "admins_settings", "log_upload_complete")
+        message=get_text(language, "admins_settings", "log_upload_complete")
     )
 
 
@@ -43,9 +52,15 @@ async def admin_settings(callback: CallbackQuery, state: FSMContext, user: Users
 
 
 @router.callback_query(F.data == "download_logs")
-async def download_logs(callback: CallbackQuery, state: FSMContext, user: UsersDTO,  admin_module: AdminModule):
-    bot = get_bot()
-    await send_log_files(bot, user.user_id, user.language, admin_module)
+async def download_logs(
+    callback: CallbackQuery,
+    state: FSMContext,
+    user: UsersDTO,
+    admin_module: AdminModule,
+    messages_service: Messages,
+    tg_client: TelegramClient,
+):
+    await send_log_files(messages_service, user.user_id, user.language, admin_module, tg_client)
 
 
 @router.callback_query(F.data == "confirm_overwrite_cache")
@@ -80,8 +95,15 @@ async def overwrite_cache(callback: CallbackQuery, state: FSMContext, user: User
 
 
 @router_logger.message(Command("get_log"))
-async def cmd_start(message: Message, user: UsersDTO, admin_module: AdminModule):
+async def cmd_start(
+    message: Message,
+    user: UsersDTO,
+    admin_module: AdminModule,
+    messages_service: Messages,
+    tg_logger_client: TelegramClient,
+):
     settings = await admin_module.settings_service.get_settings()
-    bot_logger = get_bot_logger()
     if await admin_module.admin_service.check_admin(user.user_id) or settings.channel_for_logging_id == message.chat.id:
-        await send_log_files(bot_logger, message.chat.id, admin_module.conf.app.default_lang, admin_module)
+        await send_log_files(
+            messages_service, message.chat.id, admin_module.conf.app.default_lang, admin_module, tg_logger_client
+        )

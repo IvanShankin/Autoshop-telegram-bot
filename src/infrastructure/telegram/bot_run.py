@@ -2,7 +2,6 @@ import asyncio
 
 from src.containers.app_container import AppContainer
 from src.exceptions.business import ForbiddenError
-from src.infrastructure.telegram.bot_instance import get_dispatcher, get_dispatcher_logger, get_bot, get_bot_logger
 from src.middlewares.aiogram_middleware import MaintenanceMiddleware, UserMiddleware, OnlyAdminsMiddleware, \
     DeleteMessageOnErrorMiddleware, CheckuserNotBlok, ModulesMiddleware
 from src.modules.profile.handlers import router_with_repl_kb as profile_router_with_repl_kb, router as profile_router
@@ -16,8 +15,8 @@ from src.modules.admin_actions.handlers import router_logger
 
 
 async def _including_router(app_container: AppContainer):
-    dp = get_dispatcher()
-    dp_logger = get_dispatcher_logger()
+    dp = app_container.dp_bot
+    dp_logger = app_container.dp_bot_logger
 
     dp.update.middleware(ModulesMiddleware(app_container))
     dp.update.middleware(CheckuserNotBlok())
@@ -50,15 +49,10 @@ async def _including_router(app_container: AppContainer):
 
 async def run_bot(app_container: AppContainer):
     """Запуск бота, вызывается отдельно из main.py"""
-    bot = get_bot()
-    bot_logger = get_bot_logger()
-
-    dp = get_dispatcher()
-    dp_logger = get_dispatcher_logger()
 
     await _including_router(app_container)
 
     await asyncio.gather(
-        dp.start_polling(bot),
-        dp_logger.start_polling(bot_logger),
+        app_container.dp_bot.start_polling(app_container.bot),
+        app_container.dp_bot_logger.start_polling(app_container.bot_logger),
     )

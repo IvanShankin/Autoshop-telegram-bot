@@ -1,6 +1,6 @@
 from src.application.bot import Messages
 from src.application.models.modules import CatalogModule
-from src.infrastructure.telegram.bot_instance import get_bot
+from src.infrastructure.telegram.bot_client import TelegramClient
 from src.modules.categories.keyboards import account_category_kb
 from src.modules.categories.shemas import BuyProductsData
 from src.models.read_models import CategoryFull
@@ -13,7 +13,8 @@ async def check_category(
     old_message_id: int,
     user_id: int, language: str,
     messages_service: Messages,
-    catalog_modul: CatalogModule
+    catalog_modul: CatalogModule,
+    tg_client: TelegramClient,
 ) -> CategoryFull | None:
     """
     Если есть категория, то вернёт её, если не найдена, то отошлёт соответсвующее сообщение и удалит прошлое
@@ -22,8 +23,7 @@ async def check_category(
     category = await catalog_modul.category_service.get_category_by_id(category_id, language=language)
     if not category:
         try:
-            bot = get_bot()
-            await bot.delete_message(user_id, old_message_id)
+            await tg_client.delete_message(user_id, old_message_id)
         except Exception:
             pass
 

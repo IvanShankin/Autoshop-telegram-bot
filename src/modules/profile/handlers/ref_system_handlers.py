@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery, BufferedInputFile
 
-from src.infrastructure.telegram.bot_instance import get_bot
+from src.infrastructure.telegram.bot_client import TelegramClient
 from src.modules.profile.keyboards import ref_system_kb, accrual_ref_list_kb, back_in_ref_system_kb
 from src.modules.profile.services.profile_message import message_income_ref, message_ref_system
 from src.database.models.users import Users
@@ -15,10 +15,13 @@ router = Router()
 
 @router.callback_query(F.data == "referral_system")
 async def referral_system(
-    callback: CallbackQuery, user: Users, profile_module: ProfileModule, messages_service: Messages
+    callback: CallbackQuery,
+    user: Users,
+    profile_module: ProfileModule,
+    messages_service: Messages,
+    tg_client: TelegramClient
 ):
-    bot = get_bot()
-    bot_me = await bot.me()
+    bot_me = await tg_client.me()
     referrals = await profile_module.referral_service.get_all_referrals(user.user_id)
     ref_first_lvl = 0
     ref_second_lvl = 0

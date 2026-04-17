@@ -1,4 +1,4 @@
-from src.infrastructure.telegram.bot_instance import get_bot
+from src.infrastructure.telegram.bot_client import TelegramClient
 from src.models.read_models import UsersDTO
 from src.models.read_models.other import IncomeFromReferralsDTO
 from src.modules.profile.keyboards import back_in_accrual_ref_list_kb
@@ -7,7 +7,12 @@ from src.application.models.modules import ProfileModule
 from src.utils.i18n import get_text
 
 
-async def get_main_message_profile(user: UsersDTO, language: str, profile_module: ProfileModule) -> str:
+async def get_main_message_profile(
+    user: UsersDTO,
+    language: str,
+    profile_module: ProfileModule,
+    tg_client: TelegramClient,
+) -> str:
     """
     Вернёт сообщение с данными о пользователе
     :param user: пользователя о котором будут выведены данные
@@ -15,8 +20,7 @@ async def get_main_message_profile(user: UsersDTO, language: str, profile_module
     """
     username = get_text(language, "miscellaneous", 'no') if user.username is None else f'@{user.username}'
 
-    bot = get_bot()
-    bot_me = await bot.me()
+    bot_me = await tg_client.me()
     vouchers = await profile_module.voucher_service.get_valid_voucher_by_page(user.user_id)
 
     money_in_vouchers = 0

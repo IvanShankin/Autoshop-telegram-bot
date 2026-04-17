@@ -8,6 +8,7 @@ from src.application.bot import Messages
 from src.application.models.modules import CatalogModule
 from src.database.models.users import Users
 from src.exceptions import InvalidPromoCode
+from src.infrastructure.telegram.bot_client import TelegramClient
 from src.infrastructure.telegram.ui.keyboard import support_kb
 from src.middlewares.aiogram_middleware import I18nKeyFilter
 from src.modules.categories.keyboards import subscription_prompt_kb, confirm_buy_kb, main_categories_kb
@@ -23,7 +24,12 @@ router = Router()
 
 @router_with_repl_kb.message(I18nKeyFilter("product_categories"))
 async def handle_catalog_message(
-    message: Message, state: FSMContext, user: Users, messages_service: Messages, catalog_modul: CatalogModule
+    message: Message,
+    state: FSMContext,
+    user: Users,
+    messages_service: Messages,
+    catalog_modul: CatalogModule,
+    tg_client: TelegramClient,
 ):
     await state.clear()
 
@@ -36,7 +42,7 @@ async def handle_catalog_message(
                 "subscribe_to_channel_prompt"
             ),
             event_message_key='subscription_prompt',
-            reply_markup=await subscription_prompt_kb(user.language, catalog_modul)
+            reply_markup=await subscription_prompt_kb(user.language, catalog_modul, tg_client=tg_client)
         )
         return
 

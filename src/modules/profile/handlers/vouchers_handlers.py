@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from src.infrastructure.telegram.bot_instance import get_bot
+from src.infrastructure.telegram.bot_client import TelegramClient
 from src.models.create_models.discounts import CreateVoucherDTO
 from src.models.read_models import UsersDTO
 from src.modules.profile.services.checking_data import checking_availability_money, checking_correctness_number
@@ -109,7 +109,12 @@ async def create_voucher_get_number_of_activations(
 
 @router.callback_query(F.data == "confirm_create_voucher")
 async def confirm_create_voucher(
-    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages, profile_module: ProfileModule,
+    callback: CallbackQuery,
+    state: FSMContext,
+    user: UsersDTO,
+    messages_service: Messages,
+    profile_module: ProfileModule,
+    tg_client: TelegramClient,
 ):
     data = CreateVoucherData(**(await state.get_data()))
     await state.clear()
@@ -135,8 +140,7 @@ async def confirm_create_voucher(
         )
         return
 
-    bot = get_bot()
-    bot_me = await bot.me()
+    bot_me = await tg_client.me()
 
     text = get_text(
         user.language,
@@ -184,7 +188,11 @@ async def voucher_list(
 
 @router.callback_query(F.data.startswith("show_voucher:"))
 async def show_voucher(
-    callback: CallbackQuery, user: UsersDTO, messages_service: Messages, profile_module: ProfileModule,
+    callback: CallbackQuery,
+    user: UsersDTO,
+    messages_service: Messages,
+    profile_module: ProfileModule,
+    tg_client: TelegramClient,
 ):
     target_user_id = int(callback.data.split(':')[1])
     current_page = int(callback.data.split(':')[2])
@@ -200,8 +208,7 @@ async def show_voucher(
         text = get_text(user.language, "profile_messages", 'voucher_currently_inactive')
         reply_markup = back_in_all_voucher_kb(user.language, current_page, target_user_id)
     else:
-        bot = get_bot()
-        bot_me = await bot.me()
+        bot_me = await tg_client.me()
         text = get_text(
             user.language,
             "profile_messages",

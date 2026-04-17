@@ -2,20 +2,19 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.application.models.modules import CatalogModule
-from src.infrastructure.telegram.bot_instance import get_bot
+from src.infrastructure.telegram.bot_client import TelegramClient
 from src.models.read_models import CategoryFull
 from src.utils.i18n import get_text
 
 
-async def subscription_prompt_kb(language: str, catalog_modul: CatalogModule):
+async def subscription_prompt_kb(language: str, catalog_modul: CatalogModule, tg_client: TelegramClient):
     settings = await catalog_modul.settings_service.get_settings()
-    bot = get_bot()
 
     url = None
     if settings.channel_for_subscription_url:
         url = settings.channel_for_subscription_url
     elif settings.channel_for_subscription_id:
-        channel = await bot.get_chat(settings.channel_for_subscription_id)
+        channel = await tg_client.get_chat(settings.channel_for_subscription_id)
         url = f'https://t.me/{channel.username}'
 
 

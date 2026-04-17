@@ -5,7 +5,7 @@ from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest, TelegramAPIError, TelegramForbiddenError, TelegramNotFound, \
     TelegramRetryAfter
 from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply, \
-    Message, FSInputFile, InputMediaPhoto, ReactionTypeEmoji, InlineKeyboardButton, BufferedInputFile
+    Message, FSInputFile, InputMediaPhoto, ReactionTypeEmoji, InlineKeyboardButton, BufferedInputFile, ChatFullInfo
 
 from src.exceptions.telegram import TelegramBadRequestService, TelegramAPIErrorService, TelegramForbiddenErrorService, \
     TelegramNotFoundService, TelegramRetryAfterService
@@ -53,6 +53,12 @@ class TelegramClient:
     async def me(self):
         return await self._call(
             self.bot.me,
+        )
+
+    async def get_chat(self, chat_id: int | str,) -> ChatFullInfo:
+        return await self._call(
+            self.bot.get_chat,
+            chat_id=chat_id,
         )
 
     async def send_message(

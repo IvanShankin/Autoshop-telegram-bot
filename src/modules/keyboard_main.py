@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardButton, KeyboardButton, InlineKeyboardMa
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
 from src.application.models.modules import AdminModule
-from src.infrastructure.telegram.bot_instance import get_bot
+from src.infrastructure.telegram.bot_client import TelegramClient
 from src.utils.i18n import get_text
 
 
@@ -27,16 +27,15 @@ async def main_kb(language: str, user_id: int, admin_module: AdminModule):
     return keyboard_builder.as_markup(resize_keyboard=True)
 
 
-async def info_kb(language: str,  admin_module: AdminModule):
+async def info_kb(language: str,  admin_module: AdminModule, tg_client: TelegramClient):
     settings = await admin_module.settings_service.get_settings()
-    bot = get_bot()
     keyboard = InlineKeyboardBuilder()
 
     url_channel = None
     if settings.channel_for_subscription_url:
         url_channel = settings.channel_for_subscription_url
     elif settings.channel_for_subscription_id:
-        channel = await bot.get_chat(settings.channel_for_subscription_id)
+        channel = await tg_client.get_chat(settings.channel_for_subscription_id)
         url_channel = f'https://t.me/{channel.username}'
 
     if settings.support_username:

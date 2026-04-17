@@ -2,9 +2,8 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, BufferedInputFile
 
-from src.application.bot import Messages
 from src.application.models.modules import AdminModule
-from src.infrastructure.telegram.bot_instance import get_bot
+from src.infrastructure.telegram.bot_client import TelegramClient
 from src.models.read_models import UsersDTO
 from src.utils.i18n import get_text
 
@@ -13,7 +12,11 @@ router = Router()
 
 @router.callback_query(F.data.startswith("unload_action_user:"))
 async def unload_action_user(
-    callback: CallbackQuery, state: FSMContext, user: UsersDTO, messages_service: Messages, admin_module: AdminModule
+    callback: CallbackQuery,
+    state: FSMContext,
+    user: UsersDTO,
+    tg_client: TelegramClient,
+    admin_module: AdminModule
 ):
     target_user_id = int(callback.data.split(':')[1])
     try:
@@ -25,8 +28,7 @@ async def unload_action_user(
         )
         return
 
-    bot = get_bot()
-    await bot.send_document(
+    await tg_client.send_document(
         user.user_id,
         document=BufferedInputFile(
             stream_excel,

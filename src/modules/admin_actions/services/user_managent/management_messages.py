@@ -1,5 +1,6 @@
 from src.application.bot import Messages
 from src.application.models.modules import ProfileModule, AdminModule
+from src.infrastructure.telegram.bot_client import TelegramClient
 from src.models.read_models import UsersDTO
 from src.modules.admin_actions.keyboards.user_management_kb import user_management_kb
 from src.modules.profile.services.profile_message import get_main_message_profile
@@ -13,9 +14,10 @@ async def message_about_user(
     profile_modul: ProfileModule,
     admin_module: AdminModule,
     messages_service: Messages,
+    tg_client: TelegramClient,
     message_id: int = None
 ):
-    result_message = await get_main_message_profile(target_user, admin.language, profile_modul)
+    result_message = await get_main_message_profile(target_user, admin.language, profile_modul, tg_client)
     reason_ban = await admin_module.banned_account_service.get_ban(target_user.user_id)
     if reason_ban:
         result_message += get_text(

@@ -4,6 +4,7 @@ from aiogram.types import CallbackQuery, Message
 
 from src.application.bot import Messages
 from src.application.models.modules import AdminModule, ProfileModule
+from src.infrastructure.telegram.bot_client import TelegramClient
 from src.models.read_models import UsersDTO
 from src.modules.admin_actions.keyboards import back_in_main_admin_kb
 from src.modules.admin_actions.services import message_about_user
@@ -33,8 +34,13 @@ async def get_id_or_user_user_management(
 
 @router.message(GetUserIdOrUsername.get_id_or_username)
 async def get_user_id_or_username(
-    message: Message, user: UsersDTO, state: FSMContext, 
-    messages_service: Messages, admin_module: AdminModule, profile_module: ProfileModule,
+    message: Message,
+    user: UsersDTO,
+    state: FSMContext,
+    messages_service: Messages,
+    admin_module: AdminModule,
+    profile_module: ProfileModule,
+    tg_client: TelegramClient,
 ):
     user_message = message.text
     result_convert_int = safe_int_conversion(user_message)
@@ -66,6 +72,7 @@ async def get_user_id_or_username(
             profile_modul=profile_module,
             admin_module=admin_module,
             messages_service=messages_service,
+            tg_client=tg_client,
         )
         await state.clear()
     else:
@@ -78,8 +85,13 @@ async def get_user_id_or_username(
 
 @router.callback_query(F.data.startswith("user_management:"))
 async def user_management(
-    callback: CallbackQuery, state: FSMContext, user: UsersDTO,
-    messages_service: Messages, admin_module: AdminModule, profile_module: ProfileModule,
+    callback: CallbackQuery,
+    state: FSMContext,
+    user: UsersDTO,
+    messages_service: Messages,
+    admin_module: AdminModule,
+    profile_module: ProfileModule,
+    tg_client: TelegramClient,
 ):
     target_user_id = int(callback.data.split(':')[1])
     target_user = await admin_module.user_service.get_user(target_user_id)
@@ -91,6 +103,7 @@ async def user_management(
         admin_module=admin_module,
         messages_service=messages_service,
         message_id=callback.message.message_id,
+        tg_client=tg_client,
     )
     await state.clear()
 

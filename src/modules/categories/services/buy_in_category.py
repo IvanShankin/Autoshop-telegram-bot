@@ -6,7 +6,7 @@ from src.application.bot import Messages
 from src.application.models.modules import CatalogModule
 from src.exceptions import InvalidPromoCode, CategoryNotFound, NotEnoughMoney, NotEnoughAccounts
 from src.exceptions.business import NotEnoughProducts
-from src.infrastructure.telegram.bot_instance import get_bot
+from src.infrastructure.telegram.bot_client import TelegramClient
 from src.modules.categories.keyboards import replenishment_and_back_in_cat, back_in_account_category_kb
 from src.modules.categories.services.helpers import check_category
 from src.modules.profile.keyboards import in_purchased_account_kb, in_purchased_universal_product_kb
@@ -163,6 +163,7 @@ async def buy_product(
     user: Users,
     messages_service: Messages,
     catalog_modul: CatalogModule,
+    tg_client: TelegramClient,
 ):
 
     category = await check_category(
@@ -172,6 +173,7 @@ async def buy_product(
         language=user.language,
         messages_service=messages_service,
         catalog_modul=catalog_modul,
+        tg_client=tg_client,
     )
     if category is None:
         return
@@ -250,8 +252,7 @@ async def buy_product(
     except CategoryNotFound as e:
         await delete_message()
         try:
-            bot = get_bot()
-            await bot.delete_message(user.user_id, callback.message.message_id)
+            await tg_client.delete_message(user.user_id, callback.message.message_id)
         except Exception:
             pass
 

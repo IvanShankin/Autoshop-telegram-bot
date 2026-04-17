@@ -1,6 +1,5 @@
 from logging import Logger
 
-from src.application.bot import MassTgMailingService
 from src.application.cache_warmup import CacheWarmupService
 from src.application.crypto.crypto_context import CryptoProvider
 from src.application.events.publish_event_handler import PublishEventHandler
@@ -34,7 +33,6 @@ from src.application.models.users import WalletTransactionService, UserService, 
     NotificationSettingsService, BannedAccountService, ReplenishmentsService
 from src.application.models.users.permission_service import PermissionService
 from src.infrastructure.files.path_builder import PathBuilder
-from src.infrastructure.telegram.account_client import TelegramAccountClient
 from src.repository.database.categories import PurchasesRepository
 
 

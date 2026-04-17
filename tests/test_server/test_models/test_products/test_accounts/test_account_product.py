@@ -6,7 +6,6 @@ from src.exceptions import TheCategoryNotStorageAccount
 from src.exceptions.domain import CategoryNotFound, ProductAccountNotFound
 from src.models.create_models.accounts import CreateProductAccountDTO
 from src.models.read_models import ProductAccountFull
-from src.infrastructure.files._media_paths import create_path_account
 
 
 class TestAccountProductService:
@@ -126,7 +125,7 @@ class TestAccountProductService:
         assert not await container_fix.product_accounts_repo.get_by_category_id(category.category_id)
         assert await container_fix.account_storage_repo.get_by_id(storage.account_storage_id) is None
 
-        folder = create_path_account(
+        folder = container_fix.path_builder.build_path_account(
             status=storage.status,
             type_account_service=storage.type_account_service,
             uuid=storage.storage_uuid,

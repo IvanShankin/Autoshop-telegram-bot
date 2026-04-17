@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Tuple, List, TYPE_CHECKING
 
 from src.application.crypto.crypto_context import CryptoProvider
-from src.application.products.accounts.account_service import decryption_tg_account
+from src.application.products.accounts.account_service import AccountService
 from src.models.read_models import AccountStorageDTO
 
 
@@ -20,10 +20,12 @@ class GetAuthCodesUseCase:
         self,
         tg_client: "TelegramAccountClient",
         crypto_provider: CryptoProvider,
+        account_service: AccountService,
         logger: Logger,
     ):
         self.tg_client = tg_client
         self.crypto_provider = crypto_provider
+        self.account_service = account_service
         self.logger = logger
 
     async def get_auth_codes(
@@ -40,10 +42,10 @@ class GetAuthCodesUseCase:
         temp_account_path = None
         try:
             crypto = self.crypto_provider.get()
-            temp_account_path = decryption_tg_account(account_storage, crypto, account_storage.status)
-            tdata_path = str(Path(temp_account_path) / 'tdata')
+            temp_account_path = self.account_service.decryption_tg_account(account_storage, crypto, account_storage.status)
+            tdata_path = Path(temp_account_path) / Path('tdata')
 
-            return await self.tg_client.get_auth_codes(temp_account_path, limit)
+            return await self.tg_client.get_auth_codes(tdata_path, limit)
         except Exception as e:
             # попадаем сюда если с аккаунтом проблемы
             self.logger.exception(

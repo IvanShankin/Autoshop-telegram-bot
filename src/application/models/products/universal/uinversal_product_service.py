@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import Config
 from src.exceptions.domain import CategoryNotFound, UniversalProductNotFound, UniversalStorageNotFound
+from src.infrastructure.files.path_builder import PathBuilder
 from src.models.create_models.universal import CreateProductUniversalDTO
 from src.models.read_models import ProductUniversalFull, ProductUniversalSmall, ProductUniversalDTO
 from src.repository.database.categories import CategoriesRepository
@@ -16,7 +17,6 @@ from src.repository.redis.product_universal import (
     ProductUniversalCacheRepository,
     ProductUniversalSingleCacheRepository,
 )
-from src.infrastructure.files._media_paths import create_path_universal_storage
 from src.application.models.categories.categories_cache_filler_service import CategoriesCacheFillerService
 from src.application.models.products.universal.universal_cache_filler_service import UniversalCacheFillerService
 
@@ -32,6 +32,7 @@ class UniversalProductService:
         product_single_cache_repo: ProductUniversalSingleCacheRepository,
         cache_filler: UniversalCacheFillerService,
         category_filler: CategoriesCacheFillerService,
+        path_builder: PathBuilder,
         conf: Config,
         session_db: AsyncSession,
     ):
@@ -42,6 +43,7 @@ class UniversalProductService:
         self.product_single_cache_repo = product_single_cache_repo
         self.cache_filler = cache_filler
         self.category_filler = category_filler
+        self.path_builder = path_builder
         self.conf = conf
         self.session_db = session_db
 
@@ -170,10 +172,10 @@ class UniversalProductService:
             if not storage.original_filename:
                 continue
 
-            folder = create_path_universal_storage(
+            folder = self.path_builder.build_path_universal_storage(
                 status=storage.status,
                 uuid=storage.storage_uuid,
-                return_path_obj=True
+                as_path=True,
             )
             shutil.rmtree(folder.parent, ignore_errors=True)
 

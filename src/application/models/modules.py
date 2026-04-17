@@ -9,7 +9,8 @@ from src.application.models.categories import CategoryService, TranslationsCateg
 from src.application.models.purchases import PurchaseService
 from src.application.models.users.pubscription_prompt import SubscriptionService
 from src.application.models.users.use_cases import GenerateUserAuditLogUseCase
-from src.application.products.accounts.account_service import AccountService, GenerateExamplImporteAccount
+from src.application.products.accounts.account_service import AccountService
+from src.application.products.accounts.generate_exampl_import import GenerateExamplImportAccount
 from src.application.products.accounts.other.use_cases import UploadOtherAccountsUseCase, ImportOtherAccountsUseCase
 from src.application.products.accounts.tg.use_cases import UploadTGAccountsUseCase, ImportTelegramAccountsUseCase, \
     ValidateTgAccount
@@ -208,7 +209,7 @@ class AdminModule:
         upload_universal_products_use_case: UploadUniversalProductsUseCase,
         upload_tg_account_use_case: UploadTGAccountsUseCase,
         upload_other_account_use_case: UploadOtherAccountsUseCase,
-        generate_example_import_account: GenerateExamplImporteAccount,
+        generate_example_import_account: GenerateExamplImportAccount,
         generate_exampl_universal_import: GenerateExamplUniversalProductImport,
         import_tg_account: ImportTelegramAccountsUseCase,
         import_other_account: ImportOtherAccountsUseCase,

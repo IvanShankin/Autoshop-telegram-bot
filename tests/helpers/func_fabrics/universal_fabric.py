@@ -18,12 +18,12 @@ from src.models.read_models import UniversalStoragePydantic, ProductUniversalSma
 
 
 async def _make_encrypted_universal_storage_file(
+    container_fix: RequestContainer,
     dek: bytes,
     status: StorageStatus,
     uuid: str,
     file_path: str = None
 ) -> Path:
-    from src.infrastructure.files._media_paths import create_path_universal_storage
     if file_path is None:
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=".enc") as f:
             f.write("Данные о продукте")
@@ -32,7 +32,7 @@ async def _make_encrypted_universal_storage_file(
 
     encrypt_file(
         file_path=file_path,
-        encrypted_path=create_path_universal_storage(status, uuid),
+        encrypted_path=container_fix.path_builder.build_path_universal_storage(status, uuid),
         dek=dek,
     )
 
@@ -74,7 +74,9 @@ async def create_universal_storage_factory(
 
 
     if original_filename is True:
-        file_path = await _make_encrypted_universal_storage_file(dek=key, status=status, uuid=storage_uuid)
+        file_path = await _make_encrypted_universal_storage_file(
+            container_fix=container_fix, dek=key, status=status, uuid=storage_uuid
+        )
         original_filename = file_path.name
 
 

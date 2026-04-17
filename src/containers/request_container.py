@@ -9,7 +9,8 @@ from src.application.models.discounts.remove_invalid import RemoveInvalidDiscoun
 from src.application.models.systems.backup_db_service import BackupDBService
 from src.application.models.users.use_cases import GenerateUserAuditLogUseCase
 from src.application.payments.crypto_bot.use_cases.process_webhook import ProcessCryptoWebhookUseCase
-from src.application.products.accounts.account_service import AccountService, GenerateExamplImporteAccount
+from src.application.products.accounts.account_service import AccountService
+from src.application.products.accounts.generate_exampl_import import GenerateExamplImportAccount
 from src.application.products.accounts.other.use_cases import UploadOtherAccountsUseCase, ImportOtherAccountsUseCase
 from src.application.products.accounts.other.use_cases.validate import ValidateOtherAccountsUseCase
 from src.application.products.accounts.tg.use_cases import ImportTelegramAccountsUseCase, UploadTGAccountsUseCase
@@ -271,6 +272,7 @@ class RequestContainer:
         self.ui_images_service = UiImagesService(
             ui_image_repo=self.ui_image_repo,
             cache_repo=self.ui_images_cache_repo,
+            path_builder=self.path_builder,
             session_db=session_db,
         )
         self.sent_mass_message_service = SentMassMessagesService(
@@ -527,6 +529,7 @@ class RequestContainer:
             product_single_cache_repo=self.product_universal_single_cache_repo,
             cache_filler=self.universal_cache_filler_service,
             category_filler=self.categories_cache_filler_service,
+            path_builder=self.path_builder,
             conf=self.config,
             session_db=self.session_db,
         )
@@ -664,6 +667,7 @@ class RequestContainer:
             logger=self.logger,
             tg_client=self.telegram_account_client,
             crypto_provider=self.crypto_provider,
+            account_service=self.account_service,
         )
         self.validate_other_account = ValidateOtherAccountsUseCase(
             logger=self.logger,
@@ -874,11 +878,6 @@ class RequestContainer:
             logger=self.logger,
             conf=self.config,
         )
-        self.ui_image_service = UiImagesService(
-            ui_image_repo=self.ui_image_repo,
-            cache_repo=self.ui_images_cache_repo,
-            session_db=self.session_db,
-        )
         self.statistics_service = StatisticsService(
             type_payments_repo=self.type_payment_repo,
             session_db=self.session_db,
@@ -893,7 +892,7 @@ class RequestContainer:
             conf=self.config,
             user_log_service=self.user_log_service,
         )
-        self.generate_example_import_account = GenerateExamplImporteAccount(
+        self.generate_example_import_account = GenerateExamplImportAccount(
             conf=self.config,
         )
         self. event_message_service = EventMessageService(
@@ -902,6 +901,7 @@ class RequestContainer:
         self.get_auth_codes_use_case = GetAuthCodesUseCase(
             tg_client=self.telegram_account_client,
             crypto_provider=self.crypto_provider,
+            account_service=self.account_service,
             logger=self.logger,
         )
         self.process_crypto_webhook_use_case = ProcessCryptoWebhookUseCase(

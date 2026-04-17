@@ -297,12 +297,8 @@ async def create_ui_image_factory(
     """
        сохраняет запись UiImages в БД и возвращает (ui_image, abs_path).
     """
-    from src.config import get_config
-    from src.infrastructure.files._media_paths import create_path_ui_image
     # Подготовим директорию и файл
-    conf = get_config()
-
-    file_abs = create_path_ui_image(f"{key}.png")
+    file_abs = container_fix.path_builder.build_path_ui_image(f"{key}.png")
     file_abs.write_bytes(b"fake-image-bytes")       # создаём тестовый файл
 
     async with get_session_factory() as session:

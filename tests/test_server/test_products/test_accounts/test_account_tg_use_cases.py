@@ -177,7 +177,7 @@ async def test_upload_tg_accounts_use_case_yields_archives_and_cleans(
     def fake_decryption(*args, **kwargs):
         return str(folders.pop(0))
 
-    monkeypatch.setattr(container_fix.account_service, "decryption_tg_account", fake_decryption)
+    container_fix.account_service.decryption_tg_account = fake_decryption
     monkeypatch.setattr(
         upload_tg_module,
         "get_dir_size",

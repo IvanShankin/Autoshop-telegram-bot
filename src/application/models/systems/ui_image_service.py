@@ -5,12 +5,12 @@ import aiofiles
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.infrastructure.files.path_builder import PathBuilder
 from src.models.read_models.other import UiImagesDTO
 from src.models.update_models.system import UpdateUiImageDTO
 from src.repository.database.systems import UiImagesRepository
 from src.repository.redis import UiImagesCacheRepository
 from src.infrastructure.files.file_system import get_ext_image, get_default_image_bytes
-from src.infrastructure.files._media_paths import create_path_ui_image
 
 
 class UiImagesService:
@@ -19,10 +19,12 @@ class UiImagesService:
         self,
         ui_image_repo: UiImagesRepository,
         cache_repo: UiImagesCacheRepository,
+        path_builder: PathBuilder,
         session_db: AsyncSession,
     ):
         self.ui_image_repo = ui_image_repo
         self.cache_repo = cache_repo
+        self.path_builder = path_builder
         self.session_db = session_db
 
     async def create_default_io_image(
@@ -50,12 +52,12 @@ class UiImagesService:
         ext = get_ext_image(file_data)
         file_name = f"{key}.{ext}"
 
-        new_path = create_path_ui_image(file_name=file_name)
+        new_path = self.path_builder.build_path_ui_image(file_name=file_name)
         new_path.parent.mkdir(parents=True, exist_ok=True)
 
         current = await self.ui_image_repo.get_by_key(key)
         if current:
-            last_path = create_path_ui_image(file_name=current.file_name)
+            last_path = self.path_builder.build_path_ui_image(file_name=current.file_name)
             last_path.unlink(missing_ok=True)
 
             async with aiofiles.open(new_path, "wb") as f:
@@ -142,7 +144,7 @@ class UiImagesService:
             await self.session_db.commit()
 
         if deleted and delete_file:
-            file_path = create_path_ui_image(file_name=deleted.file_name)
+            file_path = self.path_builder.build_path_ui_image(file_name=deleted.file_name)
             file_path.unlink(missing_ok=True)
 
         if filling_redis:

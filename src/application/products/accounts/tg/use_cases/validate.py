@@ -3,11 +3,11 @@ import shutil
 from logging import Logger
 
 from src.application.crypto.crypto_context import CryptoProvider
+from src.application.products.accounts.account_service import AccountService
 from src.database.models.categories import StorageStatus
 from src.database.models.categories import AccountServiceType
 from src.infrastructure.telegram.account_client import TelegramAccountClient
 from src.models.read_models import AccountStorageDTO
-from src.application.products.accounts.account_service import decryption_tg_account
 
 
 class ValidateTgAccount:
@@ -17,10 +17,12 @@ class ValidateTgAccount:
         logger: Logger,
         tg_client: TelegramAccountClient,
         crypto_provider: CryptoProvider,
+        account_service: AccountService,
     ):
         self.logger = logger
         self.tg_client = tg_client
         self.crypto_provider = crypto_provider
+        self.account_service = account_service
 
     async def check_account_validity(
         self,
@@ -41,7 +43,7 @@ class ValidateTgAccount:
         try:
             # decryption heavy IO в thread
             crypto = self.crypto_provider.get()
-            temp_folder = await asyncio.to_thread(decryption_tg_account, account_storage, crypto, status)
+            temp_folder = await asyncio.to_thread(self.account_service.decryption_tg_account, account_storage, crypto, status)
             # проверка уже асинхронная
             is_valid = await self.tg_client.validate(temp_folder)
             return bool(is_valid)

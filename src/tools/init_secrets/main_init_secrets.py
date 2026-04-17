@@ -15,12 +15,12 @@ from src.tools.init_secrets.set_secret import SetSecretsUseCase
 async def main():
     # грузим отдельный env для секретов
     paths = PathSettings.build(use_secret_storage=True)
-    init_env(str(paths.base_dir / Path(".env.secrets")))
+    init_env(str(paths.base_dir / Path(".secrets.env")))
 
     try:
         conf = EnvInitSecrets.from_env()
     except KeyError:
-        logger.exception("'.env.secrets' не заполнен!")
+        logger.exception("'.secrets.env' не заполнен!")
         return
 
     secret_client = SecretsStorageClient(

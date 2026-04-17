@@ -4,9 +4,9 @@ __pycache__/
 .venv/
 
 *.log
+*.secrets.env
 *.env
 *.test.env
-*.env.secrets
 tests/manual_test.py
 
 

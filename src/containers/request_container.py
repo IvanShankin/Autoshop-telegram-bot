@@ -20,7 +20,7 @@ from src.application.products.accounts.tg.use_cases.validate import ValidateTgAc
 from src.application.products.universals.universal_products import UniversalProduct
 from src.application.products.universals.use_cases import ValidationsUniversalProducts, \
     GenerateExamplUniversalProductImport, UploadUniversalProductsUseCase, ImportUniversalProductUseCase
-from src.config import get_config
+from src.config import Config
 from src.infrastructure.crypto.secret_storage.secrets_storage import SecretsStorage
 from src.infrastructure.crypto_bot.core import CryptoBotProvider
 from src.infrastructure.currency.cbr_client import CBRClient
@@ -158,8 +158,9 @@ class RequestContainer:
         self,
         session_db: AsyncSession,
         session_redis: Redis,
+        config: Config,
         http_session: ClientSession,
-        telegram_client : "TelegramClient",
+        telegram_client: "TelegramClient",
         telegram_logger_client: "TelegramClient",
         crypto_bot_provider: CryptoBotProvider,
         crypto_provider: CryptoProvider,
@@ -180,7 +181,7 @@ class RequestContainer:
 
         self.account_sold_service: Optional[AccountSoldService] = None
 
-        self.config = get_config()
+        self.config = config
         self.logger = get_logger(__name__)
         self.database_base = DatabaseBase(
             session_db=session_db,
@@ -406,6 +407,7 @@ class RequestContainer:
             banned_acc_service=self.banned_account_service,
             log_service=self.user_log_service,
             publish_event=self.publish_event_handler,
+            conf=self.config,
             session_db=session_db,
         )
         self.permission_service = PermissionService(admin_service=self.admin_service)
@@ -1167,6 +1169,7 @@ class RequestContainer:
             promo_code_ev_hand=PromoCodeEventHandler(
                 publish_event=self.publish_event_handler,
                 promo_code_service=self.promo_code_service,
+                conf=self.config,
                 session_db=self.session_db,
             ),
             referral_ev_hand=ReferralEventHandler(
@@ -1174,6 +1177,7 @@ class RequestContainer:
                 referral_service=self.referral_service,
                 notification_service=self.notification_service,
                 send_msg_service=messages.send_msg,
+                conf=self.config,
             ),
             replenishment_ev_hand=ReplenishmentsEventHandler(
                 publish_event=self.publish_event_handler,
@@ -1223,6 +1227,7 @@ class RequestContainer:
 def init_request_container(
     session_db: AsyncSession,
     session_redis: Redis,
+    config: Config,
     http_session: ClientSession,
     telegram_client: "TelegramClient",
     telegram_logger_client: "TelegramClient",
@@ -1235,6 +1240,7 @@ def init_request_container(
     return RequestContainer(
         session_db=session_db,
         session_redis=session_redis,
+        config=config,
         http_session=http_session,
         telegram_client=telegram_client,
         telegram_logger_client=telegram_logger_client,

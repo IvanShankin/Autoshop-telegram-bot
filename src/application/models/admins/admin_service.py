@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config import get_config
+from src.config import Config
 from src.exceptions import UserNotFound, AdminNotFound, UnableRemoveMainAdmin
 from src.models.create_models.admins import CreateAdminAction
 from src.models.create_models.users import CreateBannedAccountsDTO, CreateUserAuditLogDTO, CreateWalletTransactionDTO
@@ -32,6 +32,7 @@ class AdminsService:
         banned_acc_service: BannedAccountService,
         log_service: UserLogService,
         publish_event: PublishEventHandler,
+        conf: Config,
         session_db: AsyncSession,
     ):
         self.admin_repo = admin_repo
@@ -44,6 +45,7 @@ class AdminsService:
         self.banned_acc_service = banned_acc_service
         self.log_service = log_service
         self.publish_event = publish_event
+        self.conf = conf
         self.session_db = session_db
 
     async def check_admin(self, user_id: int) -> bool:
@@ -78,7 +80,7 @@ class AdminsService:
         :except UnableRemoveMainAdmin
         :except AdminNotFound
         """
-        if user_id == get_config().env.main_admin:
+        if user_id == self.conf.env.main_admin:
             raise UnableRemoveMainAdmin()
 
         if not await self.check_admin(user_id):

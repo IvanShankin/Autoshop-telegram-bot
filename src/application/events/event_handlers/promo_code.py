@@ -1,9 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.config import Config
 from src.models.read_models import LogLevel, NewActivatePromoCode
 from src.exceptions.business import AlreadyActivated
 from src.exceptions.domain import PromoCodeNotFound
-from src.config import get_config
 from src.application.events.publish_event_handler import PublishEventHandler
 from src.application.models.discounts import PromoCodeService
 from src.utils.core_logger import get_logger
@@ -16,10 +16,12 @@ class PromoCodeEventHandler:
         self,
         publish_event: PublishEventHandler,
         promo_code_service: PromoCodeService,
+        conf: Config,
         session_db: AsyncSession,
     ):
         self.publish_event = publish_event
         self.promo_code_service = promo_code_service
+        self.conf = conf
         self.session_db = session_db
 
     async def promo_code_event_handler(self, event):
@@ -58,7 +60,7 @@ class PromoCodeEventHandler:
     async def _on_new_activate_promo_code_completed(self, promo_code_id: int, user_id: int, activation_code: str, activations_left: int):
         await self.publish_event.send_log(
             text=get_text(
-                get_config().app.default_lang,
+                self.conf.app.default_lang,
                 "discount",
                 "log_promo_code_activation"
             ).format(promo_code_id=promo_code_id, code=activation_code, user_id=user_id,
@@ -69,7 +71,7 @@ class PromoCodeEventHandler:
     async def _send_promo_code_expired(self, promo_code_id: int, activation_code: str):
         await self.publish_event.send_log(
             text=get_text(
-                get_config().app.default_lang,
+                self.conf.app.default_lang,
                 "discount",
                 "log_promo_code_expired"
             ).format(id=promo_code_id, code=activation_code),
@@ -79,7 +81,7 @@ class PromoCodeEventHandler:
     async def _on_new_activate_promo_code_failed(self, promo_code_id: int, error: str):
         await self.publish_event.send_log(
             text=get_text(
-                get_config().app.default_lang,
+                self.conf.app.default_lang,
                 "discount",
                 "log_error_activating_promo_code"
             ).format(id=promo_code_id, error=error),

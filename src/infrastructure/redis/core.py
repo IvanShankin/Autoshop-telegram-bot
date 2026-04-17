@@ -1,14 +1,10 @@
 from redis.asyncio import Redis
 
-from src.config import get_config
-
-redis_client: Redis | None = None
+from src.config import Config
 
 
-def init_redis() -> Redis:
+def init_redis(conf: Config) -> Redis:
     global redis_client
-
-    conf = get_config()
 
     redis_client = Redis(
         host=conf.env.redis_host,
@@ -19,9 +15,6 @@ def init_redis() -> Redis:
     return redis_client
 
 
-async def close_redis():
-    global redis_client
-
-    if redis_client:
-        await redis_client.aclose()
+async def close_redis(redis: Redis):
+    await redis.aclose()
 

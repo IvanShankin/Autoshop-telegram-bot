@@ -1,11 +1,5 @@
-import sys
-
-import fakeredis
 import pytest
-import pytest_asyncio
 
-from src.config import get_config, set_config
-from src.infrastructure.redis import core
 from tests.helpers.fake_aiogram.fake_aiogram_module import FakeBot
 
 fake_bot = FakeBot()
@@ -90,14 +84,6 @@ def replacement_fake_bot(monkeypatch):
     # fake_bot.sent.clear()
     #
     # return fake_bot
-
-
-
-@pytest_asyncio.fixture(scope="function", autouse=True)
-async def set_need_config():
-    conf = get_config()
-    set_config(conf)
-
 
 
 @pytest.fixture(autouse=True)

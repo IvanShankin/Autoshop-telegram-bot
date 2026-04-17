@@ -3,7 +3,6 @@ from pathlib import Path
 
 from aiogram.types import CallbackQuery
 
-from src.config import get_config
 from src.domain.crypto.key_ops import unwrap_dek
 from src.models.create_models.universal import CreateDeletedUniversalDTO
 from src.models.update_models import UpdateUniversalStorageDTO
@@ -92,7 +91,7 @@ async def send_media_sold_universal(
                 status=universal.universal_storage.status,
                 uuid=universal.universal_storage.storage_uuid,
             )
-            decrypted_file_path = create_temp_dir(get_config()) / Path(universal.universal_storage.original_filename)
+            decrypted_file_path = create_temp_dir(profile_module.conf) / Path(universal.universal_storage.original_filename)
             decrypt_file(
                 dek=dek,
                 encrypted_path=file_path,

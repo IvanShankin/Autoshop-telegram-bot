@@ -48,8 +48,8 @@ class UploadTGAccountsUseCase:
             )
             folder_size = get_dir_size(decrypted_folder)
 
-            # обрабатывать слишком большие директории (которые превышают get_config().limits.max_upload_file 49 мб) не надо
-            # т.к. мы можем принять максимум get_config().limits.max_download_size (20 мб)
+            # обрабатывать слишком большие директории (которые превышают config.limits.max_upload_file 49 мб) не надо
+            # т.к. мы можем принять максимум config.limits.max_download_size (20 мб)
 
             if current_chunk_size + folder_size > self.conf.limits.max_upload_file:
                 # дошли до предела по размеру файла -> формируем архив и возвращаем путь

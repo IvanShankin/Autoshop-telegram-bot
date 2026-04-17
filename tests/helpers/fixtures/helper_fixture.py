@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.read_models import UsersDTO, ProductAccountFull
 from tests.helpers.fake_moduls.fake_tg_account_client import FakeTelegramAccountClient
 from tests.helpers.func_fabrics.fake_objects_fabric import crypto_provider_factory, secret_storage_factory
-from src.config import get_config
+from src.config import get_config, init_config
 from src.containers import init_request_container, RequestContainer
 from tests.helpers.func_fabrics.other_fabric import create_purchase_request_fabric, create_balance_holder_factory
 from tests.helpers.func_fabrics import create_new_user_fabric, create_admin_fabric, create_referral_fabric, \
@@ -23,7 +23,7 @@ from src.database.models.categories import ProductType, AccountServiceType, Stor
     ProductAccounts
 from src.database.models.system import Settings
 from src.database.models.system.models import ReplenishmentService
-from src.database import get_db
+from src.database import get_session_factory
 from src.infrastructure.crypto_bot.core import CryptoBotProvider
 from datetime import datetime, timezone, timedelta
 from types import SimpleNamespace
@@ -70,16 +70,19 @@ async def container_fix(
     session_db_fix,
     crypto_bot_provider_fix,
     crypto_provider_fix,
-    secret_storage_fix
+    secret_storage_fix,
+    get_secret_fix,
 ) -> AsyncGenerator[RequestContainer, Any]:
     async def fake_support_kb(*args, **kwargs) -> None:
         pass
 
     http_session = aiohttp.ClientSession()
+    config = init_config(get_secret_fix.execute)
 
     container = init_request_container(
         session_db=session_db_fix,
         session_redis=fakeredis.aioredis.FakeRedis(),
+        config=config,
         http_session=http_session,
         telegram_client=fake_tg_client,
         telegram_logger_client=fake_tg_client,
@@ -248,7 +251,7 @@ async def create_settings() -> Settings:
         channel_for_subscription_id=987654321,
         FAQ='FAQ'
     )
-    async with get_db() as session_db:
+    async with get_session_factory() as session_db:
         session_db.add(settings)
         await session_db.commit()
         await session_db.refresh(settings)

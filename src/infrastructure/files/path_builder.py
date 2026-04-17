@@ -19,7 +19,7 @@ class PathBuilder:
         """
         Создаст путь к аккаунту.
 
-        type_account_service брать с get_config().app.type_account_services (config)
+        type_account_service брать с config.app.type_account_services (config)
 
         :return: Полный путь. Пример: .../accounts/for_sale/telegram/gbgbfd-dnnjcs/account.enc
         """

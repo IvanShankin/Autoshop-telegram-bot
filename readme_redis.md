@@ -562,5 +562,5 @@
 ### Курс доллара
 **Ключ:** `dollar_rate`  
 **Значение:** `float`
-**TTL:** Навсегда, обновляется раз в два часа (get_config().different.fetch_interval)
+**TTL:** Навсегда, обновляется раз в два часа (config.different.fetch_interval)
 

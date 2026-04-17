@@ -1,7 +1,7 @@
 from datetime import datetime
 
+from src.config import Config
 from src.models.read_models import LogLevel
-from src.config import get_config
 from src.exceptions.telegram import TelegramForbiddenErrorService
 from src.models.read_models import ReferralIncomeResult, ReferralReplenishmentCompleted
 from src.application.bot import SendMessageService
@@ -20,11 +20,13 @@ class ReferralEventHandler:
         referral_service: ReferralService,
         notification_service: NotificationSettingsService,
         send_msg_service: SendMessageService,
+        conf: Config,
     ):
         self.publish_event = publish_event
         self.referral_service = referral_service
         self.notification_service = notification_service
         self.send_msg_service = send_msg_service
+        self.conf = conf
 
     async def referral_event_handler(self, event):
         payload = event["payload"]
@@ -98,12 +100,12 @@ class ReferralEventHandler:
     async def _on_referral_income_failed(self, error: str) -> None:
         await self.publish_event.send_log(
             text=get_text(
-                get_config().app.default_lang,
+                self.conf.app.default_lang,
                 "referral_messages",
                 "log_replenishment_error",
             ).format(
                 error=error,
-                time=datetime.now().strftime(get_config().different.dt_format),
+                time=datetime.now().strftime(self.conf.different.dt_format),
             ),
             log_lvl=LogLevel.ERROR,
         )

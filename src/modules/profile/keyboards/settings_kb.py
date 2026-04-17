@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.config import get_config
+from src.application.models.modules import ProfileModule
 from src.models.read_models.other import NotificationSettingsDTO
 from src.utils.i18n import get_text
 
@@ -14,12 +14,12 @@ def profile_settings_kb(language: str):
     ])
 
 
-def settings_language_kb(language: str):
+def settings_language_kb(language: str, profile_module: ProfileModule):
     keyboard = InlineKeyboardBuilder()
 
-    for lang in get_config().app.allowed_langs:
+    for lang in profile_module.conf.app.allowed_langs:
         is_current = (lang == language)
-        text = f"{'✔️ ' if is_current else ''}{get_config().app.name_langs[lang]}  {get_config().app.emoji_langs[lang]}"
+        text = f"{'✔️ ' if is_current else ''}{profile_module.conf.app.name_langs[lang]}  {profile_module.conf.app.emoji_langs[lang]}"
         keyboard.add(InlineKeyboardButton(text=text, callback_data=f'language_selection:{lang}'))
 
     keyboard.adjust(2)

@@ -3,7 +3,7 @@ import pytest
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import select
 
-from src.config import get_config
+from src.database import get_session_factory
 from src.database.models.admins import AdminActions
 from src.database.models.discount import Vouchers, VoucherActivations
 from src.database.models.users import Users, WalletTransaction, UserAuditLogs
@@ -221,8 +221,7 @@ class TestVoucherService:
         target = await create_new_user(balance=0)
         user_dto = UsersDTO.model_validate(target)
 
-        async_session_factory = get_config().db_connection.session_local
-        async with async_session_factory() as new_session:
+        async with get_session_factory() as new_session:
             test_service = VoucherService(
                 vouchers_repo=VouchersRepository(
                     session_db=new_session,

@@ -55,7 +55,7 @@ class AppContainer:
         )
 
         self.conf = init_config(get_secret.execute)
-        self.redis = init_redis()
+        self.redis = init_redis(self.conf)
         self.crypto_bot_provider = init_crypto_bot_provider(self.conf.secrets.token_crypto_bot)
 
         self.bot = get_bot()
@@ -72,7 +72,7 @@ class AppContainer:
 
     async def shutdown(self):
         await self.consumer.stop()
-        await close_redis()
+        await close_redis(self.redis)
 
         if self.http_session:
             await self.http_session.close()

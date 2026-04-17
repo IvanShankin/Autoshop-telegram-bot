@@ -26,7 +26,13 @@ async def notification_settings(
         reply_markup=setting_notification_kb(user.language, notification=notification)
     )
 
-async def language_settings(user_id: int, message_id: int, user: UsersDTO, messages_service: Messages):
+async def language_settings(
+    user_id: int,
+    message_id: int,
+    user: UsersDTO,
+    messages_service: Messages,
+    profile_module: ProfileModule
+):
     text = get_text(user.language, "profile_messages", "language_in_bot")
 
     await messages_service.edit_msg.edit(
@@ -34,7 +40,7 @@ async def language_settings(user_id: int, message_id: int, user: UsersDTO, messa
         message_id=message_id,
         message=text,
         event_message_key='selecting_language',
-        reply_markup=settings_language_kb(user.language)
+        reply_markup=settings_language_kb(user.language, profile_module=profile_module)
     )
 
 @router.callback_query(F.data == "profile_settings")
@@ -52,12 +58,15 @@ async def profile_settings(
     )
 
 @router.callback_query(F.data == "selecting_language")
-async def open_language_settings(callback: CallbackQuery, user: UsersDTO, messages_service: Messages):
+async def open_language_settings(
+    callback: CallbackQuery, user: UsersDTO, profile_module: ProfileModule, messages_service: Messages,
+):
     await language_settings(
         user_id=callback.from_user.id,
         message_id=callback.message.message_id,
         user=user,
-        messages_service=messages_service
+        messages_service=messages_service,
+        profile_module=profile_module,
     )
 
 @router.callback_query(F.data.startswith('language_selection:'))
@@ -76,6 +85,7 @@ async def update_language(callback: CallbackQuery, user: UsersDTO, profile_modul
         message_id=callback.message.message_id,
         user=user,
         messages_service=messages_service,
+        profile_module=profile_module,
     )
 
 @router.callback_query(F.data == "notification_settings")

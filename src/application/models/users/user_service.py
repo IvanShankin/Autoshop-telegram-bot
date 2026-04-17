@@ -3,12 +3,10 @@ from typing import Optional, Sequence, List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.application.models.products.accounts import AccountSoldService
+from src.application.events.publish_event_handler import PublishEventHandler
 from src.database.models.categories import ProductType, AccountServiceType, SoldAccounts
-from src.models.read_models import EventSentLog, LogLevel, SoldAccountFull, SoldAccountsDTO
 from src.config import Config
 from src.database.models.users import Users
-from src.infrastructure.rabbit_mq.producer import publish_event
 from src.models.create_models.users import CreateUserDTO, CreateUserAuditLogDTO
 from src.models.read_models import UsersDTO
 from src.models.update_models.users import UpdateUserDTO
@@ -31,6 +29,7 @@ class UserService:
         sold_universal_repo: SoldUniversalRepository,
         sold_accounts_repo: SoldAccountsRepository,
         log_service: UserLogService,
+        publish_event_handler: PublishEventHandler,
         conf: Config,
         session_db: AsyncSession
     ):
@@ -41,6 +40,7 @@ class UserService:
         self.notif_service = notif_service
         self.sold_universal_repo = sold_universal_repo
         self.sold_accounts_repo = sold_accounts_repo
+        self.publish_event_handler = publish_event_handler
         self.log_service = log_service
         self.session_db = session_db
 
@@ -128,11 +128,9 @@ class UserService:
             user_id=user.user_id, ttl=int(self.conf.redis_time_storage.subscription_prompt.total_seconds())
         )
 
-        event = EventSentLog(
+        await self.publish_event_handler.send_log(
             text=f"#Новый_пользователь \n\nID: {user.user_id}\nusername: {user.username}",
-            log_lvl=LogLevel.INFO
         )
-        await publish_event(event.model_dump(), "message.send_log")
 
         return user
 

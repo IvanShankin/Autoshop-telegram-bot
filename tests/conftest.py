@@ -1,3 +1,5 @@
+import aiohttp
+
 from tests.helpers.func_fabrics.fake_objects_fabric import secret_storage_factory, crypto_provider_factory
 from src.database.creating import create_database, create_table
 from tests.helpers.import_tracker import enable_import_tracking
@@ -12,7 +14,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 
 from src.application.crypto.secrets_storage import GetSecret
-from src.config import set_config, RuntimeConfig, get_config
+from src.config import set_config, RuntimeConfig, get_config, init_config
 from src.database import Base
 from src.utils.core_logger import setup_logging, get_logger
 from tests.helpers.fixtures.replace_paths import replace_paths_in_config
@@ -64,6 +66,13 @@ async def replacement_needed_modules(
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def replacement_fake_bot_fix(monkeypatch, replace_paths_in_config):
     return replacement_fake_bot(monkeypatch)
+
+
+@pytest_asyncio.fixture(scope="session", autouse=True)
+async def init_conf_fix(get_secret_fix):
+    """ВРЕМЕННАЯ ФИКСТУРА ПОКА ПОЛНОСТЬЮ НЕ УБЕРУ ПОЛУЧЕНИЕ КОНФИГА"""
+    http_session = aiohttp.ClientSession()
+    config = init_config(get_secret_fix.execute)
 
 
 @pytest_asyncio.fixture(scope="session")

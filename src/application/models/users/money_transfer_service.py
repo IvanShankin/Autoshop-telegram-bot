@@ -2,10 +2,9 @@ from logging import Logger
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.read_models import LogLevel, EventSentLog
+from src.application.events.publish_event_handler import PublishEventHandler
 from src.config import Config
 from src.exceptions import UserNotFound, NotEnoughMoney
-from src.infrastructure.rabbit_mq.producer import publish_event
 from src.models.create_models.users import CreateWalletTransactionDTO, CreateUserAuditLogDTO
 from src.models.read_models import UsersDTO
 from src.models.read_models.other import TransferMoneysDTO
@@ -25,6 +24,7 @@ class MoneyTransferService:
         user_service: UserService,
         user_cache_repo: UsersCacheRepository,
         wallet_trans_service: WalletTransactionService,
+        publish_event_handler: PublishEventHandler,
         session_db: AsyncSession,
         conf: Config,
         logger: Logger,
@@ -34,6 +34,7 @@ class MoneyTransferService:
         self.user_service = user_service
         self.user_cache_repo = user_cache_repo
         self.wallet_trans_service = wallet_trans_service
+        self.publish_event_handler = publish_event_handler
         self.session_db = session_db
         self.conf = conf
         self.logger = logger
@@ -119,10 +120,9 @@ class MoneyTransferService:
             raise e
         except Exception as e:
             self.logger.exception(f"#Ошибка_при_переводе_денег \n\nID пользователя: {sender_id} \nОшибка: {e}")
-            event = EventSentLog(
+            await self.publish_event_handler.send_log(
                 text=f"#Ошибка_при_переводе_денег \n\nID пользователя: {sender_id} \nОшибка: {e}",
             )
-            await publish_event(event.model_dump(), "message.send_log")
 
     async def get_transfer_money(self, transfer_money_id: int) -> TransferMoneysDTO:
         return await self.transfer_repo.get_by_id(transfer_money_id)

@@ -28,6 +28,7 @@ from src.infrastructure.currency.moex_client import MoexClient
 from src.infrastructure.files.excel_reports import ExcelReportExporter
 from src.infrastructure.files.file_system import FileStorage
 from src.infrastructure.files.path_builder import PathBuilder
+from src.infrastructure.rabbit_mq.producer import RabbitMQProducer
 from src.infrastructure.telegram.account_client import TelegramAccountClient
 from src.infrastructure.telegram.rate_limit import RateLimiter
 from src.repository.database.discount import VouchersRepository, VoucherActivationsRepository, PromoCodeRepository, \
@@ -165,6 +166,7 @@ class RequestContainer:
         crypto_bot_provider: CryptoBotProvider,
         crypto_provider: CryptoProvider,
         secret_storage: SecretsStorage,
+        producer: RabbitMQProducer,
         support_kb_builder: Callable[[str, str], Awaitable[Any]],
         telegram_account_client: TelegramAccountClient,
     ):
@@ -173,6 +175,7 @@ class RequestContainer:
         self.http_session = http_session
         self.telegram_client = telegram_client
         self.telegram_logger_client = telegram_logger_client
+        self.producer = producer
 
         self.crypto_provider = crypto_provider
         self.secret_storage = secret_storage
@@ -187,7 +190,9 @@ class RequestContainer:
             session_db=session_db,
             config=self.config,
         )
-        self.publish_event_handler = PublishEventHandler()
+        self.publish_event_handler = PublishEventHandler(
+            producer=self.producer
+        )
         self.path_builder = PathBuilder(self.config)
         self.file_storage = FileStorage()
 
@@ -365,10 +370,11 @@ class RequestContainer:
             cache_subscription_repo=self.subscription_cache_repo,
             notif_service=self.notification_service,
             log_service=self.user_log_service,
-            conf=self.config,
-            session_db=session_db,
             sold_universal_repo=self.sold_universal_repo,
             sold_accounts_repo=self.sold_accounts_repo,
+            publish_event_handler=self.publish_event_handler,
+            conf=self.config,
+            session_db=session_db,
         )
 
         self.banned_account_service = BannedAccountService(
@@ -570,6 +576,7 @@ class RequestContainer:
             user_service=self.user_service,
             user_cache_repo=self.users_cache_repo,
             wallet_trans_service=self.wallet_transaction_service,
+            publish_event_handler=self.publish_event_handler,
             session_db=session_db,
             conf=self.config,
             logger=self.logger,
@@ -1234,6 +1241,7 @@ def init_request_container(
     crypto_bot_provider: CryptoBotProvider,
     crypto_provider: CryptoProvider,
     secret_storage: SecretsStorage,
+    producer: RabbitMQProducer,
     support_kb_builder: Callable[[str, str], Awaitable[Any]],
     telegram_account_client: TelegramAccountClient,
 ) -> RequestContainer:
@@ -1247,6 +1255,7 @@ def init_request_container(
         crypto_bot_provider=crypto_bot_provider,
         crypto_provider=crypto_provider,
         secret_storage=secret_storage,
+        producer=producer,
         support_kb_builder=support_kb_builder,
         telegram_account_client=telegram_account_client,
     )

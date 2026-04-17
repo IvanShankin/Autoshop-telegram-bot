@@ -13,6 +13,7 @@ from src.infrastructure.crypto.secret_storage.http_secrets_storage import HttpSe
 from src.infrastructure.crypto.secret_storage.secrets_storage import SecretsStorage
 from src.infrastructure.crypto_bot.core import init_crypto_bot_provider
 from src.infrastructure.rabbit_mq.consumer import RabbitMQConsumer
+from src.infrastructure.rabbit_mq.producer import RabbitMQProducer
 from src.infrastructure.redis import init_redis, close_redis
 from src.infrastructure.telegram.account_client import TelegramAccountClient
 from src.infrastructure.telegram.bot_instance import init_bot, init_bot_logger, init_dispatcher
@@ -69,9 +70,15 @@ class AppContainer:
         self.telegram_account_client = TelegramAccountClient(self.logger)
 
         self.consumer = RabbitMQConsumer(self.handle_event, conf=self.conf, logger=self.logger)
+        self.rabbit_producer = RabbitMQProducer(
+            url=self.conf.env.rabbitmq_url,
+            logger=self.logger,
+        )
 
         self.http_session = aiohttp.ClientSession()
 
+    async def start(self):
+        await self.rabbit_producer.connect()
 
     async def shutdown(self):
         await self.consumer.stop()
@@ -92,6 +99,7 @@ class AppContainer:
             crypto_bot_provider=self.crypto_bot_provider,
             crypto_provider=self.crypto_provider,
             secret_storage=self.secret_storage,
+            producer=self.rabbit_producer,
             support_kb_builder=support_kb,
             telegram_account_client=self.telegram_account_client
         )

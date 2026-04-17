@@ -126,7 +126,16 @@ class AdminsService:
             make_commit=True
         )
 
-        await self.publish_event.ban_account(admin_id=admin_id, user_id=user_id, reason=reason)
+        await self.publish_event.send_log(
+            text=(
+                f"🛠️\n"
+                f"#Аккаунт_забанен \n\n"
+                f"Админ c ID = '{admin_id}' \n"
+                f"Добавил нового пользователя в забаненные аккаунты \n\n"
+                f"ID Пользователя: '{user_id}'\n"
+                f"Причина: '{reason}'"
+            )
+        )
 
     async def delete_banned_account(self, admin_id: int, user_id: int) -> None:
         """
@@ -151,7 +160,14 @@ class AdminsService:
             make_commit=True
         )
 
-        await self.publish_event.delete_ban_account(admin_id=admin_id, user_id=user_id)
+        await self.publish_event.send_log(
+            text=(
+                f"🛠️\n"
+                f"#Аккаунт_разбанен \n\n"
+                f"Админ c ID = '{admin_id}' разбанил пользователя \n"
+                f"ID разбаненного аккаунта: '{user_id}'"
+            ),
+        )
 
     async def admin_update_user_balance(self, admin_id: int, target_user_id: int, new_balance: int) -> None:
         """
@@ -207,9 +223,15 @@ class AdminsService:
             user=user, ttl=int(self.user_service.conf.redis_time_storage.user.total_seconds())
         )
 
-        await self.publish_event.admin_update_balance(
-            admin_id=admin_id,
-            target_user_id=target_user_id,
-            balance_before=target_user.balance,
-            balance_after=new_balance
+        await self.publish_event.send_log(
+            text=(
+                f"🔴\n"
+                f"#Админ_изменил_баланс_пользователю \n\n"
+                f"ID админа: {admin_id}\n"
+                f"ID пользователя: {target_user_id}\n\n"
+                f"Баланс до: {target_user.balance}\n"
+                f"Баланс после: {new_balance}\n"
+                f"Изменён на: {target_user.balance - new_balance}\n"
+                f"🔴"
+            ),
         )

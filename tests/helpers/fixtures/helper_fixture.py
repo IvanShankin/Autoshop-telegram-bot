@@ -5,6 +5,7 @@ import fakeredis
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from tests.helpers.fake_moduls.fake_rebbit_mq_producer import FakeRabbitMQProducer
 from src.models.read_models import UsersDTO, ProductAccountFull
 from tests.helpers.fake_moduls.fake_tg_account_client import FakeTelegramAccountClient
 from tests.helpers.func_fabrics.fake_objects_fabric import crypto_provider_factory, secret_storage_factory
@@ -89,6 +90,7 @@ async def container_fix(
         crypto_bot_provider=crypto_bot_provider_fix,
         crypto_provider=crypto_provider_fix,
         secret_storage=secret_storage_fix,
+        producer=FakeRabbitMQProducer(),
         support_kb_builder=fake_support_kb,
         telegram_account_client=FakeTelegramAccountClient(),
     )

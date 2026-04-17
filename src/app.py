@@ -35,6 +35,8 @@ async def start_app():
 
     scheduler.start()
 
+    await app_container.start()
+
     try:
         await run_bot(app_container)
     finally:

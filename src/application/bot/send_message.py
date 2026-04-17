@@ -106,7 +106,7 @@ class SendMessageService:
 
     async def _handle_effect_error(self, error, retry, message_effect_id, **kwargs) -> Optional["Message"]:
         if "EFFECT_ID_INVALID" in str(error) and message_effect_id and not retry:
-            await self.publish_event.error_message_effect(message_effect_id)
+            await self.publish_event.send_log(text=f"Указан неверный message_effect_id: {message_effect_id}",)
             return await self.send(
                 **kwargs,
                 message_effect_id=None,

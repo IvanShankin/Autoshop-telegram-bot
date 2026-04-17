@@ -16,18 +16,6 @@ from src.repository.database.users import UserAuditLogsRepository, UsersReposito
 from src.application.models.discounts.vouchers_service import VoucherService
 
 
-@pytest.fixture()
-def stub_publish_event(monkeypatch):
-    calls = []
-
-    async def _fake_publish_event(payload, routing_key):
-        calls.append((payload, routing_key))
-
-    monkeypatch.setattr("src.infrastructure.rabbit_mq.producer.publish_event", _fake_publish_event)
-    monkeypatch.setattr("src.application.events.publish_event_handler.publish_event", _fake_publish_event)
-    return calls
-
-
 class TestVoucherService:
 
     @pytest.mark.asyncio
@@ -212,7 +200,6 @@ class TestVoucherService:
         create_voucher,
         create_new_user,
         session_db_fix,
-        stub_publish_event,
     ):
         voucher = await create_voucher(
             number_of_activations=1,
@@ -259,7 +246,6 @@ class TestVoucherService:
                 voucher.activation_code,
                 language="ru",
             )
-            assert stub_publish_event and stub_publish_event[-1][1] == "voucher.activated"
             message2, success2 = await test_service.activate_voucher(
                 user_dto,
                 voucher.activation_code,

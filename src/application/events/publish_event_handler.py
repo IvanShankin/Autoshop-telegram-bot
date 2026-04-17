@@ -1,84 +1,32 @@
+from src.infrastructure.rabbit_mq.producer import RabbitMQProducer
 from src.models.read_models.events.discounts import NewActivationVoucher, NewActivatePromoCode
 from src.models.read_models import EventSentLog, LogLevel, NewPurchaseAccount, NewPurchaseUniversal, NewReplenishment
-from src.infrastructure.rabbit_mq.producer import publish_event
 from src.models.read_models import EventCreateUiImage
 
 
 class PublishEventHandler:
 
-    async def send_log(cls, text: str, log_lvl: LogLevel = None):
+    def __init__(
+        self,
+        producer: RabbitMQProducer,
+    ):
+        self.producer = producer
+
+    async def send_log(self, text: str, log_lvl: LogLevel = None):
         event = EventSentLog(text=text, log_lvl=log_lvl)
-        await publish_event(event.model_dump(), "message.send_log")
-
-    async def ban_account(cls, admin_id: int, user_id: int, reason: str):
-        event = EventSentLog(
-            text=(
-                f"🛠️\n"
-                f"#Аккаунт_забанен \n\n"
-                f"Админ c ID = '{admin_id}' \n"
-                f"Добавил нового пользователя в забаненные аккаунты \n\n"
-                f"ID Пользователя: '{user_id}'\n"
-                f"Причина: '{reason}'"
-            ),
-            log_lvl=LogLevel.INFO
-        )
-        await publish_event(event.model_dump(), "message.send_log")
-
-    async def delete_ban_account(cls, admin_id: int, user_id: int):
-        event = EventSentLog(
-            text=(
-                f"🛠️\n"
-                f"#Аккаунт_разбанен \n\n"
-                f"Админ c ID = '{admin_id}' разбанил пользователя \n"
-                f"ID разбаненного аккаунта: '{user_id}'"
-            ),
-            log_lvl=LogLevel.INFO
-        )
-        await publish_event(event.model_dump(), "message.send_log")
-
-    async def admin_update_balance(
-        cls,
-        admin_id: int,
-        target_user_id: int,
-        balance_before: int,
-        balance_after: int
-    ):
-        event = EventSentLog(
-            text=(
-                f"🔴\n"
-                f"#Админ_изменил_баланс_пользователю \n\n"
-                f"ID админа: {admin_id}\n"
-                f"ID пользователя: {target_user_id}\n\n"
-                f"Баланс до: {balance_before}\n"
-                f"Баланс после: {balance_after}\n"
-                f"Изменён на: {balance_before - balance_after}\n"
-                f"🔴"
-            ),
-            log_lvl=LogLevel.INFO
-        )
-        await publish_event(event.model_dump(), "message.send_log")
-
-    async def error_message_effect(
-        cls,
-        message_effect_id: str,
-    ):
-        event = EventSentLog(
-            text=f"Указан неверный message_effect_id: {message_effect_id}",
-            log_lvl=LogLevel.WARNING
-        )
-        await publish_event(event.model_dump(), "message.send_log")
+        await self.producer.publish(event.model_dump(), "message.send_log")
 
     async def create_ui_image(
-        cls,
+        self,
         ui_image_key: str,
     ):
-        await publish_event(
+        await self.producer.publish(
             EventCreateUiImage(ui_image_key=ui_image_key).model_dump(),
-            "_filesystem.create_ui_image"
+            "filesystem.create_ui_image"
         )
 
     async def promo_code_activated(
-        cls,
+        self,
         promo_code_id: int,
         user_id: int,
     ):
@@ -86,16 +34,16 @@ class PublishEventHandler:
             promo_code_id=promo_code_id,
             user_id=user_id,
         )
-        await publish_event(new_activate.model_dump(), "promo_code.activated")
+        await self.producer.publish(new_activate.model_dump(), "promo_code.activated")
 
-    async def voucher_activated(cls, data: NewActivationVoucher):
-        await publish_event(data.model_dump(), "voucher.activated")
+    async def voucher_activated(self, data: NewActivationVoucher):
+        await self.producer.publish(data.model_dump(), "voucher.activated")
 
     async def new_purchase_account(self, data: NewPurchaseAccount):
-        await publish_event(data.model_dump(), "purchase.account")
+        await self.producer.publish(data.model_dump(), "purchase.account")
 
     async def new_purchase_universal(self, data: NewPurchaseUniversal):
-        await publish_event(data.model_dump(), "purchase.universal")
+        await self.producer.publish(data.model_dump(), "purchase.universal")
 
     async def new_replenishment(self, data: NewReplenishment):
-        await publish_event(data.model_dump(), "replenishment.new_replenishment")
+        await self.producer.publish(data.model_dump(), "replenishment.new_replenishment")

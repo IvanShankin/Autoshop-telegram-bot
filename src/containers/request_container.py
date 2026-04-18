@@ -1,3 +1,4 @@
+from logging import Logger
 from typing import TYPE_CHECKING, Optional, Callable, Awaitable, Any
 
 from aiohttp import ClientSession
@@ -143,7 +144,6 @@ from src.application.models.products.universal import (
     UniversalStorageService,
     UniversalTranslationsService,
 )
-from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text
 
 if TYPE_CHECKING:
@@ -160,6 +160,7 @@ class RequestContainer:
         session_db: AsyncSession,
         session_redis: Redis,
         config: Config,
+        logger: Logger,
         http_session: ClientSession,
         telegram_client: "TelegramClient",
         telegram_logger_client: "TelegramClient",
@@ -173,6 +174,8 @@ class RequestContainer:
     ):
         self.session_db = session_db
         self.session_redis = session_redis
+        self.config = config
+        self.logger = logger
         self.http_session = http_session
         self.telegram_client = telegram_client
         self.telegram_logger_client = telegram_logger_client
@@ -186,8 +189,6 @@ class RequestContainer:
 
         self.account_sold_service: Optional[AccountSoldService] = None
 
-        self.config = config
-        self.logger = get_logger(__name__)
         self.database_base = DatabaseBase(
             session_db=session_db,
             config=self.config,
@@ -950,11 +951,10 @@ class RequestContainer:
         sticker_sender = StickerSender(
             tg_client=self.telegram_client,
             sticker_service=self.stickers_service,
-            publish_event_handler=self.publish_event_handler
+            publish_event_handler=self.publish_event_handler,
+            logger=self.logger,
         )
 
-        send_msg_logger = get_logger("send_message_service")
-        edit_msg_logger = get_logger("edit_message_service")
         send_msg_service = SendMessageService(
             tg_client=self.telegram_client,
             path_builder=self.path_builder,
@@ -963,7 +963,7 @@ class RequestContainer:
             sticker_sender=sticker_sender,
             file_system=self.file_storage,
             publish_event=self.publish_event_handler,
-            logger=send_msg_logger,
+            logger=self.logger,
         )
         edit_msg_service = EditMessageService(
             tg_client=self.telegram_client,
@@ -974,7 +974,7 @@ class RequestContainer:
             sticker_sender=sticker_sender,
             file_system=self.file_storage,
             publish_event=self.publish_event_handler,
-            logger=edit_msg_logger,
+            logger=self.logger,
         )
         mass_tg_mailing_service = MassTgMailingService(
             tg_client=self.telegram_client,
@@ -982,7 +982,7 @@ class RequestContainer:
             users_repo=self.users_repo,
             sent_mass_msg_service=self.sent_mass_message_service,
             conf=self.config,
-            logger=edit_msg_logger,
+            logger=self.logger,
         )
         send_file_service = SendFileService(
             tg_client=self.telegram_client,
@@ -991,7 +991,7 @@ class RequestContainer:
             sticker_sender=sticker_sender,
             file_system=self.file_storage,
             publish_event=self.publish_event_handler,
-            logger=edit_msg_logger,
+            logger=self.logger,
             files_service=self.files_service,
         )
         send_log_service = SendLogs(
@@ -999,7 +999,7 @@ class RequestContainer:
             limiter=self.rate_limiter,
             settings_service=self.settings_service,
             conf=self.config,
-            logger=edit_msg_logger,
+            logger=self.logger,
         )
         return Messages(
             send_msg=send_msg_service,
@@ -1176,6 +1176,7 @@ class RequestContainer:
                 promo_code_service=self.promo_code_service,
                 conf=self.config,
                 session_db=self.session_db,
+                logger=self.logger,
             ),
             referral_ev_hand=ReferralEventHandler(
                 publish_event=self.publish_event_handler,
@@ -1183,6 +1184,7 @@ class RequestContainer:
                 notification_service=self.notification_service,
                 send_msg_service=messages.send_msg,
                 conf=self.config,
+                logger=self.logger,
             ),
             replenishment_ev_hand=ReplenishmentsEventHandler(
                 publish_event=self.publish_event_handler,
@@ -1233,6 +1235,7 @@ def init_request_container(
     session_db: AsyncSession,
     session_redis: Redis,
     config: Config,
+    logger: Logger,
     http_session: ClientSession,
     telegram_client: "TelegramClient",
     telegram_logger_client: "TelegramClient",
@@ -1248,6 +1251,7 @@ def init_request_container(
         session_db=session_db,
         session_redis=session_redis,
         config=config,
+        logger=logger,
         http_session=http_session,
         telegram_client=telegram_client,
         telegram_logger_client=telegram_logger_client,

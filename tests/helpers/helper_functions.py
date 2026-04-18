@@ -1,11 +1,12 @@
+import logging
 from datetime import datetime
 from typing import Type, Any, Dict
+
 from dateutil.parser import parse
 from orjson import orjson
 from pydantic import BaseModel
 
 from src.database import Base
-from src.utils.core_logger import get_logger
 
 
 def _get_dict(obj: Any) -> Dict:
@@ -33,7 +34,7 @@ def comparison_models(Expected: Type | dict, Actual: Type | dict, keys_not_check
                 comparison_models(Expected[key], Actual[key])
             else:
                 if not Expected[key] == Actual[key]:
-                    get_logger(__name__).info(f"ключ '{key}' не совпал")
+                    logging.getLogger("comparison_models").info(f"ключ '{key}' не совпал")
                     return False
 
         return True

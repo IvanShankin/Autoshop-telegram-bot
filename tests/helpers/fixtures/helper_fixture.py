@@ -1,3 +1,4 @@
+import logging
 from typing import AsyncGenerator, Any
 
 import aiohttp
@@ -90,6 +91,7 @@ async def container_fix(
         session_db=session_db_fix,
         session_redis=fakeredis.aioredis.FakeRedis(),
         config=config,
+        logger=logging.getLogger(__name__),
         http_session=http_session,
         telegram_client=fake_tg_client,
         telegram_logger_client=fake_tg_client,

@@ -1,3 +1,5 @@
+from logging import Logger
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import Config
@@ -6,7 +8,6 @@ from src.exceptions.business import AlreadyActivated
 from src.exceptions.domain import PromoCodeNotFound
 from src.application.events.publish_event_handler import PublishEventHandler
 from src.application.models.discounts import PromoCodeService
-from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text
 
 
@@ -18,11 +19,13 @@ class PromoCodeEventHandler:
         promo_code_service: PromoCodeService,
         conf: Config,
         session_db: AsyncSession,
+        logger: Logger,
     ):
         self.publish_event = publish_event
         self.promo_code_service = promo_code_service
         self.conf = conf
         self.session_db = session_db
+        self.logger = logger
 
     async def promo_code_event_handler(self, event):
         payload = event["payload"]
@@ -53,8 +56,7 @@ class PromoCodeEventHandler:
         except (PromoCodeNotFound, AlreadyActivated):
             return
         except Exception as e:
-            logger = get_logger(__name__)
-            logger.error(f"Произошла ошибка, записи об активации промокода. Ошибка: {str(e)}")
+            self.logger.error(f"Произошла ошибка, записи об активации промокода. Ошибка: {str(e)}")
             await self._on_new_activate_promo_code_failed(new_activate.promo_code_id, str(e))
 
     async def _on_new_activate_promo_code_completed(self, promo_code_id: int, user_id: int, activation_code: str, activations_left: int):

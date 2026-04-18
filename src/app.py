@@ -39,5 +39,7 @@ async def start_app():
 
     try:
         await run_bot(app_container)
+    except KeyboardInterrupt:
+        app_container.logger.info("Приложение завершило работу")
     finally:
         await app_container.shutdown()

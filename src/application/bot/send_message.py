@@ -1,7 +1,6 @@
 from logging import Logger
 from typing import Optional, TYPE_CHECKING, Union
 
-from src.models.read_models import LogLevel
 from src.exceptions.domain import StickerNotFound
 from src.exceptions.telegram import TelegramBadRequestService
 from src.infrastructure.files.file_system import FileStorage
@@ -173,12 +172,6 @@ class SendMessageService:
                 always_show_photos,
                 message_effect_id,
                 retry,
-            )
-
-        else:
-            await self.publish_event.send_log(
-                text=f"#Не_найдено_фото: {image_key}",
-                log_lvl=LogLevel.WARNING,
             )
 
     async def _send_with_file_id(

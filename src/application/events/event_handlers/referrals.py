@@ -1,4 +1,5 @@
 from datetime import datetime
+from logging import Logger
 
 from src.config import Config
 from src.models.read_models import LogLevel
@@ -8,7 +9,6 @@ from src.application.bot import SendMessageService
 from src.application.events.publish_event_handler import PublishEventHandler
 from src.application.models.referrals import ReferralService
 from src.application.models.users.notifications_service import NotificationSettingsService
-from src.utils.core_logger import get_logger
 from src.utils.i18n import get_text
 
 
@@ -21,12 +21,14 @@ class ReferralEventHandler:
         notification_service: NotificationSettingsService,
         send_msg_service: SendMessageService,
         conf: Config,
+        logger: Logger,
     ):
         self.publish_event = publish_event
         self.referral_service = referral_service
         self.notification_service = notification_service
         self.send_msg_service = send_msg_service
         self.conf = conf
+        self.logger = logger
 
     async def referral_event_handler(self, event):
         payload = event["payload"]
@@ -48,8 +50,7 @@ class ReferralEventHandler:
             if notifications and notifications.referral_replenishment:
                 await self._notify_owner_on_income(result)
         except Exception as e:
-            logger = get_logger(__name__)
-            logger.error(
+            self.logger.error(
                 "Ошибка при начислении дохода владельцу реферала. "
                 "replenishment_id=%s, error=%s",
                 data.replenishment_id,
@@ -64,8 +65,7 @@ class ReferralEventHandler:
         except TelegramForbiddenErrorService:
             return
         except Exception as e:
-            logger = get_logger(__name__)
-            logger.exception(
+            self.logger.exception(
                 "Ошибка при отправке сообщения о пополнении от реферала. "
                 "owner_id=%s, error=%s",
                 result.owner_user_id,

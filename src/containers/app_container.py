@@ -20,7 +20,7 @@ from src.infrastructure.telegram.bot_instance import init_bot, init_bot_logger, 
 from src.infrastructure.telegram.bot_client import TelegramClient
 from src.infrastructure.telegram.rate_limit import RateLimiter
 from src.infrastructure.telegram.ui.keyboard import support_kb
-from src.utils.core_logger import setup_logging
+from src.infrastructure.logger.core_logger import setup_logging
 
 
 class AppContainer:
@@ -100,6 +100,7 @@ class AppContainer:
             session_db=session_db,
             session_redis=self.redis,
             config=self.conf,
+            logger=self.logger,
             http_session=self.http_session,
             telegram_client=self.telegram_bot_client,
             telegram_logger_client=self.telegram_bot_logger_client,

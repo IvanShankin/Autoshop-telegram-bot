@@ -1,3 +1,5 @@
+import logging
+
 import aiohttp
 
 from tests.helpers.func_fabrics.fake_objects_fabric import secret_storage_factory, crypto_provider_factory
@@ -16,7 +18,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from src.application.crypto.secrets_storage import GetSecret
 from src.config import set_config, RuntimeConfig, get_config, init_config
 from src.database import Base
-from src.utils.core_logger import setup_logging, get_logger
+from src.infrastructure.logger.core_logger import setup_logging
 from tests.helpers.fixtures.replace_paths import replace_paths_in_config
 from tests.helpers.monkeypatch_data import (
     replacement_fake_bot,
@@ -25,17 +27,7 @@ from tests.helpers.monkeypatch_data import (
 from tests.helpers.fake_aiogram.fake_aiogram import patch_fake_aiogram
 
 from tests.helpers.fixtures.helper_fixture import (
-    session_db_fix, fake_tg_client, crypto_bot_provider_fix, secret_storage_fix,
-    crypto_provider_fix, container_fix, create_new_user, create_admin_fix,
-    create_sent_mass_message, create_referral, create_income_from_referral,
-    create_replenishment, create_type_payment, create_settings, create_promo_code,
-    create_promo_code_activation, create_voucher, create_translate_category,
-    create_category, create_purchase, create_account_storage, create_product_account,
-    create_sold_account, create_tg_account_media, create_universal_storage,
-    create_product_universal, create_sold_universal, create_ui_image,
-    create_transfer_moneys, create_wallet_transaction, create_backup_log,
-    create_purchase_request, create_balance_holder,
-)
+    container_fix, )
 # ИМПОРТЫ НЕ УБИРАТЬ, ОНИ ИСПОЛЬЗУЮТСЯ В ТЕСТАХ ПОДГРУЖАЯСЬ
 
 load_dotenv()  # Загружает переменные из .env
@@ -141,7 +133,7 @@ async def get_secret_fix():
     get_secret = GetSecret(
         storage=secret_storage_factory(),
         crypto_provider=crypto_provider_factory(),
-        logger=get_logger(__name__),
+        logger=logging.getLogger(__name__),
         runtime_conf=RuntimeConfig()
     )
 

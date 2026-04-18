@@ -17,7 +17,6 @@ from src.domain.crypto.utils import sha256_file
 from src.infrastructure.files.file_system import move_file
 from src.infrastructure.files.path_builder import PathBuilder
 from src.models.read_models import AccountStorageDTO, LogLevel
-from src.utils.core_logger import get_logger
 
 
 class AccountService:
@@ -120,8 +119,7 @@ class AccountService:
             )
 
         except Exception as e:
-            logger = get_logger(__name__)
-            logger.exception(f"Ошибка при шифровании: {e}")
+            self.logger.exception(f"Ошибка при шифровании: {e}")
             return CreatedEncryptedArchive(result=False)
 
     def decryption_tg_account(

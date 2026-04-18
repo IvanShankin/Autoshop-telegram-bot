@@ -4,7 +4,7 @@ from src.infrastructure.telegram.bot_client import TelegramClient
 from src.models.read_models import UsersDTO
 from src.modules.admin_actions.keyboards.user_management_kb import user_management_kb
 from src.modules.profile.services.profile_message import get_main_message_profile
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 async def message_about_user(

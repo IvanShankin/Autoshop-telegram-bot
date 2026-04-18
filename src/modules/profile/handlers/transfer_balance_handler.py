@@ -11,7 +11,7 @@ from src.modules.profile.keyboards import balance_transfer_kb, \
 from src.modules.profile.schemas import TransferData
 from src.modules.profile.state import TransferMoney
 from src.application.bot import Messages
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 router = Router()
 

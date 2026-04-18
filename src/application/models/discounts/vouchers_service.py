@@ -19,7 +19,7 @@ from src.repository.database.users import UserAuditLogsRepository, UsersReposito
 from src.repository.redis import UsersCacheRepository, VouchersCacheRepository
 from src.application.events.publish_event_handler import PublishEventHandler
 from src.utils.codes import generate_code
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 class VoucherService:

@@ -13,7 +13,7 @@ from src.modules.admin_actions.schemas import CreatePromoCodeData
 from src.modules.admin_actions.state import CreatePromoCode
 
 from src.utils.converter import safe_int_conversion, safe_parse_datetime
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 router = Router()
 

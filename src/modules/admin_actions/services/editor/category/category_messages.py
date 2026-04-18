@@ -4,7 +4,7 @@ from aiogram.types import Message
 
 from src.application.bot import Messages
 from src.models.read_models import UsersDTO
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 async def message_info_load_file(user: UsersDTO, messages_service: Messages,) -> AsyncGenerator[Message, None]:

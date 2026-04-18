@@ -4,7 +4,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from src.application.keyboards.keyboard_with_pages import pagination_keyboard
 from src.application.models.modules import AdminModule
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 async def images_list_kb(language: str, current_page: int, admin_module: AdminModule,):

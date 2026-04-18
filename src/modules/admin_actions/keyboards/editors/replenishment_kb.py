@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.application.models.modules import AdminModule
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 async def edit_type_payments_list_kb(language: str, admin_module: AdminModule):
     type_payments = await admin_module.type_payments_service.get_all_types_payments()

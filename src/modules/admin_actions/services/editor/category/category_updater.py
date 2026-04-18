@@ -14,7 +14,7 @@ from src.modules.admin_actions.services.editor.category.show_message import show
 from src.modules.admin_actions.state import UpdateNumberInCategory
 from src.database.models.categories import ProductType, AccountServiceType, UniversalMediaType
 from src.utils.converter import safe_int_conversion
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 async def update_data(

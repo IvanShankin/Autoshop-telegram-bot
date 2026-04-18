@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 async def support_kb(language: str, support_username: str):

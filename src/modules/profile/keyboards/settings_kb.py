@@ -3,7 +3,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.application.models.modules import ProfileModule
 from src.models.read_models.other import NotificationSettingsDTO
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 def profile_settings_kb(language: str):

@@ -8,7 +8,7 @@ from src.models.read_models import UsersDTO
 from src.modules.admin_actions.keyboards import admin_promo_kb, all_admin_promo_kb, \
     back_in_all_admin_promo_kb, show_admin_promo_kb
 
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 router = Router()
 

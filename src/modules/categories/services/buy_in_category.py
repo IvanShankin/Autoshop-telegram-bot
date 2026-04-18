@@ -13,7 +13,7 @@ from src.modules.profile.keyboards import in_purchased_account_kb, in_purchased_
 from src.database.models.categories import ProductType
 from src.models.read_models import CategoryFull
 from src.database.models.users import Users
-from src.utils.i18n import get_text, n_get_text
+from src.infrastructure.translations import get_text, n_get_text
 
 
 async def _show_not_enough_money(

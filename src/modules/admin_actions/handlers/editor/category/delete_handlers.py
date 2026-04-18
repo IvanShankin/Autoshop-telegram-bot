@@ -11,7 +11,7 @@ from src.modules.admin_actions.keyboards import delete_category_kb, back_in_cate
     delete_product_kb, in_category_editor_kb
 from src.modules.admin_actions.services import safe_get_category, upload_category
 from src.database.models.categories import ProductType
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 router = Router()
 

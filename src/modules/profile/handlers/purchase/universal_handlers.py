@@ -7,7 +7,7 @@ from src.modules.profile.services.purchases_universals import show_all_sold_univ
     delete_sold_universal_han, check_universal_product, send_media_sold_universal
 from src.application.bot import Messages
 from src.application.models.modules import ProfileModule
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 router = Router()
 

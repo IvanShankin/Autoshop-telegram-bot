@@ -10,7 +10,7 @@ from src.models.read_models import UsersDTO
 from src.modules.admin_actions.keyboards import admin_mailing_kb, all_admin_mass_mailing_kb, show_sent_mass_message_kb
 from src.modules.admin_actions.keyboards.editors.mass_mailing_kb import back_in_show_sent_mass_message_kb
 
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 router = Router()
 

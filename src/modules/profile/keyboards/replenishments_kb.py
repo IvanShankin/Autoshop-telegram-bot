@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.application.models.modules import ProfileModule
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 async def type_replenishment_kb(language: str, profile_module: ProfileModule,):

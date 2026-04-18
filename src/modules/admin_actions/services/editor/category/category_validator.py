@@ -8,7 +8,7 @@ from src.application.bot import Messages
 from src.application.models.modules import AdminModule
 from src.modules.admin_actions.keyboards.editors.category_kb import in_category_kb
 from src.models.read_models import CategoryFull, UsersDTO
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 async def check_valid_file(

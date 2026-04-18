@@ -5,7 +5,7 @@ from src.models.read_models import UsersDTO
 from src.modules.profile.keyboards import wallet_transactions_kb, back_in_wallet_transactions_kb
 from src.application.models.modules import ProfileModule
 from src.application.bot import Messages
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 router = Router()
 

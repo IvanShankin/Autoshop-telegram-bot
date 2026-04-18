@@ -7,7 +7,7 @@ from src.application.models.discounts import VoucherService, PromoCodeService
 from src.application.models.users import UserService
 from src.models.read_models import LogLevel, VouchersDTO
 from src.repository.database.discount import PromoCodeRepository, VouchersRepository
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 if TYPE_CHECKING:

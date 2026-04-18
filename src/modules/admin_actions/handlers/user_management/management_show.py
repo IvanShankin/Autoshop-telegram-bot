@@ -10,7 +10,7 @@ from src.modules.admin_actions.keyboards import back_in_main_admin_kb
 from src.modules.admin_actions.services import message_about_user
 from src.modules.admin_actions.state import GetUserIdOrUsername
 from src.utils.converter import safe_int_conversion
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 router = Router()
 

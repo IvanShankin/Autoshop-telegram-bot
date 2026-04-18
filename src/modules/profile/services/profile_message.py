@@ -4,7 +4,7 @@ from src.models.read_models.other import IncomeFromReferralsDTO
 from src.modules.profile.keyboards import back_in_accrual_ref_list_kb
 from src.application.bot import Messages
 from src.application.models.modules import ProfileModule
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 async def get_main_message_profile(

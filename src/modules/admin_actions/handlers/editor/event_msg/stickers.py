@@ -10,7 +10,7 @@ from src.modules.admin_actions.keyboards.editors.event_message_kb import sticker
 from src.modules.admin_actions.schemas import UpdateEventMsgData
 from src.modules.admin_actions.state.editors.editor_event_msg import UpdateEventMsg
 
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 router = Router()

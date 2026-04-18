@@ -11,7 +11,7 @@ from src.modules.admin_actions.state.show_data_by_id import ShowDataById
 from src.modules.profile.keyboards import login_details_kb
 from src.database.models.categories import ProductType, UniversalMediaType, StorageStatus, AccountServiceType
 from src.utils.converter import safe_int_conversion
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 async def show_data_by_id_handler(

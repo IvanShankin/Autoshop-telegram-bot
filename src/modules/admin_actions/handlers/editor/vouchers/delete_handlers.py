@@ -6,7 +6,7 @@ from src.application.models.modules import AdminModule
 from src.models.read_models import UsersDTO
 from src.modules.admin_actions.keyboards import back_in_all_admin_voucher_kb, confirm_deactivate_admin_voucher_kb
 
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 router = Router()

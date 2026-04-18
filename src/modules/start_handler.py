@@ -10,7 +10,7 @@ from src.models.update_models import UpdateUserDTO
 from src.modules.keyboard_main import main_kb, selecting_language
 from src.database.models.discount import Vouchers
 from src.database.models.users import Users
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 router = Router()
 

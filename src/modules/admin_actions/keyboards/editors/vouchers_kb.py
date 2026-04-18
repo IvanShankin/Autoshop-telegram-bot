@@ -5,7 +5,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.application.keyboards.keyboard_with_pages import pagination_keyboard
 from src.application.models.modules import AdminModule
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 def admin_vouchers_kb(language: str):

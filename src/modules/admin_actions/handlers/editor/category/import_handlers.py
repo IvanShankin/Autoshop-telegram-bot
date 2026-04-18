@@ -30,7 +30,7 @@ from src.database.models.categories import ProductType
 from src.infrastructure.files.file_system import create_temp_dir
 from src.database.models.categories import AccountServiceType
 from src.utils.helpers_func import maybe_await
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 router = Router()
 

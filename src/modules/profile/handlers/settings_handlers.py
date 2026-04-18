@@ -7,7 +7,7 @@ from src.modules.profile.keyboards import profile_settings_kb, settings_language
     setting_notification_kb
 from src.application.bot import Messages
 from src.application.models.modules import ProfileModule
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 router = Router()
 

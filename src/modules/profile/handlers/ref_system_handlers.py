@@ -7,7 +7,7 @@ from src.modules.profile.services.profile_message import message_income_ref, mes
 from src.database.models.users import Users
 from src.application.bot import Messages
 from src.application.models.modules import ProfileModule
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 router_with_repl_kb = Router()
 router = Router()

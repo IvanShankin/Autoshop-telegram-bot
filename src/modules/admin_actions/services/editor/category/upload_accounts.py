@@ -9,7 +9,7 @@ from src.modules.admin_actions.keyboards.editors.category_kb import in_category_
 from src.modules.admin_actions.services.editor.category.category_loader import service_not_found
 from src.database.models.categories import ProductType, AccountServiceType
 from src.models.read_models import CategoryFull, UsersDTO
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 async def complete_upload(category: CategoryFull, user: UsersDTO, messages_service: Messages,):

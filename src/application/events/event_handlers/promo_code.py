@@ -8,7 +8,7 @@ from src.exceptions.business import AlreadyActivated
 from src.exceptions.domain import PromoCodeNotFound
 from src.application.events.publish_event_handler import PublishEventHandler
 from src.application.models.discounts import PromoCodeService
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 class PromoCodeEventHandler:

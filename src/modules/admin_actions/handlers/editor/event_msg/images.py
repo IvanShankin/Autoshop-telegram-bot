@@ -14,7 +14,7 @@ from src.modules.admin_actions.schemas import UpdateEventMsgData
 from src.modules.admin_actions.state import UpdateEventMsg
 
 from src.infrastructure.files.file_system import get_ext_image
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 router = Router()

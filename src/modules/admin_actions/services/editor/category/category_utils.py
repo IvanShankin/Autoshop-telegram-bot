@@ -8,7 +8,7 @@ from src.models.read_models import UsersDTO
 from src.modules.admin_actions.keyboards import back_in_category_update_data_kb
 from src.modules.admin_actions.keyboards.editors.category_kb import back_in_category_editor_kb
 from src.modules.admin_actions.state import GetDataForCategory
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 async def name_input_prompt_by_language(

@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery
 from src.application.bot import Messages
 from src.application.models.modules import AdminModule
 from src.models.read_models import UsersDTO
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 async def safe_get_type_payment(

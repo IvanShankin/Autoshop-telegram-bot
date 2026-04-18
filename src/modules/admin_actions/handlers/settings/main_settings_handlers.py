@@ -10,7 +10,7 @@ from src.models.read_models import UsersDTO
 from src.modules.admin_actions.keyboards import admin_settings_kb
 from src.modules.admin_actions.keyboards.settings_kb import confirm_overwrite_cache_kb, back_in_admin_settings_kb
 from src.infrastructure.files.file_system import split_file_on_chunk
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 router = Router()
 router_logger = Router()

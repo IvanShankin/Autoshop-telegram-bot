@@ -1,5 +1,5 @@
 from src.application.models.modules import AdminModule
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 async def get_statistics_message(interval_days: int, language: str, admin_module: AdminModule) -> str:

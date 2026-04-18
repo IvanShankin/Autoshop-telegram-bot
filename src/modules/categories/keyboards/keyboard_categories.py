@@ -4,7 +4,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from src.application.models.modules import CatalogModule
 from src.infrastructure.telegram.bot_client import TelegramClient
 from src.models.read_models import CategoryFull
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 async def subscription_prompt_kb(language: str, catalog_modul: CatalogModule, tg_client: TelegramClient):

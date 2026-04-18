@@ -144,7 +144,7 @@ from src.application.models.products.universal import (
     UniversalStorageService,
     UniversalTranslationsService,
 )
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 if TYPE_CHECKING:
     from src.infrastructure.telegram.bot_client import TelegramClient

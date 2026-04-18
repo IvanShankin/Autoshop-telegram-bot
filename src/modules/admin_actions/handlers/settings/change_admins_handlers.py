@@ -9,7 +9,7 @@ from src.models.read_models import UsersDTO
 from src.modules.admin_actions.keyboards import back_in_admin_settings_kb
 from src.modules.admin_actions.state.settings import AddAdmin, DeleteAdmin
 from src.utils.converter import safe_int_conversion
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 router = Router()
 

@@ -14,7 +14,7 @@ from src.modules.admin_actions.services import message_type_payment
 from src.modules.admin_actions.state import GetTypePaymentName, GetTypePaymentCommission
 
 from src.utils.converter import safe_float_conversion
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 router = Router()

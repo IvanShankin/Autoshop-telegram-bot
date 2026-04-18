@@ -5,7 +5,7 @@ from aiogram.types import CallbackQuery, BufferedInputFile
 from src.application.models.modules import AdminModule
 from src.infrastructure.telegram.bot_client import TelegramClient
 from src.models.read_models import UsersDTO
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 router = Router()
 

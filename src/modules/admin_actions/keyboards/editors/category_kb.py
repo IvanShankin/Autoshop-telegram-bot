@@ -4,7 +4,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from src.application.models.modules import AdminModule
 from src.models.read_models import CategoryFull
 from src.database.models.categories import ProductType, Categories, UniversalMediaType, AccountServiceType
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 async def show_main_categories_kb(language: str, admin_module: AdminModule):

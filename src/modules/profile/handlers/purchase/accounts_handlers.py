@@ -12,7 +12,7 @@ from src.modules.profile.services.purchases_accounts import show_all_sold_accoun
 from src.database.models.categories import AccountStorage, StorageStatus
 from src.application.bot import Messages
 from src.application.models.modules import ProfileModule
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 from src.utils.pars_number import e164_to_pretty
 
 router = Router()

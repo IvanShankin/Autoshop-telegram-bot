@@ -6,7 +6,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from src.models.read_models import SoldUniversalSmall
 from src.application.keyboards.keyboard_with_pages import pagination_keyboard
 from src.application.models.modules import ProfileModule
-from src.utils.i18n import get_text, n_get_text
+from src.infrastructure.translations import get_text, n_get_text
 
 
 def in_purchased_universal_product_kb(

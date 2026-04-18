@@ -6,7 +6,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from src.application.models.modules import AdminModule
 from src.database.models.discount import PromoCodes
 from src.application.keyboards.keyboard_with_pages import pagination_keyboard
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 def admin_promo_kb(language: str):

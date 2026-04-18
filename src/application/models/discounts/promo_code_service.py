@@ -17,7 +17,7 @@ from src.repository.redis import PromoCodesCacheRepository
 from src.application.models.discounts import ActivatedPromoCodesService
 from src.application.models.users import UserLogService
 from src.utils.codes import generate_code
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 class PromoCodeService:

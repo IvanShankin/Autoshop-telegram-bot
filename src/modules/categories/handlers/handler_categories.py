@@ -16,7 +16,7 @@ from src.modules.categories.services import check_category, edit_message_categor
 from src.modules.categories.shemas import BuyProductsData
 from src.modules.categories.states import BuyProduct
 from src.utils.converter import safe_int_conversion
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 router_with_repl_kb = Router()
 router = Router()

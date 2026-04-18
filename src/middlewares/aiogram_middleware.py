@@ -9,7 +9,7 @@ from src.application.bot import Messages
 from src.containers.app_container import AppContainer
 from src.application.models.modules import AdminModule
 from src.infrastructure.telegram.ui.keyboard import support_kb
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 class ModulesMiddleware(BaseMiddleware):

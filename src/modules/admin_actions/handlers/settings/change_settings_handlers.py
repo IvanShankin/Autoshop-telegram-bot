@@ -10,7 +10,7 @@ from src.models.update_models import UpdateSettingsDTO
 from src.modules.admin_actions.services.settings_updater import message_change_settings, message_request_new_data, \
     update_admin_settings
 from src.modules.admin_actions.state.settings import UpdateAdminSettings
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 router = Router()
 

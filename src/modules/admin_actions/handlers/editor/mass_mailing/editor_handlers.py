@@ -18,7 +18,7 @@ from src.modules.admin_actions.keyboards.editors.mass_mailing_kb import confirm_
 from src.modules.admin_actions.state import GetImageMassMailing, GetTextMassMailing
 from src.modules.admin_actions.state.editors.editor_mass_mailing import GetBtnUrlMassMailing
 
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 router = Router()

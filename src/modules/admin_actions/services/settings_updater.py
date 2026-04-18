@@ -10,7 +10,7 @@ from src.models.update_models import UpdateSettingsDTO
 from src.modules.admin_actions.keyboards import change_admin_settings_kb, back_in_change_admin_settings_kb
 from src.modules.admin_actions.state.settings import UpdateAdminSettings
 from src.utils.converter import safe_int_conversion
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 async def message_change_settings(

@@ -11,7 +11,7 @@ from src.modules.admin_actions.keyboards import back_in_show_data_by_id_kb, data
 from src.modules.admin_actions.schemas.show_data_by_id import CurrentPage
 from src.modules.admin_actions.services.show_data_by_id import show_data_by_id_handler
 from src.modules.admin_actions.state.show_data_by_id import ShowDataById
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 router_with_repl_kb = Router()
 router = Router()

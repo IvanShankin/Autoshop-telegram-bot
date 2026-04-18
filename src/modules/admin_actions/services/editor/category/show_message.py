@@ -7,7 +7,7 @@ from src.modules.admin_actions.keyboards.editors.category_kb import show_main_ca
 from src.modules.admin_actions.keyboards import show_category_admin_kb, change_category_data_kb
 from src.modules.admin_actions.services import safe_get_category
 from src.database.models.categories import ProductType
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 async def edit_message_in_main_category_editor(

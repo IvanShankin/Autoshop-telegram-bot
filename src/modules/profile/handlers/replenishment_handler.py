@@ -10,7 +10,7 @@ from src.modules.profile.schemas.replenishment import GetAmountData
 from src.modules.profile.state.replenishment import GetAmount
 from src.application.bot import Messages
 from src.application.models.modules import ProfileModule
-from src.utils.i18n import get_text, n_get_text
+from src.infrastructure.translations import get_text, n_get_text
 
 router_with_repl_kb = Router()
 router = Router()

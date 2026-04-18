@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 def main_admin_kb(language: str):

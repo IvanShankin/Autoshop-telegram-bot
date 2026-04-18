@@ -9,7 +9,7 @@ from src.models.read_models import NewReplenishment, ReplenishmentCompleted, Rep
 from src.application.bot import SendMessageService
 from src.application.events.publish_event_handler import PublishEventHandler
 from src.application.models.users.replenishment_service import ReplenishmentsService
-from src.utils.i18n import get_text, n_get_text
+from src.infrastructure.translations import get_text, n_get_text
 
 
 class ReplenishmentsEventHandler:

@@ -1,5 +1,5 @@
 from src.models.read_models import TypePaymentsDTO
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 def message_type_payment(type_payment: TypePaymentsDTO, language: str):

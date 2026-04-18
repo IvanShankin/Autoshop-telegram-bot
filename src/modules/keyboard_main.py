@@ -3,7 +3,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
 from src.application.models.modules import AdminModule
 from src.infrastructure.telegram.bot_client import TelegramClient
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 selecting_language = InlineKeyboardMarkup(

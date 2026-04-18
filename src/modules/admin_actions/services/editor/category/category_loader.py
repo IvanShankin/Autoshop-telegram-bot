@@ -7,7 +7,7 @@ from src.application.models.modules import AdminModule
 from src.infrastructure.telegram.bot_client import TelegramClient
 from src.modules.admin_actions.keyboards import in_category_editor_kb
 from src.models.read_models import CategoryFull, UsersDTO
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 async def safe_get_category(

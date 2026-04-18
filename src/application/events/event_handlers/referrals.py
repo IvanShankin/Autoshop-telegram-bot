@@ -9,7 +9,7 @@ from src.application.bot import SendMessageService
 from src.application.events.publish_event_handler import PublishEventHandler
 from src.application.models.referrals import ReferralService
 from src.application.models.users.notifications_service import NotificationSettingsService
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 class ReferralEventHandler:

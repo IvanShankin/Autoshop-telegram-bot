@@ -23,7 +23,7 @@ from src.modules.admin_actions.services.editor.category.show_message import show
 from src.modules.admin_actions.state import UpdateNameForCategory, \
     UpdateDescriptionForCategory, UpdateCategoryImage, UpdateNumberInCategory
 from src.database.models.categories import ProductType, AccountServiceType, UniversalMediaType
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 router = Router()

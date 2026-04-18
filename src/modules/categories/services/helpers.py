@@ -5,7 +5,7 @@ from src.modules.categories.keyboards import account_category_kb
 from src.modules.categories.shemas import BuyProductsData
 from src.models.read_models import CategoryFull
 from src.database.models.users import Users
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 async def check_category(

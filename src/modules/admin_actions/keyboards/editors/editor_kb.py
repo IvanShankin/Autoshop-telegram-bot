@@ -1,5 +1,5 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 def choice_editor_kb(language: str):

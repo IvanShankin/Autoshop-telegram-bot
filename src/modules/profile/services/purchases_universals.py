@@ -13,7 +13,7 @@ from src.application.bot import Messages
 from src.infrastructure.files.file_system import create_temp_dir
 from src.application.models.modules import ProfileModule
 from src.domain.crypto.decrypt import decrypt_file, decrypt_text
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 
 async def check_universal_product(

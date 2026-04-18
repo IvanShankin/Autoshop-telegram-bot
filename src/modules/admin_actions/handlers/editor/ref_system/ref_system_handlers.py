@@ -15,7 +15,7 @@ from src.modules.admin_actions.schemas import GetNewPersentData, GetAchievementA
 from src.modules.admin_actions.state import GetNewPersent, GetAchievementAmount, CreateRefLevel
 
 from src.utils.converter import safe_float_conversion, safe_int_conversion
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 router = Router()
 

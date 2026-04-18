@@ -8,7 +8,7 @@ from src.database.models.categories import AccountStorage, AccountServiceType
 from src.models.read_models import SoldAccountFull, UsersDTO
 from src.application.bot import Messages
 from src.application.models.modules import ProfileModule
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 from src.utils.pars_number import e164_to_pretty
 
 

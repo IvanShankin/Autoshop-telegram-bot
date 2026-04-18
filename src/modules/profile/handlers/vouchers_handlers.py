@@ -14,7 +14,7 @@ from src.modules.profile.state.transfer_balance import CreateVoucher
 
 from src.application.bot import Messages
 from src.application.models.modules import ProfileModule
-from src.utils.i18n import get_text
+from src.infrastructure.translations import get_text
 
 router = Router()
 

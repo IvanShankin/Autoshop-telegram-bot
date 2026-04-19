@@ -15,7 +15,7 @@ class Settings(Base):
     __tablename__ = "settings"
 
     settings_id = Column(Integer, primary_key=True, autoincrement=True)
-    maintenance_mode = Column(Boolean, nullable=True, server_default=text("false"))
+    maintenance_mode = Column(Boolean, nullable=True, server_default=text("true"))
     support_username = Column(String(200), nullable=True)           # хранит просто текст, без @
     channel_for_logging_id = Column(BigInteger, nullable=True)      # ID канала для логирования
     channel_for_subscription_id = Column(BigInteger, nullable=True) # ID канала для подписки пользователя

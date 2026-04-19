@@ -7,7 +7,7 @@ from src.application.models.modules import AdminModule
 from src.infrastructure.translations import get_text
 
 
-async def images_list_kb(language: str, current_page: int, admin_module: AdminModule,):
+async def event_list_kb(language: str, current_page: int, admin_module: AdminModule,):
     event_message_keys = await admin_module.event_message_service.get_event_message_by_page(current_page)
     conf = admin_module.conf
     total_pages = max(ceil((len(conf.message_event.all_keys) - len(conf.message_event.keys_ignore_admin)) / admin_module.conf.different.page_size), 1)

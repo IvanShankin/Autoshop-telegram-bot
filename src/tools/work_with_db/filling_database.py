@@ -26,8 +26,9 @@ async def filling():
             await filling_type_payment(type_payment)
 
         for key in conf.message_event.all_keys:
-            await filling_sticker(key=key)
-            await filling_ui_image(key=key)
+            show = True if key in conf.message_event.always_show else False
+            await filling_sticker(key=key, show=show)
+            await filling_ui_image(key=key, show=show)
 
         files_data = conf.file_keys.model_dump()
         for file_key in files_data.keys():
@@ -45,29 +46,29 @@ async def filling_settings():
         result_settings = result.scalars().first()
 
         if not result_settings:
-            new_settings = Settings()
+            new_settings = Settings(maintenance_mode=True)
             session_db.add(new_settings)
             await session_db.commit()
 
 
-async def filling_sticker(key: str):
+async def filling_sticker(key: str, show: bool = True):
     async with get_session_factory() as session_db:
         result = await session_db.execute(select(Stickers).where(Stickers.key == key))
         result_sticker = result.scalar_one_or_none()
 
         if result_sticker is None:
-            image = Stickers(key=key)
+            image = Stickers(key=key, show=show)
             session_db.add(image)
             await session_db.commit()
 
 
-async def filling_ui_image(key: str):
+async def filling_ui_image(key: str, show: bool = True):
     async with get_session_factory() as session_db:
         result = await session_db.execute(select(UiImages).where(UiImages.key == key))
         result_image = result.scalar_one_or_none()
 
         if result_image is None:
-            image = UiImages(key=key, file_name=f"{key}.png", show=False)
+            image = UiImages(key=key, file_name=f"{key}.png", show=show)
             session_db.add(image)
             await session_db.commit()
 

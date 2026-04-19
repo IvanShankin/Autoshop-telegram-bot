@@ -4,7 +4,7 @@ from aiogram.types import CallbackQuery
 from src.application.bot import Messages
 from src.application.models.modules import AdminModule
 from src.models.read_models import UsersDTO
-from src.modules.admin_actions.keyboards import images_list_kb
+from src.modules.admin_actions.keyboards import event_list_kb
 from src.modules.admin_actions.keyboards.editors.event_message_kb import choice_edit_event_msg_kb
 
 
@@ -21,7 +21,7 @@ async def event_msg_editor_list(
         chat_id=user.user_id,
         message_id=callback.message.message_id,
         event_message_key="admin_panel",
-        reply_markup=await images_list_kb(user.language, current_page, admin_module=admin_module)
+        reply_markup=await event_list_kb(user.language, current_page, admin_module=admin_module)
     )
 
 

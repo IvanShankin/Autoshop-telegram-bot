@@ -5,6 +5,7 @@ from pydantic import BaseModel
 class MessageEventConf(BaseModel):
     all_keys: Set
     keys_ignore_admin: List[str]
+    always_show: List[str]
 
     @classmethod
     def build(cls) -> "MessageEventConf":
@@ -81,5 +82,6 @@ class MessageEventConf(BaseModel):
                 # тех работы
                 "technical_work",
             },
-            keys_ignore_admin=["info_add_accounts", "example_csv"] # информация о добавлении новых товаров
+            keys_ignore_admin=["info_add_accounts", "example_csv"], # информация о добавлении новых товаров
+            always_show=["admin_panel", "info_add_accounts", "example_csv"],
         )

@@ -18,7 +18,7 @@ from src.exceptions.business import ImportUniversalInvalidMediaData, ImportUnive
     CsvHasMoreThanTwoProducts
 from src.modules.admin_actions.keyboards import name_or_description_kb
 from src.modules.admin_actions.keyboards.editors.category_kb import get_example_import_product_kb, \
-    get_example_import_other_acc_kb, get_example_import_tg_acc_kb, in_category_kb
+    get_example_import_other_acc_kb, get_example_import_tg_acc_kb, in_category_kb, get_logs_and_back_in_category_kb
 from src.modules.admin_actions.schemas import ImportAccountsData
 from src.modules.admin_actions.schemas.editors.editor_categories import ImportUniversalsData
 from src.modules.admin_actions.services import safe_get_category, service_not_found
@@ -296,7 +296,8 @@ async def import_tg_account(
 
         await messages_service.send_msg.send(
             message.from_user.id,
-            get_text(user.language,"admins_editor_category", "error_inside_server")
+            get_text(user.language,"admins_editor_category", "error_inside_server"),
+            reply_markup=get_logs_and_back_in_category_kb(language=user.language, category_id=data.category_id)
         )
 
     await gen_import_acc.__anext__() # удаление временных файлов
@@ -395,7 +396,8 @@ async def import_other_account(
 
         await messages_service.send_msg.send(
             message.from_user.id,
-            get_text(user.language,"admins_editor_category", "error_inside_server")
+            get_text(user.language,"admins_editor_category", "error_inside_server"),
+            reply_markup=get_logs_and_back_in_category_kb(language=user.language, category_id=data.category_id)
         )
 
 
@@ -406,7 +408,6 @@ async def import_universal_products(
     user: UsersDTO,
     admin_module: AdminModule,
     messages_service: Messages,
-    tg_client: TelegramClient,
 ):
     data = ImportUniversalsData(**(await state.get_data()))
     category = await safe_get_category(
@@ -507,5 +508,6 @@ async def import_universal_products(
 
         await messages_service.send_msg.send(
             message.from_user.id,
-            get_text(user.language,"admins_editor_category", "error_inside_server")
+            get_text(user.language,"admins_editor_category", "error_inside_server"),
+            reply_markup=get_logs_and_back_in_category_kb(language=user.language, category_id=data.category_id)
         )

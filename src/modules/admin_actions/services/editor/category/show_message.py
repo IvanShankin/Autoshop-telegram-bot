@@ -6,7 +6,7 @@ from src.models.read_models import UsersDTO
 from src.modules.admin_actions.keyboards.editors.category_kb import show_main_categories_kb
 from src.modules.admin_actions.keyboards import show_category_admin_kb, change_category_data_kb
 from src.modules.admin_actions.services import safe_get_category
-from src.database.models.categories import ProductType
+from src.database.models.categories import ProductType, AccountServiceType
 from src.infrastructure.translations import get_text
 
 
@@ -52,7 +52,12 @@ async def show_category(
         user.language,
         "admins_editor_category",
         "category_admin_info"
-    ).format(name=category.name, index=category.index, show=category.show,is_storage=category.is_product_storage)
+    ).format(
+        name=category.name,
+        index=category.index,
+        show=category.show,
+        is_storage=category.is_product_storage,
+    )
 
     if category.product_type == ProductType.UNIVERSAL:
         message += get_text(
@@ -69,6 +74,19 @@ async def show_category(
         )
 
     if category.is_product_storage:
+        storage_type = "None"
+        if category.product_type == ProductType.UNIVERSAL:
+            storage_type = get_text(user.language, "admins_editor_category", "universal_product")
+        if category.product_type == ProductType.ACCOUNT:
+            if category.type_account_service == AccountServiceType.TELEGRAM:
+                storage_type = get_text(user.language, "admins_editor_category", "tg_accounts")
+            elif category.type_account_service == AccountServiceType.OTHER:
+                storage_type = get_text(user.language, "admins_editor_category", "other_accounts")
+
+        message += get_text(
+            user.language, "admins_editor_category", "type_account_in_category"
+        ).format(storage_type=storage_type)
+
         price_one = category.price if category.price else 0
         cost_price = category.cost_price if category.cost_price else 0
 

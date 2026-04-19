@@ -21,7 +21,26 @@ msgid "category_not_exists"
 msgstr "Категории больше нет"
 
 msgid "category_admin_info"
-msgstr "Категория \n\nИмя: {name}\nИндекс: {index}\nПоказывать: {show} \n\nХранит товары: {is_storage}"
+msgstr "Категория \n\n"
+"Имя: {name}\n"
+"Индекс: {index}\n"
+"Показывать: {show} \n\n"
+"Хранит товары: {is_storage}"
+
+
+# для category_admin_info если хранит товары
+
+msgid "type_account_in_category"
+msgstr "\nТип товаров в категории: {storage_type}"
+
+msgid "tg_accounts"
+msgstr "Телеграмм аккаунты"
+
+msgid "other_accounts"
+msgstr "Прочие аккаунты"
+
+msgid "universal_product"
+msgstr "Универсальные товары"
 
 
 # для универсальных товаров

@@ -1,7 +1,7 @@
 import asyncio
 
 from src.containers.app_container import AppContainer
-from src.deferred_tasks.creator_works import InitScheduler
+from src.application.deferred_tasks.creator_works import InitScheduler
 from src.infrastructure.scheduler.core import init_scheduler
 from src.infrastructure.web.server import start_server
 from src.infrastructure.telegram.bot_run import run_bot

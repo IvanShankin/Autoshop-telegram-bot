@@ -4,7 +4,7 @@ from typing import AsyncGenerator
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from src.containers import RequestContainer
-from src.deferred_tasks.jobs import deactivate_discounts_job, dollar_rate_job
+from src.application.deferred_tasks.jobs import deactivate_discounts_job, dollar_rate_job
 
 
 class InitScheduler:

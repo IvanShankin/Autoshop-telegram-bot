@@ -61,8 +61,8 @@ class TypesPaymentsService:
         if "index" in values:
             try:
                 new_index = int(values["index"])
-            except Exception:
-                raise ValueError("index должен быть целым числом")
+            except Exception as e:
+                raise ValueError("index должен быть целым числом") from e
 
             if new_index < 0:
                 new_index = 0

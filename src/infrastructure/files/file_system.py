@@ -143,7 +143,7 @@ async def extract_archive_to_temp(archive_path: str) -> str:
         return temp_dir
     except Exception as e:
         shutil.rmtree(temp_dir, ignore_errors=True)
-        raise RuntimeError(f"Ошибка распаковки архива: {e}")
+        raise RuntimeError(f"Ошибка распаковки архива: {e}") from e
 
 
 async def make_archive(data_for_archiving: str | List[str], new_path_archive: str, logger: Logger = None) -> bool:
@@ -324,8 +324,8 @@ def get_ext_image(file_data: bytes) -> str:
     try:
         image = Image.open(io.BytesIO(file_data))
         return image.format.lower()
-    except Exception:
-        raise InvalidImage()
+    except Exception as e:
+        raise InvalidImage() from e
 
 
 #  безопасная архивирующая функция (не блокирует loop)

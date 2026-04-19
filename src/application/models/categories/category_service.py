@@ -276,8 +276,8 @@ class CategoryService:
         if data.index is not None:
             try:
                 new_index = int(data.index)
-            except Exception:
-                raise ValueErrorService("index должен быть целым числом")
+            except Exception as e:
+                raise ValueErrorService("index должен быть целым числом") from e
 
             # индексы не могут быть отрицательными
             if new_index < 0:

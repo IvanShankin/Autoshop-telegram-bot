@@ -26,8 +26,8 @@ async def create_database(conf: Config):
             else:
                 logging.info(f"Database {conf.env.db_name} already exists")
     except Exception as e:
-        logging.error(f"Error checking/creating _database: {e}")
-        raise
+        logging.exception(f"Error checking/creating _database: {e}")
+        raise e
     finally:
         await engine.dispose()
 
@@ -39,8 +39,8 @@ async def create_database(conf: Config):
             await conn.run_sync(Base.metadata.create_all)
             logging.info("Database tables created successfully")
     except Exception as e:
-        logging.error(f"Error creating tables: {e}")
-        raise
+        logging.exception(f"Error creating tables: {e}")
+        raise e
     finally:
         await engine.dispose()
 
@@ -54,7 +54,7 @@ async def create_table(conf: Config):
             await conn.run_sync(Base.metadata.create_all)
             logging.info("Database tables created successfully")
     except Exception as e:
-        logging.error(f"Error creating tables: {e}")
-        raise
+        logging.exception(f"Error creating tables: {e}")
+        raise e
     finally:
         await engine.dispose()

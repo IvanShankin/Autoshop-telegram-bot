@@ -10,6 +10,7 @@ from src.containers.app_container import AppContainer
 from src.application.models.modules import AdminModule
 from src.infrastructure.telegram.ui.keyboard import support_kb
 from src.infrastructure.translations import get_text
+from src.models.read_models import LogLevel, UsersDTO
 
 
 class ModulesMiddleware(BaseMiddleware):
@@ -211,3 +212,53 @@ class I18nKeyFilter(BaseFilter):
             return False
 
         return message.text == get_text(user.language, "kb_start", self.key)
+
+
+class ErrorLoggingMiddleware(BaseMiddleware):
+    async def __call__(
+        self,
+        handler: Callable[[Any, Dict[str, Any]], Awaitable[Any]],
+        event: Any,
+        data: Dict[str, Any],
+    ) -> Any:
+        try:
+            return await handler(event, data)
+
+        except Exception as e:
+            admin_module: AdminModule = data["admin_module"]
+            user: UsersDTO = data["user"]
+            messages_service: Messages = data["messages_service"]
+
+            user_id = None
+            chat_id = None
+
+            if isinstance(event, Message):
+                user_id = event.from_user.id
+                chat_id = event.chat.id
+
+            elif isinstance(event, CallbackQuery):
+                user_id = event.from_user.id
+                chat_id = event.message.chat.id if event.message else None
+
+            admin_module.logger.exception(
+                "Unhandled exception",
+                extra={
+                    "user_id": user_id,
+                    "chat_id": chat_id,
+                    "event_type": type(event).__name__,
+                },
+            )
+
+            try:
+                await messages_service.send_msg.send(
+                    user.user_id,
+                    get_text(user.language, "miscellaneous", "server_error"),
+                )
+            except Exception:
+                admin_module.logger.exception("Failed to notify user about error")
+
+            await admin_module.publish_event_handler.send_log(
+                text=f"#Ошибка: {str(e)}. \nID пользователя: {user.user_id}", log_lvl=LogLevel.ERROR
+            )
+
+            raise

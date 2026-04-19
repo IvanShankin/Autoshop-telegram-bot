@@ -1,3 +1,7 @@
+import json
+import logging
+import time
+
 from aiogram import BaseMiddleware
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import BaseFilter
@@ -11,6 +15,10 @@ from src.application.models.modules import AdminModule
 from src.infrastructure.telegram.ui.keyboard import support_kb
 from src.infrastructure.translations import get_text
 from src.models.read_models import LogLevel, UsersDTO
+
+# повышение значимости выводимого лога (имеется свой Logger)
+logging.getLogger("aiogram.event").setLevel(logging.WARNING)
+logger = logging.getLogger("update_logger")
 
 
 class ModulesMiddleware(BaseMiddleware):
@@ -262,3 +270,58 @@ class ErrorLoggingMiddleware(BaseMiddleware):
             )
 
             raise
+
+
+
+class UpdateLoggingMiddleware(BaseMiddleware):
+    async def __call__(
+        self,
+        handler: Callable[[Any, Dict[str, Any]], Awaitable[Any]],
+        event: Any,
+        data: Dict[str, Any],
+    ) -> Any:
+        start = time.perf_counter()
+
+        log_data = {
+            "event_type": type(event).__name__,
+        }
+
+        if isinstance(event, Message):
+            log_data.update({
+                "text": event.text,
+                "user_id": event.from_user.id if event.from_user else None,
+                "chat_id": event.chat.id,
+            })
+
+        elif isinstance(event, CallbackQuery):
+            log_data.update({
+                "data": event.data,
+                "user_id": event.from_user.id,
+                "chat_id": event.message.chat.id if event.message else None,
+            })
+
+        # FSM state
+        state = data.get("state")
+        if state:
+            try:
+                log_data["state"] = await state.get_state()
+            except Exception:
+                pass
+
+        try:
+            result = await handler(event, data)
+            log_data["handled"] = True
+            return result
+
+        except Exception as e:
+            log_data["handled"] = False
+            log_data["error"] = str(e)
+            logger.exception(json.dumps(log_data, ensure_ascii=False))
+            raise
+
+        finally:
+            log_data["duration_ms"] = round(
+                (time.perf_counter() - start) * 1000, 2
+            )
+
+            logger.info(json.dumps(log_data, ensure_ascii=False))

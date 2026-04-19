@@ -3,7 +3,7 @@ import asyncio
 from src.containers.app_container import AppContainer
 from src.exceptions.business import ForbiddenError
 from src.middlewares.aiogram_middleware import MaintenanceMiddleware, UserMiddleware, OnlyAdminsMiddleware, \
-    DeleteMessageOnErrorMiddleware, CheckuserNotBlok, ModulesMiddleware, ErrorLoggingMiddleware
+    DeleteMessageOnErrorMiddleware, CheckuserNotBlok, ModulesMiddleware, ErrorLoggingMiddleware, UpdateLoggingMiddleware
 from src.modules.profile.handlers import router_with_repl_kb as profile_router_with_repl_kb, router as profile_router
 from src.modules.categories.handlers import router_with_repl_kb as catalog_router_with_repl_kb
 from src.modules.categories.handlers import router as catalog_router
@@ -20,6 +20,8 @@ async def _including_router(app_container: AppContainer):
 
     dp.update.middleware(ModulesMiddleware(app_container))
     dp_logger.update.middleware(ModulesMiddleware(app_container))
+    dp.message.middleware(UpdateLoggingMiddleware())
+    dp.callback_query.middleware(UpdateLoggingMiddleware())
     dp.update.middleware(CheckuserNotBlok())
     dp.update.middleware(DeleteMessageOnErrorMiddleware(ForbiddenError, "Insufficient rights"))
 

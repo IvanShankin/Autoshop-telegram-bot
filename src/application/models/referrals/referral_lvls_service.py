@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.models.referrals import Referrals
 from src.database.models.users import Users
 from src.exceptions import InvalidAmountOfAchievement, InvalidSelectedLevel
+from src.exceptions.business import InvalidPercent
 from src.models.create_models.referrals import CreateReferralLevelDTO
 from src.models.read_models.other import ReferralLevelsDTO
 from src.models.update_models.referrals import UpdateReferralLevelDTO
@@ -79,6 +80,7 @@ class ReferralLevelsService:
         """
         Уровень присвоится следующий от максимального (+ 1)
         :except InvalidAmountOfAchievement: При некорректном ``amount_of_achievement``
+        :except InvalidPercent: Если ``percent`` более 100.
         """
         ref_lvls = await self.get_referral_levels()
         last_lvl = ref_lvls[-1]
@@ -87,6 +89,9 @@ class ReferralLevelsService:
             raise InvalidAmountOfAchievement(
                 amount_of_achievement_previous_lvl=last_lvl.amount_of_achievement
             )
+
+        if data.percent > 100:
+            raise InvalidPercent()
 
         new_ref_lvl = await self.referral_lvl_repo.create_referral_lvl(
             level=last_lvl.level + 1,
@@ -116,6 +121,10 @@ class ReferralLevelsService:
         ref_lvl_id: int,
         data: UpdateReferralLevelDTO,
     ) -> Optional[ReferralLevelsDTO]:
+        """
+        :except InvalidAmountOfAchievement: При некорректном ``amount_of_achievement``
+        :except InvalidPercent: Если ``percent`` более 100.
+        """
         values = data.model_dump(exclude_unset=True)
         if not values:
             return None
@@ -125,9 +134,12 @@ class ReferralLevelsService:
             return None
 
         amount_of_achievement = values.get("amount_of_achievement")
-
         if current_lvl.level == 1 and amount_of_achievement is not None:
             raise InvalidSelectedLevel()
+
+        percent = values.get("percent")
+        if percent > 100:
+            raise InvalidPercent()
 
         previous_lvl = None
         next_lvl = None
@@ -176,6 +188,7 @@ class ReferralLevelsService:
             raise InvalidSelectedLevel()
 
         deleted = await self.referral_lvl_repo.delete_referral_lvl(ref_lvl_id)
+        await self.referral_lvl_repo.update_referral_lvl_after_removal(deleted.level)
         await self.session_db.commit()
 
         levels = await self.referral_lvl_repo.get_all()

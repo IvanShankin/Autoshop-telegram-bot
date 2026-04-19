@@ -42,6 +42,9 @@ msgstr "и менее {less}₽"
 msgid "incorrect_value_entered"
 msgstr "Введено некорректное значение \n\n{condition}"
 
+msgid "incorrect_value_percent"
+msgstr "Введено некорректное значение. Процент не может быть более 100"
+
 msgid "unable_change_first_level_achievement"
 msgstr "Невозможно изменить сумму достижения для первого уровня"
 

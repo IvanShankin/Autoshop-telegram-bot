@@ -61,6 +61,17 @@ class ReferralLevelsRepository(DatabaseBase):
         level = result.scalar_one_or_none()
         return ReferralLevelsDTO.model_validate(level) if level else None
 
+    async def update_referral_lvl_after_removal(self, ref_lvl_remote: int) -> Optional[ReferralLevelsDTO]:
+        stmt = (
+            update(ReferralLevels)
+            .where(ReferralLevels.level > ref_lvl_remote)
+            .values(level=ReferralLevels.level - 1)
+            .returning(ReferralLevels)
+        )
+        result = await self.session_db.execute(stmt)
+        level = result.scalar_one_or_none()
+        return ReferralLevelsDTO.model_validate(level) if level else None
+
     async def delete_referral_lvl(self, ref_lvl_id: int) -> Optional[ReferralLevelsDTO]:
         stmt = (
             delete(ReferralLevels)

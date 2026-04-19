@@ -107,6 +107,10 @@ class InvalidAmountOfAchievement(Exception):
         self.amount_of_achievement_previous_lvl: int | None = amount_of_achievement_previous_lvl
         self.amount_of_achievement_next_lvl: int | None = amount_of_achievement_next_lvl
 
+class InvalidPercent(Exception):
+    """Если процент более 100"""
+    pass
+
 class InvalidSelectedLevel(Exception):
     """Первый уровень в реферальной системе нельзя удалять или менять сумму постижения его (всегда должна быть 0)"""
     pass

@@ -5,6 +5,7 @@ from aiogram.types import CallbackQuery, Message
 from src.application.bot import Messages
 from src.application.models.modules import AdminModule
 from src.exceptions import InvalidAmountOfAchievement, InvalidSelectedLevel
+from src.exceptions.business import InvalidPercent
 from src.models.create_models.referrals import CreateReferralLevelDTO
 from src.models.read_models import UsersDTO
 from src.models.update_models import UpdateReferralLevelDTO
@@ -172,6 +173,14 @@ async def get_get_persent_for_new(
             )
         )
         reply_markup = back_in_lvl_list_ref_system_kb(user.language)
+    except InvalidPercent:
+        message = get_text(
+            user.language,
+            "admins_editor_ref_system",
+            "incorrect_value_percent"
+        )
+        reply_markup = back_in_lvl_list_ref_system_kb(user.language)
+
 
     await state.clear()
     await messages_service.send_msg.send(
@@ -227,15 +236,26 @@ async def get_persent_for_update(
         )
         return
 
-    await admin_module.referral_levels_service.update_referral_lvl(
-        ref_lvl_id=data.ref_lvl_id,
-        data=UpdateReferralLevelDTO(percent=persent)
-    )
+    message = get_text(user.language, "miscellaneous", "data_updated_successfully")
+    reply_markup = back_in_ref_lvl_editor_kb(user.language, data.ref_lvl_id, i18n_key="in_level")
+
+    try:
+        await admin_module.referral_levels_service.update_referral_lvl(
+            ref_lvl_id=data.ref_lvl_id,
+            data=UpdateReferralLevelDTO(percent=persent)
+        )
+    except InvalidPercent:
+        message = get_text(
+            user.language,
+            "admins_editor_ref_system",
+            "incorrect_value_percent"
+        )
+        reply_markup = back_in_lvl_list_ref_system_kb(user.language)
 
     await messages_service.send_msg.send(
         chat_id=user.user_id,
-        message=get_text(user.language, "miscellaneous","data_updated_successfully"),
-        reply_markup=back_in_ref_lvl_editor_kb(user.language, data.ref_lvl_id, i18n_key="in_level")
+        message=message,
+        reply_markup=reply_markup
     )
 
 

@@ -60,7 +60,7 @@ async def message_income_ref(
         username=username,
         amount=income.amount,
         percentage_of_replenishment=income.percentage_of_replenishment,
-        date=income.created_at.strftime(profile_module.conf.different.dt_format),
+        date=profile_module.dt_formatter.format(income.created_at),
     )
 
     await messages_service.edit_msg.edit(

@@ -21,6 +21,7 @@ from src.application.products.accounts.tg.use_cases.validate import ValidateTgAc
 from src.application.products.universals.universal_products import UniversalProduct
 from src.application.products.universals.use_cases import ValidationsUniversalProducts, \
     GenerateExamplUniversalProductImport, UploadUniversalProductsUseCase, ImportUniversalProductUseCase
+from src.application.utils.date_time_formatter import DateTimeFormatter
 from src.config import Config
 from src.infrastructure.crypto.secret_storage.secrets_storage import SecretsStorage
 from src.infrastructure.crypto_bot.core import CryptoBotProvider
@@ -186,6 +187,8 @@ class RequestContainer:
         self.secret_storage = secret_storage
         self.support_kb_builder = support_kb_builder
         self.telegram_account_client = telegram_account_client
+
+        self.dt_formatter = DateTimeFormatter(conf=self.config)
 
         self.account_sold_service: Optional[AccountSoldService] = None
 
@@ -802,7 +805,7 @@ class RequestContainer:
 
         self.excel_report_exporter = ExcelReportExporter(
             get_text=get_text,
-            dt_format=self.config.different.dt_format,
+            dt_formatter=self.dt_formatter,
         )
 
         self.type_payment_repo = TypePaymentsRepository(
@@ -904,6 +907,7 @@ class RequestContainer:
         self.generate_user_audit_log_use_case = GenerateUserAuditLogUseCase(
             conf=self.config,
             user_log_service=self.user_log_service,
+            dt_formatter=self.dt_formatter,
         )
         self.generate_example_import_account = GenerateExamplImportAccount(
             conf=self.config,
@@ -945,6 +949,7 @@ class RequestContainer:
             crypto_provider=self.crypto_provider,
             secret_storage=self.secret_storage,
             backup_logs_service=self.backup_logs_service,
+            dt_formatter=self.dt_formatter,
         )
 
     def get_message_service(self,) -> Messages:
@@ -1034,6 +1039,7 @@ class RequestContainer:
             path_builder=self.path_builder,
             get_auth_codes_use_case=self.get_auth_codes_use_case,
             validate_tg_account=self.validate_tg_account,
+            dt_formatter=self.dt_formatter,
         )
 
     def get_catalog_modul(self) -> CatalogModule:
@@ -1099,6 +1105,7 @@ class RequestContainer:
             sent_mass_message_service=self.sent_mass_message_service,
             message_for_sending_service=self.msg_for_sending_service,
             stickers_service=self.stickers_service,
+            dt_formatter=self.dt_formatter,
         )
 
     def get_account_modul(self) -> AccountsModuls:
@@ -1185,6 +1192,7 @@ class RequestContainer:
                 send_msg_service=messages.send_msg,
                 conf=self.config,
                 logger=self.logger,
+                dt_formatter=self.dt_formatter,
             ),
             replenishment_ev_hand=ReplenishmentsEventHandler(
                 publish_event=self.publish_event_handler,
@@ -1194,6 +1202,7 @@ class RequestContainer:
                 logger=self.logger,
                 conf=self.config,
                 support_kb_builder=self.support_kb_builder,
+                dt_formatter=self.dt_formatter,
             ),
             purchase_ev_hand=PurchaseEventHandler(
                 publish_event=self.publish_event_handler,

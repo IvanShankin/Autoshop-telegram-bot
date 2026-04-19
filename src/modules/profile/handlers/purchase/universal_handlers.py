@@ -48,7 +48,7 @@ async def sold_universal(
         ).format(
             product_id=universal.sold_universal_id,
             name=universal.universal_storage.name,
-            sold_at=universal.sold_at.strftime(profile_module.conf.different.dt_format),
+            sold_at=profile_module.dt_formatter.format(universal.sold_at),
         ),
         event_message_key='purchased_universal',
         reply_markup=universal_kb(

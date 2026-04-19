@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from logging import Logger
 from typing import Callable, Awaitable, Any
 
 from src.application.models.systems import SettingsService
+from src.application.utils.date_time_formatter import DateTimeFormatter
 from src.config import Config
 from src.models.read_models import LogLevel
 from src.models.read_models import NewReplenishment, ReplenishmentCompleted, ReplenishmentFailed
@@ -23,6 +24,7 @@ class ReplenishmentsEventHandler:
         logger: Logger,
         conf: Config,
         support_kb_builder: Callable[[str, str], Awaitable[Any]],
+        dt_formatter: DateTimeFormatter,
     ):
         self.publish_event = publish_event
         self.replenishment_service = replenishment_service
@@ -31,6 +33,7 @@ class ReplenishmentsEventHandler:
         self.logger = logger
         self.conf = conf
         self.support_kb_builder = support_kb_builder
+        self.dt_formatter = dt_formatter
 
     async def replenishment_event_handler(self, event):
         payload = event["payload"]
@@ -79,7 +82,7 @@ class ReplenishmentsEventHandler:
                 username=self._format_username(event),
                 sum=event.amount,
                 replenishment_id=event.replenishment_id,
-                time=datetime.now().strftime(self.conf.different.dt_format),
+                time=self.dt_formatter.format(datetime.now(UTC)),
             )
             log_lvl = LogLevel.INFO
         else:
@@ -91,7 +94,7 @@ class ReplenishmentsEventHandler:
                 username=self._format_username(event),
                 replenishment_id=event.replenishment_id,
                 error=str(event.error_str),
-                time=datetime.now().strftime(self.conf.different.dt_format),
+                time=self.dt_formatter.format(datetime.now(UTC)),
             )
             log_lvl = LogLevel.ERROR
 
@@ -104,10 +107,12 @@ class ReplenishmentsEventHandler:
             "error_while_replenishing",
         ).format(replenishment_id=event.replenishment_id)
 
+        settings = await self.settings_service.get_settings()
+
         await self.send_msg_service.send(
             event.user_id,
             message_for_user,
-            reply_markup=await self.support_kb_builder(event.language, ),
+            reply_markup=await self.support_kb_builder(event.language, settings.support_username),
         )
 
         message_log = get_text(
@@ -118,7 +123,7 @@ class ReplenishmentsEventHandler:
             username=self._format_username(event),
             replenishment_id=event.replenishment_id,
             error=str(event.error_str),
-            time=datetime.now().strftime(self.conf.different.dt_format),
+            time=self.dt_formatter.format(datetime.now(UTC)),
         )
 
         await self.publish_event.send_log(text=message_log, log_lvl=LogLevel.ERROR)
@@ -138,7 +143,7 @@ class ReplenishmentsEventHandler:
                 username=get_text(self.conf.app.default_lang, "miscellaneous", "no"),
                 replenishment_id="unknown",
                 error=error,
-                time=datetime.now().strftime(self.conf.different.dt_format),
+                time=self.dt_formatter.format(datetime.now(UTC)),
             ),
             log_lvl=LogLevel.ERROR,
         )

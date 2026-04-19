@@ -1,22 +1,25 @@
 import io
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Callable
 
 import pandas as pd
 
+from src.application.utils.date_time_formatter import DateTimeFormatter
 from src.models.read_models import ReferralReportDTO
 
 
 class ExcelReportExporter:
 
-    def __init__(self, get_text: Callable, dt_format: str):
+    def __init__(
+        self,
+        get_text: Callable,
+        dt_formatter: DateTimeFormatter
+    ):
         self.get_text = get_text
-        self.dt_format = dt_format
+        self.dt_formatter = dt_formatter
 
     def _format_date(self, value: datetime) -> str:
-        if value.tzinfo:
-            value = value.replace(tzinfo=None)
-        return value.strftime(self.dt_format)
+        return self.dt_formatter.format(value)
 
     def export(
         self,
@@ -33,7 +36,7 @@ class ExcelReportExporter:
                 self.get_text(language, "referral_report", "referral_id"): r.referral_id,
                 self.get_text(language, "referral_report", "referral_username"): r.username,
                 self.get_text(language, "referral_report", "level"): r.level,
-                self.get_text(language, "referral_report", "join_date"): self._format_date(r.join_date),
+                self.get_text(language, "referral_report", "join_date"): self.dt_formatter.format(r.join_date),
                 self.get_text(language, "referral_report", "total_brought"): r.total_income,
             }
             for r in data.referrals
@@ -65,7 +68,7 @@ class ExcelReportExporter:
 
             info_df = pd.DataFrame([
                 [self.get_text(language, "referral_report", "export_date"),
-                 datetime.now().strftime(self.dt_format)],
+                 self.dt_formatter.format(datetime.now(UTC))],
                 [self.get_text(language, "referral_report", "owner_id"), owner_user_id],
                 [self.get_text(language, "referral_report", "total_referrals"), total_referrals],
                 [self.get_text(language, "referral_report", "total_income"), total_income],

@@ -117,7 +117,7 @@ async def detail_mass_msg(
         admin_id=msg.user_id,
         number_received=msg.number_received,
         number_sent=msg.number_sent,
-        created_at=msg.created_at.strftime(admin_module.conf.different.dt_format)
+        created_at=admin_module.dt_formatter.format(msg.created_at),
     )
 
     await messages_service.edit_msg.edit(

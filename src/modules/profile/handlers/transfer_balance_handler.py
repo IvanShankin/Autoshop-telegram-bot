@@ -174,6 +174,7 @@ async def confirm_transfer_money(
         reply_markup=back_in_balance_transfer_kb(user.language)
     )
 
+    # получатель средств
     recipient = await profile_module.user_service.get_user(data.recipient_id)
     text = get_text(
         user.language,
@@ -184,5 +185,4 @@ async def confirm_transfer_money(
         chat_id=data.recipient_id,
         message=text,
         event_message_key='receiving_funds_from_transfer',
-        reply_markup=confirmation_transfer_kb(user.language)
     )

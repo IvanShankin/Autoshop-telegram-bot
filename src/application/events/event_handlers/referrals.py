@@ -1,6 +1,7 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from logging import Logger
 
+from src.application.utils.date_time_formatter import DateTimeFormatter
 from src.config import Config
 from src.models.read_models import LogLevel
 from src.exceptions.telegram import TelegramForbiddenErrorService
@@ -22,6 +23,7 @@ class ReferralEventHandler:
         send_msg_service: SendMessageService,
         conf: Config,
         logger: Logger,
+        dt_formatter: DateTimeFormatter,
     ):
         self.publish_event = publish_event
         self.referral_service = referral_service
@@ -29,6 +31,7 @@ class ReferralEventHandler:
         self.send_msg_service = send_msg_service
         self.conf = conf
         self.logger = logger
+        self.dt_formatter = dt_formatter
 
     async def referral_event_handler(self, event):
         payload = event["payload"]
@@ -105,7 +108,7 @@ class ReferralEventHandler:
                 "log_replenishment_error",
             ).format(
                 error=error,
-                time=datetime.now().strftime(self.conf.different.dt_format),
+                time=self.dt_formatter.format(datetime.now(UTC)),
             ),
             log_lvl=LogLevel.ERROR,
         )

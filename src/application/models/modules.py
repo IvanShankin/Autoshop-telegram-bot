@@ -17,6 +17,7 @@ from src.application.products.accounts.tg.use_cases.get_auth_codes import GetAut
 from src.application.products.universals.universal_products import UniversalProduct
 from src.application.products.universals.use_cases import UploadUniversalProductsUseCase, \
     GenerateExamplUniversalProductImport, ImportUniversalProductUseCase
+from src.application.utils.date_time_formatter import DateTimeFormatter
 from src.config import Config
 from src.infrastructure.files.excel_reports import ExcelReportExporter
 from src.application.models.discounts import VoucherService, PromoCodeService, VoucherActivationsService, \
@@ -112,6 +113,7 @@ class ProfileModule:
         path_builder: PathBuilder,
         get_auth_codes_use_case: GetAuthCodesUseCase,
         validate_tg_account: ValidateTgAccount,
+        dt_formatter: DateTimeFormatter,
     ):
         self.conf = conf
         self.logger = logger
@@ -135,6 +137,7 @@ class ProfileModule:
         self.path_builder = path_builder
         self.get_auth_codes_use_case = get_auth_codes_use_case
         self.validate_tg_account = validate_tg_account
+        self.dt_formatter = dt_formatter
 
 
 class CatalogModule:
@@ -216,6 +219,7 @@ class AdminModule:
         sent_mass_message_service: SentMassMessagesService,
         message_for_sending_service: MessageForSendingService,
         stickers_service: StickersService,
+        dt_formatter: DateTimeFormatter,
     ):
         self.conf = conf
         self.logger = logger
@@ -263,3 +267,4 @@ class AdminModule:
         self.sent_mass_message_service = sent_mass_message_service
         self.message_for_sending_service = message_for_sending_service
         self.stickers_service = stickers_service
+        self.dt_formatter = dt_formatter

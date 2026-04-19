@@ -100,7 +100,7 @@ async def show_sold_account(
                 if account.account_storage.is_valid
                 else get_text(language, "profile_messages","not_valid")
             ),
-            sold_at=account.sold_at.strftime(profile_module.conf.different.dt_format),
+            sold_at=profile_module.dt_formatter.format(account.sold_at),
         ),
         event_message_key='purchased_accounts',
         reply_markup=account_kb(

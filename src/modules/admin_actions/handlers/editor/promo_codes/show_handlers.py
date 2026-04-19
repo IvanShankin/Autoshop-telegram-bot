@@ -73,8 +73,8 @@ async def show_admin_promo(
                 number_of_activations=(promo_code.number_of_activations if promo_code.number_of_activations else
                                         get_text(user.language, "admins_editor_promo_codes", "unlimited")),
                 activated_counter=promo_code.activated_counter,
-                start_at=promo_code.start_at.strftime(admin_module.conf.different.dt_format),
-                expire_at=(promo_code.expire_at.strftime(admin_module.conf.different.dt_format) if promo_code.expire_at else
+                start_at=admin_module.dt_formatter.format(promo_code.start_at),
+                expire_at=(admin_module.dt_formatter.format(promo_code.expire_at) if promo_code.expire_at else
                            get_text(user.language, "admins_editor_promo_codes", "endlessly"))
             )
         reply_markup = show_admin_promo_kb(

@@ -87,10 +87,10 @@ async def get_message_replenishment(replenishment_id: int, language: str, admin_
         origin_amount=replenishment.origin_amount,
         amount=replenishment.amount,
         status=get_text(language, "status_replenishments", replenishment.status),
-        created_at=replenishment.created_at.strftime(admin_module.conf.different.dt_format),
+        created_at=admin_module.dt_formatter.format(replenishment.created_at),
         payment_system_id=replenishment.payment_system_id,
         invoice_url=replenishment.invoice_url,
-        expire_at=replenishment.expire_at.strftime(admin_module.conf.different.dt_format)
+        expire_at=admin_module.dt_formatter.format(replenishment.expire_at)
     )
 
 
@@ -117,7 +117,7 @@ async def get_message_purchase_account(purchase_id: int, language: str, admin_mo
         purchase_price=purchase_account.purchase_price,
         cost_price=purchase_account.cost_price,
         net_profit=purchase_account.net_profit,
-        purchase_date=purchase_account.purchase_date.strftime(admin_module.conf.different.dt_format)
+        purchase_date=admin_module.dt_formatter.format(purchase_account.purchase_date)
     )
 
 
@@ -168,7 +168,7 @@ async def get_message_sold_account_full(
             if sold_account_full.description else
             get_text(language, "admins_show_data_by_id", "no")
         ),
-        sold_at=sold_account_full.sold_at.strftime(admin_module.conf.different.dt_format),
+        sold_at=admin_module.dt_formatter.format(sold_account_full.sold_at),
 
         account_storage_id=storage.account_storage_id,
         storage_uuid=storage.storage_uuid,
@@ -185,9 +185,9 @@ async def get_message_sold_account_full(
         password_encrypted=password,
         is_active=storage.is_active,
         is_valid=storage.is_valid,
-        added_at=storage.added_at.strftime(admin_module.conf.different.dt_format),
+        added_at=admin_module.dt_formatter.format(storage.added_at),
         last_check_at=(
-            storage.last_check_at.strftime(admin_module.conf.different.dt_format)
+            admin_module.dt_formatter.format(storage.last_check_at)
             if storage.last_check_at else
             get_text(language, "admins_show_data_by_id", "no")
         ),
@@ -225,7 +225,7 @@ async def get_message_universal_product(
             UniversalMediaType(universal.universal_storage.media_type).value
         ),
         name=universal.universal_storage.name,
-        sold_at=universal.sold_at.strftime(admin_module.conf.different.dt_format),
+        sold_at=admin_module.dt_formatter.format(universal.sold_at),
         universal_storage_id=universal.universal_storage_id,
         storage_uuid=universal.universal_storage.storage_uuid,
         checksum=universal.universal_storage.checksum,
@@ -237,7 +237,7 @@ async def get_message_universal_product(
         key_version=universal.universal_storage.key_version,
         encryption_algo=universal.universal_storage.encryption_algo,
         is_active=universal.universal_storage.is_active,
-        added_at=universal.universal_storage.created_at.strftime(admin_module.conf.different.dt_format),
+        added_at=admin_module.dt_formatter.format(universal.universal_storage.created_at),
     )
 
     reply_markup = get_data_universal_product(
@@ -263,7 +263,7 @@ async def get_message_transfer_money(transfer_money_id: int, language: str, admi
         user_from_id=transfer_money.user_from_id,
         user_where_id=transfer_money.user_where_id,
         amount=transfer_money.amount,
-        created_at=transfer_money.created_at.strftime(admin_module.conf.different.dt_format),
+        created_at=admin_module.dt_formatter.format(transfer_money.created_at),
     )
 
 
@@ -285,9 +285,9 @@ async def get_message_voucher(voucher_id: int, language: str, admin_module: Admi
         amount=voucher.amount,
         activated_counter=voucher.activated_counter,
         number_of_activations=voucher.number_of_activations,
-        start_at=voucher.start_at.strftime(admin_module.conf.different.dt_format),
+        start_at=admin_module.dt_formatter.format(voucher.start_at),
         expire_at=(
-            voucher.expire_at.strftime(admin_module.conf.different.dt_format)
+            admin_module.dt_formatter.format(voucher.expire_at)
             if voucher.expire_at else
             get_text(language,"admins_show_data_by_id", "endlessly")
         ),
@@ -309,7 +309,7 @@ async def get_message_activate_voucher(activate_voucher_id: int, language: str, 
         voucher_activation_id=activate_voucher.voucher_activation_id,
         voucher_id=activate_voucher.voucher_id,
         user_id=activate_voucher.user_id,
-        created_at=activate_voucher.created_at.strftime(admin_module.conf.different.dt_format),
+        created_at=admin_module.dt_formatter.format(activate_voucher.created_at),
     )
 
 
@@ -335,9 +335,9 @@ async def get_message_promo_code(promo_code_id: int, language: str, admin_module
             get_text(language,"admins_show_data_by_id","no")
         ),
         number_of_activations=promo.number_of_activations,
-        start_at=promo.start_at.strftime(admin_module.conf.different.dt_format),
+        start_at=admin_module.dt_formatter.format(promo.start_at),
         expire_at=(
-            promo.expire_at.strftime(admin_module.conf.different.dt_format)
+            admin_module.dt_formatter.format(promo.expire_at)
             if promo.expire_at else
             get_text(language, "admins_show_data_by_id", "endlessly")
         ),
@@ -361,7 +361,7 @@ async def get_message_activated_promo_code(activated_promo_code_id: int, languag
         activated_promo_code_id=activated_promo_code.activated_promo_code_id,
         promo_code_id=activated_promo_code.promo_code_id,
         user_id=activated_promo_code.user_id,
-        created_at=activated_promo_code.created_at.strftime(admin_module.conf.different.dt_format),
+        created_at=admin_module.dt_formatter.format(activated_promo_code.created_at),
     )
 
 
@@ -379,7 +379,7 @@ async def get_message_referral(referral_id: int, language: str, admin_module: Ad
         referral_id=referral.referral_id,
         owner_user_id=referral.owner_user_id,
         level=referral.level,
-        created_at=referral.created_at.strftime(admin_module.conf.different.dt_format),
+        created_at=admin_module.dt_formatter.format(referral.created_at),
     )
 
 
@@ -404,7 +404,7 @@ async def get_message_income_from_referral(
         referral_id=income.referral_id,
         amount=income.amount,
         percentage_of_replenishment=income.percentage_of_replenishment,
-        created_at=income.created_at.strftime(admin_module.conf.different.dt_format),
+        created_at=admin_module.dt_formatter.format(income.created_at),
     )
 
 
@@ -429,5 +429,5 @@ async def get_message_wallet_transaction(
         amount=tx.amount,
         balance_before=tx.balance_before,
         balance_after=tx.balance_after,
-        created_at=tx.created_at.strftime(admin_module.conf.different.dt_format),
+        created_at=admin_module.dt_formatter.format(tx.created_at),
     )

@@ -10,8 +10,10 @@ from src.infrastructure.translations import get_text
 router = Router()
 
 @router.callback_query(F.data == "history_transaction_none")
-async def list_is_over(callback: CallbackQuery):
-    await callback.answer("Список закончился")
+async def list_is_over(callback: CallbackQuery, user: UsersDTO,):
+    await callback.answer(
+        get_text(user.language, "profile_messages", "list_is_over")
+    )
 
 
 @router.callback_query(F.data.startswith("transaction_list:"))
@@ -65,7 +67,7 @@ async def cb_transaction_show(
         amount=transaction.amount,
         balance_before=transaction.balance_before,
         balance_after=transaction.balance_after,
-        created_at=transaction.created_at.strftime(profile_module.conf.different.dt_format),
+        created_at=profile_module.dt_formatter.format(transaction.created_at),
     )
 
     await messages_service.edit_msg.edit(

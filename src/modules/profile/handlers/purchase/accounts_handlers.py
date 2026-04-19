@@ -177,7 +177,7 @@ async def get_code_acc(
         date, code = dt_and_code[i]
         result_text += get_text(user.language, "profile_messages",
             "code_details"
-        ).format(date=date.strftime(profile_module.conf.different.dt_format), code=code)
+        ).format(date=profile_module.dt_formatter.format(date), code=code)
 
     if not result_text:
         await callback.answer(get_text(user.language, "profile_messages", "no_codes_found"), show_alert=True)

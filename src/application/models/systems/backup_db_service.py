@@ -10,6 +10,7 @@ from apscheduler.triggers.cron import CronTrigger
 
 from src.application.crypto.crypto_context import CryptoProvider
 from src.application.models.systems import BackupLogsService
+from src.application.utils.date_time_formatter import DateTimeFormatter
 from src.config import Config
 from src.domain.crypto.encrypt import encrypt_file, wrap_dek
 from src.domain.crypto.utils import extract_nonce_b64, calc_sha256_b64
@@ -26,12 +27,14 @@ class BackupDBService:
         crypto_provider: CryptoProvider,
         secret_storage: SecretsStorage,
         backup_logs_service: BackupLogsService,
+        dt_formatter: DateTimeFormatter,
     ):
         self.conf = conf
         self.logger = logger
         self.crypto_provider = crypto_provider
         self.secret_storage = secret_storage
         self.backup_logs_service = backup_logs_service
+        self.dt_formatter = dt_formatter
 
 
     def add_backup_create(self, scheduler: AsyncIOScheduler) -> AsyncIOScheduler:
@@ -88,7 +91,7 @@ class BackupDBService:
 
     async def backup_database(self,):
         crypto_context = self.crypto_provider.get()
-        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+        timestamp = self.dt_formatter.format(datetime.now(UTC))
 
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpdir = Path(tmpdir)

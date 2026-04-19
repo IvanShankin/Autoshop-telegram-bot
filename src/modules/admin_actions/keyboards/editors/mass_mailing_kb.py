@@ -75,7 +75,7 @@ async def all_admin_mass_mailing_kb(language: str, current_page: int, admin_modu
 
     def item_button(sent_message: SentMasMessages):
         return InlineKeyboardButton(
-            text=sent_message.created_at.strftime(admin_module.conf.different.dt_format),
+            text=admin_module.dt_formatter.format(sent_message.created_at),
             callback_data=f"show_sent_mass_message:{current_page}:{sent_message.message_id}"
         )
 

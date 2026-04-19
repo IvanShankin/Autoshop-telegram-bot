@@ -75,8 +75,8 @@ async def show_admin_voucher(
             number_of_activations=(voucher.number_of_activations if voucher.number_of_activations  else
                                    get_text(user.language, "admins_editor_vouchers", "unlimited")),
             activated_counter=voucher.activated_counter,
-            start_at=voucher.start_at.strftime(admin_module.conf.different.dt_format),
-            expire_at= (voucher.expire_at.strftime(admin_module.conf.different.dt_format) if voucher.expire_at else
+            start_at=admin_module.dt_formatter.format(voucher.start_at),
+            expire_at=(admin_module.dt_formatter.format(voucher.expire_at) if voucher.expire_at else
                         get_text(user.language, "admins_editor_vouchers", "endlessly"))
         )
         reply_markup = show_admin_voucher_kb(

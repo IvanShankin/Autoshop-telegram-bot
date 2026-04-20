@@ -5,7 +5,7 @@ from aiogram.types import CallbackQuery, Message
 
 from src.application.bot import Messages
 from src.application.models.modules import AdminModule
-from src.models.read_models import UsersDTO
+from src.models.read_models import UsersDTO, LogLevel
 from src.models.update_models import UpdateSettingsDTO
 from src.modules.admin_actions.services.settings_updater import message_change_settings, message_request_new_data, \
     update_admin_settings
@@ -49,6 +49,11 @@ async def change_admin_settings(
     )
     await message_change_settings(
         user, new_message=False, callback=callback, messages_service=messages_service, admin_module=admin_module
+    )
+
+    await admin_module.publish_event_handler.send_log(
+        text="⚠️Режим 'Технические работы' включён⚠️" if new_maintenance_mode else "⚙️Режим 'Технические работы' выключен⚙️",
+        log_lvl=LogLevel.WARNING,
     )
 
 

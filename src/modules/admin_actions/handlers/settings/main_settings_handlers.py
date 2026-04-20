@@ -103,7 +103,7 @@ async def cmd_start(
     tg_logger_client: TelegramClient,
 ):
     settings = await admin_module.settings_service.get_settings()
-    if await admin_module.admin_service.check_admin(user.user_id) or settings.channel_for_logging_id == message.chat.id:
+    if user and (await admin_module.admin_service.check_admin(user.user_id) or settings.channel_for_logging_id == message.chat.id):
         await send_log_files(
             messages_service, message.chat.id, admin_module.conf.app.default_lang, admin_module, tg_logger_client
         )

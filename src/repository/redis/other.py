@@ -235,12 +235,6 @@ class VouchersCacheRepository(BaseRedisRepo):
     def _pattern_all(self) -> str:
         return "voucher:*"
 
-    async def set_by_user(self, user_id: int, vouchers: List[VouchersDTO], ttl: int):
-        await self._set_many(self._key_by_user(user_id), vouchers, ttl=ttl)
-
-    async def get_by_user(self, user_id: int) -> List[VouchersDTO]:
-        return await self._get_many(self._key_by_user(user_id), VouchersDTO)
-
     async def exists_by_user(self, user_id: int) -> bool:
         return await self.redis_session.exists(self._key_by_user(user_id)) == 1
 
@@ -262,7 +256,5 @@ class VouchersCacheRepository(BaseRedisRepo):
     async def delete_by_code(self, code: str) -> None:
         await self.redis_session.delete(self._key_one(code))
 
-    async def delete_all(self) -> None:
-        await self.delete_keys_by_pattern(self._pattern_all())
 
 

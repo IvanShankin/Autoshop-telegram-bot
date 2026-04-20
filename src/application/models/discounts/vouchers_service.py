@@ -3,8 +3,9 @@ from typing import Tuple, Optional, List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.read_models.events.discounts import NewActivationVoucher
-from src.models.read_models import LogLevel
+from src.application.models.users import WalletTransactionService
+from src.models.create_models.users import CreateWalletTransactionDTO
+from src.models.read_models import LogLevel, NewActivationVoucher
 from src.config import Config
 from src.database.models.discount import SmallVoucher
 from src.exceptions import NotEnoughMoney
@@ -31,6 +32,7 @@ class VoucherService:
         users_repo: UsersRepository,
         user_log_repo: UserAuditLogsRepository,
         wallet_transaction_repo: WalletTransactionRepository,
+        wallet_transaction_service: WalletTransactionService,
         admin_actions_repo: AdminActionsRepository,
         cache_vouchers_repo: VouchersCacheRepository,
         cache_users_repo: UsersCacheRepository,
@@ -43,12 +45,42 @@ class VoucherService:
         self.users_repo = users_repo
         self.user_log_repo = user_log_repo
         self.wallet_transaction_repo = wallet_transaction_repo
+        self.wallet_transaction_service = wallet_transaction_service
         self.admin_actions_repo = admin_actions_repo
         self.cache_vouchers_repo = cache_vouchers_repo
         self.cache_users_repo = cache_users_repo
         self.publish_event_handler = publish_event_handler
         self.conf = conf
         self.session_db = session_db
+
+    async def _filling_voucher(self, user_id: int, voucher: VouchersDTO):
+        await self.cache_vouchers_repo.delete_by_code(voucher.activation_code)
+        await self.cache_vouchers_repo.delete_by_user(user_id)
+
+        vouchers = await self.vouchers_repo.get_valid_by_page(user_id=user_id)
+        small_list = [
+            SmallVoucher(
+                voucher_id=v.voucher_id,
+                creator_id=v.creator_id,
+                amount=v.amount,
+                activation_code=v.activation_code,
+                activated_counter=v.activated_counter,
+                number_of_activations=v.number_of_activations,
+                is_valid=v.is_valid,
+            )
+            for v in vouchers
+        ]
+        await self.cache_vouchers_repo.set_small_by_user(
+            user_id=user_id,
+            vouchers=small_list,
+            ttl=int(self.conf.redis_time_storage.all_voucher.total_seconds()),
+        )
+
+        voucher = await self.vouchers_repo.get_by_id(voucher_id=voucher.voucher_id, check_on_valid=True)
+        await self.cache_vouchers_repo.set_by_code(
+            voucher,
+            ttl=int(self.conf.redis_time_storage.all_voucher.total_seconds()) if voucher.expire_at else None,
+        )
 
     async def create_voucher(
         self,
@@ -131,32 +163,9 @@ class VoucherService:
                 log_lvl=LogLevel.INFO,
             )
 
-        ttl = None
-        if data.expire_at:
-            ttl = int((data.expire_at - datetime.now(timezone.utc)).total_seconds())
-
-        await self.cache_vouchers_repo.set_by_code(new_voucher, ttl=ttl)
+        await self._filling_voucher(user_id=user_id, voucher=new_voucher)
 
         if not data.is_created_admin:
-            vouchers = await self.vouchers_repo.get_valid_by_page(user_id=user_db.user_id)
-            small_list = [
-                SmallVoucher(
-                    voucher_id=v.voucher_id,
-                    creator_id=v.creator_id,
-                    amount=v.amount,
-                    activation_code=v.activation_code,
-                    activated_counter=v.activated_counter,
-                    number_of_activations=v.number_of_activations,
-                    is_valid=v.is_valid,
-                )
-                for v in vouchers
-            ]
-            await self.cache_vouchers_repo.set_small_by_user(
-                user_id=user_db.user_id,
-                vouchers=small_list,
-                ttl=int(self.conf.redis_time_storage.all_voucher.total_seconds()),
-            )
-
             await self.cache_users_repo.set(
                 UsersDTO.model_validate(user_db),
                 ttl=int(self.conf.redis_time_storage.user.total_seconds()),
@@ -302,24 +311,7 @@ class VoucherService:
 
             await self.session_db.commit()
 
-            vouchers = await self.vouchers_repo.get_valid_by_page(user_id=user_db.user_id)
-            small_list = [
-                SmallVoucher(
-                    voucher_id=v.voucher_id,
-                    creator_id=v.creator_id,
-                    amount=v.amount,
-                    activation_code=v.activation_code,
-                    activated_counter=v.activated_counter,
-                    number_of_activations=v.number_of_activations,
-                    is_valid=v.is_valid,
-                )
-                for v in vouchers
-            ]
-            await self.cache_vouchers_repo.set_small_by_user(
-                user_id=user_db.user_id,
-                vouchers=small_list,
-                ttl=int(self.conf.redis_time_storage.all_voucher.total_seconds()),
-            )
+            await self._filling_voucher(user_id=user_db.user_id, voucher=voucher)
             await self.cache_users_repo.set(
                 UsersDTO.model_validate(user_db),
                 ttl=int(self.conf.redis_time_storage.user.total_seconds()),
@@ -349,28 +341,27 @@ class VoucherService:
         :param language: Язык на котором будет возвращено сообщение.
         :return Tuple[str, bool]: Сообщение с результатом, успешность активации
         """
-        balance_before = user.balance
 
-        voucher = await self.cache_vouchers_repo.get_by_code(code)
-        if not voucher:
-            voucher = await self.vouchers_repo.get_by_code(code, only_valid=True)
-
-        if not voucher:
-            return get_text(language, "discount", "voucher_not_found"), False
-
-        if voucher.creator_id == user.user_id:
-            return get_text(language, "discount", "cannot_activate_own_voucher"), False
-
-        if voucher.expire_at and voucher.expire_at < datetime.now(timezone.utc):
-            await self.deactivate_voucher(voucher.voucher_id)
-            return get_text(
-                language,
-                "discount",
-                "voucher_expired_due_to_time",
-            ).format(id=voucher.voucher_id, code=voucher.activation_code), False
-
-        updated_user = None
         async with self.session_db.begin():
+            voucher = await self.cache_vouchers_repo.get_by_code(code)
+            if not voucher:
+                voucher = await self.vouchers_repo.get_by_code(code, only_valid=True)
+
+            if not voucher:
+                return get_text(language, "discount", "voucher_not_found"), False
+
+            if voucher.creator_id == user.user_id:
+                return get_text(language, "discount", "cannot_activate_own_voucher"), False
+
+            if voucher.expire_at and voucher.expire_at < datetime.now(timezone.utc):
+                await self.deactivate_voucher(voucher.voucher_id)
+                return get_text(
+                    language,
+                    "discount",
+                    "voucher_expired_due_to_time",
+                ).format(id=voucher.voucher_id, code=voucher.activation_code), False
+
+            updated_user = None
             activation = await self.voucher_activations_repo.get_by_voucher_and_user(
                 voucher_id=voucher.voucher_id,
                 user_id=user.user_id,
@@ -390,20 +381,59 @@ class VoucherService:
                 user_id=user.user_id,
             )
 
+            voucher = await self.vouchers_repo.increment_activated_counter(voucher_id=voucher.voucher_id,)
+
+            await self.wallet_transaction_service.create_wallet_transaction(
+                user_id=user_db.user_id,
+                data=CreateWalletTransactionDTO(
+                    type="voucher",
+                    amount=voucher.amount,
+                    balance_before=new_balance - voucher.amount,
+                    balance_after=new_balance,
+                ),
+                make_commit=False,
+            )
+
+            await self.user_log_repo.create_log(
+                user_id=user_db.user_id,
+                action_type="activated_voucher",
+                message="Ваучер активирован",
+                details={
+                    "voucher_id": voucher.voucher_id,
+                    "amount": voucher.amount
+                }
+            )
+
+            await self.user_log_repo.create_log(
+                user_id=voucher.creator_id,
+                action_type="activated_voucher",
+                message="Его ваучер активировали",
+                details={
+                    "voucher_id": voucher.voucher_id,
+                    "amount": voucher.amount
+                }
+            )
+
+            if voucher.number_of_activations and (voucher.activated_counter >= voucher.number_of_activations):
+                voucher = await self.vouchers_repo.deactivate(voucher_id=voucher.voucher_id)
+
+                if not voucher.is_created_admin:
+                    await self.user_log_repo.create_log(
+                        user_id=user_db.user_id,
+                        action_type="deactivate_voucher",
+                        message="Ваучер деактивирован автоматически после его активации",
+                        details={"voucher_id": voucher.voucher_id,}
+                    )
+
         await self.cache_users_repo.set(
             updated_user,
             ttl=int(self.conf.redis_time_storage.user.total_seconds()),
         )
+        await self._filling_voucher(user_id=user_db.user_id, voucher=voucher)
 
+        # отошлёт сообщения пользователю или в канал (если создал админ)
         await self.publish_event_handler.voucher_activated(
-            NewActivationVoucher(
-                user_id=user.user_id,
-                language=user.language,
-                voucher_id=voucher.voucher_id,
-                amount=voucher.amount,
-                balance_before=balance_before,
-                balance_after=updated_user.balance,
-            )
+            data=NewActivationVoucher(voucher=voucher)
         )
 
         return get_text(

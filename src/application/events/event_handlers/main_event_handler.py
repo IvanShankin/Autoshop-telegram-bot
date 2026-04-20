@@ -7,6 +7,7 @@ from src.application.events.event_handlers.promo_code import PromoCodeEventHandl
 from src.application.events.event_handlers.purchase import PurchaseEventHandler
 from src.application.events.event_handlers.referrals import ReferralEventHandler
 from src.application.events.event_handlers.replenishments import ReplenishmentsEventHandler
+from src.application.events.event_handlers.voucher import VoucherEventHandler
 
 
 class EventHandler:
@@ -15,6 +16,7 @@ class EventHandler:
     def __init__(
         self,
         promo_code_ev_hand: PromoCodeEventHandler,
+        voucher_ev_hand: VoucherEventHandler,
         referral_ev_hand: ReferralEventHandler,
         replenishment_ev_hand: ReplenishmentsEventHandler,
         purchase_ev_hand: PurchaseEventHandler,
@@ -30,6 +32,7 @@ class EventHandler:
             "purchase": purchase_ev_hand.purchase_event_handler,
             "filesystem": filesystem_ev_hand.filesystem_event_handler,
             "message": message_ev_hand.message_event_handler,
+            "voucher": voucher_ev_hand.voucher_event_handler,
         }
 
     async def handle(self, body: dict[str, Any]) -> None:

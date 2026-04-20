@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.crypto.crypto_context import CryptoProvider
 from src.application.currenccy.update_dollare_rate import UpdateDollarRateUseCase
+from src.application.events.event_handlers.voucher import VoucherEventHandler
 from src.application.models.discounts.remove_invalid import RemoveInvalidDiscountsUseCase
 from src.application.models.systems.backup_db_service import BackupDBService
 from src.application.models.users.use_cases import GenerateUserAuditLogUseCase
@@ -616,6 +617,7 @@ class RequestContainer:
             users_repo=self.users_repo,
             user_log_repo=self.user_log_repo,
             wallet_transaction_repo=self.wallet_transaction_repo,
+            wallet_transaction_service=self.wallet_transaction_service,
             admin_actions_repo=self.admin_actions_repo,
             cache_vouchers_repo=self.vouchers_cache__repo,
             cache_users_repo=self.users_cache_repo,
@@ -1184,6 +1186,11 @@ class RequestContainer:
                 conf=self.config,
                 session_db=self.session_db,
                 logger=self.logger,
+            ),
+            voucher_ev_hand=VoucherEventHandler(
+                publish_event_handler=self.publish_event_handler,
+                user_service=self.user_service,
+                tg_client=self.get_tg_client(),
             ),
             referral_ev_hand=ReferralEventHandler(
                 publish_event=self.publish_event_handler,

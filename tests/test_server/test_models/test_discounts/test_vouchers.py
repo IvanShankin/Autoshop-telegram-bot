@@ -208,49 +208,16 @@ class TestVoucherService:
         target = await create_new_user(balance=0)
         user_dto = UsersDTO.model_validate(target)
 
-        async with get_session_factory() as new_session:
-            test_service = VoucherService(
-                vouchers_repo=VouchersRepository(
-                    session_db=new_session,
-                    config=container_fix.config,
-                ),
-                voucher_activations_repo=VoucherActivationsRepository(
-                    session_db=new_session,
-                    config=container_fix.config,
-                ),
-                users_repo=UsersRepository(
-                    session_db=new_session,
-                    config=container_fix.config,
-                ),
-                user_log_repo=UserAuditLogsRepository(
-                    session_db=new_session,
-                    config=container_fix.config,
-                ),
-                wallet_transaction_repo=WalletTransactionRepository(
-                    session_db=new_session,
-                    config=container_fix.config,
-                ),
-                admin_actions_repo=AdminActionsRepository(
-                    session_db=new_session,
-                    config=container_fix.config,
-                ),
-                cache_vouchers_repo=container_fix.vouchers_cache__repo,
-                cache_users_repo=container_fix.users_cache_repo,
-                publish_event_handler=container_fix.publish_event_handler,
-                conf=container_fix.config,
-                session_db=new_session,
-            )
-
-            message, success = await test_service.activate_voucher(
-                user_dto,
-                voucher.activation_code,
-                language="ru",
-            )
-            message2, success2 = await test_service.activate_voucher(
-                user_dto,
-                voucher.activation_code,
-                language="ru",
-            )
+        message, success = await container_fix.voucher_service.activate_voucher(
+            user_dto,
+            voucher.activation_code,
+            language="ru",
+        )
+        message2, success2 = await container_fix.voucher_service.activate_voucher(
+            user_dto,
+            voucher.activation_code,
+            language="ru",
+        )
 
         assert success
         assert "voucher_successfully_activated" in message or success

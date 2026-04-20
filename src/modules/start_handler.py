@@ -6,6 +6,7 @@ from aiogram.types import Message, CallbackQuery
 from src.application.bot import Messages
 from src.application.models.modules import ProfileModule, AdminModule
 from src.models.create_models.users import CreateUserDTO
+from src.models.read_models import UsersDTO
 from src.models.update_models import UpdateUserDTO
 from src.modules.keyboard_main import main_kb, selecting_language
 from src.database.models.discount import Vouchers
@@ -16,12 +17,11 @@ router = Router()
 
 @router.message(CommandStart())
 async def cmd_start(
-    message: Message, command: CommandObject, state: FSMContext,
+    message: Message, command: CommandObject, state: FSMContext, user: UsersDTO,
     profile_module: ProfileModule, messages_service: Messages, admin_module: AdminModule
 ):
     await state.clear()
 
-    user = await profile_module.user_service.get_user(message.from_user.id, username=message.from_user.username)
     voucher: Vouchers | None = None
     result_message_voucher: str | None = None
     success_activate_voucher: bool | None = None
@@ -34,8 +34,7 @@ async def cmd_start(
         params = args.split('_')
         if params[0] == 'voucher': # если активировали ваучер
             voucher_code = params[1]
-            voucher = await profile_module.voucher_service.get_valid_voucher_by_code(params[1]) # ваучера может не быть
-            if voucher and user:
+            if user:
                 result_message_voucher, success_activate_voucher = await profile_module.voucher_service.activate_voucher(
                     user, voucher_code, language
                 )
@@ -73,7 +72,7 @@ async def cmd_start(
             )
         )
 
-        if voucher and user:# если необходимо вернуть результат активации ваучера
+        if user:# если необходимо вернуть результат активации ваучера
             result_message_voucher, success_activate_voucher = await profile_module.voucher_service.activate_voucher(
                 user, voucher_code, language
             )

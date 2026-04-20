@@ -1,14 +1,16 @@
 from datetime import datetime, timezone
-from typing import Tuple, Optional, List
+from typing import Optional, List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.models.users import WalletTransactionService
+from src.exceptions.business import VoucherInvalidActivateOwner, InvalidVoucher, VoucherAlreadyActivate
+from src.exceptions.domain import VoucherNotFound
 from src.models.create_models.users import CreateWalletTransactionDTO
 from src.models.read_models import LogLevel, NewActivationVoucher
 from src.config import Config
 from src.database.models.discount import SmallVoucher
-from src.exceptions import NotEnoughMoney
+from src.exceptions import NotEnoughMoney, UserNotFound
 from src.models.create_models.discounts import CreateVoucherDTO
 from src.models.read_models.other import UsersDTO, VouchersDTO
 from src.repository.database.admins import AdminActionsRepository
@@ -77,10 +79,11 @@ class VoucherService:
         )
 
         voucher = await self.vouchers_repo.get_by_id(voucher_id=voucher.voucher_id, check_on_valid=True)
-        await self.cache_vouchers_repo.set_by_code(
-            voucher,
-            ttl=int(self.conf.redis_time_storage.all_voucher.total_seconds()) if voucher.expire_at else None,
-        )
+        if voucher: # необходимо хранить только валидные
+            await self.cache_vouchers_repo.set_by_code(
+                voucher,
+                ttl=int(self.conf.redis_time_storage.all_voucher.total_seconds()) if voucher.expire_at else None,
+            )
 
     async def create_voucher(
         self,
@@ -311,7 +314,7 @@ class VoucherService:
 
             await self.session_db.commit()
 
-            await self._filling_voucher(user_id=user_db.user_id, voucher=voucher)
+            await self._filling_voucher(user_id=voucher.creator_id, voucher=voucher)
             await self.cache_users_repo.set(
                 UsersDTO.model_validate(user_db),
                 ttl=int(self.conf.redis_time_storage.user.total_seconds()),
@@ -329,7 +332,7 @@ class VoucherService:
 
             raise e
 
-    async def activate_voucher(self, user: UsersDTO, code: str, language: str) -> Tuple[str, bool]:
+    async def activate_voucher(self, user: UsersDTO, code: str) -> VouchersDTO:
         """
         Проверит наличие ваучера с таким кодом, если он действителен и пользователь его ещё не активировал, то ваучер активируется.
         Если user не является создателем ваучера, то он может его активировать.
@@ -338,8 +341,13 @@ class VoucherService:
 
         :param user: Тот кто хочет активировать ваучер.
         :param code: Код ваучера.
-        :param language: Язык на котором будет возвращено сообщение.
-        :return Tuple[str, bool]: Сообщение с результатом, успешность активации
+        :return VouchersDTO: Активированный ваучер.
+
+        :except VoucherNotFound:
+        :except VoucherInvalidActivateOwner:
+        :except InvalidVoucher:
+        :except VoucherAlreadyActivate:
+        :except UserNotFound:
         """
 
         async with self.session_db.begin():
@@ -348,18 +356,21 @@ class VoucherService:
                 voucher = await self.vouchers_repo.get_by_code(code, only_valid=True)
 
             if not voucher:
-                return get_text(language, "discount", "voucher_not_found"), False
+                raise VoucherNotFound()
+                # return get_text(language, "discount", "voucher_not_found"), False
 
             if voucher.creator_id == user.user_id:
-                return get_text(language, "discount", "cannot_activate_own_voucher"), False
+                raise VoucherInvalidActivateOwner()
+                # return get_text(language, "discount", "cannot_activate_own_voucher"), False
 
             if voucher.expire_at and voucher.expire_at < datetime.now(timezone.utc):
-                await self.deactivate_voucher(voucher.voucher_id)
-                return get_text(
-                    language,
-                    "discount",
-                    "voucher_expired_due_to_time",
-                ).format(id=voucher.voucher_id, code=voucher.activation_code), False
+                # ничего делать не до, отложенный задачник, сам обработает
+                raise InvalidVoucher(voucher)
+                # return get_text(
+                #     language,
+                #     "discount",
+                #     "voucher_expired_due_to_time",
+                # ).format(id=voucher.voucher_id, code=voucher.activation_code), False
 
             updated_user = None
             activation = await self.voucher_activations_repo.get_by_voucher_and_user(
@@ -368,11 +379,13 @@ class VoucherService:
                 for_update=True,
             )
             if activation:
-                return get_text(language, "discount", "voucher_already_activated"), False
+                raise VoucherAlreadyActivate()
+                # return get_text(language, "discount", "voucher_already_activated"), False
 
             user_db = await self.users_repo.get_by_id_for_update(user.user_id)
             if not user_db:
-                return get_text(language, "discount", "voucher_not_found"), False
+                raise UserNotFound()
+                # return get_text(language, "discount", "voucher_not_found"), False
 
             new_balance = user_db.balance + voucher.amount
             updated_user = await self.users_repo.update(user_id=user_db.user_id, balance=new_balance)
@@ -429,13 +442,15 @@ class VoucherService:
             updated_user,
             ttl=int(self.conf.redis_time_storage.user.total_seconds()),
         )
-        await self._filling_voucher(user_id=user_db.user_id, voucher=voucher)
+        await self._filling_voucher(user_id=voucher.creator_id, voucher=voucher)
 
         # отошлёт сообщения пользователю или в канал (если создал админ)
         await self.publish_event_handler.voucher_activated(
             data=NewActivationVoucher(voucher=voucher)
         )
 
-        return get_text(
-            language, "discount", "voucher_successfully_activated"
-        ).format(amount=voucher.amount, new_balance=updated_user.balance), True
+        return voucher
+
+        # return get_text(
+        #     language, "discount", "voucher_successfully_activated"
+        # ).format(amount=voucher.amount, new_balance=updated_user.balance), True

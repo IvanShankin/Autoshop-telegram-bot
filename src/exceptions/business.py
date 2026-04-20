@@ -5,6 +5,8 @@
 
 from typing import Optional
 
+from src.models.read_models import VouchersDTO
+
 
 class ServerError(Exception):
     """Любая ошибка внутри сервера свидетельствующая о поломки"""
@@ -147,4 +149,17 @@ class AlreadyActivated(Exception):
     pass
 
 class IncorrectedReplenishmentService(Exception):
+    pass
+
+class VoucherInvalidActivateOwner(Exception):
+    """Владелец не может активировать ваучер"""
+    pass
+
+class InvalidVoucher(Exception):
+    """Ваучер либо с истёкшим сроком годности, либо достигнут лимит активации"""
+    def __init__(self, voucher: VouchersDTO):
+        self.voucher = voucher
+
+class VoucherAlreadyActivate(Exception):
+    """Пользователь может активировать один и тот же ваучер только один раз"""
     pass

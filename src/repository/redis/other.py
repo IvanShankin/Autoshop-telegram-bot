@@ -226,9 +226,6 @@ class VouchersCacheRepository(BaseRedisRepo):
     def _key_by_user(self, user_id: int) -> str:
         return f"voucher_by_user:{user_id}"
 
-    def _pattern_by_user(self, user_id: int) -> str:
-        return f"voucher_by_user:{user_id}"
-
     def _key_one(self, code: str) -> str:
         return f"voucher:{code}"
 

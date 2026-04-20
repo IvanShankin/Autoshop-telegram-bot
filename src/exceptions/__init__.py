@@ -19,7 +19,7 @@ from src.exceptions.business import (
     InvalidAmountOfAchievement,
     InvalidSelectedLevel,
     TextTooLong,
-    TextNotLinc,
+    TextNotLinc, VoucherInvalidActivateOwner, VoucherAlreadyActivate,
 )
 # Доменные исключения
 from src.exceptions.domain import (
@@ -79,6 +79,8 @@ __all__ = [
     'InvalidSelectedLevel',
     'TextTooLong',
     'TextNotLinc',
+    'VoucherInvalidActivateOwner',
+    'VoucherAlreadyActivate',
 
     # Инфраструктурные
     'TelegramError',

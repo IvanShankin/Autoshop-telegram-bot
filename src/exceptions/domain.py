@@ -63,6 +63,10 @@ class PromoCodeNotFound(Exception):
     pass
 
 
+class VoucherNotFound(Exception):
+    pass
+
+
 class MessageEventNotFound(Exception):
     pass
 

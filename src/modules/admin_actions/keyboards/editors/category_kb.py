@@ -276,11 +276,13 @@ def delete_product_kb(language: str, category_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
             text=get_text(language, "kb_general", "confirm"),
-            callback_data=f'delete_all_products:{category_id}'
+            callback_data=f'delete_all_products:{category_id}',
+            style="success",
         )],
         [InlineKeyboardButton(
             text=get_text(language, "kb_general", "back"),
-            callback_data=f'show_category_admin:{category_id}'
+            callback_data=f'show_category_admin:{category_id}',
+            style="danger",
         )]
     ])
 
@@ -289,11 +291,13 @@ def delete_category_kb(language: str, category_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
             text=get_text(language, "kb_general", "confirm"),
-            callback_data=f'delete_category:{category_id}'
+            callback_data=f'delete_category:{category_id}',
+            style="success",
         )],
         [InlineKeyboardButton(
             text=get_text(language, "kb_general", "back"),
-            callback_data=f'show_category_admin:{category_id}'
+            callback_data=f'show_category_admin:{category_id}',
+            style="danger",
         )]
     ])
 

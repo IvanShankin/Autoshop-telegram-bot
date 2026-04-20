@@ -36,8 +36,16 @@ def editor_message_mailing_kb(language: str, admin_module: AdminModule, button_u
 
 def confirm_start_mailing_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, "kb_general","confirm"), callback_data=f'start_mass_mailing'),],
-        [InlineKeyboardButton(text=get_text(language, "kb_general", "back"), callback_data=f'editor_mes_mailing'),]
+        [InlineKeyboardButton(
+            text=get_text(language, "kb_general","confirm"),
+            callback_data=f'start_mass_mailing',
+            style="success",
+        ),],
+        [InlineKeyboardButton(
+            text=get_text(language, "kb_general", "back"),
+            callback_data=f'editor_mes_mailing',
+            style="danger",
+        ),]
     ])
 
 

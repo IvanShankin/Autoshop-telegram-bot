@@ -85,10 +85,12 @@ def confirm_del_universal_kb(language: str, sold_universal_id: int, current_page
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
             text=get_text(language, "kb_general", "confirm"),
-            callback_data=f'del_universal:{sold_universal_id}:{current_page}')
-        ],
+            callback_data=f'del_universal:{sold_universal_id}:{current_page}',
+            style="success",
+        )],
         [InlineKeyboardButton(
             text=get_text(language, "kb_general", "back"),
-            callback_data=f'sold_universal:{sold_universal_id}:{current_page}')
-        ]
+            callback_data=f'sold_universal:{sold_universal_id}:{current_page}',
+            style="danger",
+        )]
     ])

@@ -82,11 +82,13 @@ def confirm_overwrite_cache_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
             text=get_text(language, "kb_general", "confirm"),
-            callback_data=f"overwrite_cache"
+            callback_data=f"overwrite_cache",
+            style="success",
         )],
         [InlineKeyboardButton(
             text=get_text(language, "kb_general", "back"),
-            callback_data=f"admin_settings"
+            callback_data=f"admin_settings",
+            style="danger",
         )],
     ])
 

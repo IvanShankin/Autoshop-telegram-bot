@@ -116,11 +116,13 @@ def confirm_buy_kb(
             InlineKeyboardButton(
                 # callback_data - "buy_category:{id категории}:{количество аккаунтов}:{id промокода(если есть)}"
                 text=get_text(language, "kb_general", "confirm"),
-                callback_data=f'buy_in_category:{category_id}:{quantity_for_buying}:{promo_code_id}'
+                callback_data=f'buy_in_category:{category_id}:{quantity_for_buying}:{promo_code_id}',
+                style="success",
             ),
             InlineKeyboardButton(
                 text=get_text(language, "kb_general", "back"),
-                callback_data=f'show_category:{category_id}:{quantity_for_buying}'
+                callback_data=f'show_category:{category_id}:{quantity_for_buying}',
+                style="danger",
             ),
         ]
     ])

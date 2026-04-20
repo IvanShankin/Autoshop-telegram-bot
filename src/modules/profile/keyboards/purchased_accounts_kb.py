@@ -205,10 +205,13 @@ def confirm_del_acc_kb(language: str, sold_account_id: int, type_account_service
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
             text=get_text(language, "kb_general", "confirm"),
-            callback_data=f'del_account:{sold_account_id}:{type_account_service.value}:{current_page}')
+            callback_data=f'del_account:{sold_account_id}:{type_account_service.value}:{current_page}',
+            style="success",
+        )
         ],
         [InlineKeyboardButton(
             text=get_text(language, "kb_general", "back"),
-            callback_data=f'sold_account:{sold_account_id}:{type_account_service.value}:{current_page}')
-        ]
+            callback_data=f'sold_account:{sold_account_id}:{type_account_service.value}:{current_page}',
+            style="danger",
+        )]
     ])

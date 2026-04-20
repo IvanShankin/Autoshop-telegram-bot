@@ -51,11 +51,13 @@ def confirm_del_lvl_kb(language: str, referral_level_id: int,):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
             text=get_text(language, "kb_general", "confirm"),
-            callback_data=f"delete_ref_lvl:{referral_level_id}"
+            callback_data=f"delete_ref_lvl:{referral_level_id}",
+            style="success",
         ),],
         [InlineKeyboardButton(
             text=get_text(language, "kb_general", "back"),
-            callback_data=f"show_ref_lvl_editor:{referral_level_id}"
+            callback_data=f"show_ref_lvl_editor:{referral_level_id}",
+            style="danger",
         ),],
     ])
 

@@ -19,6 +19,9 @@ msgstr "👤 Информация \n"
 "╰ Средства удержанные в ваучерах: {money_in_vouchers} ₽ \n"
 
 
+msgid "list_is_over"
+msgstr "Список закончился"
+
 # ---- Пополнение ----
 
 msgid "select_replenishment_service"

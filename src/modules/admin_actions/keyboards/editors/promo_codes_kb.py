@@ -97,12 +97,14 @@ def in_show_admin_promo_kb(language: str, current_page: int, promo_code_id: int,
 def confirm_deactivate_promo_code_kb(language: str, current_page: int, promo_code_id: int, show_not_valid: bool):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-                text=get_text(language, "kb_general", "confirm"),
-                callback_data=f'deactivate_promo_code:{promo_code_id}:{int(show_not_valid)}:{current_page}'
+            text=get_text(language, "kb_general", "confirm"),
+            callback_data=f'deactivate_promo_code:{promo_code_id}:{int(show_not_valid)}:{current_page}',
+            style="success",
         )],
         [InlineKeyboardButton(
             text=get_text(language, "kb_general", "back"),
-            callback_data=f"admin_promo_list:{int(show_not_valid)}:{current_page}"
+            callback_data=f"admin_promo_list:{int(show_not_valid)}:{current_page}",
+            style="danger",
         )]
     ])
 

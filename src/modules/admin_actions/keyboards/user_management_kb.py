@@ -66,11 +66,13 @@ def confirm_remove_ban_kb(language: str, user_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
             text=get_text(language, "kb_general", "confirm"),
-            callback_data=f"remove_ban:{user_id}"
+            callback_data=f"remove_ban:{user_id}",
+            style="success",
         )],
         [InlineKeyboardButton(
             text=get_text(language, "kb_general", "back"),
-            callback_data=f"user_management:{user_id}"
+            callback_data=f"user_management:{user_id}",
+            style="danger",
         )],
     ])
 

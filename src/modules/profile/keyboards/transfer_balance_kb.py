@@ -19,17 +19,41 @@ def balance_transfer_kb(language: str, user_id: int):
 
 def confirmation_transfer_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, "kb_general", "confirm"), callback_data='confirm_transfer_money'),
-         InlineKeyboardButton(text=get_text(language, "kb_general", "again"), callback_data='transfer_money')],
-        [InlineKeyboardButton(text=get_text(language, "kb_general", "back"), callback_data=f'balance_transfer')],
+        [InlineKeyboardButton(
+            text=get_text(language, "kb_general", "confirm"),
+            callback_data='confirm_transfer_money',
+            style="success",
+        ),
+         InlineKeyboardButton(
+            text=get_text(language, "kb_general", "again"),
+            callback_data='transfer_money',
+            style="primary",
+         )],
+        [InlineKeyboardButton(
+            text=get_text(language, "kb_general", "back"),
+            callback_data=f'balance_transfer',
+            style="danger",
+        )],
     ])
 
 
 def confirmation_voucher_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=get_text(language, "kb_general", "confirm"), callback_data='confirm_create_voucher'),
-         InlineKeyboardButton(text=get_text(language, "kb_general", "again"), callback_data='create_voucher')],
-        [InlineKeyboardButton(text=get_text(language, "kb_general", "back"), callback_data=f'balance_transfer')],
+        [InlineKeyboardButton(
+            text=get_text(language, "kb_general", "confirm"),
+            callback_data='confirm_create_voucher',
+            style="success",
+        ),
+         InlineKeyboardButton(
+            text=get_text(language, "kb_general", "again"),
+            callback_data='create_voucher',
+            style="primary",
+         )],
+        [InlineKeyboardButton(
+            text=get_text(language, "kb_general", "back"),
+            callback_data=f'balance_transfer',
+            style="danger",
+        )],
     ])
 
 
@@ -74,7 +98,7 @@ async def all_vouchers_kb(
         left_prefix=f"voucher_list:{target_user_id}",
         right_prefix=f"voucher_list:{target_user_id}",
         back_text=get_text(language, "kb_general", "back"),
-        back_callback="transfer_money" if target_user_id == user_id else f"user_management:{target_user_id}",
+        back_callback="balance_transfer" if target_user_id == user_id else f"user_management:{target_user_id}",
     )
 
 
@@ -100,12 +124,14 @@ def show_voucher_kb(language: str, current_page: int, target_user_id: int, user_
 def confirm_deactivate_voucher_kb(language: str, current_page: int, target_user_id: int, voucher_id: int):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-                text=get_text(language, "kb_general", "confirm"),
-                callback_data=f'deactivate_voucher:{voucher_id}:{current_page}'
+            text=get_text(language, "kb_general", "confirm"),
+            callback_data=f'deactivate_voucher:{voucher_id}:{current_page}',
+            style="success",
         )],
         [InlineKeyboardButton(
             text=get_text(language, "kb_general", "back"),
-            callback_data=f'voucher_list:{target_user_id}:{current_page}'
+            callback_data=f'voucher_list:{target_user_id}:{current_page}',
+            style="danger",
         )]
     ])
 

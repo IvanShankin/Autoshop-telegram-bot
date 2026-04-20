@@ -114,7 +114,8 @@ async def show_main_categories(
 
 @router.callback_query(F.data.startswith("show_category:"))
 async def show_category(
-    callback: CallbackQuery, state: FSMContext, user: Users, messages_service: Messages, catalog_modul: CatalogModule
+    callback: CallbackQuery, state: FSMContext, user: Users,
+    messages_service: Messages, catalog_modul: CatalogModule, tg_client: TelegramClient,
 ):
     category_id = int(callback.data.split(':')[1])
     quantity_products = int(callback.data.split(':')[2]) # число аккаунтов на приобретение
@@ -126,6 +127,7 @@ async def show_category(
         language=user.language,
         messages_service=messages_service,
         catalog_modul=catalog_modul,
+        tg_client=tg_client,
     )
     if category is None:
         return
@@ -167,7 +169,8 @@ async def show_category(
 
 @router.message(BuyProduct.quantity_products)
 async def set_quantity_products(
-    message: Message, state: FSMContext, user: Users, messages_service: Messages, catalog_modul: CatalogModule
+    message: Message, state: FSMContext, user: Users,
+    messages_service: Messages, catalog_modul: CatalogModule, tg_client: TelegramClient,
 ):
     try:
         await message.delete()
@@ -183,6 +186,7 @@ async def set_quantity_products(
         language=user.language,
         messages_service=messages_service,
         catalog_modul=catalog_modul,
+        tg_client=tg_client,
     )
     if category is None:
         return
@@ -224,7 +228,8 @@ async def set_quantity_products(
 
 @router.callback_query(F.data.startswith('confirm_buy_category:'))
 async def confirm_buy_category(
-    callback: CallbackQuery, user: Users, messages_service: Messages, catalog_modul: CatalogModule
+    callback: CallbackQuery, user: Users,
+    messages_service: Messages, catalog_modul: CatalogModule, tg_client: TelegramClient,
 ):
     category_id = int(callback.data.split(':')[1])
     quantity_products = int(callback.data.split(':')[2]) # число аккаунтов на приобретение
@@ -241,6 +246,7 @@ async def confirm_buy_category(
         language=user.language,
         messages_service=messages_service,
         catalog_modul=catalog_modul,
+        tg_client=tg_client,
     )
     if category is None:
         return
@@ -290,7 +296,8 @@ async def confirm_buy_category(
 
 @router.callback_query(F.data.startswith('buy_in_category:'))
 async def buy_in_category(
-    callback: CallbackQuery, state: FSMContext, user: Users, messages_service: Messages, catalog_modul: CatalogModule
+    callback: CallbackQuery, state: FSMContext, user: Users,
+        messages_service: Messages, catalog_modul: CatalogModule, tg_client: TelegramClient,
 ):
     category_id = int(callback.data.split(':')[1])
     quantity_products = int(callback.data.split(':')[2])  # число продуктов на приобретение
@@ -304,5 +311,6 @@ async def buy_in_category(
         user=user,
         messages_service=messages_service,
         catalog_modul=catalog_modul,
+        tg_client=tg_client,
     )
     await state.clear()

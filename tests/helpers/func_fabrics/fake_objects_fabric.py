@@ -1,6 +1,5 @@
 from src.application.crypto.crypto_context import CryptoProvider, InitCryptoContext
 from src.config import RuntimeConfig
-from src.containers import init_request_container
 from src.infrastructure.crypto.key_store import KeyStore
 from src.infrastructure.crypto.secret_storage.secrets_storage import SecretsStorage
 

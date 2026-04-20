@@ -2,7 +2,7 @@ from logging import Logger
 
 from src.application.crypto.crypto_context import CryptoProvider
 from src.application.events.publish_event_handler import PublishEventHandler
-from src.application.models.products.accounts import AccountProductService, AccountStorageService
+from src.application.models.products.accounts import AccountProductService
 from src.application.products.accounts.other.dto import REQUIRED_HEADERS
 from src.domain.crypto.decrypt import decrypt_text
 from src.domain.crypto.key_ops import unwrap_dek

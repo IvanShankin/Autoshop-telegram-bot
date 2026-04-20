@@ -73,7 +73,7 @@ class MoneyTransferService:
                     data=CreateWalletTransactionDTO(
                         type="transfer",
                         amount=amount * -1,
-                        balance_before=sender.balance - amount,
+                        balance_before=sender.balance + amount,
                         balance_after=sender.balance
                     )
                 )

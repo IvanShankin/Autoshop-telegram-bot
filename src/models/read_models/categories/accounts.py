@@ -1,6 +1,5 @@
 from typing import Optional
 from datetime import datetime
-from pydantic import BaseModel
 
 from src.database.models.categories import SoldAccounts, ProductAccounts
 from src.database.models.categories import AccountStorage

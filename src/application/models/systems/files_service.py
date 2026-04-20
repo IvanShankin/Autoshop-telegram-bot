@@ -4,7 +4,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.create_models.system import CreateFileDTO
 from src.models.read_models.other import FilesDTO
-from src.models.update_models.system import UpdateFileDTO
 from src.repository.database.systems import FilesRepository
 
 

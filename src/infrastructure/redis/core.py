@@ -4,8 +4,6 @@ from src.config import Config
 
 
 def init_redis(conf: Config) -> Redis:
-    global redis_client
-
     redis_client = Redis(
         host=conf.env.redis_host,
         port=conf.env.redis_port,

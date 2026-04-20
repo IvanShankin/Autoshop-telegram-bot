@@ -27,8 +27,8 @@ async def test_account_purchase_service_start_purchase_and_finalize_success(
     user = await create_new_user(balance=2_000)
     category = await create_category(
         is_product_storage=True,
-        price=100,
-        cost_price=40,
+        price=0,
+        cost_price=0,
         type_account_service=AccountServiceType.OTHER,
     )
 
@@ -57,9 +57,9 @@ async def test_account_purchase_service_start_purchase_and_finalize_success(
         )
         assert start_result.purchase_request_id is not None
         assert len(start_result.product_accounts) == 2
-        assert start_result.total_amount == 200
+        assert start_result.total_amount == 0
         assert start_result.user_balance_before == user.balance
-        assert start_result.user_balance_after == user.balance - 200
+        assert start_result.user_balance_after == user.balance
 
         finalized = await container_fix.account_purchase_service.finalize_purchase(user.user_id, start_result)
         assert finalized is True

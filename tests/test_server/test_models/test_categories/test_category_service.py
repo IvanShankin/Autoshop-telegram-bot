@@ -2,8 +2,7 @@ import pytest
 from sqlalchemy import select
 
 from src.database.models.categories import Categories, CategoryTranslation
-from src.exceptions import AccountCategoryNotFound, CategoryStoresSubcategories, IncorrectedNumberButton, TheCategoryStorageAccount
-from src.exceptions.business import NotEnoughArguments
+from src.exceptions import CategoryStoresSubcategories, IncorrectedNumberButton, TheCategoryStorageAccount
 from src.models.create_models.category import CreateCategory
 from src.models.update_models.category import UpdateCategory
 

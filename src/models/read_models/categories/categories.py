@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import ConfigDict
 
 from src.database.models.categories import ProductType, AccountServiceType, UniversalMediaType, Categories
 from src.models.base import ORMDTO

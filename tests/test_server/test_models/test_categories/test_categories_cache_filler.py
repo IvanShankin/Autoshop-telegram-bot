@@ -1,7 +1,5 @@
 import pytest
 
-from src.containers import RequestContainer
-
 
 async def _create_main_branch(
     create_category,

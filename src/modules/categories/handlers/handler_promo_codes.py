@@ -7,6 +7,7 @@ from aiogram.types import CallbackQuery, Message
 from src.application.bot import Messages
 from src.application.models.modules import CatalogModule
 from src.database.models.users import Users
+from src.infrastructure.telegram.bot_client import TelegramClient
 from src.modules.categories.keyboards import back_in_account_category_kb
 from src.modules.categories.services import check_category, edit_message_category
 from src.modules.categories.shemas import BuyProductsData
@@ -19,7 +20,8 @@ router = Router()
 
 @router.callback_query(F.data.startswith('enter_promo:'))
 async def enter_promo(
-    callback: CallbackQuery, state: FSMContext, user: Users, messages_service: Messages, catalog_modul: CatalogModule
+    callback: CallbackQuery, state: FSMContext, user: Users,
+    messages_service: Messages, catalog_modul: CatalogModule, tg_client: TelegramClient,
 ):
     category_id = int(callback.data.split(':')[1])
     quantity_products = int(callback.data.split(':')[2]) # число аккаунтов на приобретение
@@ -31,6 +33,7 @@ async def enter_promo(
         language=user.language,
         messages_service=messages_service,
         catalog_modul=catalog_modul,
+        tg_client=tg_client,
     )
     if category is None:
         return
@@ -53,7 +56,8 @@ async def enter_promo(
 
 @router.message(BuyProduct.promo_code)
 async def set_promo_code(
-    message: Message, state: FSMContext, user: Users, messages_service: Messages, catalog_modul: CatalogModule
+    message: Message, state: FSMContext, user: Users,
+        messages_service: Messages, catalog_modul: CatalogModule, tg_client: TelegramClient,
 ):
     try:
         await message.delete()
@@ -70,6 +74,7 @@ async def set_promo_code(
         language=user.language,
         messages_service=messages_service,
         catalog_modul=catalog_modul,
+        tg_client=tg_client,
     )
     if category is None:
         return

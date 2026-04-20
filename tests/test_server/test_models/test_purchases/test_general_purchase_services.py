@@ -7,7 +7,7 @@ from src.database.models.categories import AccountServiceType, ProductType, Stor
 from src.database.models.categories.main_category_and_product import PurchaseRequests, Purchases
 from src.database.models.categories.product_account import AccountStorage
 from src.database.models.categories.product_account import SoldAccounts
-from src.database.models.categories.product_universal import SoldUniversal, UniversalStorage
+from src.database.models.categories.product_universal import SoldUniversal
 from src.database.models.users.models_users import Users
 from src.exceptions import CategoryNotFound, NotEnoughMoney
 from src.exceptions.business import InvalidQuantityProducts

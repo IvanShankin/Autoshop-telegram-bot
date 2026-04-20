@@ -7,7 +7,12 @@ __pycache__/
 *.secrets.env
 *.env
 *.test.env
+*.enc
 tests/manual_test.py
+media/products/
+media/sent_mass_msg_image/
+media/temp/
+media/ui_sections/
 
 
 # CA

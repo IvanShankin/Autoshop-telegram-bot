@@ -85,42 +85,42 @@ class ReferralService:
         if data.amount <= 0:
             return None
 
-        existing_income = await self.referral_income_service.get_income_by_replenishment_id(
-            data.replenishment_id
-        )
-        if existing_income:
-            return None
-
-        referral = await self.referral_repo.get_by_referral_id(data.user_id)
-        if not referral:
-            return None
-
-        last_level = referral.level
-        current_level = last_level
-        percent_current_level = 0.0
-
-        levels = await self.referral_lvls_service.get_referral_levels()
-        selected_level = None
-
-        if data.total_sum_replenishment is not None:
-            for lvl in levels:
-                if data.total_sum_replenishment >= lvl.amount_of_achievement:
-                    selected_level = lvl
-        else:
-            for lvl in levels:
-                if lvl.level == last_level:
-                    selected_level = lvl
-                    break
-
-        if selected_level:
-            current_level = selected_level.level
-            percent_current_level = selected_level.percent
-
-        income_amount = int(data.amount * percent_current_level / 100)
-        if income_amount <= 0:
-            return None
-
         async with self.session_db.begin():
+            existing_income = await self.referral_income_service.get_income_by_replenishment_id(
+                data.replenishment_id
+            )
+            if existing_income:
+                return None
+
+            referral = await self.referral_repo.get_by_referral_id(data.user_id)
+            if not referral:
+                return None
+
+            last_level = referral.level
+            current_level = last_level
+            percent_current_level = 0.0
+
+            levels = await self.referral_lvls_service.get_referral_levels()
+            selected_level = None
+
+            if data.total_sum_replenishment is not None:
+                for lvl in levels:
+                    if data.total_sum_replenishment >= lvl.amount_of_achievement:
+                        selected_level = lvl
+            else:
+                for lvl in levels:
+                    if lvl.level == last_level:
+                        selected_level = lvl
+                        break
+
+            if selected_level:
+                current_level = selected_level.level
+                percent_current_level = selected_level.percent
+
+            income_amount = int(data.amount * percent_current_level / 100)
+            if income_amount <= 0:
+                return None
+
             owner = await self.user_service.get_user_for_update(referral.owner_user_id)
             if not owner:
                 return None
@@ -164,7 +164,6 @@ class ReferralService:
                 ),
             )
 
-            await self.session_db.commit()
 
         await self.user_service.cache_user_repo.set(
             user=UsersDTO.model_validate(owner),

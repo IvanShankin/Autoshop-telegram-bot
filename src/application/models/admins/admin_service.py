@@ -52,24 +52,24 @@ class AdminsService:
         return await self.cache_repo.exists(user_id)
 
     async def create_admin(self, user_id: int) -> AdminsDTO:
-        user = await self.user_service.get_user(user_id=user_id)
-
-        if not user:
-            raise UserNotFound()
-
-        admin = await self.admin_repo.get_admin_by_user_id(user_id=user_id)
-        if admin:
-            return admin
 
         async with self.session_db.begin():
+            user = await self.user_service.get_user(user_id=user_id)
+
+            if not user:
+                raise UserNotFound()
+
+            admin = await self.admin_repo.get_admin_by_user_id(user_id=user_id)
+            if admin:
+                return admin
+
             admin = await self.admin_repo.create_admin(user_id=user_id)
             ui_image = await self.ui_images_service.create_default_io_image()
 
             if not await self.msg_for_sending_service.get_msg(user_id):
                 await self.msg_for_sending_service.create_msg(user_id=user_id, ui_image_key=ui_image.key)
 
-            await self.session_db.commit()
-            await self.cache_repo.set(user_id)
+        await self.cache_repo.set(user_id)
         await self.ui_images_service.cache_repo.set(ui_image)
         return admin
 
@@ -83,18 +83,16 @@ class AdminsService:
         if user_id == self.conf.env.main_admin:
             raise UnableRemoveMainAdmin()
 
-        if not await self.check_admin(user_id):
-            raise AdminNotFound()
-
-        msg_for_sent = await self.msg_for_sending_service.get_msg(user_id=user_id)
-
         async with self.session_db.begin():
+            if not await self.check_admin(user_id):
+                raise AdminNotFound()
+
+            msg_for_sent = await self.msg_for_sending_service.get_msg(user_id=user_id)
+
             await self.admin_repo.delete_admin(user_id=user_id)
             if msg_for_sent:
                 await self.msg_for_sending_service.delete_msg(user_id=user_id)
                 await self.ui_images_service.delete_ui_image(key=msg_for_sent.ui_image_key)
-
-            await self.session_db.commit()
 
         await self.cache_repo.delete(user_id=user_id)
 
@@ -173,11 +171,12 @@ class AdminsService:
         """
         :exception UserNotFound: Если по target_user_id не найден пользователь
         """
-        target_user = await self.user_service.get_user(target_user_id)
-        if not target_user:
-            raise UserNotFound()
 
         async with self.session_db.begin():
+            target_user = await self.user_service.get_user(target_user_id)
+            if not target_user:
+                raise UserNotFound()
+
             user = await self.user_service.update_user(
                 user_id=target_user_id,
                 data=UpdateUserDTO(balance=new_balance)

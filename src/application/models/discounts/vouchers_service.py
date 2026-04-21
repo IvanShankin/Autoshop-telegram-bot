@@ -357,20 +357,13 @@ class VoucherService:
 
             if not voucher:
                 raise VoucherNotFound()
-                # return get_text(language, "discount", "voucher_not_found"), False
 
             if voucher.creator_id == user.user_id:
                 raise VoucherInvalidActivateOwner()
-                # return get_text(language, "discount", "cannot_activate_own_voucher"), False
 
             if voucher.expire_at and voucher.expire_at < datetime.now(timezone.utc):
                 # ничего делать не до, отложенный задачник, сам обработает
                 raise InvalidVoucher(voucher)
-                # return get_text(
-                #     language,
-                #     "discount",
-                #     "voucher_expired_due_to_time",
-                # ).format(id=voucher.voucher_id, code=voucher.activation_code), False
 
             updated_user = None
             activation = await self.voucher_activations_repo.get_by_voucher_and_user(
@@ -380,12 +373,10 @@ class VoucherService:
             )
             if activation:
                 raise VoucherAlreadyActivate()
-                # return get_text(language, "discount", "voucher_already_activated"), False
 
             user_db = await self.users_repo.get_by_id_for_update(user.user_id)
             if not user_db:
                 raise UserNotFound()
-                # return get_text(language, "discount", "voucher_not_found"), False
 
             new_balance = user_db.balance + voucher.amount
             updated_user = await self.users_repo.update(user_id=user_db.user_id, balance=new_balance)
@@ -450,7 +441,3 @@ class VoucherService:
         )
 
         return voucher
-
-        # return get_text(
-        #     language, "discount", "voucher_successfully_activated"
-        # ).format(amount=voucher.amount, new_balance=updated_user.balance), True

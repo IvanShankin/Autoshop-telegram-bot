@@ -45,7 +45,7 @@ class TranslationsCategoryService:
         if not category:
             raise AccountCategoryNotFound()
 
-        if await self.category_translations_repo.exists(data.category_id, data.lang):
+        if await self.category_translations_repo.exists(data.category_id, data.language):
             raise TranslationAlreadyExists()
 
 
@@ -62,7 +62,7 @@ class TranslationsCategoryService:
         return CategoryFull.from_orm_with_translation(
             category=category,
             quantity_product=quantity_map.get(category.category_id, 0),
-            lang=data.lang,
+            language=data.language,
             name=data.name,
             description=data.description,
         )

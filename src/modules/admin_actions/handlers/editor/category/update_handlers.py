@@ -339,7 +339,7 @@ async def category_update_name(
     messages_service: Messages,
 ):
     category_id = int(callback.data.split(':')[1])
-    lang = callback.data.split(':')[2]
+    language = callback.data.split(':')[2]
     category = await safe_get_category(
         category_id, user=user, callback=callback, admin_module=admin_module, messages_service=messages_service
     )
@@ -357,7 +357,7 @@ async def category_update_name(
         reply_markup=back_in_category_update_data_kb(user.language, category_id)
     )
 
-    await state.update_data(category_id=category_id, language=lang)
+    await state.update_data(category_id=category_id, language=language)
     await state.set_state(UpdateNameForCategory.name)
 
 
@@ -402,7 +402,7 @@ async def category_update_descr(
     messages_service: Messages,
 ):
     category_id = int(callback.data.split(':')[1])
-    lang = callback.data.split(':')[2]
+    language = callback.data.split(':')[2]
     category = await safe_get_category(
         category_id, user=user, callback=callback, admin_module=admin_module, messages_service=messages_service
     )
@@ -420,7 +420,7 @@ async def category_update_descr(
         reply_markup=back_in_category_update_data_kb(user.language, category_id)
     )
 
-    await state.update_data(category_id=category_id, language=lang)
+    await state.update_data(category_id=category_id, language=language)
     await state.set_state(UpdateDescriptionForCategory.description)
 
 

@@ -71,9 +71,9 @@ class UniversalCacheFillerService:
             return
 
         ttl = int(self.conf.redis_time_storage.sold_universal_account_product_by_owner.total_seconds())
-        for lang in languages:
-            items = [SoldUniversalSmall.from_orm_model(item, lang) for item in sold_items]
-            await self.sold_cache_repo.set_by_owner(owner_id, lang, items, ttl)
+        for language in languages:
+            items = [SoldUniversalSmall.from_orm_model(item, language) for item in sold_items]
+            await self.sold_cache_repo.set_by_owner(owner_id, language, items, ttl)
 
     async def fill_sold_universal_by_universal_id(self, sold_universal_id: int) -> None:
         sold_item = await self.sold_repo.get_by_id_with_relations(sold_universal_id)
@@ -87,15 +87,15 @@ class UniversalCacheFillerService:
             return
 
         ttl = int(self.conf.redis_time_storage.sold_universal_product_by_product.total_seconds())
-        for lang in languages:
-            dto = SoldUniversalFull.from_orm_model(sold_item, language=lang)
-            await self.sold_single_cache_repo.set(dto, lang, ttl)
+        for language in languages:
+            dto = SoldUniversalFull.from_orm_model(sold_item, language=language)
+            await self.sold_single_cache_repo.set(dto, language, ttl)
 
     @staticmethod
     def _extract_languages(items: Iterable[SoldUniversal]) -> set[str]:
         return {
-            translate.lang
+            translate.language
             for item in items
             for translate in item.storage.translations
-            if translate.lang
+            if translate.language
         }

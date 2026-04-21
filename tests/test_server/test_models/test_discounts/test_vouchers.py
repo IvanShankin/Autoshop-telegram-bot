@@ -8,6 +8,7 @@ from src.database.models.admins import AdminActions
 from src.database.models.discount import Vouchers, VoucherActivations
 from src.database.models.users import Users, WalletTransaction, UserAuditLogs
 from src.exceptions import NotEnoughMoney
+from src.exceptions.domain import VoucherNotFound
 from src.models.create_models.discounts import CreateVoucherDTO
 from src.models.read_models.other import UsersDTO
 from src.repository.database.admins import AdminActionsRepository
@@ -208,19 +209,20 @@ class TestVoucherService:
         target = await create_new_user(balance=0)
         user_dto = UsersDTO.model_validate(target)
 
-        message, success = await container_fix.voucher_service.activate_voucher(
+        success = await container_fix.voucher_service.activate_voucher(
             user_dto,
             voucher.activation_code,
-            language="ru",
         )
-        message2, success2 = await container_fix.voucher_service.activate_voucher(
-            user_dto,
-            voucher.activation_code,
-            language="ru",
-        )
+        await container_fix.session_db.rollback()
+
+        # при повторной активации ваучер уже не доступен
+        with pytest.raises(VoucherNotFound):
+            await container_fix.voucher_service.activate_voucher(
+                user_dto,
+                voucher.activation_code,
+            )
 
         assert success
-        assert "voucher_successfully_activated" in message or success
 
         updated = await session_db_fix.execute(
             select(Users).where(Users.user_id == target.user_id)
@@ -233,5 +235,3 @@ class TestVoucherService:
         assert activation.scalar_one_or_none() is not None
 
         assert await container_fix.session_redis.get(f"user:{target.user_id}")
-        assert not success2
-        assert isinstance(message2, str)

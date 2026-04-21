@@ -7,8 +7,8 @@ from src.config import Config
 
 def get_import_universal_headers(conf: Config) -> List[str]:
     import_universal_headers = ["filename"]
-    for lang in conf.app.allowed_langs:
-        import_universal_headers.append("description_" + lang)
+    for language in conf.app.allowed_langs:
+        import_universal_headers.append("description_" + language)
 
     return import_universal_headers
 

@@ -47,7 +47,6 @@ class MessageForSendingService:
         button_url = data.button_url if not data.button_url is False else False
         values = data.model_dump(exclude_unset=True)
         values["button_url"] = button_url
-        print(values["button_url"])
 
         settings = await self.msg_for_sending_repo.update_message_for_sending(**values)
         msg: Optional[MessageForSendingDTO] = None

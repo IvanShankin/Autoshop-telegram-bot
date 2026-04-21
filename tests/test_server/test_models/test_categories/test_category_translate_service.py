@@ -22,7 +22,7 @@ async def test_get_all_translations_category_returns_all_rows(
     )
 
     translations = await container_fix.translations_category_service.get_all_translations_category(category.category_id)
-    assert {item.lang for item in translations} == {"ru", "en"}
+    assert {item.language for item in translations} == {"ru", "en"}
 
 
 @pytest.mark.asyncio
@@ -35,7 +35,7 @@ async def test_create_translation_in_category_persists_and_updates_cache(
     created = await container_fix.translations_category_service.create_translation_in_category(
         CreateCategoryTranslate(
             category_id=category.category_id,
-            lang="en",
+            language="en",
             name="english-name",
             description="english-description",
         ),
@@ -59,7 +59,7 @@ async def test_create_translation_in_category_rejects_duplicate_language(
     await container_fix.translations_category_service.create_translation_in_category(
         CreateCategoryTranslate(
             category_id=category.category_id,
-            lang="en",
+            language="en",
             name="english-name",
             description="english-description",
         ),
@@ -71,7 +71,7 @@ async def test_create_translation_in_category_rejects_duplicate_language(
         await container_fix.translations_category_service.create_translation_in_category(
             CreateCategoryTranslate(
                 category_id=category.category_id,
-                lang="en",
+                language="en",
                 name="english-name-2",
                 description="english-description-2",
             ),
@@ -86,7 +86,7 @@ async def test_create_translation_in_category_rejects_missing_category(container
         await container_fix.translations_category_service.create_translation_in_category(
             CreateCategoryTranslate(
                 category_id=999999999,
-                lang="en",
+                language="en",
                 name="english-name",
                 description="english-description",
             ),
@@ -176,7 +176,7 @@ async def test_delete_category_translation_removes_one_language_and_refreshes_ca
     )
 
     translations = await container_fix.translations_category_service.get_all_translations_category(category.category_id)
-    assert {item.lang for item in translations} == {"ru"}
+    assert {item.language for item in translations} == {"ru"}
     assert await container_fix.categories_cache_repo.get_category(category.category_id, "en") is None
     assert await container_fix.categories_cache_repo.get_category(category.category_id, "ru") is not None
 

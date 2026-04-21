@@ -22,7 +22,7 @@ class CreateUniversalStorageDTO(BaseModel):
 
 class CreateUniversalTranslationDTO(BaseModel):
     universal_storage_id: int
-    lang: str
+    language: str
     name: str
     encrypted_description: Optional[str] = None
     encrypted_description_nonce: Optional[str] = None

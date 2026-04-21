@@ -50,7 +50,7 @@ class PurchaseValidationService:
         category_full = CategoryFull.from_orm_with_translation(
             category=category_orm,
             quantity_product=quantity_map.get(category_id, 0),
-            lang=self.conf.app.default_lang,
+            language=self.conf.app.default_lang,
             fallback=self.conf.app.default_lang,
         )
 

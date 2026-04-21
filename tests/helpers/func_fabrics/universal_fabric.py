@@ -106,7 +106,7 @@ async def create_universal_storage_factory(
 
         new_translation = UniversalStorageTranslation(
             universal_storage_id=new_storage.universal_storage_id,
-            lang=language,
+            language=language,
             name=name,
             encrypted_description=encrypted_description,
             encrypted_description_nonce=encrypted_description_nonce,

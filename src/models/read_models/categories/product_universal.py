@@ -34,7 +34,7 @@ class UniversalStorageDTO(ORMDTO):
 class UniversalStorageTranslationDTO(ORMDTO):
     universal_storage_translations_id: int
     universal_storage_id: int
-    lang: str
+    language: str
     name: str
     encrypted_description: str | None
     encrypted_description_nonce: str | None

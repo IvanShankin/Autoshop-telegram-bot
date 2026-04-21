@@ -265,15 +265,15 @@ class CacheWarmupService:
             await self.accounts_cache_repo.delete_sold_accounts_by_owner_id(owner_id)
             return
 
-        for lang in languages:
+        for language in languages:
             items = [
-                SoldAccountSmall.from_orm_with_translation(account, lang=lang)
+                SoldAccountSmall.from_orm_with_translation(account, language=language)
                 for account in sold_accounts
             ]
             await self.accounts_cache_repo.set_sold_accounts_by_owner_id(
                 owner_id,
                 items,
-                lang,
+                language,
             )
 
     async def _fill_sold_account_by_id(self, sold_account_id: int):
@@ -290,9 +290,9 @@ class CacheWarmupService:
             await self.accounts_cache_repo.delete_sold_accounts_by_account_id(sold_account_id)
             return
 
-        for lang in languages:
-            dto = SoldAccountFull.from_orm_with_translation(sold_account, lang=lang)
-            await self.accounts_cache_repo.set_sold_accounts_by_account_id(dto, lang)
+        for language in languages:
+            dto = SoldAccountFull.from_orm_with_translation(sold_account, language=language)
+            await self.accounts_cache_repo.set_sold_accounts_by_account_id(dto, language)
 
     async def _fill_sold_universal(self):
         owner_ids = await self.sold_universal_repo.get_all_owner_ids()
@@ -323,14 +323,14 @@ class CacheWarmupService:
             await self.sold_universal_cache_repo.delete_by_owner(owner_id)
             return
 
-        for lang in languages:
+        for language in languages:
             items = [
-                SoldUniversalSmall.from_orm_model(sold, lang)
+                SoldUniversalSmall.from_orm_model(sold, language)
                 for sold in sold_items
             ]
             await self.sold_universal_cache_repo.set_by_owner(
                 owner_id,
-                lang,
+                language,
                 items,
                 ttl,
             )
@@ -349,26 +349,26 @@ class CacheWarmupService:
             await self.sold_universal_single_cache_repo.delete_by_id(sold_id)
             return
 
-        for lang in languages:
-            dto = SoldUniversalFull.from_orm_model(sold_item, language=lang)
-            await self.sold_universal_single_cache_repo.set(dto, lang, ttl)
+        for language in languages:
+            dto = SoldUniversalFull.from_orm_model(sold_item, language=language)
+            await self.sold_universal_single_cache_repo.set(dto, language, ttl)
 
     @staticmethod
     def _extract_account_languages(accounts: Iterable["SoldAccounts"]):
         return {
-            translate.lang
+            translate.language
             for account in accounts
             for translate in account.translations
-            if translate.lang
+            if translate.language
         }
 
     @staticmethod
     def _extract_universal_languages(items: Iterable["SoldUniversal"]):
         return {
-            translate.lang
+            translate.language
             for item in items
             for translate in item.storage.translations
-            if translate.lang
+            if translate.language
         }
 
     @staticmethod

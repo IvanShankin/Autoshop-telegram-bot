@@ -81,7 +81,7 @@ class TestAccountSoldService:
         dto = CreateSoldAccountWithTranslationDTO(
             owner_id=999999999,
             account_storage_id=full.account_storage.account_storage_id,
-            lang="ru",
+            language="ru",
             name="test",
         )
         with pytest.raises(UserNotFound):
@@ -100,7 +100,7 @@ class TestAccountSoldService:
         dto = CreateSoldAccountWithTranslationDTO(
             owner_id=user.user_id,
             account_storage_id=storage.account_storage_id,
-            lang="en",
+            language="en",
             name="english name",
         )
         sold = await container_fix.account_sold_service.create_sold_account(dto, filling_redis=False)

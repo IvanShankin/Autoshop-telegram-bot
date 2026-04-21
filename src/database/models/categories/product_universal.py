@@ -75,14 +75,14 @@ class UniversalStorage(Base):
     translations = relationship("UniversalStorageTranslation", back_populates="storage", cascade="all, delete-orphan")
 
 
-    def _get_field_with_translation(self,field: Callable[[Any], Any], lang: str, fallback: str = None) -> str | None:
+    def _get_field_with_translation(self,field: Callable[[Any], Any], language: str, fallback: str = None) -> str | None:
         """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
         for t in self.translations:
-            if t.lang == lang:
+            if t.language == language:
                 return field(t)
         if fallback:
             for t in self.translations:
-                if t.lang == fallback:
+                if t.language == fallback:
                     return field(t)
         # вернём первый попавшийся
         if field(self.translations[0]):
@@ -91,22 +91,22 @@ class UniversalStorage(Base):
             return None
 
 
-    def get_name(self, lang: str, fallback: str = None) -> str:
+    def get_name(self, language: str, fallback: str = None) -> str:
         """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
-        return self._get_field_with_translation(lambda translations: translations.name, lang, fallback)
+        return self._get_field_with_translation(lambda translations: translations.name, language, fallback)
 
 
-    def get_description(self, lang: str, fallback: str = None) -> Tuple[str | None, str | None]:
+    def get_description(self, language: str, fallback: str = None) -> Tuple[str | None, str | None]:
         """
         Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся
         :return (encrypted_description, encrypted_description_nonce)
         """
 
         desk = self._get_field_with_translation(
-            lambda translations: translations.encrypted_description, lang, fallback
+            lambda translations: translations.encrypted_description, language, fallback
         )
         nonce = self._get_field_with_translation(
-            lambda translations: translations.encrypted_description_nonce, lang, fallback
+            lambda translations: translations.encrypted_description_nonce, language, fallback
         )
 
         return desk, nonce
@@ -118,7 +118,7 @@ class UniversalStorageTranslation(Base):
 
     universal_storage_translations_id = Column(Integer, primary_key=True, autoincrement=True)
     universal_storage_id = Column(Integer, ForeignKey("universal_storage.universal_storage_id", ondelete="CASCADE"),nullable=False)
-    lang = Column(String(8), nullable=False)  # 'ru', 'en'
+    language = Column(String(8), nullable=False)  # 'ru', 'en'
 
     name = Column(Text, nullable=False)         # берётся с Categories
 

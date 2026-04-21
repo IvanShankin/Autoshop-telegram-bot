@@ -80,7 +80,7 @@ async def add_category_name(
             await admin_module.translations_category_service.create_translation_in_category(
                 data=CreateCategoryTranslate(
                     category_id=category.category_id,
-                    lang=lang_code,
+                    language=lang_code,
                     name=data.data_name[lang_code]
                 ),
                 make_commit=True,

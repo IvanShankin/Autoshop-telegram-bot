@@ -24,7 +24,7 @@ class TestUniversalTranslationsService:
         )
 
         assert translations
-        assert any(entry.lang == "ru" for entry in translations)
+        assert any(entry.language == "ru" for entry in translations)
 
     @pytest.mark.asyncio
     async def test_create_translation_persists(self, container_fix, create_universal_storage):
@@ -34,7 +34,7 @@ class TestUniversalTranslationsService:
         created = await container_fix.universal_translations_service.create_translation(
             CreateUniversalTranslationDTO(
                 universal_storage_id=storage.universal_storage_id,
-                lang="en",
+                language="en",
                 name="english title",
                 encrypted_description=encrypted_description,
                 encrypted_description_nonce=encrypted_description_nonce,
@@ -46,7 +46,7 @@ class TestUniversalTranslationsService:
             storage.universal_storage_id
         )
 
-        assert any(entry.lang == "en" and entry.name == "english title" for entry in translations)
+        assert any(entry.language == "en" and entry.name == "english title" for entry in translations)
 
     @pytest.mark.asyncio
     async def test_create_translation_requires_storage(self, container_fix):
@@ -56,7 +56,7 @@ class TestUniversalTranslationsService:
             await container_fix.universal_translations_service.create_translation(
                 CreateUniversalTranslationDTO(
                     universal_storage_id=999999,
-                    lang="en",
+                    language="en",
                     name="english title",
                     encrypted_description=encrypted_description,
                     encrypted_description_nonce=encrypted_description_nonce,
@@ -73,7 +73,7 @@ class TestUniversalTranslationsService:
             await container_fix.universal_translations_service.create_translation(
                 CreateUniversalTranslationDTO(
                     universal_storage_id=storage.universal_storage_id,
-                    lang="ru",
+                    language="ru",
                     name="new name",
                     encrypted_description=encrypted_description,
                     encrypted_description_nonce=encrypted_description_nonce,

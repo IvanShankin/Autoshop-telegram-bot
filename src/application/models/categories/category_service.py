@@ -96,7 +96,7 @@ class CategoryService:
         return await self.translations_category_service.create_translation_in_category(
             data=CreateCategoryTranslate(
                 category_id=category.category_id,
-                lang=data.language,
+                language=data.language,
                 name=data.name,
                 description=data.description
             ),
@@ -123,7 +123,7 @@ class CategoryService:
             category = CategoryFull.from_orm_with_translation(
                 category=category_orm,
                 quantity_product=quantity_map.get(category_orm.category_id, 0),
-                lang=language,
+                language=language,
                 fallback=fallback
             )
             await self.category_filler_service.fill_category_by_id(category_id)
@@ -181,7 +181,7 @@ class CategoryService:
             CategoryFull.from_orm_with_translation(
                 category=cat,
                 quantity_product=quantity_map.get(cat.category_id, 0),
-                lang=language,
+                language=language,
                 fallback=fallback
             )
             for cat in categories_db

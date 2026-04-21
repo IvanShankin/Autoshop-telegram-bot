@@ -17,7 +17,7 @@ class SoldAccountsDTO(ORMDTO):
 class SoldAccountsTranslationDTO(ORMDTO):
     sold_account_translations_id: int
     sold_account_id: int
-    lang: str
+    language: str
     name: str
     description: str | None
 
@@ -114,13 +114,13 @@ class SoldAccountFull(ORMDTO):
     account_storage: AccountStorageDTO
 
     @classmethod
-    def from_orm_with_translation(cls, account: SoldAccounts, lang: str, fallback: str | None = None):
+    def from_orm_with_translation(cls, account: SoldAccounts, language: str, fallback: str | None = None):
         """orm модель превратит в SoldAccountsFull"""
         return cls(
             sold_account_id=account.sold_account_id,
             owner_id=account.owner_id,
-            name=account.get_name(lang, fallback),
-            description=account.get_description(lang, fallback),
+            name=account.get_name(language, fallback),
+            description=account.get_description(language, fallback),
             sold_at=account.sold_at,
             account_storage=AccountStorageDTO(**account.account_storage.to_dict())
         )
@@ -137,13 +137,13 @@ class SoldAccountSmall(ORMDTO):
     sold_at: datetime
 
     @classmethod
-    def from_orm_with_translation(cls, account: SoldAccounts, lang: str, fallback: str | None = None):
+    def from_orm_with_translation(cls, account: SoldAccounts, language: str, fallback: str | None = None):
         """orm модель превратит в SoldAccountSmall. SoldAccounts передавать обязательно с подгруженным account_storage"""
         return cls(
             sold_account_id=account.sold_account_id,
             owner_id=account.owner_id,
-            name=account.get_name(lang, fallback),
-            description=account.get_description(lang, fallback),
+            name=account.get_name(language, fallback),
+            description=account.get_description(language, fallback),
             sold_at=account.sold_at,
             phone_number=account.account_storage.phone_number
         )

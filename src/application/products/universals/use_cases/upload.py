@@ -106,7 +106,7 @@ class UploadUniversalProductsUseCase:
                 )
 
                 for translate in all_translations:
-                    descriptions[translate.lang] = decrypt_text(
+                    descriptions[translate.language] = decrypt_text(
                         encrypted_data_b64=translate.encrypted_description,
                         nonce_b64=translate.encrypted_description_nonce,
                         dek=dek
@@ -168,7 +168,7 @@ class UploadUniversalProductsUseCase:
 
                 for header in headers:
                     if header.startswith("description_"):
-                        lang = header.replace("description_", "")
-                        row[header] = product.descriptions.get(lang, "")
+                        language = header.replace("description_", "")
+                        row[header] = product.descriptions.get(language, "")
 
                 writer.writerow(row)

@@ -17,10 +17,10 @@ def profile_settings_kb(language: str):
 def settings_language_kb(language: str, profile_module: ProfileModule):
     keyboard = InlineKeyboardBuilder()
 
-    for lang in profile_module.conf.app.allowed_langs:
-        is_current = (lang == language)
-        text = f"{'✔️ ' if is_current else ''}{profile_module.conf.app.name_langs[lang]}  {profile_module.conf.app.emoji_langs[lang]}"
-        keyboard.add(InlineKeyboardButton(text=text, callback_data=f'language_selection:{lang}'))
+    for language in profile_module.conf.app.allowed_langs:
+        is_current = (language == language)
+        text = f"{'✔️ ' if is_current else ''}{profile_module.conf.app.name_langs[language]}  {profile_module.conf.app.emoji_langs[language]}"
+        keyboard.add(InlineKeyboardButton(text=text, callback_data=f'language_selection:{language}'))
 
     keyboard.adjust(2)
 

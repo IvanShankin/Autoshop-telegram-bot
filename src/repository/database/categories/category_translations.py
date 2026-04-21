@@ -44,7 +44,7 @@ class CategoryTranslationsRepository(DatabaseBase):
         result = await self.session_db.execute(
             select(CategoryTranslation).where(
                 (CategoryTranslation.category_id == category_id) &
-                (CategoryTranslation.lang == language)
+                (CategoryTranslation.language == language)
             )
         )
         translation = result.scalar_one_or_none()
@@ -55,7 +55,7 @@ class CategoryTranslationsRepository(DatabaseBase):
         category_id: int,
     ) -> List[str]:
         result = await self.session_db.execute(
-            select(distinct(CategoryTranslation.lang))
+            select(distinct(CategoryTranslation.language))
             .where(CategoryTranslation.category_id == category_id)
         )
         return list(result.scalars().all())
@@ -68,7 +68,7 @@ class CategoryTranslationsRepository(DatabaseBase):
         result = await self.session_db.execute(
             select(CategoryTranslation.category_id).where(
                 (CategoryTranslation.category_id == category_id) &
-                (CategoryTranslation.lang == language)
+                (CategoryTranslation.language == language)
             )
         )
         return result.scalar_one_or_none() is not None
@@ -94,7 +94,7 @@ class CategoryTranslationsRepository(DatabaseBase):
             update(CategoryTranslation)
             .where(
                 (CategoryTranslation.category_id == category_id) &
-                (CategoryTranslation.lang == language)
+                (CategoryTranslation.language == language)
             )
             .values(**values)
             .returning(CategoryTranslation)
@@ -114,7 +114,7 @@ class CategoryTranslationsRepository(DatabaseBase):
         query = (delete(CategoryTranslation).where(CategoryTranslation.category_id == category_id))
 
         if language:
-            query = query.where(CategoryTranslation.lang == language)
+            query = query.where(CategoryTranslation.language == language)
 
         await self.session_db.execute(query)
 

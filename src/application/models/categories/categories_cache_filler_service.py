@@ -29,30 +29,30 @@ class CategoriesCacheFillerService:
         quantity_map = await self.category_repo.get_quantity_products_map(category_ids)
 
         langs = {
-            t.lang
+            t.language
             for c in categories
             for t in c.translations
         }
 
         result: dict[str, list[CategoryFull]] = {}
 
-        for lang in langs:
+        for language in langs:
             lang_list = []
 
             for category in categories:
-                if not any(t.lang == lang for t in category.translations):
+                if not any(t.language == language for t in category.translations):
                     continue
 
                 dto = CategoryFull.from_orm_with_translation(
                     category=category,
                     quantity_product=quantity_map.get(category.category_id, 0),
-                    lang=lang
+                    language=language
                 )
 
                 lang_list.append(dto)
 
             if lang_list:
-                result[lang] = lang_list
+                result[language] = lang_list
 
         return result
 
@@ -60,15 +60,15 @@ class CategoriesCacheFillerService:
         categories = await self.category_repo.get_main_with_translations()
         data = await self._build_category_full_list(categories)
 
-        for lang, items in data.items():
-            await self.cache_repo.set_main_categories(items, lang)
+        for language, items in data.items():
+            await self.cache_repo.set_main_categories(items, language)
 
     async def fill_category_by_parent(self, parent_id: int) -> None:
         categories = await self.category_repo.get_children_with_translations(parent_id)
         data = await self._build_category_full_list(categories)
 
-        for lang, items in data.items():
-            await self.cache_repo.set_categories_by_parent(items, parent_id, lang)
+        for language, items in data.items():
+            await self.cache_repo.set_categories_by_parent(items, parent_id, language)
 
     async def fill_category_by_id(self, category_id: int) -> None:
         category = await self.category_repo.get_by_id_with_translations(category_id)
@@ -81,10 +81,10 @@ class CategoriesCacheFillerService:
             dto = CategoryFull.from_orm_with_translation(
                 category=category,
                 quantity_product=quantity_map.get(category.category_id, 0),
-                lang=t.lang
+                language=t.language
             )
 
-            await self.cache_repo.set_category(dto, t.lang)
+            await self.cache_repo.set_category(dto, t.language)
 
     async def fill_need_category(
         self,

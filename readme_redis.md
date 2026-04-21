@@ -135,7 +135,7 @@
 
 
 ### Главные категории (категории где is_main == True)
-**Ключ:** `main_categories:{lang}`
+**Ключ:** `main_categories:{language}`
 **Значение:**
 ```json
 [
@@ -174,7 +174,7 @@
 
 
 ### Категории по parent_id
-**Ключ:** `categories_by_parent:{parent_id}:{lang}`
+**Ключ:** `categories_by_parent:{parent_id}:{language}`
 **Значение:**
 ```json
 [
@@ -213,7 +213,7 @@
 
 
 ### Категория по id
-**Ключ:** `category:{category_id}:{lang}`
+**Ключ:** `category:{category_id}:{language}`
 **Значение:**
 ```json
 {

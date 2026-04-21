@@ -17,7 +17,7 @@ class UniversalTranslationRepository(DatabaseBase):
         result = await self.session_db.execute(
             select(UniversalStorageTranslation).where(
                 (UniversalStorageTranslation.universal_storage_id == universal_storage_id) &
-                (UniversalStorageTranslation.lang == language)
+                (UniversalStorageTranslation.language == language)
             )
         )
         translation = result.scalar_one_or_none()
@@ -38,7 +38,7 @@ class UniversalTranslationRepository(DatabaseBase):
         result = await self.session_db.execute(
             select(UniversalStorageTranslation.universal_storage_translations_id).where(
                 (UniversalStorageTranslation.universal_storage_id == universal_storage_id)
-                & (UniversalStorageTranslation.lang == language)
+                & (UniversalStorageTranslation.language == language)
             )
         )
         return result.scalar_one_or_none() is not None
@@ -63,7 +63,7 @@ class UniversalTranslationRepository(DatabaseBase):
             update(UniversalStorageTranslation)
             .where(
                 (UniversalStorageTranslation.universal_storage_id == universal_storage_id)
-                & (UniversalStorageTranslation.lang == language)
+                & (UniversalStorageTranslation.language == language)
             )
             .values(**values)
             .returning(UniversalStorageTranslation)

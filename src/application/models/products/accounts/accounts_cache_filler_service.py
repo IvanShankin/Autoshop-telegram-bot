@@ -60,12 +60,12 @@ class AccountsCacheFillerService:
             await self.cache_repo.delete_sold_accounts_by_owner_id(owner_id)
             return
 
-        for lang in languages:
+        for language in languages:
             items = [
-                SoldAccountSmall.from_orm_with_translation(account, lang=lang)
+                SoldAccountSmall.from_orm_with_translation(account, language=language)
                 for account in sold_accounts
             ]
-            await self.cache_repo.set_sold_accounts_by_owner_id(owner_id, items, lang)
+            await self.cache_repo.set_sold_accounts_by_owner_id(owner_id, items, language)
 
     async def fill_sold_accounts_by_account_id(self, sold_account_id: int) -> None:
         sold_account = await self.sold_repo.get_by_id_with_relations(
@@ -81,15 +81,15 @@ class AccountsCacheFillerService:
             await self.cache_repo.delete_sold_accounts_by_account_id(sold_account_id)
             return
 
-        for lang in languages:
-            dto = SoldAccountFull.from_orm_with_translation(sold_account, lang=lang)
-            await self.cache_repo.set_sold_accounts_by_account_id(dto, lang)
+        for language in languages:
+            dto = SoldAccountFull.from_orm_with_translation(sold_account, language=language)
+            await self.cache_repo.set_sold_accounts_by_account_id(dto, language)
 
     @staticmethod
     def _extract_languages(accounts: Iterable[SoldAccounts]) -> set[str]:
         return {
-            translate.lang
+            translate.language
             for account in accounts
             for translate in account.translations
-            if translate.lang
+            if translate.language
         }

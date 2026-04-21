@@ -27,7 +27,7 @@ class CategoriesDTO(ORMDTO):
 class CategoryTranslationDTO(ORMDTO):
     category_translations_id: int
     category_id: int
-    lang: str
+    language: str
     name: str
     description: str | None
 
@@ -70,7 +70,7 @@ class CategoryFull(ORMDTO):
             cls,
             category: Categories,
             quantity_product:int,
-            lang: str,
+            language: str,
             fallback: str | None = None,
             name: str = None,
             description: str = None,
@@ -85,9 +85,9 @@ class CategoryFull(ORMDTO):
             number_buttons_in_row=category.number_buttons_in_row,
             is_main=category.is_main,
 
-            language=lang,
-            name=name if name else category.get_name(lang, fallback),
-            description=description if description else category.get_description(lang, fallback),
+            language=language,
+            name=name if name else category.get_name(language, fallback),
+            description=description if description else category.get_description(language, fallback),
 
             is_product_storage=category.is_product_storage,
             allow_multiple_purchase=category.allow_multiple_purchase,

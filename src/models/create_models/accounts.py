@@ -36,7 +36,7 @@ class CreateSoldAccountDTO(BaseModel):
 
 class CreateSoldAccountTranslationDTO(BaseModel):
     sold_account_id: int
-    lang: str
+    language: str
     name: str
     description: Optional[str] = None
 
@@ -44,7 +44,7 @@ class CreateSoldAccountTranslationDTO(BaseModel):
 class CreateSoldAccountWithTranslationDTO(BaseModel):
     owner_id: int
     account_storage_id: int
-    lang: str
+    language: str
     name: str
     description: Optional[str] = None
 

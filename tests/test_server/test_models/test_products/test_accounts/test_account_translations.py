@@ -49,7 +49,7 @@ class TestAccountTranslationsService:
 
         dto = CreateSoldAccountTranslationDTO(
             sold_account_id=sold.sold_account_id,
-            lang="en",
+            language="en",
             name="English name",
         )
         created = await container_fix.account_translations_service.create_translation(dto)
@@ -61,7 +61,7 @@ class TestAccountTranslationsService:
     async def test_create_translation_errors(self, container_fix, create_sold_account):
         dto = CreateSoldAccountTranslationDTO(
             sold_account_id=999999999,
-            lang="en",
+            language="en",
             name="name",
         )
         with pytest.raises(SoldAccountNotFound):
@@ -70,7 +70,7 @@ class TestAccountTranslationsService:
         sold, _ = await create_sold_account()
         dto = CreateSoldAccountTranslationDTO(
             sold_account_id=sold.sold_account_id,
-            lang="ru",
+            language="ru",
             name="duplicate",
         )
         with pytest.raises(TranslationAlreadyExists):
@@ -106,7 +106,7 @@ class TestAccountTranslationsService:
 
         dto = UpdateSoldAccountTranslationDTO(
             sold_account_id=sold.sold_account_id,
-            lang="ru",
+            language="ru",
             name="updated name",
         )
         translation = await container_fix.account_translations_service.update_translation(dto)

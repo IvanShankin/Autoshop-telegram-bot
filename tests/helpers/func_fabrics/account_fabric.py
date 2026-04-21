@@ -235,7 +235,7 @@ async def create_sold_account_factory(
 
         new_translate = SoldAccountsTranslation(
             sold_account_id = new_sold_account.sold_account_id,
-            lang = language,
+            language = language,
             name = name,
             description = description
         )

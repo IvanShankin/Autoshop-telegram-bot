@@ -54,7 +54,7 @@ class AccountSoldService:
         if get_full:
             accounts = await self.sold_repo.get_by_owner_id_with_relations(owner_id)
             return [
-                SoldAccountFull.from_orm_with_translation(acc, lang=language, fallback=fallback)
+                SoldAccountFull.from_orm_with_translation(acc, language=language, fallback=fallback)
                 for acc in accounts
             ]
 
@@ -64,7 +64,7 @@ class AccountSoldService:
 
         accounts = await self.sold_repo.get_by_owner_id_with_relations(owner_id)
         result = [
-            SoldAccountSmall.from_orm_with_translation(acc, lang=language, fallback=fallback)
+            SoldAccountSmall.from_orm_with_translation(acc, language=language, fallback=fallback)
             for acc in accounts
         ]
         if result:
@@ -92,7 +92,7 @@ class AccountSoldService:
         )
         await self.accounts_cache_filler.fill_sold_accounts_by_owner_id(user_id)
         return [
-            SoldAccountSmall.from_orm_with_translation(acc, lang=language)
+            SoldAccountSmall.from_orm_with_translation(acc, language=language)
             for acc in accounts
         ]
 
@@ -116,7 +116,7 @@ class AccountSoldService:
         await self.accounts_cache_filler.fill_sold_accounts_by_account_id(sold_account_id)
         return SoldAccountFull.from_orm_with_translation(
             sold_account,
-            lang=language,
+            language=language,
             fallback=fallback,
         )
 
@@ -157,7 +157,7 @@ class AccountSoldService:
 
         translation_payload = CreateSoldAccountTranslationDTO(
             sold_account_id=sold_account.sold_account_id,
-            lang=data.lang,
+            language=data.language,
             name=data.name,
             description=data.description,
         )
@@ -171,7 +171,7 @@ class AccountSoldService:
             await self.accounts_cache_filler.fill_sold_accounts_by_account_id(sold_account.sold_account_id)
 
         refreshed = await self.sold_repo.get_by_id_with_relations(sold_account.sold_account_id, active_only=False)
-        return SoldAccountSmall.from_orm_with_translation(refreshed, lang=data.lang)
+        return SoldAccountSmall.from_orm_with_translation(refreshed, language=data.language)
 
     async def delete_sold_account(
         self,

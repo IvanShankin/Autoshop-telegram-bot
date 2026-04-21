@@ -385,7 +385,7 @@ class AccountPurchaseService:
                     for translate in data.translations_category:
                         await self.sold_trans_repo.create_translate(
                             sold_account_id=new_sold.sold_account_id,
-                            lang=translate.lang,
+                            language=translate.language,
                             name=translate.name,
                             description=translate.description,
                         )

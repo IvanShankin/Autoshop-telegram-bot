@@ -67,5 +67,4 @@ def pagination_keyboard(
         InlineKeyboardButton(text=back_text, callback_data=back_callback)
     )
 
-    print(keyboard.as_markup())
     return keyboard.as_markup()

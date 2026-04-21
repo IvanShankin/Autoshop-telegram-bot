@@ -50,9 +50,9 @@ class AccountTranslationsService:
                 f"Проданный аккаунт с ID = {data.sold_account_id} не найден"
             )
 
-        if await self.translations_repo.exists(data.sold_account_id, data.lang):
+        if await self.translations_repo.exists(data.sold_account_id, data.language):
             raise TranslationAlreadyExists(
-                f"Перевод по языку '{data.lang}' уже существует"
+                f"Перевод по языку '{data.language}' уже существует"
             )
 
         await self.translations_repo.create_translate(**data.model_dump(exclude_unset=True))
@@ -69,7 +69,7 @@ class AccountTranslationsService:
             data.sold_account_id,
             active_only=False,
         )
-        return SoldAccountSmall.from_orm_with_translation(refreshed, lang=data.lang)
+        return SoldAccountSmall.from_orm_with_translation(refreshed, language=data.language)
 
     async def update_translation(
         self,

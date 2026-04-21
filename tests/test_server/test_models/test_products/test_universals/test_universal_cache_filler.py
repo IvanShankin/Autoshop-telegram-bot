@@ -81,7 +81,7 @@ class TestUniversalCacheFillerService:
 
     def test_extract_languages_returns_unique(self):
         item_with_translations = SimpleNamespace(
-            storage=SimpleNamespace(translations=[SimpleNamespace(lang="ru"), SimpleNamespace(lang=None)])
+            storage=SimpleNamespace(translations=[SimpleNamespace(language="ru"), SimpleNamespace(language=None)])
         )
         languages = UniversalCacheFillerService._extract_languages([item_with_translations])
 

@@ -18,6 +18,6 @@ class CreateCategory(BaseModel):
 
 class CreateCategoryTranslate(BaseModel):
     category_id: int
-    lang: str
+    language: str
     name: str
     description: Optional[str] = None

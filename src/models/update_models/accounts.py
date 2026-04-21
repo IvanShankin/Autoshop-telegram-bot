@@ -30,6 +30,6 @@ class UpdateTgAccountMediaDTO(BaseModel):
 
 class UpdateSoldAccountTranslationDTO(BaseModel):
     sold_account_id: int
-    lang: str
+    language: str
     name: Optional[str] = None
     description: Optional[str] = None

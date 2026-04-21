@@ -98,14 +98,14 @@ class Categories(Base):
     product_universals = relationship("ProductUniversal", back_populates="category",)
     product_accounts = relationship("ProductAccounts", back_populates="category",)
 
-    def _get_field_with_translation(self,field: Callable[[Any], Any], lang: str, fallback: str = None)->str | None:
+    def _get_field_with_translation(self,field: Callable[[Any], Any], language: str, fallback: str = None)->str | None:
         """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
         for t in self.translations:
-            if t.lang == lang:
+            if t.language == language:
                 return field(t)
         if fallback:
             for t in self.translations:
-                if t.lang == fallback:
+                if t.language == fallback:
                     return field(t)
         # вернём первый попавшийся
         if field(self.translations[0]):
@@ -113,13 +113,13 @@ class Categories(Base):
         else:
             return None
 
-    def get_name(self, lang: str, fallback: str | None = None)->str:
+    def get_name(self, language: str, fallback: str | None = None)->str:
         """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
-        return self._get_field_with_translation(lambda translations: translations.name, lang, fallback)
+        return self._get_field_with_translation(lambda translations: translations.name, language, fallback)
 
-    def get_description(self, lang: str, fallback: str = None)->str:
+    def get_description(self, language: str, fallback: str = None)->str:
         """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
-        return self._get_field_with_translation(lambda translations: translations.description, lang, fallback)
+        return self._get_field_with_translation(lambda translations: translations.description, language, fallback)
 
     def to_localized_dict(self, language: str = None)->dict:
         new_dict = {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
@@ -132,12 +132,12 @@ class CategoryTranslation(Base):
     """Всегда должна находиться как минимум одна запись для каждого category_id"""
     __tablename__ = "category_translations"
     __table_args__ = (
-        UniqueConstraint("category_id", "lang", name="uq_category_lang"),
+        UniqueConstraint("category_id", "language", name="uq_category_lang"),
     )
 
     category_translations_id = Column(Integer, primary_key=True, autoincrement=True)
     category_id = Column(Integer, ForeignKey("categories.category_id", ondelete="CASCADE"),nullable=False, index=True)
-    lang = Column(String(8), nullable=False)  # 'ru', 'en'
+    language = Column(String(8), nullable=False)  # 'ru', 'en'
     name = Column(String(300), nullable=False)
     description = Column(Text, nullable=True)
 

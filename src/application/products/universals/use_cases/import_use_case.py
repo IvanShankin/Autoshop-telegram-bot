@@ -101,8 +101,8 @@ class ImportUniversalProductUseCase:
         try:
             for i, row in enumerate(rows, start=1):
                 descriptions = {}
-                for lang in self.conf.app.allowed_langs:
-                    descriptions[lang] = row["description_" + lang]
+                for language in self.conf.app.allowed_langs:
+                    descriptions[language] = row["description_" + language]
 
                 new_prod = UniversalProductsParse(
                     file_name=row["filename"],
@@ -184,12 +184,12 @@ class ImportUniversalProductUseCase:
             checksum = sha256_file(file_path)
 
         encrypted_descriptions = {}
-        for lang, text in product.descriptions.items():
+        for language, text in product.descriptions.items():
             if not text:
                 continue
 
             encrypted, nonce, _ = encrypt_text(text, dek)
-            encrypted_descriptions[lang] = (encrypted, nonce)
+            encrypted_descriptions[language] = (encrypted, nonce)
 
         return PreparedUniversalProduct(
             storage_uuid=storage_uuid,
@@ -229,18 +229,18 @@ class ImportUniversalProductUseCase:
             filling_redis=True
         )
 
-        for lang, (desc, nonce) in prepared.encrypted_descriptions.items():
-            if lang == default_lang:
+        for language, (desc, nonce) in prepared.encrypted_descriptions.items():
+            if language == default_lang:
                 continue
 
-            translate = translations_category_by_lang.get(lang)
+            translate = translations_category_by_lang.get(language)
             if not translate:
                 continue
 
             await self.universal_translations_service.create_translation(
                 data=CreateUniversalTranslationDTO(
                     universal_storage_id=storage.universal_storage_id,
-                    lang=lang,
+                    language=language,
                     name=translate.name,
                     encrypted_description=desc,
                     encrypted_description_nonce=nonce,
@@ -274,7 +274,7 @@ class ImportUniversalProductUseCase:
 
         translations_category_by_lang = {}
         for translate in translations:
-            translations_category_by_lang[translate.lang] = translate
+            translations_category_by_lang[translate.language] = translate
 
         for prod in new_products:
             prepared = self._prepare_product(prod, files_dir)

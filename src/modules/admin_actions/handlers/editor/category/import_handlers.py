@@ -169,7 +169,7 @@ async def choice_lang_category_data(
     callback: CallbackQuery, user: UsersDTO, admin_module: AdminModule, messages_service: Messages
 ):
     category_id = int(callback.data.split(':')[1])
-    lang = callback.data.split(':')[2]
+    language = callback.data.split(':')[2]
 
     await messages_service.edit_msg.edit(
         chat_id=user.user_id,
@@ -179,7 +179,7 @@ async def choice_lang_category_data(
             "admins_editor_category",
             "select_desired_section"
         ),
-        reply_markup=name_or_description_kb(user.language, category_id, lang)
+        reply_markup=name_or_description_kb(user.language, category_id, language)
     )
 
 

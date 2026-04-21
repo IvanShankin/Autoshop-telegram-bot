@@ -943,7 +943,7 @@ class UniversalPurchaseService:
             new_translations = [
                 CreateUniversalTranslationDTO(
                     universal_storage_id=src_storage.universal_storage_id,
-                    lang=t.lang,
+                    language=t.language,
                     name=t.name,
                     encrypted_description=t.encrypted_description,
                     encrypted_description_nonce=t.encrypted_description_nonce,

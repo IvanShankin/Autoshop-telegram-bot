@@ -235,11 +235,11 @@ def select_universal_media_type(language: str, category_id: int):
 def select_lang_category_kb(language: str, category_id: int, admin_module: AdminModule):
     keyboard = InlineKeyboardBuilder()
     conf = admin_module.conf
-    for lang in conf.app.allowed_langs:
+    for language in conf.app.allowed_langs:
         keyboard.row(
             InlineKeyboardButton(
-                text=get_text(language, "kb_admin_panel", f"{lang} - {conf.app.emoji_langs[lang]}"),
-                callback_data=f'choice_lang_category_data:{category_id}:{lang}'
+                text=get_text(language, "kb_admin_panel", f"{language} - {conf.app.emoji_langs[language]}"),
+                callback_data=f'choice_lang_category_data:{category_id}:{language}'
             )
         )
 
@@ -252,18 +252,18 @@ def select_lang_category_kb(language: str, category_id: int, admin_module: Admin
     return keyboard.as_markup()
 
 
-def name_or_description_kb(language: str, category_id: int, lang: str):
+def name_or_description_kb(language: str, category_id: int, lang_code: str):
     """
-    :param lang: Код языка из переменной admin_module.conf.app.allowed_langs
+    :param lang_code: Код языка из переменной admin_module.conf.app.allowed_langs
     """
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
             text=get_text(language, "kb_admin_panel", "name"),
-            callback_data=f'category_update_name:{category_id}:{lang}'
+            callback_data=f'category_update_name:{category_id}:{lang_code}'
         )],
         [InlineKeyboardButton(
             text=get_text(language, "kb_admin_panel", 'description'),
-            callback_data=f'category_update_descr:{category_id}:{lang}'
+            callback_data=f'category_update_descr:{category_id}:{lang_code}'
         )],
         [InlineKeyboardButton(
             text=get_text(language, "kb_general", "back"),

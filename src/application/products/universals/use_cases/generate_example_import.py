@@ -51,12 +51,12 @@ class GenerateExamplUniversalProductImport:
 
         writer.writerow({
             "filename": "file_001.pdf",
-            **{f"description_{lang}": f"Описание товара 1 ({lang})" for lang in allowed_langs}
+            **{f"description_{language}": f"Описание товара 1 ({language})" for language in allowed_langs}
         })
 
         writer.writerow({
             "filename": "file_002.pdf",
-            **{f"description_{lang}": f"Описание товара 2 ({lang})" for lang in allowed_langs}
+            **{f"description_{language}": f"Описание товара 2 ({language})" for language in allowed_langs}
         })
 
         csv_content = csv_buffer.getvalue()

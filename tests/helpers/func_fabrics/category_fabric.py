@@ -21,7 +21,7 @@ async def create_translate_category_factory(
     async with get_session_factory() as session_db:
         new_translate = CategoryTranslation(
             category_id=category_id,
-            lang=language,
+            language=language,
             name=name,
             description=description
         )
@@ -38,7 +38,7 @@ async def create_translate_category_factory(
         full_category = CategoryFull.from_orm_with_translation(
             category=category,
             quantity_product=await container_fix.category_service.get_quantity_products_in_category(category_id),
-            lang=language
+            language=language
         )
 
     if filling_redis:
@@ -101,7 +101,7 @@ async def create_category_factory(
 
         new_translate = CategoryTranslation(
             category_id=new_category.category_id,
-            lang=language,
+            language=language,
             name=name,
             description=description
         )
@@ -121,7 +121,7 @@ async def create_category_factory(
             quantity_product=await container_fix.category_service.get_quantity_products_in_category(
                 new_category.category_id
             ),
-            lang=language,
+            language=language,
         )
         if filling_redis:
             await container_fix.categories_cache_filler_service.fill_category_by_id(full_category.category_id)

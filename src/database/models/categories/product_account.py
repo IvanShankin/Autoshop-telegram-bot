@@ -119,14 +119,14 @@ class SoldAccounts(Base):
     user = relationship("Users", back_populates="sold_account")
     translations = relationship("SoldAccountsTranslation", back_populates="sold_account", cascade="all, delete-orphan")
 
-    def _get_field_with_translation(self,field: Callable[[Any], Any], lang: str, fallback: str = None)->str | None:
+    def _get_field_with_translation(self,field: Callable[[Any], Any], language: str, fallback: str = None)->str | None:
         """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
         for t in self.translations:
-            if t.lang == lang:
+            if t.language == language:
                 return field(t)
         if fallback:
             for t in self.translations:
-                if t.lang == fallback:
+                if t.language == fallback:
                     return field(t)
         # вернём первый попавшийся
         if field(self.translations[0]):
@@ -134,13 +134,13 @@ class SoldAccounts(Base):
         else:
             return None
 
-    def get_name(self, lang: str, fallback: str = None) -> str:
+    def get_name(self, language: str, fallback: str = None) -> str:
         """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
-        return self._get_field_with_translation(lambda translations: translations.name, lang, fallback)
+        return self._get_field_with_translation(lambda translations: translations.name, language, fallback)
 
-    def get_description(self, lang: str, fallback: str = None) -> str:
+    def get_description(self, language: str, fallback: str = None) -> str:
         """Вернёт по указанному языку, если такого не найдёт, то вернёт первый попавшийся"""
-        return self._get_field_with_translation(lambda translations: translations.description, lang, fallback)
+        return self._get_field_with_translation(lambda translations: translations.description, language, fallback)
 
     def to_localized_dict(self, language: str = None) -> dict:
         new_dict = {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
@@ -153,12 +153,12 @@ class SoldAccountsTranslation(Base):
     """Всегда должна находиться как минимум одна запись для каждого sold_account_id"""
     __tablename__ = "sold_account_translations"
     __table_args__ = (
-        UniqueConstraint("sold_account_id", "lang", name="uq_sold_accounts_lang"),
+        UniqueConstraint("sold_account_id", "language", name="uq_sold_accounts_lang"),
     )
 
     sold_account_translations_id = Column(Integer, primary_key=True, autoincrement=True)
     sold_account_id = Column(Integer, ForeignKey("sold_accounts.sold_account_id", ondelete="CASCADE"),nullable=False)
-    lang = Column(String(8), nullable=False)  # 'ru', 'en'
+    language = Column(String(8), nullable=False)  # 'ru', 'en'
 
     name = Column(Text, nullable=False) # берётся с Categories
     description = Column(Text, nullable=True) # берётся с Categories

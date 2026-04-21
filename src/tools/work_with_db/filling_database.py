@@ -121,8 +121,9 @@ async def filling_admins(admin_id: int, app_container: AppContainer):
                     session_db.add(new_notification_settings)
                     await session_db.commit()
 
-            request_container = app_container.get_request_container(session_db)
-            request_container.admin_service.create_admin(new_user.user_id)
+            async with get_session_factory() as session_db:
+                request_container = app_container.get_request_container(session_db)
+                await request_container.admin_service.create_admin(admin_id)
 
 
 async def filling_type_payment(service_payments: ReplenishmentService):

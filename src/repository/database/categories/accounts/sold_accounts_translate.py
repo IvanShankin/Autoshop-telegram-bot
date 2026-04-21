@@ -21,7 +21,7 @@ class SoldAccountsTranslationRepository(DatabaseBase):
         result = await self.session_db.execute(
             select(SoldAccountsTranslation).where(
                 (SoldAccountsTranslation.sold_account_id == sold_account_id)
-                & (SoldAccountsTranslation.lang == language)
+                & (SoldAccountsTranslation.language == language)
             )
         )
         translation = result.scalar_one_or_none()
@@ -41,7 +41,7 @@ class SoldAccountsTranslationRepository(DatabaseBase):
 
     async def get_languages_by_sold_account_id(self, sold_account_id: int) -> List[str]:
         result = await self.session_db.execute(
-            select(distinct(SoldAccountsTranslation.lang)).where(
+            select(distinct(SoldAccountsTranslation.language)).where(
                 SoldAccountsTranslation.sold_account_id == sold_account_id
             )
         )
@@ -51,7 +51,7 @@ class SoldAccountsTranslationRepository(DatabaseBase):
         result = await self.session_db.execute(
             select(SoldAccountsTranslation.sold_account_id).where(
                 (SoldAccountsTranslation.sold_account_id == sold_account_id)
-                & (SoldAccountsTranslation.lang == language)
+                & (SoldAccountsTranslation.language == language)
             )
         )
         return result.scalar_one_or_none() is not None
@@ -63,17 +63,17 @@ class SoldAccountsTranslationRepository(DatabaseBase):
     async def update(
         self,
         sold_account_id: int,
-        lang: str,
+        language: str,
         **values: Any,
     ) -> Optional[SoldAccountsTranslationDTO]:
         if not values:
-            return await self.get_by_sold_account_and_lang(sold_account_id, lang)
+            return await self.get_by_sold_account_and_lang(sold_account_id, language)
 
         result = await self.session_db.execute(
             update(SoldAccountsTranslation)
             .where(
                 (SoldAccountsTranslation.sold_account_id == sold_account_id)
-                & (SoldAccountsTranslation.lang == lang)
+                & (SoldAccountsTranslation.language == language)
             )
             .values(**values)
             .returning(SoldAccountsTranslation)
@@ -81,11 +81,11 @@ class SoldAccountsTranslationRepository(DatabaseBase):
         translation = result.scalar_one_or_none()
         return SoldAccountsTranslationDTO.model_validate(translation) if translation else None
 
-    async def delete(self, sold_account_id: int, lang: str) -> None:
+    async def delete(self, sold_account_id: int, language: str) -> None:
         await self.session_db.execute(
             delete(SoldAccountsTranslation).where(
                 (SoldAccountsTranslation.sold_account_id == sold_account_id)
-                & (SoldAccountsTranslation.lang == lang)
+                & (SoldAccountsTranslation.language == language)
             )
         )
 

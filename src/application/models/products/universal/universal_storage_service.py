@@ -102,7 +102,6 @@ class UniversalStorageService:
             encrypted_description_nonce=data.encrypted_description_nonce,
         )
         translation_values = translation_payload.model_dump(exclude_unset=True)
-        translation_values["lang"] = translation_values.pop("language")
         await self.translation_repo.create_translate(**translation_values)
 
         if make_commit:

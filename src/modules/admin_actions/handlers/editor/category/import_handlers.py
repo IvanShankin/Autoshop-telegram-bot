@@ -504,6 +504,7 @@ async def import_universal_products(
         await state.set_state(ImportUniversalProducts.archive)
     except Exception as e:
         text = f"#Ошибка_при_добавлении_товара  [import_universal_products]. \nОшибка='{str(e)}'"
+        admin_module.logger.exception(text)
         await admin_module.publish_event_handler.send_log(text=text)
 
         await messages_service.send_msg.send(

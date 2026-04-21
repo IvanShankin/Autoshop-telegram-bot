@@ -53,13 +53,12 @@ class UniversalTranslationsService:
                 f"UniversalStorage с ID = {data.universal_storage_id} не найден"
             )
 
-        if await self.translation_repo.exists(data.universal_storage_id, data.language):
+        if await self.translation_repo.exists(data.universal_storage_id, data.lang):
             raise TranslationAlreadyExists(
-                f"Перевод по языку '{data.language}' уже существует"
+                f"Перевод по языку '{data.lang}' уже существует"
             )
 
         translation_values = data.model_dump(exclude_unset=True)
-        translation_values["lang"] = translation_values.pop("language")
         await self.translation_repo.create_translate(**translation_values)
 
         if make_commit:
@@ -79,7 +78,7 @@ class UniversalTranslationsService:
                 await self.cache_filler.fill_sold_universal_by_owner_id(sold.owner_id)
                 await self.cache_filler.fill_sold_universal_by_universal_id(sold.sold_universal_id)
 
-        return UniversalStoragePydantic.from_orm_model(storage, data.language)
+        return UniversalStoragePydantic.from_orm_model(storage, data.lang)
 
     async def update_translation(
         self,

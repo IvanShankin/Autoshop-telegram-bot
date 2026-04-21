@@ -44,7 +44,7 @@ async def sold_universal_kb(
 
     def item_button(sold_universal: SoldUniversalSmall):
         return InlineKeyboardButton(
-            text=sold_universal.name,
+            text=sold_universal.name if sold_universal.name else str(sold_universal.sold_universal_id),
             callback_data=f"sold_universal:{sold_universal.sold_universal_id}:{current_page}"
         )
 

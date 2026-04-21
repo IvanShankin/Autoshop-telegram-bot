@@ -265,7 +265,10 @@ async def get_activation_code(
                 promo_code_id=new_promo_code.promo_code_id,
                 show_not_valid=False
             )
-        except Exception:
+        except Exception as e:
+            admin_module.logger.exception(
+                "[CreatePromoCode.get_activation_code] - не удалось создать промокод"
+            )
             text = get_text(
                 user.language,
                 "admins_editor_promo_codes",

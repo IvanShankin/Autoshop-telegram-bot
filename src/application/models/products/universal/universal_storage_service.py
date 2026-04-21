@@ -96,7 +96,7 @@ class UniversalStorageService:
 
         translation_payload = CreateUniversalTranslationDTO(
             universal_storage_id=storage.universal_storage_id,
-            language=data.language,
+            lang=data.language,
             name=data.name,
             encrypted_description=data.encrypted_description,
             encrypted_description_nonce=data.encrypted_description_nonce,

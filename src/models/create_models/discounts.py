@@ -14,7 +14,7 @@ class CreatePromoCodeDTO(BaseModel):
     min_order_amount: int = 0                   # минимальная сумма для активации
     amount: Optional[int] = None                # сумма скидки (взаимоисключающая с discount_percentage)
     discount_percentage: Optional[int] = None   # процент скидки (взаимоисключающая с amount)
-    number_of_activations: int = 1              # число активаций
+    number_of_activations: Optional[int] = 1    # число активаций
     expire_at: Optional[datetime] = None        # годен до (указывать с utc)
 
 

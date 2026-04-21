@@ -303,10 +303,9 @@ async def category_update_data(
 ):
     category_id = int(callback.data.split(':')[1])
     await state.clear()
-    await show_category(
+    await show_category_update_data(
         user=user,
         category_id=category_id,
-        message_id=callback.message.message_id,
         callback=callback,
         admin_module=admin_module,
         messages_service=messages_service,

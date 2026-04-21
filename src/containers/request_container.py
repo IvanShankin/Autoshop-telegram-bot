@@ -739,6 +739,7 @@ class RequestContainer:
             purchase_cancel_service=self.purchase_cancel_service,
             product_repo=self.product_universal_repo,
             storage_repo=self.universal_storage_repo,
+            universal_translation_repo=self.universal_translation_repo,
             purchase_request_universal_repo=PurchaseRequestUniversalRepository(
                 session_db=self.session_db,
                 config=self.config,

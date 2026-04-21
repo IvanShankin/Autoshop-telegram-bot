@@ -15,10 +15,10 @@ from src.application.products.universals.use_cases import ValidationsUniversalPr
 from src.infrastructure.files.path_builder import PathBuilder
 from src.config import Config
 from src.database.models.categories import StorageStatus, ProductType
-from src.database.models.categories.product_universal import UniversalStorage, UniversalStorageTranslation
 from src.exceptions.business import NotEnoughProducts
 from src.exceptions.domain import UniversalProductNotFound
-from src.models.read_models import ProductUniversalFull
+from src.models.read_models import ProductUniversalFull, UniversalStorageTranslationDTO, UniversalStoragePydantic, \
+    UniversalStorageDTO
 from src.models.read_models.categories.purshanse_schem import StartPurchaseUniversalOne, StartPurchaseUniversal
 from src.models.read_models.events.purchase import UniversalProductData, NewPurchaseUniversal
 from src.repository.redis import UsersCacheRepository
@@ -27,7 +27,8 @@ from src.application.models.categories.categories_cache_filler_service import Ca
 from src.application.models.categories.category_service import CategoryService
 from src.application.models.products.universal.universal_cache_filler_service import UniversalCacheFillerService
 from src.application.models.products.universal.universal_deleted_service import UniversalDeletedService
-from src.models.create_models.universal import CreateDeletedUniversalDTO
+from src.models.create_models.universal import CreateDeletedUniversalDTO, CreateUniversalStorageDTO, \
+    CreateUniversalTranslationDTO
 from src.application.models.purchases.general.purchase_cancel_service import PurchaseCancelService
 from src.application.models.purchases.general.purchase_request_service import PurchaseRequestService
 from src.application.models.purchases.general.purchase_validation_service import PurchaseValidationService
@@ -36,7 +37,7 @@ from src.repository.database.categories import (
     UniversalStorageRepository,
     PurchaseRequestUniversalRepository,
     SoldUniversalRepository,
-    PurchasesRepository,
+    PurchasesRepository, UniversalTranslationRepository,
 )
 
 SEMAPHORE_LIMIT_UNIVERSAL = 50
@@ -53,6 +54,7 @@ class UniversalPurchaseService:
         purchase_cancel_service: PurchaseCancelService,
         product_repo: ProductUniversalRepository,
         storage_repo: UniversalStorageRepository,
+        universal_translation_repo: UniversalTranslationRepository,
         purchase_request_universal_repo: PurchaseRequestUniversalRepository,
         sold_repo: SoldUniversalRepository,
         purchases_repo: PurchasesRepository,
@@ -75,6 +77,7 @@ class UniversalPurchaseService:
         self.purchase_cancel_service = purchase_cancel_service
         self.product_repo = product_repo
         self.storage_repo = storage_repo
+        self.universal_translation_repo = universal_translation_repo
         self.purchase_request_universal_repo = purchase_request_universal_repo
         self.sold_repo = sold_repo
         self.purchases_repo = purchases_repo
@@ -612,12 +615,14 @@ class UniversalPurchaseService:
         """
         Копирует storage, создаёт записи и сбрасывает результат покупки.
         """
-        created_storages: list[UniversalStorage] = []
+        created_storages: list[UniversalStorageDTO] = []
         sold_ids: list[int] = []
         purchase_ids: list[int] = []
         product_movement: list[UniversalProductData] = []
 
-        translations = list(getattr(data.full_product.universal_storage, "translations", []) or [])
+        translations = await self.universal_translation_repo.get_all(
+            universal_storage_id=data.full_product.universal_storage_id
+        )
 
         try:
             prepared = await self._copy_universal_storage_prepare(
@@ -630,20 +635,19 @@ class UniversalPurchaseService:
             await self._reset_session_transaction()
             async with self.session_db.begin():
                 for _, new_storage, trans_list in prepared:
-                    self.session_db.add(new_storage)
-                    await self.session_db.flush()
+                    created_new_storage = await self.storage_repo.create_storage(**(new_storage.model_dump()))
 
                     for tr in trans_list:
-                        tr.universal_storage_id = new_storage.universal_storage_id
-                        self.session_db.add(tr)
+                        tr.universal_storage_id = created_new_storage.universal_storage_id
+                        await self.universal_translation_repo.create_translate(**(tr.model_dump()))
 
                     new_sold = await self.sold_repo.create_sold(
                         owner_id=user_id,
-                        universal_storage_id=new_storage.universal_storage_id,
+                        universal_storage_id=created_new_storage.universal_storage_id,
                     )
                     new_purchase = await self.purchases_repo.create_purchase(
                         user_id=user_id,
-                        universal_storage_id=new_storage.universal_storage_id,
+                        universal_storage_id=created_new_storage.universal_storage_id,
                         product_type=ProductType.UNIVERSAL,
                         original_price=data.original_price_one,
                         purchase_price=data.purchase_price_one,
@@ -653,16 +657,16 @@ class UniversalPurchaseService:
 
                     await self.purchase_request_universal_repo.create_many(
                         purchase_request_id=data.purchase_request_id,
-                        universal_storage_ids=[new_storage.universal_storage_id],
+                        universal_storage_ids=[created_new_storage.universal_storage_id],
                     )
 
-                    created_storages.append(new_storage)
+                    created_storages.append(created_new_storage)
                     sold_ids.append(new_sold.sold_universal_id)
                     purchase_ids.append(new_purchase.purchase_id)
 
                     product_movement.append(
                         UniversalProductData(
-                            universal_storage_id=new_storage.universal_storage_id,
+                            universal_storage_id=created_new_storage.universal_storage_id,
                             sold_universal_id=new_sold.sold_universal_id,
                             purchase_id=new_purchase.purchase_id,
                             cost_price=new_purchase.cost_price,
@@ -895,11 +899,11 @@ class UniversalPurchaseService:
 
     async def _copy_universal_storage_prepare(
         self,
-        src_storage,
-        translations: List[UniversalStorageTranslation],
+        src_storage: UniversalStoragePydantic,
+        translations: List[UniversalStorageTranslationDTO],
         new_status: StorageStatus,
         quantity: int = 1,
-    ) -> List[Tuple[Path, UniversalStorage, List[UniversalStorageTranslation]]]:
+    ) -> List[Tuple[Path, CreateUniversalStorageDTO, List[CreateUniversalTranslationDTO]]]:
         prepared = []
         for _ in range(quantity):
             new_uuid = str(uuid.uuid4())
@@ -922,7 +926,7 @@ class UniversalPurchaseService:
                     file_name=final_path.name,
                 )
 
-            storage = UniversalStorage(
+            storage = CreateUniversalStorageDTO(
                 storage_uuid=new_uuid,
                 original_filename=src_storage.original_filename,
                 encrypted_tg_file_id=src_storage.encrypted_tg_file_id,
@@ -934,11 +938,11 @@ class UniversalPurchaseService:
                 encryption_algo=src_storage.encryption_algo,
                 status=new_status,
                 media_type=src_storage.media_type,
-                is_active=src_storage.is_active,
             )
 
             new_translations = [
-                UniversalStorageTranslation(
+                CreateUniversalTranslationDTO(
+                    universal_storage_id=src_storage.universal_storage_id,
                     lang=t.lang,
                     name=t.name,
                     encrypted_description=t.encrypted_description,

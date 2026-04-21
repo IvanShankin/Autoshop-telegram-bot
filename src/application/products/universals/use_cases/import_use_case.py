@@ -240,7 +240,7 @@ class ImportUniversalProductUseCase:
             await self.universal_translations_service.create_translation(
                 data=CreateUniversalTranslationDTO(
                     universal_storage_id=storage.universal_storage_id,
-                    language=lang,
+                    lang=lang,
                     name=translate.name,
                     encrypted_description=desc,
                     encrypted_description_nonce=nonce,

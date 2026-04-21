@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from src.database.models.categories import UniversalMediaType
+from src.database.models.categories import UniversalMediaType, StorageStatus
 
 
 class CreateUniversalStorageDTO(BaseModel):
@@ -17,10 +17,12 @@ class CreateUniversalStorageDTO(BaseModel):
     encryption_algo: str = "AES-GCM-256"
     media_type: Optional[UniversalMediaType] = None
 
+    status: Optional[StorageStatus] = None # ТЛЬКО ДЛЯ ПОКУПКИ
+
 
 class CreateUniversalTranslationDTO(BaseModel):
     universal_storage_id: int
-    language: str
+    lang: str
     name: str
     encrypted_description: Optional[str] = None
     encrypted_description_nonce: Optional[str] = None

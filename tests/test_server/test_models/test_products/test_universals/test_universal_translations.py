@@ -34,7 +34,7 @@ class TestUniversalTranslationsService:
         created = await container_fix.universal_translations_service.create_translation(
             CreateUniversalTranslationDTO(
                 universal_storage_id=storage.universal_storage_id,
-                language="en",
+                lang="en",
                 name="english title",
                 encrypted_description=encrypted_description,
                 encrypted_description_nonce=encrypted_description_nonce,
@@ -56,7 +56,7 @@ class TestUniversalTranslationsService:
             await container_fix.universal_translations_service.create_translation(
                 CreateUniversalTranslationDTO(
                     universal_storage_id=999999,
-                    language="en",
+                    lang="en",
                     name="english title",
                     encrypted_description=encrypted_description,
                     encrypted_description_nonce=encrypted_description_nonce,
@@ -73,7 +73,7 @@ class TestUniversalTranslationsService:
             await container_fix.universal_translations_service.create_translation(
                 CreateUniversalTranslationDTO(
                     universal_storage_id=storage.universal_storage_id,
-                    language="ru",
+                    lang="ru",
                     name="new name",
                     encrypted_description=encrypted_description,
                     encrypted_description_nonce=encrypted_description_nonce,

@@ -45,30 +45,29 @@ class ReferralService:
         ref_lvls = await self.referral_lvls_service.get_referral_levels()
         min_level = min(ref_lvls, key=lambda x: x.level)
 
-        async with self.session_db.begin():
-            referral = await self.referral_repo.create_referral(
-                referral_id=referral_id,
-                owner_user_id=owner_id,
-                level=min_level.level,
-            )
+        referral = await self.referral_repo.create_referral(
+            referral_id=referral_id,
+            owner_user_id=owner_id,
+            level=min_level.level,
+        )
 
-            await self.log_service.create_log(
-                user_id=owner_id,
-                data=CreateUserAuditLogDTO(
-                    action_type="new_referral",
-                    message="У пользователя новый реферал",
-                    details={"referral_id": referral_id},
-                ),
-            )
-            await self.log_service.create_log(
-                user_id=referral_id,
-                data=CreateUserAuditLogDTO(
-                    action_type="became_referral",
-                    message="Пользователь стал рефералом",
-                    details={"owner_id": owner_id},
-                ),
-            )
-            await self.session_db.commit()
+        await self.log_service.create_log(
+            user_id=owner_id,
+            data=CreateUserAuditLogDTO(
+                action_type="new_referral",
+                message="У пользователя новый реферал",
+                details={"referral_id": referral_id},
+            ),
+        )
+        await self.log_service.create_log(
+            user_id=referral_id,
+            data=CreateUserAuditLogDTO(
+                action_type="became_referral",
+                message="Пользователь стал рефералом",
+                details={"owner_id": owner_id},
+            ),
+        )
+        await self.session_db.commit()
 
         return referral
 

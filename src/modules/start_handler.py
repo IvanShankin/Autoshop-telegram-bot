@@ -115,6 +115,7 @@ async def _handle_referral_from_voucher(
     language: str,
     user: UsersDTO,
     voucher_code: str,
+    create_new_ref: bool,
 ) -> None:
     voucher = await profile_module.voucher_service.get_valid_voucher_by_code(voucher_code)
     if not voucher:
@@ -124,22 +125,23 @@ async def _handle_referral_from_voucher(
         return
 
     owner_user = await profile_module.user_service.get_user(voucher.creator_id)
-    if not owner_user:
+    if not owner_user or voucher.is_created_admin:
         return
 
-    await profile_module.referral_service.add_referral(
-        referral_id=user.user_id,
-        owner_id=owner_user.user_id,
-    )
+    if create_new_ref:
+        await profile_module.referral_service.add_referral(
+            referral_id=user.user_id,
+            owner_id=owner_user.user_id,
+        )
 
-    text = get_text(language, "referral_messages", "new_referral_invited").format(
-        username=f"@{user.username}" if user.username else "None",
-    )
-    await messages_service.send_msg.send(
-        chat_id=owner_user.user_id,
-        message=text,
-        event_message_key="new_referral",
-    )
+        text = get_text(language, "referral_messages", "new_referral_invited").format(
+            username=f"@{user.username}" if user.username else "None",
+        )
+        await messages_service.send_msg.send(
+            chat_id=owner_user.user_id,
+            message=text,
+            event_message_key="new_referral",
+        )
 
 
 @router.message(CommandStart())
@@ -176,7 +178,7 @@ async def cmd_start(
             )
             await _send_voucher_result(messages_service, message, result_message, success)
 
-            if not existing_user and success:
+            if success:
                 await _handle_referral_from_voucher(
                     profile_module=profile_module,
                     admin_module=admin_module,
@@ -184,6 +186,7 @@ async def cmd_start(
                     language=language,
                     user=user,
                     voucher_code=payload,
+                    create_new_ref=False if existing_user else True # если пользователь ранее не был в боте, то создаём рефералла
                 )
             if not existing_user:
                 await _send_language_selection(messages_service, message)
@@ -194,7 +197,7 @@ async def cmd_start(
 
     if command_name == "ref" and payload:
         owner_user = await profile_module.user_service.get_user_by_ref_code(payload)
-        if owner_user and user:
+        if (owner_user and user) and (owner_user.user_id != user.user_id) and not existing_user:
             await profile_module.referral_service.add_referral(
                 referral_id=user.user_id,
                 owner_id=owner_user.user_id,

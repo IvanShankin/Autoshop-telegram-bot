@@ -129,7 +129,7 @@ class UserService:
         )
 
         await self.publish_event_handler.send_log(
-            text=f"#Новый_пользователь \n\nID: {user.user_id}\nusername: {user.username}",
+            text=f"#Новый_пользователь \n\nID: {user.user_id}\nusername: {f"@{user.username}" if user.username else "нет"}",
         )
 
         return user

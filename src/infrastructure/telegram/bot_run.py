@@ -22,7 +22,7 @@ async def _including_router(app_container: AppContainer):
     dp_logger.update.middleware(ModulesMiddleware(app_container))
     dp.message.middleware(UpdateLoggingMiddleware())
     dp.callback_query.middleware(UpdateLoggingMiddleware())
-    dp.update.middleware(CheckuserNotBlok())
+    dp.update.middleware(CheckuserNotBlok(app_container.conf.db_connection.session_local))
     dp.update.middleware(DeleteMessageOnErrorMiddleware(ForbiddenError, "Insufficient rights"))
 
     dp_logger.update.middleware(DeleteMessageOnErrorMiddleware(ForbiddenError, "Insufficient rights"))
@@ -37,18 +37,18 @@ async def _including_router(app_container: AppContainer):
     dp.include_router(admin_router_with_repl_kb)
 
     # роутер только для админов
-    admin_router.message.middleware(OnlyAdminsMiddleware())
-    admin_router.callback_query.middleware(OnlyAdminsMiddleware())
+    admin_router.message.middleware(OnlyAdminsMiddleware(app_container.conf.db_connection.session_local))
+    admin_router.callback_query.middleware(OnlyAdminsMiddleware(app_container.conf.db_connection.session_local))
 
-    admin_router_with_repl_kb.message.middleware(OnlyAdminsMiddleware())
-    admin_router_with_repl_kb.callback_query.middleware(OnlyAdminsMiddleware())
+    admin_router_with_repl_kb.message.middleware(OnlyAdminsMiddleware(app_container.conf.db_connection.session_local))
+    admin_router_with_repl_kb.callback_query.middleware(OnlyAdminsMiddleware(app_container.conf.db_connection.session_local))
 
-    dp.update.middleware(UserMiddleware()) # использует ModulesMiddleware
-    dp.update.middleware(MaintenanceMiddleware())
+    dp.update.middleware(UserMiddleware(app_container.conf.db_connection.session_local)) # использует ModulesMiddleware
+    dp.update.middleware(MaintenanceMiddleware(app_container.conf.db_connection.session_local))
     dp.update.middleware(ErrorLoggingMiddleware()) # использует UserMiddleware
 
     dp_logger.include_router(router_logger)
-    dp_logger.update.middleware(UserMiddleware())
+    dp_logger.update.middleware(UserMiddleware(app_container.conf.db_connection.session_local))
 
 
 async def run_bot(app_container: AppContainer):

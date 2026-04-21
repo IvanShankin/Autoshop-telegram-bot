@@ -9,7 +9,10 @@ from aiogram.types import Message, TelegramObject, CallbackQuery
 
 from typing import Callable, Dict, Any, Awaitable, Type
 
+from sqlalchemy.orm import sessionmaker
+
 from src.application.bot import Messages
+from src.containers import RequestContainer
 from src.containers.app_container import AppContainer
 from src.application.models.modules import AdminModule
 from src.infrastructure.telegram.ui.keyboard import support_kb
@@ -30,6 +33,8 @@ class ModulesMiddleware(BaseMiddleware):
 
         async with async_session_factory() as session:
             request_container = self.app_container.get_request_container(session)
+
+            data["request_container_factory"] = self.app_container.get_request_container
 
             data["profile_module"] = request_container.get_profile_modul()
             data["catalog_modul"] = request_container.get_catalog_modul()
@@ -78,6 +83,8 @@ class UserMiddleware(BaseMiddleware):
     Универсальный middleware, который добавляет объект пользователя (User)
     в data для всех типов апдейтов, где есть from_user.
     """
+    def __init__(self, session_factory: Callable[[], Awaitable[sessionmaker]]):
+        self.session_factory = session_factory
 
     async def __call__(
         self,
@@ -89,13 +96,18 @@ class UserMiddleware(BaseMiddleware):
         event_user = data.get("event_from_user")
 
         if event_user:
-            user_id = event_user.id
-            username = event_user.username
+            async with self.session_factory() as session:
+                request_container = data["request_container_factory"](session)
 
-            # Получаем или создаём пользователя
-            admin_module: AdminModule = data["admin_module"]
-            user = await admin_module.user_service.get_user(user_id, username, update_last_used=True)
-            data["user"] = user
+                admin_module = request_container.get_admin_module()
+
+                user = await admin_module.user_service.get_user(
+                    event_user.id,
+                    event_user.username,
+                    update_last_used=True
+                )
+
+                data["user"] = user
 
         # даже если from_user нет, не ломаем обработку
         return await handler(event, data)
@@ -106,6 +118,9 @@ class MaintenanceMiddleware(BaseMiddleware):
     Middleware для режима обслуживания (maintenance mode). Запрещает отправку сообщений от бота если идут тех работы.
     Администраторы смогут пользоваться ботом даже при техработах.
     """
+    def __init__(self, session_factory: Callable[[], Awaitable[sessionmaker]]):
+        self.session_factory = session_factory
+
     async def __call__(
         self,
         handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
@@ -116,34 +131,41 @@ class MaintenanceMiddleware(BaseMiddleware):
 
         user_id = event_user.id
 
-        admin_module: AdminModule = data["admin_module"]
-        messages_service: Messages = data["messages_service"]
-        # Проверяем режим обслуживания
-        settings = await admin_module.settings_service.get_settings()
-        if not settings.maintenance_mode:
-            return await handler(event, data)
+        async with self.session_factory() as session:
+            request_container: RequestContainer = data["request_container_factory"](session)
 
-        if await admin_module.admin_service.check_admin(user_id):
-            return await handler(event, data)
+            admin_module = request_container.get_admin_module()
+            messages_service = request_container.get_message_service()
 
-        user = await admin_module.user_service.get_user(user_id, update_last_used=True)
-        language = user.language if user else admin_module.conf.app.default_lang
+            # Проверяем режим обслуживания
+            settings = await admin_module.settings_service.get_settings()
+            if not settings.maintenance_mode:
+                return await handler(event, data)
 
-        await messages_service.send_msg.send(
-            user_id,
-            message=get_text(
-                language,
-                "start_message",
-                "temporarily_maintenance"
-            ),
-            event_message_key="technical_work"
-        )
+            if await admin_module.admin_service.check_admin(user_id):
+                return await handler(event, data)
+
+            user = await admin_module.user_service.get_user(user_id, update_last_used=True)
+            language = user.language if user else admin_module.conf.app.default_lang
+
+            await messages_service.send_msg.send(
+                user_id,
+                message=get_text(
+                    language,
+                    "start_message",
+                    "temporarily_maintenance"
+                ),
+                event_message_key="technical_work"
+            )
 
 
 class CheckuserNotBlok(BaseMiddleware):
     """
         Проверит наличие бана у пользователя, если имеется, то отправит соответсвующее сообщение
     """
+    def __init__(self, session_factory: Callable[[], Awaitable[sessionmaker]]):
+        self.session_factory = session_factory
+
     async def __call__(
         self,
         handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
@@ -155,23 +177,26 @@ class CheckuserNotBlok(BaseMiddleware):
         if not user:
             return
 
-        admin_module: AdminModule = data["admin_module"]
-        messages_service: Messages = data["messages_service"]
-        reason = await admin_module.banned_account_service.get_ban(user.id)
+        async with self.session_factory() as session:
+            request_container: RequestContainer = data["request_container_factory"](session)
 
-        if reason:
-            user_db = await admin_module.user_service.get_user(user.id)
-            message = f"Вы были забанены в боте по причине: {reason}"
+            admin_module = request_container.get_admin_module()
+            messages_service = request_container.get_message_service()
+            reason = await admin_module.banned_account_service.get_ban(user.id)
 
-            if user_db:
-                message = get_text(user_db.language, "kb_start", "you_banned").format(reason=reason)
+            if reason:
+                user_db = await admin_module.user_service.get_user(user.id)
+                message = f"Вы были забанены в боте по причине: {reason}"
 
-            settings = await admin_module.settings_service.get_settings()
-            await messages_service.send_msg.send(
-                user.id, message=message, reply_markup=await support_kb(admin_module.conf.app.default_lang, settings.support_username)
-            )
+                if user_db:
+                    message = get_text(user_db.language, "kb_start", "you_banned").format(reason=reason)
 
-            return
+                settings = await admin_module.settings_service.get_settings()
+                await messages_service.send_msg.send(
+                    user.id, message=message, reply_markup=await support_kb(admin_module.conf.app.default_lang, settings.support_username)
+                )
+
+                return
 
         return await handler(event, data)
 
@@ -180,6 +205,9 @@ class OnlyAdminsMiddleware(BaseMiddleware):
     """
     middleware который пропускает только админов (использовать для работы с админ панелью)
     """
+    def __init__(self, session_factory: Callable[[], Awaitable[sessionmaker]]):
+        self.session_factory = session_factory
+
     async def __call__(
         self,
         handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
@@ -191,12 +219,16 @@ class OnlyAdminsMiddleware(BaseMiddleware):
         if not user:
             return
 
-        admin_module: AdminModule = data["admin_module"]
-        if not await admin_module.admin_service.check_admin(user.id):
-            if isinstance(event, CallbackQuery):
-                await event.answer("Access for administrators only", show_alert=True)
-                await event.message.delete()
-            return
+
+        async with self.session_factory() as session:
+            request_container: RequestContainer = data["request_container_factory"](session)
+
+            admin_module = request_container.get_admin_module()
+            if not await admin_module.admin_service.check_admin(user.id):
+                if isinstance(event, CallbackQuery):
+                    await event.answer("Access for administrators only", show_alert=True)
+                    await event.message.delete()
+                return
 
         return await handler(event, data)
 

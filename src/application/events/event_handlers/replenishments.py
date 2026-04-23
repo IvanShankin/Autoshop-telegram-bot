@@ -131,7 +131,7 @@ class ReplenishmentsEventHandler:
     def _format_username(self, event: ReplenishmentCompleted | ReplenishmentFailed) -> str:
         if event.username:
             return f"@{event.username}"
-        return get_text(event.language, "miscellaneous", "no")
+        return f"'без username'"
 
     async def _send_error_log(self, error: str) -> None:
         await self.publish_event.send_log(

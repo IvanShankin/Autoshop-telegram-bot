@@ -1,8 +1,15 @@
+from typing import AsyncGenerator
+
 from fastapi import Request
 
+from src.containers import RequestContainer
 from src.containers.app_container import AppContainer
 
 
-def get_container(request: Request):
+async def get_container(request: Request) -> AsyncGenerator[RequestContainer, None]:
     app_container: AppContainer = request.app.state.container
-    return app_container.get_request_container_factory()
+
+    factory = app_container.get_request_container_factory()
+
+    async for container in factory():
+        yield container

@@ -89,7 +89,6 @@ async def ui_image_update_show(
         data=UpdateUiImageDTO(show=new_show),
         make_commit=True,
         filling_redis=True,
-
     )
     await callback.answer(get_text(user.language, "miscellaneous", "successfully_updated"), show_alert=True)
 

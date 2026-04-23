@@ -99,7 +99,7 @@ class UserMiddleware(BaseMiddleware):
             async with self.session_factory() as session:
                 request_container = data["request_container_factory"](session)
 
-                admin_module = request_container.get_admin_module()
+                admin_module: AdminModule = request_container.get_admin_module()
 
                 user = await admin_module.user_service.get_user(
                     event_user.id,

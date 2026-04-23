@@ -22,7 +22,7 @@ async def notification_settings(
         chat_id=user_id,
         message_id=message_id,
         message=get_text(user.language, "profile_messages", "notification_settings"),
-        event_message_key='selecting_language',
+        event_message_key='notification_settings',
         reply_markup=setting_notification_kb(user.language, notification=notification)
     )
 

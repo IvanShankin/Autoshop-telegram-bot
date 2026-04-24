@@ -186,6 +186,7 @@ async def buy_product(
         )
         return
 
+    original_sum = category.price * quantity_products
     total_sum = category.price * quantity_products
 
     if promo_code_id is not None:  # если есть promo_code_id
@@ -196,7 +197,7 @@ async def buy_product(
             total_sum = max(0, total_sum - discount_sum)
 
             # если минимальная сумма активации промокода не достигнута
-            if promo_code and promo_code.min_order_amount > total_sum:
+            if promo_code and promo_code.min_order_amount > original_sum:
                 await callback.answer(
                     get_text(
                         user.language,

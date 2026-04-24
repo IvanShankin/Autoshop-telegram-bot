@@ -1217,6 +1217,8 @@ class RequestContainer:
                 user_log_service=self.user_log_service,
                 wallet_trans_service=self.wallet_transaction_service,
                 session_db=self.session_db,
+                logger=self.logger,
+                category_service=self.category_service,
             ),
             filesystem_ev_hand=FileSystemEventHandler(
                 path_builder=self.path_builder,

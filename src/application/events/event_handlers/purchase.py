@@ -1,5 +1,7 @@
+from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.application.models.categories import CategoryService
 from src.models.read_models import LogLevel
 from src.models.create_models.users import CreateUserAuditLogDTO, CreateWalletTransactionDTO
 from src.models.read_models import NewPurchaseAccount, NewPurchaseUniversal
@@ -14,12 +16,16 @@ class PurchaseEventHandler:
         publish_event: PublishEventHandler,
         user_log_service: UserLogService,
         wallet_trans_service: WalletTransactionService,
+        category_service: CategoryService,
         session_db: AsyncSession,
+        logger: Logger,
     ):
         self.publish_event = publish_event
         self.user_log_service = user_log_service
         self.wallet_trans_service = wallet_trans_service
+        self.category_service = category_service
         self.session_db = session_db
+        self.logger = logger
 
     async def purchase_event_handler(self, event):
         payload = event["payload"]
@@ -31,24 +37,31 @@ class PurchaseEventHandler:
             obj = NewPurchaseUniversal.model_validate(payload)
             await self._handler_new_purchase_universal(obj)
 
+    async def get_category_name_srt(self, category_id: int) -> str:
+        category = await self.category_service.get_category_by_id(category_id)
+        return f"Наименование категории: '{category.name}'\n" if category else ""
+
     async def _handler_new_purchase_account(self, new_purchase: NewPurchaseAccount):
         """Отошлёт логи в канал, обновит SoldAccount в _redis, добавить в БД запись о покупке"""
-        for account_data in new_purchase.account_movement:
-            await self.publish_event.send_log(
-                text=(
-                    f"#Покупка_аккаунта \n\n"
-                    f"Аккаунт на продаже (StorageAccount), id = {account_data.account_storage_id} продан!\n"
-                    f"Создана новая запись о проданном аккаунте (SoldAccount), id = {account_data.new_sold_account_id}\n"
-                    f"Создан лог о продаже аккаунта, id = {account_data.purchase_id}\n\n"
-                    f"Себестоимость: {account_data.cost_price}\n"
-                    f"Цена продажи: {account_data.purchase_price}\n"
-                    f"Прибыль: {account_data.net_profit}\n\n"
-                    f"ID категории: {new_purchase.category_id}\n"
-                    f"Осталось аккаунтов в категории: {new_purchase.product_left}\n"
-                ),
-                log_lvl=LogLevel.INFO
-            )
+        total_cost_price = 0
+        total_sum = 0
+        total_profit = 0
 
+        category_name_str = await self.get_category_name_srt(new_purchase.category_id)
+
+        for account_data in new_purchase.account_movement:
+            self.logger.info(
+                f"#Покупка_аккаунта \n\n"
+                f"Аккаунт на продаже (StorageAccount), id = {account_data.account_storage_id} продан!\n"
+                f"Создана новая запись о проданном аккаунте (SoldAccount), id = {account_data.new_sold_account_id}\n"
+                f"Создан лог о продаже аккаунта, id = {account_data.purchase_id}\n\n"
+                f"Цена продажи: {account_data.purchase_price}\n"
+                f"Себестоимость: {account_data.cost_price}\n"
+                f"Прибыль: {account_data.net_profit}\n\n"
+                f"ID категории: {new_purchase.category_id}\n"
+                f"{category_name_str}"
+                f"Осталось аккаунтов в категории: {new_purchase.product_left}\n"
+            )
             await self.user_log_service.create_log(
                 user_id=new_purchase.user_id,
                 data=CreateUserAuditLogDTO(
@@ -62,6 +75,24 @@ class PurchaseEventHandler:
                     }
                 )
             )
+
+            total_cost_price += account_data.cost_price
+            total_sum += account_data.purchase_price
+            total_profit += account_data.net_profit
+
+
+        await self.publish_event.send_log(
+            text=(
+                f"#Покупка_аккаунты \n\n"
+                f"Цена продажи: {total_sum}\n"
+                f"Себестоимость: {total_cost_price}\n"
+                f"Прибыль: {total_profit}\n\n"
+                f"ID категории: {new_purchase.category_id}\n"
+                f"{category_name_str}"
+                f"Осталось аккаунтов в категории: {new_purchase.product_left}\n"
+            ),
+            log_lvl=LogLevel.INFO
+        )
 
         await self.wallet_trans_service.create_wallet_transaction(
             user_id=new_purchase.user_id,
@@ -77,20 +108,24 @@ class PurchaseEventHandler:
 
 
     async def _handler_new_purchase_universal(self, new_purchase: NewPurchaseUniversal):
+        total_cost_price = 0
+        total_sum = 0
+        total_profit = 0
+
+        category_name_str = await self.get_category_name_srt(new_purchase.category_id)
+
         for product_data in new_purchase.product_movement:
-            await self.publish_event.send_log(
-                text=(
-                    f"#Покупка \n\n"
-                    f"Продукт на продаже (UniversalStorage), id = {product_data.universal_storage_id} продан!\n"
-                    f"Создана новая запись о проданном товаре (SoldUniversal), id = {product_data.sold_universal_id}\n"
-                    f"Создан лог о продаже товара, id = {product_data.purchase_id}\n\n"
-                    f"Себестоимость: {product_data.cost_price}\n"
-                    f"Цена продажи: {product_data.purchase_price}\n"
-                    f"Прибыль: {product_data.net_profit}\n\n"
-                    f"ID категории: {new_purchase.category_id}\n"
-                    f"Осталось продуктов в категории: {new_purchase.product_left}\n"
-                ),
-                log_lvl=LogLevel.INFO
+            self.logger.info(
+                f"#Покупка \n\n"
+                f"Продукт на продаже (UniversalStorage), id = {product_data.universal_storage_id} продан!\n"
+                f"Создана новая запись о проданном товаре (SoldUniversal), id = {product_data.sold_universal_id}\n"
+                f"Создан лог о продаже товара, id = {product_data.purchase_id}\n\n"
+                f"Цена продажи: {product_data.purchase_price}\n"
+                f"Себестоимость: {product_data.cost_price}\n"
+                f"Прибыль: {product_data.net_profit}\n\n"
+                f"ID категории: {new_purchase.category_id}\n"
+                f"{category_name_str}"
+                f"Осталось продуктов в категории: {new_purchase.product_left}\n"
             )
 
             await self.user_log_service.create_log(
@@ -106,6 +141,23 @@ class PurchaseEventHandler:
                     }
                 )
             )
+
+            total_cost_price += product_data.cost_price
+            total_sum += product_data.purchase_price
+            total_profit += product_data.net_profit
+
+        await self.publish_event.send_log(
+            text=(
+                f"#Покупка \n\n"
+                f"Цена продажи: {total_sum}\n"
+                f"Себестоимость: {total_cost_price}\n"
+                f"Прибыль: {total_profit}\n\n"
+                f"ID категории: {new_purchase.category_id}\n"
+                f"{category_name_str}"
+                f"Осталось продуктов в категории: {new_purchase.product_left}\n"
+            ),
+            log_lvl=LogLevel.INFO
+        )
 
         await self.wallet_trans_service.create_wallet_transaction(
             user_id=new_purchase.user_id,

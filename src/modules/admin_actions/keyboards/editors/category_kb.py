@@ -35,7 +35,7 @@ def back_in_category_editor_kb(language: str):
 def in_category_editor_kb(language: str):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
-            text=get_text(language, "kb_general", "in_category_editor"),
+            text=get_text(language, "kb_admin_panel", "in_category_editor"),
             callback_data=f'category_editor'
         )]
     ])

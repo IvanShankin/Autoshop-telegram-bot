@@ -82,7 +82,7 @@ class CategoryService:
         else:
             is_main = True
 
-        next_index = max(await self.category_repo.get_max_index_by_parent(parent_id=data.parent_id), 0)
+        next_index = max(await self.category_repo.get_max_index_by_parent(parent_id=data.parent_id), 0) + 1
         new_ui_image = await self.ui_image_service.create_default_io_image()
 
         category = await self.category_repo.create_category(
@@ -310,6 +310,7 @@ class CategoryService:
                         end=new_index,
                         delta=-1,
                     )
+            data.index = new_index
 
         if file_data is not None:
             ui_image = await self.ui_image_service.create_ui_image(
@@ -329,7 +330,7 @@ class CategoryService:
             await self.category_repo.update(category_id=category_id, **update_data)
             await self.session_db.commit()
 
-            await self.category_filler_service.fill_need_category(categories=[category])
+            await self.category_filler_service.fill_all_by_parent(parent_id=category.parent_id)
 
             if ui_image_key and ui_image_key:
                 if category.ui_image_key:
@@ -375,8 +376,8 @@ class CategoryService:
 
         await self.session_db.commit()
 
-        # обновление _redis
-        await self.category_filler_service.fill_need_category(category_id)
+        # обновление redis
+        await self.category_filler_service.delete_category(category=category)
 
         if category.ui_image_key:
             await self.ui_image_service.delete_ui_image(

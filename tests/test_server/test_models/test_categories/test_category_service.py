@@ -259,13 +259,22 @@ async def test_update_category_shifts_indexes_and_updates_fields(
     assert [item.category_id for item in result] == [child_2.category_id, child_1.category_id]
     assert result[1].price == 777
     assert result[1].show is False
+    assert result[1].index == 1
+    assert result[0].index == 0
 
     db_row = await session_db_fix.execute(
         select(Categories).where(Categories.category_id == child_1.category_id)
     )
-    updated = db_row.scalar_one()
+    updated: Categories = db_row.scalar_one()
     assert updated.price == 777
+    assert updated.index == 1
     assert updated.show is False
+
+    db_row = await session_db_fix.execute(
+        select(Categories).where(Categories.category_id == child_2.category_id)
+    )
+    updated: Categories = db_row.scalar_one()
+    assert updated.index == 0
 
 
 @pytest.mark.asyncio

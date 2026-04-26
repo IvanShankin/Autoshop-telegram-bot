@@ -436,6 +436,7 @@ class RequestContainer:
         self.categories_cache_filler_service = CategoriesCacheFillerService(
             category_repo=self.categories_repo,
             category_cache_repo=self.categories_cache_repo,
+            logger=self.logger,
         )
         self.category_translations_repo = CategoryTranslationsRepository(
             session_db=self.session_db,

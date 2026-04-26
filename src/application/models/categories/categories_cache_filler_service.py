@@ -1,3 +1,4 @@
+from logging import Logger
 from typing import List, Optional
 
 from src.database.models.categories import Categories
@@ -12,9 +13,11 @@ class CategoriesCacheFillerService:
         self,
         category_repo: CategoriesRepository,
         category_cache_repo: CategoriesCacheRepository,
+        logger: Logger,
     ):
         self.category_repo = category_repo
         self.cache_repo = category_cache_repo
+        self.logger = logger
 
     async def _build_category_full_list(
             self,
@@ -60,12 +63,18 @@ class CategoriesCacheFillerService:
         categories = await self.category_repo.get_main_with_translations()
         data = await self._build_category_full_list(categories)
 
+        # сперва необходимо очистить, т.к. некоторые категории могут не изъяться с БД и они так и останутся в redis
+        await self.cache_repo.delete_main_categories()
+
         for language, items in data.items():
             await self.cache_repo.set_main_categories(items, language)
 
     async def fill_category_by_parent(self, parent_id: int) -> None:
         categories = await self.category_repo.get_children_with_translations(parent_id)
         data = await self._build_category_full_list(categories)
+
+        # сперва необходимо очистить, т.к. некоторые категории могут не изъяться с БД и они так и останутся в redis
+        await self.cache_repo.delete_categories_by_parent(parent_id)
 
         for language, items in data.items():
             await self.cache_repo.set_categories_by_parent(items, parent_id, language)
@@ -77,6 +86,9 @@ class CategoriesCacheFillerService:
 
         quantity_map = await self.category_repo.get_quantity_products_map([category.category_id])
 
+        # сперва необходимо очистить, т.к. категория может не изъяться с БД и она так и останутся в redis
+        await self.cache_repo.delete_category(category_id)
+
         for t in category.translations:
             dto = CategoryFull.from_orm_with_translation(
                 category=category,
@@ -85,6 +97,14 @@ class CategoriesCacheFillerService:
             )
 
             await self.cache_repo.set_category(dto, t.language)
+
+    async def fill_all_by_parent(self, parent_id: int):
+        """Заполнит все категории по всем ключам, что хранятся с указанным parent_id"""
+        categories = await self.category_repo.get_children(parent_id=parent_id)
+        if categories:
+            await self.fill_need_category(categories=categories)
+        else:
+            self.logger.info("Не нашли категории в БД -> не стали заполнять кэш")
 
     async def fill_need_category(
         self,
@@ -127,3 +147,12 @@ class CategoriesCacheFillerService:
 
         for cat_id in all_cat_ids:
             await self.fill_category_by_id(cat_id)
+
+    async def delete_category(self, category: CategoriesDTO):
+        await self.cache_repo.delete_category(category_id=category.category_id)
+
+        if category.is_main:
+            await self.fill_main_categories()
+        elif category.parent_id:
+            await self.fill_category_by_parent(category.parent_id)
+

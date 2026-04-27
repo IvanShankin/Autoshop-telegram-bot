@@ -2,6 +2,7 @@ import os
 import uuid
 import zipfile
 from pathlib import Path
+from typing import Tuple
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from sqlalchemy import select
@@ -146,7 +147,7 @@ async def create_product_account_factory(
     status: StorageStatus = StorageStatus.FOR_SALE,
     phone_number: str = '+7 920 107-42-12',
     price: int = 150
-) -> (ProductAccounts, ProductAccountFull):
+) -> Tuple[ProductAccounts, ProductAccountFull]:
     async with get_session_factory() as session_db:
         if category_id is None:
             category = await create_category_factory(container_fix=container_fix, filling_redis=filling_redis, price=price)
@@ -208,7 +209,7 @@ async def create_sold_account_factory(
     name: str = "name",
     description: str = "description",
     phone_number: str = "+7 920 107-42-12"
-) -> (SoldAccountSmall, SoldAccountFull):
+) -> Tuple[SoldAccountSmall, SoldAccountFull]:
     async with get_session_factory() as session_db:
         if owner_id is None:
             user = await create_new_user_fabric(container_fix)

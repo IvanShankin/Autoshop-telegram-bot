@@ -98,7 +98,7 @@ class CategoriesCacheFillerService:
 
             await self.cache_repo.set_category(dto, t.language)
 
-    async def fill_all_by_parent(self, parent_id: int):
+    async def fill_all_by_parent(self, parent_id: Optional[int]):
         """Заполнит все категории по всем ключам, что хранятся с указанным parent_id"""
         categories = await self.category_repo.get_children(parent_id=parent_id)
         if categories:

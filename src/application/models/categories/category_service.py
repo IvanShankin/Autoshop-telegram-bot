@@ -313,10 +313,12 @@ class CategoryService:
             data.index = new_index
 
         if file_data is not None:
+            ui_image = await self.ui_image_service.get_ui_image(key=category.ui_image_key)
+
             ui_image = await self.ui_image_service.create_ui_image(
                 key=str(uuid.uuid4()),
                 file_data=file_data,
-                show=category.ui_image.show if category.ui_image else True
+                show=ui_image.show if ui_image else True
             )
             ui_image_key = ui_image.key
 

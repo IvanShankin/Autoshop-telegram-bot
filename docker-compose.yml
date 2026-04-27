@@ -1,0 +1,73 @@
+
+services:
+  app:
+    build: .
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    environment:
+      - TOKEN_CRYPTO_BOT=${TOKEN_CRYPTO_BOT}
+      - TOKEN_BOT=${TOKEN_BOT}
+      - TOKEN_LOGGER_BOT=${TOKEN_LOGGER_BOT}
+      - MAIN_ADMIN=${MAIN_ADMIN}
+
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+
+      - DB_HOST=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=123456789
+      - DB_NAME=auto_shop
+
+      - STORAGE_SERVER_URL=${STORAGE_SERVER_URL}
+
+      - USE_SECRET_STORAGE=${USE_SECRET_STORAGE}
+
+      - MODE=PROD
+
+      # только для docker
+      - INIT_DB=${INIT_DB}
+      - FILLING_DB=${FILLING_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    restart: unless-stopped  # Автоперезапуск при падении
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456789
+      POSTGRES_DB: auto_shop
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Web UI
+
+
+volumes:
+  postgres_data:

@@ -19,7 +19,7 @@ class RuntimeConfig:
     def __init__(self):
         init_env()
         self.env = EnvSettings.from_env()
-        self.paths = PathSettings.build(self.env.use_secret_storage)
+        self.paths = PathSettings.build(self.env.use_secret_storage, self.env.cert_dir)
 
 
 class Config:
@@ -30,7 +30,7 @@ class Config:
         self.app = AppConfig()
         self.different = MiscellaneousConf()
         self.message_event = MessageEventConf.build()
-        self.paths = PathSettings.build(self.env.use_secret_storage)
+        self.paths = PathSettings.build(self.env.use_secret_storage, self.env.cert_dir)
         self.redis_time_storage = RedisTimeStorage.build()
 
         self.secrets = load_secrets(get_secret)

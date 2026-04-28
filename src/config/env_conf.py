@@ -1,4 +1,6 @@
 from enum import Enum
+from typing import Optional
+
 from pydantic import BaseModel
 import os
 
@@ -25,6 +27,7 @@ class EnvSettings(BaseModel):
     mode: Mode
 
     use_secret_storage: bool
+    cert_dir: Optional[str] = None
 
     @classmethod
     def from_env(cls) -> "EnvSettings":
@@ -42,5 +45,6 @@ class EnvSettings(BaseModel):
             db_host=os.getenv('DB_HOST'),
             db_user=os.getenv('DB_USER'),
             db_name=os.getenv('DB_NAME'),
-            use_secret_storage=use_secret_storage
+            use_secret_storage=use_secret_storage,
+            cert_dir=os.getenv('CERT_DIR')
         )

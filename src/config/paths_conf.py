@@ -1,5 +1,7 @@
 import os.path
 from pathlib import Path
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -23,27 +25,27 @@ class PathSettings(BaseModel):
     ui_sections_dir: Path
 
     # сертификаты
-    cert_dir: Path
-    ssl_client_cert_file: Path
-    ssl_client_key_file: Path
-    ssl_ca_file: Path
+    cert_dir: Optional[Path]
+    ssl_client_cert_file: Optional[Path]
+    ssl_client_key_file: Optional[Path]
+    ssl_ca_file: Optional[Path]
 
     @classmethod
-    def build(cls, use_secret_storage: bool) -> "PathSettings":
+    def build(cls, use_secret_storage: bool, cert_dir: Optional[str]) -> "PathSettings":
         base = Path(__file__).resolve().parents[2]
         media = base / Path("media")
         products = media / Path("products")
-        cert_dir = base / Path("certs")
+        cert_dir = Path(cert_dir) if cert_dir else None
         files_dir = media / Path("files")
 
         os.makedirs(media, exist_ok=True)
         os.makedirs(products, exist_ok=True)
         os.makedirs(files_dir, exist_ok=True)
-        os.makedirs(cert_dir, exist_ok=True)
+        os.makedirs(cert_dir, exist_ok=True) if cert_dir else None
 
-        ssl_client_cert_file = cert_dir / Path("client") / Path("client_cert.pem")
-        ssl_client_key_file = cert_dir / Path("client") / Path("client_key.pem")
-        ssl_ca_file = cert_dir / Path("ca") / Path("client_ca_chain.pem")
+        ssl_client_cert_file = cert_dir / Path("client") / Path("client_cert.pem") if cert_dir else None
+        ssl_client_key_file = cert_dir / Path("client") / Path("client_key.pem") if cert_dir else None
+        ssl_ca_file = cert_dir / Path("ca") / Path("client_ca_chain.pem") if cert_dir else None
 
         if (
             use_secret_storage == True and

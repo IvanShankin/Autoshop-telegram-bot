@@ -14,8 +14,8 @@ from src.tools.init_secrets.set_secret import SetSecretsUseCase
 
 async def main():
     # грузим отдельный env для секретов
-    paths = PathSettings.build(use_secret_storage=True)
-    init_env(str(paths.base_dir / Path(".secrets.env")))
+    base_dir = Path(__file__).resolve().parents[3]
+    init_env(str(base_dir / Path(".secrets.env")))
 
     try:
         conf = EnvInitSecrets.from_env()
@@ -23,13 +23,15 @@ async def main():
         logger.exception("'.secrets.env' не заполнен!")
         return
 
+    paths_conf = PathSettings.build(use_secret_storage=True, cert_dir=conf.cert_dir)
+
     secret_client = SecretsStorageClient(
         base_url=conf.storage_server_url,
         cert=(
-            str(paths.ssl_client_cert_file),
-            str(paths.ssl_client_key_file),
+            str(paths_conf.ssl_client_cert_file),
+            str(paths_conf.ssl_client_key_file),
         ),
-        ca=str(paths.ssl_ca_file),
+        ca=str(paths_conf.ssl_ca_file),
     )
 
     storage: SecretsStorage = HttpSecretsStorage(secret_client)
